@@ -5,7 +5,7 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '../../src/context/AuthContext';
-import { getFavorites, getStats } from '../../src/services/api';
+import { getFavorites, getStats, getUpcomingEvents } from '../../src/services/api';
 import HeritageCard from '../../src/components/HeritageCard';
 import { getCategories } from '../../src/services/api';
 
