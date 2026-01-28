@@ -124,6 +124,31 @@ export default function ProfileScreen() {
         </TouchableOpacity>
       </View>
 
+      {/* Quick Actions */}
+      <View style={styles.quickActions}>
+        <TouchableOpacity 
+          style={styles.actionButton}
+          onPress={() => router.push('/achievements')}
+        >
+          <View style={[styles.actionIcon, { backgroundColor: '#F59E0B20' }]}>
+            <MaterialIcons name="emoji-events" size={24} color="#F59E0B" />
+          </View>
+          <Text style={styles.actionText}>Conquistas</Text>
+          <MaterialIcons name="chevron-right" size={20} color="#64748B" />
+        </TouchableOpacity>
+        
+        <TouchableOpacity 
+          style={styles.actionButton}
+          onPress={() => router.push('/calendar')}
+        >
+          <View style={[styles.actionIcon, { backgroundColor: '#22C55E20' }]}>
+            <MaterialIcons name="event" size={24} color="#22C55E" />
+          </View>
+          <Text style={styles.actionText}>Calendário Cultural</Text>
+          <MaterialIcons name="chevron-right" size={20} color="#64748B" />
+        </TouchableOpacity>
+      </View>
+
       {/* Favorites Section */}
       <View style={styles.section}>
         <View style={styles.sectionHeader}>
