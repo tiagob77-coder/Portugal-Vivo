@@ -22,7 +22,7 @@ export default function TabLayout() {
         tabBarActiveTintColor: '#F59E0B',
         tabBarInactiveTintColor: '#64748B',
         tabBarLabelStyle: {
-          fontSize: 11,
+          fontSize: 10,
           fontWeight: '600',
           marginTop: 2,
         },
@@ -33,7 +33,7 @@ export default function TabLayout() {
         options={{
           title: 'Explorar',
           tabBarIcon: ({ color, size }) => (
-            <MaterialIcons name="explore" size={24} color={color} />
+            <MaterialIcons name="explore" size={22} color={color} />
           ),
         }}
       />
@@ -42,7 +42,7 @@ export default function TabLayout() {
         options={{
           title: 'Mapa',
           tabBarIcon: ({ color, size }) => (
-            <MaterialIcons name="map" size={24} color={color} />
+            <MaterialIcons name="map" size={22} color={color} />
           ),
         }}
       />
@@ -51,7 +51,16 @@ export default function TabLayout() {
         options={{
           title: 'Rotas',
           tabBarIcon: ({ color, size }) => (
-            <MaterialIcons name="route" size={24} color={color} />
+            <MaterialIcons name="route" size={22} color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="community"
+        options={{
+          title: 'Comunidade',
+          tabBarIcon: ({ color, size }) => (
+            <MaterialIcons name="groups" size={22} color={color} />
           ),
         }}
       />
@@ -60,7 +69,7 @@ export default function TabLayout() {
         options={{
           title: 'Perfil',
           tabBarIcon: ({ color, size }) => (
-            <MaterialIcons name="person" size={24} color={color} />
+            <MaterialIcons name="person" size={22} color={color} />
           ),
         }}
       />
