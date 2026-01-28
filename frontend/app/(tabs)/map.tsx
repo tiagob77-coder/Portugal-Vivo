@@ -1,45 +1,41 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Dimensions, ActivityIndicator, Platform, FlatList } from 'react-native';
 import { useRouter } from 'expo-router';
-import { MaterialIcons } from '@expo/vector-icons';
+import { MaterialIcons } from '@expo/vector-icons'
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useQuery } from '@tanstack/react-query';
 import { getCategories, getMapItems } from '../../src/services/api';
 import { HeritageItem, Category } from '../../src/types';
+import HeritageCard from '../../src/components/HeritageCard';
 
 const { width, height } = Dimensions.get('window');
 
-// Conditionally import MapView for native platforms
-let MapView: any = null;
-let Marker: any = null;
-let PROVIDER_GOOGLE: any = null;
-
-if (Platform.OS !== 'web') {
-  try {
-    const Maps = require('react-native-maps');
-    MapView = Maps.default;
-    Marker = Maps.Marker;
-    PROVIDER_GOOGLE = Maps.PROVIDER_GOOGLE;
-  } catch (e) {
-    console.log('Maps not available');
-  }
-}
-
-const PORTUGAL_REGION = {
-  latitude: 39.5,
-  longitude: -8.0,
-  latitudeDelta: 6,
-  longitudeDelta: 6,
+const REGION_NAMES: Record<string, string> = {
+  norte: 'Norte',
+  centro: 'Centro',
+  lisboa: 'Lisboa e Vale do Tejo',
+  alentejo: 'Alentejo',
+  algarve: 'Algarve',
+  acores: 'Açores',
+  madeira: 'Madeira',
 };
 
-const GOOGLE_MAPS_API_KEY = 'AIzaSyDjEkvguNALmvkSNapWvkUDTrT9juoU3RE';
+const REGIONS = [
+  { id: 'all', name: 'Todas as Regiões', icon: 'public' },
+  { id: 'norte', name: 'Norte', icon: 'landscape' },
+  { id: 'centro', name: 'Centro', icon: 'terrain' },
+  { id: 'lisboa', name: 'Lisboa', icon: 'location-city' },
+  { id: 'alentejo', name: 'Alentejo', icon: 'wb-sunny' },
+  { id: 'algarve', name: 'Algarve', icon: 'beach-access' },
+  { id: 'acores', name: 'Açores', icon: 'waves' },
+  { id: 'madeira', name: 'Madeira', icon: 'local-florist' },
+];
 
 export default function MapScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const mapRef = useRef<MapView>(null);
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
-  const [selectedItem, setSelectedItem] = useState<HeritageItem | null>(null);
+  const [selectedRegion, setSelectedRegion] = useState('all');
   const [showFilters, setShowFilters] = useState(false);
 
   const { data: categories = [] } = useQuery({
@@ -47,10 +43,15 @@ export default function MapScreen() {
     queryFn: getCategories,
   });
 
-  const { data: items = [], isLoading } = useQuery({
+  const { data: allItems = [], isLoading } = useQuery({
     queryKey: ['mapItems', selectedCategories],
     queryFn: () => getMapItems(selectedCategories.length > 0 ? selectedCategories : undefined),
   });
+
+  // Filter items by region
+  const items = selectedRegion === 'all' 
+    ? allItems 
+    : allItems.filter(item => item.region === selectedRegion);
 
   const toggleCategory = (categoryId: string) => {
     setSelectedCategories(prev => 
@@ -60,14 +61,8 @@ export default function MapScreen() {
     );
   };
 
-  const handleMarkerPress = (item: HeritageItem) => {
-    setSelectedItem(item);
-  };
-
-  const handleItemPress = () => {
-    if (selectedItem) {
-      router.push(`/heritage/${selectedItem.id}`);
-    }
+  const handleItemPress = (item: HeritageItem) => {
+    router.push(`/heritage/${item.id}`);
   };
 
   const getCategoryColor = (categoryId: string) => {
@@ -80,46 +75,33 @@ export default function MapScreen() {
     return cat?.icon || 'place';
   };
 
-  return (
-    <View style={styles.container}>
-      {/* Map */}
-      <MapView
-        ref={mapRef}
-        style={styles.map}
-        provider={Platform.OS === 'android' ? PROVIDER_GOOGLE : undefined}
-        initialRegion={PORTUGAL_REGION}
-        showsUserLocation
-        showsCompass
-        showsScale
-        mapType="standard"
-      >
-        {items.map((item) => (
-          item.location && (
-            <Marker
-              key={item.id}
-              coordinate={{
-                latitude: item.location.lat,
-                longitude: item.location.lng,
-              }}
-              onPress={() => handleMarkerPress(item)}
-              pinColor={getCategoryColor(item.category)}
-            />
-          )
-        ))}
-      </MapView>
+  // Group items by region for the list view
+  const groupedByRegion = items.reduce((acc: Record<string, HeritageItem[]>, item) => {
+    const region = item.region;
+    if (!acc[region]) acc[region] = [];
+    acc[region].push(item);
+    return acc;
+  }, {});
 
-      {/* Header Overlay */}
-      <View style={[styles.headerOverlay, { paddingTop: insets.top + 8 }]}>
-        <View style={styles.headerContent}>
-          <Text style={styles.headerTitle}>Mapa Cultural</Text>
+  return (
+    <View style={[styles.container, { paddingTop: insets.top }]}>
+      {/* Header */}
+      <View style={styles.header}>
+        <View style={styles.headerTop}>
+          <View>
+            <Text style={styles.headerTitle}>Mapa Cultural</Text>
+            <Text style={styles.headerSubtitle}>
+              {items.length} pontos de interesse com localização
+            </Text>
+          </View>
           <TouchableOpacity 
-            style={styles.filterButton}
+            style={[styles.filterButton, showFilters && styles.filterButtonActive]}
             onPress={() => setShowFilters(!showFilters)}
           >
             <MaterialIcons 
-              name="filter-list" 
+              name="tune" 
               size={24} 
-              color={selectedCategories.length > 0 ? '#F59E0B' : '#F8FAFC'} 
+              color={showFilters || selectedCategories.length > 0 ? '#F59E0B' : '#F8FAFC'} 
             />
             {selectedCategories.length > 0 && (
               <View style={styles.filterBadge}>
@@ -129,105 +111,150 @@ export default function MapScreen() {
           </TouchableOpacity>
         </View>
 
-        {/* Loading Indicator */}
-        {isLoading && (
-          <View style={styles.loadingContainer}>
-            <ActivityIndicator size="small" color="#F59E0B" />
-            <Text style={styles.loadingText}>A carregar pontos...</Text>
+        {/* Category Filters */}
+        {showFilters && (
+          <View style={styles.filtersSection}>
+            <Text style={styles.filtersLabel}>Filtrar por categoria:</Text>
+            <ScrollView 
+              horizontal 
+              showsHorizontalScrollIndicator={false}
+              style={styles.filtersScroll}
+            >
+              {categories.slice(0, 12).map((category) => (
+                <TouchableOpacity
+                  key={category.id}
+                  style={[
+                    styles.categoryChip,
+                    selectedCategories.includes(category.id) && {
+                      backgroundColor: category.color + '30',
+                      borderColor: category.color,
+                    },
+                  ]}
+                  onPress={() => toggleCategory(category.id)}
+                >
+                  <MaterialIcons 
+                    name={category.icon as any} 
+                    size={14} 
+                    color={selectedCategories.includes(category.id) ? category.color : '#94A3B8'} 
+                  />
+                  <Text style={[
+                    styles.categoryChipText,
+                    selectedCategories.includes(category.id) && { color: category.color },
+                  ]}>
+                    {category.name}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+            {selectedCategories.length > 0 && (
+              <TouchableOpacity 
+                style={styles.clearButton}
+                onPress={() => setSelectedCategories([])}
+              >
+                <MaterialIcons name="clear" size={16} color="#F59E0B" />
+                <Text style={styles.clearButtonText}>Limpar filtros</Text>
+              </TouchableOpacity>
+            )}
           </View>
-        )}
-
-        {/* Items Count */}
-        {!isLoading && (
-          <Text style={styles.itemsCount}>
-            {items.length} pontos no mapa
-          </Text>
         )}
       </View>
 
-      {/* Category Filters */}
-      {showFilters && (
-        <View style={styles.filtersContainer}>
-          <ScrollView 
-            horizontal 
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.filtersContent}
+      {/* Region Tabs */}
+      <ScrollView 
+        horizontal 
+        showsHorizontalScrollIndicator={false}
+        style={styles.regionTabs}
+        contentContainerStyle={styles.regionTabsContent}
+      >
+        {REGIONS.map((region) => (
+          <TouchableOpacity
+            key={region.id}
+            style={[
+              styles.regionTab,
+              selectedRegion === region.id && styles.regionTabActive,
+            ]}
+            onPress={() => setSelectedRegion(region.id)}
           >
-            {categories.slice(0, 10).map((category) => (
-              <TouchableOpacity
-                key={category.id}
-                style={[
-                  styles.categoryChip,
-                  selectedCategories.includes(category.id) && {
-                    backgroundColor: category.color + '30',
-                    borderColor: category.color,
-                  },
-                ]}
-                onPress={() => toggleCategory(category.id)}
-              >
-                <MaterialIcons 
-                  name={category.icon as any} 
-                  size={16} 
-                  color={selectedCategories.includes(category.id) ? category.color : '#94A3B8'} 
-                />
-                <Text style={[
-                  styles.categoryChipText,
-                  selectedCategories.includes(category.id) && { color: category.color },
-                ]}>
-                  {category.name}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </ScrollView>
-          {selectedCategories.length > 0 && (
+            <MaterialIcons 
+              name={region.icon as any} 
+              size={18} 
+              color={selectedRegion === region.id ? '#F59E0B' : '#94A3B8'} 
+            />
+            <Text style={[
+              styles.regionTabText,
+              selectedRegion === region.id && styles.regionTabTextActive,
+            ]}>
+              {region.name}
+            </Text>
+          </TouchableOpacity>
+        ))}
+      </ScrollView>
+
+      {/* Items List */}
+      {isLoading ? (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#F59E0B" />
+          <Text style={styles.loadingText}>A carregar pontos...</Text>
+        </View>
+      ) : items.length === 0 ? (
+        <View style={styles.emptyContainer}>
+          <MaterialIcons name="map" size={64} color="#64748B" />
+          <Text style={styles.emptyText}>Nenhum ponto encontrado</Text>
+          <Text style={styles.emptySubtext}>Tente alterar os filtros</Text>
+        </View>
+      ) : (
+        <FlatList
+          data={items}
+          keyExtractor={(item) => item.id}
+          renderItem={({ item }) => (
             <TouchableOpacity 
-              style={styles.clearButton}
-              onPress={() => setSelectedCategories([])}
+              style={styles.mapItem}
+              onPress={() => handleItemPress(item)}
+              activeOpacity={0.8}
             >
-              <Text style={styles.clearButtonText}>Limpar filtros</Text>
+              <View style={[styles.mapItemIcon, { backgroundColor: getCategoryColor(item.category) + '20' }]}>
+                <MaterialIcons 
+                  name={getCategoryIcon(item.category) as any} 
+                  size={24} 
+                  color={getCategoryColor(item.category)} 
+                />
+              </View>
+              <View style={styles.mapItemContent}>
+                <Text style={styles.mapItemName} numberOfLines={1}>{item.name}</Text>
+                <View style={styles.mapItemMeta}>
+                  <MaterialIcons name="place" size={12} color="#94A3B8" />
+                  <Text style={styles.mapItemRegion}>
+                    {REGION_NAMES[item.region] || item.region}
+                  </Text>
+                  {item.location && (
+                    <Text style={styles.mapItemCoords}>
+                      {item.location.lat.toFixed(2)}, {item.location.lng.toFixed(2)}
+                    </Text>
+                  )}
+                </View>
+                {item.address && (
+                  <Text style={styles.mapItemAddress} numberOfLines={1}>{item.address}</Text>
+                )}
+              </View>
+              <MaterialIcons name="chevron-right" size={24} color="#64748B" />
             </TouchableOpacity>
           )}
-        </View>
+          contentContainerStyle={styles.listContent}
+          showsVerticalScrollIndicator={false}
+          ItemSeparatorComponent={() => <View style={styles.separator} />}
+        />
       )}
 
-      {/* Selected Item Card */}
-      {selectedItem && (
-        <TouchableOpacity 
-          style={[styles.itemCard, { paddingBottom: insets.bottom + 16 }]}
-          onPress={handleItemPress}
-          activeOpacity={0.95}
-        >
-          <View style={styles.itemCardHeader}>
-            <View style={[
-              styles.itemCategoryBadge, 
-              { backgroundColor: getCategoryColor(selectedItem.category) + '20' }
-            ]}>
-              <MaterialIcons 
-                name={getCategoryIcon(selectedItem.category) as any} 
-                size={14} 
-                color={getCategoryColor(selectedItem.category)} 
-              />
-            </View>
-            <TouchableOpacity onPress={() => setSelectedItem(null)}>
-              <MaterialIcons name="close" size={24} color="#64748B" />
-            </TouchableOpacity>
-          </View>
-          <Text style={styles.itemName}>{selectedItem.name}</Text>
-          <Text style={styles.itemDescription} numberOfLines={2}>
-            {selectedItem.description}
-          </Text>
-          {selectedItem.address && (
-            <View style={styles.itemAddress}>
-              <MaterialIcons name="place" size={14} color="#94A3B8" />
-              <Text style={styles.itemAddressText}>{selectedItem.address}</Text>
-            </View>
-          )}
-          <View style={styles.itemCardFooter}>
-            <Text style={styles.viewMoreText}>Ver detalhes</Text>
-            <MaterialIcons name="arrow-forward" size={18} color="#F59E0B" />
-          </View>
-        </TouchableOpacity>
-      )}
+      {/* Map Legend */}
+      <View style={[styles.legend, { paddingBottom: insets.bottom || 16 }]}>
+        <View style={styles.legendItem}>
+          <MaterialIcons name="location-on" size={16} color="#22C55E" />
+          <Text style={styles.legendText}>Localização disponível</Text>
+        </View>
+        <Text style={styles.legendNote}>
+          Mapa interativo disponível no dispositivo móvel
+        </Text>
+      </View>
     </View>
   );
 }
@@ -237,20 +264,13 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#0F172A',
   },
-  map: {
-    width: '100%',
-    height: '100%',
-  },
-  headerOverlay: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
+  header: {
     paddingHorizontal: 16,
     paddingBottom: 12,
-    backgroundColor: 'rgba(15, 23, 42, 0.9)',
+    borderBottomWidth: 1,
+    borderBottomColor: '#1E293B',
   },
-  headerContent: {
+  headerTop: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
@@ -260,6 +280,11 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     color: '#F8FAFC',
   },
+  headerSubtitle: {
+    fontSize: 13,
+    color: '#94A3B8',
+    marginTop: 2,
+  },
   filterButton: {
     width: 44,
     height: 44,
@@ -268,134 +293,195 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  filterButtonActive: {
+    backgroundColor: '#F59E0B20',
+  },
   filterBadge: {
     position: 'absolute',
-    top: 0,
-    right: 0,
+    top: -4,
+    right: -4,
     backgroundColor: '#F59E0B',
     borderRadius: 10,
-    width: 18,
-    height: 18,
+    width: 20,
+    height: 20,
     alignItems: 'center',
     justifyContent: 'center',
   },
   filterBadgeText: {
-    fontSize: 10,
+    fontSize: 11,
     fontWeight: '700',
     color: '#0F172A',
   },
-  loadingContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: 8,
-    gap: 8,
+  filtersSection: {
+    marginTop: 12,
   },
-  loadingText: {
+  filtersLabel: {
     fontSize: 12,
-    color: '#94A3B8',
+    color: '#64748B',
+    marginBottom: 8,
   },
-  itemsCount: {
-    fontSize: 12,
-    color: '#94A3B8',
-    marginTop: 4,
-  },
-  filtersContainer: {
-    position: 'absolute',
-    top: 120,
-    left: 0,
-    right: 0,
-    backgroundColor: 'rgba(15, 23, 42, 0.95)',
-    paddingVertical: 12,
-  },
-  filtersContent: {
+  filtersScroll: {
+    marginHorizontal: -16,
     paddingHorizontal: 16,
-    gap: 8,
   },
   categoryChip: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 20,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 16,
     backgroundColor: '#1E293B',
     borderWidth: 1,
     borderColor: '#334155',
     marginRight: 8,
-    gap: 6,
+    gap: 4,
   },
   categoryChipText: {
-    fontSize: 12,
+    fontSize: 11,
     color: '#94A3B8',
     fontWeight: '500',
   },
   clearButton: {
-    alignSelf: 'center',
-    marginTop: 8,
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 10,
+    gap: 4,
   },
   clearButtonText: {
     fontSize: 12,
     color: '#F59E0B',
     fontWeight: '600',
   },
-  itemCard: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    backgroundColor: '#1E293B',
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-    padding: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: -4 },
-    shadowOpacity: 0.25,
-    shadowRadius: 12,
-    elevation: 12,
+  regionTabs: {
+    maxHeight: 56,
+    borderBottomWidth: 1,
+    borderBottomColor: '#1E293B',
   },
-  itemCardHeader: {
+  regionTabsContent: {
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+  },
+  regionTab: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 12,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 20,
+    backgroundColor: '#1E293B',
+    marginRight: 8,
+    gap: 6,
   },
-  itemCategoryBadge: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
+  regionTabActive: {
+    backgroundColor: '#F59E0B20',
+    borderWidth: 1,
+    borderColor: '#F59E0B',
+  },
+  regionTabText: {
+    fontSize: 13,
+    color: '#94A3B8',
+    fontWeight: '500',
+  },
+  regionTabTextActive: {
+    color: '#F59E0B',
+    fontWeight: '600',
+  },
+  loadingContainer: {
+    flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  itemName: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: '#F8FAFC',
-    marginBottom: 8,
-  },
-  itemDescription: {
+  loadingText: {
     fontSize: 14,
     color: '#94A3B8',
-    lineHeight: 20,
-    marginBottom: 12,
+    marginTop: 12,
   },
-  itemAddress: {
-    flexDirection: 'row',
+  emptyContainer: {
+    flex: 1,
     alignItems: 'center',
-    gap: 4,
-    marginBottom: 16,
+    justifyContent: 'center',
+    paddingHorizontal: 32,
   },
-  itemAddressText: {
-    fontSize: 13,
-    color: '#94A3B8',
-  },
-  itemCardFooter: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'flex-end',
-    gap: 4,
-  },
-  viewMoreText: {
-    fontSize: 14,
-    color: '#F59E0B',
+  emptyText: {
+    fontSize: 18,
     fontWeight: '600',
+    color: '#94A3B8',
+    marginTop: 16,
+  },
+  emptySubtext: {
+    fontSize: 14,
+    color: '#64748B',
+    marginTop: 4,
+  },
+  listContent: {
+    paddingVertical: 12,
+  },
+  mapItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+  },
+  mapItemIcon: {
+    width: 48,
+    height: 48,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 12,
+  },
+  mapItemContent: {
+    flex: 1,
+  },
+  mapItemName: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#F8FAFC',
+    marginBottom: 4,
+  },
+  mapItemMeta: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  mapItemRegion: {
+    fontSize: 12,
+    color: '#94A3B8',
+  },
+  mapItemCoords: {
+    fontSize: 11,
+    color: '#64748B',
+    marginLeft: 8,
+  },
+  mapItemAddress: {
+    fontSize: 12,
+    color: '#64748B',
+    marginTop: 2,
+  },
+  separator: {
+    height: 1,
+    backgroundColor: '#1E293B',
+    marginLeft: 76,
+  },
+  legend: {
+    paddingHorizontal: 16,
+    paddingTop: 12,
+    borderTopWidth: 1,
+    borderTopColor: '#1E293B',
+    backgroundColor: '#0F172A',
+  },
+  legendItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  legendText: {
+    fontSize: 12,
+    color: '#94A3B8',
+  },
+  legendNote: {
+    fontSize: 11,
+    color: '#475569',
+    marginTop: 4,
+    fontStyle: 'italic',
   },
 });
