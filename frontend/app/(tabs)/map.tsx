@@ -1,14 +1,29 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Dimensions, ActivityIndicator, Platform } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Dimensions, ActivityIndicator, Platform, FlatList } from 'react-native';
 import { useRouter } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useQuery } from '@tanstack/react-query';
-import MapView, { Marker, PROVIDER_GOOGLE } from 'react-native-maps';
 import { getCategories, getMapItems } from '../../src/services/api';
 import { HeritageItem, Category } from '../../src/types';
 
 const { width, height } = Dimensions.get('window');
+
+// Conditionally import MapView for native platforms
+let MapView: any = null;
+let Marker: any = null;
+let PROVIDER_GOOGLE: any = null;
+
+if (Platform.OS !== 'web') {
+  try {
+    const Maps = require('react-native-maps');
+    MapView = Maps.default;
+    Marker = Maps.Marker;
+    PROVIDER_GOOGLE = Maps.PROVIDER_GOOGLE;
+  } catch (e) {
+    console.log('Maps not available');
+  }
+}
 
 const PORTUGAL_REGION = {
   latitude: 39.5,
