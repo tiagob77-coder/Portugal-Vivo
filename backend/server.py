@@ -655,6 +655,278 @@ async def get_stats():
     }
 
 # ========================
+# GAMIFICATION - BADGES & ACHIEVEMENTS
+# ========================
+
+BADGES = [
+    {"id": "explorer", "name": "Explorador", "description": "Visitou 10 pontos de património", "icon": "explore", "color": "#3B82F6", "requirement": 10, "type": "visits"},
+    {"id": "legend_hunter", "name": "Caçador de Lendas", "description": "Descobriu 5 lendas portuguesas", "icon": "auto-stories", "color": "#8B5CF6", "requirement": 5, "type": "category_lendas"},
+    {"id": "gastronome", "name": "Gastrónomo", "description": "Explorou 10 pratos típicos", "icon": "restaurant", "color": "#EF4444", "requirement": 10, "type": "category_gastronomia"},
+    {"id": "pilgrim", "name": "Peregrino Cultural", "description": "Completou 3 rotas temáticas", "icon": "hiking", "color": "#22C55E", "requirement": 3, "type": "routes"},
+    {"id": "storyteller", "name": "Contador de Histórias", "description": "Contribuiu com 5 histórias aprovadas", "icon": "record-voice-over", "color": "#F59E0B", "requirement": 5, "type": "contributions"},
+    {"id": "guardian", "name": "Guardião do Património", "description": "50 itens nos favoritos", "icon": "favorite", "color": "#EC4899", "requirement": 50, "type": "favorites"},
+    {"id": "north_expert", "name": "Especialista do Norte", "description": "Visitou 20 locais do Norte", "icon": "landscape", "color": "#06B6D4", "requirement": 20, "type": "region_norte"},
+    {"id": "island_lover", "name": "Amante das Ilhas", "description": "Explorou Açores e Madeira", "icon": "waves", "color": "#14B8A6", "requirement": 10, "type": "islands"},
+    {"id": "nature_walker", "name": "Caminhante da Natureza", "description": "Descobriu 10 percursos pedestres", "icon": "forest", "color": "#84CC16", "requirement": 10, "type": "category_percursos"},
+    {"id": "historian", "name": "Historiador", "description": "Visitou 10 aldeias históricas", "icon": "home-work", "color": "#D97706", "requirement": 10, "type": "category_aldeias"},
+]
+
+class UserProgress(BaseModel):
+    user_id: str
+    visits: List[str] = []  # Heritage item IDs visited
+    routes_completed: List[str] = []
+    contributions_approved: int = 0
+    badges_earned: List[str] = []
+    total_points: int = 0
+    level: int = 1
+    created_at: datetime
+    updated_at: datetime
+
+@api_router.get("/badges")
+async def get_badges():
+    """Get all available badges"""
+    return BADGES
+
+@api_router.get("/gamification/progress")
+async def get_user_progress(current_user: User = Depends(require_auth)):
+    """Get user's gamification progress"""
+    progress = await db.user_progress.find_one(
+        {"user_id": current_user.user_id},
+        {"_id": 0}
+    )
+    
+    if not progress:
+        # Create initial progress
+        progress = {
+            "user_id": current_user.user_id,
+            "visits": [],
+            "routes_completed": [],
+            "contributions_approved": 0,
+            "badges_earned": [],
+            "total_points": 0,
+            "level": 1,
+            "created_at": datetime.now(timezone.utc),
+            "updated_at": datetime.now(timezone.utc)
+        }
+        await db.user_progress.insert_one(progress)
+    
+    # Calculate badges
+    earned_badges = []
+    favorites_count = len(current_user.favorites)
+    visits_count = len(progress.get("visits", []))
+    
+    for badge in BADGES:
+        badge_id = badge["id"]
+        if badge_id in progress.get("badges_earned", []):
+            earned_badges.append({**badge, "earned": True, "progress": 100})
+            continue
+            
+        # Calculate progress for each badge type
+        current_progress = 0
+        if badge["type"] == "visits":
+            current_progress = visits_count
+        elif badge["type"] == "favorites":
+            current_progress = favorites_count
+        elif badge["type"] == "routes":
+            current_progress = len(progress.get("routes_completed", []))
+        elif badge["type"] == "contributions":
+            current_progress = progress.get("contributions_approved", 0)
+        elif badge["type"].startswith("category_"):
+            category = badge["type"].replace("category_", "")
+            # Count visits in category
+            items_in_cat = await db.heritage_items.find(
+                {"id": {"$in": progress.get("visits", [])}, "category": category}
+            ).to_list(100)
+            current_progress = len(items_in_cat)
+        elif badge["type"].startswith("region_"):
+            region = badge["type"].replace("region_", "")
+            items_in_region = await db.heritage_items.find(
+                {"id": {"$in": progress.get("visits", [])}, "region": region}
+            ).to_list(100)
+            current_progress = len(items_in_region)
+        elif badge["type"] == "islands":
+            items_islands = await db.heritage_items.find(
+                {"id": {"$in": progress.get("visits", [])}, "region": {"$in": ["acores", "madeira"]}}
+            ).to_list(100)
+            current_progress = len(items_islands)
+        
+        progress_percent = min(100, int((current_progress / badge["requirement"]) * 100))
+        earned_badges.append({
+            **badge, 
+            "earned": current_progress >= badge["requirement"],
+            "progress": progress_percent,
+            "current": current_progress
+        })
+    
+    return {
+        "user_id": current_user.user_id,
+        "visits_count": visits_count,
+        "favorites_count": favorites_count,
+        "routes_completed": len(progress.get("routes_completed", [])),
+        "contributions_approved": progress.get("contributions_approved", 0),
+        "total_points": progress.get("total_points", 0),
+        "level": progress.get("level", 1),
+        "badges": earned_badges
+    }
+
+@api_router.post("/gamification/visit/{item_id}")
+async def record_visit(item_id: str, current_user: User = Depends(require_auth)):
+    """Record a visit to a heritage item"""
+    # Verify item exists
+    item = await db.heritage_items.find_one({"id": item_id})
+    if not item:
+        raise HTTPException(status_code=404, detail="Item not found")
+    
+    # Update user progress
+    result = await db.user_progress.update_one(
+        {"user_id": current_user.user_id},
+        {
+            "$addToSet": {"visits": item_id},
+            "$inc": {"total_points": 10},
+            "$set": {"updated_at": datetime.now(timezone.utc)}
+        },
+        upsert=True
+    )
+    
+    return {"message": "Visit recorded", "points_earned": 10}
+
+@api_router.post("/gamification/complete-route/{route_id}")
+async def complete_route(route_id: str, current_user: User = Depends(require_auth)):
+    """Mark a route as completed"""
+    route = await db.routes.find_one({"id": route_id})
+    if not route:
+        raise HTTPException(status_code=404, detail="Route not found")
+    
+    await db.user_progress.update_one(
+        {"user_id": current_user.user_id},
+        {
+            "$addToSet": {"routes_completed": route_id},
+            "$inc": {"total_points": 50},
+            "$set": {"updated_at": datetime.now(timezone.utc)}
+        },
+        upsert=True
+    )
+    
+    return {"message": "Route completed", "points_earned": 50}
+
+@api_router.get("/leaderboard")
+async def get_leaderboard(limit: int = 10):
+    """Get top users by points"""
+    leaderboard = await db.user_progress.find(
+        {},
+        {"_id": 0, "user_id": 1, "total_points": 1, "level": 1, "badges_earned": 1}
+    ).sort("total_points", -1).limit(limit).to_list(limit)
+    
+    # Enrich with user names
+    result = []
+    for entry in leaderboard:
+        user = await db.users.find_one({"user_id": entry["user_id"]}, {"_id": 0, "name": 1, "picture": 1})
+        if user:
+            result.append({
+                **entry,
+                "name": user.get("name", "Utilizador"),
+                "picture": user.get("picture"),
+                "badges_count": len(entry.get("badges_earned", []))
+            })
+    
+    return result
+
+# ========================
+# CALENDAR - EVENTS & FESTIVALS
+# ========================
+
+CALENDAR_EVENTS = [
+    # Janeiro
+    {"id": "janeiras", "name": "Janeiras e Reis", "date_start": "01-06", "date_end": "01-06", "category": "festas", "region": "norte", "description": "Cantos de porta em porta celebrando os Reis"},
+    
+    # Fevereiro
+    {"id": "caretos", "name": "Caretos de Podence", "date_start": "02-01", "date_end": "02-28", "category": "festas", "region": "norte", "description": "Carnaval tradicional com máscaras ancestrais"},
+    {"id": "carnaval_loule", "name": "Carnaval de Loulé", "date_start": "02-15", "date_end": "02-20", "category": "festas", "region": "algarve", "description": "Um dos carnavais mais antigos do Algarve"},
+    
+    # Março/Abril
+    {"id": "semana_santa", "name": "Semana Santa de Braga", "date_start": "03-20", "date_end": "04-20", "category": "religioso", "region": "norte", "description": "Procissões e celebrações da Páscoa"},
+    
+    # Abril
+    {"id": "festa_flor", "name": "Festa da Flor", "date_start": "04-15", "date_end": "04-30", "category": "festas", "region": "madeira", "description": "Desfile alegórico e mural de flores"},
+    
+    # Maio
+    {"id": "queima_fitas", "name": "Queima das Fitas", "date_start": "05-01", "date_end": "05-15", "category": "festas", "region": "centro", "description": "Tradição académica de Coimbra"},
+    {"id": "santo_cristo", "name": "Senhor Santo Cristo", "date_start": "05-15", "date_end": "05-20", "category": "religioso", "region": "acores", "description": "A maior romaria açoriana"},
+    {"id": "fatima_maio", "name": "Peregrinação a Fátima", "date_start": "05-12", "date_end": "05-13", "category": "religioso", "region": "centro", "description": "Aniversário das aparições"},
+    
+    # Junho
+    {"id": "santos_populares", "name": "Santos Populares", "date_start": "06-12", "date_end": "06-29", "category": "festas", "region": "lisboa", "description": "Santo António, São João e São Pedro"},
+    {"id": "sao_joao", "name": "São João do Porto", "date_start": "06-23", "date_end": "06-24", "category": "festas", "region": "norte", "description": "A maior festa popular do Norte"},
+    {"id": "sao_pedro", "name": "Festas de São Pedro", "date_start": "06-28", "date_end": "06-29", "category": "festas", "region": "centro", "description": "Celebrações em honra de São Pedro"},
+    
+    # Julho
+    {"id": "tabuleiros", "name": "Festa dos Tabuleiros", "date_start": "07-01", "date_end": "07-15", "category": "festas", "region": "centro", "description": "Cortejo quadrienal em Tomar (anos pares)"},
+    {"id": "medieval_obidos", "name": "Feira Medieval de Óbidos", "date_start": "07-10", "date_end": "07-30", "category": "festas", "region": "centro", "description": "Recriação histórica medieval"},
+    
+    # Agosto
+    {"id": "agonia", "name": "Romaria d'Agonia", "date_start": "08-15", "date_end": "08-20", "category": "festas", "region": "norte", "description": "Trajes tradicionais e tapetes floridos em Viana"},
+    {"id": "vindimas", "name": "Festa das Vindimas", "date_start": "08-25", "date_end": "09-15", "category": "festas", "region": "norte", "description": "Colheita das uvas no Douro"},
+    {"id": "feira_mateus", "name": "Feira de São Mateus", "date_start": "08-15", "date_end": "09-21", "category": "festas", "region": "centro", "description": "Uma das mais antigas feiras de Portugal"},
+    
+    # Setembro
+    {"id": "romaria_nazare", "name": "Romaria da Nazaré", "date_start": "09-08", "date_end": "09-15", "category": "religioso", "region": "centro", "description": "Festas em honra de Nossa Senhora"},
+    {"id": "cereja", "name": "Festa da Cereja", "date_start": "09-01", "date_end": "09-10", "category": "festas", "region": "centro", "description": "Celebração do fruto no Fundão"},
+    
+    # Outubro
+    {"id": "fatima_outubro", "name": "Peregrinação a Fátima", "date_start": "10-12", "date_end": "10-13", "category": "religioso", "region": "centro", "description": "Última aparição de Nossa Senhora"},
+    {"id": "castanhas", "name": "Magusto e Castanhas", "date_start": "10-25", "date_end": "11-15", "category": "festas", "region": "norte", "description": "Época das castanhas assadas"},
+    
+    # Novembro
+    {"id": "sao_martinho", "name": "São Martinho", "date_start": "11-11", "date_end": "11-11", "category": "festas", "region": "norte", "description": "Magusto, jeropiga e castanhas"},
+    
+    # Dezembro
+    {"id": "natal", "name": "Tradições de Natal", "date_start": "12-01", "date_end": "12-31", "category": "festas", "region": "norte", "description": "Presépios, consoada e tradições natalícias"},
+    {"id": "madeira_natal", "name": "Natal e Fim de Ano na Madeira", "date_start": "12-15", "date_end": "12-31", "category": "festas", "region": "madeira", "description": "Fogos de artifício espetaculares"},
+]
+
+@api_router.get("/calendar")
+async def get_calendar_events(month: Optional[int] = None):
+    """Get calendar events, optionally filtered by month"""
+    events = CALENDAR_EVENTS.copy()
+    
+    if month:
+        month_str = f"{month:02d}"
+        events = [e for e in events if e["date_start"].startswith(month_str) or e["date_end"].startswith(month_str)]
+    
+    return events
+
+@api_router.get("/calendar/upcoming")
+async def get_upcoming_events(limit: int = 5):
+    """Get upcoming events based on current date"""
+    today = datetime.now(timezone.utc)
+    current_month = today.month
+    current_day = today.day
+    current_date_str = f"{current_month:02d}-{current_day:02d}"
+    
+    upcoming = []
+    for event in CALENDAR_EVENTS:
+        # Simple comparison - event starts after today
+        if event["date_start"] >= current_date_str or event["date_end"] >= current_date_str:
+            upcoming.append(event)
+        # Also include events that wrap around the year
+        elif current_month >= 11 and event["date_start"].startswith("01"):
+            upcoming.append(event)
+    
+    # Sort by start date
+    upcoming.sort(key=lambda x: x["date_start"])
+    return upcoming[:limit]
+
+@api_router.get("/calendar/month/{month}")
+async def get_events_by_month(month: int):
+    """Get events for a specific month"""
+    if month < 1 or month > 12:
+        raise HTTPException(status_code=400, detail="Month must be between 1 and 12")
+    
+    month_str = f"{month:02d}"
+    events = [e for e in CALENDAR_EVENTS if e["date_start"].startswith(month_str)]
+    return events
+
+# ========================
 # HEALTH CHECK
 # ========================
 
