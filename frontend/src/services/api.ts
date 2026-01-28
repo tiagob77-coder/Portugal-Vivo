@@ -193,6 +193,95 @@ export const getGallery = async (category: string): Promise<Array<{
   return response.data;
 };
 
+// Gamification
+export interface Badge {
+  id: string;
+  name: string;
+  description: string;
+  icon: string;
+  color: string;
+  requirement: number;
+  type: string;
+  earned?: boolean;
+  progress?: number;
+  current?: number;
+}
+
+export interface UserProgress {
+  user_id: string;
+  visits_count: number;
+  favorites_count: number;
+  routes_completed: number;
+  contributions_approved: number;
+  total_points: number;
+  level: number;
+  badges: Badge[];
+}
+
+export interface LeaderboardEntry {
+  user_id: string;
+  name: string;
+  picture?: string;
+  total_points: number;
+  level: number;
+  badges_count: number;
+}
+
+export const getBadges = async (): Promise<Badge[]> => {
+  const response = await api.get('/badges');
+  return response.data;
+};
+
+export const getUserProgress = async (token: string): Promise<UserProgress> => {
+  const response = await api.get('/gamification/progress', {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  return response.data;
+};
+
+export const recordVisit = async (itemId: string, token: string): Promise<void> => {
+  await api.post(`/gamification/visit/${itemId}`, {}, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+};
+
+export const completeRoute = async (routeId: string, token: string): Promise<void> => {
+  await api.post(`/gamification/complete-route/${routeId}`, {}, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+};
+
+export const getLeaderboard = async (limit?: number): Promise<LeaderboardEntry[]> => {
+  const response = await api.get('/leaderboard', { params: { limit } });
+  return response.data;
+};
+
+// Calendar
+export interface CalendarEvent {
+  id: string;
+  name: string;
+  date_start: string;
+  date_end: string;
+  category: string;
+  region: string;
+  description: string;
+}
+
+export const getCalendarEvents = async (month?: number): Promise<CalendarEvent[]> => {
+  const response = await api.get('/calendar', { params: { month } });
+  return response.data;
+};
+
+export const getUpcomingEvents = async (limit?: number): Promise<CalendarEvent[]> => {
+  const response = await api.get('/calendar/upcoming', { params: { limit } });
+  return response.data;
+};
+
+export const getEventsByMonth = async (month: number): Promise<CalendarEvent[]> => {
+  const response = await api.get(`/calendar/month/${month}`);
+  return response.data;
+};
+
 // Auth
 export const exchangeSession = async (sessionId: string): Promise<User> => {
   const response = await api.post('/auth/session', {}, {
