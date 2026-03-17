@@ -1,5 +1,5 @@
 """
-Script de Seed para Património Vivo de Portugal
+Script de Seed para Portugal Vivo
 Contém TODOS os dados do documento de património cultural português
 """
 
@@ -148,7 +148,7 @@ GASTRONOMIA = [
     {"name": "Lampreia à Minhota", "description": "Iguaria sazonal do Rio Minho, preparada com o seu próprio sangue e vinho tinto.", "region": "norte", "subcategory": "pratos", "location": {"lat": 41.8667, "lng": -8.8500}, "address": "Caminha, Minho"},
     {"name": "Cabrito Assado de Barroso", "description": "Cabrito assado no forno à moda transmontana. A carne de cabrito do Barroso tem denominação de origem.", "region": "norte", "subcategory": "pratos", "location": {"lat": 41.7500, "lng": -7.8333}, "address": "Barroso"},
     {"name": "Pudim Abade de Priscos", "description": "Doce conventual feito com gemas de ovo, açúcar e toucinho. Uma receita criada pelo abade de Priscos.", "region": "norte", "subcategory": "doces", "location": {"lat": 41.5500, "lng": -8.4200}, "address": "Braga"},
-    
+
     # Centro
     {"name": "Leitão da Bairrada", "description": "Leitão assado no forno, com a pele estaladiça. O prato mais famoso da Bairrada.", "region": "centro", "subcategory": "pratos", "location": {"lat": 40.3833, "lng": -8.4500}, "address": "Mealhada"},
     {"name": "Chanfana", "description": "Carne de cabra ou borrego cozinhada em vinho tinto num pote de barro. Típica da Serra da Lousã.", "region": "centro", "subcategory": "pratos", "location": {"lat": 40.1000, "lng": -8.2333}, "address": "Miranda do Corvo"},
@@ -157,31 +157,31 @@ GASTRONOMIA = [
     {"name": "Pastéis de Tentúgal", "description": "Doce de massa folhada finíssima recheado com ovos moles. Uma especialidade de Tentúgal.", "region": "centro", "subcategory": "doces", "location": {"lat": 40.2000, "lng": -8.5667}, "address": "Tentúgal"},
     {"name": "Sopa da Pedra", "description": "Sopa rica com feijão, enchidos, carnes e legumes. Originária de Almeirim.", "region": "centro", "subcategory": "sopas", "location": {"lat": 39.2167, "lng": -8.6333}, "address": "Almeirim"},
     {"name": "Ginja de Óbidos", "description": "Licor de ginja servido em copo de chocolate. Uma tradição de Óbidos e Alcobaça.", "region": "centro", "subcategory": "bebidas", "location": {"lat": 39.3600, "lng": -9.1569}, "address": "Óbidos"},
-    
+
     # Lisboa e Vale do Tejo
     {"name": "Pastéis de Belém", "description": "Os famosos pastéis de nata de Belém, feitos com uma receita secreta desde 1837.", "region": "lisboa", "subcategory": "doces", "location": {"lat": 38.6979, "lng": -9.2068}, "address": "Belém, Lisboa"},
     {"name": "Amêijoas à Bulhão Pato", "description": "Amêijoas salteadas com alho, coentros, azeite e vinho branco. Um clássico lisboeta.", "region": "lisboa", "subcategory": "pratos", "location": {"lat": 38.7223, "lng": -9.1393}, "address": "Lisboa"},
     {"name": "Caracóis", "description": "Petisco típico de Lisboa, servido em molho picante no verão. 'Ó Rosa, arrefeça-me estes caracóis!'", "region": "lisboa", "subcategory": "petiscos", "location": {"lat": 38.7223, "lng": -9.1393}, "address": "Lisboa"},
     {"name": "Açorda de Marisco", "description": "Sopa-guisado de pão alentejano com camarão, berbigão e coentros.", "region": "lisboa", "subcategory": "pratos", "location": {"lat": 38.5333, "lng": -8.8833}, "address": "Setúbal"},
     {"name": "Choco Frito à Setubalense", "description": "Choco frito à moda de Setúbal, uma especialidade local.", "region": "lisboa", "subcategory": "pratos", "location": {"lat": 38.5333, "lng": -8.8833}, "address": "Setúbal"},
-    
+
     # Alentejo
     {"name": "Açorda Alentejana", "description": "Sopa de pão com alho, coentros, ovo escalfado e azeite. A alma da cozinha alentejana.", "region": "alentejo", "subcategory": "sopas", "location": {"lat": 38.5719, "lng": -7.9097}, "address": "Évora"},
     {"name": "Carne de Porco à Alentejana", "description": "Carne de porco com amêijoas, uma combinação única de mar e terra.", "region": "alentejo", "subcategory": "pratos", "location": {"lat": 38.5719, "lng": -7.9097}, "address": "Alentejo"},
     {"name": "Migas com Carne de Porco", "description": "Pão esfarelado frito com gordura de porco, servido com entrecosto.", "region": "alentejo", "subcategory": "pratos", "location": {"lat": 38.5719, "lng": -7.9097}, "address": "Alentejo"},
     {"name": "Gaspacho à Alentejana", "description": "Sopa fria de tomate, pepino, pimento e pão. Refrescante nos verões quentes.", "region": "alentejo", "subcategory": "sopas", "location": {"lat": 38.5719, "lng": -7.9097}, "address": "Alentejo"},
     {"name": "Sericaia com Ameixas de Elvas", "description": "Doce conventual de ovos servido com ameixas. Uma combinação perfeita.", "region": "alentejo", "subcategory": "doces", "location": {"lat": 38.8500, "lng": -7.1667}, "address": "Elvas"},
-    
+
     # Algarve
     {"name": "Cataplana de Marisco", "description": "Cozinhado na tradicional cataplana de cobre com mariscos, peixe e legumes.", "region": "algarve", "subcategory": "pratos", "location": {"lat": 37.0194, "lng": -7.9322}, "address": "Faro"},
     {"name": "Dom Rodrigo", "description": "Doce fino do Algarve feito com fios de ovos, amêndoa e açúcar.", "region": "algarve", "subcategory": "doces", "location": {"lat": 37.0833, "lng": -8.6667}, "address": "Lagos"},
     {"name": "Arroz de Lingueirão", "description": "Arroz malandrinho com lingueirões frescos do mar algarvio.", "region": "algarve", "subcategory": "pratos", "location": {"lat": 37.0194, "lng": -7.9322}, "address": "Algarve"},
-    
+
     # Açores
     {"name": "Cozido das Furnas", "description": "Cozido cozinhado no calor vulcânico da terra nas Furnas, São Miguel.", "region": "acores", "subcategory": "pratos", "location": {"lat": 37.7730, "lng": -25.3080}, "address": "Furnas, São Miguel"},
     {"name": "Alcatra da Terceira", "description": "Carne de vaca cozinhada lentamente em panela de barro com vinho e especiarias.", "region": "acores", "subcategory": "pratos", "location": {"lat": 38.7167, "lng": -27.2167}, "address": "Terceira"},
     {"name": "Bolo Lêvedo", "description": "Pão doce fofinho típico de São Miguel, perfeito com manteiga.", "region": "acores", "subcategory": "pães", "location": {"lat": 37.7394, "lng": -25.6687}, "address": "São Miguel"},
-    
+
     # Madeira
     {"name": "Espetada Madeirense", "description": "Carne de vaca em espetos de louro grelhada sobre brasas.", "region": "madeira", "subcategory": "pratos", "location": {"lat": 32.6669, "lng": -16.9241}, "address": "Funchal"},
     {"name": "Bolo do Caco", "description": "Pão achatado de batata-doce, servido com manteiga de alho.", "region": "madeira", "subcategory": "pães", "location": {"lat": 32.6669, "lng": -16.9241}, "address": "Madeira"},
@@ -201,20 +201,20 @@ PRODUTOS = [
     {"name": "Presunto de Barroso IGP", "description": "Presunto curado das terras altas de Barroso, de sabor único devido à altitude e clima.", "region": "norte", "subcategory": "enchidos", "location": {"lat": 41.7500, "lng": -7.8333}},
     {"name": "Alheira de Mirandela IGP", "description": "Enchido tradicional de pão e carnes, criado pelos judeus para simular o consumo de porco.", "region": "norte", "subcategory": "enchidos", "location": {"lat": 41.4833, "lng": -7.1833}},
     {"name": "Castanha da Padrela DOP", "description": "Castanha de qualidade superior da Serra da Padrela, Valpaços.", "region": "norte", "subcategory": "frutos", "location": {"lat": 41.6000, "lng": -7.3000}},
-    
+
     # Centro
     {"name": "Queijo Serra da Estrela DOP", "description": "O mais famoso queijo português, cremoso e amanteigado, feito com leite cru de ovelha.", "region": "centro", "subcategory": "queijos", "location": {"lat": 40.3217, "lng": -7.6114}},
     {"name": "Azeite da Beira Interior DOP", "description": "Azeite de qualidade premium produzido na região da Beira Interior.", "region": "centro", "subcategory": "azeites", "location": {"lat": 40.1386, "lng": -7.5006}},
     {"name": "Cereja da Cova da Beira IGP", "description": "Cereja de qualidade excecional produzida na região do Fundão.", "region": "centro", "subcategory": "frutos", "location": {"lat": 40.1386, "lng": -7.5006}},
     {"name": "Vinho do Dão DOP", "description": "Vinho tinto elegante e encorpado da região demarcada do Dão.", "region": "centro", "subcategory": "vinhos", "location": {"lat": 40.6566, "lng": -7.9125}},
     {"name": "Maçã da Beira Alta IGP", "description": "Maçã de qualidade superior produzida na Serra da Estrela.", "region": "centro", "subcategory": "frutos", "location": {"lat": 40.3217, "lng": -7.6114}},
-    
+
     # Lisboa
     {"name": "Queijo de Azeitão DOP", "description": "Queijo cremoso feito com leite de ovelha na Serra da Arrábida.", "region": "lisboa", "subcategory": "queijos", "location": {"lat": 38.5200, "lng": -8.9833}},
     {"name": "Moscatel de Setúbal DOP", "description": "Vinho licoroso de uvas moscatel, doce e aromático.", "region": "lisboa", "subcategory": "vinhos", "location": {"lat": 38.5333, "lng": -8.8833}},
     {"name": "Pêra Rocha do Oeste DOP", "description": "Pêra suculenta e aromática do Oeste de Portugal.", "region": "lisboa", "subcategory": "frutos", "location": {"lat": 39.3600, "lng": -9.1569}},
     {"name": "Vinho de Colares DOP", "description": "Vinho raro produzido em areias junto ao mar, em Sintra.", "region": "lisboa", "subcategory": "vinhos", "location": {"lat": 38.7893, "lng": -9.4422}},
-    
+
     # Alentejo
     {"name": "Queijo de Évora DOP", "description": "Queijo curado de ovelha, de sabor intenso e pasta firme.", "region": "alentejo", "subcategory": "queijos", "location": {"lat": 38.5719, "lng": -7.9097}},
     {"name": "Queijo Serpa DOP", "description": "Queijo cremoso e picante feito com leite de ovelha em Serpa.", "region": "alentejo", "subcategory": "queijos", "location": {"lat": 37.9500, "lng": -7.6000}},
@@ -222,18 +222,18 @@ PRODUTOS = [
     {"name": "Azeite do Alentejo Interior DOP", "description": "Azeite de qualidade superior do interior alentejano.", "region": "alentejo", "subcategory": "azeites", "location": {"lat": 38.5719, "lng": -7.9097}},
     {"name": "Ameixas de Elvas DOP", "description": "Ameixas em calda de qualidade única, uma tradição secular.", "region": "alentejo", "subcategory": "frutos", "location": {"lat": 38.8500, "lng": -7.1667}},
     {"name": "Vinho do Alentejo DOP", "description": "Vinhos encorpados e frutados da maior região vinícola de Portugal.", "region": "alentejo", "subcategory": "vinhos", "location": {"lat": 38.5719, "lng": -7.9097}},
-    
+
     # Algarve
     {"name": "Citrinos do Algarve IGP", "description": "Laranjas e tangerinas doces e sumarentas do Algarve.", "region": "algarve", "subcategory": "frutos", "location": {"lat": 37.2500, "lng": -8.4167}},
     {"name": "Mel do Algarve DOP", "description": "Mel de qualidade produzido com flores da serra algarvia.", "region": "algarve", "subcategory": "mel", "location": {"lat": 37.2500, "lng": -8.4167}},
     {"name": "Medronho do Algarve", "description": "Aguardente destilada do fruto do medronheiro, tradição secular.", "region": "algarve", "subcategory": "bebidas", "location": {"lat": 37.2500, "lng": -8.4167}},
-    
+
     # Açores
     {"name": "Queijo São Jorge DOP", "description": "Queijo curado picante da Ilha de São Jorge, envelhecido durante meses.", "region": "acores", "subcategory": "queijos", "location": {"lat": 38.6500, "lng": -28.0833}},
     {"name": "Ananás dos Açores DOP", "description": "Ananás doce e aromático cultivado em estufas de São Miguel.", "region": "acores", "subcategory": "frutos", "location": {"lat": 37.7394, "lng": -25.6687}},
     {"name": "Vinho do Pico DOP", "description": "Vinho produzido nas paisagens vulcânicas da ilha do Pico, Património Mundial.", "region": "acores", "subcategory": "vinhos", "location": {"lat": 38.4667, "lng": -28.2667}},
     {"name": "Chá dos Açores", "description": "O único chá produzido na Europa, nas plantações Gorreana e Porto Formoso.", "region": "acores", "subcategory": "bebidas", "location": {"lat": 37.8000, "lng": -25.4500}},
-    
+
     # Madeira
     {"name": "Vinho da Madeira DOP", "description": "Vinho licoroso único, envelhecido através do processo de estufagem.", "region": "madeira", "subcategory": "vinhos", "location": {"lat": 32.6669, "lng": -16.9241}},
     {"name": "Banana da Madeira DOP", "description": "Banana pequena e doce, cultivada nos socalcos da ilha.", "region": "madeira", "subcategory": "frutos", "location": {"lat": 32.6669, "lng": -16.9241}},
@@ -329,20 +329,20 @@ ROTAS_TEMATICAS = [
     {"name": "Rota dos Vinhos do Alentejo", "description": "Grandes vinhos encorpados das planícies alentejanas.", "category": "vinho", "region": "alentejo"},
     {"name": "Rota do Vinho da Madeira", "description": "Vinhos únicos envelhecidos pelo calor, uma tradição de 500 anos.", "category": "vinho", "region": "madeira"},
     {"name": "Rota do Vinho do Pico", "description": "Vinhedos em muros de pedra vulcânica, Património Mundial.", "category": "vinho", "region": "acores"},
-    
+
     # Rotas do Pão e Azeite
     {"name": "Rota do Pão de Centeio", "description": "Tradições do pão de centeio nas serras do Norte.", "category": "pao", "region": "norte"},
     {"name": "Rota do Pão Alentejano", "description": "O famoso pão alentejano e os seus segredos.", "category": "pao", "region": "alentejo"},
     {"name": "Rota do Azeite Transmontano", "description": "Olivais milenares e lagares de Trás-os-Montes.", "category": "azeite", "region": "norte"},
     {"name": "Rota do Azeite do Alentejo", "description": "Olivais extensos e azeites premiados.", "category": "azeite", "region": "alentejo"},
-    
+
     # Rotas Culturais
     {"name": "Rota das 12 Aldeias Históricas", "description": "Circuito pelas aldeias históricas da Beira Interior.", "category": "cultural", "region": "centro"},
     {"name": "Rota das Aldeias do Xisto", "description": "27 aldeias de xisto recuperadas na Serra da Lousã e Açor.", "category": "cultural", "region": "centro"},
     {"name": "Rota dos Castelos da Raia", "description": "Fortalezas medievais na fronteira com Espanha.", "category": "cultural", "region": "centro"},
     {"name": "Rota dos Mosteiros", "description": "Os grandes mosteiros de Portugal: Alcobaça, Batalha, Tomar.", "category": "religioso", "region": "centro"},
     {"name": "Rota da Arte Rupestre", "description": "Gravuras pré-históricas do Vale do Côa, Património Mundial.", "category": "arqueologia", "region": "norte"},
-    
+
     # Rotas da Natureza
     {"name": "Rota Vicentina", "description": "Trilhos pedestres ao longo da costa mais bem preservada da Europa.", "category": "natureza", "region": "alentejo"},
     {"name": "Passadiços do Paiva", "description": "8 km de passadiços de madeira ao longo do Rio Paiva.", "category": "natureza", "region": "norte"},
@@ -448,12 +448,12 @@ TERMAS = [
 async def seed_database():
     """Seed the database with all heritage data"""
     print("Starting database seeding...")
-    
+
     # Clear existing data
     print("Clearing existing data...")
     await db.heritage_items.delete_many({})
     await db.routes.delete_many({})
-    
+
     # Helper function to create heritage item
     def create_item(data, category):
         return {
@@ -469,95 +469,95 @@ async def seed_database():
             "metadata": {},
             "created_at": datetime.now(timezone.utc)
         }
-    
+
     # Insert all categories
     all_items = []
-    
+
     # Lendas
     print("Adding legends...")
     for item in LENDAS:
         all_items.append(create_item(item, "lendas"))
-    
+
     # Festas
     print("Adding festivals...")
     for item in FESTAS:
         all_items.append(create_item(item, "festas"))
-    
+
     # Saberes
     print("Adding crafts and knowledge...")
     for item in SABERES:
         all_items.append(create_item(item, "saberes"))
-    
+
     # Crenças
     print("Adding beliefs...")
     for item in CRENCAS:
         all_items.append(create_item(item, "crencas"))
-    
+
     # Gastronomia
     print("Adding gastronomy...")
     for item in GASTRONOMIA:
         all_items.append(create_item(item, "gastronomia"))
-    
+
     # Produtos
     print("Adding regional products...")
     for item in PRODUTOS:
         all_items.append(create_item(item, "produtos"))
-    
+
     # Aldeias
     print("Adding historic villages...")
     for item in ALDEIAS:
         all_items.append(create_item(item, "aldeias"))
-    
+
     # Florestas
     print("Adding forests and mountains...")
     for item in FLORESTAS:
         all_items.append(create_item(item, "florestas"))
-    
+
     # Rios
     print("Adding rivers...")
     for item in RIOS:
         all_items.append(create_item(item, "rios"))
-    
+
     # Piscinas
     print("Adding natural pools...")
     for item in PISCINAS:
         all_items.append(create_item(item, "piscinas"))
-    
+
     # Religioso
     print("Adding religious sites...")
     for item in RELIGIOSO:
         all_items.append(create_item(item, "religioso"))
-    
+
     # Fauna e Flora
     print("Adding fauna and flora...")
     for item in FAUNA_FLORA:
         all_items.append(create_item(item, "fauna"))
-    
+
     # Arte
     print("Adding Portuguese art...")
     for item in ARTE:
         all_items.append(create_item(item, "arte"))
-    
+
     # Cogumelos
     print("Adding mushrooms...")
     for item in COGUMELOS:
         all_items.append(create_item(item, "cogumelos"))
-    
+
     # Arqueologia
     print("Adding archaeology...")
     for item in ARQUEOLOGIA:
         all_items.append(create_item(item, "arqueologia"))
-    
+
     # Termas
     print("Adding thermal baths and beaches...")
     for item in TERMAS:
         all_items.append(create_item(item, "termas"))
-    
+
     # Insert all items
     print(f"Inserting {len(all_items)} heritage items...")
     if all_items:
         await db.heritage_items.insert_many(all_items)
-    
+
     # Insert routes
     print("Adding thematic routes...")
     routes = []
@@ -572,21 +572,21 @@ async def seed_database():
             "tags": [route_data["category"]],
             "created_at": datetime.now(timezone.utc)
         })
-    
+
     if routes:
         await db.routes.insert_many(routes)
-    
-    print(f"Database seeded successfully!")
+
+    print("Database seeded successfully!")
     print(f"Total items: {len(all_items)}")
     print(f"Total routes: {len(routes)}")
-    
+
     # Print summary by category
     print("\nSummary by category:")
     categories_count = {}
     for item in all_items:
         cat = item["category"]
         categories_count[cat] = categories_count.get(cat, 0) + 1
-    
+
     for cat, count in sorted(categories_count.items()):
         print(f"  {cat}: {count}")
 

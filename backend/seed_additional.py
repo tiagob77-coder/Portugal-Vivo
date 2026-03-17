@@ -1,5 +1,5 @@
 """
-Script de Seed Expandido para Património Vivo de Portugal
+Script de Seed Expandido para Portugal Vivo
 Inclui todas as camadas + imagens representativas
 """
 
@@ -143,7 +143,7 @@ async def create_contribution_indexes():
 async def seed_additional_data():
     """Seed the database with additional heritage data"""
     print("Starting additional data seeding...")
-    
+
     # Helper function to create heritage item
     def create_item(data, category, index=0):
         return {
@@ -160,35 +160,35 @@ async def seed_additional_data():
             "metadata": {},
             "created_at": datetime.now(timezone.utc)
         }
-    
+
     all_items = []
-    
+
     # Percursos Pedestres
     print("Adding hiking trails...")
     for i, item in enumerate(PERCURSOS):
         all_items.append(create_item(item, "percursos", i))
-    
+
     # Cogumelos expandido
     print("Adding mushrooms...")
     # First delete existing cogumelos
     await db.heritage_items.delete_many({"category": "cogumelos"})
     for i, item in enumerate(COGUMELOS_EXPANDED):
         all_items.append(create_item(item, "cogumelos", i))
-    
+
     # Minerais
     print("Adding minerals and stones...")
     for i, item in enumerate(MINERAIS):
         all_items.append(create_item(item, "minerais", i))
-    
+
     # Insert all items
     print(f"Inserting {len(all_items)} additional heritage items...")
     if all_items:
         await db.heritage_items.insert_many(all_items)
-    
+
     # Update existing items with images
     print("Updating existing items with images...")
     categories_to_update = ["lendas", "festas", "saberes", "gastronomia", "produtos", "aldeias", "arte", "religioso"]
-    
+
     for category in categories_to_update:
         items = await db.heritage_items.find({"category": category, "image_url": None}).to_list(100)
         for i, item in enumerate(items):
@@ -197,16 +197,16 @@ async def seed_additional_data():
                 {"id": item["id"]},
                 {"$set": {"image_url": image_url}}
             )
-    
+
     # Create indexes for contributions
     print("Creating contribution indexes...")
     await create_contribution_indexes()
-    
+
     # Get final stats
     total_items = await db.heritage_items.count_documents({})
-    print(f"\nDatabase seeded successfully!")
+    print("\nDatabase seeded successfully!")
     print(f"Total items now: {total_items}")
-    
+
     # Print summary by category
     print("\nSummary by category:")
     pipeline = [
