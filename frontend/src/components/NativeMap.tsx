@@ -1,35 +1,37 @@
 // NativeMap.tsx - barrel file for TypeScript module resolution
 // At runtime, Metro resolves .native.tsx or .web.tsx based on platform
+// This file should NOT import directly - let Metro handle platform resolution
+
 import { Platform } from 'react-native';
 
+// Conditional exports based on platform
+// Metro bundler will resolve the correct platform-specific file at build time
 let MapComponent: any;
-let LeafletMapComp: any;
-let MarkerComp: any;
-let CalloutComp: any;
-let PROVIDER: any;
-let mapAvailable: boolean;
+let LeafletMapComponent: any;
+let Marker: any;
+let Callout: any;
+let PROVIDER_GOOGLE: any;
+let isMapAvailable: boolean;
 
 if (Platform.OS === 'web') {
+  // Web platform - use Leaflet
   const webModule = require('./NativeMap.web');
   MapComponent = webModule.default;
-  LeafletMapComp = webModule.LeafletMapComponent;
-  MarkerComp = webModule.Marker;
-  CalloutComp = webModule.Callout;
-  PROVIDER = webModule.PROVIDER_GOOGLE;
-  mapAvailable = webModule.isMapAvailable;
+  LeafletMapComponent = webModule.LeafletMapComponent;
+  Marker = webModule.Marker;
+  Callout = webModule.Callout;
+  PROVIDER_GOOGLE = webModule.PROVIDER_GOOGLE;
+  isMapAvailable = webModule.isMapAvailable;
 } else {
+  // Native platforms (iOS/Android) - use WebView with Leaflet
   const nativeModule = require('./NativeMap.native');
   MapComponent = nativeModule.default;
-  LeafletMapComp = nativeModule.LeafletMapComponent;
-  MarkerComp = nativeModule.Marker;
-  CalloutComp = nativeModule.Callout;
-  PROVIDER = nativeModule.PROVIDER_GOOGLE;
-  mapAvailable = nativeModule.isMapAvailable;
+  LeafletMapComponent = nativeModule.LeafletMapComponent;
+  Marker = nativeModule.Marker;
+  Callout = nativeModule.Callout;
+  PROVIDER_GOOGLE = nativeModule.PROVIDER_GOOGLE;
+  isMapAvailable = nativeModule.isMapAvailable;
 }
 
 export default MapComponent;
-export const LeafletMapComponent = LeafletMapComp;
-export const Marker = MarkerComp;
-export const Callout = CalloutComp;
-export const PROVIDER_GOOGLE = PROVIDER;
-export const isMapAvailable = mapAvailable;
+export { LeafletMapComponent, Marker, Callout, PROVIDER_GOOGLE, isMapAvailable };

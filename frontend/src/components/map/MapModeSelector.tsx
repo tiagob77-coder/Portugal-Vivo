@@ -1,0 +1,88 @@
+/**
+ * MapModeSelector - Map visualization mode switcher.
+ * Extracted from mapa.tsx to reduce component size.
+ */
+import React from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
+import { MaterialIcons } from '@expo/vector-icons';
+
+const MAP_MODES = [
+  { id: 'markers', icon: 'place', label: 'Camadas' },
+  { id: 'heatmap', icon: 'whatshot', label: 'Heatmap' },
+  { id: 'trails', icon: 'hiking', label: 'Trilhos' },
+  { id: 'epochs', icon: 'history', label: 'Épocas' },
+  { id: 'timeline', icon: 'slow-motion-video', label: 'Timeline' },
+  { id: 'proximity', icon: 'near-me', label: 'Proximidade' },
+  { id: 'noturno', icon: 'nightlight-round', label: 'Noturno' },
+  { id: 'satellite', icon: 'satellite', label: 'Satélite' },
+] as const;
+
+export type MapMode = typeof MAP_MODES[number]['id'];
+
+interface MapModeSelectorProps {
+  activeMode: string;
+  onModeChange: (mode: MapMode) => void;
+}
+
+export default function MapModeSelector({ activeMode, onModeChange }: MapModeSelectorProps) {
+  return (
+    <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.scroll}>
+      <View style={styles.container}>
+        {MAP_MODES.map((mode) => (
+          <TouchableOpacity
+            key={mode.id}
+            style={[styles.btn, activeMode === mode.id && styles.btnActive]}
+            onPress={() => onModeChange(mode.id)}
+            data-testid={`map-mode-${mode.id}`}
+          >
+            <MaterialIcons
+              name={mode.icon as any}
+              size={15}
+              color={activeMode === mode.id ? '#FFF' : '#64748B'}
+            />
+            <Text
+              style={[
+                styles.btnText,
+                activeMode === mode.id && styles.btnTextActive,
+              ]}
+            >
+              {mode.label}
+            </Text>
+          </TouchableOpacity>
+        ))}
+      </View>
+    </ScrollView>
+  );
+}
+
+const styles = StyleSheet.create({
+  scroll: {
+    marginBottom: 8,
+  },
+  container: {
+    flexDirection: 'row',
+    gap: 6,
+    paddingHorizontal: 4,
+  },
+  btn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 14,
+    backgroundColor: 'rgba(255,255,255,0.05)',
+    gap: 4,
+  },
+  btnActive: {
+    backgroundColor: '#264E41',
+  },
+  btnText: {
+    color: '#64748B',
+    fontSize: 11,
+    fontWeight: '500',
+  },
+  btnTextActive: {
+    color: '#FFF',
+    fontWeight: '600',
+  },
+});

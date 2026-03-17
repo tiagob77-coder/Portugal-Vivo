@@ -1,0 +1,846 @@
+import React, { useState, useEffect, useRef } from 'react';
+import {
+  View, Text, StyleSheet, ScrollView, RefreshControl,
+  TouchableOpacity, Image, Dimensions,
+  ImageBackground, Animated, Platform,
+} from 'react-native';
+import { useRouter } from 'expo-router';
+import { MaterialIcons } from '@expo/vector-icons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useQuery } from '@tanstack/react-query';
+import { LinearGradient } from 'expo-linear-gradient';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import SkeletonCard from '../../src/components/SkeletonCard';
+import {
+  getDiscoveryFeed, getTrendingItems, getEncyclopediaUniverses,
+  getPOIDoDia, DiscoveryFeedItem, TrendingItem, EncyclopediaUniverse,
+  getWeatherForecast, getWeatherAlerts, getSafetyCheck, getActiveFires, getAllSpotsConditions,
+} from '../../src/services/api';
+import { typography, shadows, regionImages } from '../../src/theme';
+import { useTheme } from '../../src/context/ThemeContext';
+import OnboardingModal from '../../src/components/OnboardingModal';
+
+const { width } = Dimensions.get('window');
+const serif = Platform.OS === 'web' ? 'Cormorant Garamond, Georgia, serif' : undefined;
+
+const getGreeting = () => {
+  const hour = new Date().getHours();
+  if (hour >= 5 && hour < 12) return { greeting: 'Bom dia', period: 'morning' };
+  if (hour >= 12 && hour < 19) return { greeting: 'Boa tarde', period: 'afternoon' };
+  return { greeting: 'Boa noite', period: 'evening' };
+};
+
+const REGIONS = [
+  { id: 'norte', name: 'Norte', subtitle: 'Montanhas e tradição', image: regionImages.norte },
+  { id: 'centro', name: 'Centro', subtitle: 'Aldeias históricas', image: regionImages.centro },
+  { id: 'lisboa', name: 'Lisboa', subtitle: 'Capital vibrante', image: regionImages.lisboa },
+  { id: 'alentejo', name: 'Alentejo', subtitle: 'Planícies douradas', image: regionImages.alentejo },
+  { id: 'algarve', name: 'Algarve', subtitle: 'Costa e falésias', image: regionImages.algarve },
+  { id: 'acores', name: 'Açores', subtitle: 'Natureza vulcânica', image: regionImages.acores },
+  { id: 'madeira', name: 'Madeira', subtitle: 'Ilha jardim', image: regionImages.madeira },
+];
+
+const QUICK_ACTIONS = [
+  { id: 'mapa', title: 'Mapa', icon: 'map', route: '/(tabs)/mapa' },
+  { id: 'planeador', title: 'Planeador', icon: 'edit-calendar', route: '/(tabs)/planeador' },
+  { id: 'eventos', title: 'Eventos', icon: 'event', route: '/(tabs)/eventos' },
+  { id: 'pesquisar', title: 'Pesquisar', icon: 'search', route: '/search' },
+  { id: 'perto', title: 'Perto de Mim', icon: 'near-me', route: '/nearby' },
+  { id: 'conquistas', title: 'Conquistas', icon: 'military-tech', route: '/gamification' },
+  { id: 'ranking', title: 'Ranking', icon: 'leaderboard', route: '/leaderboard' },
+  { id: 'transportes', title: 'Transportes', icon: 'train', route: '/(tabs)/transportes' },
+  { id: 'beachcams', title: 'Beachcams', icon: 'videocam', route: '/beachcams' },
+  { id: 'agenda', title: 'Agenda', icon: 'celebration', route: '/(tabs)/agenda' },
+  { id: 'planner', title: 'Viagem IA', icon: 'auto-awesome', route: '/(tabs)/planner' },
+  { id: 'coleccoes', title: 'Enciclopédia', icon: 'collections-bookmark', route: '/(tabs)/coleccoes' },
+  { id: 'guia', title: 'Guia Viajante', icon: 'menu-book', route: null },
+];
+
+const PROFILE_LABELS: Record<string, { label: string; icon: string; color: string }> = {
+  aventureiro: { label: 'Aventureiro', icon: 'terrain', color: '#2E5E4E' },
+  gastronomo: { label: 'Gastrónomo', icon: 'restaurant', color: '#C65D3B' },
+  cultural: { label: 'Cultural', icon: 'account-balance', color: '#8B6914' },
+  familia: { label: 'Família', icon: 'family-restroom', color: '#5B8C5A' },
+};
+
+export default function DescobrerTab() {
+  const router = useRouter();
+  const insets = useSafeAreaInsets();
+  const { colors, isDark } = useTheme();
+  const [token, setToken] = useState<string | null>(null);
+  const [refreshing, setRefreshing] = useState(false);
+  const [expandedWidget, setExpandedWidget] = useState<string | null>(null);
+  const [guiaOpen, setGuiaOpen] = useState(false);
+  const [activePerfil, setActivePerfil] = useState<string | null>(null);
+  const refreshSpin = useRef(new Animated.Value(0)).current;
+
+  // Animated refresh spinner
+  useEffect(() => {
+    if (refreshing) {
+      const spin = Animated.loop(
+        Animated.timing(refreshSpin, { toValue: 1, duration: 800, useNativeDriver: true })
+      );
+      spin.start();
+      return () => spin.stop();
+    } else {
+      refreshSpin.setValue(0);
+    }
+  }, [refreshing, refreshSpin]);
+
+  const refreshRotate = refreshSpin.interpolate({
+    inputRange: [0, 1],
+    outputRange: ['0deg', '360deg'],
+  });
+
+  useEffect(() => { AsyncStorage.getItem('userToken').then(setToken); }, []);
+
+  // Load profile preference (from URL param, window global, or AsyncStorage)
+  useEffect(() => {
+    if (Platform.OS === 'web' && typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const urlPerfil = params.get('perfil');
+      if (urlPerfil && PROFILE_LABELS[urlPerfil]) {
+        setActivePerfil(urlPerfil);
+        return;
+      }
+      if ((window as any).__TRAVELER_PROFILE && PROFILE_LABELS[(window as any).__TRAVELER_PROFILE]) {
+        setActivePerfil((window as any).__TRAVELER_PROFILE);
+        return;
+      }
+    }
+    AsyncStorage.getItem('traveler_profile').then((saved) => {
+      if (saved && PROFILE_LABELS[saved]) setActivePerfil(saved);
+    });
+  }, []);
+
+  // Widget data queries
+  const { data: weatherData } = useQuery({
+    queryKey: ['weather-forecast', 'lisboa'],
+    queryFn: () => getWeatherForecast('lisboa'),
+    staleTime: 30 * 60 * 1000,
+  });
+  const { data: alertsData } = useQuery({ queryKey: ['weather-alerts'], queryFn: getWeatherAlerts, staleTime: 15 * 60 * 1000 });
+  const { data: safetyData } = useQuery({ queryKey: ['safety-check', 38.7223, -9.1393], queryFn: () => getSafetyCheck(38.7223, -9.1393), staleTime: 10 * 60 * 1000 });
+  const { data: firesData } = useQuery({ queryKey: ['active-fires'], queryFn: () => getActiveFires(), staleTime: 5 * 60 * 1000 });
+  const { data: surfData } = useQuery({ queryKey: ['surf-all'], queryFn: getAllSpotsConditions, staleTime: 5 * 60 * 1000 });
+
+  const { data: feedData, isLoading: feedLoading, refetch: refetchFeed } = useQuery({
+    queryKey: ['discovery-feed', token, activePerfil],
+    queryFn: () => getDiscoveryFeed(undefined, undefined, 30, token || undefined, activePerfil || undefined),
+  });
+  const { data: trendingData } = useQuery({
+    queryKey: ['trending'],
+    queryFn: () => getTrendingItems(10),
+  });
+  const { data: universesData } = useQuery({
+    queryKey: ['encyclopedia-universes'],
+    queryFn: getEncyclopediaUniverses,
+  });
+  const { data: poiDoDia } = useQuery({
+    queryKey: ['poi-do-dia'],
+    queryFn: getPOIDoDia,
+    staleTime: 60 * 60 * 1000,
+  });
+
+  const onRefresh = async () => { setRefreshing(true); await refetchFeed(); setRefreshing(false); };
+  const { greeting } = getGreeting();
+
+  const groupedFeed = React.useMemo(() => {
+    if (!feedData?.items) return {};
+    const result: Record<string, any[]> = {};
+    feedData.items.forEach((item: any) => {
+      const section = item.section || 'for_you';
+      if (!result[section]) result[section] = [];
+      result[section].push(item);
+    });
+    return result;
+  }, [feedData]);
+
+  // Dynamic styles using theme colors
+  const ds = {
+    bg: { backgroundColor: colors.background },
+    surface: { backgroundColor: colors.surface },
+    surfaceAlt: { backgroundColor: colors.surfaceAlt },
+    textPrimary: { color: colors.textPrimary },
+    textSecondary: { color: colors.textSecondary },
+    textMuted: { color: colors.textMuted },
+    border: { borderColor: colors.border },
+    accent: { color: colors.accent },
+  };
+
+  if (feedLoading && !feedData) {
+    return (
+      <View style={[styles.container, { backgroundColor: colors.background }]}>
+        <View style={{ paddingTop: insets.top + 16, paddingHorizontal: 16 }}>
+          <SkeletonCard variant="discovery" count={3} />
+          <View style={{ marginTop: 16 }}><SkeletonCard variant="heritage" count={4} /></View>
+        </View>
+      </View>
+    );
+  }
+
+  return (
+    <View style={[styles.container, ds.bg]}>
+      <OnboardingModal />
+      <ScrollView
+        style={styles.scrollView}
+        contentContainerStyle={[styles.scrollContent, { paddingTop: insets.top }]}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            tintColor="transparent"
+            colors={['transparent']}
+            style={{ backgroundColor: 'transparent' }}
+          />
+        }
+        showsVerticalScrollIndicator={false}
+      >
+        {/* Animated Pull-to-Refresh Indicator */}
+        {refreshing && (
+          <View style={styles.refreshIndicator} data-testid="pull-to-refresh-indicator">
+            <Animated.View style={{ transform: [{ rotate: refreshRotate }] }}>
+              <MaterialIcons name="explore" size={24} color={colors.accent} />
+            </Animated.View>
+            <Text style={[styles.refreshText, { color: colors.textMuted }]}>A descobrir novidades...</Text>
+          </View>
+        )}
+        {/* Hero Header */}
+        <View style={styles.header}>
+          <ImageBackground source={{ uri: regionImages.hero }} style={styles.heroImage} imageStyle={styles.heroImageStyle}>
+            <LinearGradient
+              colors={isDark ? ['rgba(28,31,28,0.8)', 'rgba(28,31,28,0.5)', 'transparent'] : ['rgba(46,94,78,0.75)', 'rgba(46,94,78,0.4)', 'transparent']}
+              style={styles.heroGradient}
+            >
+              <Text style={styles.greeting}>{greeting}</Text>
+              <Text style={styles.headerTitle}>Descubra Portugal</Text>
+              <Text style={styles.headerSubtitle}>O patrimonio vivo do nosso pais</Text>
+            </LinearGradient>
+          </ImageBackground>
+        </View>
+
+        {/* Quick Actions Grid */}
+        <View style={[styles.quickActions, { backgroundColor: colors.surface, borderColor: colors.borderLight }]} data-testid="quick-actions-grid">
+          {QUICK_ACTIONS.map((action) => (
+            <TouchableOpacity
+              key={action.id}
+              style={styles.actionButton}
+              onPress={() => {
+                if (action.id === 'guia') { setGuiaOpen(!guiaOpen); return; }
+                if (action.route) router.push(action.route as any);
+              }}
+              data-testid={`action-${action.id}`}
+            >
+              <View style={[styles.actionIcon, { backgroundColor: colors.primary + '15' }]}>
+                <MaterialIcons name={action.icon as any} size={20} color={colors.primary} />
+              </View>
+              <Text style={[styles.actionText, ds.textSecondary]} numberOfLines={1}>{action.title}</Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+
+        {/* Profile Banner */}
+        {activePerfil && PROFILE_LABELS[activePerfil] && (
+          <View
+            style={[styles.profileBanner, { backgroundColor: PROFILE_LABELS[activePerfil].color + '15', borderColor: PROFILE_LABELS[activePerfil].color + '40' }]}
+            data-testid="profile-banner"
+          >
+            <MaterialIcons name={PROFILE_LABELS[activePerfil].icon as any} size={22} color={PROFILE_LABELS[activePerfil].color} />
+            <View style={{ flex: 1, marginLeft: 10 }}>
+              <Text style={[styles.profileBannerTitle, { color: PROFILE_LABELS[activePerfil].color }]}>
+                Sugestões para {PROFILE_LABELS[activePerfil].label}
+              </Text>
+              <Text style={[styles.profileBannerSub, { color: colors.textMuted }]}>
+                Feed personalizado ao seu perfil
+              </Text>
+            </View>
+            <TouchableOpacity onPress={() => setActivePerfil(null)} data-testid="clear-profile-btn">
+              <MaterialIcons name="close" size={18} color={colors.textMuted} />
+            </TouchableOpacity>
+          </View>
+        )}
+
+        {/* Guia do Viajante Panel (expandable) */}
+        {guiaOpen && (
+          <View style={[styles.guiaPanel, { backgroundColor: colors.surface, borderColor: colors.borderLight }]} data-testid="guia-viajante-panel">
+            <View style={styles.guiaPanelHeader}>
+              <MaterialIcons name="menu-book" size={18} color={colors.primary} />
+              <Text style={[styles.guiaPanelTitle, { color: colors.textPrimary }]}>Guia do Viajante - Portugal</Text>
+              <TouchableOpacity onPress={() => setGuiaOpen(false)} data-testid="close-guia">
+                <MaterialIcons name="close" size={20} color={colors.textMuted} />
+              </TouchableOpacity>
+            </View>
+
+            {/* Informacoes Essenciais */}
+            <View style={[styles.guiaSectionHeader, { borderTopColor: colors.borderLight }]}>
+              <MaterialIcons name="info" size={14} color={colors.accent} />
+              <Text style={[styles.guiaSectionTitle, { color: colors.accent }]}>Informacoes Essenciais</Text>
+            </View>
+            {[
+              { icon: 'language', label: 'Idioma Oficial', value: 'Portugues' },
+              { icon: 'payments', label: 'Moeda', value: 'Euro (EUR)' },
+              { icon: 'schedule', label: 'Fuso Horario', value: 'WET (UTC+0) / WEST (UTC+1 verao)' },
+              { icon: 'electrical-services', label: 'Tomadas', value: 'Tipo F, 230V 50Hz' },
+              { icon: 'local-drink', label: 'Agua da torneira', value: 'Segura para beber em todo o pais' },
+              { icon: 'directions-car', label: 'Conduzir', value: 'Lado direito. Carta EU aceite.' },
+            ].map((item, i) => (
+              <View key={i} style={[styles.guiaRow, { borderTopColor: colors.borderLight }]}>
+                <MaterialIcons name={item.icon as any} size={14} color={colors.textMuted} />
+                <Text style={[styles.guiaLabel, { color: colors.textSecondary }]}>{item.label}</Text>
+                <Text style={[styles.guiaValue, { color: colors.textPrimary }]}>{item.value}</Text>
+              </View>
+            ))}
+
+            {/* Melhor Epoca */}
+            <View style={[styles.guiaSectionHeader, { borderTopColor: colors.borderLight }]}>
+              <MaterialIcons name="wb-sunny" size={14} color={colors.accent} />
+              <Text style={[styles.guiaSectionTitle, { color: colors.accent }]}>Melhor Epoca para Visitar</Text>
+            </View>
+            {[
+              { icon: 'calendar-today', label: 'Primavera (Mar-Mai)', value: 'Ideal. Tempo ameno, poucos turistas' },
+              { icon: 'wb-sunny', label: 'Verao (Jun-Ago)', value: 'Quente, praias. Muito turistico' },
+              { icon: 'eco', label: 'Outono (Set-Nov)', value: 'Excelente. Vindimas, cores, bom tempo' },
+              { icon: 'ac-unit', label: 'Inverno (Dez-Fev)', value: 'Suave no sul, neve na Serra da Estrela' },
+            ].map((item, i) => (
+              <View key={i} style={[styles.guiaRow, { borderTopColor: colors.borderLight }]}>
+                <MaterialIcons name={item.icon as any} size={14} color={colors.textMuted} />
+                <Text style={[styles.guiaLabel, { color: colors.textSecondary }]}>{item.label}</Text>
+                <Text style={[styles.guiaValue, { color: colors.textPrimary }]}>{item.value}</Text>
+              </View>
+            ))}
+
+            {/* Custos */}
+            <View style={[styles.guiaSectionHeader, { borderTopColor: colors.borderLight }]}>
+              <MaterialIcons name="euro" size={14} color={colors.accent} />
+              <Text style={[styles.guiaSectionTitle, { color: colors.accent }]}>Custos Medios</Text>
+            </View>
+            {[
+              { icon: 'restaurant', label: 'Refeicao (restaurante)', value: '8-15 EUR' },
+              { icon: 'local-cafe', label: 'Cafe + pastel de nata', value: '1.50-2.50 EUR' },
+              { icon: 'hotel', label: 'Hotel (2 estrelas)', value: '40-80 EUR/noite' },
+              { icon: 'apartment', label: 'Hotel (4 estrelas)', value: '80-150 EUR/noite' },
+              { icon: 'directions-bus', label: 'Transporte publico', value: '1.50-3 EUR/viagem' },
+              { icon: 'local-gas-station', label: 'Gasolina', value: '~1.60 EUR/litro' },
+              { icon: 'local-bar', label: 'Cerveja (bar)', value: '1.50-3 EUR' },
+              { icon: 'favorite', label: 'Gorjetas', value: '5-10% (opcional, arredondamento)' },
+            ].map((item, i) => (
+              <View key={i} style={[styles.guiaRow, { borderTopColor: colors.borderLight }]}>
+                <MaterialIcons name={item.icon as any} size={14} color={colors.textMuted} />
+                <Text style={[styles.guiaLabel, { color: colors.textSecondary }]}>{item.label}</Text>
+                <Text style={[styles.guiaValue, { color: colors.textPrimary }]}>{item.value}</Text>
+              </View>
+            ))}
+
+            {/* Saude e Seguranca */}
+            <View style={[styles.guiaSectionHeader, { borderTopColor: colors.borderLight }]}>
+              <MaterialIcons name="local-hospital" size={14} color={colors.error} />
+              <Text style={[styles.guiaSectionTitle, { color: colors.error }]}>Saude e Seguranca</Text>
+            </View>
+            {[
+              { icon: 'emergency', label: 'Emergencia geral', value: '112' },
+              { icon: 'local-police', label: 'Policia (PSP)', value: '112 / 21 765 42 42' },
+              { icon: 'fire-truck', label: 'Bombeiros', value: '117' },
+              { icon: 'local-hospital', label: 'Saude 24', value: '808 24 24 24' },
+              { icon: 'health-and-safety', label: 'Cartao Europeu Saude', value: 'Aceite em hospitais publicos (EU)' },
+              { icon: 'verified-user', label: 'Seguranca geral', value: 'Pais muito seguro para turistas' },
+              { icon: 'warning', label: 'Cuidados', value: 'Carteiristas em zonas turisticas' },
+            ].map((item, i) => (
+              <View key={i} style={[styles.guiaRow, { borderTopColor: colors.borderLight }]}>
+                <MaterialIcons name={item.icon as any} size={14} color={colors.textMuted} />
+                <Text style={[styles.guiaLabel, { color: colors.textSecondary }]}>{item.label}</Text>
+                <Text style={[styles.guiaValue, { color: colors.textPrimary }]}>{item.value}</Text>
+              </View>
+            ))}
+
+            {/* Transportes */}
+            <View style={[styles.guiaSectionHeader, { borderTopColor: colors.borderLight }]}>
+              <MaterialIcons name="directions-car" size={14} color={colors.accent} />
+              <Text style={[styles.guiaSectionTitle, { color: colors.accent }]}>Transportes</Text>
+            </View>
+            {[
+              { icon: 'train', label: 'Comboios (CP)', value: 'Rede nacional, Alfa Pendular rapido' },
+              { icon: 'directions-bus', label: 'Autocarros (Rede Expressos)', value: 'Cobertura nacional, economico' },
+              { icon: 'subway', label: 'Metro', value: 'Lisboa (4 linhas) e Porto (6 linhas)' },
+              { icon: 'local-taxi', label: 'Taxi / TVDE', value: 'Uber e Bolt disponiveis' },
+              { icon: 'directions-boat', label: 'Ferries', value: 'Ligacoes fluviais em Lisboa e Porto' },
+              { icon: 'flight', label: 'Voos internos', value: 'TAP para Madeira e Acores' },
+            ].map((item, i) => (
+              <View key={i} style={[styles.guiaRow, { borderTopColor: colors.borderLight }]}>
+                <MaterialIcons name={item.icon as any} size={14} color={colors.textMuted} />
+                <Text style={[styles.guiaLabel, { color: colors.textSecondary }]}>{item.label}</Text>
+                <Text style={[styles.guiaValue, { color: colors.textPrimary }]}>{item.value}</Text>
+              </View>
+            ))}
+
+            {/* Cultura e Etiqueta */}
+            <View style={[styles.guiaSectionHeader, { borderTopColor: colors.borderLight }]}>
+              <MaterialIcons name="people" size={14} color={colors.accent} />
+              <Text style={[styles.guiaSectionTitle, { color: colors.accent }]}>Cultura e Etiqueta</Text>
+            </View>
+            {[
+              { icon: 'waving-hand', label: 'Cumprimento', value: 'Aperto de mao, 2 beijos entre amigos' },
+              { icon: 'schedule', label: 'Horario refeicoes', value: 'Almoco 12-14h, Jantar 19:30-21:30' },
+              { icon: 'store', label: 'Horario comercio', value: 'Seg-Sab 9-19h. Centros ate 23h' },
+              { icon: 'no-photography', label: 'Fotografias', value: 'Pedir autorizacao em igrejas e museus' },
+              { icon: 'smoking-rooms', label: 'Fumar', value: 'Proibido em espacos fechados' },
+            ].map((item, i) => (
+              <View key={i} style={[styles.guiaRow, { borderTopColor: colors.borderLight }]}>
+                <MaterialIcons name={item.icon as any} size={14} color={colors.textMuted} />
+                <Text style={[styles.guiaLabel, { color: colors.textSecondary }]}>{item.label}</Text>
+                <Text style={[styles.guiaValue, { color: colors.textPrimary }]}>{item.value}</Text>
+              </View>
+            ))}
+
+            {/* Documentacao */}
+            <View style={[styles.guiaSectionHeader, { borderTopColor: colors.borderLight }]}>
+              <MaterialIcons name="badge" size={14} color={colors.accent} />
+              <Text style={[styles.guiaSectionTitle, { color: colors.accent }]}>Documentacao</Text>
+            </View>
+            {[
+              { icon: 'public', label: 'Cidadaos EU/EEE', value: 'BI ou passaporte valido' },
+              { icon: 'flight-land', label: 'Cidadaos fora EU', value: 'Passaporte. Visto Schengen se aplicavel' },
+              { icon: 'receipt-long', label: 'Tax Free', value: 'Compras > 50 EUR (residentes fora EU)' },
+            ].map((item, i) => (
+              <View key={i} style={[styles.guiaRow, { borderTopColor: colors.borderLight }]}>
+                <MaterialIcons name={item.icon as any} size={14} color={colors.textMuted} />
+                <Text style={[styles.guiaLabel, { color: colors.textSecondary }]}>{item.label}</Text>
+                <Text style={[styles.guiaValue, { color: colors.textPrimary }]}>{item.value}</Text>
+              </View>
+            ))}
+          </View>
+        )}
+
+        {/* Compact Info Widgets */}
+        <View style={styles.widgetStrip}>
+          {/* Weather */}
+          <TouchableOpacity
+            style={[styles.chipWidget, { backgroundColor: colors.surface, borderColor: colors.borderLight }]}
+            onPress={() => setExpandedWidget(expandedWidget === 'weather' ? null : 'weather')}
+            activeOpacity={0.7}
+            data-testid="weather-chip"
+          >
+            <View style={styles.chipRow}>
+              <MaterialIcons name="wb-sunny" size={16} color={colors.accent} />
+              <Text style={[styles.chipText, { color: colors.textPrimary }]} numberOfLines={1}>
+                {weatherData?.forecasts?.[0] ? `${Math.round(weatherData.forecasts[0].temp_min)}°-${Math.round(weatherData.forecasts[0].temp_max)}°` : '...'}
+              </Text>
+              <MaterialIcons name={expandedWidget === 'weather' ? 'expand-less' : 'expand-more'} size={16} color={colors.textMuted} />
+            </View>
+            {expandedWidget === 'weather' && weatherData?.forecasts?.[0] && (
+              <View style={[styles.chipDetail, { borderTopColor: colors.borderLight }]}>
+                <Text style={[styles.chipDetailText, { color: colors.textSecondary }]}>{weatherData.forecasts[0].weather_description}</Text>
+                <Text style={[styles.chipDetailText, { color: colors.textSecondary }]}>Lisboa - IPMA</Text>
+                {(alertsData?.alerts?.filter((a: any) => a.level !== 'green') || []).slice(0, 2).map((alert: any, i: number) => (
+                  <View key={i} style={styles.chipAlertRow}>
+                    <MaterialIcons name="warning" size={12} color={colors.warning} />
+                    <Text style={[styles.chipAlertText, { color: colors.warning }]} numberOfLines={1}>{alert.title}</Text>
+                  </View>
+                ))}
+              </View>
+            )}
+          </TouchableOpacity>
+
+          {/* Safety */}
+          <TouchableOpacity
+            style={[styles.chipWidget, { backgroundColor: colors.surface, borderColor: colors.borderLight }]}
+            onPress={() => setExpandedWidget(expandedWidget === 'safety' ? null : 'safety')}
+            activeOpacity={0.7}
+            data-testid="safety-chip"
+          >
+            <View style={styles.chipRow}>
+              <MaterialIcons
+                name={safetyData?.safety_level === 'danger' ? 'error' : safetyData?.safety_level === 'warning' ? 'warning' : 'check-circle'}
+                size={16}
+                color={safetyData?.safety_level === 'danger' ? colors.error : safetyData?.safety_level === 'warning' ? colors.warning : colors.success}
+              />
+              <Text style={[styles.chipText, { color: colors.textPrimary }]} numberOfLines={1}>
+                {safetyData?.safety_level === 'danger' ? 'Perigo' : safetyData?.safety_level === 'warning' ? 'Atencao' : 'Seguro'}
+              </Text>
+              <MaterialIcons name={expandedWidget === 'safety' ? 'expand-less' : 'expand-more'} size={16} color={colors.textMuted} />
+            </View>
+            {expandedWidget === 'safety' && (
+              <View style={[styles.chipDetail, { borderTopColor: colors.borderLight }]}>
+                {safetyData?.message && <Text style={[styles.chipDetailText, { color: colors.textSecondary }]}>{safetyData.message}</Text>}
+                {((firesData as any)?.active_count || 0) > 0 && (
+                  <Text style={[styles.chipDetailText, { color: colors.textSecondary }]}>{(firesData as any).active_count} incendios ativos</Text>
+                )}
+                {safetyData?.weather_alerts?.slice(0, 2).map((alert: any, i: number) => (
+                  <View key={i} style={styles.chipAlertRow}>
+                    <MaterialIcons name="cloud" size={12} color={colors.warning} />
+                    <Text style={[styles.chipAlertText, { color: colors.warning }]} numberOfLines={1}>{alert.title}</Text>
+                  </View>
+                ))}
+              </View>
+            )}
+          </TouchableOpacity>
+
+          {/* Surf */}
+          <TouchableOpacity
+            style={[styles.chipWidget, { backgroundColor: colors.surface, borderColor: colors.borderLight }]}
+            onPress={() => setExpandedWidget(expandedWidget === 'surf' ? null : 'surf')}
+            activeOpacity={0.7}
+            data-testid="surf-chip"
+          >
+            <View style={styles.chipRow}>
+              <MaterialIcons name="waves" size={16} color={colors.secondary} />
+              <Text style={[styles.chipText, { color: colors.textPrimary }]} numberOfLines={1}>
+                {surfData?.spots?.[0] ? `${surfData.spots[0].wave_height_m?.toFixed(1)}m` : '...'}
+              </Text>
+              <MaterialIcons name={expandedWidget === 'surf' ? 'expand-less' : 'expand-more'} size={16} color={colors.textMuted} />
+            </View>
+            {expandedWidget === 'surf' && surfData?.spots?.[0] && (
+              <View style={[styles.chipDetail, { borderTopColor: colors.borderLight }]}>
+                <Text style={[styles.chipDetailText, { color: colors.textSecondary }]}>{surfData.spots[0].spot?.name || 'Melhor Spot'}</Text>
+                <View style={styles.surfStats}>
+                  <Text style={[styles.surfStat, { color: colors.textPrimary }]}>{surfData.spots[0].wave_height_m?.toFixed(1)}m</Text>
+                  <Text style={[styles.surfStatLabel, { color: colors.textMuted }]}>Altura</Text>
+                  <Text style={[styles.surfStat, { color: colors.textPrimary }]}>{surfData.spots[0].wave_period_s?.toFixed(0)}s</Text>
+                  <Text style={[styles.surfStatLabel, { color: colors.textMuted }]}>Periodo</Text>
+                  <Text style={[styles.surfStat, { color: colors.textPrimary }]}>{surfData.spots[0].wave_direction || '--'}</Text>
+                  <Text style={[styles.surfStatLabel, { color: colors.textMuted }]}>Dir.</Text>
+                </View>
+                <Text style={[styles.chipDetailMuted, { color: colors.textMuted }]}>Open-Meteo</Text>
+              </View>
+            )}
+          </TouchableOpacity>
+        </View>
+
+        {/* POI do Dia */}
+        {poiDoDia?.has_poi && (
+          <View style={styles.section}>
+            <View style={styles.sectionHeader}>
+              <View style={styles.sectionTitleRow}>
+                <MaterialIcons name="auto-awesome" size={18} color={colors.accent} />
+                <Text style={[styles.sectionTitle, ds.textPrimary]}>POI do Dia</Text>
+              </View>
+              <Text style={[styles.seeAll, { color: colors.textMuted, fontSize: 11 }]}>{poiDoDia.category_label}</Text>
+            </View>
+            <TouchableOpacity
+              style={[styles.poiDiaCard, { backgroundColor: colors.surface, borderColor: colors.borderLight }]}
+              onPress={() => router.push(`/heritage/${poiDoDia.poi.id}`)}
+              activeOpacity={0.85}
+              data-testid="poi-do-dia-card"
+            >
+              {/* Placeholder for future real image */}
+              <View style={[styles.poiDiaImagePlaceholder, { backgroundColor: isDark ? colors.surfaceAlt : colors.backgroundAlt }]}>
+                <MaterialIcons name={poiDoDia.category_icon as any || 'place'} size={32} color={colors.accent} />
+                <Text style={[styles.poiDiaImageHint, { color: colors.textMuted }]}>Foto brevemente</Text>
+              </View>
+              <View style={styles.poiDiaContent}>
+                <View style={styles.poiDiaTop}>
+                  <View style={[styles.poiDiaBadge, { backgroundColor: colors.accent + '18' }]}>
+                    <MaterialIcons name="auto-awesome" size={12} color={colors.accent} />
+                    <Text style={[styles.poiDiaBadgeText, { color: colors.accent }]}>Destaque IQ</Text>
+                  </View>
+                  <View style={[styles.poiDiaScoreBadge, { backgroundColor: colors.primary + '15' }]}>
+                    <Text style={[styles.poiDiaScoreVal, { color: colors.primary }]}>{poiDoDia.poi.iq_score}</Text>
+                  </View>
+                </View>
+                <Text style={[styles.poiDiaName, { color: colors.textPrimary }]} numberOfLines={2}>{poiDoDia.poi.name}</Text>
+                <Text style={[styles.poiDiaDesc, { color: colors.textSecondary }]} numberOfLines={2}>{poiDoDia.poi.description}</Text>
+                <View style={styles.poiDiaBottom}>
+                  <MaterialIcons name="place" size={14} color={colors.textMuted} />
+                  <Text style={[styles.poiDiaInfoText, { color: colors.textMuted }]}>{poiDoDia.poi.region}</Text>
+                  {poiDoDia.poi.rarity && (
+                    <View style={[styles.poiDiaRarity, { backgroundColor: colors.accent + '18' }]}>
+                      <Text style={[styles.poiDiaRarityText, { color: colors.accent }]}>{poiDoDia.poi.rarity}</Text>
+                    </View>
+                  )}
+                  <MaterialIcons name="arrow-forward" size={16} color={colors.textMuted} style={{ marginLeft: 'auto' }} />
+                </View>
+              </View>
+            </TouchableOpacity>
+          </View>
+        )}
+
+        {/* Regions */}
+        <View style={styles.section}>
+          <View style={styles.sectionHeader}>
+            <Text style={[styles.sectionTitle, ds.textPrimary]}>Explorar por Região</Text>
+            <TouchableOpacity onPress={() => router.push('/(tabs)/mapa')}>
+              <Text style={[styles.seeAll, { color: colors.accent }]}>Ver Mapa</Text>
+            </TouchableOpacity>
+          </View>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.regionsRow}>
+            {REGIONS.map((region) => (
+              <TouchableOpacity
+                key={region.id}
+                style={styles.regionCard}
+                onPress={() => router.push(`/(tabs)/mapa?region=${region.id}&t=${Date.now()}` as any)}
+                activeOpacity={0.9}
+                data-testid={`region-card-${region.id}`}
+              >
+                <ImageBackground source={{ uri: region.image }} style={styles.regionImage} imageStyle={styles.regionImageStyle}>
+                  <LinearGradient colors={['transparent', 'rgba(0,0,0,0.55)']} style={styles.regionGradient}>
+                    <View style={styles.regionContent}>
+                      <Text style={styles.regionName}>{region.name}</Text>
+                      <Text style={styles.regionSubtitle}>{region.subtitle}</Text>
+                    </View>
+                  </LinearGradient>
+                </ImageBackground>
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
+        </View>
+
+        {/* Enciclopédia Viva */}
+        {universesData && universesData.length > 0 && (
+          <View style={styles.section}>
+            <View style={styles.sectionHeader}>
+              <View style={styles.sectionTitleRow}>
+                <MaterialIcons name="auto-awesome" size={18} color="#8E24AA" />
+                <Text style={[styles.sectionTitle, ds.textPrimary]}>Enciclopedia Viva</Text>
+              </View>
+              <TouchableOpacity onPress={() => router.push('/(tabs)/coleccoes' as any)}>
+                <Text style={[styles.seeAll, { color: colors.accent }]}>Ver Todos</Text>
+              </TouchableOpacity>
+            </View>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.universesRow}>
+              {universesData.map((universe: EncyclopediaUniverse) => (
+                <TouchableOpacity
+                  key={universe.id}
+                  style={[styles.universeCard, { backgroundColor: (universe.color || colors.primary) + (isDark ? '20' : '10') }]}
+                  onPress={() => router.push('/(tabs)/coleccoes' as any)}
+                  activeOpacity={0.8}
+                  data-testid={`universe-card-${universe.id}`}
+                >
+                  <View style={[styles.universeIcon, { backgroundColor: universe.color || colors.primary }]}>
+                    <MaterialIcons name={(universe.icon || 'place') as any} size={22} color="#FFF" />
+                  </View>
+                  <Text style={[styles.universeName, ds.textPrimary]} numberOfLines={2}>{universe.name}</Text>
+                  <Text style={[styles.universeCount, ds.textMuted]}>{universe.item_count} locais</Text>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          </View>
+        )}
+
+        {/* Trending */}
+        {trendingData?.items && trendingData.items.length > 0 && (
+          <View style={styles.section}>
+            <View style={styles.sectionHeader}>
+              <View style={styles.sectionTitleRow}>
+                <MaterialIcons name="trending-up" size={18} color={colors.success} />
+                <Text style={[styles.sectionTitle, ds.textPrimary]}>Em Tendencia</Text>
+              </View>
+              <Text style={[styles.sectionPeriod, ds.textMuted]}>7 dias</Text>
+            </View>
+            <View style={styles.trendingList}>
+              {trendingData.items.slice(0, 5).map((item: TrendingItem, index: number) => (
+                <TouchableOpacity
+                  key={item.id}
+                  style={[styles.trendingCard, { backgroundColor: colors.surface, borderColor: colors.borderLight }]}
+                  onPress={() => router.push(`/heritage/${item.id}`)}
+                  activeOpacity={0.8}
+                  data-testid={`trending-card-${item.id}`}
+                >
+                  <View style={[styles.trendingRank, { backgroundColor: colors.primary + '15' }]}>
+                    <Text style={[styles.trendingRankText, { color: colors.primary }]}>{index + 1}</Text>
+                  </View>
+                  <Image source={{ uri: item.image_url || 'https://via.placeholder.com/80' }} style={styles.trendingImage} />
+                  <View style={styles.trendingInfo}>
+                    <Text style={[styles.trendingTitle, ds.textPrimary]} numberOfLines={2}>{item.name}</Text>
+                    <View style={styles.trendingMeta}>
+                      <MaterialIcons name="trending-up" size={14} color={colors.success} />
+                      <Text style={{ fontSize: 12, color: colors.success }}>{item.trending_score} visitas</Text>
+                    </View>
+                  </View>
+                </TouchableOpacity>
+              ))}
+            </View>
+          </View>
+        )}
+
+        {/* Discovery Feed */}
+        {groupedFeed['for_you'] && groupedFeed['for_you'].length > 0 && (
+          <View style={styles.section}>
+            <View style={styles.sectionHeader}>
+              <View style={styles.sectionTitleRow}>
+                <MaterialIcons name="person" size={18} color={colors.accent} />
+                <Text style={[styles.sectionTitle, ds.textPrimary]}>Para Si</Text>
+              </View>
+            </View>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.horizontalScroll}>
+              {groupedFeed['for_you'].slice(0, 6).map((item: DiscoveryFeedItem) => (
+                <TouchableOpacity
+                  key={item.id}
+                  style={[styles.discoveryCard, { backgroundColor: colors.surface, borderColor: colors.borderLight }]}
+                  onPress={() => router.push(`/heritage/${item.content_id}`)}
+                  activeOpacity={0.8}
+                  data-testid={`discovery-card-${item.content_id}`}
+                >
+                  <Image source={{ uri: item.content_data.image_url || 'https://via.placeholder.com/300x200' }} style={styles.discoveryImage} />
+                  <View style={styles.discoveryContent}>
+                    <Text style={[styles.discoveryTitle, ds.textPrimary]} numberOfLines={2}>{item.content_data.name}</Text>
+                    <View style={[styles.reasonBadge, { backgroundColor: colors.primary + '12' }]}>
+                      <MaterialIcons name="auto-awesome" size={12} color={colors.accent} />
+                      <Text style={[styles.reasonText, ds.textSecondary]} numberOfLines={1}>{item.reason}</Text>
+                    </View>
+                  </View>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          </View>
+        )}
+
+        {/* Empty State */}
+        {(!feedData?.items || feedData.items.length === 0) && !feedLoading && (
+          <View style={styles.emptyState}>
+            <View style={[styles.emptyIcon, { backgroundColor: colors.primary + '15' }]}>
+              <MaterialIcons name="explore" size={48} color={colors.primary} />
+            </View>
+            <Text style={[styles.emptyTitle, ds.textPrimary]}>Comece a Explorar</Text>
+            <Text style={[styles.emptySubtitle, ds.textMuted]}>Visite locais para receber recomendacoes personalizadas</Text>
+            <TouchableOpacity
+              style={[styles.exploreButton, { backgroundColor: colors.accent }]}
+              onPress={() => router.push('/(tabs)/mapa')}
+              data-testid="explore-button"
+            >
+              <Text style={styles.exploreButtonText}>Ver Mapa</Text>
+              <MaterialIcons name="arrow-forward" size={18} color="#FFFFFF" />
+            </TouchableOpacity>
+          </View>
+        )}
+
+        <View style={{ height: 100 }} />
+      </ScrollView>
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: { flex: 1 },
+  loadingText: { marginTop: 12, fontSize: typography.fontSize.base },
+  scrollView: { flex: 1 },
+  scrollContent: { paddingBottom: 20 },
+
+  // Pull-to-refresh indicator
+  refreshIndicator: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
+    paddingVertical: 12, gap: 8,
+  },
+  refreshText: { fontSize: 13, fontWeight: '500' },
+
+  // Hero
+  header: { height: 200, marginBottom: -16 },
+  heroImage: { flex: 1, justifyContent: 'flex-end' },
+  heroImageStyle: { borderBottomLeftRadius: 24, borderBottomRightRadius: 24 },
+  heroGradient: { flex: 1, justifyContent: 'flex-end', padding: 20, paddingBottom: 32, borderBottomLeftRadius: 24, borderBottomRightRadius: 24 },
+  greeting: { fontSize: 14, color: 'rgba(255,255,255,0.85)', marginBottom: 2 },
+  headerTitle: { fontSize: 28, fontWeight: '700', color: '#FFFFFF', fontFamily: serif },
+  headerSubtitle: { fontSize: 14, color: 'rgba(255,255,255,0.9)', marginTop: 2 },
+
+  // Quick Actions
+  quickActions: {
+    flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'flex-start',
+    paddingHorizontal: 12, paddingVertical: 16,
+    marginHorizontal: 16, borderRadius: 20,
+    borderWidth: 1,
+    ...shadows.lg,
+  },
+  actionButton: { alignItems: 'center', width: (width - 64) / 6, paddingVertical: 8 },
+  actionIcon: { width: 44, height: 44, borderRadius: 14, justifyContent: 'center', alignItems: 'center' },
+  actionText: { fontSize: 10, fontWeight: '600', marginTop: 4, textAlign: 'center' },
+
+  // Profile Banner
+  profileBanner: {
+    flexDirection: 'row', alignItems: 'center',
+    marginHorizontal: 16, marginTop: 12, paddingHorizontal: 14, paddingVertical: 12,
+    borderRadius: 14, borderWidth: 1,
+  },
+  profileBannerTitle: { fontSize: 14, fontWeight: '700', fontFamily: serif },
+  profileBannerSub: { fontSize: 11, marginTop: 1 },
+
+  // Widgets - compact chips
+  widgetStrip: { flexDirection: 'row', paddingHorizontal: 16, marginTop: 14, gap: 8, flexWrap: 'wrap' },
+  chipWidget: { borderRadius: 12, borderWidth: 1, overflow: 'hidden', minWidth: 100, flex: 1 },
+  chipRow: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, paddingVertical: 10, gap: 6 },
+  chipText: { fontSize: 13, fontWeight: '600', flex: 1 },
+  chipDetail: { paddingHorizontal: 12, paddingBottom: 10, borderTopWidth: 1, paddingTop: 8, gap: 4 },
+  chipDetailText: { fontSize: 12, lineHeight: 17 },
+  chipDetailMuted: { fontSize: 10, marginTop: 2 },
+  chipAlertRow: { flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 2 },
+  chipAlertText: { fontSize: 11, flex: 1 },
+  surfStats: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 4, flexWrap: 'wrap' },
+  surfStat: { fontSize: 14, fontWeight: '700' },
+  surfStatLabel: { fontSize: 10, marginRight: 6 },
+
+  // Guia do Viajante panel
+  guiaPanel: { marginHorizontal: 16, marginTop: 12, borderRadius: 14, borderWidth: 1, overflow: 'hidden' },
+  guiaPanelHeader: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 14, paddingVertical: 10, gap: 8 },
+  guiaPanelTitle: { flex: 1, fontSize: 15, fontWeight: '700' },
+  guiaSectionHeader: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 14, paddingTop: 12, paddingBottom: 4, gap: 6, borderTopWidth: 1 },
+  guiaSectionTitle: { fontSize: 12, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.5 },
+  guiaRow: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 14, paddingVertical: 6, gap: 8, borderTopWidth: 0.5 },
+  guiaLabel: { width: 140, fontSize: 11 },
+  guiaValue: { flex: 1, fontSize: 11, fontWeight: '500' },
+
+  // Section
+  section: { marginTop: 24 },
+  sectionHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, marginBottom: 12 },
+  sectionTitleRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  sectionTitle: { fontSize: 18, fontWeight: '700', fontFamily: serif },
+  sectionPeriod: { fontSize: 12 },
+  seeAll: { fontSize: 13, fontWeight: '600' },
+
+  // Regions
+  regionsRow: { paddingHorizontal: 16, gap: 12 },
+  regionCard: { width: 150, height: 190, borderRadius: 18, overflow: 'hidden', ...shadows.md },
+  regionImage: { flex: 1 },
+  regionImageStyle: { borderRadius: 18 },
+  regionGradient: { flex: 1, justifyContent: 'flex-end', padding: 12 },
+  regionContent: { gap: 2 },
+  regionName: { fontSize: 17, fontWeight: '700', color: '#FFF' },
+  regionSubtitle: { fontSize: 12, color: 'rgba(255,255,255,0.85)' },
+
+  // Universes
+  universesRow: { paddingHorizontal: 16, gap: 12 },
+  universeCard: { width: 130, borderRadius: 18, padding: 16, minHeight: 130, justifyContent: 'space-between' },
+  universeIcon: { width: 42, height: 42, borderRadius: 14, justifyContent: 'center', alignItems: 'center' },
+  universeName: { fontSize: 13, fontWeight: '600', marginTop: 8, lineHeight: 17 },
+  universeCount: { fontSize: 11, marginTop: 4 },
+
+  // Trending
+  trendingList: { paddingHorizontal: 20, gap: 8 },
+  trendingCard: { flexDirection: 'row', alignItems: 'center', borderRadius: 14, padding: 12, gap: 12, borderWidth: 1, ...shadows.sm },
+  trendingRank: { width: 28, height: 28, borderRadius: 14, justifyContent: 'center', alignItems: 'center' },
+  trendingRankText: { fontSize: 14, fontWeight: '700' },
+  trendingImage: { width: 52, height: 52, borderRadius: 10 },
+  trendingInfo: { flex: 1 },
+  trendingTitle: { fontSize: 14, fontWeight: '600', marginBottom: 4 },
+  trendingMeta: { flexDirection: 'row', alignItems: 'center', gap: 4 },
+
+  // Discovery Cards
+  horizontalScroll: { paddingHorizontal: 16, gap: 12 },
+  discoveryCard: { width: width * 0.58, borderRadius: 18, overflow: 'hidden', borderWidth: 1, ...shadows.md },
+  discoveryImage: { width: '100%', height: 130 },
+  discoveryContent: { padding: 12, gap: 8 },
+  discoveryTitle: { fontSize: 14, fontWeight: '600' },
+  reasonBadge: { flexDirection: 'row', alignItems: 'center', gap: 4, alignSelf: 'flex-start', paddingHorizontal: 8, paddingVertical: 3, borderRadius: 20 },
+  reasonText: { fontSize: 11 },
+
+  // Empty State
+  emptyState: { alignItems: 'center', paddingHorizontal: 40, paddingTop: 48 },
+  emptyIcon: { width: 80, height: 80, borderRadius: 40, justifyContent: 'center', alignItems: 'center', marginBottom: 16 },
+  emptyTitle: { fontSize: 20, fontWeight: '600' },
+  emptySubtitle: { fontSize: 14, textAlign: 'center', marginTop: 8, lineHeight: 22 },
+  exploreButton: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 24, paddingVertical: 12, borderRadius: 24, marginTop: 24, gap: 8 },
+  exploreButtonText: { color: '#FFF', fontSize: 15, fontWeight: '600' },
+
+  // POI do Dia
+  poiDiaCard: { marginHorizontal: 16, borderRadius: 16, overflow: 'hidden', borderWidth: 1 },
+  poiDiaImagePlaceholder: { height: 120, justifyContent: 'center', alignItems: 'center', gap: 6 },
+  poiDiaImageHint: { fontSize: 10 },
+  poiDiaContent: { padding: 14, gap: 8 },
+  poiDiaTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  poiDiaBadge: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 8, paddingVertical: 3, borderRadius: 20, gap: 4 },
+  poiDiaBadgeText: { fontSize: 11, fontWeight: '600' },
+  poiDiaScoreBadge: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 10 },
+  poiDiaScoreVal: { fontSize: 16, fontWeight: '800' },
+  poiDiaName: { fontSize: 17, fontWeight: '700' },
+  poiDiaDesc: { fontSize: 13, lineHeight: 19 },
+  poiDiaBottom: { flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 4 },
+  poiDiaInfoText: { fontSize: 12, textTransform: 'capitalize' },
+  poiDiaRarity: { paddingHorizontal: 8, paddingVertical: 2, borderRadius: 8, marginLeft: 6 },
+  poiDiaRarityText: { fontSize: 10, fontWeight: '600' },
+});

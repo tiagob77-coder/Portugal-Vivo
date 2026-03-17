@@ -1,78 +1,148 @@
 import React from 'react';
 import { Tabs } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
-import { Platform, View } from 'react-native';
+import { View, Platform } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useTheme } from '../../src/context/ThemeContext';
+import ProximityMonitor from '../../src/components/ProximityMonitor';
+import ErrorBoundary from '../../src/components/ErrorBoundary';
+
+// Load Cormorant Garamond globally on web + PWA setup
+if (Platform.OS === 'web' && typeof document !== 'undefined') {
+  const existing = document.querySelector('link[href*="Cormorant+Garamond"]');
+  if (!existing) {
+    const link = document.createElement('link');
+    link.rel = 'stylesheet';
+    link.href = 'https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&display=swap';
+    document.head.appendChild(link);
+  }
+  // PWA Manifest
+  if (!document.querySelector('link[rel="manifest"]')) {
+    const manifest = document.createElement('link');
+    manifest.rel = 'manifest';
+    manifest.href = '/manifest.json';
+    document.head.appendChild(manifest);
+    // Theme color meta tag
+    const theme = document.createElement('meta');
+    theme.name = 'theme-color';
+    theme.content = '#2E5E4E';
+    document.head.appendChild(theme);
+    // Apple touch icon
+    const appleIcon = document.createElement('link');
+    appleIcon.rel = 'apple-touch-icon';
+    appleIcon.href = '/assets/images/icon.png';
+    document.head.appendChild(appleIcon);
+    // Apple mobile web app capable
+    const appleMeta = document.createElement('meta');
+    appleMeta.name = 'apple-mobile-web-app-capable';
+    appleMeta.content = 'yes';
+    document.head.appendChild(appleMeta);
+  }
+  // Register Service Worker
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/sw.js').catch(() => {});
+  }
+  // Inject tab fade transition CSS
+  const styleExists = document.querySelector('style[data-tab-transition]');
+  if (!styleExists) {
+    const style = document.createElement('style');
+    style.setAttribute('data-tab-transition', 'true');
+    style.textContent = `
+      [data-testid="tab-content-wrapper"] > div {
+        animation: tabFadeIn 200ms ease-out;
+      }
+      @keyframes tabFadeIn {
+        from { opacity: 0; transform: translateY(4px); }
+        to { opacity: 1; transform: translateY(0); }
+      }
+    `;
+    document.head.appendChild(style);
+  }
+}
 
 export default function TabLayout() {
   const insets = useSafeAreaInsets();
+  const { colors } = useTheme();
 
   return (
-    <Tabs
-      screenOptions={{
-        headerShown: false,
-        tabBarStyle: {
-          backgroundColor: '#1E293B',
-          borderTopColor: '#334155',
-          borderTopWidth: 1,
-          height: 60 + insets.bottom,
-          paddingTop: 8,
-          paddingBottom: insets.bottom || 8,
-        },
-        tabBarActiveTintColor: '#F59E0B',
-        tabBarInactiveTintColor: '#64748B',
-        tabBarLabelStyle: {
-          fontSize: 10,
-          fontWeight: '600',
-          marginTop: 2,
-        },
-      }}
-    >
-      <Tabs.Screen
-        name="index"
-        options={{
-          title: 'Explorar',
-          tabBarIcon: ({ color, size }) => (
-            <MaterialIcons name="explore" size={22} color={color} />
-          ),
+    <View style={{ flex: 1, backgroundColor: colors.background }} data-testid="tab-content-wrapper">
+      <ProximityMonitor />
+      <ErrorBoundary>
+      <Tabs
+        screenOptions={{
+          headerShown: false,
+          tabBarStyle: {
+            backgroundColor: colors.surface,
+            borderTopColor: colors.border,
+            borderTopWidth: 1,
+            height: 60 + insets.bottom,
+            paddingTop: 8,
+            paddingBottom: insets.bottom || 8,
+          },
+          tabBarActiveTintColor: colors.accent,
+          tabBarInactiveTintColor: colors.textMuted,
+          tabBarLabelStyle: {
+            fontSize: 10,
+            fontWeight: '600',
+            marginTop: 2,
+          },
+          ...(Platform.OS !== 'web' ? { animation: 'fade' } : {}),
         }}
-      />
-      <Tabs.Screen
-        name="map"
-        options={{
-          title: 'Mapa',
-          tabBarIcon: ({ color, size }) => (
-            <MaterialIcons name="map" size={22} color={color} />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="routes"
-        options={{
-          title: 'Rotas',
-          tabBarIcon: ({ color, size }) => (
-            <MaterialIcons name="route" size={22} color={color} />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="community"
-        options={{
-          title: 'Comunidade',
-          tabBarIcon: ({ color, size }) => (
-            <MaterialIcons name="groups" size={22} color={color} />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="profile"
-        options={{
-          title: 'Perfil',
-          tabBarIcon: ({ color, size }) => (
-            <MaterialIcons name="person" size={22} color={color} />
-          ),
-        }}
-      />
-    </Tabs>
+      >
+        <Tabs.Screen
+          name="descobrir"
+          options={{
+            title: 'Descobrir',
+            tabBarIcon: ({ color }) => (
+              <MaterialIcons name="auto-awesome" size={22} color={color} />
+            ),
+          }}
+        />
+        <Tabs.Screen
+          name="mapa"
+          options={{
+            title: 'Mapa',
+            tabBarIcon: ({ color }) => (
+              <MaterialIcons name="map" size={22} color={color} />
+            ),
+          }}
+        />
+        <Tabs.Screen
+          name="planeador"
+          options={{
+            title: 'Planeador',
+            tabBarIcon: ({ color }) => (
+              <MaterialIcons name="edit-calendar" size={22} color={color} />
+            ),
+          }}
+        />
+        <Tabs.Screen
+          name="eventos"
+          options={{
+            title: 'Eventos',
+            tabBarIcon: ({ color }) => (
+              <MaterialIcons name="event" size={22} color={color} />
+            ),
+          }}
+        />
+        <Tabs.Screen
+          name="profile"
+          options={{
+            title: 'Perfil',
+            tabBarIcon: ({ color }) => (
+              <MaterialIcons name="person" size={22} color={color} />
+            ),
+          }}
+        />
+        
+        {/* Hidden tabs — accessible via deep links */}
+        <Tabs.Screen name="community" options={{ href: null }} />
+        <Tabs.Screen name="experienciar" options={{ href: null }} />
+        <Tabs.Screen name="beachcams" options={{ href: null }} />
+        <Tabs.Screen name="coleccoes" options={{ href: null }} />
+        <Tabs.Screen name="transportes" options={{ href: null }} />
+      </Tabs>
+      </ErrorBoundary>
+    </View>
   );
 }
