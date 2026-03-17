@@ -1,3 +1,4 @@
+from collections import defaultdict
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, APIRouter, HTTPException, Depends, Request, Response
 from dotenv import load_dotenv
@@ -50,6 +51,22 @@ app.add_middleware(
 
 # Create a router with the /api prefix
 api_router = APIRouter(prefix="/api")
+
+# Simple in-memory rate limiter for expensive AI endpoints
+# {ip: [timestamp, ...]}
+_narrative_calls: Dict[str, List[datetime]] = defaultdict(list)
+NARRATIVE_RATE_LIMIT = 10   # max requests per window
+NARRATIVE_RATE_WINDOW = 60  # seconds
+
+def _check_narrative_rate_limit(request: Request):
+    ip = request.client.host if request.client else "unknown"
+    now = datetime.now(timezone.utc)
+    window_start = now - timedelta(seconds=NARRATIVE_RATE_WINDOW)
+    calls = [t for t in _narrative_calls[ip] if t > window_start]
+    if len(calls) >= NARRATIVE_RATE_LIMIT:
+        raise HTTPException(status_code=429, detail="Demasiados pedidos. Tente novamente em 1 minuto.")
+    calls.append(now)
+    _narrative_calls[ip] = calls
 
 # Configure logging
 logging.basicConfig(
@@ -482,45 +499,46 @@ async def remove_favorite(item_id: str, current_user: User = Depends(require_aut
 # ========================
 
 @api_router.post("/narrative", response_model=NarrativeResponse)
-async def generate_narrative(request: NarrativeRequest):
+async def generate_narrative(narrative_request: NarrativeRequest, request: Request):
     """Generate AI narrative for a heritage item"""
-    item = await db.heritage_items.find_one({"id": request.item_id}, {"_id": 0})
+    _check_narrative_rate_limit(request)
+    item = await db.heritage_items.find_one({"id": narrative_request.item_id}, {"_id": 0})
     if not item:
         raise HTTPException(status_code=404, detail="Item not found")
-    
+
     if not EMERGENT_LLM_KEY:
         raise HTTPException(status_code=500, detail="AI service not configured")
-    
+
     try:
         from emergentintegrations.llm.chat import LlmChat, UserMessage
-        
+
         style_prompts = {
             "storytelling": "Conta esta história de forma envolvente e mística, como um contador de histórias tradicional português. Usa linguagem poética e evocativa.",
             "educational": "Explica este elemento do património de forma educativa e informativa, incluindo contexto histórico e cultural.",
             "brief": "Resume este elemento do património de forma concisa e clara, destacando os pontos principais."
         }
-        
-        system_message = f"""És um especialista em património cultural português. 
+
+        system_message = f"""És um especialista em património cultural português.
         A tua tarefa é criar narrativas sobre o património imaterial de Portugal.
-        {style_prompts.get(request.style, style_prompts['storytelling'])}
+        {style_prompts.get(narrative_request.style, style_prompts['storytelling'])}
         Responde sempre em português de Portugal."""
-        
+
         chat = LlmChat(
             api_key=EMERGENT_LLM_KEY,
-            session_id=f"narrative_{request.item_id}",
+            session_id=f"narrative_{narrative_request.item_id}",
             system_message=system_message
         ).with_model("openai", "gpt-4o")
-        
+
         user_message = UserMessage(
             text=f"""Cria uma narrativa sobre: {item['name']}
-            
+
             Descrição: {item['description']}
             Categoria: {item['category']}
             Região: {item['region']}
-            
+
             Informações adicionais: {item.get('metadata', {})}"""
         )
-        
+
         response = await chat.send_message(user_message)
         
         return NarrativeResponse(

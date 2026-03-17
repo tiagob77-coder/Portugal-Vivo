@@ -31,7 +31,8 @@
     "production": {
       "autoIncrement": true,
       "env": {
-        "APP_VARIANT": "production"
+        "APP_VARIANT": "production",
+        "EXPO_PUBLIC_BACKEND_URL": "https://api.portugalvivo.pt"
       },
       "ios": {
         "simulator": false

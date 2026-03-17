@@ -1,33 +1,14 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, ActivityIndicator, Platform } from 'react-native';
 import { useRouter } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useQuery } from '@tanstack/react-query';
-import { getCategories, getMapItems } from '../../src/services/api';
-import { HeritageItem, Category } from '../../src/types';
+import { getCategories, getMapItems, getRegions } from '../../src/services/api';
+import { HeritageItem, Category, Region } from '../../src/types';
 import { LeafletMapComponent } from '../../src/components/NativeMap';
 
-const REGION_NAMES: Record<string, string> = {
-  norte: 'Norte',
-  centro: 'Centro',
-  lisboa: 'Lisboa e Vale do Tejo',
-  alentejo: 'Alentejo',
-  algarve: 'Algarve',
-  acores: 'Açores',
-  madeira: 'Madeira',
-};
-
-const REGIONS = [
-  { id: 'all', name: 'Todas', icon: 'public' },
-  { id: 'norte', name: 'Norte', icon: 'landscape' },
-  { id: 'centro', name: 'Centro', icon: 'terrain' },
-  { id: 'lisboa', name: 'Lisboa', icon: 'location-city' },
-  { id: 'alentejo', name: 'Alentejo', icon: 'wb-sunny' },
-  { id: 'algarve', name: 'Algarve', icon: 'beach-access' },
-  { id: 'acores', name: 'Açores', icon: 'waves' },
-  { id: 'madeira', name: 'Madeira', icon: 'local-florist' },
-];
+const ALL_REGION = { id: 'all', name: 'Todas', color: '' };
 
 export default function MapScreen() {
   const router = useRouter();
@@ -40,6 +21,18 @@ export default function MapScreen() {
     queryKey: ['categories'],
     queryFn: getCategories,
   });
+
+  const { data: apiRegions = [] } = useQuery({
+    queryKey: ['regions'],
+    queryFn: getRegions,
+  });
+
+  const regions = useMemo(() => [ALL_REGION, ...apiRegions], [apiRegions]);
+
+  const regionNameMap = useMemo<Record<string, string>>(
+    () => Object.fromEntries(apiRegions.map((r: Region) => [r.id, r.name])),
+    [apiRegions]
+  );
 
   const { data: allItems = [], isLoading } = useQuery({
     queryKey: ['mapItems', selectedCategories],
@@ -156,7 +149,7 @@ export default function MapScreen() {
         style={styles.regionTabs}
         contentContainerStyle={styles.regionTabsContent}
       >
-        {REGIONS.map((region) => (
+        {regions.map((region) => (
           <TouchableOpacity
             key={region.id}
             style={[
@@ -210,7 +203,7 @@ export default function MapScreen() {
             {selectedRegion !== 'all' && (
               <View style={styles.mapStatChip}>
                 <MaterialIcons name="filter-list" size={14} color="#22C55E" />
-                <Text style={styles.mapStatText}>{REGION_NAMES[selectedRegion]}</Text>
+                <Text style={styles.mapStatText}>{regionNameMap[selectedRegion] ?? selectedRegion}</Text>
               </View>
             )}
           </View>
