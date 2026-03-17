@@ -8,7 +8,7 @@ import { getCategories, getMapItems, getRegions } from '../../src/services/api';
 import { HeritageItem, Category, Region } from '../../src/types';
 import { LeafletMapComponent } from '../../src/components/NativeMap';
 
-const ALL_REGION = { id: 'all', name: 'Todas', color: '' };
+const ALL_REGION: Region = { id: 'all', name: 'Todas', color: '', icon: 'public' };
 
 export default function MapScreen() {
   const router = useRouter();

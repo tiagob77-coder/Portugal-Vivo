@@ -93,7 +93,7 @@ async def discover_nearby(
     radius_km: float = Query(5.0, ge=0.1, le=50, description="Raio de pesquisa em km"),
     categories: Optional[str] = Query(None, description="Categorias separadas por virgula"),
     limit: int = Query(20, ge=1, le=50, description="Numero maximo de resultados"),
-    sort_by: str = Query("distance", regex="^(distance|iq_score|popular)$",
+    sort_by: str = Query("distance", pattern="^(distance|iq_score|popular)$",
                          description="Ordenar por: distance, iq_score, popular"),
 ):
     """
