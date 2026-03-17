@@ -48,10 +48,10 @@ export default function ExploreScreen() {
   });
 
   const categoriesWithCounts = useMemo<(Category & { count: number })[]>(() => {
-    if (!categories || !stats?.categories) return categories;
+    if (!categories) return [];
     return categories.map(cat => ({
       ...cat,
-      count: stats.categories.find(s => s.id === cat.id)?.count || 0,
+      count: stats?.categories?.find((s: any) => s.id === cat.id)?.count || 0,
     }));
   }, [categories, stats]);
 

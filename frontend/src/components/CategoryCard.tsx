@@ -10,6 +10,7 @@ const CARD_WIDTH = (width - 48) / 2;
 
 interface CategoryCardProps {
   category: Category;
+  count?: number;
   onPress: () => void;
 }
 
