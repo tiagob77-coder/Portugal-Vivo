@@ -9,6 +9,7 @@ import {
   RefreshControl,
 } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
+import { palette } from '../theme';
 import PressableScale from './PressableScale';
 import offlineStorage, {
   OfflineRegionMeta,
@@ -21,8 +22,8 @@ import { API_BASE } from '../config/api';
 const COLORS = {
   background: '#0F172A',
   card: '#1E293B',
-  accent: '#C49A6C',
-  text: '#FAF8F3',
+  accent: palette.terracotta[500],
+  text: palette.gray[50],
   textSecondary: '#94A3B8',
   success: '#22C55E',
   danger: '#EF4444',

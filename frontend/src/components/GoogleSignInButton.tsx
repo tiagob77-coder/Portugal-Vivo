@@ -6,6 +6,7 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Platform, ActivityIndicator } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { API_BASE } from '../config/api';
+import { palette } from '../theme/colors';
 
 interface GoogleSignInButtonProps {
   onSuccess: (data: { user: any; session_token: string }) => void;
@@ -140,7 +141,7 @@ export default function GoogleSignInButton({ onSuccess, onError, style }: Google
       activeOpacity={0.8}
     >
       {loading ? (
-        <ActivityIndicator size="small" color="#FAF8F3" />
+        <ActivityIndicator size="small" color={palette.gray[50]} />
       ) : (
         <>
           <View style={styles.googleIcon}>
@@ -158,7 +159,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: palette.white,
     borderRadius: 12,
     paddingVertical: 12,
     paddingHorizontal: 20,
@@ -173,7 +174,7 @@ const styles = StyleSheet.create({
     width: 24,
     height: 24,
     borderRadius: 12,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: palette.white,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -183,7 +184,7 @@ const styles = StyleSheet.create({
     color: '#4285F4',
   },
   buttonText: {
-    color: '#1C1F1C',
+    color: palette.gray[800],
     fontSize: 15,
     fontWeight: '600',
   },

@@ -4,6 +4,7 @@
  */
 import React, { useEffect, useRef, useState } from 'react';
 import { View, StyleSheet, Platform } from 'react-native';
+import { palette } from '../theme';
 
 let L: any = null;
 
@@ -197,7 +198,7 @@ interface LeafletMapProps {
   [key: string]: any;
 }
 
-const LeafletMapComponent = ({ items, onItemPress, getMarkerColor, getLayerIcon, mapMode = 'markers', trailPoints, trailColor = '#C49A6C', style }: LeafletMapProps) => {
+const LeafletMapComponent = ({ items, onItemPress, getMarkerColor, getLayerIcon, mapMode = 'markers', trailPoints, trailColor = palette.terracotta[500], style }: LeafletMapProps) => {
   const containerRef = useRef<any>(null);
   const mapRef = useRef<any>(null);
   const tileRef = useRef<any>(null);

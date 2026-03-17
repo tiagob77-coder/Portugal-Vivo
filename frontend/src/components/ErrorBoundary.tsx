@@ -1,5 +1,6 @@
 import React, { Component, ErrorInfo, ReactNode } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
+import { palette } from '../theme';
 
 interface Props {
   children: ReactNode;
@@ -89,7 +90,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     paddingVertical: 12,
     borderRadius: 8,
-    backgroundColor: '#C65D3B',
+    backgroundColor: palette.rust[500],
   },
   buttonText: {
     color: '#fff',

@@ -16,6 +16,7 @@ import {
 } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { API_BASE } from '../config/api';
+import { palette, withOpacity } from '../theme';
 
 interface POI {
   id: string;
@@ -174,9 +175,9 @@ export default function RouteShareButton({
         disabled={loading}
       >
         {loading ? (
-          <ActivityIndicator size="small" color="#C49A6C" />
+          <ActivityIndicator size="small" color={palette.terracotta[500]} />
         ) : (
-          <MaterialIcons name="share" size={20} color="#C49A6C" />
+          <MaterialIcons name="share" size={20} color={palette.terracotta[500]} />
         )}
         <Text style={styles.triggerText}>Partilhar Rota</Text>
       </TouchableOpacity>
@@ -205,26 +206,26 @@ export default function RouteShareButton({
             {/* Route Preview Card */}
             <View style={styles.previewCard}>
               <View style={styles.previewHeader}>
-                <MaterialIcons name="route" size={24} color="#C49A6C" />
+                <MaterialIcons name="route" size={24} color={palette.terracotta[500]} />
                 <Text style={styles.previewTitle} numberOfLines={2}>
                   {routeName}
                 </Text>
               </View>
               <View style={styles.previewStats}>
                 <View style={styles.statItem}>
-                  <MaterialIcons name="place" size={16} color="#C49A6C" />
+                  <MaterialIcons name="place" size={16} color={palette.terracotta[500]} />
                   <Text style={styles.statValue}>{poiCount}</Text>
                   <Text style={styles.statLabel}>Pontos</Text>
                 </View>
                 <View style={styles.statDivider} />
                 <View style={styles.statItem}>
-                  <MaterialIcons name="straighten" size={16} color="#C49A6C" />
+                  <MaterialIcons name="straighten" size={16} color={palette.terracotta[500]} />
                   <Text style={styles.statValue}>{distanceKm}</Text>
                   <Text style={styles.statLabel}>Distancia</Text>
                 </View>
                 <View style={styles.statDivider} />
                 <View style={styles.statItem}>
-                  <MaterialIcons name="schedule" size={16} color="#C49A6C" />
+                  <MaterialIcons name="schedule" size={16} color={palette.terracotta[500]} />
                   <Text style={styles.statValue}>{durationText}</Text>
                   <Text style={styles.statLabel}>Duracao</Text>
                 </View>
@@ -295,8 +296,8 @@ export default function RouteShareButton({
                 onPress={handleNativeShare}
                 activeOpacity={0.7}
               >
-                <View style={[styles.shareIcon, { backgroundColor: '#C49A6C20' }]}>
-                  <MaterialIcons name="ios-share" size={24} color="#C49A6C" />
+                <View style={[styles.shareIcon, { backgroundColor: withOpacity(palette.terracotta[500], 0.13) }]}>
+                  <MaterialIcons name="ios-share" size={24} color={palette.terracotta[500]} />
                 </View>
                 <Text style={styles.shareTargetLabel}>Partilhar</Text>
               </TouchableOpacity>
@@ -327,10 +328,10 @@ const styles = StyleSheet.create({
     borderRadius: 22,
     gap: 8,
     borderWidth: 1,
-    borderColor: '#C49A6C40',
+    borderColor: withOpacity(palette.terracotta[500], 0.25),
   },
   triggerText: {
-    color: '#FAF8F3',
+    color: palette.gray[50],
     fontSize: 14,
     fontWeight: '600',
   },
@@ -358,7 +359,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   modalTitle: {
-    color: '#FAF8F3',
+    color: palette.gray[50],
     fontSize: 18,
     fontWeight: '700',
   },
@@ -377,7 +378,7 @@ const styles = StyleSheet.create({
     marginBottom: 14,
   },
   previewTitle: {
-    color: '#FAF8F3',
+    color: palette.gray[50],
     fontSize: 16,
     fontWeight: '700',
     flex: 1,
@@ -392,7 +393,7 @@ const styles = StyleSheet.create({
     gap: 2,
   },
   statValue: {
-    color: '#FAF8F3',
+    color: palette.gray[50],
     fontSize: 14,
     fontWeight: '700',
   },
@@ -432,7 +433,7 @@ const styles = StyleSheet.create({
     width: 42,
     height: 42,
     borderRadius: 12,
-    backgroundColor: '#C49A6C',
+    backgroundColor: palette.terracotta[500],
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -497,7 +498,7 @@ const styles = StyleSheet.create({
     borderRadius: 14,
   },
   closeButtonText: {
-    color: '#FAF8F3',
+    color: palette.gray[50],
     fontSize: 15,
     fontWeight: '600',
   },

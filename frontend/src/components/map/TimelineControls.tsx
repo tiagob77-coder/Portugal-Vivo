@@ -5,6 +5,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
+import { palette } from '../../../src/theme';
 
 export interface TimelineEpoch {
   id: string;
@@ -46,7 +47,7 @@ export default function TimelineControls({
         </View>
         <View style={styles.count}>
           {isLoading ? (
-            <ActivityIndicator size="small" color="#C49A6C" />
+            <ActivityIndicator size="small" color={palette.terracotta[500]} />
           ) : (
             <Text style={styles.countText}>{itemCount} POIs</Text>
           )}
@@ -153,7 +154,7 @@ const styles = StyleSheet.create({
     alignItems: 'flex-end',
   },
   countText: {
-    color: '#C49A6C',
+    color: palette.terracotta[500],
     fontSize: 13,
     fontWeight: '600',
   },
@@ -210,7 +211,7 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: '#264E41',
+    backgroundColor: palette.forest[600],
     justifyContent: 'center',
     alignItems: 'center',
   },

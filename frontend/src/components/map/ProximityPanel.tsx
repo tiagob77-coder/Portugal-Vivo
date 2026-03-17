@@ -12,7 +12,7 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
-import { colors } from '../../../src/theme';
+import { colors, palette, withOpacity } from '../../../src/theme';
 
 interface ProximityPOI {
   id: string;
@@ -70,7 +70,7 @@ export default function ProximityPanel({
 
       {isLoading ? (
         <View style={styles.loading}>
-          <ActivityIndicator size="small" color="#C49A6C" />
+          <ActivityIndicator size="small" color={palette.terracotta[500]} />
           <Text style={styles.loadingText}>A procurar POIs próximos...</Text>
         </View>
       ) : (
@@ -118,7 +118,7 @@ export default function ProximityPanel({
                     styles.iq,
                     {
                       backgroundColor:
-                        poi.iq_score >= 60 ? '#7C3AED20' : '#C49A6C20',
+                        poi.iq_score >= 60 ? '#7C3AED20' : withOpacity(palette.terracotta[500], 0.13),
                     },
                   ]}
                 >
@@ -126,7 +126,7 @@ export default function ProximityPanel({
                     style={[
                       styles.iqText,
                       {
-                        color: poi.iq_score >= 60 ? '#7C3AED' : '#C49A6C',
+                        color: poi.iq_score >= 60 ? '#7C3AED' : palette.terracotta[500],
                       },
                     ]}
                   >
@@ -164,7 +164,7 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: '#264E41',
+    backgroundColor: palette.forest[600],
     justifyContent: 'center',
     alignItems: 'center',
   },

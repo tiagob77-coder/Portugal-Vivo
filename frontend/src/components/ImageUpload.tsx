@@ -5,6 +5,7 @@ import {
 } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { uploadImage } from '../services/api';
+import { palette, withOpacity } from '../theme/colors';
 
 interface ImageUploadProps {
   token: string;
@@ -128,14 +129,14 @@ export default function ImageUpload({
       >
         {uploading ? (
           <View style={styles.center}>
-            <ActivityIndicator size="large" color="#C49A6C" />
+            <ActivityIndicator size="large" color={palette.terracotta[500]} />
             <Text style={styles.uploadingText}>A carregar...</Text>
           </View>
         ) : previewUrl ? (
           <Image source={{ uri: previewUrl }} style={styles.preview} resizeMode="cover" />
         ) : (
           <View style={styles.center}>
-            <MaterialIcons name="add-a-photo" size={36} color="#C49A6C" />
+            <MaterialIcons name="add-a-photo" size={36} color={palette.terracotta[500]} />
             <Text style={styles.label}>Adicionar foto</Text>
             <Text style={styles.hint}>JPEG, PNG ou WebP (máx. {maxSizeMB} MB)</Text>
           </View>
@@ -175,14 +176,14 @@ const styles = StyleSheet.create({
   },
   dropzone: {
     borderWidth: 2,
-    borderColor: 'rgba(196, 154, 108, 0.3)',
+    borderColor: withOpacity(palette.terracotta[500], 0.3),
     borderStyle: 'dashed',
     borderRadius: 12,
     padding: 24,
     alignItems: 'center',
     justifyContent: 'center',
     minHeight: 140,
-    backgroundColor: 'rgba(196, 154, 108, 0.05)',
+    backgroundColor: withOpacity(palette.terracotta[500], 0.05),
   },
   dropzoneWithImage: {
     padding: 0,
@@ -195,7 +196,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   label: {
-    color: '#C49A6C',
+    color: palette.terracotta[500],
     fontWeight: '700',
     fontSize: 15,
   },
@@ -204,7 +205,7 @@ const styles = StyleSheet.create({
     fontSize: 12,
   },
   uploadingText: {
-    color: '#C49A6C',
+    color: palette.terracotta[500],
     fontSize: 13,
     marginTop: 4,
   },

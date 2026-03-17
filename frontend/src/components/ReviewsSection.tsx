@@ -9,6 +9,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
 import { API_URL } from '../config/api';
 import ImageUpload from './ImageUpload';
+import { palette } from '../theme/colors';
 
 interface Review {
   id: string;
@@ -84,7 +85,7 @@ function StarRating({ rating, size = 16, interactive = false, onRate }: {
           <MaterialIcons
             name={star <= rating ? 'star' : star - 0.5 <= rating ? 'star-half' : 'star-outline'}
             size={size}
-            color={star <= rating ? '#C49A6C' : '#4B5563'}
+            color={star <= rating ? palette.terracotta[500] : '#4B5563'}
           />
         </TouchableOpacity>
       ))}
@@ -227,7 +228,7 @@ export function ReviewsSection({ itemId, authToken, onLoginRequired }: ReviewsSe
   if (summaryLoading || reviewsLoading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="small" color="#C49A6C" />
+        <ActivityIndicator size="small" color={palette.terracotta[500]} />
       </View>
     );
   }
@@ -245,7 +246,7 @@ export function ReviewsSection({ itemId, authToken, onLoginRequired }: ReviewsSe
         <View style={styles.summaryRight}>
           <RatingBar label="5" count={summary?.rating_distribution['5'] || 0} total={summary?.total_reviews || 1} color="#22C55E" />
           <RatingBar label="4" count={summary?.rating_distribution['4'] || 0} total={summary?.total_reviews || 1} color="#84CC16" />
-          <RatingBar label="3" count={summary?.rating_distribution['3'] || 0} total={summary?.total_reviews || 1} color="#C49A6C" />
+          <RatingBar label="3" count={summary?.rating_distribution['3'] || 0} total={summary?.total_reviews || 1} color={palette.terracotta[500]} />
           <RatingBar label="2" count={summary?.rating_distribution['2'] || 0} total={summary?.total_reviews || 1} color="#F97316" />
           <RatingBar label="1" count={summary?.rating_distribution['1'] || 0} total={summary?.total_reviews || 1} color="#EF4444" />
         </View>
@@ -340,7 +341,7 @@ export function ReviewsSection({ itemId, authToken, onLoginRequired }: ReviewsSe
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: '#264E41',
+    backgroundColor: palette.forest[600],
     borderRadius: 16,
     padding: 16,
     marginVertical: 16,
@@ -361,7 +362,7 @@ const styles = StyleSheet.create({
   averageRating: {
     fontSize: 40,
     fontWeight: '700',
-    color: '#FFFFFF',
+    color: palette.white,
   },
   totalReviews: {
     fontSize: 12,
@@ -410,7 +411,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#C49A6C',
+    backgroundColor: palette.terracotta[500],
     paddingVertical: 12,
     borderRadius: 12,
     gap: 8,
@@ -419,10 +420,10 @@ const styles = StyleSheet.create({
   writeReviewText: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#000',
+    color: palette.black,
   },
   formContainer: {
-    backgroundColor: '#2E5E4E',
+    backgroundColor: palette.forest[500],
     borderRadius: 12,
     padding: 16,
     marginBottom: 16,
@@ -430,17 +431,17 @@ const styles = StyleSheet.create({
   formLabel: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#FFFFFF',
+    color: palette.white,
     marginBottom: 8,
     marginTop: 12,
   },
   input: {
-    backgroundColor: '#264E41',
+    backgroundColor: palette.forest[600],
     borderRadius: 8,
     paddingHorizontal: 12,
     paddingVertical: 10,
     fontSize: 14,
-    color: '#FFFFFF',
+    color: palette.white,
     borderWidth: 1,
     borderColor: '#374151',
   },
@@ -468,7 +469,7 @@ const styles = StyleSheet.create({
   },
   submitButton: {
     flex: 1,
-    backgroundColor: '#C49A6C',
+    backgroundColor: palette.terracotta[500],
     paddingVertical: 12,
     borderRadius: 8,
     alignItems: 'center',
@@ -479,7 +480,7 @@ const styles = StyleSheet.create({
   submitButtonText: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#000',
+    color: palette.black,
   },
   reviewsList: {
     marginTop: 8,
@@ -487,11 +488,11 @@ const styles = StyleSheet.create({
   reviewsListTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#FFFFFF',
+    color: palette.white,
     marginBottom: 12,
   },
   reviewCard: {
-    backgroundColor: '#2E5E4E',
+    backgroundColor: palette.forest[500],
     borderRadius: 12,
     padding: 14,
     marginBottom: 12,
@@ -511,19 +512,19 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: '#C49A6C',
+    backgroundColor: palette.terracotta[500],
     justifyContent: 'center',
     alignItems: 'center',
   },
   userAvatarText: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#000',
+    color: palette.black,
   },
   userName: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#FFFFFF',
+    color: palette.white,
   },
   reviewDate: {
     fontSize: 11,
@@ -532,7 +533,7 @@ const styles = StyleSheet.create({
   reviewTitle: {
     fontSize: 15,
     fontWeight: '600',
-    color: '#FFFFFF',
+    color: palette.white,
     marginBottom: 6,
   },
   reviewText: {
