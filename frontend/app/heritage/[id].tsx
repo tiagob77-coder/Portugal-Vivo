@@ -23,7 +23,7 @@ export default function HeritageDetailScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const queryClient = useQueryClient();
-  const { user, isAuthenticated, sessionToken } = useAuth();
+  const { user, isAuthenticated } = useAuth();
   const [narrativeStyle, setNarrativeStyle] = useState<'storytelling' | 'educational' | 'brief'>('storytelling');
   const [showNarrative, setShowNarrative] = useState(false);
 
@@ -47,7 +47,7 @@ export default function HeritageDetailScreen() {
   const isFavorite = user?.favorites?.includes(id!) || false;
 
   const addFavoriteMutation = useMutation({
-    mutationFn: () => addFavorite(id!, sessionToken!),
+    mutationFn: () => addFavorite(id!),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['favorites'] });
       Alert.alert('Sucesso', 'Adicionado aos favoritos!');
@@ -55,7 +55,7 @@ export default function HeritageDetailScreen() {
   });
 
   const removeFavoriteMutation = useMutation({
-    mutationFn: () => removeFavorite(id!, sessionToken!),
+    mutationFn: () => removeFavorite(id!),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['favorites'] });
       Alert.alert('Sucesso', 'Removido dos favoritos!');
