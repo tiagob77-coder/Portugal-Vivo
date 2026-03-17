@@ -15,6 +15,7 @@ import {
 import { MaterialIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { colors, typography, spacing, borders, shadows } from '../theme';
+import { palette, stateColors, withOpacity } from '../theme';
 import { ProximityAlert } from '../services/geofencing';
 
 const { width: _width } = Dimensions.get('window');
@@ -87,6 +88,7 @@ export default function ProximityAlertBanner({ alerts, onDismiss }: Props) {
   if (!alert) return null;
 
   const isRare = alert.alert_type === 'rare';
+  // Purple '#7C3AED' is a brand color for rare proximity alerts - kept as-is
   const bgColor = isRare ? '#7C3AED' : colors.forest[500];
   const iconName = isRare ? 'star' : 'place';
 
@@ -112,8 +114,9 @@ export default function ProximityAlertBanner({ alerts, onDismiss }: Props) {
         data-testid="proximity-alert-tap"
       >
         <View style={styles.iconContainer}>
+          {/* Purple '#A78BFA' is a brand color for rare proximity alerts - kept as-is */}
           <View style={[styles.iconCircle, { backgroundColor: isRare ? '#A78BFA' : colors.forest[400] }]}>
-            <MaterialIcons name={iconName} size={20} color="#FFF" />
+            <MaterialIcons name={iconName} size={20} color={palette.white} />
           </View>
           {isRare && (
             <View style={styles.rareBadge}>
@@ -131,7 +134,7 @@ export default function ProximityAlertBanner({ alerts, onDismiss }: Props) {
           </Text>
           <View style={styles.meta}>
             <View style={styles.distanceBadge}>
-              <MaterialIcons name="near-me" size={10} color="#FFF" />
+              <MaterialIcons name="near-me" size={10} color={palette.white} />
               <Text style={styles.distanceText}>{alert.distance_m}m</Text>
             </View>
             {alert.iq_score && (
@@ -195,14 +198,14 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   rareBadge: {
-    backgroundColor: '#C49A6C',
+    backgroundColor: palette.terracotta[500],
     borderRadius: 4,
     paddingHorizontal: 4,
     paddingVertical: 1,
     marginTop: 3,
   },
   rareBadgeText: {
-    color: '#FFF',
+    color: palette.white,
     fontSize: 8,
     fontWeight: '700',
     letterSpacing: 0.5,
@@ -211,7 +214,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   title: {
-    color: '#FFFFFF',
+    color: palette.white,
     fontSize: typography.fontSize.md,
     fontWeight: '700',
   },
@@ -236,7 +239,7 @@ const styles = StyleSheet.create({
     gap: 3,
   },
   distanceText: {
-    color: '#FFF',
+    color: palette.white,
     fontSize: 10,
     fontWeight: '600',
   },
@@ -246,7 +249,7 @@ const styles = StyleSheet.create({
     paddingVertical: 2,
   },
   iqText: {
-    color: '#FFF',
+    color: palette.white,
     fontSize: 10,
     fontWeight: '600',
   },

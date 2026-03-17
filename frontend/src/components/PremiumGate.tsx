@@ -15,7 +15,7 @@ import { useRouter } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
-import { shadows } from '../theme';
+import { shadows, palette, withOpacity } from '../theme';
 
 const serif = Platform.OS === 'web' ? 'Cormorant Garamond, Georgia, serif' : undefined;
 
@@ -90,11 +90,11 @@ export default function PremiumGate({ feature, children, fallback, inline }: Pre
         onPress={() => router.push('/premium')}
         activeOpacity={0.7}
       >
-        <MaterialIcons name="lock" size={16} color="#C49A6C" />
+        <MaterialIcons name="lock" size={16} color={palette.terracotta[500]} />
         <Text style={[styles.inlineText, { color: tc.textMuted }]}>
-          {info.title} — <Text style={{ color: '#C49A6C', fontWeight: '700' }}>Premium</Text>
+          {info.title} — <Text style={{ color: palette.terracotta[500], fontWeight: '700' }}>Premium</Text>
         </Text>
-        <MaterialIcons name="arrow-forward-ios" size={12} color="#C49A6C" />
+        <MaterialIcons name="arrow-forward-ios" size={12} color={palette.terracotta[500]} />
       </TouchableOpacity>
     );
   }
@@ -102,13 +102,13 @@ export default function PremiumGate({ feature, children, fallback, inline }: Pre
   return (
     <View style={[styles.gate, { backgroundColor: tc.surface }]}>
       <LinearGradient
-        colors={['rgba(196,154,108,0.1)', 'rgba(196,154,108,0.03)']}
+        colors={[withOpacity(palette.terracotta[500], 0.1), withOpacity(palette.terracotta[500], 0.03)]}
         style={styles.gateGradient}
       >
         <View style={styles.lockBadge}>
-          <MaterialIcons name="lock" size={24} color="#C49A6C" />
+          <MaterialIcons name="lock" size={24} color={palette.terracotta[500]} />
         </View>
-        <MaterialIcons name={info.icon as any} size={40} color="#C49A6C" style={{ opacity: 0.6 }} />
+        <MaterialIcons name={info.icon as any} size={40} color={palette.terracotta[500]} style={{ opacity: 0.6 }} />
         <Text style={[styles.gateTitle, { color: tc.textPrimary }]}>{info.title}</Text>
         <Text style={[styles.gateDesc, { color: tc.textMuted }]}>{info.desc}</Text>
         <TouchableOpacity
@@ -116,7 +116,7 @@ export default function PremiumGate({ feature, children, fallback, inline }: Pre
           onPress={() => router.push('/premium')}
           activeOpacity={0.8}
         >
-          <MaterialIcons name="diamond" size={16} color="#FFF" />
+          <MaterialIcons name="diamond" size={16} color={palette.white} />
           <Text style={styles.gateCtaText}>Desbloquear com Premium</Text>
         </TouchableOpacity>
       </LinearGradient>
@@ -142,7 +142,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 12,
     right: 12,
-    backgroundColor: 'rgba(196,154,108,0.15)',
+    backgroundColor: withOpacity(palette.terracotta[500], 0.15),
     borderRadius: 20,
     padding: 6,
   },
@@ -161,7 +161,7 @@ const styles = StyleSheet.create({
   gateCta: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#C49A6C',
+    backgroundColor: palette.terracotta[500],
     paddingHorizontal: 20,
     paddingVertical: 10,
     borderRadius: 10,
@@ -169,7 +169,7 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   gateCtaText: {
-    color: '#FFF',
+    color: palette.white,
     fontWeight: '700',
     fontSize: 14,
   },

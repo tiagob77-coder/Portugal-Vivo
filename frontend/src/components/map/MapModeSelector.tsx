@@ -5,6 +5,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
+import { palette, withOpacity } from '../../theme';
 
 const MAP_MODES = [
   { id: 'markers', icon: 'place', label: 'Camadas' },
@@ -38,7 +39,7 @@ export default function MapModeSelector({ activeMode, onModeChange }: MapModeSel
             <MaterialIcons
               name={mode.icon as any}
               size={15}
-              color={activeMode === mode.id ? '#FFF' : '#64748B'}
+              color={activeMode === mode.id ? palette.white : palette.gray[500]}
             />
             <Text
               style={[
@@ -70,19 +71,19 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     paddingVertical: 6,
     borderRadius: 14,
-    backgroundColor: 'rgba(255,255,255,0.05)',
+    backgroundColor: withOpacity(palette.white, 0.05),
     gap: 4,
   },
   btnActive: {
-    backgroundColor: '#264E41',
+    backgroundColor: palette.forest[600],
   },
   btnText: {
-    color: '#64748B',
+    color: palette.gray[500],
     fontSize: 11,
     fontWeight: '500',
   },
   btnTextActive: {
-    color: '#FFF',
+    color: palette.white,
     fontWeight: '600',
   },
 });
