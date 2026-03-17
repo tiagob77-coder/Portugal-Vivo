@@ -7,6 +7,7 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { useQuery } from '@tanstack/react-query';
 import { API_BASE } from '../config/api';
 import axios from 'axios';
+import { palette, withOpacity } from '../theme/colors';
 
 interface StreakTrackerProps {
   userId: string;
@@ -141,7 +142,7 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   streakCount: {
-    color: '#FAF8F3',
+    color: palette.gray[50],
     fontSize: 20,
     fontWeight: '800',
   },
@@ -157,7 +158,7 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
   },
   longestValue: {
-    color: '#C49A6C',
+    color: palette.terracotta[500],
     fontSize: 18,
     fontWeight: '700',
   },
@@ -178,7 +179,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   weeklyCount: {
-    color: '#C49A6C',
+    color: palette.terracotta[500],
     fontSize: 13,
     fontWeight: '700',
   },
@@ -205,7 +206,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   milestoneName: {
-    color: '#FAF8F3',
+    color: palette.gray[50],
     fontSize: 13,
     fontWeight: '600',
   },
@@ -214,7 +215,7 @@ const styles = StyleSheet.create({
     fontSize: 11,
   },
   milestoneXP: {
-    color: '#C49A6C',
+    color: palette.terracotta[500],
     fontSize: 13,
     fontWeight: '700',
   },

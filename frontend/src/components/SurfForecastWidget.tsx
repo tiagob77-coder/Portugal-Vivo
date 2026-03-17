@@ -8,6 +8,7 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { useQuery } from '@tanstack/react-query';
 import { LinearGradient } from 'expo-linear-gradient';
 import api from '../services/api';
+import { palette } from '../theme/colors';
 
 interface ForecastPoint {
   time: string;
@@ -30,7 +31,7 @@ interface SurfForecastWidgetProps {
 const QUALITY_CONFIG: Record<string, { color: string; gradient: [string, string]; label: string }> = {
   excellent: { color: '#22C55E', gradient: ['#166534', '#22C55E'], label: 'Excelente' },
   good: { color: '#3B82F6', gradient: ['#1D4ED8', '#3B82F6'], label: 'Bom' },
-  fair: { color: '#C49A6C', gradient: ['#B45309', '#C49A6C'], label: 'Razoável' },
+  fair: { color: palette.terracotta[500], gradient: ['#B45309', palette.terracotta[500]], label: 'Razoável' },
   poor: { color: '#EF4444', gradient: ['#B91C1C', '#EF4444'], label: 'Fraco' },
   flat: { color: '#6B7280', gradient: ['#374151', '#6B7280'], label: 'Flat' },
 };
@@ -229,7 +230,7 @@ const styles = StyleSheet.create({
     marginVertical: 8,
   },
   loadingContainer: {
-    backgroundColor: '#264E41',
+    backgroundColor: palette.forest[600],
     borderRadius: 16,
     padding: 40,
     alignItems: 'center',
