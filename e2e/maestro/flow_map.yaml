@@ -1,0 +1,28 @@
+appId: pt.portugalvivo
+name: "Map & Filtering Flow"
+---
+- launchApp
+
+- tapOn:
+    text: "Explorar Portugal"
+
+- tapOn:
+    text: "Mapa"
+
+- assertVisible:
+    text: "Mapa Cultural"
+
+# Filter by region
+- tapOn:
+    text: "Norte"
+
+- assertVisible:
+    text: "Norte"
+
+# Clear filter
+- tapOn:
+    text: "Todas"
+
+# Open filter panel
+- tapOn:
+    id: "filter-button"

@@ -1,0 +1,58 @@
+{
+  "expo": {
+    "name": "Portugal Vivo",
+    "slug": "portugal-vivo",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/images/icon.png",
+    "scheme": "portugalvivo",
+    "userInterfaceStyle": "automatic",
+    "newArchEnabled": true,
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "pt.portugalvivo",
+      "infoPlist": {
+        "NSLocationWhenInUseUsageDescription": "Descubra património cultural perto de si",
+        "NSLocationAlwaysAndWhenInUseUsageDescription": "Receba alertas de locais culturais próximos",
+        "NSCameraUsageDescription": "Partilhe fotos de locais culturais",
+        "NSPhotoLibraryUsageDescription": "Adicione fotos da sua galeria"
+      }
+    },
+    "android": {
+      "package": "pt.portugalvivo",
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/images/adaptive-icon.png",
+        "backgroundColor": "#0F172A"
+      },
+      "edgeToEdgeEnabled": true,
+      "permissions": [
+        "ACCESS_FINE_LOCATION",
+        "ACCESS_COARSE_LOCATION",
+        "CAMERA",
+        "READ_EXTERNAL_STORAGE"
+      ]
+    },
+    "web": {
+      "bundler": "metro",
+      "output": "static",
+      "favicon": "./assets/images/favicon.png"
+    },
+    "plugins": [
+      "expo-router",
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/images/splash-icon.png",
+          "imageWidth": 200,
+          "resizeMode": "contain",
+          "backgroundColor": "#0F172A"
+        }
+      ],
+      "expo-font",
+      "expo-web-browser"
+    ],
+    "experiments": {
+      "typedRoutes": true
+    }
+  }
+}

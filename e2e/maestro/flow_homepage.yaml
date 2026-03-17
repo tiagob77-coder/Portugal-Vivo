@@ -1,0 +1,45 @@
+appId: pt.portugalvivo
+name: "Homepage & Navigation Flow"
+---
+# Homepage Load Test
+- launchApp
+
+- assertVisible:
+    text: "Património Vivo"
+
+- tapOn:
+    text: "Explorar Portugal"
+
+- assertVisible:
+    text: "Explorar"
+    
+- assertVisible:
+    text: "Mapa"
+
+- assertVisible:
+    text: "Rotas"
+
+- assertVisible:
+    text: "Comunidade"
+
+- assertVisible:
+    text: "Perfil"
+
+# Navigate to Map tab
+- tapOn:
+    text: "Mapa"
+
+- assertVisible:
+    text: "Mapa Cultural"
+
+# Navigate to Routes tab
+- tapOn:
+    text: "Rotas"
+
+# Navigate to Profile tab
+- tapOn:
+    text: "Perfil"
+
+# Return to Explore
+- tapOn:
+    text: "Explorar"
