@@ -22,6 +22,7 @@ import {
   CalendarEvent,
   VisitRecord,
 } from '../../src/services/api';
+import { useTheme, palette } from '../../src/theme';
 
 const { width: _width } = Dimensions.get('window');
 
@@ -47,6 +48,7 @@ const getCategoryIcon = (category: string): string => {
 export default function ExperienciarTab() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const { colors } = useTheme();
   const [token, setToken] = useState<string | null>(null);
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [_viewMode, _setViewMode] = useState<'calendar' | 'list'>('calendar');
@@ -214,20 +216,20 @@ export default function ExperienciarTab() {
 
   if (eventsLoading && !eventsData) {
     return (
-      <View style={[styles.container, styles.loadingContainer]}>
-        <ActivityIndicator size="large" color="#C49A6C" />
+      <View style={[styles.container, styles.loadingContainer, { backgroundColor: palette.forest[500] }]}>
+        <ActivityIndicator size="large" color={colors.accent} />
         <Text style={styles.loadingText}>A carregar calendário...</Text>
       </View>
     );
   }
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top }]}>
+    <View style={[styles.container, { paddingTop: insets.top, backgroundColor: palette.forest[500] }]}>
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
         refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#C49A6C" />
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.accent} />
         }
         showsVerticalScrollIndicator={false}
       >
@@ -346,14 +348,13 @@ export default function ExperienciarTab() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#2E5E4E',
   },
   loadingContainer: {
     justifyContent: 'center',
     alignItems: 'center',
   },
   loadingText: {
-    color: '#94A3B8',
+    color: palette.gray[400],
     marginTop: 12,
     fontSize: 14,
   },
@@ -371,15 +372,15 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 28,
     fontWeight: '700',
-    color: '#FFFFFF',
+    color: palette.gray[50],
   },
   headerSubtitle: {
     fontSize: 14,
-    color: '#94A3B8',
+    color: palette.gray[400],
     marginTop: 4,
   },
   calendarContainer: {
-    backgroundColor: '#264E41',
+    backgroundColor: palette.forest[600],
     marginHorizontal: 20,
     marginTop: 16,
     borderRadius: 16,
@@ -397,7 +398,7 @@ const styles = StyleSheet.create({
   monthTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#FFFFFF',
+    color: palette.gray[50],
   },
   weekdaysRow: {
     flexDirection: 'row',
@@ -408,7 +409,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     fontSize: 12,
     fontWeight: '600',
-    color: '#64748B',
+    color: palette.gray[500],
   },
   calendarGrid: {
     flexDirection: 'row',
@@ -422,17 +423,17 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   calendarDayToday: {
-    backgroundColor: '#C49A6C',
+    backgroundColor: palette.terracotta[500],
   },
   calendarDayWithEvent: {
-    backgroundColor: 'rgba(245, 158, 11, 0.15)',
+    backgroundColor: `${palette.terracotta[500]}26`,
   },
   calendarDayText: {
     fontSize: 14,
-    color: '#F2EDE4',
+    color: palette.gray[100],
   },
   calendarDayTextToday: {
-    color: '#000',
+    color: palette.black,
     fontWeight: '700',
   },
   eventDots: {
@@ -444,7 +445,7 @@ const styles = StyleSheet.create({
     width: 4,
     height: 4,
     borderRadius: 2,
-    backgroundColor: '#C49A6C',
+    backgroundColor: palette.terracotta[500],
   },
   section: {
     marginTop: 24,
@@ -459,7 +460,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#FFFFFF',
+    color: palette.gray[50],
   },
   eventsList: {
     paddingHorizontal: 20,
@@ -468,7 +469,7 @@ const styles = StyleSheet.create({
   eventCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#264E41',
+    backgroundColor: palette.forest[600],
     borderRadius: 12,
     padding: 14,
     gap: 12,
@@ -477,7 +478,7 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: 12,
-    backgroundColor: 'rgba(245, 158, 11, 0.15)',
+    backgroundColor: `${palette.terracotta[500]}26`,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -487,7 +488,7 @@ const styles = StyleSheet.create({
   eventName: {
     fontSize: 15,
     fontWeight: '600',
-    color: '#FFFFFF',
+    color: palette.gray[50],
     marginBottom: 4,
   },
   eventMeta: {
@@ -497,12 +498,12 @@ const styles = StyleSheet.create({
   },
   eventDate: {
     fontSize: 12,
-    color: '#64748B',
+    color: palette.gray[500],
     marginRight: 8,
   },
   eventRegion: {
     fontSize: 12,
-    color: '#64748B',
+    color: palette.gray[500],
   },
   visitsList: {
     paddingHorizontal: 20,
@@ -511,7 +512,7 @@ const styles = StyleSheet.create({
   visitCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#264E41',
+    backgroundColor: palette.forest[600],
     borderRadius: 12,
     padding: 12,
     gap: 12,
@@ -530,11 +531,11 @@ const styles = StyleSheet.create({
   visitName: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#FFFFFF',
+    color: palette.gray[50],
   },
   visitDate: {
     fontSize: 12,
-    color: '#64748B',
+    color: palette.gray[500],
     marginTop: 2,
   },
   visitPoints: {
@@ -552,12 +553,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 24,
     marginHorizontal: 20,
-    backgroundColor: '#264E41',
+    backgroundColor: palette.forest[600],
     borderRadius: 12,
   },
   emptyText: {
     fontSize: 14,
-    color: '#64748B',
+    color: palette.gray[500],
     marginTop: 8,
   },
   quickActions: {
