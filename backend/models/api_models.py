@@ -1,0 +1,238 @@
+"""
+Pydantic models extracted from server.py - shared across all API modules.
+"""
+from pydantic import BaseModel, Field
+from typing import List, Optional, Dict, Any
+from datetime import datetime, timezone
+import uuid
+
+
+class User(BaseModel):
+    user_id: str
+    email: str
+    name: str
+    picture: Optional[str] = None
+    created_at: datetime
+    favorites: List[str] = []
+
+
+class UserSession(BaseModel):
+    user_id: str
+    session_token: str
+    expires_at: datetime
+    created_at: datetime
+
+
+class SessionDataResponse(BaseModel):
+    id: str
+    email: str
+    name: str
+    picture: Optional[str] = None
+    session_token: str
+
+
+class Location(BaseModel):
+    lat: float = Field(..., ge=-90, le=90)
+    lng: float = Field(..., ge=-180, le=180)
+
+
+class AccessibilityInfo(BaseModel):
+    """Informacoes de acessibilidade para turismo inclusivo"""
+    wheelchair_accessible: bool = False
+    reduced_mobility: bool = False
+    visual_impairment: bool = False
+    hearing_impairment: bool = False
+    pet_friendly: bool = False
+    child_friendly: bool = False
+    senior_friendly: bool = False
+    parking_available: bool = False
+    public_transport: bool = False
+    toilet_accessible: bool = False
+    braille_available: bool = False
+    sign_language: bool = False
+    notes: Optional[str] = None
+
+
+class HeritageItem(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    name: str
+    description: str
+    category: str
+    subcategory: Optional[str] = None
+    region: str
+    location: Optional[Location] = None
+    address: Optional[str] = None
+    image_url: Optional[str] = None
+    tags: List[str] = []
+    related_items: List[str] = []
+    metadata: Optional[Dict[str, Any]] = {}
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+
+class HeritageItemCreate(BaseModel):
+    name: str = Field(..., min_length=2, max_length=300)
+    description: str = Field(..., min_length=10, max_length=10000)
+    category: str = Field(..., max_length=50)
+    subcategory: Optional[str] = Field(None, max_length=50)
+    region: str = Field(..., max_length=50)
+    location: Optional[Location] = None
+    address: Optional[str] = Field(None, max_length=500)
+    image_url: Optional[str] = Field(None, max_length=2000)
+    tags: List[str] = Field(default=[], max_length=30)
+    related_items: List[str] = Field(default=[], max_length=50)
+    metadata: Optional[Dict[str, Any]] = {}
+
+
+class RouteItem(BaseModel):
+    """Item within a route - can be a string ID or an object with details"""
+    id: str
+    name: Optional[str] = None
+    category: Optional[str] = None
+    region: Optional[str] = None
+
+
+class Route(BaseModel):
+    model_config = {"extra": "ignore"}
+
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    name: str
+    description: str
+    category: Optional[str] = None
+    theme: Optional[str] = None
+    region: Optional[str] = None
+    items: List[Any] = []
+    duration_hours: Optional[float] = None
+    duration_days: Optional[int] = None
+    distance_km: Optional[float] = None
+    difficulty: Optional[str] = None
+    icon: Optional[str] = None
+    tags: List[str] = []
+    image_url: Optional[str] = None
+    created_at: Optional[datetime] = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+
+class RouteCreate(BaseModel):
+    name: str = Field(..., min_length=2, max_length=300)
+    description: str = Field(..., min_length=10, max_length=5000)
+    category: str = Field(..., max_length=50)
+    region: Optional[str] = Field(None, max_length=50)
+    items: List[str] = Field(default=[], max_length=100)
+    duration_hours: Optional[float] = Field(None, ge=0, le=168)
+    distance_km: Optional[float] = Field(None, ge=0, le=5000)
+    difficulty: Optional[str] = Field(None, max_length=30)
+    tags: List[str] = Field(default=[], max_length=30)
+
+
+class UserContribution(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    user_id: str
+    heritage_item_id: Optional[str] = None
+    type: str
+    content: str
+    status: str = 'pending'
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+
+class NarrativeRequest(BaseModel):
+    item_id: str = Field(..., max_length=100)
+    style: str = Field("storytelling", max_length=30)
+
+
+class RoutePlanRequest(BaseModel):
+    origin: str = Field(..., min_length=2, max_length=200)
+    destination: str = Field(..., min_length=2, max_length=200)
+    origin_coords: Optional[Location] = None
+    destination_coords: Optional[Location] = None
+    categories: List[str] = Field(default=[], max_length=20)
+    max_detour_km: float = Field(50, ge=1, le=200)
+    max_stops: int = Field(10, ge=1, le=30)
+    use_real_directions: bool = True
+
+
+class RouteStep(BaseModel):
+    instruction: str
+    distance_km: float
+    duration_minutes: float
+
+
+class RoutePlanResponse(BaseModel):
+    origin: str
+    destination: str
+    total_distance_km: float
+    estimated_duration_hours: float
+    suggested_stops: List[HeritageItem]
+    highlights: List[Dict[str, Any]]
+    route_description: str
+    polyline: Optional[str] = None
+    route_steps: List[RouteStep] = []
+    real_route: bool = False
+    via_roads: List[str] = []
+
+
+class NearbyPOIRequest(BaseModel):
+    latitude: float = Field(..., ge=-90, le=90)
+    longitude: float = Field(..., ge=-180, le=180)
+    radius_km: float = Field(25, ge=0.1, le=200)
+    categories: List[str] = Field(default=[], max_length=20)
+    limit: int = Field(20, ge=1, le=200)
+
+
+class NearbyPOIResponse(BaseModel):
+    user_location: Location
+    pois: List[Dict[str, Any]]
+    total_found: int
+    style: str = 'storytelling'
+    language: str = 'pt'
+
+
+class NarrativeResponse(BaseModel):
+    narrative: str
+    item_name: str
+    generated_at: datetime
+
+
+class EncyclopediaArticle(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    title: str
+    slug: str
+    universe: str
+    summary: str
+    content: str
+    region: Optional[str] = None
+    location: Optional[Location] = None
+    image_url: Optional[str] = None
+    gallery: List[str] = []
+    related_articles: List[str] = []
+    related_items: List[str] = []
+    tags: List[str] = []
+    sources: List[str] = []
+    metadata: Optional[Dict[str, Any]] = {}
+    author: Optional[str] = None
+    views: int = 0
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+
+class EncyclopediaArticleCreate(BaseModel):
+    title: str
+    slug: str
+    universe: str
+    summary: str
+    content: str
+    region: Optional[str] = None
+    location: Optional[Location] = None
+    image_url: Optional[str] = None
+    gallery: List[str] = []
+    related_articles: List[str] = []
+    related_items: List[str] = []
+    tags: List[str] = []
+    sources: List[str] = []
+    metadata: Optional[Dict[str, Any]] = {}
+
+
+class UserBadge(BaseModel):
+    badge_id: str
+    level: str
+    unlocked_at: datetime
+    visits_count: int
+    points_earned: int
