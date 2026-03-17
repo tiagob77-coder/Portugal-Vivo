@@ -13,6 +13,7 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { useQuery } from '@tanstack/react-query';
 import axios from 'axios';
 import { API_BASE } from '../config/api';
+import { palette, withOpacity } from '../theme/colors';
 
 // ========================
 // TYPES
@@ -241,7 +242,7 @@ const ExploreNearby: React.FC<ExploreNearbyProps> = ({ onPOIPress, onRoutePress 
   if (locLoading) {
     return (
       <View style={styles.centered}>
-        <ActivityIndicator size="large" color="#C49A6C" />
+        <ActivityIndicator size="large" color={palette.terracotta[500]} />
         <Text style={styles.loadingText}>A obter localização...</Text>
       </View>
     );
@@ -292,7 +293,7 @@ const ExploreNearby: React.FC<ExploreNearbyProps> = ({ onPOIPress, onRoutePress 
       onPress={() => onPOIPress?.(poi)}
     >
       <View style={styles.poiHeader}>
-        <MaterialIcons name={getCategoryIcon(poi.category)} size={22} color="#C49A6C" />
+        <MaterialIcons name={getCategoryIcon(poi.category)} size={22} color={palette.terracotta[500]} />
         <View style={styles.poiInfo}>
           <Text style={styles.poiName} numberOfLines={1}>{poi.name}</Text>
           <Text style={styles.poiCategory}>{poi.category}{poi.region ? ` · ${poi.region}` : ''}</Text>
@@ -333,7 +334,7 @@ const ExploreNearby: React.FC<ExploreNearbyProps> = ({ onPOIPress, onRoutePress 
     if (walkingLoading) {
       return (
         <View style={styles.routeLoading}>
-          <ActivityIndicator size="small" color="#C49A6C" />
+          <ActivityIndicator size="small" color={palette.terracotta[500]} />
           <Text style={styles.loadingText}>A calcular rota...</Text>
         </View>
       );
@@ -409,14 +410,14 @@ const ExploreNearby: React.FC<ExploreNearbyProps> = ({ onPOIPress, onRoutePress 
         <RefreshControl
           refreshing={refreshing}
           onRefresh={onRefresh}
-          tintColor="#C49A6C"
-          colors={['#C49A6C']}
+          tintColor={palette.terracotta[500]}
+          colors={[palette.terracotta[500]]}
         />
       }
     >
       {/* Header */}
       <View style={styles.header}>
-        <MaterialIcons name="explore" size={24} color="#C49A6C" />
+        <MaterialIcons name="explore" size={24} color={palette.terracotta[500]} />
         <Text style={styles.title}>Explorar Perto de Mim</Text>
       </View>
 
@@ -479,7 +480,7 @@ const ExploreNearby: React.FC<ExploreNearbyProps> = ({ onPOIPress, onRoutePress 
           <MaterialIcons
             name="explore"
             size={16}
-            color={activeTab === 'discover' ? '#C49A6C' : '#94A3B8'}
+            color={activeTab === 'discover' ? palette.terracotta[500] : '#94A3B8'}
           />
           <Text style={[styles.tabText, activeTab === 'discover' && styles.tabTextActive]}>
             Descobrir
@@ -492,7 +493,7 @@ const ExploreNearby: React.FC<ExploreNearbyProps> = ({ onPOIPress, onRoutePress 
           <MaterialIcons
             name="directions-walk"
             size={16}
-            color={activeTab === 'route' ? '#C49A6C' : '#94A3B8'}
+            color={activeTab === 'route' ? palette.terracotta[500] : '#94A3B8'}
           />
           <Text style={[styles.tabText, activeTab === 'route' && styles.tabTextActive]}>
             Rota a Pé
@@ -505,7 +506,7 @@ const ExploreNearby: React.FC<ExploreNearbyProps> = ({ onPOIPress, onRoutePress 
         <View style={styles.content}>
           {discoverLoading ? (
             <View style={styles.routeLoading}>
-              <ActivityIndicator size="small" color="#C49A6C" />
+              <ActivityIndicator size="small" color={palette.terracotta[500]} />
               <Text style={styles.loadingText}>A procurar POIs...</Text>
             </View>
           ) : summary && summary.total_found === 0 ? (
@@ -527,7 +528,7 @@ const ExploreNearby: React.FC<ExploreNearbyProps> = ({ onPOIPress, onRoutePress 
             Object.entries(grouped).map(([category, pois]) => (
               <View key={category} style={styles.categoryGroup}>
                 <View style={styles.categoryHeader}>
-                  <MaterialIcons name={getCategoryIcon(category)} size={18} color="#C49A6C" />
+                  <MaterialIcons name={getCategoryIcon(category)} size={18} color={palette.terracotta[500]} />
                   <Text style={styles.categoryTitle}>{category}</Text>
                   <View style={styles.categoryCount}>
                     <Text style={styles.categoryCountText}>{pois.length}</Text>
@@ -590,10 +591,10 @@ const styles = StyleSheet.create({
     backgroundColor: '#1E293B',
     borderRadius: 10,
     borderWidth: 1,
-    borderColor: '#C49A6C',
+    borderColor: palette.terracotta[500],
   },
   retryText: {
-    color: '#C49A6C',
+    color: palette.terracotta[500],
     fontSize: 14,
     fontWeight: '600',
   },
@@ -647,7 +648,7 @@ const styles = StyleSheet.create({
   },
   highlightMeta: {
     fontSize: 12,
-    color: '#C49A6C',
+    color: palette.terracotta[500],
     marginTop: 4,
     fontWeight: '600',
   },
@@ -678,8 +679,8 @@ const styles = StyleSheet.create({
     borderColor: '#334155',
   },
   radiusChipActive: {
-    backgroundColor: '#C49A6C',
-    borderColor: '#C49A6C',
+    backgroundColor: palette.terracotta[500],
+    borderColor: palette.terracotta[500],
   },
   radiusChipText: {
     fontSize: 13,
@@ -705,8 +706,8 @@ const styles = StyleSheet.create({
     borderColor: '#334155',
   },
   sortChipActive: {
-    backgroundColor: '#C49A6C',
-    borderColor: '#C49A6C',
+    backgroundColor: palette.terracotta[500],
+    borderColor: palette.terracotta[500],
   },
   sortChipText: {
     fontSize: 12,
@@ -744,7 +745,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   tabTextActive: {
-    color: '#C49A6C',
+    color: palette.terracotta[500],
   },
 
   // Content
@@ -813,17 +814,17 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   iqBadge: {
-    backgroundColor: '#C49A6C20',
+    backgroundColor: withOpacity(palette.terracotta[500], 0.13),
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: '#C49A6C40',
+    borderColor: withOpacity(palette.terracotta[500], 0.25),
   },
   iqText: {
     fontSize: 13,
     fontWeight: '700',
-    color: '#C49A6C',
+    color: palette.terracotta[500],
   },
   poiDescription: {
     fontSize: 13,
@@ -852,7 +853,7 @@ const styles = StyleSheet.create({
   },
   directionArrow: {
     fontSize: 14,
-    color: '#C49A6C',
+    color: palette.terracotta[500],
   },
 
   // Walking Route
@@ -876,7 +877,7 @@ const styles = StyleSheet.create({
   routeStatValue: {
     fontSize: 20,
     fontWeight: '700',
-    color: '#C49A6C',
+    color: palette.terracotta[500],
   },
   routeStatLabel: {
     fontSize: 11,
@@ -898,7 +899,7 @@ const styles = StyleSheet.create({
     width: 28,
     height: 28,
     borderRadius: 14,
-    backgroundColor: '#C49A6C',
+    backgroundColor: palette.terracotta[500],
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -925,7 +926,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 8,
-    backgroundColor: '#C49A6C',
+    backgroundColor: palette.terracotta[500],
     borderRadius: 12,
     paddingVertical: 14,
     marginTop: 8,
@@ -951,13 +952,13 @@ const styles = StyleSheet.create({
     marginTop: 16,
     paddingHorizontal: 20,
     paddingVertical: 10,
-    backgroundColor: '#C49A6C20',
+    backgroundColor: withOpacity(palette.terracotta[500], 0.13),
     borderRadius: 10,
     borderWidth: 1,
-    borderColor: '#C49A6C',
+    borderColor: palette.terracotta[500],
   },
   suggestText: {
-    color: '#C49A6C',
+    color: palette.terracotta[500],
     fontSize: 14,
     fontWeight: '600',
   },

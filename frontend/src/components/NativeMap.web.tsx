@@ -4,6 +4,7 @@
  */
 import React, { useEffect, useRef, useState } from 'react';
 import { View, StyleSheet, Platform } from 'react-native';
+import { palette } from '../theme';
 
 let L: any = null;
 
@@ -92,7 +93,7 @@ function injectCSS() {
     .poi-popup .leaflet-popup-content-wrapper {
       background: #fff; border-radius: 14px;
       box-shadow: 0 8px 32px rgba(0,0,0,0.18);
-      border: 1px solid #F2EDE4;
+      border: 1px solid ${palette.gray[100]};
     }
     .poi-popup .leaflet-popup-content { margin: 0; padding: 0; min-width: 240px; }
     .poi-popup .leaflet-popup-tip { background: #fff; }
@@ -107,7 +108,7 @@ function injectCSS() {
     [data-testid="map-container"] > div { overflow: visible !important; }
 
     .popup-inner { padding: 16px; }
-    .popup-inner h3 { margin: 0 0 4px; font-size: 15px; font-weight: 700; color: #2E5E4E; line-height: 1.35; }
+    .popup-inner h3 { margin: 0 0 4px; font-size: 15px; font-weight: 700; color: ${palette.forest[500]}; line-height: 1.35; }
     .popup-inner .popup-cat { font-size: 12px; color: #64748B; text-transform: capitalize; margin-bottom: 8px; display: flex; align-items: center; gap: 4px; }
     .popup-inner .popup-cat .cat-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
     .popup-inner .popup-desc { font-size: 12px; color: #3D4A3D; line-height: 1.55; margin-bottom: 10px; max-height: 50px; overflow: hidden; }
@@ -116,11 +117,11 @@ function injectCSS() {
       display: inline-flex; align-items: center; gap: 3px;
       padding: 3px 8px; border-radius: 6px; font-size: 11px; font-weight: 600;
     }
-    .popup-inner .badge-iq { background: #FEF3C7; color: #B08556; }
+    .popup-inner .badge-iq { background: #FEF3C7; color: ${palette.terracotta[600]}; }
     .popup-inner .badge-region { background: #EDE9FE; color: #7C3AED; }
     .popup-inner .popup-link {
       display: block; width: 100%; padding: 9px; text-align: center;
-      background: linear-gradient(135deg, #C49A6C, #B08556);
+      background: linear-gradient(135deg, ${palette.terracotta[500]}, ${palette.terracotta[600]});
       border: none; border-radius: 10px; color: #fff; font-weight: 600;
       font-size: 13px; cursor: pointer; text-decoration: none;
       transition: opacity 0.15s;
@@ -131,7 +132,7 @@ function injectCSS() {
     .map-mode-control {
       background: rgba(255,255,255,0.95); backdrop-filter: blur(8px);
       border-radius: 10px; padding: 4px; box-shadow: 0 2px 12px rgba(0,0,0,0.1);
-      display: flex; gap: 2px; border: 1px solid #F2EDE4;
+      display: flex; gap: 2px; border: 1px solid ${palette.gray[100]};
     }
     .map-mode-btn {
       padding: 6px 10px; border: none; border-radius: 8px;
@@ -139,8 +140,8 @@ function injectCSS() {
       background: transparent; color: #64748B; transition: all 0.15s;
       display: flex; align-items: center; gap: 4px;
     }
-    .map-mode-btn:hover { background: #F1F5F9; color: #2E5E4E; }
-    .map-mode-btn.active { background: #C49A6C; color: #fff; }
+    .map-mode-btn:hover { background: #F1F5F9; color: ${palette.forest[500]}; }
+    .map-mode-btn.active { background: ${palette.terracotta[500]}; color: #fff; }
     .map-mode-btn .m-icon { font-family: 'Material Icons'; font-size: 15px; }
   `;
   document.head.appendChild(style);
@@ -197,7 +198,7 @@ interface LeafletMapProps {
   [key: string]: any;
 }
 
-const LeafletMapComponent = ({ items, onItemPress, getMarkerColor, getLayerIcon, mapMode = 'markers', trailPoints, trailColor = '#C49A6C', style }: LeafletMapProps) => {
+const LeafletMapComponent = ({ items, onItemPress, getMarkerColor, getLayerIcon, mapMode = 'markers', trailPoints, trailColor = palette.terracotta[500], style }: LeafletMapProps) => {
   const containerRef = useRef<any>(null);
   const mapRef = useRef<any>(null);
   const tileRef = useRef<any>(null);
@@ -309,7 +310,7 @@ const LeafletMapComponent = ({ items, onItemPress, getMarkerColor, getLayerIcon,
               0.2: '#3B82F6',
               0.4: '#22D3EE',
               0.5: '#22C55E',
-              0.65: '#C49A6C',
+              0.65: palette.terracotta[500],
               0.8: '#EF4444',
               1.0: '#DC2626',
             },

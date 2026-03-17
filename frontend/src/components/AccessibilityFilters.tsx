@@ -4,6 +4,7 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { useQuery } from '@tanstack/react-query';
 import { getAccessibilityFilters } from '../services/api';
 import { colors, typography, spacing, borders, shadows } from '../theme';
+import { palette } from '../theme/colors';
 
 interface AccessibilityFiltersProps {
   selectedFilters: string[];
@@ -73,7 +74,7 @@ export const AccessibilityFilters: React.FC<AccessibilityFiltersProps> = ({
               <MaterialIcons
                 name={FILTER_ICONS[filter.id] as any || 'check-circle'}
                 size={16}
-                color={isSelected ? '#FFF' : colors.gray[600]}
+                color={isSelected ? palette.white : colors.gray[600]}
               />
               <Text style={[styles.compactText, isSelected && styles.compactTextActive]}>
                 {filter.name.split(' ')[0]}
@@ -114,7 +115,7 @@ export const AccessibilityFilters: React.FC<AccessibilityFiltersProps> = ({
               <MaterialIcons
                 name={FILTER_ICONS[filter.id] as any || 'check-circle'}
                 size={20}
-                color={isSelected ? '#FFF' : colors.gray[600]}
+                color={isSelected ? palette.white : colors.gray[600]}
               />
               <Text 
                 style={[styles.filterText, isSelected && styles.filterTextActive]}
@@ -196,7 +197,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   filterTextActive: {
-    color: '#FFF',
+    color: palette.white,
     fontWeight: '500',
   },
   selectedInfo: {
@@ -236,7 +237,7 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   compactTextActive: {
-    color: '#FFF',
+    color: palette.white,
   },
 });
 

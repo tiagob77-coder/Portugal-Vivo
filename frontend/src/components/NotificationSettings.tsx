@@ -15,14 +15,15 @@ import {
 } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { palette, withOpacity } from '../theme/colors';
 
 const STORAGE_KEY = '@portugal_vivo_notification_prefs';
-const ACCENT = '#C49A6C';
+const ACCENT = palette.terracotta[500];
 const CARD_BG = '#1E293B';
-const TEXT_PRIMARY = '#FAF8F3';
+const TEXT_PRIMARY = palette.gray[50];
 const TEXT_SECONDARY = '#94A3B8';
 const SWITCH_TRACK_OFF = '#334155';
-const SWITCH_TRACK_ON = '#C49A6C80';
+const SWITCH_TRACK_ON = withOpacity(palette.terracotta[500], 0.5);
 const SWITCH_THUMB_OFF = '#64748B';
 
 const REGIONS = [

@@ -9,6 +9,7 @@ import {
 } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
+import { palette } from '../theme';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const CARD_WIDTH = Math.min(SCREEN_WIDTH - 48, 380);
@@ -94,7 +95,7 @@ export default function SocialShareCard({
         onPress={() => setModalVisible(true)}
         activeOpacity={0.7}
       >
-        <MaterialIcons name="share" size={22} color="#FAF8F3" />
+        <MaterialIcons name="share" size={22} color={palette.gray[50]} />
         <Text style={styles.triggerText}>Partilhar</Text>
       </TouchableOpacity>
 
@@ -118,7 +119,7 @@ export default function SocialShareCard({
                   style={styles.cardGradient}
                 >
                   {category && (
-                    <View style={[styles.categoryBadge, { backgroundColor: categoryColor || '#2E5E4E' }]}>
+                    <View style={[styles.categoryBadge, { backgroundColor: categoryColor || palette.forest[500] }]}>
                       <Text style={styles.categoryText}>{category}</Text>
                     </View>
                   )}
@@ -126,7 +127,7 @@ export default function SocialShareCard({
                   <Text style={styles.cardDescription} numberOfLines={2}>{shortDesc}</Text>
                   {region && (
                     <View style={styles.regionRow}>
-                      <MaterialIcons name="place" size={14} color="#C49A6C" />
+                      <MaterialIcons name="place" size={14} color={palette.terracotta[500]} />
                       <Text style={styles.regionText}>{region}</Text>
                     </View>
                   )}
@@ -144,7 +145,7 @@ export default function SocialShareCard({
               </ImageBackground>
               <View style={styles.cardFooter}>
                 <Text style={styles.footerBrand}>Portugal Vivo</Text>
-                <MaterialIcons name="explore" size={16} color="#C49A6C" />
+                <MaterialIcons name="explore" size={16} color={palette.terracotta[500]} />
               </View>
             </View>
 
@@ -197,7 +198,7 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   triggerText: {
-    color: '#FAF8F3',
+    color: palette.gray[50],
     fontSize: 13,
     fontWeight: '600',
   },
@@ -240,13 +241,13 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   categoryText: {
-    color: '#FAF8F3',
+    color: palette.gray[50],
     fontSize: 11,
     fontWeight: '700',
     textTransform: 'uppercase',
   },
   cardTitle: {
-    color: '#FAF8F3',
+    color: palette.gray[50],
     fontSize: 20,
     fontWeight: '800',
     marginBottom: 4,
@@ -263,7 +264,7 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   regionText: {
-    color: '#C49A6C',
+    color: palette.terracotta[500],
     fontSize: 12,
     fontWeight: '600',
   },
@@ -276,7 +277,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   statValue: {
-    color: '#FAF8F3',
+    color: palette.gray[50],
     fontSize: 14,
     fontWeight: '700',
   },
@@ -331,7 +332,7 @@ const styles = StyleSheet.create({
     borderRadius: 14,
   },
   closeButtonText: {
-    color: '#FAF8F3',
+    color: palette.gray[50],
     fontSize: 15,
     fontWeight: '600',
   },

@@ -5,6 +5,7 @@
 import React, { useRef } from 'react';
 import { View, StyleSheet, Dimensions } from 'react-native';
 import { WebView } from 'react-native-webview';
+import { palette } from '../theme';
 
 const { width: _width, height: _height } = Dimensions.get('window');
 
@@ -44,7 +45,7 @@ export const LeafletMapComponent = ({
   getLayerIcon, 
   mapMode: _mapMode = 'markers',
   trailPoints,
-  trailColor = '#C49A6C',
+  trailColor = palette.terracotta[500],
   style 
 }: LeafletMapProps) => {
   const webViewRef = useRef<WebView>(null);
@@ -107,16 +108,16 @@ export const LeafletMapComponent = ({
     .poi-marker .material-icons { font-size: 14px; color: #fff; }
     
     .leaflet-popup-content-wrapper {
-      background: #264E41; border-radius: 12px;
+      background: ${palette.forest[600]}; border-radius: 12px;
       box-shadow: 0 4px 20px rgba(0,0,0,0.3);
     }
     .leaflet-popup-content { margin: 12px 16px; min-width: 200px; }
-    .leaflet-popup-tip { background: #264E41; }
+    .leaflet-popup-tip { background: ${palette.forest[600]}; }
     .popup-title { color: #fff; font-size: 14px; font-weight: 600; margin-bottom: 4px; }
     .popup-meta { color: #C8C3B8; font-size: 11px; text-transform: capitalize; }
-    .popup-link { 
+    .popup-link {
       display: block; margin-top: 10px; padding: 8px 12px;
-      background: #C49A6C; color: #000; text-align: center;
+      background: ${palette.terracotta[500]}; color: #000; text-align: center;
       text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 12px;
     }
   </style>

@@ -5,6 +5,7 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, Switch, Platform } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { geofenceService } from '../services/geofencing';
+import { palette } from '../theme';
 
 interface GeofenceControlProps {
   onPOIsLoad?: () => void;
@@ -42,7 +43,7 @@ export function GeofenceControl({ onPOIsLoad }: GeofenceControlProps) {
         <Switch
           value={isEnabled}
           onValueChange={toggle}
-          trackColor={{ false: '#F2EDE4', true: '#BBF7D0' }}
+          trackColor={{ false: palette.gray[100], true: '#BBF7D0' }}
           thumbColor={isEnabled ? '#22C55E' : '#C8C3B8'}
         />
       </View>
@@ -52,11 +53,11 @@ export function GeofenceControl({ onPOIsLoad }: GeofenceControlProps) {
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: '#FAF8F3',
+    backgroundColor: palette.gray[50],
     borderRadius: 12,
     padding: 14,
     borderWidth: 1,
-    borderColor: '#F2EDE4',
+    borderColor: palette.gray[100],
   },
   row: {
     flexDirection: 'row',
@@ -69,7 +70,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#2E5E4E',
+    color: palette.forest[500],
   },
   subtitle: {
     fontSize: 11,

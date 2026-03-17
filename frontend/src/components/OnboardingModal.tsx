@@ -4,6 +4,7 @@ import {
 } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { palette, withOpacity } from '../theme/colors';
 
 const { width } = Dimensions.get('window');
 
@@ -14,7 +15,7 @@ const STEPS = [
     icon: 'explore',
     title: 'Descubra Portugal',
     subtitle: 'Mais de 6.300 locais únicos espalhados por 7 regiões e 43 categorias. De cascatas escondidas a tascas centenárias.',
-    color: '#C49A6C',
+    color: palette.terracotta[500],
   },
   {
     icon: 'route',
@@ -101,7 +102,7 @@ export default function OnboardingModal({ onComplete }: OnboardingModalProps) {
             ]}
           >
             {/* Icon */}
-            <View style={[styles.iconCircle, { backgroundColor: current.color + '20' }]}>
+            <View style={[styles.iconCircle, { backgroundColor: withOpacity(current.color, 0.125) }]}>
               <MaterialIcons name={current.icon as any} size={48} color={current.color} />
             </View>
 
@@ -159,7 +160,7 @@ const styles = StyleSheet.create({
     padding: 32,
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: 'rgba(196, 154, 108, 0.2)',
+    borderColor: withOpacity(palette.terracotta[500], 0.2),
   },
   skipButton: {
     position: 'absolute',
@@ -187,7 +188,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 24,
     fontWeight: '700',
-    color: '#FAF8F3',
+    color: palette.gray[50],
     textAlign: 'center',
     marginBottom: 12,
   },

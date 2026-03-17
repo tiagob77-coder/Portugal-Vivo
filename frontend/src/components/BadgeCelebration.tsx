@@ -1,10 +1,11 @@
 import React, { useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, Animated, Modal, Dimensions } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
+import { palette } from '../theme/colors';
 
 const { width: _SCREEN_W, height: _SCREEN_H } = Dimensions.get('window');
 const PARTICLE_COUNT = 18;
-const COLORS = ['#C49A6C', '#22C55E', '#8B5CF6', '#EF4444', '#0EA5E9', '#F59E0B', '#EC4899'];
+const COLORS = [palette.terracotta[500], '#22C55E', '#8B5CF6', '#EF4444', '#0EA5E9', '#F59E0B', '#EC4899'];
 
 interface BadgeCelebrationProps {
   visible: boolean;
@@ -97,7 +98,7 @@ export default function BadgeCelebration({ visible, badgeName, badgeIcon, badgeC
             <Text style={s.badgeName}>{badgeName}</Text>
             {pointsEarned > 0 && (
               <View style={s.pointsRow}>
-                <MaterialIcons name="stars" size={18} color="#C49A6C" />
+                <MaterialIcons name="stars" size={18} color={palette.terracotta[500]} />
                 <Text style={s.points}>+{pointsEarned} pontos</Text>
               </View>
             )}
@@ -113,8 +114,8 @@ const s = StyleSheet.create({
   container: { alignItems: 'center', justifyContent: 'center' },
   particle: { position: 'absolute' },
   iconWrap: { width: 110, height: 110, borderRadius: 55, alignItems: 'center', justifyContent: 'center', marginBottom: 20 },
-  title: { fontSize: 24, fontWeight: '800', color: '#FAF8F3', marginBottom: 6 },
-  badgeName: { fontSize: 18, fontWeight: '600', color: '#C49A6C', marginBottom: 12 },
+  title: { fontSize: 24, fontWeight: '800', color: palette.gray[50], marginBottom: 6 },
+  badgeName: { fontSize: 18, fontWeight: '600', color: palette.terracotta[500], marginBottom: 12 },
   pointsRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  points: { fontSize: 16, fontWeight: '700', color: '#C49A6C' },
+  points: { fontSize: 16, fontWeight: '700', color: palette.terracotta[500] },
 });
