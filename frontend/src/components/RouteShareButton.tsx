@@ -248,7 +248,7 @@ export default function RouteShareButton({
                 <MaterialIcons
                   name={copied ? 'check' : 'content-copy'}
                   size={18}
-                  color={copied ? '#22C55E' : '#FAF8F3'}
+                  color={copied ? '#22C55E' : palette.gray[50]}
                 />
               </TouchableOpacity>
             </View>

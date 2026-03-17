@@ -117,7 +117,7 @@ function injectCSS() {
       display: inline-flex; align-items: center; gap: 3px;
       padding: 3px 8px; border-radius: 6px; font-size: 11px; font-weight: 600;
     }
-    .popup-inner .badge-iq { background: #FEF3C7; color: #B08556; }
+    .popup-inner .badge-iq { background: #FEF3C7; color: ${palette.terracotta[600]}; }
     .popup-inner .badge-region { background: #EDE9FE; color: #7C3AED; }
     .popup-inner .popup-link {
       display: block; width: 100%; padding: 9px; text-align: center;
