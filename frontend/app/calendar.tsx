@@ -4,7 +4,7 @@ import { useRouter, Stack } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useQuery } from '@tanstack/react-query';
-import { getCalendarEvents, getUpcomingEvents, CalendarEvent } from '../../src/services/api';
+import { getCalendarEvents, getUpcomingEvents, CalendarEvent } from '../src/services/api';
 
 const MONTHS = [
   { id: 1, name: 'Janeiro', short: 'Jan' },

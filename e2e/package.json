@@ -1,0 +1,23 @@
+{
+  "name": "portugal-vivo-e2e",
+  "version": "1.0.0",
+  "description": "E2E tests for Portugal Vivo",
+  "scripts": {
+    "test:playwright": "playwright test",
+    "test:playwright:ui": "playwright test --ui",
+    "test:playwright:headed": "playwright test --headed",
+    "test:playwright:debug": "playwright test --debug",
+    "test:playwright:report": "playwright show-report",
+    "test:maestro": "maestro test maestro/",
+    "test:maestro:studio": "maestro studio",
+    "test:all": "npm run test:playwright && npm run test:maestro",
+    "install:playwright": "playwright install --with-deps"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.40.0",
+    "typescript": "^5.3.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

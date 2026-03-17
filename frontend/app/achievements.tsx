@@ -4,8 +4,8 @@ import { useRouter, Stack } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useQuery } from '@tanstack/react-query';
-import { getUserProgress, getLeaderboard, Badge, LeaderboardEntry } from '../../src/services/api';
-import { useAuth } from '../../src/context/AuthContext';
+import { getUserProgress, getLeaderboard, Badge, LeaderboardEntry } from '../src/services/api';
+import { useAuth } from '../src/context/AuthContext';
 
 export default function AchievementsScreen() {
   const router = useRouter();

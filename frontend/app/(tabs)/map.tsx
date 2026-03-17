@@ -1,14 +1,12 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Dimensions, ActivityIndicator, Platform, FlatList } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, ActivityIndicator, Platform } from 'react-native';
 import { useRouter } from 'expo-router';
-import { MaterialIcons } from '@expo/vector-icons'
+import { MaterialIcons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useQuery } from '@tanstack/react-query';
 import { getCategories, getMapItems } from '../../src/services/api';
 import { HeritageItem, Category } from '../../src/types';
-import HeritageCard from '../../src/components/HeritageCard';
-
-const { width, height } = Dimensions.get('window');
+import { LeafletMapComponent } from '../../src/components/NativeMap';
 
 const REGION_NAMES: Record<string, string> = {
   norte: 'Norte',
@@ -21,7 +19,7 @@ const REGION_NAMES: Record<string, string> = {
 };
 
 const REGIONS = [
-  { id: 'all', name: 'Todas as Regiões', icon: 'public' },
+  { id: 'all', name: 'Todas', icon: 'public' },
   { id: 'norte', name: 'Norte', icon: 'landscape' },
   { id: 'centro', name: 'Centro', icon: 'terrain' },
   { id: 'lisboa', name: 'Lisboa', icon: 'location-city' },
@@ -66,22 +64,14 @@ export default function MapScreen() {
   };
 
   const getCategoryColor = (categoryId: string) => {
-    const cat = categories.find(c => c.id === categoryId);
+    const cat = categories.find((c: Category) => c.id === categoryId);
     return cat?.color || '#F59E0B';
   };
 
   const getCategoryIcon = (categoryId: string) => {
-    const cat = categories.find(c => c.id === categoryId);
+    const cat = categories.find((c: Category) => c.id === categoryId);
     return cat?.icon || 'place';
   };
-
-  // Group items by region for the list view
-  const groupedByRegion = items.reduce((acc: Record<string, HeritageItem[]>, item) => {
-    const region = item.region;
-    if (!acc[region]) acc[region] = [];
-    acc[region].push(item);
-    return acc;
-  }, {});
 
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
@@ -91,7 +81,7 @@ export default function MapScreen() {
           <View>
             <Text style={styles.headerTitle}>Mapa Cultural</Text>
             <Text style={styles.headerSubtitle}>
-              {items.length} pontos de interesse com localização
+              {items.length} pontos de interesse
             </Text>
           </View>
           <TouchableOpacity 
@@ -120,7 +110,7 @@ export default function MapScreen() {
               showsHorizontalScrollIndicator={false}
               style={styles.filtersScroll}
             >
-              {categories.slice(0, 12).map((category) => (
+              {categories.slice(0, 12).map((category: Category) => (
                 <TouchableOpacity
                   key={category.id}
                   style={[
@@ -190,11 +180,11 @@ export default function MapScreen() {
         ))}
       </ScrollView>
 
-      {/* Items List */}
+      {/* Map Content */}
       {isLoading ? (
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#F59E0B" />
-          <Text style={styles.loadingText}>A carregar pontos...</Text>
+          <Text style={styles.loadingText}>A carregar mapa...</Text>
         </View>
       ) : items.length === 0 ? (
         <View style={styles.emptyContainer}>
@@ -203,58 +193,29 @@ export default function MapScreen() {
           <Text style={styles.emptySubtext}>Tente alterar os filtros</Text>
         </View>
       ) : (
-        <FlatList
-          data={items}
-          keyExtractor={(item) => item.id}
-          renderItem={({ item }) => (
-            <TouchableOpacity 
-              style={styles.mapItem}
-              onPress={() => handleItemPress(item)}
-              activeOpacity={0.8}
-            >
-              <View style={[styles.mapItemIcon, { backgroundColor: getCategoryColor(item.category) + '20' }]}>
-                <MaterialIcons 
-                  name={getCategoryIcon(item.category) as any} 
-                  size={24} 
-                  color={getCategoryColor(item.category)} 
-                />
+        <View style={styles.mapWrapper}>
+          <LeafletMapComponent
+            items={items}
+            onItemPress={handleItemPress}
+            getCategoryColor={getCategoryColor}
+            getCategoryIcon={getCategoryIcon}
+            style={styles.leafletMap}
+          />
+          {/* Map Stats Overlay */}
+          <View style={styles.mapStats}>
+            <View style={styles.mapStatChip}>
+              <MaterialIcons name="place" size={14} color="#F59E0B" />
+              <Text style={styles.mapStatText}>{items.length} locais</Text>
+            </View>
+            {selectedRegion !== 'all' && (
+              <View style={styles.mapStatChip}>
+                <MaterialIcons name="filter-list" size={14} color="#22C55E" />
+                <Text style={styles.mapStatText}>{REGION_NAMES[selectedRegion]}</Text>
               </View>
-              <View style={styles.mapItemContent}>
-                <Text style={styles.mapItemName} numberOfLines={1}>{item.name}</Text>
-                <View style={styles.mapItemMeta}>
-                  <MaterialIcons name="place" size={12} color="#94A3B8" />
-                  <Text style={styles.mapItemRegion}>
-                    {REGION_NAMES[item.region] || item.region}
-                  </Text>
-                  {item.location && (
-                    <Text style={styles.mapItemCoords}>
-                      {item.location.lat.toFixed(2)}, {item.location.lng.toFixed(2)}
-                    </Text>
-                  )}
-                </View>
-                {item.address && (
-                  <Text style={styles.mapItemAddress} numberOfLines={1}>{item.address}</Text>
-                )}
-              </View>
-              <MaterialIcons name="chevron-right" size={24} color="#64748B" />
-            </TouchableOpacity>
-          )}
-          contentContainerStyle={styles.listContent}
-          showsVerticalScrollIndicator={false}
-          ItemSeparatorComponent={() => <View style={styles.separator} />}
-        />
-      )}
-
-      {/* Map Legend */}
-      <View style={[styles.legend, { paddingBottom: insets.bottom || 16 }]}>
-        <View style={styles.legendItem}>
-          <MaterialIcons name="location-on" size={16} color="#22C55E" />
-          <Text style={styles.legendText}>Localização disponível</Text>
+            )}
+          </View>
         </View>
-        <Text style={styles.legendNote}>
-          Mapa interativo disponível no dispositivo móvel
-        </Text>
-      </View>
+      )}
     </View>
   );
 }
@@ -412,76 +373,34 @@ const styles = StyleSheet.create({
     color: '#64748B',
     marginTop: 4,
   },
-  listContent: {
-    paddingVertical: 12,
+  mapWrapper: {
+    flex: 1,
+    position: 'relative' as any,
   },
-  mapItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-  },
-  mapItemIcon: {
-    width: 48,
-    height: 48,
-    borderRadius: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 12,
-  },
-  mapItemContent: {
+  leafletMap: {
     flex: 1,
   },
-  mapItemName: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#F8FAFC',
-    marginBottom: 4,
+  mapStats: {
+    position: 'absolute',
+    bottom: 16,
+    left: 16,
+    flexDirection: 'row',
+    gap: 8,
   },
-  mapItemMeta: {
+  mapStatChip: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
-  },
-  mapItemRegion: {
-    fontSize: 12,
-    color: '#94A3B8',
-  },
-  mapItemCoords: {
-    fontSize: 11,
-    color: '#64748B',
-    marginLeft: 8,
-  },
-  mapItemAddress: {
-    fontSize: 12,
-    color: '#64748B',
-    marginTop: 2,
-  },
-  separator: {
-    height: 1,
-    backgroundColor: '#1E293B',
-    marginLeft: 76,
-  },
-  legend: {
-    paddingHorizontal: 16,
-    paddingTop: 12,
-    borderTopWidth: 1,
-    borderTopColor: '#1E293B',
-    backgroundColor: '#0F172A',
-  },
-  legendItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    backgroundColor: 'rgba(15, 23, 42, 0.85)',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 20,
     gap: 6,
+    borderWidth: 1,
+    borderColor: '#334155',
   },
-  legendText: {
+  mapStatText: {
     fontSize: 12,
-    color: '#94A3B8',
-  },
-  legendNote: {
-    fontSize: 11,
-    color: '#475569',
-    marginTop: 4,
-    fontStyle: 'italic',
+    color: '#F8FAFC',
+    fontWeight: '500',
   },
 });
