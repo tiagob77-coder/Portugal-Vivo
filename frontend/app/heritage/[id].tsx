@@ -1,12 +1,27 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, Alert } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, Platform, Dimensions, Image, ImageBackground, Linking, Share, Alert } from 'react-native';
 import { useLocalSearchParams, useRouter, Stack } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { getHeritageItem, getCategories, generateNarrative, addFavorite, removeFavorite } from '../../src/services/api';
+import { getHeritageItem, getCategories, generateNarrative, addFavorite, removeFavorite, getAudioGuideForItem, doCheckin, getPoiImages } from '../../src/services/api';
 import { useAuth } from '../../src/context/AuthContext';
 import { Category } from '../../src/types';
+import { Audio } from 'expo-av';
+import { offlineCache } from '../../src/services/offlineCache';
+import { ReviewsSection } from '../../src/components/ReviewsSection';
+import { ShareButton } from '../../src/components/ShareButton';
+import ImageUpload from '../../src/components/ImageUpload';
+
+const { width: _width } = Dimensions.get('window');
+
+const GOOGLE_MAPS_API_KEY = process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY || '';
+
+// Conditional import for WebView (only on native)
+let _WebView: any = null;
+if (Platform.OS !== 'web') {
+  _WebView = require('react-native-webview').WebView; // eslint-disable-line @typescript-eslint/no-require-imports
+}
 
 const REGION_NAMES: Record<string, string> = {
   norte: 'Norte',
@@ -18,20 +33,309 @@ const REGION_NAMES: Record<string, string> = {
   madeira: 'Madeira',
 };
 
+// Category default images
+const CATEGORY_IMAGES: Record<string, string> = {
+  lendas: 'https://images.unsplash.com/photo-1627501690716-110dfac7c9ca?w=800&q=80',
+  festas: 'https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?w=800&q=80',
+  saberes: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&q=80',
+  crencas: 'https://images.unsplash.com/photo-1548625149-fc4a29cf7092?w=800&q=80',
+  gastronomia: 'https://images.unsplash.com/photo-1591107576521-87091dc07797?w=800&q=80',
+  produtos: 'https://images.unsplash.com/photo-1542838132-92c53300491e?w=800&q=80',
+  termas: 'https://images.unsplash.com/photo-1544161515-4ab6ce6db874?w=800&q=80',
+  florestas: 'https://images.unsplash.com/photo-1448375240586-882707db888b?w=800&q=80',
+  rios: 'https://images.unsplash.com/photo-1638664370752-8188076afbab?w=800&q=80',
+  minerais: 'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=800&q=80',
+  aldeias: 'https://images.unsplash.com/photo-1600786705579-08b369d25d7d?w=800&q=80',
+  percursos: 'https://images.unsplash.com/photo-1551632811-561732d1e306?w=800&q=80',
+  rotas: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&q=80',
+  piscinas: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&q=80',
+  cogumelos: 'https://images.unsplash.com/photo-1504545102780-26774c1bb073?w=800&q=80',
+  arqueologia: 'https://images.unsplash.com/photo-1539650116574-75c0c6d73f6e?w=800&q=80',
+  fauna: 'https://images.unsplash.com/photo-1474511320723-9a56873571b7?w=800&q=80',
+  arte: 'https://images.unsplash.com/photo-1570561477977-32d429ab3da4?w=800&q=80',
+  religioso: 'https://images.unsplash.com/photo-1548625149-fc4a29cf7092?w=800&q=80',
+  comunidade: 'https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=800&q=80',
+};
+
+// Specific item images based on keywords
+const getItemImage = (name: string, category: string): string => {
+  const nameLower = name.toLowerCase();
+  
+  // Fauna - Animais
+  if (nameLower.includes('lobo') || nameLower.includes('ibérico') || nameLower.includes('iberico')) {
+    return 'https://images.unsplash.com/photo-1546182990-dffeafbe841d?w=800&q=80'; // Wolf
+  }
+  if (nameLower.includes('lince')) {
+    return 'https://images.unsplash.com/photo-1606567595334-d39972c85dfd?w=800&q=80'; // Lynx
+  }
+  if (nameLower.includes('águia') || nameLower.includes('aguia')) {
+    return 'https://images.unsplash.com/photo-1611689342806-0863700ce1e4?w=800&q=80'; // Eagle
+  }
+  if (nameLower.includes('golfinho')) {
+    return 'https://images.unsplash.com/photo-1607153333879-c174d265f1d2?w=800&q=80'; // Dolphin
+  }
+  if (nameLower.includes('cegonha')) {
+    return 'https://images.unsplash.com/photo-1591608971362-f08b2a75731a?w=800&q=80'; // Stork
+  }
+  if (nameLower.includes('cavalo')) {
+    return 'https://images.unsplash.com/photo-1553284965-83fd3e82fa5a?w=800&q=80'; // Horse
+  }
+  if (nameLower.includes('touro') || nameLower.includes('boi')) {
+    return 'https://images.unsplash.com/photo-1527153857715-3908f2bae5e8?w=800&q=80'; // Bull
+  }
+  
+  // Lendas específicas
+  if (nameLower.includes('lobisomem')) {
+    return 'https://images.unsplash.com/photo-1546182990-dffeafbe841d?w=800&q=80'; // Wolf at night
+  }
+  if (nameLower.includes('moura') || nameLower.includes('encantada')) {
+    return 'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=800&q=80'; // Mystical
+  }
+  if (nameLower.includes('galo') || nameLower.includes('barcelos')) {
+    return 'https://images.unsplash.com/photo-1569428034239-f9565e32e224?w=800&q=80'; // Rooster
+  }
+  if (nameLower.includes('adamastor') || nameLower.includes('cabo')) {
+    return 'https://images.unsplash.com/photo-1505142468610-359e7d316be0?w=800&q=80'; // Sea/storm
+  }
+  if (nameLower.includes('sete cidades')) {
+    return 'https://images.unsplash.com/photo-1595433707802-6b2626ef1c91?w=800&q=80'; // Lakes
+  }
+  if (nameLower.includes('serra') || nameLower.includes('estrela')) {
+    return 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=800&q=80'; // Mountains
+  }
+  if (nameLower.includes('bruxa') || nameLower.includes('feitiçaria') || nameLower.includes('feiticaria')) {
+    return 'https://images.unsplash.com/photo-1509557965875-b88c97052f0e?w=800&q=80'; // Dark forest
+  }
+  if (nameLower.includes('dragão') || nameLower.includes('dragao') || nameLower.includes('serpente')) {
+    return 'https://images.unsplash.com/photo-1577493340887-b7bfff550145?w=800&q=80'; // Dragon-like
+  }
+  if (nameLower.includes('fantasma') || nameLower.includes('assombr')) {
+    return 'https://images.unsplash.com/photo-1509248961895-40e8ce494c85?w=800&q=80'; // Haunted
+  }
+  if (nameLower.includes('castelo') || nameLower.includes('torre')) {
+    return 'https://images.unsplash.com/photo-1533154683836-84ea7a0bc310?w=800&q=80'; // Castle
+  }
+  if (nameLower.includes('milagre') || nameLower.includes('santo') || nameLower.includes('santa')) {
+    return 'https://images.unsplash.com/photo-1548625149-fc4a29cf7092?w=800&q=80'; // Church
+  }
+  if (nameLower.includes('alma') || nameLower.includes('espírito') || nameLower.includes('espirito')) {
+    return 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=800&q=80'; // Spiritual
+  }
+  if (nameLower.includes('mar') || nameLower.includes('oceano') || nameLower.includes('pescador')) {
+    return 'https://images.unsplash.com/photo-1505118380757-91f5f5632de0?w=800&q=80'; // Ocean
+  }
+  if (nameLower.includes('rio') || nameLower.includes('água') || nameLower.includes('agua')) {
+    return 'https://images.unsplash.com/photo-1433086966358-54859d0ed716?w=800&q=80'; // River
+  }
+  if (nameLower.includes('floresta') || nameLower.includes('bosque') || nameLower.includes('mata')) {
+    return 'https://images.unsplash.com/photo-1448375240586-882707db888b?w=800&q=80'; // Forest
+  }
+  
+  // Festas
+  if (nameLower.includes('carnaval')) {
+    return 'https://images.unsplash.com/photo-1518998053901-5348d3961a04?w=800&q=80';
+  }
+  if (nameLower.includes('santo') && nameLower.includes('popular')) {
+    return 'https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?w=800&q=80';
+  }
+  if (nameLower.includes('romaria') || nameLower.includes('festa') || nameLower.includes('procissão')) {
+    return 'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=800&q=80';
+  }
+  if (nameLower.includes('fogo') || nameLower.includes('fogueira')) {
+    return 'https://images.unsplash.com/photo-1475738972911-5b44ce984c42?w=800&q=80'; // Fire
+  }
+  
+  // Gastronomia
+  if (nameLower.includes('vinho') || nameLower.includes('porto')) {
+    return 'https://images.unsplash.com/photo-1474722883778-792e7990302f?w=800&q=80';
+  }
+  if (nameLower.includes('bacalhau')) {
+    return 'https://images.unsplash.com/photo-1534604973900-c43ab4c2e0ab?w=800&q=80';
+  }
+  if (nameLower.includes('pastel') || nameLower.includes('nata')) {
+    return 'https://images.unsplash.com/photo-1591107576521-87091dc07797?w=800&q=80';
+  }
+  if (nameLower.includes('queijo')) {
+    return 'https://images.unsplash.com/photo-1486297678162-eb2a19b0a32d?w=800&q=80';
+  }
+  if (nameLower.includes('pão') || nameLower.includes('pao') || nameLower.includes('broa')) {
+    return 'https://images.unsplash.com/photo-1509440159596-0249088772ff?w=800&q=80'; // Bread
+  }
+  if (nameLower.includes('azeite') || nameLower.includes('oliva')) {
+    return 'https://images.unsplash.com/photo-1474979266404-7eaacbcd87c5?w=800&q=80'; // Olive oil
+  }
+  if (nameLower.includes('mel')) {
+    return 'https://images.unsplash.com/photo-1587049352846-4a222e784d38?w=800&q=80'; // Honey
+  }
+  if (nameLower.includes('presunto') || nameLower.includes('enchido') || nameLower.includes('chouriço')) {
+    return 'https://images.unsplash.com/photo-1544025162-d76694265947?w=800&q=80'; // Cured meat
+  }
+  
+  // Aldeias e lugares
+  if (nameLower.includes('monsanto')) {
+    return 'https://images.unsplash.com/photo-1600786705579-08b369d25d7d?w=800&q=80';
+  }
+  if (nameLower.includes('óbidos') || nameLower.includes('obidos')) {
+    return 'https://images.unsplash.com/photo-1555881400-74d7acaacd8b?w=800&q=80';
+  }
+  if (nameLower.includes('sintra')) {
+    return 'https://images.unsplash.com/photo-1627501690716-110dfac7c9ca?w=800&q=80';
+  }
+  if (nameLower.includes('marvão') || nameLower.includes('marvao')) {
+    return 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&q=80';
+  }
+  
+  // Natureza
+  if (nameLower.includes('douro')) {
+    return 'https://images.unsplash.com/photo-1638664370752-8188076afbab?w=800&q=80';
+  }
+  if (nameLower.includes('gerês') || nameLower.includes('geres') || nameLower.includes('peneda')) {
+    return 'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=800&q=80';
+  }
+  if (nameLower.includes('praia') || nameLower.includes('costa') || nameLower.includes('falesia')) {
+    return 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&q=80';
+  }
+  if (nameLower.includes('montanha') || nameLower.includes('pico')) {
+    return 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=800&q=80';
+  }
+  if (nameLower.includes('lagoa') || nameLower.includes('lago')) {
+    return 'https://images.unsplash.com/photo-1439066615861-d1af74d74000?w=800&q=80'; // Lake
+  }
+  if (nameLower.includes('cascata') || nameLower.includes('queda')) {
+    return 'https://images.unsplash.com/photo-1433086966358-54859d0ed716?w=800&q=80'; // Waterfall
+  }
+  
+  // Artesanato
+  if (nameLower.includes('azulejo')) {
+    return 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&q=80';
+  }
+  if (nameLower.includes('bordado') || nameLower.includes('renda') || nameLower.includes('tecelagem')) {
+    return 'https://images.unsplash.com/photo-1558171813-4c088753af8f?w=800&q=80'; // Textile
+  }
+  if (nameLower.includes('olaria') || nameLower.includes('cerâmica') || nameLower.includes('ceramica') || nameLower.includes('barro')) {
+    return 'https://images.unsplash.com/photo-1565193566173-7a0ee3dbe261?w=800&q=80'; // Pottery
+  }
+  if (nameLower.includes('cortiça') || nameLower.includes('cortica')) {
+    return 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&q=80'; // Cork
+  }
+  if (nameLower.includes('filigrana') || nameLower.includes('ouro') || nameLower.includes('prata')) {
+    return 'https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?w=800&q=80'; // Jewelry
+  }
+  
+  // Minerais e termas
+  if (nameLower.includes('mina') || nameLower.includes('mineral') || nameLower.includes('pedra')) {
+    return 'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=800&q=80';
+  }
+  if (nameLower.includes('terma') || nameLower.includes('água quente') || nameLower.includes('spa')) {
+    return 'https://images.unsplash.com/photo-1544161515-4ab6ce6db874?w=800&q=80';
+  }
+  
+  // Default to category image
+  return CATEGORY_IMAGES[category] || CATEGORY_IMAGES.lendas;
+};
+
 export default function HeritageDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const queryClient = useQueryClient();
-  const { user, isAuthenticated } = useAuth();
+  const { user, isAuthenticated, sessionToken, login, isPremium } = useAuth();
   const [narrativeStyle, setNarrativeStyle] = useState<'storytelling' | 'educational' | 'brief'>('storytelling');
   const [showNarrative, setShowNarrative] = useState(false);
+  const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
+
+  // Get user location for check-in
+  useEffect(() => {
+    if (Platform.OS === 'web') {
+      navigator.geolocation?.getCurrentPosition(
+        (pos) => setUserLocation({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
+        () => {} // silently fail
+      );
+    }
+  }, []);
+
+  const checkinMutation = useMutation({
+    mutationFn: () => doCheckin(userLocation!.lat, userLocation!.lng, id!),
+    onSuccess: (data) => {
+      if (data.success) {
+        const badges = data.new_badges?.map((b: any) => b.name).join(', ');
+        const msg = `+${data.xp_earned} XP${badges ? `\nNovo badge: ${badges}!` : ''}`;
+        if (Platform.OS === 'web') {
+          window.alert(`${data.message}\n${msg}`);
+        } else {
+          Alert.alert('Check-in!', `${data.message}\n${msg}`);
+        }
+      } else {
+        if (Platform.OS === 'web') {
+          window.alert(data.message);
+        } else {
+          Alert.alert('Aviso', data.message);
+        }
+      }
+    },
+    onError: () => {
+      const errMsg = 'Não foi possível fazer check-in. Tente novamente.';
+      if (Platform.OS === 'web') {
+        window.alert(errMsg);
+      } else {
+        Alert.alert('Erro', errMsg);
+      }
+    },
+  });
 
   const { data: item, isLoading: itemLoading } = useQuery({
     queryKey: ['heritage', id],
     queryFn: () => getHeritageItem(id!),
     enabled: !!id,
   });
+
+  // Inject SEO meta tags on web for social sharing (Open Graph + Twitter Card)
+  useEffect(() => {
+    if (Platform.OS !== 'web' || !item || typeof document === 'undefined') return;
+
+    const title = `${item.name} — Portugal Vivo`;
+    const desc = item.description?.slice(0, 160) || `Descobre ${item.name} no Portugal Vivo`;
+    const image = item.image_url || getItemImage(item.name, item.category);
+    const url = window.location.href;
+
+    document.title = title;
+
+    const setMeta = (property: string, content: string) => {
+      let el = document.querySelector(`meta[property="${property}"]`) as HTMLMetaElement | null;
+      if (!el) {
+        el = document.createElement('meta');
+        el.setAttribute('property', property);
+        document.head.appendChild(el);
+      }
+      el.content = content;
+    };
+    const setMetaName = (name: string, content: string) => {
+      let el = document.querySelector(`meta[name="${name}"]`) as HTMLMetaElement | null;
+      if (!el) {
+        el = document.createElement('meta');
+        el.name = name;
+        document.head.appendChild(el);
+      }
+      el.content = content;
+    };
+
+    // Open Graph
+    setMeta('og:title', title);
+    setMeta('og:description', desc);
+    setMeta('og:image', image);
+    setMeta('og:url', url);
+    setMeta('og:type', 'article');
+    setMeta('og:site_name', 'Portugal Vivo');
+
+    // Twitter Card
+    setMetaName('twitter:card', 'summary_large_image');
+    setMetaName('twitter:title', title);
+    setMetaName('twitter:description', desc);
+    setMetaName('twitter:image', image);
+
+    // Standard meta description
+    setMetaName('description', desc);
+  }, [item]);
 
   const { data: categories = [] } = useQuery({
     queryKey: ['categories'],
@@ -44,10 +348,93 @@ export default function HeritageDetailScreen() {
     enabled: showNarrative,
   });
 
+  // Community photo gallery
+  const { data: communityPhotos } = useQuery({
+    queryKey: ['poi-images', id],
+    queryFn: () => getPoiImages(id!),
+    enabled: !!id,
+  });
+
   const isFavorite = user?.favorites?.includes(id!) || false;
+  const [isPlayingAudio, setIsPlayingAudio] = useState(false);
+  const [isLoadingAudio, setIsLoadingAudio] = useState(false);
+  const [_audioError, setAudioError] = useState<string | null>(null);
+  const [sound, setSound] = useState<Audio.Sound | null>(null);
+  const [shareCopied, setShareCopied] = useState(false);
+
+  // Cache POI for offline access when viewed
+  useEffect(() => {
+    if (item) {
+      offlineCache.addFavoritePOI(item);
+    }
+  }, [item]);
+
+  // Cleanup audio on unmount
+  useEffect(() => {
+    return () => {
+      if (sound) {
+        sound.unloadAsync();
+      }
+    };
+  }, [sound]);
+
+  // Handle audio guide - using REAL TTS from backend (Premium feature)
+  const handlePlayAudio = async () => {
+    if (!isPremium) {
+      router.push('/premium');
+      return;
+    }
+    if (isPlayingAudio && sound) {
+      await sound.stopAsync();
+      await sound.unloadAsync();
+      setSound(null);
+      setIsPlayingAudio(false);
+      return;
+    }
+
+    if (!item) return;
+
+    setIsLoadingAudio(true);
+    setAudioError(null);
+
+    try {
+      // Get audio from backend TTS service
+      const audioResult = await getAudioGuideForItem(item.id);
+      
+      if (!audioResult.success || !audioResult.audio_base64) {
+        throw new Error(audioResult.error || 'Não foi possível gerar áudio');
+      }
+
+      // Convert base64 to audio file and play
+      const audioUri = `data:audio/mp3;base64,${audioResult.audio_base64}`;
+      
+      // Load and play audio
+      const { sound: newSound } = await Audio.Sound.createAsync(
+        { uri: audioUri },
+        { shouldPlay: true },
+        (status) => {
+          if (status.isLoaded && status.didJustFinish) {
+            setIsPlayingAudio(false);
+            newSound.unloadAsync();
+            setSound(null);
+          }
+        }
+      );
+      
+      setSound(newSound);
+      setIsPlayingAudio(true);
+      
+    } catch (error: any) {
+      console.error('Audio guide error:', error);
+      setAudioError(error.message || 'Erro ao reproduzir áudio');
+      Alert.alert('Erro', 'Não foi possível reproduzir o áudio guia: ' + (error.message || 'Erro desconhecido'));
+    } finally {
+      setIsLoadingAudio(false);
+    }
+  };
 
   const addFavoriteMutation = useMutation({
-    mutationFn: () => addFavorite(id!),
+    mutationFn: () => addFavorite(id!, sessionToken!),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['favorites'] });
       Alert.alert('Sucesso', 'Adicionado aos favoritos!');
@@ -55,7 +442,7 @@ export default function HeritageDetailScreen() {
   });
 
   const removeFavoriteMutation = useMutation({
-    mutationFn: () => removeFavorite(id!),
+    mutationFn: () => removeFavorite(id!, sessionToken!),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['favorites'] });
       Alert.alert('Sucesso', 'Removido dos favoritos!');
@@ -79,7 +466,7 @@ export default function HeritageDetailScreen() {
   if (itemLoading) {
     return (
       <View style={[styles.container, styles.centerContent]}>
-        <ActivityIndicator size="large" color="#F59E0B" />
+        <ActivityIndicator size="large" color="#C49A6C" />
       </View>
     );
   }
@@ -97,59 +484,76 @@ export default function HeritageDetailScreen() {
     <View style={styles.container}>
       <Stack.Screen options={{ headerShown: false }} />
       
-      {/* Header */}
-      <View style={[styles.header, { paddingTop: insets.top + 8 }]}>
-        <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
-          <MaterialIcons name="arrow-back" size={24} color="#F8FAFC" />
-        </TouchableOpacity>
-        <TouchableOpacity 
-          style={[styles.favoriteButton, isFavorite && styles.favoriteButtonActive]} 
-          onPress={toggleFavorite}
-        >
-          <MaterialIcons 
-            name={isFavorite ? 'favorite' : 'favorite-border'} 
-            size={24} 
-            color={isFavorite ? '#EF4444' : '#F8FAFC'} 
-          />
-        </TouchableOpacity>
-      </View>
+      {/* Hero Image */}
+      <ImageBackground
+        source={{ uri: item.image_url || getItemImage(item.name, item.category) }}
+        style={[styles.heroImage, { paddingTop: insets.top }]}
+        imageStyle={styles.heroImageStyle}
+      >
+        <View style={styles.heroOverlay}>
+          {/* Header */}
+          <View style={styles.header}>
+            <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
+              <MaterialIcons name="arrow-back" size={24} color="#FAF8F3" />
+            </TouchableOpacity>
+            <View style={{ flexDirection: 'row', gap: 8 }}>
+              <ShareButton
+                title={item.name}
+                description={`Descobre ${item.name} no Portugal Vivo! \u{1F1F5}\u{1F1F9}`}
+                url={`https://current-app-1.preview.emergentagent.com/heritage/${id}`}
+              />
+              <TouchableOpacity 
+                style={[styles.favoriteButton, isFavorite && styles.favoriteButtonActive]} 
+                onPress={toggleFavorite}
+              >
+                <MaterialIcons 
+                  name={isFavorite ? 'favorite' : 'favorite-border'} 
+                  size={24} 
+                  color={isFavorite ? '#EF4444' : '#FAF8F3'} 
+                />
+              </TouchableOpacity>
+            </View>
+          </View>
+          
+          {/* Hero Content */}
+          <View style={styles.heroContent}>
+            <View style={[
+              styles.categoryBadge, 
+              { backgroundColor: (category?.color || '#6366F1') + '40' }
+            ]}>
+              <MaterialIcons 
+                name={(category?.icon || 'place') as any} 
+                size={16} 
+                color={category?.color || '#6366F1'} 
+              />
+              <Text style={[styles.categoryText, { color: category?.color || '#6366F1' }]}>
+                {category?.name || item.category}
+              </Text>
+            </View>
+            <Text style={styles.heroTitle}>{item.name}</Text>
+            <View style={styles.heroMeta}>
+              {item.address && (
+                <View style={styles.heroMetaItem}>
+                  <MaterialIcons name="place" size={14} color="#FAF8F3" />
+                  <Text style={styles.heroMetaText}>{item.address}</Text>
+                </View>
+              )}
+              <View style={styles.heroMetaItem}>
+                <MaterialIcons name="map" size={14} color="#C49A6C" />
+                <Text style={[styles.heroMetaText, { color: '#C49A6C' }]}>
+                  {REGION_NAMES[item.region] || item.region}
+                </Text>
+              </View>
+            </View>
+          </View>
+        </View>
+      </ImageBackground>
 
       <ScrollView 
         style={styles.content}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: insets.bottom + 20 }}
       >
-        {/* Category Badge */}
-        <View style={[
-          styles.categoryBadge, 
-          { backgroundColor: (category?.color || '#6366F1') + '20' }
-        ]}>
-          <MaterialIcons 
-            name={(category?.icon || 'place') as any} 
-            size={18} 
-            color={category?.color || '#6366F1'} 
-          />
-          <Text style={[styles.categoryText, { color: category?.color || '#6366F1' }]}>
-            {category?.name || item.category}
-          </Text>
-        </View>
-
-        {/* Title */}
-        <Text style={styles.title}>{item.name}</Text>
-
-        {/* Location */}
-        {item.address && (
-          <View style={styles.locationRow}>
-            <MaterialIcons name="place" size={18} color="#94A3B8" />
-            <Text style={styles.locationText}>{item.address}</Text>
-          </View>
-        )}
-
-        {/* Region */}
-        <View style={styles.regionBadge}>
-          <MaterialIcons name="map" size={14} color="#64748B" />
-          <Text style={styles.regionText}>{REGION_NAMES[item.region] || item.region}</Text>
-        </View>
 
         {/* Description */}
         <View style={styles.section}>
@@ -160,11 +564,85 @@ export default function HeritageDetailScreen() {
         {/* Location Map Preview */}
         {item.location && (
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Localização</Text>
-            <View style={styles.mapPreview}>
-              <MaterialIcons name="map" size={32} color="#64748B" />
-              <Text style={styles.mapPreviewText}>
-                Lat: {item.location.lat.toFixed(4)}, Lng: {item.location.lng.toFixed(4)}
+            <View style={styles.mapHeader}>
+              <Text style={styles.sectionTitle}>Localização no Mapa</Text>
+              <TouchableOpacity 
+                style={styles.openMapsButton}
+                onPress={() => {
+                  const googleMapsUrl = `https://www.google.com/maps/search/?api=1&query=${item.location?.lat},${item.location?.lng}`;
+                  const appleMapsUrl = `https://maps.apple.com/?q=${item.location?.lat},${item.location?.lng}`;
+                  
+                  if (Platform.OS === 'web') {
+                    window.open(googleMapsUrl, '_blank');
+                  } else if (Platform.OS === 'ios') {
+                    // Try to open in Apple Maps first, fallback to Google Maps
+                    Linking.canOpenURL(appleMapsUrl).then((supported) => {
+                      if (supported) {
+                        Linking.openURL(appleMapsUrl);
+                      } else {
+                        Linking.openURL(googleMapsUrl);
+                      }
+                    });
+                  } else {
+                    // Android - open Google Maps URL directly
+                    Linking.openURL(googleMapsUrl);
+                  }
+                }}
+              >
+                <MaterialIcons name="open-in-new" size={16} color="#C49A6C" />
+                <Text style={styles.openMapsButtonText}>Abrir no Maps</Text>
+              </TouchableOpacity>
+            </View>
+            {Platform.OS === 'web' && !GOOGLE_MAPS_API_KEY ? (
+              <View style={[styles.miniMapContainer, { overflow: 'hidden', borderRadius: 12 }]}>
+                <iframe
+                  src={`https://www.openstreetmap.org/export/embed.html?bbox=${(item.location?.lng || 0) - 0.02},${(item.location?.lat || 0) - 0.01},${(item.location?.lng || 0) + 0.02},${(item.location?.lat || 0) + 0.01}&layer=mapnik&marker=${item.location?.lat},${item.location?.lng}`}
+                  style={{ width: '100%', height: 200, border: 'none', borderRadius: 12 } as any}
+                />
+              </View>
+            ) : (
+              <TouchableOpacity
+                style={styles.miniMapContainer}
+                activeOpacity={0.9}
+                onPress={() => {
+                  const googleMapsUrl = `https://www.google.com/maps/search/?api=1&query=${item.location?.lat},${item.location?.lng}`;
+                  const appleMapsUrl = `https://maps.apple.com/?q=${item.location?.lat},${item.location?.lng}`;
+
+                  if (Platform.OS === 'web') {
+                    window.open(googleMapsUrl, '_blank');
+                  } else if (Platform.OS === 'ios') {
+                    Linking.canOpenURL(appleMapsUrl).then((supported) => {
+                      if (supported) {
+                        Linking.openURL(appleMapsUrl);
+                      } else {
+                        Linking.openURL(googleMapsUrl);
+                      }
+                    });
+                  } else {
+                    Linking.openURL(googleMapsUrl);
+                  }
+                }}
+              >
+                <ImageBackground
+                  source={{
+                    uri: `https://maps.googleapis.com/maps/api/staticmap?center=${item.location?.lat},${item.location?.lng}&zoom=14&size=600x300&maptype=roadmap&markers=color:0x${(category?.color || '#C49A6C').replace('#', '')}%7C${item.location?.lat},${item.location?.lng}&key=${GOOGLE_MAPS_API_KEY}`
+                  }}
+                  style={styles.staticMapImage}
+                  imageStyle={{ borderRadius: 12 }}
+                >
+                  <View style={styles.mapOverlayLight}>
+                    <View style={styles.mapTapHintBottom}>
+                      <MaterialIcons name="touch-app" size={14} color="#FFFFFF" />
+                      <Text style={styles.mapTapHintText}>Toque para abrir no Google Maps</Text>
+                    </View>
+                  </View>
+                </ImageBackground>
+              </TouchableOpacity>
+            )}
+            <View style={styles.coordsRow}>
+              <MaterialIcons name="gps-fixed" size={14} color="#64748B" />
+              <Text style={styles.coordsText}>
+                {item.location?.lat.toFixed(6)}, {item.location?.lng.toFixed(6)}
               </Text>
             </View>
           </View>
@@ -217,7 +695,7 @@ export default function HeritageDetailScreen() {
                 style={styles.generateButton}
                 onPress={() => setShowNarrative(true)}
               >
-                <MaterialIcons name="auto-fix-high" size={20} color="#0F172A" />
+                <MaterialIcons name="auto-fix-high" size={20} color="#2E5E4E" />
                 <Text style={styles.generateButtonText}>Gerar Narrativa</Text>
               </TouchableOpacity>
             </View>
@@ -240,6 +718,77 @@ export default function HeritageDetailScreen() {
           ) : null}
         </View>
 
+        {/* Reviews Section */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Avaliações</Text>
+          <ReviewsSection 
+            itemId={id as string}
+            authToken={sessionToken || undefined}
+            onLoginRequired={login}
+          />
+        </View>
+
+        {/* Community Photo Gallery */}
+        {communityPhotos && communityPhotos.images && communityPhotos.images.length > 0 && (
+          <View style={styles.section}>
+            <View style={styles.sectionHeader}>
+              <MaterialIcons name="photo-library" size={20} color="#C49A6C" />
+              <Text style={styles.sectionTitle}>Fotos da Comunidade</Text>
+              <View style={styles.photoBadge}>
+                <Text style={styles.photoBadgeText}>{communityPhotos.total}</Text>
+              </View>
+            </View>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.photoGallery} contentContainerStyle={styles.photoGalleryContent}>
+              {communityPhotos.images.map((photo, idx) => (
+                <TouchableOpacity
+                  key={photo.public_id || idx}
+                  activeOpacity={0.9}
+                  onPress={() => {
+                    if (Platform.OS === 'web') {
+                      window.open(photo.url, '_blank');
+                    } else {
+                      Linking.openURL(photo.url);
+                    }
+                  }}
+                >
+                  <Image
+                    source={{ uri: photo.thumbnail_url || photo.url }}
+                    style={styles.communityPhoto}
+                    resizeMode="cover"
+                  />
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          </View>
+        )}
+
+        {/* User Photo Contribution */}
+        {isAuthenticated && sessionToken && (
+          <View style={styles.section}>
+            <View style={styles.sectionHeader}>
+              <MaterialIcons name="add-a-photo" size={20} color="#C49A6C" />
+              <Text style={styles.sectionTitle}>Contribuir com Foto</Text>
+            </View>
+            <Text style={{ fontSize: 13, color: '#64748B', marginBottom: 8 }}>
+              Partilhe as suas fotos deste local com a comunidade.
+            </Text>
+            <ImageUpload
+              token={sessionToken}
+              context="poi"
+              itemId={id as string}
+              onUpload={(url) => {
+                queryClient.invalidateQueries({ queryKey: ['heritage', id] });
+                queryClient.invalidateQueries({ queryKey: ['poi-images', id] });
+                if (Platform.OS === 'web') {
+                  window.alert('Foto adicionada com sucesso!');
+                } else {
+                  Alert.alert('Sucesso', 'Foto adicionada com sucesso!');
+                }
+              }}
+            />
+          </View>
+        )}
+
         {/* Tags */}
         {item.tags && item.tags.length > 0 && (
           <View style={styles.section}>
@@ -254,6 +803,123 @@ export default function HeritageDetailScreen() {
           </View>
         )}
       </ScrollView>
+
+      {/* Action Buttons - Fixed at bottom */}
+      <View style={[styles.actionBar, { paddingBottom: insets.bottom + 12 }]}>
+        <TouchableOpacity 
+          style={styles.actionButton}
+          onPress={() => {
+            if (item.location) {
+              const url = Platform.select({
+                ios: `maps://app?daddr=${item.location?.lat},${item.location?.lng}`,
+                android: `google.navigation:q=${item.location?.lat},${item.location?.lng}`,
+                default: `https://www.google.com/maps/dir/?api=1&destination=${item.location?.lat},${item.location?.lng}`,
+              });
+              if (Platform.OS === 'web') {
+                window.open(url as string, '_blank');
+              } else {
+                import('react-native').then(({ Linking }) => Linking.openURL(url as string));
+              }
+            } else {
+              Alert.alert('Localização', 'Coordenadas não disponíveis');
+            }
+          }}
+        >
+          <MaterialIcons name="place" size={22} color="#FAF8F3" />
+          <Text style={styles.actionButtonText}>Localização</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={[styles.actionButton, styles.actionButtonPrimary]}
+          onPress={() => isPremium ? setShowNarrative(true) : router.push('/premium')}
+        >
+          <MaterialIcons name={isPremium ? 'auto-stories' : 'lock'} size={22} color="#2E5E4E" />
+          <Text style={styles.actionButtonTextPrimary}>{isPremium ? 'Narrativa IA' : 'Narrativa Premium'}</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={[styles.actionButton, (isPlayingAudio || isLoadingAudio) && styles.actionButtonActive]}
+          onPress={handlePlayAudio}
+          disabled={isLoadingAudio}
+        >
+          {isLoadingAudio ? (
+            <ActivityIndicator size="small" color="#C49A6C" />
+          ) : (
+            <MaterialIcons
+              name={!isPremium ? 'lock' : isPlayingAudio ? 'stop' : 'volume-up'}
+              size={22}
+              color={isPlayingAudio ? '#C49A6C' : '#FAF8F3'}
+            />
+          )}
+          <Text style={[styles.actionButtonText, (isPlayingAudio || isLoadingAudio) && styles.actionButtonTextActive]}>
+            {!isPremium ? 'Áudio Premium' : isLoadingAudio ? 'A carregar...' : isPlayingAudio ? 'Parar' : 'Ouvir'}
+          </Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity 
+          style={[styles.actionButton, styles.checkinButton]}
+          onPress={() => {
+            if (!userLocation) {
+              const msg = 'Ative a localização para fazer check-in.';
+              Platform.OS === 'web' ? window.alert(msg) : Alert.alert('Localização', msg); // eslint-disable-line no-unused-expressions
+              return;
+            }
+            checkinMutation.mutate();
+          }}
+          disabled={checkinMutation.isPending}
+          data-testid="checkin-btn"
+        >
+          {checkinMutation.isPending ? (
+            <ActivityIndicator size="small" color="#FFF" />
+          ) : (
+            <MaterialIcons name="check-circle" size={22} color="#FFF" />
+          )}
+          <Text style={styles.checkinButtonText}>
+            {checkinMutation.isPending ? 'A registar...' : 'Check-in'}
+          </Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity 
+          style={styles.actionButton}
+          onPress={async () => {
+            const shareUrl = Platform.OS === 'web' ? window.location.href : '';
+            const shareText = `${item.name}\n${item.description?.substring(0, 100)}\n\n${shareUrl}`;
+            if (Platform.OS === 'web') {
+              // Try Web Share API first
+              if (navigator.share) {
+                try {
+                  await navigator.share({ title: item.name, text: item.description?.substring(0, 100), url: shareUrl });
+                  return;
+                } catch { /* fallback to clipboard */ }
+              }
+              let copied = false;
+              try {
+                await navigator.clipboard.writeText(shareText);
+                copied = true;
+              } catch {
+                try {
+                  const ta = document.createElement('textarea');
+                  ta.value = shareText;
+                  ta.style.position = 'fixed';
+                  ta.style.opacity = '0';
+                  document.body.appendChild(ta);
+                  ta.select();
+                  copied = document.execCommand('copy');
+                  document.body.removeChild(ta);
+                } catch { /* ignore */ }
+              }
+              setShareCopied(copied);
+              if (copied) setTimeout(() => setShareCopied(false), 2500);
+            } else {
+              Share.share({ title: item.name, message: shareText });
+            }
+          }}
+          data-testid="bottom-share-button"
+        >
+          <MaterialIcons name={shareCopied ? 'check' : 'share'} size={22} color={shareCopied ? '#22C55E' : '#FAF8F3'} />
+          <Text style={[styles.actionButtonText, shareCopied && { color: '#22C55E' }]}>{shareCopied ? 'Copiado!' : 'Partilhar'}</Text>
+        </TouchableOpacity>
+      </View>
     </View>
   );
 }
@@ -261,7 +927,7 @@ export default function HeritageDetailScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#0F172A',
+    backgroundColor: '#2E5E4E',
   },
   centerContent: {
     justifyContent: 'center',
@@ -272,19 +938,59 @@ const styles = StyleSheet.create({
     color: '#EF4444',
     marginTop: 12,
   },
+  heroImage: {
+    width: '100%',
+    height: 280,
+  },
+  heroImageStyle: {
+    resizeMode: 'cover',
+  },
+  heroOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(15, 23, 42, 0.6)',
+    justifyContent: 'space-between',
+  },
+  heroContent: {
+    padding: 20,
+    paddingBottom: 24,
+  },
+  heroTitle: {
+    fontSize: 26,
+    fontWeight: '800',
+    color: '#FFFFFF',
+    marginTop: 8,
+    marginBottom: 12,
+    textShadowColor: 'rgba(0, 0, 0, 0.5)',
+    textShadowOffset: { width: 0, height: 2 },
+    textShadowRadius: 4,
+  },
+  heroMeta: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 12,
+  },
+  heroMetaItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  heroMetaText: {
+    fontSize: 13,
+    color: '#FAF8F3',
+    fontWeight: '500',
+  },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 16,
-    paddingBottom: 12,
-    backgroundColor: '#0F172A',
+    paddingVertical: 12,
   },
   backButton: {
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: '#1E293B',
+    backgroundColor: 'rgba(30, 41, 59, 0.8)',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -292,16 +998,17 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: '#1E293B',
+    backgroundColor: 'rgba(30, 41, 59, 0.8)',
     alignItems: 'center',
     justifyContent: 'center',
   },
   favoriteButtonActive: {
-    backgroundColor: '#EF444420',
+    backgroundColor: 'rgba(239, 68, 68, 0.3)',
   },
   content: {
     flex: 1,
     paddingHorizontal: 20,
+    paddingTop: 16,
   },
   categoryBadge: {
     flexDirection: 'row',
@@ -311,7 +1018,6 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
     borderRadius: 16,
     gap: 6,
-    marginBottom: 12,
   },
   categoryText: {
     fontSize: 13,
@@ -320,7 +1026,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 28,
     fontWeight: '800',
-    color: '#F8FAFC',
+    color: '#FAF8F3',
     marginBottom: 12,
     lineHeight: 34,
   },
@@ -337,7 +1043,7 @@ const styles = StyleSheet.create({
   regionBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#1E293B',
+    backgroundColor: '#264E41',
     alignSelf: 'flex-start',
     paddingHorizontal: 10,
     paddingVertical: 6,
@@ -361,26 +1067,152 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#F8FAFC',
+    color: '#FAF8F3',
     marginBottom: 12,
   },
   description: {
     fontSize: 16,
-    color: '#CBD5E1',
+    color: '#C8C3B8',
     lineHeight: 26,
   },
   mapPreview: {
-    backgroundColor: '#1E293B',
+    backgroundColor: '#264E41',
     borderRadius: 12,
     padding: 24,
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#334155',
+    borderColor: '#2A2F2A',
   },
   mapPreviewText: {
     fontSize: 13,
     color: '#64748B',
     marginTop: 8,
+  },
+  miniMapContainer: {
+    height: 220,
+    borderRadius: 12,
+    overflow: 'hidden',
+    backgroundColor: '#264E41',
+    marginBottom: 8,
+  },
+  mapHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  openMapsButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#C49A6C20',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 16,
+    gap: 4,
+  },
+  openMapsButtonText: {
+    fontSize: 12,
+    color: '#C49A6C',
+    fontWeight: '600',
+  },
+  mapLoadingContainer: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: '#264E41',
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: 8,
+  },
+  mapLoadingText: {
+    fontSize: 12,
+    color: '#94A3B8',
+  },
+  mapFallback: {
+    flex: 1,
+    backgroundColor: '#264E41',
+    borderRadius: 12,
+    padding: 24,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  mapFallbackText: {
+    fontSize: 13,
+    color: '#64748B',
+    marginTop: 8,
+  },
+  staticMapImage: {
+    width: '100%',
+    height: '100%',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  mapOverlay: {
+    flex: 1,
+    width: '100%',
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(15, 23, 42, 0.3)',
+  },
+  mapOverlayLight: {
+    flex: 1,
+    width: '100%',
+    justifyContent: 'flex-end',
+    padding: 12,
+  },
+  mapTapHintBottom: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    alignSelf: 'center',
+    backgroundColor: 'rgba(30, 41, 59, 0.9)',
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 20,
+    gap: 6,
+  },
+  mapPinContainer: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
+  },
+  mapTapHint: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(30, 41, 59, 0.9)',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 16,
+    marginTop: 12,
+    gap: 6,
+  },
+  mapTapHintText: {
+    fontSize: 12,
+    color: '#FAF8F3',
+    fontWeight: '500',
+  },
+  miniMapWebView: {
+    flex: 1,
+    borderRadius: 12,
+  },
+  coordsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  coordsText: {
+    fontSize: 12,
+    color: '#64748B',
+    fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
   },
   narrativeIntro: {
     fontSize: 14,
@@ -394,12 +1226,12 @@ const styles = StyleSheet.create({
   styleOption: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#1E293B',
+    backgroundColor: '#264E41',
     paddingHorizontal: 14,
     paddingVertical: 12,
     borderRadius: 10,
     borderWidth: 1,
-    borderColor: '#334155',
+    borderColor: '#2A2F2A',
     gap: 10,
   },
   styleOptionActive: {
@@ -426,13 +1258,13 @@ const styles = StyleSheet.create({
   generateButtonText: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#0F172A',
+    color: '#2E5E4E',
   },
   narrativeLoading: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#1E293B',
+    backgroundColor: '#264E41',
     padding: 24,
     borderRadius: 12,
     gap: 12,
@@ -442,7 +1274,7 @@ const styles = StyleSheet.create({
     color: '#94A3B8',
   },
   narrativeContent: {
-    backgroundColor: '#1E293B',
+    backgroundColor: '#264E41',
     padding: 20,
     borderRadius: 12,
     borderWidth: 1,
@@ -450,7 +1282,7 @@ const styles = StyleSheet.create({
   },
   narrativeText: {
     fontSize: 15,
-    color: '#E2E8F0',
+    color: '#F2EDE4',
     lineHeight: 24,
   },
   regenerateButton: {
@@ -471,13 +1303,93 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   tag: {
-    backgroundColor: '#334155',
+    backgroundColor: '#2A2F2A',
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 16,
   },
   tagText: {
     fontSize: 12,
-    color: '#CBD5E1',
+    color: '#C8C3B8',
+  },
+  actionBar: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingTop: 12,
+    backgroundColor: '#2E5E4E',
+    borderTopWidth: 1,
+    borderTopColor: '#264E41',
+  },
+  actionButton: {
+    flex: 1,
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 10,
+    paddingHorizontal: 8,
+    marginHorizontal: 4,
+    borderRadius: 12,
+    backgroundColor: '#264E41',
+    minHeight: 64,
+  },
+  actionButtonPrimary: {
+    backgroundColor: '#C49A6C',
+  },
+  actionButtonActive: {
+    backgroundColor: '#1E3A5F',
+    borderWidth: 1,
+    borderColor: '#C49A6C',
+  },
+  actionButtonText: {
+    fontSize: 11,
+    color: '#FAF8F3',
+    fontWeight: '600',
+    marginTop: 4,
+  },
+  actionButtonTextActive: {
+    color: '#C49A6C',
+  },
+  actionButtonTextPrimary: {
+    fontSize: 11,
+    color: '#2E5E4E',
+    fontWeight: '700',
+    marginTop: 4,
+  },
+  checkinButton: {
+    backgroundColor: '#22C55E',
+  },
+  checkinButtonText: {
+    fontSize: 11,
+    color: '#FFFFFF',
+    fontWeight: '700',
+    marginTop: 4,
+  },
+  // Community Photo Gallery
+  photoBadge: {
+    backgroundColor: 'rgba(196, 154, 108, 0.2)',
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 10,
+    marginLeft: 'auto',
+  },
+  photoBadgeText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#C49A6C',
+  },
+  photoGallery: {
+    marginHorizontal: -20,
+  },
+  photoGalleryContent: {
+    paddingHorizontal: 20,
+    gap: 10,
+  },
+  communityPhoto: {
+    width: 140,
+    height: 100,
+    borderRadius: 10,
+    backgroundColor: '#1E3A3F',
   },
 });

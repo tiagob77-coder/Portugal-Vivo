@@ -1,22 +1,14 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { Route } from '../types';
+import PressableScale from './PressableScale';
+import { useTheme, typography, spacing, borders, getCategoryColor, getCategoryBg } from '../theme';
 
 interface RouteCardProps {
   route: Route;
   onPress: () => void;
 }
-
-const CATEGORY_COLORS: Record<string, string> = {
-  vinho: '#7C3AED',
-  pao: '#D97706',
-  azeite: '#84CC16',
-  cultural: '#EC4899',
-  religioso: '#6366F1',
-  arqueologia: '#78716C',
-  natureza: '#22C55E',
-};
 
 const CATEGORY_ICONS: Record<string, string> = {
   vinho: 'local-bar',
@@ -29,36 +21,37 @@ const CATEGORY_ICONS: Record<string, string> = {
 };
 
 export default function RouteCard({ route, onPress }: RouteCardProps) {
-  const color = CATEGORY_COLORS[route.category] || '#6366F1';
+  const { colors } = useTheme();
+  const color = getCategoryColor(route.category);
   const icon = CATEGORY_ICONS[route.category] || 'route';
 
   return (
-    <TouchableOpacity style={styles.card} onPress={onPress} activeOpacity={0.8}>
-      <View style={[styles.iconContainer, { backgroundColor: color + '20' }]}>
+    <PressableScale onPress={onPress} style={[styles.card, { backgroundColor: colors.surfaceElevated, borderColor: colors.border }]}>
+      <View style={[styles.iconContainer, { backgroundColor: getCategoryBg(route.category) }]}>
         <MaterialIcons name={icon as any} size={28} color={color} />
       </View>
-      
+
       <View style={styles.content}>
-        <Text style={styles.name} numberOfLines={2}>{route.name}</Text>
-        <Text style={styles.description} numberOfLines={2}>{route.description}</Text>
-        
+        <Text style={[styles.name, { color: colors.textOnPrimary }]} numberOfLines={2}>{route.name}</Text>
+        <Text style={[styles.description, { color: colors.textMuted }]} numberOfLines={2}>{route.description}</Text>
+
         <View style={styles.meta}>
-          <View style={[styles.badge, { backgroundColor: color + '20' }]}>
+          <View style={[styles.badge, { backgroundColor: getCategoryBg(route.category) }]}>
             <Text style={[styles.badgeText, { color }]}>
               {route.category.charAt(0).toUpperCase() + route.category.slice(1)}
             </Text>
           </View>
           {route.region && (
             <View style={styles.regionBadge}>
-              <MaterialIcons name="place" size={12} color="#94A3B8" />
-              <Text style={styles.regionText}>{route.region}</Text>
+              <MaterialIcons name="place" size={12} color={colors.textMuted} />
+              <Text style={[styles.regionText, { color: colors.textMuted }]}>{route.region}</Text>
             </View>
           )}
         </View>
       </View>
-      
-      <MaterialIcons name="chevron-right" size={24} color="#64748B" />
-    </TouchableOpacity>
+
+      <MaterialIcons name="chevron-right" size={24} color={colors.textMuted} />
+    </PressableScale>
   );
 }
 
@@ -66,49 +59,45 @@ const styles = StyleSheet.create({
   card: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#1E293B',
-    borderRadius: 16,
-    padding: 16,
-    marginBottom: 12,
+    borderRadius: borders.radius.xl,
+    padding: spacing[4],
+    marginBottom: spacing[3],
     borderWidth: 1,
-    borderColor: '#334155',
   },
   iconContainer: {
     width: 56,
     height: 56,
-    borderRadius: 12,
+    borderRadius: borders.radius.lg,
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: 12,
+    marginRight: spacing[3],
   },
   content: {
     flex: 1,
   },
   name: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#F8FAFC',
-    marginBottom: 4,
+    fontSize: typography.fontSize.md,
+    fontWeight: typography.fontWeight.bold,
+    marginBottom: spacing[1],
   },
   description: {
-    fontSize: 13,
-    color: '#94A3B8',
+    fontSize: typography.fontSize.sm + 1,
     lineHeight: 18,
-    marginBottom: 8,
+    marginBottom: spacing[2],
   },
   meta: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    gap: spacing[2],
   },
   badge: {
-    paddingHorizontal: 8,
+    paddingHorizontal: spacing[2],
     paddingVertical: 3,
-    borderRadius: 6,
+    borderRadius: borders.radius.sm + 2,
   },
   badgeText: {
-    fontSize: 11,
-    fontWeight: '600',
+    fontSize: typography.fontSize.xs + 1,
+    fontWeight: typography.fontWeight.semibold,
   },
   regionBadge: {
     flexDirection: 'row',
@@ -116,7 +105,6 @@ const styles = StyleSheet.create({
     gap: 2,
   },
   regionText: {
-    fontSize: 11,
-    color: '#94A3B8',
+    fontSize: typography.fontSize.xs + 1,
   },
 });

@@ -22,7 +22,7 @@ const MONTHS = [
 ];
 
 const CATEGORY_COLORS: Record<string, string> = {
-  festas: '#F59E0B',
+  festas: '#C49A6C',
   religioso: '#7C3AED',
 };
 
@@ -81,7 +81,7 @@ export default function CalendarScreen() {
   };
 
   const renderEventCard = ({ item }: { item: CalendarEvent }) => {
-    const color = CATEGORY_COLORS[item.category] || '#F59E0B';
+    const color = CATEGORY_COLORS[item.category] || '#C49A6C';
     const icon = CATEGORY_ICONS[item.category] || 'event';
     
     return (
@@ -106,7 +106,7 @@ export default function CalendarScreen() {
           
           <View style={styles.eventFooter}>
             <View style={styles.eventDate}>
-              <MaterialIcons name="event" size={14} color="#F59E0B" />
+              <MaterialIcons name="event" size={14} color="#C49A6C" />
               <Text style={styles.eventDateText}>
                 {formatDateRange(item.date_start, item.date_end)}
               </Text>
@@ -131,7 +131,7 @@ export default function CalendarScreen() {
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
-          <MaterialIcons name="arrow-back" size={24} color="#F8FAFC" />
+          <MaterialIcons name="arrow-back" size={24} color="#FAF8F3" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Calendário Cultural</Text>
         <View style={{ width: 44 }} />
@@ -185,7 +185,7 @@ export default function CalendarScreen() {
             contentContainerStyle={styles.upcomingScroll}
           >
             {upcomingEvents.map((event) => {
-              const color = CATEGORY_COLORS[event.category] || '#F59E0B';
+              const color = CATEGORY_COLORS[event.category] || '#C49A6C';
               return (
                 <View key={event.id} style={[styles.upcomingCard, { borderColor: color }]}>
                   <Text style={styles.upcomingDate}>
@@ -220,7 +220,7 @@ export default function CalendarScreen() {
         }
         ListEmptyComponent={
           eventsLoading ? (
-            <ActivityIndicator size="large" color="#F59E0B" style={styles.loader} />
+            <ActivityIndicator size="large" color="#C49A6C" style={styles.loader} />
           ) : (
             <View style={styles.emptyState}>
               <MaterialIcons name="event-busy" size={48} color="#64748B" />
@@ -236,7 +236,7 @@ export default function CalendarScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#0F172A',
+    backgroundColor: '#2E5E4E',
   },
   header: {
     flexDirection: 'row',
@@ -249,14 +249,14 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: '#1E293B',
+    backgroundColor: '#264E41',
     alignItems: 'center',
     justifyContent: 'center',
   },
   headerTitle: {
     fontSize: 20,
     fontWeight: '700',
-    color: '#F8FAFC',
+    color: '#FAF8F3',
   },
   monthScroll: {
     maxHeight: 50,
@@ -269,14 +269,14 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 10,
     borderRadius: 20,
-    backgroundColor: '#1E293B',
+    backgroundColor: '#264E41',
     marginRight: 8,
     borderWidth: 1,
-    borderColor: '#334155',
+    borderColor: '#2A2F2A',
   },
   monthChipActive: {
-    backgroundColor: '#F59E0B20',
-    borderColor: '#F59E0B',
+    backgroundColor: '#C49A6C20',
+    borderColor: '#C49A6C',
   },
   monthChipCurrent: {
     borderColor: '#22C55E',
@@ -287,7 +287,7 @@ const styles = StyleSheet.create({
     color: '#94A3B8',
   },
   monthChipTextActive: {
-    color: '#F59E0B',
+    color: '#C49A6C',
   },
   upcomingSection: {
     paddingHorizontal: 16,
@@ -302,14 +302,14 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#F8FAFC',
+    color: '#FAF8F3',
   },
   upcomingScroll: {
     paddingRight: 16,
   },
   upcomingCard: {
     width: 160,
-    backgroundColor: '#1E293B',
+    backgroundColor: '#264E41',
     borderRadius: 12,
     padding: 12,
     marginRight: 12,
@@ -318,13 +318,13 @@ const styles = StyleSheet.create({
   upcomingDate: {
     fontSize: 12,
     fontWeight: '700',
-    color: '#F59E0B',
+    color: '#C49A6C',
     marginBottom: 4,
   },
   upcomingName: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#F8FAFC',
+    color: '#FAF8F3',
     marginBottom: 4,
     lineHeight: 18,
   },
@@ -339,17 +339,17 @@ const styles = StyleSheet.create({
   listHeader: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#F8FAFC',
+    color: '#FAF8F3',
     marginBottom: 12,
   },
   eventCard: {
     flexDirection: 'row',
-    backgroundColor: '#1E293B',
+    backgroundColor: '#264E41',
     borderRadius: 16,
     padding: 16,
     marginBottom: 12,
     borderWidth: 1,
-    borderColor: '#334155',
+    borderColor: '#2A2F2A',
   },
   eventIconContainer: {
     width: 48,
@@ -371,7 +371,7 @@ const styles = StyleSheet.create({
   eventName: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#F8FAFC',
+    color: '#FAF8F3',
     flex: 1,
     marginRight: 8,
   },
@@ -403,7 +403,7 @@ const styles = StyleSheet.create({
   eventDateText: {
     fontSize: 12,
     fontWeight: '600',
-    color: '#F59E0B',
+    color: '#C49A6C',
   },
   eventRegion: {
     flexDirection: 'row',

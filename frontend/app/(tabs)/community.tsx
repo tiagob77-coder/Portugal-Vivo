@@ -1,15 +1,15 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, FlatList, ActivityIndicator, TextInput, Modal, Alert } from 'react-native';
-import { useRouter } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { getApprovedContributions, createContribution, voteContribution, Contribution, ContributionCreate, getCategories } from '../../src/services/api';
 import { useAuth } from '../../src/context/AuthContext';
+import ImageUpload from '../../src/components/ImageUpload';
 
 const CONTRIBUTION_TYPES = [
   { id: 'story', name: 'História', icon: 'auto-stories', color: '#8B5CF6' },
-  { id: 'correction', name: 'Correção', icon: 'edit', color: '#F59E0B' },
+  { id: 'correction', name: 'Correção', icon: 'edit', color: '#C49A6C' },
   { id: 'new_item', name: 'Novo Local', icon: 'add-location', color: '#22C55E' },
   { id: 'photo', name: 'Fotografia', icon: 'photo-camera', color: '#3B82F6' },
 ];
@@ -25,10 +25,9 @@ const REGIONS = [
 ];
 
 export default function CommunityScreen() {
-  const router = useRouter();
   const insets = useSafeAreaInsets();
   const queryClient = useQueryClient();
-  const { user, isAuthenticated, sessionToken, login } = useAuth();
+  const { isAuthenticated, sessionToken, login } = useAuth();
   
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [newContribution, setNewContribution] = useState<ContributionCreate>({
@@ -43,7 +42,7 @@ export default function CommunityScreen() {
     queryFn: getApprovedContributions,
   });
 
-  const { data: categories = [] } = useQuery({
+  const { data: _categories = [] } = useQuery({
     queryKey: ['categories'],
     queryFn: getCategories,
   });
@@ -126,7 +125,7 @@ export default function CommunityScreen() {
             style={styles.voteButton}
             onPress={() => handleVote(item.id)}
           >
-            <MaterialIcons name="thumb-up" size={16} color="#F59E0B" />
+            <MaterialIcons name="thumb-up" size={16} color="#C49A6C" />
             <Text style={styles.voteCount}>{item.votes}</Text>
           </TouchableOpacity>
         </View>
@@ -146,7 +145,7 @@ export default function CommunityScreen() {
           style={styles.addButton}
           onPress={() => isAuthenticated ? setShowCreateModal(true) : login()}
         >
-          <MaterialIcons name="add" size={24} color="#0F172A" />
+          <MaterialIcons name="add" size={24} color="#2E5E4E" />
         </TouchableOpacity>
       </View>
 
@@ -174,7 +173,7 @@ export default function CommunityScreen() {
         showsVerticalScrollIndicator={false}
         ListEmptyComponent={
           isLoading ? (
-            <ActivityIndicator size="large" color="#F59E0B" style={styles.loader} />
+            <ActivityIndicator size="large" color="#C49A6C" style={styles.loader} />
           ) : (
             <View style={styles.emptyState}>
               <MaterialIcons name="forum" size={48} color="#64748B" />
@@ -292,6 +291,19 @@ export default function CommunityScreen() {
                 textAlignVertical="top"
               />
 
+              {/* Photo */}
+              <Text style={styles.inputLabel}>Foto (opcional)</Text>
+              {sessionToken && (
+                <ImageUpload
+                  token={sessionToken}
+                  context="contribution"
+                  onUpload={(url) => setNewContribution((prev) => ({
+                    ...prev,
+                    image_urls: [...(prev.image_urls || []), url],
+                  }))}
+                />
+              )}
+
               {/* Submit Button */}
               <TouchableOpacity 
                 style={styles.submitButton}
@@ -299,10 +311,10 @@ export default function CommunityScreen() {
                 disabled={createMutation.isPending}
               >
                 {createMutation.isPending ? (
-                  <ActivityIndicator size="small" color="#0F172A" />
+                  <ActivityIndicator size="small" color="#2E5E4E" />
                 ) : (
                   <>
-                    <MaterialIcons name="send" size={20} color="#0F172A" />
+                    <MaterialIcons name="send" size={20} color="#2E5E4E" />
                     <Text style={styles.submitButtonText}>Submeter</Text>
                   </>
                 )}
@@ -318,7 +330,7 @@ export default function CommunityScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#0F172A',
+    backgroundColor: '#2E5E4E',
   },
   header: {
     flexDirection: 'row',
@@ -331,7 +343,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 28,
     fontWeight: '800',
-    color: '#F8FAFC',
+    color: '#FAF8F3',
   },
   headerSubtitle: {
     fontSize: 14,
@@ -342,7 +354,7 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: 24,
-    backgroundColor: '#F59E0B',
+    backgroundColor: '#C49A6C',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -359,7 +371,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 12,
     borderRadius: 12,
-    backgroundColor: '#1E293B',
+    backgroundColor: '#264E41',
     borderWidth: 1,
     marginRight: 12,
     minWidth: 80,
@@ -374,12 +386,12 @@ const styles = StyleSheet.create({
     paddingBottom: 20,
   },
   contributionCard: {
-    backgroundColor: '#1E293B',
+    backgroundColor: '#264E41',
     borderRadius: 16,
     padding: 16,
     marginBottom: 12,
     borderWidth: 1,
-    borderColor: '#334155',
+    borderColor: '#2A2F2A',
   },
   contributionHeader: {
     flexDirection: 'row',
@@ -406,7 +418,7 @@ const styles = StyleSheet.create({
   contributionTitle: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#F8FAFC',
+    color: '#FAF8F3',
     marginBottom: 8,
   },
   contributionContent: {
@@ -445,13 +457,13 @@ const styles = StyleSheet.create({
     marginLeft: 'auto',
     paddingHorizontal: 12,
     paddingVertical: 6,
-    backgroundColor: '#F59E0B20',
+    backgroundColor: '#C49A6C20',
     borderRadius: 16,
   },
   voteCount: {
     fontSize: 12,
     fontWeight: '600',
-    color: '#F59E0B',
+    color: '#C49A6C',
   },
   loader: {
     marginTop: 40,
@@ -473,7 +485,7 @@ const styles = StyleSheet.create({
   },
   emptyButton: {
     marginTop: 24,
-    backgroundColor: '#F59E0B',
+    backgroundColor: '#C49A6C',
     paddingHorizontal: 24,
     paddingVertical: 12,
     borderRadius: 12,
@@ -481,7 +493,7 @@ const styles = StyleSheet.create({
   emptyButtonText: {
     fontSize: 14,
     fontWeight: '700',
-    color: '#0F172A',
+    color: '#2E5E4E',
   },
   modalOverlay: {
     flex: 1,
@@ -489,7 +501,7 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
   },
   modalContent: {
-    backgroundColor: '#1E293B',
+    backgroundColor: '#264E41',
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     padding: 20,
@@ -504,7 +516,7 @@ const styles = StyleSheet.create({
   modalTitle: {
     fontSize: 22,
     fontWeight: '700',
-    color: '#F8FAFC',
+    color: '#FAF8F3',
   },
   inputLabel: {
     fontSize: 14,
@@ -524,9 +536,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 10,
     borderRadius: 10,
-    backgroundColor: '#0F172A',
+    backgroundColor: '#2E5E4E',
     borderWidth: 1,
-    borderColor: '#334155',
+    borderColor: '#2A2F2A',
     gap: 6,
   },
   typeSelectorText: {
@@ -540,32 +552,32 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     paddingVertical: 8,
     borderRadius: 16,
-    backgroundColor: '#0F172A',
+    backgroundColor: '#2E5E4E',
     marginRight: 8,
     borderWidth: 1,
-    borderColor: '#334155',
+    borderColor: '#2A2F2A',
   },
   regionChipActive: {
-    backgroundColor: '#F59E0B20',
-    borderColor: '#F59E0B',
+    backgroundColor: '#C49A6C20',
+    borderColor: '#C49A6C',
   },
   regionChipText: {
     fontSize: 13,
     color: '#94A3B8',
   },
   regionChipTextActive: {
-    color: '#F59E0B',
+    color: '#C49A6C',
     fontWeight: '600',
   },
   textInput: {
-    backgroundColor: '#0F172A',
+    backgroundColor: '#2E5E4E',
     borderRadius: 12,
     paddingHorizontal: 16,
     paddingVertical: 14,
     fontSize: 15,
-    color: '#F8FAFC',
+    color: '#FAF8F3',
     borderWidth: 1,
-    borderColor: '#334155',
+    borderColor: '#2A2F2A',
   },
   textArea: {
     minHeight: 120,
@@ -575,7 +587,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#F59E0B',
+    backgroundColor: '#C49A6C',
     paddingVertical: 16,
     borderRadius: 12,
     marginTop: 24,
@@ -584,6 +596,6 @@ const styles = StyleSheet.create({
   submitButtonText: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#0F172A',
+    color: '#2E5E4E',
   },
 });

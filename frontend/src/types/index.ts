@@ -30,6 +30,7 @@ export interface Route {
   distance_km?: number;
   difficulty?: string;
   tags: string[];
+  image_url?: string;
   created_at: string;
 }
 
@@ -38,6 +39,18 @@ export interface Category {
   name: string;
   icon: string;
   color: string;
+}
+
+export interface MainCategory extends Category {
+  description: string;
+  poi_target: number;
+  subcategories?: Subcategory[];
+}
+
+export interface Subcategory extends Category {
+  main_category: string;
+  theme: string;
+  poi_target: number;
 }
 
 export interface Region {
@@ -52,7 +65,6 @@ export interface User {
   name: string;
   picture?: string;
   favorites: string[];
-  session_token?: string;
 }
 
 export interface Stats {
@@ -63,71 +75,197 @@ export interface Stats {
   regions: { id: string; name: string; count: number }[];
 }
 
-export interface Contribution {
+// Nature & Biodiversity Types
+export interface ProtectedArea {
   id: string;
-  user_id: string;
-  user_name: string;
-  heritage_item_id?: string;
-  type: string;
-  title: string;
-  content: string;
-  location?: Location;
-  category?: string;
-  region?: string;
-  status: string;
-  votes: number;
-  created_at: string;
+  name: string;
+  designation: string;
+  area_km2?: number;
+  region: string;
+  municipality: string;
+  lat?: number;
+  lng?: number;
+  description: string;
+  network: string;
+  distance_km?: number;
 }
 
-export interface ContributionCreate {
-  heritage_item_id?: string;
-  type: string;
-  title: string;
-  content: string;
-  location?: Location;
-  category?: string;
-  region?: string;
+export interface Natura2000Site {
+  id: string;
+  name: string;
+  type: 'SIC' | 'ZPE';
+  lat: number;
+  lng: number;
+  area_km2: number;
+  region: string;
+  habitats: string[];
+  distance_km?: number;
 }
 
-export interface Badge {
+export interface BiodiversityStation {
+  id: string;
+  name: string;
+  lat: number;
+  lng: number;
+  municipality: string;
+  district: string;
+  habitat_type: string;
+  species_count?: number;
+  highlights: string[];
+  distance_km?: number;
+}
+
+export interface SpeciesOccurrence {
+  key: number;
+  species: string;
+  scientific_name: string;
+  kingdom: string;
+  family: string;
+  lat?: number;
+  lng?: number;
+  locality: string;
+  event_date: string;
+}
+
+export interface NotableSpecies {
+  name: string;
+  scientific: string;
+  taxon_key: number;
+  iucn: string;
+  habitat: string;
+  regions: string[];
+}
+
+export interface WMSMapLayer {
+  id: string;
+  name: string;
+  wms_url: string;
+  type: string;
+  opacity: number;
+  color: string;
+}
+
+// Transport Types
+export interface TransportStop {
+  id: string;
+  name: string;
+  lat: number;
+  lng: number;
+  line?: string;
+  transport_type: string;
+  operator: string;
+  distance_km: number;
+  distance_m: number;
+}
+
+export interface TransportRoute {
+  origin: Location;
+  destination: Location;
+  direct_distance_km: number;
+  origin_stops: TransportStop[];
+  destination_stops: TransportStop[];
+  suggestions: TransportSuggestion[];
+}
+
+export interface TransportSuggestion {
+  type: string;
+  operator?: string;
+  from_station: string;
+  to_station: string;
+  walk_origin_m?: number;
+  walk_dest_m?: number;
+  note?: string;
+}
+
+// Discovery Types
+export interface EventEnrichment {
+  event: { name: string; lat: number; lng: number };
+  protected_area?: { area: ProtectedArea; distance_km: number };
+  biodiversity_station?: { station: BiodiversityStation; distance_km: number };
+  transport: TransportStop[];
+  trails: any[];
+  natura2000_nearby?: Natura2000Site[];
+  geo_context?: GeoContext;
+  nature_suggestions: NatureSuggestion[];
+}
+
+export interface GeoContext {
+  lat: number;
+  lng: number;
+  freguesia: string;
+  concelho: string;
+  distrito: string;
+  codigo_postal: string;
+}
+
+export interface NatureSuggestion {
+  type: string;
+  title: string;
+  description: string;
+  distance_km: number;
+  priority: number;
+  highlights?: string[];
+}
+
+export interface EventToNatureItinerary {
+  event: { name: string; lat: number; lng: number };
+  day_1_evening: {
+    activity: string;
+    location: Location;
+    transport_to_event: TransportStop[];
+  };
+  day_2_morning?: {
+    activity: string;
+    nature_destination: any;
+    location: Location;
+    notable_species?: NotableSpecies[];
+  };
+  transport_between?: TransportRoute;
+  sustainability_tips: string[];
+}
+
+export interface TrailSafety {
+  location: Location;
+  weather_alerts: WeatherAlertInfo[];
+  protected_area_rules: string[];
+  nearby_protected_area?: { area: ProtectedArea; distance_km: number };
+}
+
+export interface WeatherAlertInfo {
+  type: string;
+  level: string;
+  region: string;
+  title: string;
+  description: string;
+}
+
+export interface HikingTrail {
+  osm_id: number;
+  name: string;
+  type: string;
+  distance?: string;
+  difficulty?: string;
+  network?: string;
+  source: string;
+}
+
+export interface EuroVeloRoute {
   id: string;
   name: string;
   description: string;
-  icon: string;
-  color: string;
-  requirement: number;
-  type: string;
-  earned?: boolean;
-  progress?: number;
-  current?: number;
+  distance_km: number;
+  start: string;
+  end: string;
+  highlights: string[];
+  difficulty: string;
 }
 
-export interface UserProgress {
-  user_id: string;
-  visits_count: number;
-  favorites_count: number;
-  routes_completed: number;
-  contributions_approved: number;
-  total_points: number;
-  level: number;
-  badges: Badge[];
-}
-
-export interface LeaderboardEntry {
-  user_id: string;
-  name: string;
-  picture?: string;
-  total_points: number;
-  level: number;
-  badges_count: number;
-}
-
-export interface CalendarEvent {
+export interface LongDistanceTrail {
   id: string;
   name: string;
-  date_start: string;
-  date_end: string;
-  category: string;
+  distance_km: number;
+  stages: number;
+  difficulty: string;
   region: string;
   description: string;
 }

@@ -1,10 +1,169 @@
 /**
  * NativeMap.web.tsx - Interactive Leaflet Map for Web
- * Uses a single effect to load Leaflet, create map, and add markers
- * to avoid timing issues between separate effects.
+ * Features: Light/Dark tiles, MarkerCluster, Heatmap, IQ score popups
  */
-import React, { useEffect, useRef, useCallback } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { View, StyleSheet, Platform } from 'react-native';
+
+let L: any = null;
+
+// Load Leaflet only on client-side (not during SSR)
+function loadLeaflet(): Promise<any> {
+  if (L) return Promise.resolve(L);
+  if (typeof window === 'undefined') return Promise.resolve(null);
+  
+  return new Promise((resolve) => {
+    L = require('leaflet'); // eslint-disable-line @typescript-eslint/no-require-imports
+    require('leaflet.markercluster'); // eslint-disable-line @typescript-eslint/no-require-imports
+    resolve(L);
+  });
+}
+
+// Tile layers
+const TILES = {
+  light: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+  dark: 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
+  satellite: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+  voyager: 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',
+};
+
+// Inject CSS once
+let cssInjected = false;
+function injectCSS() {
+  if (cssInjected || typeof window === 'undefined' || typeof document === 'undefined') return;
+  cssInjected = true;
+
+  const link = document.createElement('link');
+  link.rel = 'stylesheet';
+  link.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
+  document.head.appendChild(link);
+
+  const clusterLink = document.createElement('link');
+  clusterLink.rel = 'stylesheet';
+  clusterLink.href = 'https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css';
+  document.head.appendChild(clusterLink);
+
+  const iconLink = document.createElement('link');
+  iconLink.rel = 'stylesheet';
+  iconLink.href = 'https://fonts.googleapis.com/icon?family=Material+Icons';
+  document.head.appendChild(iconLink);
+
+  // Load leaflet.heat from CDN
+  const heatScript = document.createElement('script');
+  heatScript.src = 'https://unpkg.com/leaflet.heat@0.2.0/dist/leaflet-heat.js';
+  document.head.appendChild(heatScript);
+
+  const style = document.createElement('style');
+  style.textContent = `
+    .leaflet-container { background: #F1F5F9 !important; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
+
+    /* Cluster styles */
+    .marker-cluster-small { background-color: rgba(245,158,11,0.25); }
+    .marker-cluster-small div { background-color: rgba(245,158,11,0.85); }
+    .marker-cluster-medium { background-color: rgba(234,88,12,0.25); }
+    .marker-cluster-medium div { background-color: rgba(234,88,12,0.85); }
+    .marker-cluster-large { background-color: rgba(220,38,38,0.25); }
+    .marker-cluster-large div { background-color: rgba(220,38,38,0.85); }
+    .marker-cluster {
+      background-clip: padding-box;
+      border-radius: 50%;
+    }
+    .marker-cluster div {
+      width: 32px; height: 32px; margin: 5px;
+      text-align: center; border-radius: 50%;
+      font-size: 13px; font-weight: 700; color: #fff;
+      display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    }
+    .marker-cluster span { line-height: 1; }
+
+    /* POI marker */
+    .poi-marker {
+      display: flex; align-items: center; justify-content: center;
+      border-radius: 50%; border: 2.5px solid #fff;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+      cursor: pointer;
+      transition: box-shadow 0.15s ease, border-color 0.15s ease;
+    }
+    .poi-marker:hover { box-shadow: 0 3px 14px rgba(0,0,0,0.35); border-color: #FFD700; z-index: 9999 !important; }
+    .poi-marker .m-icon { font-family: 'Material Icons'; font-size: 14px; color: #fff; line-height: 1; }
+
+    /* Popup - high z-index to stay above markers and clusters */
+    .poi-popup .leaflet-popup-content-wrapper {
+      background: #fff; border-radius: 14px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.18);
+      border: 1px solid #F2EDE4;
+    }
+    .poi-popup .leaflet-popup-content { margin: 0; padding: 0; min-width: 240px; }
+    .poi-popup .leaflet-popup-tip { background: #fff; }
+    .poi-popup .leaflet-popup-close-button { color: #64748B !important; top: 8px !important; right: 10px !important; font-size: 18px !important; z-index: 999 !important; }
+    .leaflet-popup-pane { z-index: 900 !important; }
+    .leaflet-popup { z-index: 900 !important; }
+    .leaflet-marker-pane { z-index: 600 !important; }
+
+    /* Fix React Native Web overflow clipping */
+    .leaflet-container { overflow: visible !important; }
+    [data-testid="map-container"] { overflow: visible !important; }
+    [data-testid="map-container"] > div { overflow: visible !important; }
+
+    .popup-inner { padding: 16px; }
+    .popup-inner h3 { margin: 0 0 4px; font-size: 15px; font-weight: 700; color: #2E5E4E; line-height: 1.35; }
+    .popup-inner .popup-cat { font-size: 12px; color: #64748B; text-transform: capitalize; margin-bottom: 8px; display: flex; align-items: center; gap: 4px; }
+    .popup-inner .popup-cat .cat-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+    .popup-inner .popup-desc { font-size: 12px; color: #3D4A3D; line-height: 1.55; margin-bottom: 10px; max-height: 50px; overflow: hidden; }
+    .popup-inner .popup-badges { display: flex; gap: 6px; margin-bottom: 10px; flex-wrap: wrap; }
+    .popup-inner .popup-badge {
+      display: inline-flex; align-items: center; gap: 3px;
+      padding: 3px 8px; border-radius: 6px; font-size: 11px; font-weight: 600;
+    }
+    .popup-inner .badge-iq { background: #FEF3C7; color: #B08556; }
+    .popup-inner .badge-region { background: #EDE9FE; color: #7C3AED; }
+    .popup-inner .popup-link {
+      display: block; width: 100%; padding: 9px; text-align: center;
+      background: linear-gradient(135deg, #C49A6C, #B08556);
+      border: none; border-radius: 10px; color: #fff; font-weight: 600;
+      font-size: 13px; cursor: pointer; text-decoration: none;
+      transition: opacity 0.15s;
+    }
+    .popup-inner .popup-link:hover { opacity: 0.9; }
+
+    /* Map mode switcher */
+    .map-mode-control {
+      background: rgba(255,255,255,0.95); backdrop-filter: blur(8px);
+      border-radius: 10px; padding: 4px; box-shadow: 0 2px 12px rgba(0,0,0,0.1);
+      display: flex; gap: 2px; border: 1px solid #F2EDE4;
+    }
+    .map-mode-btn {
+      padding: 6px 10px; border: none; border-radius: 8px;
+      font-size: 11px; font-weight: 600; cursor: pointer;
+      background: transparent; color: #64748B; transition: all 0.15s;
+      display: flex; align-items: center; gap: 4px;
+    }
+    .map-mode-btn:hover { background: #F1F5F9; color: #2E5E4E; }
+    .map-mode-btn.active { background: #C49A6C; color: #fff; }
+    .map-mode-btn .m-icon { font-family: 'Material Icons'; font-size: 15px; }
+  `;
+  document.head.appendChild(style);
+}
+
+const ICON_MAP: Record<string, string> = {
+  terrain: 'terrain', 'account-balance': 'account_balance',
+  restaurant: 'restaurant', event: 'event',
+  'beach-access': 'beach_access', hiking: 'hiking', place: 'place',
+  pets: 'pets', 'local-florist': 'local_florist', park: 'park',
+  visibility: 'visibility', panorama: 'panorama', water: 'water',
+  waves: 'waves', pool: 'pool', diamond: 'diamond', settings: 'settings',
+  'directions-walk': 'directions_walk', fort: 'fort', villa: 'villa',
+  museum: 'museum', handyman: 'handyman', 'hot-tub': 'hot_tub',
+  train: 'train', palette: 'palette', 'local-bar': 'local_bar',
+  storefront: 'storefront', agriculture: 'agriculture', 'wine-bar': 'wine_bar',
+  'lunch-dining': 'lunch_dining', cake: 'cake', 'music-note': 'music_note',
+  celebration: 'celebration', festival: 'festival', surfing: 'surfing',
+  flag: 'flag', route: 'route', explore: 'explore', star: 'star',
+  cottage: 'cottage', 'holiday-village': 'holiday_village', hotel: 'hotel',
+  'support-agent': 'support_agent', business: 'business', 'menu-book': 'menu_book',
+  'directions-bus': 'directions_bus', eco: 'eco',
+};
 
 interface MapItem {
   id: string;
@@ -13,247 +172,206 @@ interface MapItem {
   region: string;
   location: { lat: number; lng: number };
   description?: string;
-  address?: string;
+  iq_score?: number;
 }
 
 interface LeafletMapProps {
   items: MapItem[];
   onItemPress?: (item: MapItem) => void;
-  getCategoryColor: (category: string) => string;
-  getCategoryIcon: (category: string) => string;
+  getMarkerColor: (category: string) => string;
+  getLayerIcon: (category: string) => string;
+  mapMode?: string;
+  trailPoints?: { lat: number; lng: number; ele?: number }[];
+  trailColor?: string;
   style?: any;
+  children?: React.ReactNode;
+  ref?: any;
+  provider?: any;
+  initialRegion?: any;
+  onMapReady?: () => void;
+  showsUserLocation?: boolean;
+  showsMyLocationButton?: boolean;
+  showsCompass?: boolean;
+  customMapStyle?: any;
+  mapPadding?: any;
+  [key: string]: any;
 }
 
-const ICON_MAP: Record<string, string> = {
-  'auto-stories': 'auto_stories', celebration: 'celebration', construction: 'construction',
-  nightlight: 'nightlight', restaurant: 'restaurant', storefront: 'storefront',
-  pool: 'pool', forest: 'park', water: 'water', hexagon: 'hexagon',
-  'home-work': 'home_work', hiking: 'hiking', route: 'route',
-  waves: 'waves', eco: 'eco', 'account-balance': 'account_balance',
-  pets: 'pets', palette: 'palette', church: 'church', groups: 'groups',
-  place: 'place', terrain: 'terrain', explore: 'explore',
-};
-
-const REGION_NAMES: Record<string, string> = {
-  norte: 'Norte', centro: 'Centro', lisboa: 'Lisboa',
-  alentejo: 'Alentejo', algarve: 'Algarve',
-  acores: 'Acores', madeira: 'Madeira',
-};
-
-let cssInjected = false;
-function injectLeafletCSS() {
-  if (cssInjected || typeof document === 'undefined') return;
-  cssInjected = true;
-
-  const links = [
-    'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css',
-    'https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css',
-    'https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css',
-    'https://fonts.googleapis.com/icon?family=Material+Icons',
-  ];
-  links.forEach(href => {
-    const link = document.createElement('link');
-    link.rel = 'stylesheet';
-    link.href = href;
-    document.head.appendChild(link);
-  });
-
-  const style = document.createElement('style');
-  style.textContent = `
-    .leaflet-container { background: #0F172A !important; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
-    .marker-cluster-small { background-color: rgba(245,158,11,.3); }
-    .marker-cluster-small div { background-color: rgba(245,158,11,.85); }
-    .marker-cluster-medium { background-color: rgba(234,88,12,.3); }
-    .marker-cluster-medium div { background-color: rgba(234,88,12,.85); }
-    .marker-cluster-large { background-color: rgba(220,38,38,.3); }
-    .marker-cluster-large div { background-color: rgba(220,38,38,.85); }
-    .marker-cluster { background-clip: padding-box; border-radius: 50%; }
-    .marker-cluster div { width: 32px; height: 32px; margin: 5px; text-align: center; border-radius: 50%; font-size: 13px; font-weight: 700; color: #fff; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(0,0,0,.2); }
-    .poi-marker { display: flex; align-items: center; justify-content: center; border-radius: 50%; border: 2.5px solid #fff; box-shadow: 0 2px 8px rgba(0,0,0,.25); cursor: pointer; transition: box-shadow .15s; }
-    .poi-marker:hover { box-shadow: 0 3px 14px rgba(0,0,0,.4); border-color: #F59E0B; z-index: 9999 !important; }
-    .poi-marker .material-icons { font-size: 14px; color: #fff; line-height: 1; }
-    .leaflet-popup-content-wrapper { background: #1E293B; border-radius: 14px; box-shadow: 0 8px 32px rgba(0,0,0,.35); border: 1px solid #334155; }
-    .leaflet-popup-content { margin: 0; padding: 0; min-width: 220px; }
-    .leaflet-popup-tip { background: #1E293B; }
-    .leaflet-popup-close-button { color: #94A3B8 !important; top: 8px !important; right: 10px !important; font-size: 18px !important; }
-    .popup-inner { padding: 16px; }
-    .popup-inner h3 { margin: 0 0 4px; font-size: 15px; font-weight: 700; color: #F8FAFC; line-height: 1.35; }
-    .popup-inner .popup-cat { font-size: 12px; color: #94A3B8; text-transform: capitalize; margin-bottom: 8px; display: flex; align-items: center; gap: 4px; }
-    .popup-inner .cat-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
-    .popup-inner .popup-desc { font-size: 12px; color: #CBD5E1; line-height: 1.55; margin-bottom: 10px; max-height: 50px; overflow: hidden; }
-    .popup-inner .popup-badges { display: flex; gap: 6px; margin-bottom: 10px; }
-    .popup-inner .popup-badge { display: inline-flex; padding: 3px 8px; border-radius: 6px; font-size: 11px; font-weight: 600; background: #334155; color: #94A3B8; }
-    .popup-inner .popup-link { display: block; width: 100%; padding: 9px; text-align: center; background: linear-gradient(135deg, #F59E0B, #D97706); border: none; border-radius: 10px; color: #0F172A; font-weight: 600; font-size: 13px; cursor: pointer; text-decoration: none; }
-    .popup-inner .popup-link:hover { opacity: .9; }
-  `;
-  document.head.appendChild(style);
-}
-
-function loadScript(src: string): Promise<void> {
-  return new Promise((resolve, reject) => {
-    if (typeof document === 'undefined') return reject('No document');
-    // Check if already loaded
-    const existing = document.querySelector(`script[src="${src}"]`);
-    if (existing) return resolve();
-    const script = document.createElement('script');
-    script.src = src;
-    script.onload = () => resolve();
-    script.onerror = () => reject(new Error(`Failed to load ${src}`));
-    document.head.appendChild(script);
-  });
-}
-
-function escapeHtml(str: string): string {
-  if (!str) return '';
-  return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-}
-
-export const LeafletMapComponent = ({
-  items,
-  onItemPress,
-  getCategoryColor,
-  getCategoryIcon,
-  style,
-}: LeafletMapProps) => {
-  const containerRef = useRef<HTMLDivElement>(null);
-  const mapInstanceRef = useRef<any>(null);
-  const clusterLayerRef = useRef<any>(null);
-  const mountedRef = useRef(true);
-
-  // Store latest callbacks in refs
+const LeafletMapComponent = ({ items, onItemPress, getMarkerColor, getLayerIcon, mapMode = 'markers', trailPoints, trailColor = '#C49A6C', style }: LeafletMapProps) => {
+  const containerRef = useRef<any>(null);
+  const mapRef = useRef<any>(null);
+  const tileRef = useRef<any>(null);
+  const clusterRef = useRef<any>(null);
+  const heatRef = useRef<any>(null);
+  const trailRef = useRef<any>(null);
+  const _modeControlRef = useRef<any>(null);
+  const [leafletLoaded, setLeafletLoaded] = useState(false);
+  // Store callbacks in refs to avoid re-triggering the marker useEffect
   const onItemPressRef = useRef(onItemPress);
-  const getCategoryColorRef = useRef(getCategoryColor);
-  const getCategoryIconRef = useRef(getCategoryIcon);
+  const getMarkerColorRef = useRef(getMarkerColor);
+  const getLayerIconRef = useRef(getLayerIcon);
   onItemPressRef.current = onItemPress;
-  getCategoryColorRef.current = getCategoryColor;
-  getCategoryIconRef.current = getCategoryIcon;
+  getMarkerColorRef.current = getMarkerColor;
+  getLayerIconRef.current = getLayerIcon;
 
-  // Cleanup on unmount
+  // Load Leaflet on mount (client-side only)
   useEffect(() => {
-    mountedRef.current = true;
-    return () => {
-      mountedRef.current = false;
-      if (mapInstanceRef.current) {
-        try { mapInstanceRef.current.remove(); } catch (_) {}
-        mapInstanceRef.current = null;
-      }
-    };
+    if (typeof window === 'undefined') return;
+    loadLeaflet().then((leaflet) => {
+      if (leaflet) setLeafletLoaded(true);
+    });
   }, []);
 
-  // Single unified effect: load Leaflet, create map, add markers
+  // Initialize map once
   useEffect(() => {
-    if (typeof window === 'undefined' || Platform.OS !== 'web') return;
+    if (!leafletLoaded || !L) return;
+    injectCSS();
+
+    const el = containerRef.current;
+    if (!el || mapRef.current) return;
+    const domNode = el instanceof HTMLElement ? el : el;
+    if (!domNode || typeof domNode.getAttribute !== 'function') return;
+
+    const map = L.map(domNode, {
+      center: [37.0, -17.0],
+      zoom: 5,
+      zoomControl: false,
+      attributionControl: false,
+      maxBounds: [[30, -35], [44, -5]],
+      minZoom: 5,
+    });
+
+    L.control.zoom({ position: 'topright' }).addTo(map);
+    L.control.attribution({ position: 'bottomright', prefix: false })
+      .addAttribution('&copy; CartoDB &copy; OSM')
+      .addTo(map);
+
+    // Start with light tiles
+    tileRef.current = L.tileLayer(TILES.light, { maxZoom: 19, crossOrigin: 'anonymous', attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a>' }).addTo(map);
+
+    mapRef.current = map;
+
+    return () => {
+      map.remove();
+      mapRef.current = null;
+      tileRef.current = null;
+      clusterRef.current = null;
+      heatRef.current = null;
+    };
+  }, [leafletLoaded]);
+
+  // Update tile layer when mapMode changes
+  useEffect(() => {
+    if (!mapRef.current || !tileRef.current || !L) return;
+
+    const tileUrl = mapMode === 'satellite' ? TILES.satellite
+      : mapMode === 'heatmap' ? TILES.light
+      : TILES.light;
+
+    tileRef.current.setUrl(tileUrl);
+  }, [mapMode]);
+
+  // Update markers/heatmap when items or mode change
+  useEffect(() => {
+    if (!mapRef.current || !L) return;
+    const map = mapRef.current;
+
+    // Clear previous layers
+    if (clusterRef.current) {
+      map.removeLayer(clusterRef.current);
+      clusterRef.current = null;
+    }
+    if (heatRef.current) {
+      map.removeLayer(heatRef.current);
+      heatRef.current = null;
+    }
+
     if (!items || items.length === 0) return;
 
     const validItems = items.filter(i => i.location?.lat && i.location?.lng);
-    if (validItems.length === 0) return;
 
-    let cancelled = false;
-
-    const initMap = async () => {
-      try {
-        // Step 1: Inject CSS
-        injectLeafletCSS();
-
-        // Step 2: Load Leaflet JS from CDN
-        await loadScript('https://unpkg.com/leaflet@1.9.4/dist/leaflet.js');
-        if (cancelled || !mountedRef.current) return;
-
-        // Step 3: Load MarkerCluster plugin
-        await loadScript('https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js');
-        if (cancelled || !mountedRef.current) return;
-
-        const L = (window as any).L;
-        if (!L || !L.markerClusterGroup) {
-          console.warn('Leaflet or MarkerCluster not available');
-          return;
+    if (mapMode === 'heatmap') {
+      // Heatmap mode - wait for leaflet-heat to load
+      let heatRetries = 0;
+      const tryHeat = () => {
+        if ((L as any).heatLayer) {
+          const heatData = validItems.map(i => [
+            i.location.lat,
+            i.location.lng,
+            (i.iq_score || 40) / 100 // Normalize score to 0-1 intensity
+          ]);
+          heatRef.current = (L as any).heatLayer(heatData, {
+            radius: 25,
+            blur: 20,
+            maxZoom: 12,
+            max: 0.8,
+            gradient: {
+              0.2: '#3B82F6',
+              0.4: '#22D3EE',
+              0.5: '#22C55E',
+              0.65: '#C49A6C',
+              0.8: '#EF4444',
+              1.0: '#DC2626',
+            },
+          }).addTo(map);
+        } else {
+          if (++heatRetries < 25) setTimeout(tryHeat, 200);
         }
+      };
+      tryHeat();
 
-        // Step 4: Get the container DOM element
-        const el = containerRef.current;
-        if (!el) return;
-
-        // Get the actual DOM node (React Native Web wraps in a div)
-        let domNode: HTMLElement = el;
-        if (typeof domNode.querySelector === 'function') {
-          // Sometimes RN Web wraps in nested divs
-          domNode = el;
-        }
-
-        // Step 5: Create or reuse map instance
-        if (mapInstanceRef.current) {
-          // Map already exists, just update markers
-          updateMarkers(L, mapInstanceRef.current, validItems);
-          return;
-        }
-
-        // Create new map - we need a raw DOM element
-        // React Native Web's View renders as a div, so containerRef should work
-        const mapDiv = document.createElement('div');
-        mapDiv.style.width = '100%';
-        mapDiv.style.height = '100%';
-        mapDiv.style.position = 'absolute';
-        mapDiv.style.top = '0';
-        mapDiv.style.left = '0';
-
-        // Clear any existing content and append map div
-        while (domNode.firstChild) {
-          domNode.removeChild(domNode.firstChild);
-        }
-        domNode.appendChild(mapDiv);
-        domNode.style.position = 'relative';
-
-        const map = L.map(mapDiv, {
-          center: [39.5, -8.0],
-          zoom: 7,
-          zoomControl: false,
-          attributionControl: false,
-          maxBounds: [[30, -35], [44, -5]],
-          minZoom: 5,
-        });
-
-        L.control.zoom({ position: 'topright' }).addTo(map);
-        L.control.attribution({ position: 'bottomright', prefix: false })
-          .addAttribution('&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank">OSM</a> &copy; CartoDB')
-          .addTo(map);
-
-        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-          maxZoom: 19,
-          crossOrigin: 'anonymous',
-        }).addTo(map);
-
-        mapInstanceRef.current = map;
-
-        // Invalidate size after a short delay
-        setTimeout(() => {
-          if (mapInstanceRef.current) {
-            mapInstanceRef.current.invalidateSize();
-          }
-        }, 500);
-
-        // Step 6: Add markers
-        updateMarkers(L, map, validItems);
-
-      } catch (err) {
-        console.error('Leaflet map init error:', err);
-      }
-    };
-
-    const updateMarkers = (L: any, map: any, validItems: MapItem[]) => {
-      // Remove existing cluster layer
-      if (clusterLayerRef.current) {
-        map.removeLayer(clusterLayerRef.current);
-        clusterLayerRef.current = null;
-      }
-
-      const cluster = L.markerClusterGroup({
-        maxClusterRadius: 50,
+      // Also show small dots for context
+      const dotCluster = (L as any).markerClusterGroup({
+        maxClusterRadius: 40,
+        iconCreateFunction: (cluster: any) => {
+          const count = cluster.getChildCount();
+          return L.divIcon({
+            html: `<div><span>${count}</span></div>`,
+            className: 'marker-cluster marker-cluster-' + (count < 20 ? 'small' : count < 50 ? 'medium' : 'large'),
+            iconSize: L.point(42, 42),
+          });
+        },
         spiderfyOnMaxZoom: true,
         showCoverageOnHover: false,
         disableClusteringAtZoom: 14,
-        animateAddingMarkers: false,
-        iconCreateFunction: (cl: any) => {
-          const count = cl.getChildCount();
+      });
+
+      validItems.forEach(item => {
+        const color = getMarkerColorRef.current(item.category);
+        const icon = L.divIcon({
+          className: 'poi-marker',
+          html: `<span class="m-icon" style="font-size:10px">place</span>`,
+          iconSize: [18, 18],
+          iconAnchor: [9, 9],
+          popupAnchor: [0, -12],
+        });
+
+        const marker = L.marker([item.location.lat, item.location.lng], { icon })
+          .on('add', function(this: any) {
+            const el = this.getElement(); // eslint-disable-line react/no-this-in-sfc
+            if (el) { el.style.background = color; el.style.width = '18px'; el.style.height = '18px'; el.style.opacity = '0.7'; }
+          });
+
+        marker.on('click', (e: any) => {
+          L.DomEvent.stopPropagation(e);
+          L.popup({ className: 'poi-popup', maxWidth: 280, closeButton: true, autoPan: true })
+            .setLatLng(marker.getLatLng())
+            .setContent(buildPopup(item, color))
+            .openOn(mapRef.current!);
+          if (onItemPressRef.current) onItemPressRef.current(item);
+        });
+        dotCluster.addLayer(marker);
+      });
+
+      clusterRef.current = dotCluster;
+      map.addLayer(dotCluster);
+
+    } else {
+      // Standard marker cluster mode
+      const markerCluster = (L as any).markerClusterGroup({
+        maxClusterRadius: 50,
+        iconCreateFunction: (cluster: any) => {
+          const count = cluster.getChildCount();
           const size = count < 20 ? 'small' : count < 80 ? 'medium' : 'large';
           const dim = count < 20 ? 42 : count < 80 ? 48 : 56;
           return L.divIcon({
@@ -262,18 +380,20 @@ export const LeafletMapComponent = ({
             iconSize: L.point(dim, dim),
           });
         },
+        spiderfyOnMaxZoom: true,
+        showCoverageOnHover: false,
+        disableClusteringAtZoom: 15,
+        animateAddingMarkers: false,
       });
 
       validItems.forEach(item => {
-        const color = getCategoryColorRef.current(item.category);
-        const iconKey = getCategoryIconRef.current(item.category);
-        const materialIcon = ICON_MAP[iconKey] || 'place';
-        const regionName = REGION_NAMES[item.region] || item.region;
-        const desc = item.description ? escapeHtml(item.description.slice(0, 120)) : '';
+        const color = getMarkerColorRef.current(item.category);
+        const iconName = getLayerIconRef.current(item.category);
+        const materialIcon = ICON_MAP[iconName] || 'place';
 
         const icon = L.divIcon({
           className: 'poi-marker',
-          html: `<span class="material-icons">${materialIcon}</span>`,
+          html: `<span class="m-icon">${materialIcon}</span>`,
           iconSize: [30, 30],
           iconAnchor: [15, 15],
           popupAnchor: [0, -18],
@@ -281,59 +401,115 @@ export const LeafletMapComponent = ({
 
         const marker = L.marker([item.location.lat, item.location.lng], { icon })
           .on('add', function(this: any) {
-            const el = this.getElement();
-            if (el) {
-              el.style.background = color;
-              el.style.width = '30px';
-              el.style.height = '30px';
-            }
+            const el = this.getElement(); // eslint-disable-line react/no-this-in-sfc
+            if (el) { el.style.background = color; el.style.width = '30px'; el.style.height = '30px'; }
           });
 
-        const popupHtml = `
-          <div class="popup-inner">
-            <h3>${escapeHtml(item.name)}</h3>
-            <div class="popup-cat">
-              <span class="cat-dot" style="background:${color}"></span>
-              ${escapeHtml(item.category)}
-            </div>
-            <div class="popup-badges">
-              <span class="popup-badge">${regionName}</span>
-            </div>
-            ${desc ? `<div class="popup-desc">${desc}</div>` : ''}
-          </div>
-        `;
-
-        marker.bindPopup(popupHtml, {
+        // Bind popup directly to marker for better reliability
+        marker.bindPopup(buildPopup(item, color), {
+          className: 'poi-popup',
           maxWidth: 280,
           closeButton: true,
           autoPan: true,
+          autoPanPadding: L.point(60, 60),
+          keepInView: true,
         });
 
         marker.on('click', () => {
-          if (onItemPressRef.current) {
-            onItemPressRef.current(item);
-          }
+          if (onItemPressRef.current) onItemPressRef.current(item);
         });
 
-        cluster.addLayer(marker);
+        markerCluster.addLayer(marker);
       });
 
-      map.addLayer(cluster);
-      clusterLayerRef.current = cluster;
+      clusterRef.current = markerCluster;
+      map.addLayer(markerCluster);
+    }
 
-      // Fit bounds to mainland Portugal (exclude Acores/Madeira for initial view)
-      const mainland = validItems.filter(i => i.location.lng > -15);
-      const boundsItems = mainland.length > 0 ? mainland : validItems;
-      const bounds = L.latLngBounds(boundsItems.map((i: MapItem) => [i.location.lat, i.location.lng]));
-      map.fitBounds(bounds, { padding: [40, 40], maxZoom: 9 });
-    };
+    // Fit bounds
+    if (validItems.length > 0) {
+      const bounds = L.latLngBounds(validItems.map(i => [i.location.lat, i.location.lng]));
+      map.fitBounds(bounds, { padding: [30, 30], maxZoom: 12 });
+    }
+  }, [items, mapMode]);
 
-    initMap();
+  // Draw trail polyline when trailPoints change
+  useEffect(() => {
+    if (!mapRef.current || !L) return;
+    const map = mapRef.current;
+
+    // Clear previous trail
+    if (trailRef.current) {
+      map.removeLayer(trailRef.current);
+      trailRef.current = null;
+    }
+
+    if (!trailPoints || trailPoints.length < 2) return;
+
+    const latlngs = trailPoints.map(p => [p.lat, p.lng]);
+
+    // Draw a shadow line first for better visibility
+    const shadow = L.polyline(latlngs, {
+      color: '#000',
+      weight: 6,
+      opacity: 0.2,
+      lineCap: 'round',
+      lineJoin: 'round',
+    }).addTo(map);
+
+    // Main trail line
+    const line = L.polyline(latlngs, {
+      color: trailColor,
+      weight: 4,
+      opacity: 0.9,
+      lineCap: 'round',
+      lineJoin: 'round',
+      dashArray: null,
+    }).addTo(map);
+
+    // Start/End markers
+    const startIcon = L.divIcon({
+      className: 'poi-marker',
+      html: '<span class="m-icon" style="font-size:14px">flag</span>',
+      iconSize: [28, 28],
+      iconAnchor: [14, 14],
+    });
+    const endIcon = L.divIcon({
+      className: 'poi-marker',
+      html: '<span class="m-icon" style="font-size:14px">sports_score</span>',
+      iconSize: [28, 28],
+      iconAnchor: [14, 14],
+    });
+
+    const startMarker = L.marker(latlngs[0], { icon: startIcon })
+      .on('add', function(this: any) {
+        const el = this.getElement(); // eslint-disable-line react/no-this-in-sfc
+        if (el) { el.style.background = '#22C55E'; el.style.width = '28px'; el.style.height = '28px'; }
+      })
+      .bindPopup('<div class="popup-inner"><h3>Ponto de Partida</h3></div>', { className: 'poi-popup' })
+      .addTo(map);
+
+    const endMarker = L.marker(latlngs[latlngs.length - 1], { icon: endIcon })
+      .on('add', function(this: any) {
+        const el = this.getElement(); // eslint-disable-line react/no-this-in-sfc
+        if (el) { el.style.background = '#EF4444'; el.style.width = '28px'; el.style.height = '28px'; }
+      })
+      .bindPopup('<div class="popup-inner"><h3>Ponto de Chegada</h3></div>', { className: 'poi-popup' })
+      .addTo(map);
+
+    // Group for removal
+    trailRef.current = L.layerGroup([shadow, line, startMarker, endMarker]).addTo(map);
+
+    // Fit to trail bounds
+    map.fitBounds(L.latLngBounds(latlngs), { padding: [50, 50], maxZoom: 12 });
 
     return () => {
-      cancelled = true;
+      if (trailRef.current) {
+        map.removeLayer(trailRef.current);
+        trailRef.current = null;
+      }
     };
-  }, [items]);
+  }, [trailPoints, trailColor]);
 
   if (typeof window === 'undefined' || Platform.OS !== 'web') {
     return <View style={[styles.container, style]} />;
@@ -341,17 +517,40 @@ export const LeafletMapComponent = ({
 
   return (
     <View
-      ref={containerRef as any}
+      ref={containerRef}
       style={[styles.container, style]}
       data-testid="leaflet-map"
     />
   );
 };
 
+function buildPopup(item: MapItem, color: string): string {
+  const desc = item.description ? item.description.slice(0, 100) + (item.description.length > 100 ? '...' : '') : '';
+  const iqBadge = item.iq_score
+    ? `<span class="popup-badge badge-iq">IQ ${item.iq_score.toFixed(1)}</span>`
+    : '';
+  const regionBadge = item.region
+    ? `<span class="popup-badge badge-region">${item.region}</span>`
+    : '';
+
+  return `
+    <div class="popup-inner">
+      <h3>${item.name}</h3>
+      <div class="popup-cat">
+        <span class="cat-dot" style="background:${color}"></span>
+        ${item.category}
+      </div>
+      <div class="popup-badges">${iqBadge}${regionBadge}</div>
+      ${desc ? `<div class="popup-desc">${desc}</div>` : ''}
+      <a class="popup-link" href="/heritage/${item.id}">Ver Detalhes</a>
+    </div>
+  `;
+}
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    minHeight: 400,
+    minHeight: 500,
   },
 });
 
@@ -359,6 +558,7 @@ const MarkerFallback = (_props: any) => null;
 const CalloutFallback = (_props: any) => null;
 
 export default LeafletMapComponent;
+export { LeafletMapComponent };
 export const Marker = MarkerFallback;
 export const Callout = CalloutFallback;
 export const PROVIDER_GOOGLE = null;
