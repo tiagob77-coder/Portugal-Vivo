@@ -4,21 +4,12 @@ import { useRouter } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useQuery } from '@tanstack/react-query';
-import { getCategories, getHeritageItems, getStats } from '../../src/services/api';
+import { getCategories, getHeritageItems, getStats, getRegions } from '../../src/services/api';
 import CategoryCard from '../../src/components/CategoryCard';
 import HeritageCard from '../../src/components/HeritageCard';
-import { Category, HeritageItem } from '../../src/types';
+import { Category, HeritageItem, Region } from '../../src/types';
 
-const REGIONS = [
-  { id: 'all', name: 'Todas' },
-  { id: 'norte', name: 'Norte' },
-  { id: 'centro', name: 'Centro' },
-  { id: 'lisboa', name: 'Lisboa' },
-  { id: 'alentejo', name: 'Alentejo' },
-  { id: 'algarve', name: 'Algarve' },
-  { id: 'acores', name: 'Açores' },
-  { id: 'madeira', name: 'Madeira' },
-];
+const ALL_REGION: Region = { id: 'all', name: 'Todas', color: '' };
 
 export default function ExploreScreen() {
   const router = useRouter();
@@ -32,6 +23,13 @@ export default function ExploreScreen() {
     queryKey: ['categories'],
     queryFn: getCategories,
   });
+
+  const { data: apiRegions = [] } = useQuery({
+    queryKey: ['regions'],
+    queryFn: getRegions,
+  });
+
+  const regions: Region[] = useMemo(() => [ALL_REGION, ...apiRegions], [apiRegions]);
 
   const { data: stats } = useQuery({
     queryKey: ['stats'],
@@ -49,7 +47,7 @@ export default function ExploreScreen() {
     enabled: viewMode === 'items' || !!searchQuery,
   });
 
-  const categoriesWithCounts = useMemo(() => {
+  const categoriesWithCounts = useMemo<(Category & { count: number })[]>(() => {
     if (!categories || !stats?.categories) return categories;
     return categories.map(cat => ({
       ...cat,
@@ -116,7 +114,7 @@ export default function ExploreScreen() {
         style={styles.filtersScroll}
         contentContainerStyle={styles.filtersContent}
       >
-        {REGIONS.map(region => (
+        {regions.map(region => (
           <TouchableOpacity
             key={region.id}
             style={[
@@ -164,7 +162,7 @@ export default function ExploreScreen() {
             <ActivityIndicator size="large" color="#F59E0B" style={styles.loader} />
           ) : (
             <View style={styles.gridContainer}>
-              {categoriesWithCounts.map((category: any) => (
+              {categoriesWithCounts.map((category) => (
                 <CategoryCard
                   key={category.id}
                   category={category}

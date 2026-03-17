@@ -1,5 +1,18 @@
 import axios from 'axios';
-import { HeritageItem, Route, Category, Region, User, Stats } from '../types';
+import {
+  HeritageItem,
+  Route,
+  Category,
+  Region,
+  User,
+  Stats,
+  Contribution,
+  ContributionCreate,
+  Badge,
+  UserProgress,
+  LeaderboardEntry,
+  CalendarEvent,
+} from '../types';
 
 const API_URL = process.env.EXPO_PUBLIC_BACKEND_URL || '';
 
@@ -9,6 +22,14 @@ const api = axios.create({
     'Content-Type': 'application/json',
   },
 });
+
+export function setAuthToken(token: string | null) {
+  if (token) {
+    api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+  } else {
+    delete api.defaults.headers.common['Authorization'];
+  }
+}
 
 // Heritage Items
 export const getHeritageItems = async (params?: {
@@ -37,13 +58,20 @@ export const getHeritageByRegion = async (region: string): Promise<HeritageItem[
   return response.data;
 };
 
-export const getMapItems = async (categories?: string[], region?: string): Promise<HeritageItem[]> => {
-  const params: any = {};
+export const getMapItems = async (
+  categories?: string[],
+  region?: string,
+  limit?: number
+): Promise<HeritageItem[]> => {
+  const params: Record<string, string | number> = {};
   if (categories && categories.length > 0) {
     params.categories = categories.join(',');
   }
   if (region) {
     params.region = region;
+  }
+  if (limit) {
+    params.limit = limit;
   }
   const response = await api.get('/map/items', { params });
   return response.data;
@@ -79,24 +107,18 @@ export const getRouteItems = async (id: string): Promise<HeritageItem[]> => {
   return response.data;
 };
 
-// User & Favorites
-export const getFavorites = async (token: string): Promise<HeritageItem[]> => {
-  const response = await api.get('/favorites', {
-    headers: { Authorization: `Bearer ${token}` },
-  });
+// User & Favorites (token injected automatically via setAuthToken / interceptor)
+export const getFavorites = async (): Promise<HeritageItem[]> => {
+  const response = await api.get('/favorites');
   return response.data;
 };
 
-export const addFavorite = async (itemId: string, token: string): Promise<void> => {
-  await api.post(`/favorites/${itemId}`, {}, {
-    headers: { Authorization: `Bearer ${token}` },
-  });
+export const addFavorite = async (itemId: string): Promise<void> => {
+  await api.post(`/favorites/${itemId}`);
 };
 
-export const removeFavorite = async (itemId: string, token: string): Promise<void> => {
-  await api.delete(`/favorites/${itemId}`, {
-    headers: { Authorization: `Bearer ${token}` },
-  });
+export const removeFavorite = async (itemId: string): Promise<void> => {
+  await api.delete(`/favorites/${itemId}`);
 };
 
 // AI Narrative
@@ -119,32 +141,6 @@ export const getStats = async (): Promise<Stats> => {
 };
 
 // Contributions
-export interface Contribution {
-  id: string;
-  user_id: string;
-  user_name: string;
-  heritage_item_id?: string;
-  type: string;
-  title: string;
-  content: string;
-  location?: { lat: number; lng: number };
-  category?: string;
-  region?: string;
-  status: string;
-  votes: number;
-  created_at: string;
-}
-
-export interface ContributionCreate {
-  heritage_item_id?: string;
-  type: string;
-  title: string;
-  content: string;
-  location?: { lat: number; lng: number };
-  category?: string;
-  region?: string;
-}
-
 export const getContributions = async (params?: {
   status?: string;
   type?: string;
@@ -159,27 +155,20 @@ export const getApprovedContributions = async (): Promise<Contribution[]> => {
   return response.data;
 };
 
-export const getMyContributions = async (token: string): Promise<Contribution[]> => {
-  const response = await api.get('/contributions/my', {
-    headers: { Authorization: `Bearer ${token}` },
-  });
+export const getMyContributions = async (): Promise<Contribution[]> => {
+  const response = await api.get('/contributions/my');
   return response.data;
 };
 
 export const createContribution = async (
-  contribution: ContributionCreate,
-  token: string
+  contribution: ContributionCreate
 ): Promise<Contribution> => {
-  const response = await api.post('/contributions', contribution, {
-    headers: { Authorization: `Bearer ${token}` },
-  });
+  const response = await api.post('/contributions', contribution);
   return response.data;
 };
 
-export const voteContribution = async (contributionId: string, token: string): Promise<void> => {
-  await api.post(`/contributions/${contributionId}/vote`, {}, {
-    headers: { Authorization: `Bearer ${token}` },
-  });
+export const voteContribution = async (contributionId: string): Promise<void> => {
+  await api.post(`/contributions/${contributionId}/vote`);
 };
 
 // Gallery
@@ -194,61 +183,22 @@ export const getGallery = async (category: string): Promise<Array<{
 };
 
 // Gamification
-export interface Badge {
-  id: string;
-  name: string;
-  description: string;
-  icon: string;
-  color: string;
-  requirement: number;
-  type: string;
-  earned?: boolean;
-  progress?: number;
-  current?: number;
-}
-
-export interface UserProgress {
-  user_id: string;
-  visits_count: number;
-  favorites_count: number;
-  routes_completed: number;
-  contributions_approved: number;
-  total_points: number;
-  level: number;
-  badges: Badge[];
-}
-
-export interface LeaderboardEntry {
-  user_id: string;
-  name: string;
-  picture?: string;
-  total_points: number;
-  level: number;
-  badges_count: number;
-}
-
 export const getBadges = async (): Promise<Badge[]> => {
   const response = await api.get('/badges');
   return response.data;
 };
 
-export const getUserProgress = async (token: string): Promise<UserProgress> => {
-  const response = await api.get('/gamification/progress', {
-    headers: { Authorization: `Bearer ${token}` },
-  });
+export const getUserProgress = async (): Promise<UserProgress> => {
+  const response = await api.get('/gamification/progress');
   return response.data;
 };
 
-export const recordVisit = async (itemId: string, token: string): Promise<void> => {
-  await api.post(`/gamification/visit/${itemId}`, {}, {
-    headers: { Authorization: `Bearer ${token}` },
-  });
+export const recordVisit = async (itemId: string): Promise<void> => {
+  await api.post(`/gamification/visit/${itemId}`);
 };
 
-export const completeRoute = async (routeId: string, token: string): Promise<void> => {
-  await api.post(`/gamification/complete-route/${routeId}`, {}, {
-    headers: { Authorization: `Bearer ${token}` },
-  });
+export const completeRoute = async (routeId: string): Promise<void> => {
+  await api.post(`/gamification/complete-route/${routeId}`);
 };
 
 export const getLeaderboard = async (limit?: number): Promise<LeaderboardEntry[]> => {
@@ -257,16 +207,6 @@ export const getLeaderboard = async (limit?: number): Promise<LeaderboardEntry[]
 };
 
 // Calendar
-export interface CalendarEvent {
-  id: string;
-  name: string;
-  date_start: string;
-  date_end: string;
-  category: string;
-  region: string;
-  description: string;
-}
-
 export const getCalendarEvents = async (month?: number): Promise<CalendarEvent[]> => {
   const response = await api.get('/calendar', { params: { month } });
   return response.data;
@@ -290,10 +230,8 @@ export const exchangeSession = async (sessionId: string): Promise<User> => {
   return response.data;
 };
 
-export const getCurrentUser = async (token: string): Promise<User> => {
-  const response = await api.get('/auth/me', {
-    headers: { Authorization: `Bearer ${token}` },
-  });
+export const getCurrentUser = async (): Promise<User> => {
+  const response = await api.get('/auth/me');
   return response.data;
 };
 

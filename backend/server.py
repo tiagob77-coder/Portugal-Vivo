@@ -1,3 +1,4 @@
+from contextlib import asynccontextmanager
 from fastapi import FastAPI, APIRouter, HTTPException, Depends, Request, Response
 from dotenv import load_dotenv
 from starlette.middleware.cors import CORSMiddleware
@@ -23,8 +24,29 @@ db = client[os.environ['DB_NAME']]
 EMERGENT_LLM_KEY = os.environ.get('EMERGENT_LLM_KEY', '')
 GOOGLE_MAPS_API_KEY = os.environ.get('GOOGLE_MAPS_API_KEY', '')
 
+# CORS origins — comma-separated list from env, fallback to localhost dev URLs
+ALLOWED_ORIGINS = os.environ.get(
+    'ALLOWED_ORIGINS',
+    'http://localhost:19006,http://localhost:8081,http://localhost:3000'
+).split(',')
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    yield
+    client.close()
+
+
 # Create the main app
-app = FastAPI(title="Património Vivo de Portugal API")
+app = FastAPI(title="Património Vivo de Portugal API", lifespan=lifespan)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=ALLOWED_ORIGINS,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # Create a router with the /api prefix
 api_router = APIRouter(prefix="/api")
@@ -262,17 +284,20 @@ async def exchange_session(request: Request, response: Response):
             "favorites": []
         })
     
-    # Create session
+    # Create/refresh session (upsert — supports multi-device login)
     session_token = user_data["session_token"]
     expires_at = datetime.now(timezone.utc) + timedelta(days=7)
-    
-    await db.user_sessions.delete_many({"user_id": user_id})
-    await db.user_sessions.insert_one({
-        "user_id": user_id,
-        "session_token": session_token,
-        "expires_at": expires_at,
-        "created_at": datetime.now(timezone.utc)
-    })
+
+    await db.user_sessions.update_one(
+        {"session_token": session_token},
+        {"$set": {
+            "user_id": user_id,
+            "session_token": session_token,
+            "expires_at": expires_at,
+            "created_at": datetime.now(timezone.utc),
+        }},
+        upsert=True,
+    )
     
     # Set cookie
     response.set_cookie(
@@ -365,18 +390,19 @@ async def get_heritage_by_region(region: str, limit: int = 100):
 @api_router.get("/map/items")
 async def get_map_items(
     categories: Optional[str] = None,
-    region: Optional[str] = None
+    region: Optional[str] = None,
+    limit: int = 200
 ):
     """Get heritage items for map display (only items with location)"""
     query = {"location": {"$ne": None}}
-    
+
     if categories:
         cat_list = categories.split(",")
         query["category"] = {"$in": cat_list}
     if region:
         query["region"] = region
-    
-    items = await db.heritage_items.find(query, {"_id": 0}).to_list(1000)
+
+    items = await db.heritage_items.find(query, {"_id": 0}).limit(limit).to_list(limit)
     return [HeritageItem(**item) for item in items]
 
 # ========================
@@ -940,15 +966,3 @@ async def health():
 
 # Include the router in the main app
 app.include_router(api_router)
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_credentials=True,
-    allow_origins=["*"],
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
-@app.on_event("shutdown")
-async def shutdown_db_client():
-    client.close()

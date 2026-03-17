@@ -3,7 +3,7 @@ import * as WebBrowser from 'expo-web-browser';
 import * as Linking from 'expo-linking';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Platform } from 'react-native';
-import { exchangeSession, getCurrentUser, logout as apiLogout } from '../services/api';
+import { exchangeSession, getCurrentUser, logout as apiLogout, setAuthToken } from '../services/api';
 import { User } from '../types';
 
 interface AuthContextType {
@@ -28,9 +28,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const processSessionId = useCallback(async (url: string) => {
     try {
-      // Extract session_id from URL (hash or query)
       let sessionId: string | null = null;
-      
+
       if (url.includes('#session_id=')) {
         sessionId = url.split('#session_id=')[1]?.split('&')[0];
       } else if (url.includes('?session_id=')) {
@@ -41,10 +40,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setIsLoading(true);
         const userData = await exchangeSession(sessionId);
         setUser(userData);
-        
-        // Store token
-        const token = (userData as any).session_token || sessionId;
+
+        // Use typed session_token from User — no unsafe cast needed
+        const token = userData.session_token ?? sessionId;
         setSessionToken(token);
+        setAuthToken(token);
         await AsyncStorage.setItem('session_token', token);
       }
     } catch (error) {
@@ -54,25 +54,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
-  // Check for existing session on mount
   useEffect(() => {
     const checkExistingSession = async () => {
       try {
         const storedToken = await AsyncStorage.getItem('session_token');
         if (storedToken) {
           setSessionToken(storedToken);
-          const userData = await getCurrentUser(storedToken);
+          setAuthToken(storedToken);
+          const userData = await getCurrentUser();
           setUser(userData);
         }
       } catch (error) {
         console.log('No valid session found');
         await AsyncStorage.removeItem('session_token');
+        setAuthToken(null);
       } finally {
         setIsLoading(false);
       }
     };
 
-    // Check initial URL for session_id (cold start)
     const checkInitialUrl = async () => {
       const initialUrl = await Linking.getInitialURL();
       if (initialUrl && (initialUrl.includes('session_id=') || initialUrl.includes('#session_id='))) {
@@ -82,12 +82,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
     };
 
-    // Web platform: check hash
     if (Platform.OS === 'web' && typeof window !== 'undefined') {
       const hash = window.location.hash;
       if (hash.includes('session_id=')) {
+        // processSessionId sets isLoading(false) in its finally block
         processSessionId(window.location.href);
-        // Clean URL
         window.history.replaceState({}, document.title, window.location.pathname);
       } else {
         checkExistingSession();
@@ -96,7 +95,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       checkInitialUrl();
     }
 
-    // Listen for deep links (hot links)
     const subscription = Linking.addEventListener('url', ({ url }) => {
       if (url.includes('session_id=')) {
         processSessionId(url);
@@ -109,29 +107,28 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [processSessionId]);
 
   const login = async () => {
-    try {
+    const redirectUrl = Platform.OS === 'web'
+      ? `${BACKEND_URL}/`
+      : Linking.createURL('/');
+
+    const authUrl = `${AUTH_URL}/?redirect=${encodeURIComponent(redirectUrl)}`;
+
+    if (Platform.OS === 'web') {
+      // Full-page redirect — isLoading resolves on return via processSessionId
       setIsLoading(true);
-      
-      // Platform-specific redirect URL
-      const redirectUrl = Platform.OS === 'web'
-        ? `${BACKEND_URL}/`
-        : Linking.createURL('/');
-
-      const authUrl = `${AUTH_URL}/?redirect=${encodeURIComponent(redirectUrl)}`;
-
-      if (Platform.OS === 'web') {
-        window.location.href = authUrl;
-      } else {
+      window.location.href = authUrl;
+    } else {
+      try {
+        setIsLoading(true);
         const result = await WebBrowser.openAuthSessionAsync(authUrl, redirectUrl);
-        
         if (result.type === 'success' && result.url) {
           await processSessionId(result.url);
         }
+      } catch (error) {
+        console.error('Login error:', error);
+      } finally {
+        setIsLoading(false);
       }
-    } catch (error) {
-      console.error('Login error:', error);
-    } finally {
-      setIsLoading(false);
     }
   };
 
@@ -143,13 +140,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
     setUser(null);
     setSessionToken(null);
+    setAuthToken(null);
     await AsyncStorage.removeItem('session_token');
   };
 
   const refreshUser = async () => {
     if (sessionToken) {
       try {
-        const userData = await getCurrentUser(sessionToken);
+        const userData = await getCurrentUser();
         setUser(userData);
       } catch (error) {
         console.error('Error refreshing user:', error);
