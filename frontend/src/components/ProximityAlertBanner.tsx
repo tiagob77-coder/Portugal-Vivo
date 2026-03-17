@@ -89,7 +89,7 @@ export default function ProximityAlertBanner({ alerts, onDismiss }: Props) {
 
   const isRare = alert.alert_type === 'rare';
   // Purple '#7C3AED' is a brand color for rare proximity alerts - kept as-is
-  const bgColor = isRare ? '#7C3AED' : colors.forest[500];
+  const bgColor = isRare ? '#7C3AED' : palette.forest[500];
   const iconName = isRare ? 'star' : 'place';
 
   return (
@@ -115,7 +115,7 @@ export default function ProximityAlertBanner({ alerts, onDismiss }: Props) {
       >
         <View style={styles.iconContainer}>
           {/* Purple '#A78BFA' is a brand color for rare proximity alerts - kept as-is */}
-          <View style={[styles.iconCircle, { backgroundColor: isRare ? '#A78BFA' : colors.forest[400] }]}>
+          <View style={[styles.iconCircle, { backgroundColor: isRare ? '#A78BFA' : palette.forest[400] }]}>
             <MaterialIcons name={iconName} size={20} color={palette.white} />
           </View>
           {isRare && (
@@ -138,7 +138,7 @@ export default function ProximityAlertBanner({ alerts, onDismiss }: Props) {
               <Text style={styles.distanceText}>{alert.distance_m}m</Text>
             </View>
             {alert.iq_score && (
-              <View style={[styles.iqBadge, { backgroundColor: isRare ? '#A78BFA' : colors.forest[400] }]}>
+              <View style={[styles.iqBadge, { backgroundColor: isRare ? '#A78BFA' : palette.forest[400] }]}>
                 <Text style={styles.iqText}>IQ {alert.iq_score.toFixed(0)}</Text>
               </View>
             )}
@@ -160,7 +160,7 @@ export default function ProximityAlertBanner({ alerts, onDismiss }: Props) {
           hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
           data-testid="proximity-alert-close"
         >
-          <MaterialIcons name="close" size={18} color="rgba(255,255,255,0.7)" />
+          <MaterialIcons name="close" size={18} color={withOpacity(palette.white, 0.7)} />
         </TouchableOpacity>
       </TouchableOpacity>
     </Animated.View>
@@ -219,7 +219,7 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   subtitle: {
-    color: 'rgba(255,255,255,0.85)',
+    color: withOpacity(palette.white, 0.85),
     fontSize: typography.fontSize.sm,
     marginTop: 2,
   },
@@ -232,7 +232,7 @@ const styles = StyleSheet.create({
   distanceBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(255,255,255,0.2)',
+    backgroundColor: withOpacity(palette.white, 0.2),
     borderRadius: 10,
     paddingHorizontal: 6,
     paddingVertical: 2,
@@ -254,7 +254,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   countText: {
-    color: 'rgba(255,255,255,0.6)',
+    color: withOpacity(palette.white, 0.6),
     fontSize: 10,
   },
   closeBtn: {

@@ -47,7 +47,7 @@ const DiscoveryCard: React.FC<DiscoveryCardProps> = ({
   if (loading) {
     return (
       <View style={styles.loading}>
-        <ActivityIndicator size="small" color="#8B5CF6" />
+        <ActivityIndicator size="small" color={stateColors.rarity.raro} />
       </View>
     );
   }
@@ -89,7 +89,7 @@ const DiscoveryCard: React.FC<DiscoveryCardProps> = ({
           onPress={() => onNaturePress?.(enrichment.biodiversity_station)}
         >
           <View style={styles.sectionHeader}>
-            <MaterialIcons name="biotech" size={18} color="#3B82F6" />
+            <MaterialIcons name="biotech" size={18} color={stateColors.tide.rising} />
             <Text style={styles.sectionTitle}>Estação de Biodiversidade</Text>
           </View>
           <Text style={styles.areaName}>{enrichment.biodiversity_station.station.name}</Text>
@@ -165,7 +165,7 @@ const DiscoveryCard: React.FC<DiscoveryCardProps> = ({
       {itinerary && itinerary.day_2_morning && (
         <View style={styles.itinerarySection}>
           <View style={styles.sectionHeader}>
-            <MaterialIcons name="event-note" size={18} color="#8B5CF6" />
+            <MaterialIcons name="event-note" size={18} color={stateColors.rarity.raro} />
             <Text style={styles.sectionTitle}>Itinerário Sustentável (2 dias)</Text>
           </View>
 
@@ -176,7 +176,7 @@ const DiscoveryCard: React.FC<DiscoveryCardProps> = ({
 
           {itinerary.transport_between && (
             <View style={styles.transportArrow}>
-              <MaterialIcons name="arrow-downward" size={20} color="#8B5CF6" />
+              <MaterialIcons name="arrow-downward" size={20} color={stateColors.rarity.raro} />
               <Text style={styles.transportNote}>
                 {itinerary.transport_between.direct_distance_km} km por transporte público
               </Text>
@@ -243,7 +243,7 @@ const styles = StyleSheet.create({
   chipGreenText: { fontSize: 11, color: '#166534' },
   transportItem: {
     flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 8,
-    borderBottomWidth: 1, borderBottomColor: '#F3F4F6',
+    borderBottomWidth: 1, borderBottomColor: palette.gray[100],
   },
   transportInfo: { flex: 1 },
   transportName: { fontSize: 14, fontWeight: '600', color: palette.gray[800] },
@@ -256,18 +256,19 @@ const styles = StyleSheet.create({
   suggestionTitle: { fontSize: 14, fontWeight: '700', color: '#166534' },
   suggestionDesc: { fontSize: 12, color: palette.gray[500], marginTop: 4, lineHeight: 17 },
   itinerarySection: {
+    // Purple-tinted background/border for itinerary section - no exact palette token
     backgroundColor: '#FAF5FF', marginHorizontal: 12, marginTop: 10, borderRadius: 12,
     padding: 14, borderWidth: 1, borderColor: '#E9D5FF',
   },
   dayCard: {
     backgroundColor: palette.white, borderRadius: 10, padding: 12, marginTop: 8,
   },
-  dayLabel: { fontSize: 12, fontWeight: '700', color: '#8B5CF6', textTransform: 'uppercase' },
+  dayLabel: { fontSize: 12, fontWeight: '700', color: stateColors.rarity.raro, textTransform: 'uppercase' },
   dayActivity: { fontSize: 14, fontWeight: '600', color: palette.gray[800], marginTop: 4 },
   transportArrow: {
     flexDirection: 'row', alignItems: 'center', gap: 8, paddingVertical: 8, paddingHorizontal: 12,
   },
-  transportNote: { fontSize: 12, color: '#8B5CF6' },
+  transportNote: { fontSize: 12, color: stateColors.rarity.raro },
   tipsBox: {
     backgroundColor: '#F0FDF4', borderRadius: 10, padding: 12, marginTop: 10,
   },
