@@ -1,16 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Animated } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
-
-// --- Theme Colors ---
-const COLORS = {
-  background: '#0F172A',
-  card: '#1E293B',
-  accent: '#C49A6C',
-  text: '#FAF8F3',
-  textSecondary: '#C8C3B8',
-  muted: '#64748B',
-};
+import { useTheme, withOpacity, palette } from '../theme';
 
 // --- Types ---
 
@@ -78,9 +69,9 @@ const VARIANT_PRESETS: Record<VariantKey, VariantPreset> = {
     title: 'Sem resultados',
     subtitle: 'Tente outro termo ou ajuste os filtros',
     illustrationIcons: [
-      { name: 'search', size: 28, color: COLORS.accent, offsetX: 0, offsetY: 0, opacity: 0.35 },
-      { name: 'filter-list', size: 18, color: COLORS.muted, offsetX: 30, offsetY: -18, opacity: 0.25 },
-      { name: 'tune', size: 16, color: COLORS.muted, offsetX: -28, offsetY: 14, opacity: 0.2 },
+      { name: 'search', size: 28, color: palette.terracotta[500], offsetX: 0, offsetY: 0, opacity: 0.35 },
+      { name: 'filter-list', size: 18, color: palette.gray[500], offsetX: 30, offsetY: -18, opacity: 0.25 },
+      { name: 'tune', size: 16, color: palette.gray[500], offsetX: -28, offsetY: 14, opacity: 0.2 },
     ],
   },
   'no-favorites': {
@@ -88,9 +79,9 @@ const VARIANT_PRESETS: Record<VariantKey, VariantPreset> = {
     title: 'Sem favoritos ainda',
     subtitle: 'Explore locais e adicione aos seus favoritos',
     illustrationIcons: [
-      { name: 'favorite-border', size: 30, color: COLORS.accent, offsetX: 0, offsetY: 0, opacity: 0.35 },
-      { name: 'star-border', size: 16, color: COLORS.muted, offsetX: -26, offsetY: -16, opacity: 0.2 },
-      { name: 'bookmark-border', size: 18, color: COLORS.muted, offsetX: 28, offsetY: 10, opacity: 0.25 },
+      { name: 'favorite-border', size: 30, color: palette.terracotta[500], offsetX: 0, offsetY: 0, opacity: 0.35 },
+      { name: 'star-border', size: 16, color: palette.gray[500], offsetX: -26, offsetY: -16, opacity: 0.2 },
+      { name: 'bookmark-border', size: 18, color: palette.gray[500], offsetX: 28, offsetY: 10, opacity: 0.25 },
     ],
   },
   'no-visits': {
@@ -98,9 +89,9 @@ const VARIANT_PRESETS: Record<VariantKey, VariantPreset> = {
     title: 'Nenhuma visita registada',
     subtitle: 'Visite um local para começar a ganhar pontos',
     illustrationIcons: [
-      { name: 'explore', size: 28, color: COLORS.accent, offsetX: 0, offsetY: 0, opacity: 0.35 },
-      { name: 'place', size: 18, color: COLORS.muted, offsetX: 26, offsetY: -14, opacity: 0.25 },
-      { name: 'emoji-events', size: 16, color: COLORS.muted, offsetX: -24, offsetY: 12, opacity: 0.2 },
+      { name: 'explore', size: 28, color: palette.terracotta[500], offsetX: 0, offsetY: 0, opacity: 0.35 },
+      { name: 'place', size: 18, color: palette.gray[500], offsetX: 26, offsetY: -14, opacity: 0.25 },
+      { name: 'emoji-events', size: 16, color: palette.gray[500], offsetX: -24, offsetY: 12, opacity: 0.2 },
     ],
   },
   'no-routes': {
@@ -108,9 +99,9 @@ const VARIANT_PRESETS: Record<VariantKey, VariantPreset> = {
     title: 'Sem rotas guardadas',
     subtitle: 'Gere uma rota inteligente para começar',
     illustrationIcons: [
-      { name: 'route', size: 28, color: COLORS.accent, offsetX: 0, offsetY: 0, opacity: 0.35 },
-      { name: 'directions', size: 18, color: COLORS.muted, offsetX: -28, offsetY: -10, opacity: 0.25 },
-      { name: 'map', size: 16, color: COLORS.muted, offsetX: 26, offsetY: 14, opacity: 0.2 },
+      { name: 'route', size: 28, color: palette.terracotta[500], offsetX: 0, offsetY: 0, opacity: 0.35 },
+      { name: 'directions', size: 18, color: palette.gray[500], offsetX: -28, offsetY: -10, opacity: 0.25 },
+      { name: 'map', size: 16, color: palette.gray[500], offsetX: 26, offsetY: 14, opacity: 0.2 },
     ],
   },
   'no-events': {
@@ -118,9 +109,9 @@ const VARIANT_PRESETS: Record<VariantKey, VariantPreset> = {
     title: 'Sem eventos por perto',
     subtitle: 'Explore outras regiões ou datas',
     illustrationIcons: [
-      { name: 'event', size: 28, color: COLORS.accent, offsetX: 0, offsetY: 0, opacity: 0.35 },
-      { name: 'date-range', size: 18, color: COLORS.muted, offsetX: 28, offsetY: -12, opacity: 0.25 },
-      { name: 'location-on', size: 16, color: COLORS.muted, offsetX: -26, offsetY: 10, opacity: 0.2 },
+      { name: 'event', size: 28, color: palette.terracotta[500], offsetX: 0, offsetY: 0, opacity: 0.35 },
+      { name: 'date-range', size: 18, color: palette.gray[500], offsetX: 28, offsetY: -12, opacity: 0.25 },
+      { name: 'location-on', size: 16, color: palette.gray[500], offsetX: -26, offsetY: 10, opacity: 0.2 },
     ],
   },
   'no-connection': {
@@ -128,9 +119,9 @@ const VARIANT_PRESETS: Record<VariantKey, VariantPreset> = {
     title: 'Sem ligação',
     subtitle: 'Verifique a sua ligação à internet',
     illustrationIcons: [
-      { name: 'wifi-off', size: 28, color: COLORS.accent, offsetX: 0, offsetY: 0, opacity: 0.35 },
-      { name: 'cloud-off', size: 18, color: COLORS.muted, offsetX: -26, offsetY: -14, opacity: 0.25 },
-      { name: 'signal-wifi-off', size: 16, color: COLORS.muted, offsetX: 28, offsetY: 12, opacity: 0.2 },
+      { name: 'wifi-off', size: 28, color: palette.terracotta[500], offsetX: 0, offsetY: 0, opacity: 0.35 },
+      { name: 'cloud-off', size: 18, color: palette.gray[500], offsetX: -26, offsetY: -14, opacity: 0.25 },
+      { name: 'signal-wifi-off', size: 16, color: palette.gray[500], offsetX: 28, offsetY: 12, opacity: 0.2 },
     ],
   },
   'empty-category': {
@@ -138,9 +129,9 @@ const VARIANT_PRESETS: Record<VariantKey, VariantPreset> = {
     title: 'Categoria vazia',
     subtitle: 'Esta categoria ainda não tem conteúdo',
     illustrationIcons: [
-      { name: 'category', size: 28, color: COLORS.accent, offsetX: 0, offsetY: 0, opacity: 0.35 },
-      { name: 'folder-open', size: 18, color: COLORS.muted, offsetX: 26, offsetY: -14, opacity: 0.25 },
-      { name: 'inbox', size: 16, color: COLORS.muted, offsetX: -24, offsetY: 12, opacity: 0.2 },
+      { name: 'category', size: 28, color: palette.terracotta[500], offsetX: 0, offsetY: 0, opacity: 0.35 },
+      { name: 'folder-open', size: 18, color: palette.gray[500], offsetX: 26, offsetY: -14, opacity: 0.25 },
+      { name: 'inbox', size: 16, color: palette.gray[500], offsetX: -24, offsetY: 12, opacity: 0.2 },
     ],
   },
   'loading-error': {
@@ -148,9 +139,9 @@ const VARIANT_PRESETS: Record<VariantKey, VariantPreset> = {
     title: 'Erro ao carregar',
     subtitle: 'Algo correu mal. Tente novamente.',
     illustrationIcons: [
-      { name: 'error-outline', size: 28, color: COLORS.accent, offsetX: 0, offsetY: 0, opacity: 0.35 },
-      { name: 'refresh', size: 18, color: COLORS.muted, offsetX: 28, offsetY: -12, opacity: 0.25 },
-      { name: 'warning-amber', size: 16, color: COLORS.muted, offsetX: -26, offsetY: 14, opacity: 0.2 },
+      { name: 'error-outline', size: 28, color: palette.terracotta[500], offsetX: 0, offsetY: 0, opacity: 0.35 },
+      { name: 'refresh', size: 18, color: palette.gray[500], offsetX: 28, offsetY: -12, opacity: 0.25 },
+      { name: 'warning-amber', size: 16, color: palette.gray[500], offsetX: -26, offsetY: 14, opacity: 0.2 },
     ],
   },
 };
@@ -194,12 +185,15 @@ export default function EmptyState({
   subtitle,
   actionLabel,
   onAction,
-  iconColor = COLORS.muted,
+  iconColor,
   variant,
   illustration,
   actions,
   compact,
 }: EmptyStateProps) {
+  const { colors } = useTheme();
+  const resolvedIconColor = iconColor ?? colors.textMuted;
+
   // Resolve variant presets, with explicit props taking precedence
   const preset = variant ? VARIANT_PRESETS[variant] : null;
   const resolvedIcon = icon ?? preset?.icon ?? 'info-outline';
@@ -247,24 +241,24 @@ export default function EmptyState({
             width: circleSize,
             height: circleSize,
             borderRadius: circleSize / 2,
-            backgroundColor: iconColor + '15',
+            backgroundColor: withOpacity(resolvedIconColor, 0.08),
             marginBottom: compact ? 4 : 8,
           },
         ]}
       >
-        <MaterialIcons name={resolvedIcon as any} size={iconSize} color={iconColor} />
+        <MaterialIcons name={resolvedIcon as any} size={iconSize} color={resolvedIconColor} />
       </View>
 
       {/* Title */}
       {resolvedTitle !== '' && (
-        <Text style={compact ? styles.titleCompact : styles.title}>
+        <Text style={[compact ? styles.titleCompact : styles.title, { color: colors.textSecondary }]}>
           {resolvedTitle}
         </Text>
       )}
 
       {/* Subtitle */}
       {resolvedSubtitle != null && (
-        <Text style={compact ? styles.subtitleCompact : styles.subtitle}>
+        <Text style={[compact ? styles.subtitleCompact : styles.subtitle, { color: colors.textMuted }]}>
           {resolvedSubtitle}
         </Text>
       )}
@@ -285,12 +279,12 @@ export default function EmptyState({
                 activeOpacity={0.8}
               >
                 <Text
-                  style={isPrimary ? styles.actionTextPrimary : styles.actionTextSecondary}
+                  style={[isPrimary ? styles.actionTextPrimary : styles.actionTextSecondary, { color: isPrimary ? colors.accent : colors.textMuted }]}
                 >
                   {action.label}
                 </Text>
                 {isPrimary && (
-                  <MaterialIcons name="arrow-forward" size={compact ? 14 : 16} color={COLORS.accent} />
+                  <MaterialIcons name="arrow-forward" size={compact ? 14 : 16} color={colors.accent} />
                 )}
               </TouchableOpacity>
             );
@@ -340,26 +334,22 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 17,
     fontWeight: '700',
-    color: COLORS.textSecondary,
     textAlign: 'center',
   },
   titleCompact: {
     fontSize: 14,
     fontWeight: '700',
-    color: COLORS.textSecondary,
     textAlign: 'center',
   },
 
   // Subtitle
   subtitle: {
     fontSize: 13,
-    color: COLORS.muted,
     textAlign: 'center',
     lineHeight: 19,
   },
   subtitleCompact: {
     fontSize: 12,
-    color: COLORS.muted,
     textAlign: 'center',
     lineHeight: 17,
   },
@@ -394,7 +384,6 @@ const styles = StyleSheet.create({
   },
   actionTextPrimary: {
     fontSize: 14,
-    color: COLORS.accent,
     fontWeight: '600',
   },
 
@@ -412,7 +401,6 @@ const styles = StyleSheet.create({
   },
   actionTextSecondary: {
     fontSize: 14,
-    color: COLORS.muted,
     fontWeight: '600',
   },
 
