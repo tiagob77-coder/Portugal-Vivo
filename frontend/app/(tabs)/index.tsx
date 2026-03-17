@@ -8,12 +8,14 @@ import { getCategories, getHeritageItems, getStats, getRegions } from '../../src
 import CategoryCard from '../../src/components/CategoryCard';
 import HeritageCard from '../../src/components/HeritageCard';
 import { Category, HeritageItem, Region } from '../../src/types';
+import { useTheme, palette, withOpacity } from '../../src/theme';
 
 const ALL_REGION: Region = { id: 'all', name: 'Todas', color: '' };
 
 export default function ExploreScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const { colors } = useTheme();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [selectedRegion, setSelectedRegion] = useState('all');
@@ -81,36 +83,36 @@ export default function ExploreScreen() {
   const selectedCategoryData = categories.find(c => c.id === selectedCategory);
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top }]}>
+    <View style={[styles.container, { paddingTop: insets.top, backgroundColor: colors.background }]}>
       {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Explorar</Text>
-        <Text style={styles.headerSubtitle}>Património Vivo de Portugal</Text>
+        <Text style={[styles.headerTitle, { color: colors.textPrimary }]}>Explorar</Text>
+        <Text style={[styles.headerSubtitle, { color: colors.textSecondary }]}>Património Vivo de Portugal</Text>
       </View>
 
       {/* Search Bar */}
       <View style={styles.searchContainer}>
-        <View style={styles.searchBar}>
-          <MaterialIcons name="search" size={20} color="#64748B" />
+        <View style={[styles.searchBar, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+          <MaterialIcons name="search" size={20} color={colors.textMuted} />
           <TextInput
-            style={styles.searchInput}
+            style={[styles.searchInput, { color: colors.textPrimary }]}
             placeholder="Pesquisar lendas, festas, lugares..."
-            placeholderTextColor="#64748B"
+            placeholderTextColor={colors.textMuted}
             value={searchQuery}
             onChangeText={handleSearch}
           />
           {searchQuery ? (
             <TouchableOpacity onPress={() => setSearchQuery('')}>
-              <MaterialIcons name="close" size={20} color="#64748B" />
+              <MaterialIcons name="close" size={20} color={colors.textMuted} />
             </TouchableOpacity>
           ) : null}
         </View>
       </View>
 
       {/* Region Filter */}
-      <ScrollView 
-        horizontal 
-        showsHorizontalScrollIndicator={false} 
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
         style={styles.filtersScroll}
         contentContainerStyle={styles.filtersContent}
       >
@@ -119,13 +121,15 @@ export default function ExploreScreen() {
             key={region.id}
             style={[
               styles.filterChip,
-              selectedRegion === region.id && styles.filterChipActive,
+              { backgroundColor: colors.surface, borderColor: colors.border },
+              selectedRegion === region.id && { backgroundColor: withOpacity(colors.accent, 0.12), borderColor: colors.accent },
             ]}
             onPress={() => setSelectedRegion(region.id)}
           >
             <Text style={[
               styles.filterChipText,
-              selectedRegion === region.id && styles.filterChipTextActive,
+              { color: colors.textSecondary },
+              selectedRegion === region.id && { color: colors.accent },
             ]}>
               {region.name}
             </Text>
@@ -137,8 +141,8 @@ export default function ExploreScreen() {
       {(selectedCategory || searchQuery) && (
         <View style={styles.breadcrumb}>
           <TouchableOpacity style={styles.backButton} onPress={clearFilters}>
-            <MaterialIcons name="arrow-back" size={20} color="#F59E0B" />
-            <Text style={styles.backText}>Categorias</Text>
+            <MaterialIcons name="arrow-back" size={20} color={colors.accent} />
+            <Text style={[styles.backText, { color: colors.accent }]}>Categorias</Text>
           </TouchableOpacity>
           {selectedCategoryData && (
             <View style={[styles.selectedBadge, { backgroundColor: selectedCategoryData.color + '20' }]}>
@@ -159,7 +163,7 @@ export default function ExploreScreen() {
           contentContainerStyle={styles.categoriesGrid}
         >
           {categoriesLoading ? (
-            <ActivityIndicator size="large" color="#F59E0B" style={styles.loader} />
+            <ActivityIndicator size="large" color={colors.accent} style={styles.loader} />
           ) : (
             <View style={styles.gridContainer}>
               {categoriesWithCounts.map((category) => (
@@ -195,11 +199,11 @@ export default function ExploreScreen() {
           }
           ListEmptyComponent={
             itemsLoading ? (
-              <ActivityIndicator size="large" color="#F59E0B" style={styles.loader} />
+              <ActivityIndicator size="large" color={colors.accent} style={styles.loader} />
             ) : (
               <View style={styles.emptyState}>
-                <MaterialIcons name="search-off" size={48} color="#64748B" />
-                <Text style={styles.emptyText}>Nenhum resultado encontrado</Text>
+                <MaterialIcons name="search-off" size={48} color={colors.textMuted} />
+                <Text style={[styles.emptyText, { color: colors.textMuted }]}>Nenhum resultado encontrado</Text>
               </View>
             )
           }
@@ -212,7 +216,6 @@ export default function ExploreScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#0F172A',
   },
   header: {
     paddingHorizontal: 20,
@@ -222,11 +225,9 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 28,
     fontWeight: '800',
-    color: '#F8FAFC',
   },
   headerSubtitle: {
     fontSize: 14,
-    color: '#94A3B8',
     marginTop: 2,
   },
   searchContainer: {
@@ -236,18 +237,15 @@ const styles = StyleSheet.create({
   searchBar: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#1E293B',
     borderRadius: 12,
     paddingHorizontal: 14,
     paddingVertical: 12,
     borderWidth: 1,
-    borderColor: '#334155',
   },
   searchInput: {
     flex: 1,
     marginLeft: 10,
     fontSize: 15,
-    color: '#F8FAFC',
   },
   filtersScroll: {
     maxHeight: 44,
@@ -261,23 +259,15 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 20,
-    backgroundColor: '#1E293B',
     borderWidth: 1,
-    borderColor: '#334155',
     marginRight: 8,
   },
-  filterChipActive: {
-    backgroundColor: '#F59E0B20',
-    borderColor: '#F59E0B',
-  },
+  filterChipActive: {},
   filterChipText: {
     fontSize: 13,
-    color: '#94A3B8',
     fontWeight: '500',
   },
-  filterChipTextActive: {
-    color: '#F59E0B',
-  },
+  filterChipTextActive: {},
   breadcrumb: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -292,7 +282,6 @@ const styles = StyleSheet.create({
   },
   backText: {
     fontSize: 14,
-    color: '#F59E0B',
     fontWeight: '600',
   },
   selectedBadge: {
@@ -332,7 +321,6 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     fontSize: 16,
-    color: '#64748B',
     marginTop: 12,
   },
 });

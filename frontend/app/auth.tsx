@@ -9,6 +9,7 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useAuth } from '../src/context/AuthContext';
+import { useTheme, palette, spacing, borders, withOpacity } from '../src/theme';
 
 import { API_URL } from '../src/config/api';
 
@@ -17,8 +18,9 @@ type AuthMode = 'login' | 'register' | 'forgot';
 export default function AuthScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const { colors } = useTheme();
   const { login: googleLogin, isLoading: googleLoading } = useAuth();
-  
+
   const [mode, setMode] = useState<AuthMode>('login');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -81,7 +83,6 @@ export default function AuthScreen() {
       }
 
       const _data = await response.json();
-      // Store token and navigate
       Alert.alert('Sucesso', 'Login efetuado com sucesso!');
       router.replace('/(tabs)/descobrir');
     } catch (_error) {
@@ -182,12 +183,12 @@ export default function AuthScreen() {
     }
   ) => (
     <View style={styles.inputWrapper}>
-      <View style={[styles.inputContainer, error && styles.inputError]}>
-        <MaterialIcons name={icon as any} size={20} color="#64748B" />
+      <View style={[styles.inputContainer, { backgroundColor: colors.primary, borderColor: colors.border }, error && { borderColor: colors.error }]}>
+        <MaterialIcons name={icon as any} size={20} color={colors.textMuted} />
         <TextInput
-          style={styles.input}
+          style={[styles.input, { color: colors.textOnPrimary }]}
           placeholder={placeholder}
-          placeholderTextColor="#64748B"
+          placeholderTextColor={colors.textMuted}
           value={value}
           onChangeText={onChangeText}
           secureTextEntry={options?.secureTextEntry && !showPassword}
@@ -196,51 +197,51 @@ export default function AuthScreen() {
         />
         {options?.secureTextEntry && (
           <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
-            <MaterialIcons name={showPassword ? 'visibility' : 'visibility-off'} size={20} color="#64748B" />
+            <MaterialIcons name={showPassword ? 'visibility' : 'visibility-off'} size={20} color={colors.textMuted} />
           </TouchableOpacity>
         )}
       </View>
-      {error && <Text style={styles.errorText}>{error}</Text>}
+      {error && <Text style={[styles.errorText, { color: colors.error }]}>{error}</Text>}
     </View>
   );
 
   return (
-    <KeyboardAvoidingView 
-      style={styles.container} 
+    <KeyboardAvoidingView
+      style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
       <LinearGradient
-        colors={['#2E5E4E', '#264E41']}
+        colors={[palette.forest[500], palette.forest[600]]}
         style={[styles.gradient, { paddingTop: insets.top }]}
       >
-        <ScrollView 
+        <ScrollView
           contentContainerStyle={styles.scrollContent}
           keyboardShouldPersistTaps="handled"
         >
           {/* Header */}
           <View style={styles.header}>
-            <TouchableOpacity 
-              style={styles.backButton} 
+            <TouchableOpacity
+              style={styles.backButton}
               onPress={() => router.back()}
             >
-              <MaterialIcons name="arrow-back" size={24} color="#FFFFFF" />
+              <MaterialIcons name="arrow-back" size={24} color={colors.textOnPrimary} />
             </TouchableOpacity>
-            
+
             <View style={styles.logoContainer}>
-              <MaterialIcons name="castle" size={48} color="#C49A6C" />
-              <Text style={styles.logoText}>Portugal Vivo</Text>
-              <Text style={styles.logoSubtext}>de Portugal</Text>
+              <MaterialIcons name="castle" size={48} color={colors.accent} />
+              <Text style={[styles.logoText, { color: colors.textOnPrimary }]}>Portugal Vivo</Text>
+              <Text style={[styles.logoSubtext, { color: colors.accent }]}>de Portugal</Text>
             </View>
           </View>
 
           {/* Form */}
-          <View style={styles.formContainer}>
-            <Text style={styles.title}>
+          <View style={[styles.formContainer, { backgroundColor: withOpacity(palette.gray[800], 0.8) }]}>
+            <Text style={[styles.title, { color: colors.textOnPrimary }]}>
               {mode === 'login' && 'Bem-vindo de volta'}
               {mode === 'register' && 'Criar Conta'}
               {mode === 'forgot' && 'Recuperar Password'}
             </Text>
-            <Text style={styles.subtitle}>
+            <Text style={[styles.subtitle, { color: colors.textMuted }]}>
               {mode === 'login' && 'Entre na sua conta para continuar'}
               {mode === 'register' && 'Junte-se à comunidade'}
               {mode === 'forgot' && 'Introduza o seu email para repor a password'}
@@ -282,25 +283,25 @@ export default function AuthScreen() {
             )}
 
             {mode === 'login' && (
-              <TouchableOpacity 
+              <TouchableOpacity
                 style={styles.forgotLink}
                 onPress={() => { setMode('forgot'); setErrors({}); }}
               >
-                <Text style={styles.forgotLinkText}>Esqueceu a password?</Text>
+                <Text style={[styles.forgotLinkText, { color: colors.accent }]}>Esqueceu a password?</Text>
               </TouchableOpacity>
             )}
 
             {/* Submit Button */}
             <TouchableOpacity
-              style={[styles.submitButton, isLoading && styles.submitButtonDisabled]}
+              style={[styles.submitButton, { backgroundColor: colors.accent }, isLoading && styles.submitButtonDisabled]}
               onPress={handleSubmit}
               disabled={isLoading}
               data-testid="auth-submit-btn"
             >
               {isLoading ? (
-                <ActivityIndicator size="small" color="#000" />
+                <ActivityIndicator size="small" color={palette.gray[900]} />
               ) : (
-                <Text style={styles.submitButtonText}>
+                <Text style={[styles.submitButtonText, { color: palette.gray[900] }]}>
                   {mode === 'login' && 'Entrar'}
                   {mode === 'register' && 'Criar Conta'}
                   {mode === 'forgot' && 'Enviar Email'}
@@ -312,9 +313,9 @@ export default function AuthScreen() {
             {mode !== 'forgot' && (
               <>
                 <View style={styles.divider}>
-                  <View style={styles.dividerLine} />
-                  <Text style={styles.dividerText}>ou</Text>
-                  <View style={styles.dividerLine} />
+                  <View style={[styles.dividerLine, { backgroundColor: colors.border }]} />
+                  <Text style={[styles.dividerText, { color: colors.textMuted }]}>ou</Text>
+                  <View style={[styles.dividerLine, { backgroundColor: colors.border }]} />
                 </View>
 
                 {/* Google Login */}
@@ -325,11 +326,11 @@ export default function AuthScreen() {
                   data-testid="google-login-btn"
                 >
                   {googleLoading ? (
-                    <ActivityIndicator size="small" color="#FFFFFF" />
+                    <ActivityIndicator size="small" color={colors.textOnPrimary} />
                   ) : (
                     <>
-                      <MaterialIcons name="g-mobiledata" size={24} color="#FFFFFF" />
-                      <Text style={styles.googleButtonText}>Continuar com Google</Text>
+                      <MaterialIcons name="g-mobiledata" size={24} color={colors.textOnPrimary} />
+                      <Text style={[styles.googleButtonText, { color: colors.textOnPrimary }]}>Continuar com Google</Text>
                     </>
                   )}
                 </TouchableOpacity>
@@ -340,22 +341,22 @@ export default function AuthScreen() {
             <View style={styles.modeSwitchContainer}>
               {mode === 'login' && (
                 <TouchableOpacity onPress={() => { setMode('register'); setErrors({}); }}>
-                  <Text style={styles.modeSwitchText}>
-                    Não tem conta? <Text style={styles.modeSwitchLink}>Criar agora</Text>
+                  <Text style={[styles.modeSwitchText, { color: colors.textMuted }]}>
+                    Não tem conta? <Text style={[styles.modeSwitchLink, { color: colors.accent }]}>Criar agora</Text>
                   </Text>
                 </TouchableOpacity>
               )}
               {mode === 'register' && (
                 <TouchableOpacity onPress={() => { setMode('login'); setErrors({}); }}>
-                  <Text style={styles.modeSwitchText}>
-                    Já tem conta? <Text style={styles.modeSwitchLink}>Entrar</Text>
+                  <Text style={[styles.modeSwitchText, { color: colors.textMuted }]}>
+                    Já tem conta? <Text style={[styles.modeSwitchLink, { color: colors.accent }]}>Entrar</Text>
                   </Text>
                 </TouchableOpacity>
               )}
               {mode === 'forgot' && (
                 <TouchableOpacity onPress={() => { setMode('login'); setErrors({}); }}>
-                  <Text style={styles.modeSwitchText}>
-                    <Text style={styles.modeSwitchLink}>Voltar ao login</Text>
+                  <Text style={[styles.modeSwitchText, { color: colors.textMuted }]}>
+                    <Text style={[styles.modeSwitchLink, { color: colors.accent }]}>Voltar ao login</Text>
                   </Text>
                 </TouchableOpacity>
               )}
@@ -363,10 +364,10 @@ export default function AuthScreen() {
           </View>
 
           {/* Terms */}
-          <Text style={styles.termsText}>
+          <Text style={[styles.termsText, { color: colors.textMuted }]}>
             Ao continuar, aceita os nossos{' '}
-            <Text style={styles.termsLink}>Termos de Serviço</Text> e{' '}
-            <Text style={styles.termsLink}>Política de Privacidade</Text>
+            <Text style={[styles.termsLink, { color: colors.textSecondary }]}>Termos de Serviço</Text> e{' '}
+            <Text style={[styles.termsLink, { color: colors.textSecondary }]}>Política de Privacidade</Text>
           </Text>
         </ScrollView>
       </LinearGradient>
@@ -383,19 +384,19 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     flexGrow: 1,
-    padding: 24,
+    padding: spacing[6],
   },
   header: {
-    marginBottom: 32,
+    marginBottom: spacing[8],
   },
   backButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: 44,
+    height: 44,
+    borderRadius: borders.radius.full,
     backgroundColor: 'rgba(255,255,255,0.1)',
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 24,
+    marginBottom: spacing[6],
   },
   logoContainer: {
     alignItems: 'center',
@@ -403,71 +404,57 @@ const styles = StyleSheet.create({
   logoText: {
     fontSize: 28,
     fontWeight: '700',
-    color: '#FFFFFF',
-    marginTop: 12,
+    marginTop: spacing[3],
   },
   logoSubtext: {
     fontSize: 16,
-    color: '#C49A6C',
     fontWeight: '500',
   },
   formContainer: {
-    backgroundColor: 'rgba(30, 41, 59, 0.8)',
-    borderRadius: 24,
-    padding: 24,
-    marginBottom: 24,
+    borderRadius: borders.radius['3xl'],
+    padding: spacing[6],
+    marginBottom: spacing[6],
   },
   title: {
     fontSize: 24,
     fontWeight: '700',
-    color: '#FFFFFF',
-    marginBottom: 8,
+    marginBottom: spacing[2],
   },
   subtitle: {
     fontSize: 14,
-    color: '#94A3B8',
-    marginBottom: 24,
+    marginBottom: spacing[6],
   },
   inputWrapper: {
-    marginBottom: 16,
+    marginBottom: spacing[4],
   },
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#2E5E4E',
-    borderRadius: 12,
-    paddingHorizontal: 16,
+    borderRadius: borders.radius.lg,
+    paddingHorizontal: spacing[4],
     height: 52,
     borderWidth: 1,
-    borderColor: '#2A2F2A',
-    gap: 12,
-  },
-  inputError: {
-    borderColor: '#EF4444',
+    gap: spacing[3],
   },
   input: {
     flex: 1,
     fontSize: 15,
-    color: '#FFFFFF',
   },
   errorText: {
-    color: '#EF4444',
     fontSize: 12,
-    marginTop: 4,
-    marginLeft: 4,
+    marginTop: spacing[1],
+    marginLeft: spacing[1],
   },
   forgotLink: {
     alignSelf: 'flex-end',
-    marginBottom: 24,
+    marginBottom: spacing[6],
   },
   forgotLinkText: {
-    color: '#C49A6C',
     fontSize: 14,
     fontWeight: '500',
   },
   submitButton: {
-    backgroundColor: '#C49A6C',
-    borderRadius: 12,
+    borderRadius: borders.radius.lg,
     height: 52,
     justifyContent: 'center',
     alignItems: 'center',
@@ -476,59 +463,51 @@ const styles = StyleSheet.create({
     opacity: 0.7,
   },
   submitButtonText: {
-    color: '#000000',
     fontSize: 16,
     fontWeight: '700',
   },
   divider: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginVertical: 24,
+    marginVertical: spacing[6],
   },
   dividerLine: {
     flex: 1,
     height: 1,
-    backgroundColor: '#2A2F2A',
   },
   dividerText: {
-    color: '#64748B',
     fontSize: 14,
-    marginHorizontal: 16,
+    marginHorizontal: spacing[4],
   },
   googleButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: '#4285F4',
-    borderRadius: 12,
+    borderRadius: borders.radius.lg,
     height: 52,
-    gap: 12,
+    gap: spacing[3],
   },
   googleButtonText: {
-    color: '#FFFFFF',
     fontSize: 16,
     fontWeight: '600',
   },
   modeSwitchContainer: {
-    marginTop: 24,
+    marginTop: spacing[6],
     alignItems: 'center',
   },
   modeSwitchText: {
-    color: '#94A3B8',
     fontSize: 14,
   },
   modeSwitchLink: {
-    color: '#C49A6C',
     fontWeight: '600',
   },
   termsText: {
-    color: '#64748B',
     fontSize: 12,
     textAlign: 'center',
     lineHeight: 18,
   },
   termsLink: {
-    color: '#94A3B8',
     textDecorationLine: 'underline',
   },
 });

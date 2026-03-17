@@ -9,6 +9,7 @@ import { useQuery } from '@tanstack/react-query';
 import { LinearGradient } from 'expo-linear-gradient';
 
 import { API_URL } from '../config/api';
+import { palette, stateColors } from '../theme';
 
 interface TideData {
   source: string;
@@ -44,10 +45,10 @@ interface TidesWidgetProps {
 }
 
 const TIDE_STATE_CONFIG: Record<string, { color: string; gradient: string[]; label: string; icon: string }> = {
-  rising: { color: '#3B82F6', gradient: ['#1E40AF', '#3B82F6'], label: 'Subindo', icon: 'arrow-upward' },
-  falling: { color: '#C49A6C', gradient: ['#B45309', '#C49A6C'], label: 'Descendo', icon: 'arrow-downward' },
-  high: { color: '#22C55E', gradient: ['#166534', '#22C55E'], label: 'Preia-mar', icon: 'vertical-align-top' },
-  low: { color: '#EF4444', gradient: ['#B91C1C', '#EF4444'], label: 'Baixa-mar', icon: 'vertical-align-bottom' },
+  rising: { color: stateColors.tide.rising, gradient: ['#1E40AF', stateColors.tide.rising], label: 'Subindo', icon: 'arrow-upward' },
+  falling: { color: stateColors.tide.falling, gradient: ['#B45309', stateColors.tide.falling], label: 'Descendo', icon: 'arrow-downward' },
+  high: { color: stateColors.tide.high, gradient: ['#166534', stateColors.tide.high], label: 'Preia-mar', icon: 'vertical-align-top' },
+  low: { color: stateColors.tide.low, gradient: ['#B91C1C', stateColors.tide.low], label: 'Baixa-mar', icon: 'vertical-align-bottom' },
 };
 
 const MOON_PHASES = [
@@ -123,14 +124,14 @@ export function TidesWidget({ latitude, longitude, compact = false, onPress, sho
 
   if (compact) {
     return (
-      <TouchableOpacity 
-        style={styles.compactContainer} 
+      <TouchableOpacity
+        style={styles.compactContainer}
         onPress={onPress}
         activeOpacity={0.8}
         data-testid="tides-widget-compact"
       >
         <View style={[styles.tideBadge, { backgroundColor: config.color }]}>
-          <MaterialIcons name={config.icon as any} size={14} color="#FFF" />
+          <MaterialIcons name={config.icon as any} size={14} color={palette.white} />
         </View>
         <Text style={styles.compactText}>{data.current.height_m.toFixed(1)}m</Text>
         <Text style={styles.compactLabel}>{config.label}</Text>
@@ -176,14 +177,14 @@ export function TidesWidget({ latitude, longitude, compact = false, onPress, sho
       >
         <View style={styles.header}>
           <View style={styles.iconContainer}>
-            <MaterialIcons name="waves" size={24} color="#FFF" />
+            <MaterialIcons name="waves" size={24} color={palette.white} />
           </View>
           <View style={styles.headerText}>
             <Text style={styles.title}>Marés</Text>
             <Text style={styles.stationName}>{data.station || 'Costa Portuguesa'}</Text>
           </View>
           <View style={styles.stateContainer}>
-            <MaterialIcons name={config.icon as any} size={20} color="#FFF" />
+            <MaterialIcons name={config.icon as any} size={20} color={palette.white} />
             <Text style={styles.stateText}>{config.label}</Text>
           </View>
         </View>
@@ -193,7 +194,7 @@ export function TidesWidget({ latitude, longitude, compact = false, onPress, sho
             <Text style={styles.heightValue}>{data.current.height_m.toFixed(2)}</Text>
             <Text style={styles.heightUnit}>metros</Text>
           </View>
-          
+
           <View style={styles.moonPhase}>
             <View style={{ transform: [{ rotate: `${moonInfo.rotation}deg` }] }}>
               <MaterialIcons name={moonInfo.icon as any} size={28} color="rgba(255,255,255,0.8)" />
@@ -218,7 +219,7 @@ export function TidesWidget({ latitude, longitude, compact = false, onPress, sho
               </View>
             </View>
           )}
-          
+
           {data.next_low_tide && (
             <View style={styles.nextTideItem}>
               <MaterialIcons name="vertical-align-bottom" size={16} color="rgba(255,255,255,0.8)" />
@@ -249,7 +250,7 @@ const styles = StyleSheet.create({
     marginVertical: 8,
   },
   containerCompact: {
-    backgroundColor: '#264E41',
+    backgroundColor: palette.forest[600],
     padding: 8,
   },
   gradient: {
@@ -279,7 +280,7 @@ const styles = StyleSheet.create({
   },
   stationName: {
     fontSize: 16,
-    color: '#FFFFFF',
+    color: palette.white,
     fontWeight: '700',
   },
   stateContainer: {
@@ -293,7 +294,7 @@ const styles = StyleSheet.create({
   },
   stateText: {
     fontSize: 12,
-    color: '#FFFFFF',
+    color: palette.white,
     fontWeight: '600',
   },
   currentRow: {
@@ -311,7 +312,7 @@ const styles = StyleSheet.create({
   heightValue: {
     fontSize: 36,
     fontWeight: '700',
-    color: '#FFFFFF',
+    color: palette.white,
   },
   heightUnit: {
     fontSize: 12,
@@ -355,7 +356,7 @@ const styles = StyleSheet.create({
   nextTideTime: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#FFFFFF',
+    color: palette.white,
   },
   nextTideHeight: {
     fontSize: 11,
@@ -376,7 +377,7 @@ const styles = StyleSheet.create({
   compactContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#264E41',
+    backgroundColor: palette.forest[600],
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderRadius: 20,
@@ -392,11 +393,11 @@ const styles = StyleSheet.create({
   compactText: {
     fontSize: 14,
     fontWeight: '700',
-    color: '#FFFFFF',
+    color: palette.white,
   },
   compactLabel: {
     fontSize: 12,
-    color: '#94A3B8',
+    color: palette.gray[400],
   },
   stationPicker: {
     marginBottom: 12,
@@ -423,7 +424,7 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   stationChipTextActive: {
-    color: '#FFFFFF',
+    color: palette.white,
     fontWeight: '700',
   },
 });

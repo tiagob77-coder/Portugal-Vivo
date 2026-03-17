@@ -8,6 +8,7 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { useQuery } from '@tanstack/react-query';
 import { LinearGradient } from 'expo-linear-gradient';
 import { getAllSpotsConditions, getSurfSpotConditions } from '../services/api';
+import { palette, stateColors } from '../theme';
 
 interface SurfWidgetProps {
   spotId?: string; // Specific spot, or show best conditions
@@ -16,11 +17,11 @@ interface SurfWidgetProps {
 }
 
 const QUALITY_CONFIG: Record<string, { color: string; gradient: string[]; label: string; icon: string }> = {
-  excellent: { color: '#22C55E', gradient: ['#166534', '#22C55E'], label: 'Excelente', icon: 'sentiment-very-satisfied' },
-  good: { color: '#3B82F6', gradient: ['#1D4ED8', '#3B82F6'], label: 'Bom', icon: 'sentiment-satisfied' },
-  fair: { color: '#C49A6C', gradient: ['#B45309', '#C49A6C'], label: 'Razoável', icon: 'sentiment-neutral' },
-  poor: { color: '#EF4444', gradient: ['#B91C1C', '#EF4444'], label: 'Fraco', icon: 'sentiment-dissatisfied' },
-  flat: { color: '#6B7280', gradient: ['#374151', '#6B7280'], label: 'Flat', icon: 'waves' },
+  excellent: { color: stateColors.surf.excellent, gradient: ['#166534', stateColors.surf.excellent], label: 'Excelente', icon: 'sentiment-very-satisfied' },
+  good: { color: stateColors.surf.good, gradient: ['#1D4ED8', stateColors.surf.good], label: 'Bom', icon: 'sentiment-satisfied' },
+  fair: { color: stateColors.surf.fair, gradient: ['#B45309', stateColors.surf.fair], label: 'Razoável', icon: 'sentiment-neutral' },
+  poor: { color: stateColors.surf.poor, gradient: ['#B91C1C', stateColors.surf.poor], label: 'Fraco', icon: 'sentiment-dissatisfied' },
+  flat: { color: stateColors.surf.flat, gradient: ['#374151', stateColors.surf.flat], label: 'Flat', icon: 'waves' },
 };
 
 export function SurfConditionsWidget({ spotId, compact = false, onPress }: SurfWidgetProps) {
@@ -46,7 +47,7 @@ export function SurfConditionsWidget({ spotId, compact = false, onPress }: SurfW
   // Get best spot or specific spot data
   let spotData: any;
   let spotName: string;
-  
+
   if (spotId && 'current' in (data as any)) {
     spotData = data;
     spotName = (data as any).spot?.name || spotId;
@@ -62,19 +63,19 @@ export function SurfConditionsWidget({ spotId, compact = false, onPress }: SurfW
   const wavePeriod = spotId ? spotData.current?.wave_period_s : spotData.wave_period_s;
   const waveDirection = spotId ? spotData.current?.wave_direction_cardinal : spotData.wave_direction;
   const quality = spotId ? spotData.current?.surf_quality : spotData.surf_quality;
-  
+
   const config = QUALITY_CONFIG[quality] || QUALITY_CONFIG.fair;
 
   if (compact) {
     return (
-      <TouchableOpacity 
-        style={styles.compactContainer} 
+      <TouchableOpacity
+        style={styles.compactContainer}
         onPress={onPress}
         activeOpacity={0.8}
         data-testid="surf-widget-compact"
       >
         <View style={[styles.qualityBadge, { backgroundColor: config.color }]}>
-          <MaterialIcons name="waves" size={14} color="#FFF" />
+          <MaterialIcons name="waves" size={14} color={palette.white} />
         </View>
         <Text style={styles.compactText}>{waveHeight?.toFixed(1)}m</Text>
         <Text style={styles.compactLabel}>{config.label}</Text>
@@ -83,8 +84,8 @@ export function SurfConditionsWidget({ spotId, compact = false, onPress }: SurfW
   }
 
   return (
-    <TouchableOpacity 
-      style={styles.container} 
+    <TouchableOpacity
+      style={styles.container}
       onPress={onPress}
       activeOpacity={0.8}
       data-testid="surf-widget"
@@ -97,14 +98,14 @@ export function SurfConditionsWidget({ spotId, compact = false, onPress }: SurfW
       >
         <View style={styles.header}>
           <View style={styles.iconContainer}>
-            <MaterialIcons name="waves" size={24} color="#FFF" />
+            <MaterialIcons name="waves" size={24} color={palette.white} />
           </View>
           <View style={styles.headerText}>
             <Text style={styles.title}>Condições de Surf</Text>
             <Text style={styles.spotName}>{spotName}</Text>
           </View>
           <View style={styles.qualityContainer}>
-            <MaterialIcons name={config.icon as any} size={20} color="#FFF" />
+            <MaterialIcons name={config.icon as any} size={20} color={palette.white} />
             <Text style={styles.qualityText}>{config.label}</Text>
           </View>
         </View>
@@ -145,7 +146,7 @@ const styles = StyleSheet.create({
     marginVertical: 8,
   },
   containerCompact: {
-    backgroundColor: '#264E41',
+    backgroundColor: palette.forest[600],
     padding: 8,
   },
   gradient: {
@@ -175,7 +176,7 @@ const styles = StyleSheet.create({
   },
   spotName: {
     fontSize: 16,
-    color: '#FFFFFF',
+    color: palette.white,
     fontWeight: '700',
   },
   qualityContainer: {
@@ -189,7 +190,7 @@ const styles = StyleSheet.create({
   },
   qualityText: {
     fontSize: 12,
-    color: '#FFFFFF',
+    color: palette.white,
     fontWeight: '600',
   },
   statsRow: {
@@ -206,7 +207,7 @@ const styles = StyleSheet.create({
   statValue: {
     fontSize: 24,
     fontWeight: '700',
-    color: '#FFFFFF',
+    color: palette.white,
   },
   statUnit: {
     fontSize: 12,
@@ -238,7 +239,7 @@ const styles = StyleSheet.create({
   compactContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#264E41',
+    backgroundColor: palette.forest[600],
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderRadius: 20,
@@ -254,11 +255,11 @@ const styles = StyleSheet.create({
   compactText: {
     fontSize: 14,
     fontWeight: '700',
-    color: '#FFFFFF',
+    color: palette.white,
   },
   compactLabel: {
     fontSize: 12,
-    color: '#94A3B8',
+    color: palette.gray[400],
   },
 });
 

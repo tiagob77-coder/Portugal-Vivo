@@ -12,6 +12,7 @@ export {
   darkColors,
   categoryColors,
   mapColors,
+  stateColors,
   withOpacity,
   getCategoryColor,
   getCategoryBg,

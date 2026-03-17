@@ -15,6 +15,7 @@ import {
 import { MaterialIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { colors, typography, spacing, borders, shadows } from '../theme';
+import { palette, stateColors, withOpacity } from '../theme';
 import { ProximityAlert } from '../services/geofencing';
 
 const { width: _width } = Dimensions.get('window');
@@ -87,7 +88,8 @@ export default function ProximityAlertBanner({ alerts, onDismiss }: Props) {
   if (!alert) return null;
 
   const isRare = alert.alert_type === 'rare';
-  const bgColor = isRare ? '#7C3AED' : colors.forest[500];
+  // Purple '#7C3AED' is a brand color for rare proximity alerts - kept as-is
+  const bgColor = isRare ? '#7C3AED' : palette.forest[500];
   const iconName = isRare ? 'star' : 'place';
 
   return (
@@ -112,8 +114,9 @@ export default function ProximityAlertBanner({ alerts, onDismiss }: Props) {
         data-testid="proximity-alert-tap"
       >
         <View style={styles.iconContainer}>
-          <View style={[styles.iconCircle, { backgroundColor: isRare ? '#A78BFA' : colors.forest[400] }]}>
-            <MaterialIcons name={iconName} size={20} color="#FFF" />
+          {/* Purple '#A78BFA' is a brand color for rare proximity alerts - kept as-is */}
+          <View style={[styles.iconCircle, { backgroundColor: isRare ? '#A78BFA' : palette.forest[400] }]}>
+            <MaterialIcons name={iconName} size={20} color={palette.white} />
           </View>
           {isRare && (
             <View style={styles.rareBadge}>
@@ -131,11 +134,11 @@ export default function ProximityAlertBanner({ alerts, onDismiss }: Props) {
           </Text>
           <View style={styles.meta}>
             <View style={styles.distanceBadge}>
-              <MaterialIcons name="near-me" size={10} color="#FFF" />
+              <MaterialIcons name="near-me" size={10} color={palette.white} />
               <Text style={styles.distanceText}>{alert.distance_m}m</Text>
             </View>
             {alert.iq_score && (
-              <View style={[styles.iqBadge, { backgroundColor: isRare ? '#A78BFA' : colors.forest[400] }]}>
+              <View style={[styles.iqBadge, { backgroundColor: isRare ? '#A78BFA' : palette.forest[400] }]}>
                 <Text style={styles.iqText}>IQ {alert.iq_score.toFixed(0)}</Text>
               </View>
             )}
@@ -157,7 +160,7 @@ export default function ProximityAlertBanner({ alerts, onDismiss }: Props) {
           hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
           data-testid="proximity-alert-close"
         >
-          <MaterialIcons name="close" size={18} color="rgba(255,255,255,0.7)" />
+          <MaterialIcons name="close" size={18} color={withOpacity(palette.white, 0.7)} />
         </TouchableOpacity>
       </TouchableOpacity>
     </Animated.View>
@@ -195,14 +198,14 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   rareBadge: {
-    backgroundColor: '#C49A6C',
+    backgroundColor: palette.terracotta[500],
     borderRadius: 4,
     paddingHorizontal: 4,
     paddingVertical: 1,
     marginTop: 3,
   },
   rareBadgeText: {
-    color: '#FFF',
+    color: palette.white,
     fontSize: 8,
     fontWeight: '700',
     letterSpacing: 0.5,
@@ -211,12 +214,12 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   title: {
-    color: '#FFFFFF',
+    color: palette.white,
     fontSize: typography.fontSize.md,
     fontWeight: '700',
   },
   subtitle: {
-    color: 'rgba(255,255,255,0.85)',
+    color: withOpacity(palette.white, 0.85),
     fontSize: typography.fontSize.sm,
     marginTop: 2,
   },
@@ -229,14 +232,14 @@ const styles = StyleSheet.create({
   distanceBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(255,255,255,0.2)',
+    backgroundColor: withOpacity(palette.white, 0.2),
     borderRadius: 10,
     paddingHorizontal: 6,
     paddingVertical: 2,
     gap: 3,
   },
   distanceText: {
-    color: '#FFF',
+    color: palette.white,
     fontSize: 10,
     fontWeight: '600',
   },
@@ -246,12 +249,12 @@ const styles = StyleSheet.create({
     paddingVertical: 2,
   },
   iqText: {
-    color: '#FFF',
+    color: palette.white,
     fontSize: 10,
     fontWeight: '600',
   },
   countText: {
-    color: 'rgba(255,255,255,0.6)',
+    color: withOpacity(palette.white, 0.6),
     fontSize: 10,
   },
   closeBtn: {

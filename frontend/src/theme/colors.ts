@@ -211,6 +211,42 @@ export const categoryColors: Record<string, string> = {
   cultural: '#EC4899',
 };
 
+// Widget state colors (tides, surf, status indicators)
+export const stateColors = {
+  tide: {
+    rising: '#3B82F6',
+    falling: '#C49A6C',
+    high: '#22C55E',
+    low: '#EF4444',
+  },
+  surf: {
+    excellent: '#22C55E',
+    good: '#3B82F6',
+    fair: '#C49A6C',
+    poor: '#EF4444',
+    flat: '#6B7280',
+  },
+  event: {
+    festas: '#C49A6C',
+    religioso: '#8B5CF6',
+    gastronomia: '#EF4444',
+    natureza: '#22C55E',
+    cultural: '#06B6D4',
+    festival: '#EC4899',
+  },
+  rarity: {
+    epico: '#EAB308',
+    raro: '#8B5CF6',
+    incomum: '#06B6D4',
+  },
+  contribution: {
+    story: '#8B5CF6',
+    correction: '#C49A6C',
+    new_item: '#22C55E',
+    photo: '#3B82F6',
+  },
+} as const;
+
 // Map-specific colors (subset for clarity)
 export const mapColors: Record<string, string> = {
   miradouros: '#2A6F97',

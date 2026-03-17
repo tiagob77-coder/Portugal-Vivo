@@ -6,6 +6,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { getApprovedContributions, createContribution, voteContribution, Contribution, ContributionCreate, getCategories } from '../../src/services/api';
 import { useAuth } from '../../src/context/AuthContext';
 import ImageUpload from '../../src/components/ImageUpload';
+import { useTheme, palette, stateColors } from '../../src/theme';
 
 const CONTRIBUTION_TYPES = [
   { id: 'story', name: 'História', icon: 'auto-stories', color: '#8B5CF6' },
@@ -26,6 +27,7 @@ const REGIONS = [
 
 export default function CommunityScreen() {
   const insets = useSafeAreaInsets();
+  const { colors } = useTheme();
   const queryClient = useQueryClient();
   const { isAuthenticated, sessionToken, login } = useAuth();
   
@@ -110,13 +112,13 @@ export default function CommunityScreen() {
         
         <View style={styles.contributionFooter}>
           <View style={styles.authorInfo}>
-            <MaterialIcons name="person" size={14} color="#64748B" />
+            <MaterialIcons name="person" size={14} color={palette.gray[500]} />
             <Text style={styles.authorName}>{item.user_name}</Text>
           </View>
           
           {item.region && (
             <View style={styles.regionInfo}>
-              <MaterialIcons name="place" size={14} color="#64748B" />
+              <MaterialIcons name="place" size={14} color={palette.gray[500]} />
               <Text style={styles.regionName}>{item.region}</Text>
             </View>
           )}
@@ -125,7 +127,7 @@ export default function CommunityScreen() {
             style={styles.voteButton}
             onPress={() => handleVote(item.id)}
           >
-            <MaterialIcons name="thumb-up" size={16} color="#C49A6C" />
+            <MaterialIcons name="thumb-up" size={16} color={palette.terracotta[500]} />
             <Text style={styles.voteCount}>{item.votes}</Text>
           </TouchableOpacity>
         </View>
@@ -134,7 +136,7 @@ export default function CommunityScreen() {
   };
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top }]}>
+    <View style={[styles.container, { paddingTop: insets.top, backgroundColor: palette.forest[500] }]}>
       {/* Header */}
       <View style={styles.header}>
         <View>
@@ -145,7 +147,7 @@ export default function CommunityScreen() {
           style={styles.addButton}
           onPress={() => isAuthenticated ? setShowCreateModal(true) : login()}
         >
-          <MaterialIcons name="add" size={24} color="#2E5E4E" />
+          <MaterialIcons name="add" size={24} color={palette.forest[500]} />
         </TouchableOpacity>
       </View>
 
@@ -173,10 +175,10 @@ export default function CommunityScreen() {
         showsVerticalScrollIndicator={false}
         ListEmptyComponent={
           isLoading ? (
-            <ActivityIndicator size="large" color="#C49A6C" style={styles.loader} />
+            <ActivityIndicator size="large" color={palette.terracotta[500]} style={styles.loader} />
           ) : (
             <View style={styles.emptyState}>
-              <MaterialIcons name="forum" size={48} color="#64748B" />
+              <MaterialIcons name="forum" size={48} color={palette.gray[500]} />
               <Text style={styles.emptyText}>Ainda não há contribuições</Text>
               <Text style={styles.emptySubtext}>Seja o primeiro a partilhar!</Text>
               {isAuthenticated ? (
@@ -211,7 +213,7 @@ export default function CommunityScreen() {
             <View style={styles.modalHeader}>
               <Text style={styles.modalTitle}>Nova Contribuição</Text>
               <TouchableOpacity onPress={() => setShowCreateModal(false)}>
-                <MaterialIcons name="close" size={24} color="#64748B" />
+                <MaterialIcons name="close" size={24} color={palette.gray[500]} />
               </TouchableOpacity>
             </View>
 
@@ -330,7 +332,6 @@ export default function CommunityScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#2E5E4E',
   },
   header: {
     flexDirection: 'row',
@@ -343,18 +344,18 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 28,
     fontWeight: '800',
-    color: '#FAF8F3',
+    color: palette.gray[50],
   },
   headerSubtitle: {
     fontSize: 14,
-    color: '#94A3B8',
+    color: palette.gray[400],
     marginTop: 2,
   },
   addButton: {
     width: 48,
     height: 48,
     borderRadius: 24,
-    backgroundColor: '#C49A6C',
+    backgroundColor: palette.terracotta[500],
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -371,7 +372,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 12,
     borderRadius: 12,
-    backgroundColor: '#264E41',
+    backgroundColor: palette.forest[600],
     borderWidth: 1,
     marginRight: 12,
     minWidth: 80,
@@ -386,12 +387,12 @@ const styles = StyleSheet.create({
     paddingBottom: 20,
   },
   contributionCard: {
-    backgroundColor: '#264E41',
+    backgroundColor: palette.forest[600],
     borderRadius: 16,
     padding: 16,
     marginBottom: 12,
     borderWidth: 1,
-    borderColor: '#2A2F2A',
+    borderColor: palette.forest[700],
   },
   contributionHeader: {
     flexDirection: 'row',
@@ -413,17 +414,17 @@ const styles = StyleSheet.create({
   },
   contributionDate: {
     fontSize: 12,
-    color: '#64748B',
+    color: palette.gray[500],
   },
   contributionTitle: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#FAF8F3',
+    color: palette.gray[50],
     marginBottom: 8,
   },
   contributionContent: {
     fontSize: 14,
-    color: '#94A3B8',
+    color: palette.gray[400],
     lineHeight: 20,
     marginBottom: 12,
   },
@@ -439,7 +440,7 @@ const styles = StyleSheet.create({
   },
   authorName: {
     fontSize: 12,
-    color: '#64748B',
+    color: palette.gray[500],
   },
   regionInfo: {
     flexDirection: 'row',
@@ -448,22 +449,26 @@ const styles = StyleSheet.create({
   },
   regionName: {
     fontSize: 12,
-    color: '#64748B',
+    color: palette.gray[500],
   },
   voteButton: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
     marginLeft: 'auto',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    backgroundColor: '#C49A6C20',
+    // Touch target fix: min 44px height via paddingVertical
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    backgroundColor: `${palette.terracotta[500]}20`,
     borderRadius: 16,
+    minWidth: 44,
+    minHeight: 44,
+    justifyContent: 'center',
   },
   voteCount: {
     fontSize: 12,
     fontWeight: '600',
-    color: '#C49A6C',
+    color: palette.terracotta[500],
   },
   loader: {
     marginTop: 40,
@@ -475,17 +480,17 @@ const styles = StyleSheet.create({
   emptyText: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#94A3B8',
+    color: palette.gray[400],
     marginTop: 16,
   },
   emptySubtext: {
     fontSize: 14,
-    color: '#64748B',
+    color: palette.gray[500],
     marginTop: 4,
   },
   emptyButton: {
     marginTop: 24,
-    backgroundColor: '#C49A6C',
+    backgroundColor: palette.terracotta[500],
     paddingHorizontal: 24,
     paddingVertical: 12,
     borderRadius: 12,
@@ -493,7 +498,7 @@ const styles = StyleSheet.create({
   emptyButtonText: {
     fontSize: 14,
     fontWeight: '700',
-    color: '#2E5E4E',
+    color: palette.forest[500],
   },
   modalOverlay: {
     flex: 1,
@@ -501,7 +506,7 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
   },
   modalContent: {
-    backgroundColor: '#264E41',
+    backgroundColor: palette.forest[600],
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     padding: 20,
@@ -516,12 +521,12 @@ const styles = StyleSheet.create({
   modalTitle: {
     fontSize: 22,
     fontWeight: '700',
-    color: '#FAF8F3',
+    color: palette.gray[50],
   },
   inputLabel: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#94A3B8',
+    color: palette.gray[400],
     marginBottom: 8,
     marginTop: 16,
   },
@@ -536,14 +541,14 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 10,
     borderRadius: 10,
-    backgroundColor: '#2E5E4E',
+    backgroundColor: palette.forest[500],
     borderWidth: 1,
-    borderColor: '#2A2F2A',
+    borderColor: palette.forest[700],
     gap: 6,
   },
   typeSelectorText: {
     fontSize: 13,
-    color: '#94A3B8',
+    color: palette.gray[400],
   },
   regionSelector: {
     marginVertical: 8,
@@ -552,32 +557,32 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     paddingVertical: 8,
     borderRadius: 16,
-    backgroundColor: '#2E5E4E',
+    backgroundColor: palette.forest[500],
     marginRight: 8,
     borderWidth: 1,
-    borderColor: '#2A2F2A',
+    borderColor: palette.forest[700],
   },
   regionChipActive: {
-    backgroundColor: '#C49A6C20',
-    borderColor: '#C49A6C',
+    backgroundColor: `${palette.terracotta[500]}20`,
+    borderColor: palette.terracotta[500],
   },
   regionChipText: {
     fontSize: 13,
-    color: '#94A3B8',
+    color: palette.gray[400],
   },
   regionChipTextActive: {
-    color: '#C49A6C',
+    color: palette.terracotta[500],
     fontWeight: '600',
   },
   textInput: {
-    backgroundColor: '#2E5E4E',
+    backgroundColor: palette.forest[500],
     borderRadius: 12,
     paddingHorizontal: 16,
     paddingVertical: 14,
     fontSize: 15,
-    color: '#FAF8F3',
+    color: palette.gray[50],
     borderWidth: 1,
-    borderColor: '#2A2F2A',
+    borderColor: palette.forest[700],
   },
   textArea: {
     minHeight: 120,
@@ -587,7 +592,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#C49A6C',
+    backgroundColor: palette.terracotta[500],
     paddingVertical: 16,
     borderRadius: 12,
     marginTop: 24,
@@ -596,6 +601,6 @@ const styles = StyleSheet.create({
   submitButtonText: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#2E5E4E',
+    color: palette.forest[500],
   },
 });
