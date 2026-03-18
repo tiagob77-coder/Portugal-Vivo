@@ -205,7 +205,7 @@ export default function ExploreScreen() {
       {/* Header */}
       <View style={styles.header}>
         <Text style={[styles.headerTitle, { color: colors.textPrimary }]}>Explorar</Text>
-        <Text style={[styles.headerSubtitle, { color: colors.textSecondary }]}>Património Vivo de Portugal</Text>
+        <Text style={[styles.headerSubtitle, { color: colors.textSecondary }]}>Descubra o melhor de Portugal</Text>
       </View>
 
       {/* Search Bar */}

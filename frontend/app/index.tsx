@@ -156,7 +156,7 @@ export default function WelcomeScreen() {
             <View style={s.logoIcon}>
               <MaterialIcons name="terrain" size={18} color="#FFF" />
             </View>
-            <Text style={s.logoText}>Patrimonio Vivo</Text>
+            <Text style={s.logoText}>Portugal Vivo</Text>
           </TouchableOpacity>
           {isWide && (
             <View style={s.navLinks}>
@@ -455,7 +455,7 @@ export default function WelcomeScreen() {
                 <View style={s.logoIcon}>
                   <MaterialIcons name="terrain" size={14} color="#FFF" />
                 </View>
-                <Text style={s.footerLogo}>Patrimonio Vivo</Text>
+                <Text style={s.footerLogo}>Portugal Vivo</Text>
               </View>
               <Text style={s.footerDesc}>Um mapa vivo onde cada regiao respira historias, sabores e caminhos. Descobre Portugal de uma forma unica e autentica.</Text>
             </View>
@@ -483,7 +483,7 @@ export default function WelcomeScreen() {
             )}
           </View>
           <View style={s.footerBottom}>
-            <Text style={s.footerCopy}>2026 Patrimonio Vivo. Todos os direitos reservados.</Text>
+            <Text style={s.footerCopy}>2026 Portugal Vivo. Todos os direitos reservados.</Text>
             <Text style={s.footerMade}>Feito com amor em Portugal</Text>
           </View>
         </View>
