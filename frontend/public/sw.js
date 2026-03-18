@@ -3,10 +3,11 @@
  * Features: Network-first caching, offline POI data, push notifications, background sync
  */
 
-const CACHE_NAME = 'portugal-vivo-v5';
-const API_CACHE = 'portugal-vivo-api-v5';
-const OFFLINE_DATA_CACHE = 'portugal-vivo-offline-v5';
-const IMAGE_CACHE = 'portugal-vivo-images-v5';
+const CACHE_NAME = 'portugal-vivo-v6';
+const API_CACHE = 'portugal-vivo-api-v6';
+const OFFLINE_DATA_CACHE = 'portugal-vivo-offline-v6';
+const IMAGE_CACHE = 'portugal-vivo-images-v6';
+const NARRATIVE_CACHE = 'portugal-vivo-narrative-v6';
 
 // Static assets to precache
 const PRECACHE_URLS = [
@@ -54,7 +55,7 @@ self.addEventListener('install', (event) => {
 
 // Activate: clean old caches and claim clients
 self.addEventListener('activate', (event) => {
-  const validCaches = [CACHE_NAME, API_CACHE, OFFLINE_DATA_CACHE, IMAGE_CACHE];
+  const validCaches = [CACHE_NAME, API_CACHE, OFFLINE_DATA_CACHE, IMAGE_CACHE, NARRATIVE_CACHE];
   event.waitUntil(
     caches.keys().then((keys) => {
       return Promise.all(
@@ -93,6 +94,35 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
+  // Narrative POST requests (/api/narrative): cache by item_id+style key
+  if (url.pathname === '/api/narrative' && event.request.method === 'POST') {
+    event.respondWith(
+      event.request.clone().json().then(async (body) => {
+        const narrativeKey = `narrative_${body.item_id}_${body.style || 'storytelling'}`;
+        return fetch(event.request)
+          .then(async (response) => {
+            if (response.ok) {
+              const clone = response.clone();
+              const cache = await caches.open(NARRATIVE_CACHE);
+              // Use a synthetic Request keyed by narrative params
+              await cache.put(new Request(narrativeKey), clone);
+            }
+            return response;
+          })
+          .catch(async () => {
+            // Offline fallback: serve cached narrative if available
+            const cache = await caches.open(NARRATIVE_CACHE);
+            const cached = await cache.match(new Request(narrativeKey));
+            if (cached) return cached;
+            return new Response(JSON.stringify({ error: 'offline', message: 'Sem conexao. Narrativa em cache indisponivel.' }), {
+              status: 503, headers: { 'Content-Type': 'application/json' },
+            });
+          });
+      }).catch(() => fetch(event.request))
+    );
+    return;
+  }
+
   // API requests: network-first with offline data fallback
   if (url.pathname.startsWith('/api/')) {
     event.respondWith(
@@ -100,9 +130,10 @@ self.addEventListener('fetch', (event) => {
         .then((response) => {
           if (response.ok) {
             const clone = response.clone();
-            // Cache in appropriate store
+            // Individual heritage items get 24h cache in OFFLINE_DATA_CACHE
+            const isHeritageSingle = /^\/api\/heritage\/[^/]+$/.test(url.pathname);
             const isOfflineEndpoint = OFFLINE_API_URLS.some(u => url.pathname + url.search === u || url.pathname === u.split('?')[0]);
-            const cacheName = isOfflineEndpoint ? OFFLINE_DATA_CACHE : API_CACHE;
+            const cacheName = (isOfflineEndpoint || isHeritageSingle) ? OFFLINE_DATA_CACHE : API_CACHE;
             caches.open(cacheName).then((cache) => cache.put(event.request, clone));
           }
           return response;
@@ -261,6 +292,21 @@ self.addEventListener('message', (event) => {
       return Promise.all(keys.map((key) => caches.delete(key)));
     }).then(() => {
       event.ports[0]?.postMessage({ success: true });
+    });
+  }
+  // Pre-warm image cache with a list of URLs sent from the app
+  if (event.data && event.data.type === 'PREFETCH_IMAGES' && Array.isArray(event.data.urls)) {
+    caches.open(IMAGE_CACHE).then(async (cache) => {
+      for (const url of event.data.urls) {
+        try {
+          const already = await cache.match(url);
+          if (!already) {
+            const response = await fetch(url);
+            if (response.ok) await cache.put(url, response);
+          }
+        } catch (_e) { /* best effort */ }
+      }
+      event.ports[0]?.postMessage({ success: true, count: event.data.urls.length });
     });
   }
 });

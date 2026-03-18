@@ -16,6 +16,7 @@ import ErrorBoundary from '../src/components/ErrorBoundary';
 import { registerServiceWorker } from '../src/services/pwaRegistration';
 import { initMonitoring, captureException } from '../src/utils/monitoring';
 import { pushNotificationService } from '../src/services/pushNotifications';
+import { offlineCache } from '../src/services/offlineCache';
 import {
   registerBackgroundTasks,
   startWebProximityPolling,
@@ -30,6 +31,24 @@ const queryClient = new QueryClient({
     },
   },
 });
+
+/**
+ * Silently warms the offline cache after login.
+ * Fetches favorites + pre-fetches their images in the background.
+ * Runs at most once per app session (guarded by sessionToken change).
+ */
+function CacheWarmer() {
+  const { isAuthenticated, sessionToken } = useAuth();
+
+  useEffect(() => {
+    if (!isAuthenticated || !sessionToken) return;
+
+    // Run in background — never blocks UI
+    offlineCache.warmFavoritesCache(sessionToken).catch(() => {});
+  }, [isAuthenticated, sessionToken]);
+
+  return null;
+}
 
 /**
  * Manages push notification lifecycle tied to auth state.
@@ -178,6 +197,7 @@ export default function RootLayout() {
                 <AuthProvider>
                   <ThemedStack />
                   <NotificationManager />
+                  <CacheWarmer />
                   <OfflineBanner />
                   {Platform.OS === 'web' && <InstallPrompt />}
                 </AuthProvider>

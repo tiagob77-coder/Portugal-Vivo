@@ -359,14 +359,40 @@ export default function HeritageDetailScreen() {
 
   const { data: narrativeData, isLoading: narrativeLoading, refetch: refetchNarrative } = useQuery({
     queryKey: ['narrative', id, narrativeStyle],
-    queryFn: () => generateNarrative(id!, narrativeStyle),
+    queryFn: async () => {
+      try {
+        const data = await generateNarrative(id!, narrativeStyle);
+        // Persist generated narrative for offline access
+        offlineCache.cacheNarrative(id!, narrativeStyle, data.narrative).catch(() => {});
+        return data;
+      } catch (err) {
+        // Offline fallback: serve from cache with a flag
+        const cached = await offlineCache.getCachedNarrative(id!, narrativeStyle);
+        if (cached) {
+          return { narrative: cached, item_name: item?.name || '', generated_at: 'cached' };
+        }
+        throw err;
+      }
+    },
     enabled: showNarrative && isPremium,
   });
 
   // Free brief resume — available to all users for short descriptions
   const { data: freeResumeData, isLoading: freeResumeLoading } = useQuery({
     queryKey: ['narrative', id, 'brief'],
-    queryFn: () => generateNarrative(id!, 'brief'),
+    queryFn: async () => {
+      try {
+        const data = await generateNarrative(id!, 'brief');
+        offlineCache.cacheNarrative(id!, 'brief', data.narrative).catch(() => {});
+        return data;
+      } catch (err) {
+        const cached = await offlineCache.getCachedNarrative(id!, 'brief');
+        if (cached) {
+          return { narrative: cached, item_name: item?.name || '', generated_at: 'cached' };
+        }
+        throw err;
+      }
+    },
     enabled: showFreeResume,
   });
 
@@ -392,10 +418,15 @@ export default function HeritageDetailScreen() {
   const [sound, setSound] = useState<Audio.Sound | null>(null);
   const [shareCopied, setShareCopied] = useState(false);
 
-  // Cache POI for offline access when viewed
+  // Cache POI + pre-fetch images for offline access when viewed
   useEffect(() => {
     if (item) {
       offlineCache.addFavoritePOI(item);
+      // Pre-fetch hero and thumbnail images (native only — SW handles web)
+      const imageUrls: string[] = [];
+      if ((item as any).image_url) imageUrls.push((item as any).image_url);
+      if ((item as any).thumbnail_url) imageUrls.push((item as any).thumbnail_url);
+      if (imageUrls.length > 0) offlineCache.prefetchImages(imageUrls).catch(() => {});
     }
   }, [item]);
 
@@ -831,6 +862,12 @@ export default function HeritageDetailScreen() {
             </View>
           ) : narrativeData ? (
             <View style={styles.narrativeContent}>
+              {narrativeData.generated_at === 'cached' && (
+                <View style={styles.cachedBadge}>
+                  <MaterialIcons name="offline-pin" size={12} color="#64748B" />
+                  <Text style={styles.cachedBadgeText}>Guardado offline</Text>
+                </View>
+              )}
               <Text style={styles.narrativeText}>{narrativeData.narrative}</Text>
               <View style={styles.narrativeActions}>
                 {/* Ouvir narrativa — device TTS, free */}
@@ -1473,6 +1510,17 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     borderWidth: 1,
     borderColor: '#8B5CF640',
+  },
+  cachedBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    marginBottom: 10,
+  },
+  cachedBadgeText: {
+    fontSize: 11,
+    color: '#64748B',
+    fontStyle: 'italic',
   },
   narrativeText: {
     fontSize: 15,

@@ -5,6 +5,7 @@
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import NetInfo from '@react-native-community/netinfo';
+import { Platform, Image } from 'react-native';
 import { HeritageItem } from '../types';
 
 // Lazy import to avoid circular dependency (api.ts imports offlineCache)
@@ -20,13 +21,17 @@ const CACHE_KEYS = {
   OFFLINE_QUEUE: 'cache_offline_queue',
   LAST_SYNC: 'cache_last_sync',
   VISITED_POIS: 'cache_visited_pois',
+  NARRATIVE_PREFIX: 'cache_narrative_',   // + itemId_style
+  IMAGE_PREFETCH_LOG: 'cache_img_prefetch', // tracks prefetched URLs
 };
 
 // Cache expiration times (in milliseconds)
 const CACHE_EXPIRY = {
-  NEARBY_POIS: 24 * 60 * 60 * 1000, // 24 hours
-  CATEGORIES: 7 * 24 * 60 * 60 * 1000, // 7 days
-  ROUTES: 24 * 60 * 60 * 1000, // 24 hours
+  NEARBY_POIS: 24 * 60 * 60 * 1000,        // 24 hours
+  CATEGORIES: 7 * 24 * 60 * 60 * 1000,     // 7 days
+  ROUTES: 24 * 60 * 60 * 1000,             // 24 hours
+  NARRATIVE: 7 * 24 * 60 * 60 * 1000,      // 7 days
+  IMAGE_PREFETCH_LOG: 24 * 60 * 60 * 1000, // 24 hours
 };
 
 interface CacheEntry<T> {
@@ -407,6 +412,135 @@ class OfflineCacheService {
 
   private toRad(value: number): number {
     return (value * Math.PI) / 180;
+  }
+
+  // ─── Narrative caching ──────────────────────────────────────────────────────
+
+  /**
+   * Cache a generated AI narrative (7-day TTL).
+   * Called right after a successful generateNarrative() response.
+   */
+  async cacheNarrative(
+    itemId: string,
+    style: string,
+    narrative: string,
+  ): Promise<void> {
+    const key = `${CACHE_KEYS.NARRATIVE_PREFIX}${itemId}_${style}`;
+    await this.setCache(key, narrative, CACHE_EXPIRY.NARRATIVE);
+  }
+
+  /**
+   * Retrieve a cached narrative. Returns null if missing or expired.
+   */
+  async getCachedNarrative(itemId: string, style: string): Promise<string | null> {
+    const key = `${CACHE_KEYS.NARRATIVE_PREFIX}${itemId}_${style}`;
+    return this.getCache<string>(key);
+  }
+
+  /**
+   * Remove all cached narratives for a given POI (called on cache clear).
+   */
+  async clearNarrativesForItem(itemId: string): Promise<void> {
+    const allKeys = await AsyncStorage.getAllKeys();
+    const toRemove = allKeys.filter(k => k.startsWith(`${CACHE_KEYS.NARRATIVE_PREFIX}${itemId}_`));
+    if (toRemove.length > 0) await AsyncStorage.multiRemove(toRemove);
+  }
+
+  // ─── Image pre-fetching (native) ─────────────────────────────────────────
+
+  /**
+   * Pre-fetch an array of image URLs for offline native access.
+   * No-op on web (Service Worker handles images there).
+   * Silently skips URLs that fail or are already prefetched this session.
+   */
+  async prefetchImages(urls: string[]): Promise<void> {
+    if (Platform.OS === 'web') {
+      // Web: tell the SW to pre-warm the image cache
+      if (typeof navigator !== 'undefined' && navigator.serviceWorker?.controller) {
+        navigator.serviceWorker.controller.postMessage({ type: 'PREFETCH_IMAGES', urls });
+      }
+      return;
+    }
+
+    const validUrls = urls.filter(u => typeof u === 'string' && u.startsWith('http'));
+    if (validUrls.length === 0) return;
+
+    // Track what we've already prefetched to avoid redundant network calls
+    const log = (await this.getCache<Record<string, number>>(CACHE_KEYS.IMAGE_PREFETCH_LOG)) || {};
+    const now = Date.now();
+    const newUrls = validUrls.filter(u => !log[u] || now - log[u] > CACHE_EXPIRY.IMAGE_PREFETCH_LOG);
+
+    if (newUrls.length === 0) return;
+
+    const results = await Promise.allSettled(
+      newUrls.map(url => Image.prefetch(url))
+    );
+
+    // Log the ones that succeeded
+    results.forEach((r, i) => {
+      if (r.status === 'fulfilled') log[newUrls[i]] = now;
+    });
+
+    await this.setCache(CACHE_KEYS.IMAGE_PREFETCH_LOG, log, CACHE_EXPIRY.NEARBY_POIS * 2);
+  }
+
+  /**
+   * Pre-fetch images for a list of heritage items (hero image + thumbnail).
+   */
+  async prefetchItemImages(items: HeritageItem[]): Promise<void> {
+    const urls = items.flatMap(item => {
+      const src: string[] = [];
+      if ((item as any).image_url) src.push((item as any).image_url);
+      if ((item as any).thumbnail_url) src.push((item as any).thumbnail_url);
+      return src;
+    });
+    await this.prefetchImages(urls);
+  }
+
+  // ─── Cache warming ────────────────────────────────────────────────────────
+
+  /**
+   * Warm the cache for a user's favorites:
+   * - Fetches detail for each favorited POI that isn't already cached
+   * - Pre-fetches their images on native
+   * Designed to run silently in the background after login.
+   */
+  async warmFavoritesCache(sessionToken: string): Promise<void> {
+    try {
+      const { getFavorites, getHeritageItem } = getApiFunctions();
+
+      const favorites: HeritageItem[] = await getFavorites(sessionToken).catch(() => []);
+      if (!favorites.length) return;
+
+      // Store favorites locally
+      for (const poi of favorites) {
+        await this.addFavoritePOI(poi);
+      }
+
+      // Pre-fetch hero images for all favorites
+      await this.prefetchItemImages(favorites);
+
+      // Fetch and cache individual POI details for the first 20 favorites
+      const toDetail = favorites.slice(0, 20);
+      await Promise.allSettled(
+        toDetail.map(async (poi) => {
+          const cacheKey = `cache_heritage_item_${poi.id}`;
+          const already = await this.getCache(cacheKey);
+          if (!already) {
+            const detail = await getHeritageItem(poi.id).catch(() => null);
+            if (detail) {
+              await this.setCache(cacheKey, detail, CACHE_EXPIRY.NEARBY_POIS);
+              // Prefetch detail image too
+              if ((detail as any).image_url) {
+                await this.prefetchImages([(detail as any).image_url]);
+              }
+            }
+          }
+        })
+      );
+    } catch (_e) {
+      // Cache warming is best-effort — never block the user
+    }
   }
 
   /**
