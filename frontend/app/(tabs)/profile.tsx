@@ -7,6 +7,13 @@ import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../src/context/AuthContext';
 import { getFavorites, getStats, getBadges, getCategories, getGamificationProfile, getSubscriptionStatus } from '../../src/services/api';
+import { pushNotificationService } from '../../src/services/pushNotifications';
+import {
+  registerBackgroundTasks,
+  unregisterBackgroundTasks,
+  startWebProximityPolling,
+  stopWebProximityPolling,
+} from '../../src/services/backgroundTasks';
 import type { GamificationProfile, SubscriptionStatus } from '../../src/services/api';
 import EmptyState from '../../src/components/EmptyState';
 import HeritageCard from '../../src/components/HeritageCard';
@@ -56,6 +63,36 @@ export default function ProfileScreen() {
     const newVal = !notificationsEnabled;
     setNotificationsEnabled(newVal);
     await AsyncStorage.setItem('notifications_enabled', String(newVal));
+
+    if (newVal) {
+      // Enable: request permission, get token, register with backend
+      const token = await pushNotificationService.initialize();
+      if (token) {
+        await pushNotificationService.registerTokenWithBackend();
+        // Start proximity background task / web polling
+        if (Platform.OS === 'web') {
+          startWebProximityPolling();
+        } else {
+          await registerBackgroundTasks();
+        }
+      } else {
+        // Permission denied — revert the toggle
+        setNotificationsEnabled(false);
+        await AsyncStorage.setItem('notifications_enabled', 'false');
+        Alert.alert(
+          'Notificações bloqueadas',
+          'Ativa as notificações nas definições do dispositivo para receber alertas.',
+        );
+      }
+    } else {
+      // Disable: cancel local notifications + background task
+      await pushNotificationService.cancelAllNotifications();
+      if (Platform.OS === 'web') {
+        stopWebProximityPolling();
+      } else {
+        await unregisterBackgroundTasks();
+      }
+    }
   };
 
   const handleLogout = () => {

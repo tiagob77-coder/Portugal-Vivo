@@ -13,9 +13,10 @@
       "bundleIdentifier": "pt.portugalvivo",
       "infoPlist": {
         "NSLocationWhenInUseUsageDescription": "Descubra património cultural perto de si",
-        "NSLocationAlwaysAndWhenInUseUsageDescription": "Receba alertas de locais culturais próximos",
+        "NSLocationAlwaysAndWhenInUseUsageDescription": "Receba alertas de locais culturais próximos mesmo quando a app está em segundo plano.",
         "NSCameraUsageDescription": "A realidade aumentada Time-Travel usa a câmara para sobrepor reconstruções históricas ao mundo real",
-        "NSPhotoLibraryUsageDescription": "Adicione fotos da sua galeria"
+        "NSPhotoLibraryUsageDescription": "Adicione fotos da sua galeria",
+        "UIBackgroundModes": ["fetch", "remote-notification", "location"]
       }
     },
     "android": {
@@ -29,7 +30,10 @@
         "ACCESS_FINE_LOCATION",
         "ACCESS_COARSE_LOCATION",
         "CAMERA",
-        "READ_EXTERNAL_STORAGE"
+        "READ_EXTERNAL_STORAGE",
+        "RECEIVE_BOOT_COMPLETED",
+        "VIBRATE",
+        "POST_NOTIFICATIONS"
       ]
     },
     "web": {
@@ -54,6 +58,29 @@
         "expo-camera",
         {
           "cameraPermission": "A funcionalidade Time-Travel usa a câmara para sobrepor reconstruções históricas ao vivo."
+        }
+      ],
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/images/icon-192.png",
+          "color": "#8B5CF6",
+          "sounds": [],
+          "androidMode": "default",
+          "androidCollapsedTitle": "Portugal Vivo",
+          "iosDisplayInForeground": true
+        }
+      ],
+      [
+        "expo-task-manager"
+      ],
+      [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "Receba alertas de locais culturais próximos mesmo quando a app está em segundo plano.",
+          "locationWhenInUsePermission": "Descubra património cultural perto de si.",
+          "isIosBackgroundLocationEnabled": true,
+          "isAndroidBackgroundLocationEnabled": true
         }
       ]
     ],
