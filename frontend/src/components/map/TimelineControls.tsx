@@ -5,7 +5,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
-import { palette } from '../../../src/theme';
+import { palette, stateColors } from '../../../src/theme';
 
 export interface TimelineEpoch {
   id: string;
@@ -99,7 +99,7 @@ export default function TimelineControls({
           <MaterialIcons name="skip-previous" size={20} color="#8A8A8A" />
         </TouchableOpacity>
         <TouchableOpacity
-          style={[styles.playBtn, isPlaying && { backgroundColor: '#EF4444' }]}
+          style={[styles.playBtn, isPlaying && { backgroundColor: stateColors.surf.poor }]}
           onPress={onPlayToggle}
         >
           <MaterialIcons

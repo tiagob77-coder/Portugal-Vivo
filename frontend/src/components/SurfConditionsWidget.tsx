@@ -35,7 +35,7 @@ export function SurfConditionsWidget({ spotId, compact = false, onPress }: SurfW
   if (isLoading) {
     return (
       <View style={[styles.container, compact && styles.containerCompact]}>
-        <ActivityIndicator size="small" color="#3B82F6" />
+        <ActivityIndicator size="small" color={stateColors.surf.good} />
       </View>
     );
   }

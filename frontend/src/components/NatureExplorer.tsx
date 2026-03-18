@@ -8,6 +8,7 @@ import {
   getNatura2000Sites as _getNatura2000Sites,
   getNatureMapLayers,
 } from '../services/api';
+import { stateColors, palette } from '../theme';
 
 interface NatureExplorerProps {
   lat?: number;
@@ -64,7 +65,7 @@ const NatureExplorer: React.FC<NatureExplorerProps> = ({
   if (loading) {
     return (
       <View style={styles.loading}>
-        <ActivityIndicator size="large" color="#22C55E" />
+        <ActivityIndicator size="large" color={stateColors.event.natureza} />
         <Text style={styles.loadingText}>A carregar natureza...</Text>
       </View>
     );
@@ -73,7 +74,7 @@ const NatureExplorer: React.FC<NatureExplorerProps> = ({
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <MaterialIcons name="eco" size={24} color="#22C55E" />
+        <MaterialIcons name="eco" size={24} color={stateColors.event.natureza} />
         <Text style={styles.title}>Natureza & Biodiversidade</Text>
       </View>
 
@@ -87,7 +88,7 @@ const NatureExplorer: React.FC<NatureExplorerProps> = ({
             <MaterialIcons
               name={tab.icon}
               size={18}
-              color={activeTab === tab.key ? '#fff' : '#22C55E'}
+              color={activeTab === tab.key ? palette.white : stateColors.event.natureza}
             />
             <Text style={[styles.tabText, activeTab === tab.key && styles.tabTextActive]}>
               {tab.label} ({tab.count})
@@ -104,7 +105,7 @@ const NatureExplorer: React.FC<NatureExplorerProps> = ({
             onPress={() => onAreaPress?.(area)}
           >
             <View style={styles.cardHeader}>
-              <MaterialIcons name="landscape" size={20} color="#22C55E" />
+              <MaterialIcons name="landscape" size={20} color={stateColors.event.natureza} />
               <Text style={styles.cardTitle}>{area.name}</Text>
             </View>
             <Text style={styles.cardSubtitle}>{area.designation}</Text>
@@ -126,7 +127,7 @@ const NatureExplorer: React.FC<NatureExplorerProps> = ({
             onPress={() => onStationPress?.(station)}
           >
             <View style={styles.cardHeader}>
-              <MaterialIcons name="biotech" size={20} color="#3B82F6" />
+              <MaterialIcons name="biotech" size={20} color={stateColors.surf.good} />
               <Text style={styles.cardTitle}>{station.name}</Text>
             </View>
             <Text style={styles.cardSubtitle}>{station.habitat_type}</Text>
@@ -183,7 +184,7 @@ const getIUCNColor = (status: string): string => {
     case 'EN': return '#EA580C';
     case 'VU': return '#F59E0B';
     case 'NT': return '#84CC16';
-    case 'LC': return '#22C55E';
+    case 'LC': return stateColors.event.natureza;
     default: return '#9CA3AF';
   }
 };
@@ -191,7 +192,7 @@ const getIUCNColor = (status: string): string => {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#F0FDF4' },
   loading: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 40 },
-  loadingText: { marginTop: 12, color: '#6B7280', fontSize: 14 },
+  loadingText: { marginTop: 12, color: stateColors.surf.flat, fontSize: 14 },
   header: { flexDirection: 'row', alignItems: 'center', padding: 16, gap: 8 },
   title: { fontSize: 20, fontWeight: '700', color: '#166534' },
   tabBar: { paddingHorizontal: 12, maxHeight: 44 },
@@ -199,7 +200,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row', alignItems: 'center', paddingHorizontal: 14, paddingVertical: 8,
     borderRadius: 20, marginRight: 8, backgroundColor: '#DCFCE7', gap: 6,
   },
-  tabActive: { backgroundColor: '#22C55E' },
+  tabActive: { backgroundColor: stateColors.event.natureza },
   tabText: { fontSize: 13, color: '#166534', fontWeight: '600' },
   tabTextActive: { color: '#fff' },
   content: { flex: 1, padding: 12 },
@@ -210,15 +211,15 @@ const styles = StyleSheet.create({
   },
   cardHeader: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 4 },
   cardTitle: { fontSize: 16, fontWeight: '700', color: '#1F2937', flex: 1 },
-  cardSubtitle: { fontSize: 13, color: '#6B7280', marginBottom: 4 },
+  cardSubtitle: { fontSize: 13, color: stateColors.surf.flat, marginBottom: 4 },
   cardDescription: { fontSize: 13, color: '#4B5563', marginBottom: 8, lineHeight: 18 },
   cardMeta: { flexDirection: 'row', alignItems: 'center', gap: 8, flexWrap: 'wrap' },
   metaText: { fontSize: 12, color: '#9CA3AF' },
   distanceBadge: {
-    fontSize: 12, color: '#22C55E', fontWeight: '700',
+    fontSize: 12, color: stateColors.event.natureza, fontWeight: '700',
     backgroundColor: '#DCFCE7', paddingHorizontal: 8, paddingVertical: 2, borderRadius: 10,
   },
-  speciesCount: { fontSize: 13, color: '#3B82F6', fontWeight: '600', marginBottom: 6 },
+  speciesCount: { fontSize: 13, color: stateColors.surf.good, fontWeight: '600', marginBottom: 6 },
   highlightsRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginTop: 6 },
   highlightChip: {
     backgroundColor: '#F0FDF4', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12,
@@ -229,7 +230,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#EFF6FF', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12,
     borderWidth: 1, borderColor: '#BFDBFE',
   },
-  scientificName: { fontSize: 13, color: '#6B7280', fontStyle: 'italic', marginBottom: 6 },
+  scientificName: { fontSize: 13, color: stateColors.surf.flat, fontStyle: 'italic', marginBottom: 6 },
   iucnBadge: { paddingHorizontal: 8, paddingVertical: 2, borderRadius: 8 },
   iucnText: { fontSize: 11, color: '#fff', fontWeight: '700' },
 });

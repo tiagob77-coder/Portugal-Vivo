@@ -12,6 +12,7 @@ import {
   Alert,
 } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
+import { stateColors } from '../../../src/theme';
 
 interface MapLayer {
   id: string;
@@ -54,7 +55,7 @@ export default function MapLayerSelector({
     <View>
       {!isNative && (
         <View style={styles.sectionHeader}>
-          <MaterialIcons name="layers" size={20} color="#8B5CF6" />
+          <MaterialIcons name="layers" size={20} color={stateColors.rarity.raro} />
           <Text style={styles.sectionTitle}>Camadas</Text>
           <Text style={styles.subcatCount}>
             {activeSubcategories.length} de 44
@@ -279,7 +280,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   toggleAllText: {
-    color: '#8B5CF6',
+    color: stateColors.rarity.raro,
     fontSize: 11,
     fontWeight: '700',
   },

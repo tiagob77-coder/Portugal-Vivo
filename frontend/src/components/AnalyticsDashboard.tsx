@@ -8,6 +8,7 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { useQuery } from '@tanstack/react-query';
 import { API_BASE } from '../config/api';
 import axios from 'axios';
+import { stateColors } from '../theme';
 
 interface AnalyticsDashboardProps {
   /** Initial period in days */
@@ -46,7 +47,7 @@ export default function AnalyticsDashboard({ initialPeriod = 30 }: AnalyticsDash
   if (error) {
     return (
       <View style={styles.centered}>
-        <MaterialIcons name="error-outline" size={48} color="#EF4444" />
+        <MaterialIcons name="error-outline" size={48} color={stateColors.surf.poor} />
         <Text style={styles.errorText}>Erro ao carregar analytics</Text>
       </View>
     );
@@ -84,7 +85,7 @@ export default function AnalyticsDashboard({ initialPeriod = 30 }: AnalyticsDash
       <View style={styles.cardRow}>
         <MetricCard icon="visibility" label="Visitas" value={data.visits.total} color="#0EA5E9" />
         <MetricCard icon="person" label="Visitantes únicos" value={data.visits.unique_visitors} color="#F59E0B" />
-        <MetricCard icon="repeat" label="Retenção" value={`${data.retention.retention_rate_pct}%`} color="#EF4444" />
+        <MetricCard icon="repeat" label="Retenção" value={`${data.retention.retention_rate_pct}%`} color={stateColors.surf.poor} />
       </View>
 
       {/* User Growth */}
@@ -124,7 +125,7 @@ export default function AnalyticsDashboard({ initialPeriod = 30 }: AnalyticsDash
                 {poi.category && <Text style={styles.listItemSub}>{poi.category}</Text>}
               </View>
               <View style={styles.badge}>
-                <MaterialIcons name="favorite" size={14} color="#EF4444" />
+                <MaterialIcons name="favorite" size={14} color={stateColors.surf.poor} />
                 <Text style={styles.badgeText}>{poi.favorites_count}</Text>
               </View>
             </View>
@@ -216,7 +217,7 @@ const styles = StyleSheet.create({
   content: { padding: 16 },
   centered: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 32 },
   loadingText: { marginTop: 12, color: '#64748B', fontSize: 14 },
-  errorText: { marginTop: 12, color: '#EF4444', fontSize: 14 },
+  errorText: { marginTop: 12, color: stateColors.surf.poor, fontSize: 14 },
 
   // Period selector
   periodRow: { flexDirection: 'row', gap: 8, marginBottom: 20 },

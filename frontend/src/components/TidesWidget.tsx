@@ -109,7 +109,7 @@ export function TidesWidget({ latitude, longitude, compact = false, onPress, sho
   if (isLoading) {
     return (
       <View style={[styles.container, compact && styles.containerCompact]}>
-        <ActivityIndicator size="small" color="#3B82F6" />
+        <ActivityIndicator size="small" color={stateColors.tide.rising} />
       </View>
     );
   }
