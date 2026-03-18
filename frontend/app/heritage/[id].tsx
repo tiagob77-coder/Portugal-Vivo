@@ -25,16 +25,12 @@ if (Platform.OS !== 'web') {
   _WebView = require('react-native-webview').WebView; // eslint-disable-line @typescript-eslint/no-require-imports
 }
 
-// Conditional import for MapView (only on native — avoids web bundle issues)
+// MapView and Marker are only available on native
+// On web, we use Leaflet via NativeMap.web.tsx
 let MapView: any = null;
 let Marker: any = null;
-if (Platform.OS !== 'web') {
-  try {
-    const Maps = require('react-native-maps'); // eslint-disable-line @typescript-eslint/no-require-imports
-    MapView = Maps.default;
-    Marker = Maps.Marker;
-  } catch (_e) { /* graceful fallback */ }
-}
+// Note: react-native-maps imports are handled only in native builds
+// Web builds should never include this module
 
 const REGION_NAMES: Record<string, string> = {
   norte: 'Norte',
