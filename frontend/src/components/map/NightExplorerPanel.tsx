@@ -5,13 +5,14 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
+import { stateColors, palette } from '../../../src/theme';
 
 export const NIGHT_FILTERS = [
-  { id: 'all', label: 'Todos', icon: 'nightlight-round', color: '#8B5CF6' },
+  { id: 'all', label: 'Todos', icon: 'nightlight-round', color: stateColors.rarity.raro },
   { id: 'Gastronomia Noturna', label: 'Tascas', icon: 'restaurant', color: '#F97316' },
   { id: 'Sabores Nocturnos', label: 'Gastronomia', icon: 'local-dining', color: '#EAB308' },
-  { id: 'Evento/Festa', label: 'Festas', icon: 'celebration', color: '#EC4899' },
-  { id: 'Arte & Cultura', label: 'Arte', icon: 'palette', color: '#3B82F6' },
+  { id: 'Evento/Festa', label: 'Festas', icon: 'celebration', color: stateColors.event.festival },
+  { id: 'Arte & Cultura', label: 'Arte', icon: 'palette', color: stateColors.surf.good },
   { id: 'Iluminacao Patrimonial', label: 'Patrimonio', icon: 'church', color: '#14B8A6' },
   { id: 'Miradouro/Lenda', label: 'Miradouros', icon: 'visibility', color: '#A78BFA' },
 ];
@@ -83,7 +84,7 @@ const styles = StyleSheet.create({
     padding: 16,
     marginBottom: 12,
     borderWidth: 1,
-    borderColor: 'rgba(139,92,246,0.2)',
+    borderColor: 'rgba(139,92,246,0.2)', // stateColors.rarity.raro @ 20% opacity
   },
   header: {
     flexDirection: 'row',
@@ -100,12 +101,12 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: 'rgba(139,92,246,0.2)',
+    backgroundColor: 'rgba(139,92,246,0.2)', // stateColors.rarity.raro @ 20% opacity
     justifyContent: 'center',
     alignItems: 'center',
   },
   title: {
-    color: '#E2DFD6',
+    color: palette.gray[200],
     fontSize: 15,
     fontWeight: '700',
   },
