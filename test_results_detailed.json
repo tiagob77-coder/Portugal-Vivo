@@ -2,7 +2,7 @@
   {
     "endpoint": "/health",
     "method": "GET",
-    "url": "https://portugal-vivo-2.preview.emergentagent.com/api/health",
+    "url": "https://current-state-check.preview.emergentagent.com/api/health",
     "status_code": 200,
     "expected_status": 200,
     "success": true,
@@ -22,7 +22,7 @@
   {
     "endpoint": "/stats",
     "method": "GET",
-    "url": "https://portugal-vivo-2.preview.emergentagent.com/api/stats",
+    "url": "https://current-state-check.preview.emergentagent.com/api/stats",
     "status_code": 200,
     "expected_status": 200,
     "success": true,
@@ -185,7 +185,7 @@
   {
     "endpoint": "/categories",
     "method": "GET",
-    "url": "https://portugal-vivo-2.preview.emergentagent.com/api/categories",
+    "url": "https://current-state-check.preview.emergentagent.com/api/categories",
     "status_code": 200,
     "expected_status": 200,
     "success": true,
@@ -320,7 +320,7 @@
   {
     "endpoint": "/regions",
     "method": "GET",
-    "url": "https://portugal-vivo-2.preview.emergentagent.com/api/regions",
+    "url": "https://current-state-check.preview.emergentagent.com/api/regions",
     "status_code": 200,
     "expected_status": 200,
     "success": true,
@@ -370,7 +370,7 @@
   {
     "endpoint": "/heritage",
     "method": "GET",
-    "url": "https://portugal-vivo-2.preview.emergentagent.com/api/heritage",
+    "url": "https://current-state-check.preview.emergentagent.com/api/heritage",
     "status_code": 200,
     "expected_status": 200,
     "success": true,
@@ -2485,7 +2485,7 @@
   {
     "endpoint": "/heritage",
     "method": "GET",
-    "url": "https://portugal-vivo-2.preview.emergentagent.com/api/heritage",
+    "url": "https://current-state-check.preview.emergentagent.com/api/heritage",
     "status_code": 200,
     "expected_status": 200,
     "success": true,
@@ -2922,7 +2922,7 @@
   {
     "endpoint": "/heritage",
     "method": "GET",
-    "url": "https://portugal-vivo-2.preview.emergentagent.com/api/heritage",
+    "url": "https://current-state-check.preview.emergentagent.com/api/heritage",
     "status_code": 200,
     "expected_status": 200,
     "success": true,
@@ -4430,7 +4430,7 @@
   {
     "endpoint": "/heritage/c8ec52a9-1aaf-4f51-9ce2-36a69e8396d9",
     "method": "GET",
-    "url": "https://portugal-vivo-2.preview.emergentagent.com/api/heritage/c8ec52a9-1aaf-4f51-9ce2-36a69e8396d9",
+    "url": "https://current-state-check.preview.emergentagent.com/api/heritage/c8ec52a9-1aaf-4f51-9ce2-36a69e8396d9",
     "status_code": 200,
     "expected_status": 200,
     "success": true,
@@ -4478,7 +4478,7 @@
   {
     "endpoint": "/routes",
     "method": "GET",
-    "url": "https://portugal-vivo-2.preview.emergentagent.com/api/routes",
+    "url": "https://current-state-check.preview.emergentagent.com/api/routes",
     "status_code": 200,
     "expected_status": 200,
     "success": true,
@@ -4793,7 +4793,7 @@
   {
     "endpoint": "/map/items",
     "method": "GET",
-    "url": "https://portugal-vivo-2.preview.emergentagent.com/api/map/items",
+    "url": "https://current-state-check.preview.emergentagent.com/api/map/items",
     "status_code": 200,
     "expected_status": 200,
     "success": true,
