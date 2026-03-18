@@ -45,6 +45,7 @@ export default function ProfileScreen() {
     enabled: isAuthenticated && !!userId,
   });
   const [notificationsEnabled, setNotificationsEnabled] = useState(false);
+  const [advancedExpanded, setAdvancedExpanded] = useState(false);
 
   // Load notification preference
   useEffect(() => {
@@ -72,12 +73,17 @@ export default function ProfileScreen() {
     );
   }
 
-  const menuItems = [
-    { icon: 'dashboard', label: 'Painel Admin', color: '#1E3A3F', route: '/admin' },
+  // Acções principais — visíveis a todos os utilizadores autenticados
+  const primaryMenuItems = [
     { icon: 'analytics', label: 'O Meu Progresso', color: colors.accent, route: '/dashboard' },
     { icon: 'near-me', label: 'Perto de Mim', color: colors.success, route: '/nearby' },
     { icon: 'alt-route', label: 'Planear Viagem', color: colors.info, route: '/route-planner' },
+  ];
+
+  // Ferramentas avançadas — colapsável, visível em sub-menu
+  const advancedMenuItems = [
     { icon: 'insights', label: 'IQ Monitor', color: colors.accent, route: '/iq-overview', testId: 'profile-iq-overview-link' },
+    { icon: 'dashboard', label: 'Painel Admin', color: '#1E3A3F', route: '/admin' },
     { icon: 'admin-panel-settings', label: 'IQ Admin Panel', color: colors.secondary, route: '/iq-admin', testId: 'profile-iq-admin-link' },
     { icon: 'cloud-upload', label: 'Importador Excel', color: colors.info, route: '/importer' },
   ];
@@ -166,14 +172,15 @@ export default function ProfileScreen() {
             </TouchableOpacity>
           </View>
 
-          {/* Quick Actions */}
+          {/* Acções Principais */}
           <View style={[styles.quickActions, { backgroundColor: colors.surface, borderColor: colors.borderLight }]}>
-            {menuItems.map((item, idx) => (
+            {primaryMenuItems.map((item, idx) => (
               <TouchableOpacity
                 key={item.label}
-                style={[styles.actionButton, idx < menuItems.length - 1 && { borderBottomColor: colors.borderLight, borderBottomWidth: 1 }]}
+                style={[styles.actionButton, idx < primaryMenuItems.length - 1 && { borderBottomColor: colors.borderLight, borderBottomWidth: 1 }]}
                 onPress={() => router.push(item.route as any)}
-                data-testid={item.testId}
+                accessibilityLabel={item.label}
+                accessibilityRole="button"
               >
                 <View style={[styles.actionIcon, { backgroundColor: item.color + '15' }]}>
                   <MaterialIcons name={item.icon as any} size={24} color={item.color} />
@@ -183,6 +190,39 @@ export default function ProfileScreen() {
               </TouchableOpacity>
             ))}
           </View>
+
+          {/* Ferramentas Avançadas — colapsável */}
+          <TouchableOpacity
+            style={[styles.advancedHeader, { borderColor: colors.borderLight }]}
+            onPress={() => setAdvancedExpanded(prev => !prev)}
+            accessibilityLabel="Ferramentas avançadas"
+            accessibilityRole="button"
+            accessibilityState={{ expanded: advancedExpanded }}
+          >
+            <MaterialIcons name="build" size={18} color={colors.textMuted} />
+            <Text style={[styles.advancedHeaderText, { color: colors.textMuted }]}>Ferramentas Avançadas</Text>
+            <MaterialIcons name={advancedExpanded ? 'expand-less' : 'expand-more'} size={20} color={colors.textMuted} />
+          </TouchableOpacity>
+          {advancedExpanded && (
+            <View style={[styles.quickActions, { backgroundColor: colors.surface, borderColor: colors.borderLight, marginTop: 0, borderTopLeftRadius: 0, borderTopRightRadius: 0 }]}>
+              {advancedMenuItems.map((item, idx) => (
+                <TouchableOpacity
+                  key={item.label}
+                  style={[styles.actionButton, idx < advancedMenuItems.length - 1 && { borderBottomColor: colors.borderLight, borderBottomWidth: 1 }]}
+                  onPress={() => router.push(item.route as any)}
+                  data-testid={(item as any).testId}
+                  accessibilityLabel={item.label}
+                  accessibilityRole="button"
+                >
+                  <View style={[styles.actionIcon, { backgroundColor: item.color + '15' }]}>
+                    <MaterialIcons name={item.icon as any} size={24} color={item.color} />
+                  </View>
+                  <Text style={[styles.actionText, { color: colors.textPrimary }]}>{item.label}</Text>
+                  <MaterialIcons name="chevron-right" size={20} color={colors.textMuted} />
+                </TouchableOpacity>
+              ))}
+            </View>
+          )}
 
           {/* Theme Toggle - Authenticated */}
           <View style={[styles.quickActions, { backgroundColor: colors.surface, borderColor: colors.borderLight, marginTop: 16 }]}>
@@ -434,6 +474,12 @@ const styles = StyleSheet.create({
   userEmail: { fontSize: 13, marginTop: 2 },
   logoutButton: { width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center' },
   quickActions: { marginHorizontal: 20, marginTop: 16, borderRadius: 18, overflow: 'hidden', borderWidth: 1, ...shadows.md },
+  advancedHeader: {
+    flexDirection: 'row', alignItems: 'center', gap: 8,
+    marginHorizontal: 20, marginTop: 8, paddingHorizontal: 16, paddingVertical: 12,
+    borderRadius: 12, borderWidth: 1,
+  },
+  advancedHeaderText: { flex: 1, fontSize: 13, fontWeight: '600' },
   actionButton: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 14 },
   actionIcon: { width: 44, height: 44, borderRadius: 14, alignItems: 'center', justifyContent: 'center', marginRight: 12 },
   actionText: { flex: 1, fontSize: 15, fontWeight: '600' },

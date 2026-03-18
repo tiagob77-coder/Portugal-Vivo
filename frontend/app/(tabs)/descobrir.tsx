@@ -5,6 +5,7 @@ import {
   ImageBackground, Animated, Platform,
 } from 'react-native';
 import { useRouter } from 'expo-router';
+import Head from 'expo-router/head';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useQuery } from '@tanstack/react-query';
@@ -181,6 +182,15 @@ export default function DescobrerTab() {
 
   return (
     <View style={[styles.container, ds.bg]}>
+      {Platform.OS === 'web' && (
+        <Head>
+          <title>Descobrir — Portugal Vivo | POI do Dia, Tendências e Regiões</title>
+          <meta name="description" content="Descubra o melhor de Portugal hoje: o POI do Dia, locais em tendência, previsão meteorológica e sugestões por região. Tesouros que não encontra nos guias." />
+          <meta property="og:title" content="Descobrir — Portugal Vivo" />
+          <meta property="og:description" content="POI do Dia, tendências e sugestões personalizadas por região. Explore Portugal como nunca antes." />
+          <link rel="canonical" href="https://portugal-vivo.app/descobrir" />
+        </Head>
+      )}
       <OnboardingModal />
       <ScrollView
         style={styles.scrollView}

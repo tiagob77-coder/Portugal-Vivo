@@ -58,7 +58,13 @@ export default function HeritageCard({ item, categories, onPress, variant = 'def
   // Compact variant
   if (variant === 'compact') {
     return (
-      <PressableScale onPress={onPress} style={[styles.compactCard, { backgroundColor: colors.surfaceElevated, borderColor: colors.border }]}>
+      <PressableScale
+        onPress={onPress}
+        style={[styles.compactCard, { backgroundColor: colors.surfaceElevated, borderColor: colors.border }]}
+        accessibilityLabel={`${item.name}, ${REGION_NAMES[item.region] || item.region}`}
+        accessibilityRole="button"
+        accessibilityHint="Toque para ver detalhes"
+      >
         <Image source={{ uri: imageUrl }} style={[styles.compactImage, { backgroundColor: colors.border }]} />
         <View style={styles.compactContent}>
           <View style={[styles.smallBadge, { backgroundColor: getCategoryBg(item.category) }]}>
@@ -77,7 +83,13 @@ export default function HeritageCard({ item, categories, onPress, variant = 'def
 
   // Default variant with small image thumbnail
   return (
-    <PressableScale onPress={onPress} style={[styles.card, { backgroundColor: colors.surfaceElevated, borderColor: colors.border }]}>
+    <PressableScale
+      onPress={onPress}
+      style={[styles.card, { backgroundColor: colors.surfaceElevated, borderColor: colors.border }]}
+      accessibilityLabel={`${item.name}. ${category?.name || item.category}. ${REGION_NAMES[item.region] || item.region}`}
+      accessibilityRole="button"
+      accessibilityHint="Toque para ver detalhes"
+    >
       <View style={styles.cardContent}>
         <Image source={{ uri: imageUrl }} style={[styles.thumbnail, { backgroundColor: colors.border }]} />
         <View style={styles.cardText}>
