@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, Platform, Dimensions, Image, ImageBackground, Linking, Share, Alert } from 'react-native';
 import { useLocalSearchParams, useRouter, Stack } from 'expo-router';
+import Head from 'expo-router/head';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -483,6 +484,26 @@ export default function HeritageDetailScreen() {
   return (
     <View style={styles.container}>
       <Stack.Screen options={{ headerShown: false }} />
+      {Platform.OS === 'web' && (
+        <Head>
+          <title>{item.name} — Portugal Vivo</title>
+          <meta name="description" content={item.description ? item.description.slice(0, 155) : `Descubra ${item.name} no Portugal Vivo. Património cultural e natural de Portugal.`} />
+          <meta property="og:title" content={`${item.name} — Portugal Vivo`} />
+          <meta property="og:description" content={item.description ? item.description.slice(0, 200) : `Descubra ${item.name} em ${item.region || 'Portugal'}.`} />
+          {(item.image_url) && <meta property="og:image" content={item.image_url} />}
+          <meta property="og:type" content="place" />
+          <link rel="canonical" href={`https://portugal-vivo.app/heritage/${item.id}`} />
+          <script type="application/ld+json">{JSON.stringify({
+            '@context': 'https://schema.org',
+            '@type': 'TouristAttraction',
+            name: item.name,
+            description: item.description,
+            image: item.image_url,
+            address: { '@type': 'PostalAddress', addressRegion: item.region, addressCountry: 'PT' },
+            url: `https://portugal-vivo.app/heritage/${item.id}`,
+          })}</script>
+        </Head>
+      )}
       
       {/* Hero Image */}
       <ImageBackground

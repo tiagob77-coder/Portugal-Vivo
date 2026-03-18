@@ -93,7 +93,13 @@ export default function CategoryCard({ category, onPress }: CategoryCardProps) {
   const imageUrl = CATEGORY_IMAGES[category.id] || CATEGORY_IMAGES.lendas;
 
   return (
-    <PressableScale onPress={onPress} style={styles.card}>
+    <PressableScale
+      onPress={onPress}
+      style={styles.card}
+      accessibilityLabel={`${category.name}${(category as any).count ? `, ${(category as any).count} itens` : ''}`}
+      accessibilityRole="button"
+      accessibilityHint="Toque para ver itens desta categoria"
+    >
       <ImageBackground
         source={{ uri: imageUrl }}
         style={styles.imageBackground}
