@@ -51,6 +51,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const token = (userData as any).session_token || sessionId;
         setSessionToken(token);
         await AsyncStorage.setItem('session_token', token);
+        const uid = (userData as any).id || (userData as any).user_id;
+        if (uid) await AsyncStorage.setItem('user_id', uid);
       }
     } catch (error) {
       console.error('Error processing session:', error);
@@ -68,6 +70,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           setSessionToken(storedToken);
           const userData = await getCurrentUser(storedToken);
           setUser(userData);
+          const uid = (userData as any).id || (userData as any).user_id;
+          if (uid) await AsyncStorage.setItem('user_id', uid);
         }
       } catch (_error) {
         // Session expired or invalid - clear stored token
@@ -149,6 +153,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setUser(null);
     setSessionToken(null);
     await AsyncStorage.removeItem('session_token');
+    await AsyncStorage.removeItem('user_id');
   };
 
   const refreshSubscription = async () => {

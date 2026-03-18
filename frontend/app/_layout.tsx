@@ -3,7 +3,7 @@ import { Stack, useRouter } from 'expo-router';
 import Head from 'expo-router/head';
 import { StatusBar } from 'expo-status-bar';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { AuthProvider } from '../src/context/AuthContext';
+import { AuthProvider, useAuth } from '../src/context/AuthContext';
 import { ThemeProvider, useTheme } from '../src/context/ThemeContext';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
@@ -15,6 +15,12 @@ import InstallPrompt from '../src/components/InstallPrompt';
 import ErrorBoundary from '../src/components/ErrorBoundary';
 import { registerServiceWorker } from '../src/services/pwaRegistration';
 import { initMonitoring, captureException } from '../src/utils/monitoring';
+import { pushNotificationService } from '../src/services/pushNotifications';
+import {
+  registerBackgroundTasks,
+  startWebProximityPolling,
+  stopWebProximityPolling,
+} from '../src/services/backgroundTasks';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -25,9 +31,61 @@ const queryClient = new QueryClient({
   },
 });
 
+/**
+ * Manages push notification lifecycle tied to auth state.
+ * Must be inside AuthProvider + router context.
+ */
+function NotificationManager() {
+  const { isAuthenticated, sessionToken } = useAuth();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!isAuthenticated || !sessionToken) return;
+
+    let removeReceived: (() => void) | null = null;
+    let removeResponse: (() => void) | null = null;
+
+    const setup = async () => {
+      const token = await pushNotificationService.initialize();
+      if (token) {
+        await pushNotificationService.registerTokenWithBackend();
+      }
+
+      // Listen for notification taps → navigate to the relevant screen
+      removeResponse = pushNotificationService.addNotificationResponseListener((response) => {
+        const data =
+          response?.notification?.request?.content?.data || // native Expo
+          response?.data ||                                  // web
+          {};
+        if (data.poiId) {
+          router.push(`/heritage/${data.poiId}` as any);
+        } else if (data.type === 'event_nearby' && data.eventId) {
+          router.push(`/evento/${data.eventId}` as any);
+        }
+      });
+
+      // Register background proximity task (native) or start web polling
+      if (Platform.OS === 'web') {
+        startWebProximityPolling();
+      } else {
+        await registerBackgroundTasks();
+      }
+    };
+
+    setup();
+
+    return () => {
+      removeReceived?.();
+      removeResponse?.();
+      if (Platform.OS === 'web') stopWebProximityPolling();
+    };
+  }, [isAuthenticated, sessionToken, router]);
+
+  return null;
+}
+
 function ThemedStack() {
   const { colors, isDark } = useTheme();
-  const _router = useRouter();
 
   // Register PWA service worker on web
   useEffect(() => {
@@ -119,6 +177,7 @@ export default function RootLayout() {
               <QueryClientProvider client={queryClient}>
                 <AuthProvider>
                   <ThemedStack />
+                  <NotificationManager />
                   <OfflineBanner />
                   {Platform.OS === 'web' && <InstallPrompt />}
                 </AuthProvider>
