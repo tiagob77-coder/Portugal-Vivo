@@ -9,6 +9,7 @@ import { getHeritageItem, getCategories, generateNarrative, addFavorite, removeF
 import { useAuth } from '../../src/context/AuthContext';
 import { Category } from '../../src/types';
 import { Audio } from 'expo-av';
+import * as Speech from 'expo-speech';
 import { offlineCache } from '../../src/services/offlineCache';
 import { ReviewsSection } from '../../src/components/ReviewsSection';
 import { ShareButton } from '../../src/components/ShareButton';
@@ -22,6 +23,17 @@ const GOOGLE_MAPS_API_KEY = process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY || '';
 let _WebView: any = null;
 if (Platform.OS !== 'web') {
   _WebView = require('react-native-webview').WebView; // eslint-disable-line @typescript-eslint/no-require-imports
+}
+
+// Conditional import for MapView (only on native — avoids web bundle issues)
+let MapView: any = null;
+let Marker: any = null;
+if (Platform.OS !== 'web') {
+  try {
+    const Maps = require('react-native-maps'); // eslint-disable-line @typescript-eslint/no-require-imports
+    MapView = Maps.default;
+    Marker = Maps.Marker;
+  } catch (_e) { /* graceful fallback */ }
 }
 
 const REGION_NAMES: Record<string, string> = {
@@ -240,10 +252,12 @@ export default function HeritageDetailScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const queryClient = useQueryClient();
-  const { user, isAuthenticated, sessionToken, login, isPremium } = useAuth();
+  const { user, isAuthenticated, sessionToken, login, isPremium, refreshUser } = useAuth();
   const [narrativeStyle, setNarrativeStyle] = useState<'storytelling' | 'educational' | 'brief'>('storytelling');
   const [showNarrative, setShowNarrative] = useState(false);
+  const [showFreeResume, setShowFreeResume] = useState(false);
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
+  const [isSpeakingNarrative, setIsSpeakingNarrative] = useState(false);
 
   // Get user location for check-in
   useEffect(() => {
@@ -346,7 +360,14 @@ export default function HeritageDetailScreen() {
   const { data: narrativeData, isLoading: narrativeLoading, refetch: refetchNarrative } = useQuery({
     queryKey: ['narrative', id, narrativeStyle],
     queryFn: () => generateNarrative(id!, narrativeStyle),
-    enabled: showNarrative,
+    enabled: showNarrative && isPremium,
+  });
+
+  // Free brief resume — available to all users for short descriptions
+  const { data: freeResumeData, isLoading: freeResumeLoading } = useQuery({
+    queryKey: ['narrative', id, 'brief'],
+    queryFn: () => generateNarrative(id!, 'brief'),
+    enabled: showFreeResume,
   });
 
   // Community photo gallery
@@ -356,7 +377,15 @@ export default function HeritageDetailScreen() {
     enabled: !!id,
   });
 
-  const isFavorite = user?.favorites?.includes(id!) || false;
+  // Optimistic local favorite state — syncs with auth context
+  const [isFavoriteLocal, setIsFavoriteLocal] = useState<boolean>(
+    user?.favorites?.includes(id!) || false
+  );
+  useEffect(() => {
+    setIsFavoriteLocal(user?.favorites?.includes(id!) || false);
+  }, [user, id]);
+  const isFavorite = isFavoriteLocal;
+
   const [isPlayingAudio, setIsPlayingAudio] = useState(false);
   const [isLoadingAudio, setIsLoadingAudio] = useState(false);
   const [_audioError, setAudioError] = useState<string | null>(null);
@@ -434,19 +463,40 @@ export default function HeritageDetailScreen() {
     }
   };
 
+  // Device TTS for AI narrative (free, uses on-device voice)
+  const handleSpeakNarrative = async (text: string) => {
+    if (isSpeakingNarrative) {
+      Speech.stop();
+      setIsSpeakingNarrative(false);
+      return;
+    }
+    setIsSpeakingNarrative(true);
+    Speech.speak(text, {
+      language: 'pt-PT',
+      rate: 0.9,
+      onDone: () => setIsSpeakingNarrative(false),
+      onError: () => setIsSpeakingNarrative(false),
+      onStopped: () => setIsSpeakingNarrative(false),
+    });
+  };
+
   const addFavoriteMutation = useMutation({
     mutationFn: () => addFavorite(id!, sessionToken!),
+    onMutate: () => setIsFavoriteLocal(true),
+    onError: () => setIsFavoriteLocal(false),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['favorites'] });
-      Alert.alert('Sucesso', 'Adicionado aos favoritos!');
+      refreshUser();
     },
   });
 
   const removeFavoriteMutation = useMutation({
     mutationFn: () => removeFavorite(id!, sessionToken!),
+    onMutate: () => setIsFavoriteLocal(false),
+    onError: () => setIsFavoriteLocal(true),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['favorites'] });
-      Alert.alert('Sucesso', 'Removido dos favoritos!');
+      refreshUser();
     },
   });
 
@@ -580,6 +630,50 @@ export default function HeritageDetailScreen() {
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Descrição</Text>
           <Text style={styles.description}>{item.description}</Text>
+
+          {/* Free brief AI expansion — shown when description is short (<120 chars) */}
+          {(item.description?.length ?? 0) < 120 && (
+            <View style={styles.freeResumeBox}>
+              {!showFreeResume && !freeResumeData && (
+                <TouchableOpacity
+                  style={styles.freeResumeButton}
+                  onPress={() => setShowFreeResume(true)}
+                  accessibilityLabel="Expandir descrição com resumo gerado por IA"
+                  accessibilityRole="button"
+                >
+                  <MaterialIcons name="auto-fix-high" size={16} color="#C49A6C" />
+                  <Text style={styles.freeResumeButtonText}>Saber mais (resumo IA gratuito)</Text>
+                </TouchableOpacity>
+              )}
+              {freeResumeLoading && (
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 12 }}>
+                  <ActivityIndicator size="small" color="#C49A6C" />
+                  <Text style={{ color: '#94A3B8', fontSize: 13 }}>A gerar resumo...</Text>
+                </View>
+              )}
+              {freeResumeData && (
+                <View style={styles.freeResumeContent}>
+                  <View style={styles.freeResumeDivider} />
+                  <Text style={styles.freeResumeText}>{freeResumeData.narrative}</Text>
+                  <View style={styles.freeResumeFooter}>
+                    <MaterialIcons name="auto-awesome" size={12} color="#C49A6C" />
+                    <Text style={styles.freeResumeFooterText}>Resumo gerado por IA</Text>
+                    <TouchableOpacity
+                      onPress={() => handleSpeakNarrative(freeResumeData.narrative)}
+                      style={styles.freeResumeSpeakBtn}
+                      accessibilityLabel="Ouvir resumo"
+                    >
+                      <MaterialIcons
+                        name={isSpeakingNarrative ? 'stop' : 'record-voice-over'}
+                        size={14}
+                        color="#C49A6C"
+                      />
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              )}
+            </View>
+          )}
         </View>
 
         {/* Location Map Preview */}
@@ -614,51 +708,55 @@ export default function HeritageDetailScreen() {
                 <Text style={styles.openMapsButtonText}>Abrir no Maps</Text>
               </TouchableOpacity>
             </View>
-            {Platform.OS === 'web' && !GOOGLE_MAPS_API_KEY ? (
+            {Platform.OS === 'web' ? (
+              /* Web: OpenStreetMap iframe embed */
               <View style={[styles.miniMapContainer, { overflow: 'hidden', borderRadius: 12 }]}>
                 <iframe
-                  src={`https://www.openstreetmap.org/export/embed.html?bbox=${(item.location?.lng || 0) - 0.02},${(item.location?.lat || 0) - 0.01},${(item.location?.lng || 0) + 0.02},${(item.location?.lat || 0) + 0.01}&layer=mapnik&marker=${item.location?.lat},${item.location?.lng}`}
-                  style={{ width: '100%', height: 200, border: 'none', borderRadius: 12 } as any}
+                  src={`https://www.openstreetmap.org/export/embed.html?bbox=${(item.location?.lng || 0) - 0.015},${(item.location?.lat || 0) - 0.008},${(item.location?.lng || 0) + 0.015},${(item.location?.lat || 0) + 0.008}&layer=mapnik&marker=${item.location?.lat},${item.location?.lng}`}
+                  style={{ width: '100%', height: '100%', border: 'none' } as any}
+                  title="Localização no mapa"
+                  loading="lazy"
                 />
               </View>
-            ) : (
-              <TouchableOpacity
-                style={styles.miniMapContainer}
-                activeOpacity={0.9}
-                onPress={() => {
-                  const googleMapsUrl = `https://www.google.com/maps/search/?api=1&query=${item.location?.lat},${item.location?.lng}`;
-                  const appleMapsUrl = `https://maps.apple.com/?q=${item.location?.lat},${item.location?.lng}`;
-
-                  if (Platform.OS === 'web') {
-                    window.open(googleMapsUrl, '_blank');
-                  } else if (Platform.OS === 'ios') {
-                    Linking.canOpenURL(appleMapsUrl).then((supported) => {
-                      if (supported) {
-                        Linking.openURL(appleMapsUrl);
-                      } else {
-                        Linking.openURL(googleMapsUrl);
-                      }
-                    });
-                  } else {
-                    Linking.openURL(googleMapsUrl);
-                  }
-                }}
-              >
-                <ImageBackground
-                  source={{
-                    uri: `https://maps.googleapis.com/maps/api/staticmap?center=${item.location?.lat},${item.location?.lng}&zoom=14&size=600x300&maptype=roadmap&markers=color:0x${(category?.color || '#C49A6C').replace('#', '')}%7C${item.location?.lat},${item.location?.lng}&key=${GOOGLE_MAPS_API_KEY}`
+            ) : MapView ? (
+              /* Native: react-native-maps interactive MapView */
+              <View style={[styles.miniMapContainer, { borderRadius: 12, overflow: 'hidden' }]}>
+                <MapView
+                  style={{ flex: 1 }}
+                  initialRegion={{
+                    latitude: item.location?.lat || 39.5,
+                    longitude: item.location?.lng || -8.0,
+                    latitudeDelta: 0.02,
+                    longitudeDelta: 0.02,
                   }}
-                  style={styles.staticMapImage}
-                  imageStyle={{ borderRadius: 12 }}
+                  scrollEnabled={false}
+                  zoomEnabled={false}
+                  rotateEnabled={false}
                 >
-                  <View style={styles.mapOverlayLight}>
-                    <View style={styles.mapTapHintBottom}>
-                      <MaterialIcons name="touch-app" size={14} color="#FFFFFF" />
-                      <Text style={styles.mapTapHintText}>Toque para abrir no Google Maps</Text>
-                    </View>
+                  <Marker
+                    coordinate={{
+                      latitude: item.location?.lat || 39.5,
+                      longitude: item.location?.lng || -8.0,
+                    }}
+                    title={item.name}
+                  />
+                </MapView>
+                <View style={styles.mapTapOverlay} pointerEvents="none">
+                  <View style={styles.mapTapHintBottom}>
+                    <MaterialIcons name="touch-app" size={14} color="#FFFFFF" />
+                    <Text style={styles.mapTapHintText}>Toque "Abrir no Maps" para navegar</Text>
                   </View>
-                </ImageBackground>
-              </TouchableOpacity>
+                </View>
+              </View>
+            ) : (
+              /* Fallback: styled placeholder with coordinates */
+              <View style={[styles.miniMapContainer, styles.miniMapFallback]}>
+                <MaterialIcons name="map" size={36} color="#4A7C6A" />
+                <Text style={styles.miniMapFallbackText}>{item.name}</Text>
+                <Text style={styles.coordsTextCenter}>
+                  {item.location?.lat.toFixed(4)}° N, {item.location?.lng.toFixed(4)}° W
+                </Text>
+              </View>
             )}
             <View style={styles.coordsRow}>
               <MaterialIcons name="gps-fixed" size={14} color="#64748B" />
@@ -712,12 +810,18 @@ export default function HeritageDetailScreen() {
                 ))}
               </View>
 
-              <TouchableOpacity 
-                style={styles.generateButton}
-                onPress={() => setShowNarrative(true)}
+              <TouchableOpacity
+                style={[styles.generateButton, !isPremium && styles.generateButtonLocked]}
+                onPress={() => isPremium ? setShowNarrative(true) : router.push('/premium')}
               >
-                <MaterialIcons name="auto-fix-high" size={20} color="#2E5E4E" />
-                <Text style={styles.generateButtonText}>Gerar Narrativa</Text>
+                <MaterialIcons
+                  name={isPremium ? 'auto-fix-high' : 'lock'}
+                  size={20}
+                  color="#2E5E4E"
+                />
+                <Text style={styles.generateButtonText}>
+                  {isPremium ? 'Gerar Narrativa' : 'Narrativa Premium'}
+                </Text>
               </TouchableOpacity>
             </View>
           ) : narrativeLoading ? (
@@ -728,13 +832,31 @@ export default function HeritageDetailScreen() {
           ) : narrativeData ? (
             <View style={styles.narrativeContent}>
               <Text style={styles.narrativeText}>{narrativeData.narrative}</Text>
-              <TouchableOpacity 
-                style={styles.regenerateButton}
-                onPress={() => refetchNarrative()}
-              >
-                <MaterialIcons name="refresh" size={16} color="#8B5CF6" />
-                <Text style={styles.regenerateButtonText}>Gerar nova narrativa</Text>
-              </TouchableOpacity>
+              <View style={styles.narrativeActions}>
+                {/* Ouvir narrativa — device TTS, free */}
+                <TouchableOpacity
+                  style={[styles.narrativeSpeakButton, isSpeakingNarrative && styles.narrativeSpeakButtonActive]}
+                  onPress={() => handleSpeakNarrative(narrativeData.narrative)}
+                  accessibilityLabel={isSpeakingNarrative ? 'Parar leitura' : 'Ouvir narrativa'}
+                  accessibilityRole="button"
+                >
+                  <MaterialIcons
+                    name={isSpeakingNarrative ? 'stop' : 'record-voice-over'}
+                    size={16}
+                    color={isSpeakingNarrative ? '#FFFFFF' : '#8B5CF6'}
+                  />
+                  <Text style={[styles.narrativeSpeakText, isSpeakingNarrative && { color: '#FFFFFF' }]}>
+                    {isSpeakingNarrative ? 'Parar' : 'Ouvir'}
+                  </Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.regenerateButton}
+                  onPress={() => refetchNarrative()}
+                >
+                  <MaterialIcons name="refresh" size={16} color="#8B5CF6" />
+                  <Text style={styles.regenerateButtonText}>Regenerar</Text>
+                </TouchableOpacity>
+              </View>
             </View>
           ) : null}
         </View>
@@ -1247,6 +1369,31 @@ const styles = StyleSheet.create({
     flex: 1,
     borderRadius: 12,
   },
+  mapTapOverlay: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    padding: 12,
+    alignItems: 'center',
+  },
+  miniMapFallback: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+  },
+  miniMapFallbackText: {
+    fontSize: 14,
+    color: '#94A3B8',
+    fontWeight: '600',
+    textAlign: 'center',
+  },
+  coordsTextCenter: {
+    fontSize: 12,
+    color: '#64748B',
+    fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
+    textAlign: 'center',
+  },
   coordsRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -1303,6 +1450,10 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: '#2E5E4E',
   },
+  generateButtonLocked: {
+    backgroundColor: '#4A5568',
+    opacity: 0.85,
+  },
   narrativeLoading: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -1339,6 +1490,80 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: '#8B5CF6',
     fontWeight: '600',
+  },
+  narrativeActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 16,
+    gap: 12,
+  },
+  narrativeSpeakButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: '#8B5CF6',
+  },
+  narrativeSpeakButtonActive: {
+    backgroundColor: '#8B5CF6',
+    borderColor: '#8B5CF6',
+  },
+  narrativeSpeakText: {
+    fontSize: 13,
+    color: '#8B5CF6',
+    fontWeight: '600',
+  },
+  // Free resume styles
+  freeResumeBox: {
+    marginTop: 12,
+  },
+  freeResumeButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    alignSelf: 'flex-start',
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: '#C49A6C40',
+    backgroundColor: '#C49A6C15',
+  },
+  freeResumeButtonText: {
+    fontSize: 13,
+    color: '#C49A6C',
+    fontWeight: '600',
+  },
+  freeResumeContent: {
+    marginTop: 4,
+  },
+  freeResumeDivider: {
+    height: 1,
+    backgroundColor: '#C49A6C30',
+    marginBottom: 12,
+  },
+  freeResumeText: {
+    fontSize: 15,
+    color: '#C8C3B8',
+    lineHeight: 24,
+  },
+  freeResumeFooter: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginTop: 10,
+  },
+  freeResumeFooterText: {
+    fontSize: 11,
+    color: '#C49A6C',
+    fontStyle: 'italic',
+    flex: 1,
+  },
+  freeResumeSpeakBtn: {
+    padding: 4,
   },
   tagsContainer: {
     flexDirection: 'row',
