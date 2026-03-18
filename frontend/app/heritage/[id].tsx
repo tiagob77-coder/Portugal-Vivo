@@ -827,7 +827,29 @@ export default function HeritageDetailScreen() {
 
       {/* Action Buttons - Fixed at bottom */}
       <View style={[styles.actionBar, { paddingBottom: insets.bottom + 12 }]}>
-        <TouchableOpacity 
+        {/* AR Time-Travel button — prominent CTA */}
+        <TouchableOpacity
+          style={[styles.actionButton, styles.arButton]}
+          onPress={() =>
+            router.push({
+              pathname: '/ar-time-travel',
+              params: {
+                itemId: id,
+                itemName: item.name,
+                itemCategory: item.category,
+                itemRegion: item.region,
+                imageUrl: item.image_url || '',
+              },
+            })
+          }
+          accessibilityLabel="Viajar no Tempo — ver como este local era no passado"
+          accessibilityRole="button"
+        >
+          <MaterialIcons name="camera" size={22} color="#FAF8F3" />
+          <Text style={styles.arButtonText}>Time-Travel</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
           style={styles.actionButton}
           onPress={() => {
             if (item.location) {
@@ -961,7 +983,7 @@ const styles = StyleSheet.create({
   },
   heroImage: {
     width: '100%',
-    height: 280,
+    height: 380,
   },
   heroImageStyle: {
     resizeMode: 'cover',
@@ -1029,7 +1051,7 @@ const styles = StyleSheet.create({
   content: {
     flex: 1,
     paddingHorizontal: 20,
-    paddingTop: 16,
+    paddingTop: 24,
   },
   categoryBadge: {
     flexDirection: 'row',
@@ -1077,7 +1099,7 @@ const styles = StyleSheet.create({
     color: '#94A3B8',
   },
   section: {
-    marginBottom: 24,
+    marginBottom: 32,
   },
   sectionHeader: {
     flexDirection: 'row',
@@ -1384,6 +1406,15 @@ const styles = StyleSheet.create({
   checkinButtonText: {
     fontSize: 11,
     color: '#FFFFFF',
+    fontWeight: '700',
+    marginTop: 4,
+  },
+  arButton: {
+    backgroundColor: '#7C3AED',
+  },
+  arButtonText: {
+    fontSize: 11,
+    color: '#FAF8F3',
     fontWeight: '700',
     marginTop: 4,
   },
