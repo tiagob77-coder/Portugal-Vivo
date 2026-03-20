@@ -622,6 +622,12 @@ from geo_administrative_api import geo_router, set_geo_db
 set_geo_db(db)
 api_router.include_router(geo_router)
 
+# Ambassador Program
+from ambassador_api import ambassador_router, set_ambassador_db, set_ambassador_auth
+set_ambassador_db(db)
+set_ambassador_auth(require_auth, require_admin)
+api_router.include_router(ambassador_router)
+
 # Include the router in the main app
 app.include_router(api_router)
 

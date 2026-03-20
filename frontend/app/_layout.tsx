@@ -157,6 +157,10 @@ function ThemedStack() {
           name="onboarding"
           options={{ headerShown: false, animation: 'fade', gestureEnabled: false }}
         />
+        <Stack.Screen
+          name="profile/[id]"
+          options={{ presentation: 'card', animation: 'slide_from_right' }}
+        />
       </Stack>
     </>
   );
