@@ -102,24 +102,24 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: "20"
-          cache: yarn
-          cache-dependency-path: frontend/yarn.lock
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
 
       - name: Instalar dependências
         working-directory: frontend
-        run: yarn install --frozen-lockfile
+        run: npm ci
 
       - name: Type check
         working-directory: frontend
-        run: yarn tsc --noEmit
+        run: npx tsc --noEmit
 
       - name: Lint
         working-directory: frontend
-        run: yarn lint || true   # não bloqueia CI ainda — remover "|| true" quando lint estiver limpo
+        run: npm run lint || true   # não bloqueia CI ainda — remover "|| true" quando lint estiver limpo
 
       - name: Testes unitários
         working-directory: frontend
-        run: yarn test --passWithNoTests --coverage
+        run: npm test -- --passWithNoTests --coverage
 
   # ──────────────────────────────────────────────
   # Verificação de segredos em texto claro
