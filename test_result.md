@@ -220,3 +220,5 @@ test_plan:
 agent_communication:
     - agent: "testing"
       message: "Completed comprehensive testing of Portuguese Cultural Heritage API. All 10 requested endpoints are working correctly with 100% success rate. API returns expected data counts: 254 heritage items, 20 routes, 20 categories, 7 regions. All filtering and individual item retrieval functions working properly. Backend is fully functional and ready for production use."
+    - agent: "testing"
+      message: "Re-verified backend functionality - all core endpoints working perfectly. CLARIFICATIONS: 1) Categories now return 44 items (expanded from original 20), 2) Search functionality works via /heritage?search=query and /search POST endpoint, 3) Map POIs available via /map/items (not /map/pois), 4) Single route retrieval via /routes/{id} confirmed working. Backend at 100% functionality with excellent performance."

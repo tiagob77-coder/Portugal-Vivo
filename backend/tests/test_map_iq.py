@@ -9,7 +9,7 @@ import pytest
 import requests
 import os
 
-BASE_URL = os.environ.get('EXPO_PUBLIC_BACKEND_URL', 'https://current-app-1.preview.emergentagent.com')
+BASE_URL = os.environ.get('EXPO_PUBLIC_BACKEND_URL', 'https://current-state-check.preview.emergentagent.com')
 
 class TestMapAPI:
     """Map endpoint tests - items with GPS coordinates and IQ scores"""

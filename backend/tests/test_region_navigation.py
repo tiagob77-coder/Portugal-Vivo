@@ -5,7 +5,7 @@ Tests /api/map/items with region parameter
 import requests
 import os
 
-BASE_URL = os.environ.get('EXPO_PUBLIC_BACKEND_URL', 'https://current-app-1.preview.emergentagent.com')
+BASE_URL = os.environ.get('EXPO_PUBLIC_BACKEND_URL', 'https://current-state-check.preview.emergentagent.com')
 
 class TestRegionFilterAPI:
     """Tests for region-based POI filtering"""

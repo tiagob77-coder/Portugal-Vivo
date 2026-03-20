@@ -1,36 +1,33 @@
-// NativeMap.tsx - barrel file for TypeScript module resolution
-// At runtime, Metro resolves .native.tsx or .web.tsx based on platform
-// This file should NOT import directly - let Metro handle platform resolution
+// NativeMap.tsx - Platform-specific map exports
+// Re-exports from the web implementation for web platform
+// Metro bundler handles platform-specific resolution
 
 import { Platform } from 'react-native';
 
-// Conditional exports based on platform
-// Metro bundler will resolve the correct platform-specific file at build time
-let MapComponent: any;
-let LeafletMapComponent: any;
-let Marker: any;
-let Callout: any;
-let PROVIDER_GOOGLE: any;
-let isMapAvailable: boolean;
+// On web, export the Leaflet-based web implementation
+// On native, this file won't be loaded (Metro uses .native.tsx)
 
+let MapComponent: any = null;
+let LeafletMapComponent: any = null;
+let Marker: any = () => null;
+let Callout: any = () => null;
+let PROVIDER_GOOGLE: any = null;
+let isMapAvailable: boolean = false;
+
+// Only load web module on web platform
 if (Platform.OS === 'web') {
-  // Web platform - use Leaflet
-  const webModule = require('./NativeMap.web');
-  MapComponent = webModule.default;
-  LeafletMapComponent = webModule.LeafletMapComponent;
-  Marker = webModule.Marker;
-  Callout = webModule.Callout;
-  PROVIDER_GOOGLE = webModule.PROVIDER_GOOGLE;
-  isMapAvailable = webModule.isMapAvailable;
-} else {
-  // Native platforms (iOS/Android) - use WebView with Leaflet
-  const nativeModule = require('./NativeMap.native');
-  MapComponent = nativeModule.default;
-  LeafletMapComponent = nativeModule.LeafletMapComponent;
-  Marker = nativeModule.Marker;
-  Callout = nativeModule.Callout;
-  PROVIDER_GOOGLE = nativeModule.PROVIDER_GOOGLE;
-  isMapAvailable = nativeModule.isMapAvailable;
+  try {
+    // Dynamic require to avoid bundling issues
+    const webModule = require('./NativeMap.web');
+    MapComponent = webModule.default;
+    LeafletMapComponent = webModule.LeafletMapComponent;
+    Marker = webModule.Marker;
+    Callout = webModule.Callout;
+    PROVIDER_GOOGLE = webModule.PROVIDER_GOOGLE;
+    isMapAvailable = webModule.isMapAvailable;
+  } catch (e) {
+    console.warn('Failed to load NativeMap.web module:', e);
+  }
 }
 
 export default MapComponent;
