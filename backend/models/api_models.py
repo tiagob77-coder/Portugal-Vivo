@@ -60,6 +60,12 @@ class HeritageItem(BaseModel):
     category: str
     subcategory: Optional[str] = None
     region: str
+    # CAOP administrative hierarchy (DGT / GeoAPI.pt)
+    distrito: Optional[str] = None    # e.g. "Braga"
+    concelho: Optional[str] = None    # e.g. "Guimarães"
+    freguesia: Optional[str] = None   # e.g. "Oliveira, São Paio e São Sebastião"
+    nuts_iii: Optional[str] = None    # e.g. "Ave"
+    codigo_postal: Optional[str] = None
     location: Optional[Location] = None
     address: Optional[str] = None
     image_url: Optional[str] = None

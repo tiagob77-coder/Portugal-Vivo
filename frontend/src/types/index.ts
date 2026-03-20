@@ -10,6 +10,12 @@ export interface HeritageItem {
   category: string;
   subcategory?: string;
   region: string;
+  /** CAOP — Carta Administrativa Oficial de Portugal (DGT) */
+  distrito?: string;
+  concelho?: string;
+  freguesia?: string;
+  nuts_iii?: string;
+  codigo_postal?: string;
   location?: Location;
   address?: string;
   image_url?: string;

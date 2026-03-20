@@ -636,6 +636,14 @@ export default function HeritageDetailScreen() {
                   <Text style={styles.heroMetaText}>{item.address}</Text>
                 </View>
               )}
+              {(item.concelho || item.freguesia) && (
+                <View style={styles.heroMetaItem}>
+                  <MaterialIcons name="account-balance" size={14} color="#A8D5B5" />
+                  <Text style={[styles.heroMetaText, { color: '#A8D5B5' }]}>
+                    {[item.freguesia, item.concelho, item.distrito].filter(Boolean).join(', ')}
+                  </Text>
+                </View>
+              )}
               <View style={styles.heroMetaItem}>
                 <MaterialIcons name="map" size={14} color="#C49A6C" />
                 <Text style={[styles.heroMetaText, { color: '#C49A6C' }]}>
