@@ -109,6 +109,10 @@ export interface SemanticColors {
   textSecondary: string;
   textMuted: string;
   textOnPrimary: string;
+  /** Alias for textPrimary — legacy shorthand used in some screens */
+  text: string;
+  /** Card/tile background — alias for surface */
+  card: string;
   // Borders
   border: string;
   borderLight: string;
@@ -136,6 +140,8 @@ export const lightColors: SemanticColors = {
   textSecondary: palette.gray[600],
   textMuted: palette.gray[400],
   textOnPrimary: palette.gray[50],
+  text: palette.gray[800],
+  card: palette.white,
   border: palette.gray[200],
   borderLight: palette.gray[100],
   overlay: 'rgba(28, 31, 28, 0.5)',
@@ -160,6 +166,8 @@ export const darkColors: SemanticColors = {
   textSecondary: palette.gray[300],
   textMuted: palette.gray[400],
   textOnPrimary: palette.gray[50],
+  text: palette.gray[50],
+  card: palette.forest[700],
   border: palette.forest[700],
   borderLight: palette.forest[800],
   overlay: 'rgba(0, 0, 0, 0.6)',
