@@ -138,7 +138,7 @@ export default function ExploreAroundScreen() {
       const res = await api.get('/explore-nearby/explore-around', {
         params: { lat: location!.lat, lng: location!.lng, radius_m: radiusM, mode, limit: 20 },
       });
-      return res.data as { pois: ExplorePOI[]; summary: any };
+      return res.data as { pois: ExplorePOI[]; summary: any; offline_preload_hint?: boolean };
     },
     enabled: !!location,
     staleTime: 60_000,

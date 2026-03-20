@@ -11,6 +11,9 @@ jest.mock('expo-linear-gradient', () => ({
     return <View {...props}>{children}</View>;
   },
 }));
+jest.mock('react-native-safe-area-context', () => ({
+  useSafeAreaInsets: () => ({ bottom: 0, top: 0, left: 0, right: 0 }),
+}));
 
 let mockIsPremium = false;
 jest.mock('../../context/AuthContext', () => ({
@@ -21,13 +24,23 @@ jest.mock('../../context/ThemeContext', () => ({
     colors: {
       surface: '#FFF',
       textPrimary: '#000',
+      textSecondary: '#333',
       textMuted: '#666',
       borderLight: '#EEE',
       background: '#FFF',
     },
   }),
 }));
-jest.mock('../../theme', () => ({ shadows: { md: {} } }));
+jest.mock('../../theme', () => ({
+  shadows: { sm: {}, md: {}, xl: {} },
+  palette: {
+    terracotta: {
+      400: '#DFAF7F',
+      500: '#C49A6C',
+    },
+  },
+  withOpacity: (_hex: string, opacity: number) => `rgba(0,0,0,${opacity})`,
+}));
 
 import PremiumGate from '../PremiumGate';
 
@@ -47,15 +60,18 @@ describe('PremiumGate', () => {
     expect(getByText('Premium Content')).toBeTruthy();
   });
 
-  it('renders gate when user is not premium', () => {
-    const { getByText, queryByText } = render(
+  it('shows preview and unlock badge when user is not premium', () => {
+    const { getByText } = render(
       <PremiumGate feature="ai_itinerary">
         <Text>Premium Content</Text>
       </PremiumGate>
     );
-    expect(queryByText('Premium Content')).toBeNull();
+    // Soft gate: children are visible as a clipped preview
+    expect(getByText('Premium Content')).toBeTruthy();
+    // Feature title shown in the unlock badge
     expect(getByText('Roteiros IA')).toBeTruthy();
-    expect(getByText('Desbloquear com Premium')).toBeTruthy();
+    // Unlock CTA button label
+    expect(getByText('Desbloquear')).toBeTruthy();
   });
 
   it('renders custom fallback when provided', () => {
@@ -68,13 +84,16 @@ describe('PremiumGate', () => {
     expect(queryByText('Premium Content')).toBeNull();
   });
 
-  it('navigates to premium page on CTA press', () => {
+  it('opens paywall sheet and navigates to premium on CTA press', () => {
     const { getByText } = render(
       <PremiumGate feature="audio_guides">
         <Text>Content</Text>
       </PremiumGate>
     );
-    fireEvent.press(getByText('Desbloquear com Premium'));
+    // Press unlock badge to open the paywall sheet
+    fireEvent.press(getByText('Desbloquear'));
+    // Press the sheet CTA to navigate
+    fireEvent.press(getByText('Experimentar Descobridor'));
     expect(mockPush).toHaveBeenCalledWith('/premium');
   });
 
