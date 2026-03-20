@@ -8,9 +8,9 @@ from datetime import datetime, timezone
 import uuid
 import logging
 
-from shared_utils import DatabaseHolder, clamp_pagination, sanitize_regex
+from shared_utils import DatabaseHolder, clamp_pagination
 from models.api_models import User, Location
-from shared_constants import COMMUNITY_BADGES
+from shared_constants import COMMUNITY_BADGES, sanitize_regex
 
 logger = logging.getLogger(__name__)
 
