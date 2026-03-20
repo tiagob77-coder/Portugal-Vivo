@@ -231,14 +231,22 @@ export default function NearbyScreen() {
             <MaterialIcons name="arrow-back" size={24} color="#FAF8F3" />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>Perto de Mim</Text>
-          <TouchableOpacity 
-            style={styles.refreshButton}
-            onPress={onRefresh}
-          >
-            <MaterialIcons name="my-location" size={22} color="#C49A6C" />
-          </TouchableOpacity>
+          <View style={{ flexDirection: 'row', gap: 8 }}>
+            <TouchableOpacity
+              style={[styles.refreshButton, { backgroundColor: 'rgba(196,154,108,0.2)' }]}
+              onPress={() => router.push('/explore-around' as any)}
+            >
+              <MaterialIcons name="explore" size={20} color="#C49A6C" />
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.refreshButton}
+              onPress={onRefresh}
+            >
+              <MaterialIcons name="my-location" size={22} color="#C49A6C" />
+            </TouchableOpacity>
+          </View>
         </View>
-        
+
         {/* Location Info */}
         <View style={styles.locationInfo}>
           <MaterialIcons name="location-on" size={18} color="#22C55E" />

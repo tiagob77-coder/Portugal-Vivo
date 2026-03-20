@@ -7,8 +7,37 @@ import { useTheme } from '../../src/context/ThemeContext';
 import { useAuth } from '../../src/context/AuthContext';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import offlineCache from '../../src/services/offlineCache'; // eslint-disable-line import/no-named-as-default
+import { useQuery } from '@tanstack/react-query';
+import api from '../../src/services/api';
 
 import { API_URL } from '../../src/config/api';
+
+interface ThematicPackage {
+  id: string;
+  name: string;
+  type: string;
+  region: string;
+  description: string;
+  icon: string;
+  color: string;
+  highlights: string[];
+  content_types: string[];
+  estimated_size_mb: number;
+  download_eta: { wifi_sec: number; '4g_sec': number; '3g_sec': number };
+  offline_note: string;
+}
+
+const TYPE_LABELS: Record<string, string> = {
+  parque_natural: 'Parque Natural',
+  parque_nacional: 'Parque Nacional',
+  centro_historico: 'Centro Histórico',
+  rota_tematica: 'Rota Temática',
+};
+
+const formatEta = (sec: number) => {
+  if (sec < 60) return `${sec}s`;
+  return `${Math.round(sec / 60)}min`;
+};
 
 interface RegionInfo {
   id: string;
@@ -43,6 +72,45 @@ export default function OfflineSettingsPage() {
   const [downloads, setDownloads] = useState<Record<string, DownloadState>>({});
   const [totalUsedMb, setTotalUsedMb] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState<'regions' | 'thematic'>('regions');
+  const [thematicDownloads, setThematicDownloads] = useState<Record<string, DownloadState>>({});
+
+  const { data: thematicData } = useQuery({
+    queryKey: ['thematic-packages'],
+    queryFn: async () => {
+      const res = await api.get('/offline/thematic-packages');
+      return res.data as { packages: ThematicPackage[] };
+    },
+  });
+
+  const thematicPackages = thematicData?.packages || [];
+
+  const downloadThematic = useCallback(async (pkgId: string) => {
+    if (!isPremium) { router.push('/premium'); return; }
+    setThematicDownloads(prev => ({ ...prev, [pkgId]: { downloaded: false, downloading: true, progress: 20, lastSync: null, sizeMb: 0 } }));
+    try {
+      setThematicDownloads(prev => ({ ...prev, [pkgId]: { ...prev[pkgId], progress: 50 } }));
+      const res = await api.get(`/offline/thematic-packages/${pkgId}`);
+      const data = res.data;
+      setThematicDownloads(prev => ({ ...prev, [pkgId]: { ...prev[pkgId], progress: 80 } }));
+      await AsyncStorage.setItem(`offline_thematic_${pkgId}`, JSON.stringify(data));
+      await AsyncStorage.setItem(`offline_thematic_sync_${pkgId}`, new Date().toISOString());
+      setThematicDownloads(prev => ({
+        ...prev,
+        [pkgId]: { downloaded: true, downloading: false, progress: 100, lastSync: new Date().toISOString(), sizeMb: data.size_breakdown?.total_mb || 0 },
+      }));
+    } catch {
+      const msg = 'Não foi possível descarregar o pacote.';
+      Platform.OS === 'web' ? window.alert(msg) : Alert.alert('Erro', msg);
+      setThematicDownloads(prev => ({ ...prev, [pkgId]: { ...prev[pkgId], downloading: false, progress: 0 } }));
+    }
+  }, [isPremium]);
+
+  const removeThematic = useCallback(async (pkgId: string) => {
+    await AsyncStorage.removeItem(`offline_thematic_${pkgId}`);
+    await AsyncStorage.removeItem(`offline_thematic_sync_${pkgId}`);
+    setThematicDownloads(prev => ({ ...prev, [pkgId]: { downloaded: false, downloading: false, progress: 0, lastSync: null, sizeMb: 0 } }));
+  }, []);
 
   useEffect(() => { loadData(); }, []);
 
@@ -227,8 +295,29 @@ export default function OfflineSettingsPage() {
           )}
         </View>
 
-        {/* Regions */}
-        <Text style={[styles.sectionTitle, { color: colors.textPrimary }]}>Regiões</Text>
+        {/* Tab selector */}
+        <View style={[styles.tabRow, { borderColor: colors.border }]}>
+          {[
+            { id: 'regions' as const, label: 'Regiões', icon: 'map' },
+            { id: 'thematic' as const, label: 'Temáticos', icon: 'park' },
+          ].map((tab) => (
+            <TouchableOpacity
+              key={tab.id}
+              style={[styles.tab, activeTab === tab.id && { borderBottomColor: colors.accent, borderBottomWidth: 2 }]}
+              onPress={() => setActiveTab(tab.id)}
+            >
+              <MaterialIcons name={tab.icon as any} size={16} color={activeTab === tab.id ? colors.accent : colors.textMuted} />
+              <Text style={[styles.tabLabel, { color: activeTab === tab.id ? colors.accent : colors.textMuted,
+                fontWeight: activeTab === tab.id ? '700' : '400' }]}>
+                {tab.label}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+
+        {/* Regions tab */}
+        {activeTab === 'regions' && <>
+        <Text style={[styles.sectionTitle, { color: colors.textPrimary }]}>Regiões de Portugal</Text>
 
         {loading ? (
           <ActivityIndicator size="large" color={colors.accent} style={{ marginTop: 40 }} />
@@ -298,13 +387,145 @@ export default function OfflineSettingsPage() {
           })
         )}
 
-        {/* Info footer */}
+        {/* Info footer regions */}
         <View style={styles.infoBox} data-testid="offline-info">
           <MaterialIcons name="info-outline" size={16} color={colors.textMuted} />
           <Text style={[styles.infoText, { color: colors.textMuted }]}>
             Os dados offline incluem POIs, rotas e eventos de cada região. Recomendamos atualizar a cada 7 dias.
           </Text>
         </View>
+        </>}
+
+        {/* Thematic packages tab */}
+        {activeTab === 'thematic' && <>
+          <Text style={[styles.sectionTitle, { color: colors.textPrimary }]}>Pacotes Temáticos</Text>
+          <Text style={[styles.sectionDesc, { color: colors.textMuted }]}>
+            Parques naturais, centros históricos e rotas especiais com conteúdo curado.
+          </Text>
+
+          {thematicPackages.length === 0 ? (
+            <ActivityIndicator size="small" color={colors.accent} style={{ marginTop: 20 }} />
+          ) : thematicPackages.map((pkg) => {
+            const state = thematicDownloads[pkg.id] || { downloaded: false, downloading: false, progress: 0, lastSync: null, sizeMb: 0 };
+            return (
+              <View key={pkg.id} style={[styles.thematicCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+                {/* Header */}
+                <View style={styles.thematicHeader}>
+                  <View style={[styles.thematicIconBox, { backgroundColor: pkg.color + '20' }]}>
+                    <MaterialIcons name={pkg.icon as any} size={22} color={pkg.color} />
+                  </View>
+                  <View style={{ flex: 1 }}>
+                    <View style={styles.thematicTitleRow}>
+                      <Text style={[styles.thematicName, { color: colors.textPrimary }]} numberOfLines={1}>
+                        {pkg.name}
+                      </Text>
+                      <View style={[styles.typeBadge, { backgroundColor: pkg.color + '18' }]}>
+                        <Text style={[styles.typeLabel, { color: pkg.color }]}>
+                          {TYPE_LABELS[pkg.type] || pkg.type}
+                        </Text>
+                      </View>
+                    </View>
+                    <Text style={[styles.thematicDesc, { color: colors.textMuted }]} numberOfLines={2}>
+                      {pkg.description}
+                    </Text>
+                  </View>
+                </View>
+
+                {/* Highlights */}
+                <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 6, paddingTop: 6 }}>
+                  {pkg.highlights.map((h) => (
+                    <View key={h} style={[styles.highlightChip, { borderColor: pkg.color + '40' }]}>
+                      <MaterialIcons name="place" size={11} color={pkg.color} />
+                      <Text style={[styles.highlightText, { color: colors.textSecondary }]}>{h}</Text>
+                    </View>
+                  ))}
+                </ScrollView>
+
+                {/* Content types */}
+                <View style={styles.contentTypeRow}>
+                  {pkg.content_types.map((ct) => {
+                    const ctIcons: Record<string, string> = { pois: 'place', trails: 'hiking', audio: 'headphones', micro_stories: 'auto-stories', photo_spots: 'photo-camera', narrative_nav: 'navigation', fauna: 'pets', encyclopedia: 'menu-book' };
+                    return (
+                      <View key={ct} style={styles.contentTypeChip}>
+                        <MaterialIcons name={(ctIcons[ct] || 'check') as any} size={11} color={colors.textMuted} />
+                        <Text style={[styles.contentTypeText, { color: colors.textMuted }]}>{ct.replace('_', ' ')}</Text>
+                      </View>
+                    );
+                  })}
+                </View>
+
+                {/* Size + ETA */}
+                <View style={[styles.sizeRow, { borderTopColor: colors.border }]}>
+                  <View style={styles.sizeItem}>
+                    <MaterialIcons name="save" size={13} color={colors.textMuted} />
+                    <Text style={[styles.sizeText, { color: colors.textMuted }]}>{pkg.estimated_size_mb} MB</Text>
+                  </View>
+                  <View style={styles.sizeItem}>
+                    <MaterialIcons name="wifi" size={13} color={colors.textMuted} />
+                    <Text style={[styles.sizeText, { color: colors.textMuted }]}>{formatEta(pkg.download_eta.wifi_sec)} (WiFi)</Text>
+                  </View>
+                  <View style={styles.sizeItem}>
+                    <MaterialIcons name="signal-cellular-alt" size={13} color={colors.textMuted} />
+                    <Text style={[styles.sizeText, { color: colors.textMuted }]}>{formatEta(pkg.download_eta['4g_sec'])} (4G)</Text>
+                  </View>
+                </View>
+
+                {/* Offline note */}
+                {pkg.offline_note && (
+                  <View style={styles.offlineNote}>
+                    <MaterialIcons name="info-outline" size={13} color="#F59E0B" />
+                    <Text style={styles.offlineNoteText}>{pkg.offline_note}</Text>
+                  </View>
+                )}
+
+                {/* Download progress */}
+                {state.downloading && (
+                  <View style={styles.progressContainer}>
+                    <View style={styles.progressTrack}>
+                      <View style={[styles.progressFill, { width: `${state.progress}%` as any, backgroundColor: pkg.color }]} />
+                    </View>
+                    <Text style={[styles.progressText, { color: colors.textMuted }]}>{state.progress}%</Text>
+                  </View>
+                )}
+
+                {/* Action button */}
+                <View style={styles.thematicActions}>
+                  {state.downloading ? (
+                    <ActivityIndicator size="small" color={pkg.color} />
+                  ) : state.downloaded ? (
+                    <View style={{ flexDirection: 'row', gap: 8 }}>
+                      <View style={[styles.downloadedBadge, { backgroundColor: '#22C55E15' }]}>
+                        <MaterialIcons name="check-circle" size={14} color="#22C55E" />
+                        <Text style={{ color: '#22C55E', fontSize: 12, fontWeight: '600' }}>Guardado</Text>
+                      </View>
+                      <TouchableOpacity
+                        onPress={() => removeThematic(pkg.id)}
+                        style={[styles.actionBtn, { backgroundColor: '#EF444415' }]}
+                      >
+                        <MaterialIcons name="delete-outline" size={16} color="#EF4444" />
+                      </TouchableOpacity>
+                    </View>
+                  ) : (
+                    <TouchableOpacity
+                      onPress={() => downloadThematic(pkg.id)}
+                      style={[styles.downloadBtn, { backgroundColor: pkg.color }]}
+                    >
+                      <MaterialIcons name="cloud-download" size={16} color="#FFF" />
+                      <Text style={styles.downloadText}>Descarregar</Text>
+                    </TouchableOpacity>
+                  )}
+                </View>
+              </View>
+            );
+          })}
+
+          <View style={styles.infoBox}>
+            <MaterialIcons name="info-outline" size={16} color={colors.textMuted} />
+            <Text style={[styles.infoText, { color: colors.textMuted }]}>
+              Pacotes temáticos são otimizados para zonas com má cobertura de rede. Válidos por 7 dias.
+            </Text>
+          </View>
+        </>}
 
         <View style={{ height: 40 }} />
       </ScrollView>
@@ -364,4 +585,37 @@ const styles = StyleSheet.create({
   bulkBtnDownload: { backgroundColor: '#22C55E' },
   bulkBtnRemove: { backgroundColor: '#FEE2E2', borderWidth: 1, borderColor: '#FECACA' },
   bulkBtnText: { fontSize: 13, fontWeight: '700', color: '#FFF' },
+  // Tabs
+  tabRow: {
+    flexDirection: 'row', borderBottomWidth: 1, marginBottom: 16,
+  },
+  tab: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, paddingVertical: 10 },
+  tabLabel: { fontSize: 14 },
+  sectionDesc: { fontSize: 13, marginTop: -8, marginBottom: 12, lineHeight: 18 },
+  // Thematic cards
+  thematicCard: {
+    borderRadius: 12, borderWidth: 1, padding: 14, marginBottom: 14, gap: 8,
+  },
+  thematicHeader: { flexDirection: 'row', gap: 10, alignItems: 'flex-start' },
+  thematicIconBox: { width: 42, height: 42, borderRadius: 10, justifyContent: 'center', alignItems: 'center' },
+  thematicTitleRow: { flexDirection: 'row', alignItems: 'center', gap: 6, flexWrap: 'wrap' },
+  thematicName: { fontSize: 15, fontWeight: '700' },
+  typeBadge: { paddingHorizontal: 8, paddingVertical: 2, borderRadius: 8 },
+  typeLabel: { fontSize: 10, fontWeight: '700' },
+  thematicDesc: { fontSize: 12, lineHeight: 17, marginTop: 3 },
+  highlightChip: {
+    flexDirection: 'row', alignItems: 'center', gap: 4,
+    paddingHorizontal: 9, paddingVertical: 4, borderRadius: 10, borderWidth: 1,
+  },
+  highlightText: { fontSize: 11 },
+  contentTypeRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginTop: 2 },
+  contentTypeChip: { flexDirection: 'row', alignItems: 'center', gap: 3, backgroundColor: '#F1F5F9', paddingHorizontal: 7, paddingVertical: 3, borderRadius: 6 },
+  contentTypeText: { fontSize: 10 },
+  sizeRow: { flexDirection: 'row', gap: 12, paddingTop: 8, borderTopWidth: 1, flexWrap: 'wrap' },
+  sizeItem: { flexDirection: 'row', alignItems: 'center', gap: 4 },
+  sizeText: { fontSize: 11 },
+  offlineNote: { flexDirection: 'row', gap: 6, backgroundColor: '#FFFBEB', padding: 8, borderRadius: 6 },
+  offlineNoteText: { flex: 1, fontSize: 11, color: '#92400E', lineHeight: 16 },
+  thematicActions: { flexDirection: 'row', justifyContent: 'flex-end', marginTop: 4 },
+  downloadedBadge: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 10, paddingVertical: 6, borderRadius: 8 },
 });
