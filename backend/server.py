@@ -634,6 +634,11 @@ set_itineraries_db(db)
 set_itineraries_auth(require_auth)
 api_router.include_router(itineraries_router)
 
+# Narrative Routes — Story cues, pedestrian narrative navigation
+from narrative_routes_api import narrative_routes_router, set_narrative_routes_db
+set_narrative_routes_db(db)
+api_router.include_router(narrative_routes_router)
+
 # Include the router in the main app
 app.include_router(api_router)
 

@@ -165,6 +165,10 @@ function ThemedStack() {
           name="itinerary/[id]"
           options={{ presentation: 'card', animation: 'slide_from_right' }}
         />
+        <Stack.Screen
+          name="explore-around"
+          options={{ title: 'Explorar à Volta', presentation: 'card', animation: 'slide_from_bottom' }}
+        />
       </Stack>
     </>
   );
