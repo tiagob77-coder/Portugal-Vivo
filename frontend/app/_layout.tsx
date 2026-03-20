@@ -149,6 +149,10 @@ function ThemedStack() {
           name="evento/[id]"
           options={{ presentation: 'card', animation: 'slide_from_bottom' }}
         />
+        <Stack.Screen
+          name="analytics"
+          options={{ presentation: 'card', animation: 'slide_from_right' }}
+        />
       </Stack>
     </>
   );
