@@ -617,6 +617,11 @@ api_router.include_router(cloudinary_router)
 from cp_api import cp_router
 api_router.include_router(cp_router)
 
+# Geo Administrative — CAOP (Carta Administrativa Oficial de Portugal)
+from geo_administrative_api import geo_router, set_geo_db
+set_geo_db(db)
+api_router.include_router(geo_router)
+
 # Include the router in the main app
 app.include_router(api_router)
 

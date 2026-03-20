@@ -96,11 +96,14 @@ async def get_regions(response: Response):
 async def get_heritage_items(
     category: Optional[str] = None,
     region: Optional[str] = None,
+    distrito: Optional[str] = None,
+    concelho: Optional[str] = None,
+    freguesia: Optional[str] = None,
     search: Optional[str] = None,
     limit: int = 100,
     skip: int = 0
 ):
-    """Get heritage items with filters"""
+    """Get heritage items with filters (supports CAOP administrative hierarchy)"""
     skip, limit = clamp_pagination(skip, limit)
     query = {}
 
@@ -109,12 +112,21 @@ async def get_heritage_items(
         query["category"] = resolved
     if region:
         query["region"] = region
+    # CAOP administrative filters
+    if distrito:
+        query["distrito"] = {"$regex": sanitize_regex(distrito), "$options": "i"}
+    if concelho:
+        query["concelho"] = {"$regex": sanitize_regex(concelho), "$options": "i"}
+    if freguesia:
+        query["freguesia"] = {"$regex": sanitize_regex(freguesia), "$options": "i"}
     if search:
         safe_search = sanitize_regex(search)
         query["$or"] = [
             {"name": {"$regex": safe_search, "$options": "i"}},
             {"description": {"$regex": safe_search, "$options": "i"}},
-            {"tags": {"$regex": safe_search, "$options": "i"}}
+            {"tags": {"$regex": safe_search, "$options": "i"}},
+            {"concelho": {"$regex": safe_search, "$options": "i"}},
+            {"freguesia": {"$regex": safe_search, "$options": "i"}},
         ]
 
     items = await _db_holder.db.heritage_items.find(query, {"_id": 0}).skip(skip).limit(limit).to_list(limit)
@@ -157,6 +169,8 @@ async def get_heritage_by_region(region: str, limit: int = 100):
 async def get_map_items(
     categories: Optional[str] = None,
     region: Optional[str] = None,
+    distrito: Optional[str] = None,
+    concelho: Optional[str] = None,
     limit: int = 10000,
 ):
     """Get heritage items for map display (only items with GPS coordinates)"""
@@ -167,12 +181,16 @@ async def get_map_items(
         query["category"] = {"$in": cat_list}
     if region:
         query["region"] = region
+    if distrito:
+        query["distrito"] = {"$regex": sanitize_regex(distrito), "$options": "i"}
+    if concelho:
+        query["concelho"] = {"$regex": sanitize_regex(concelho), "$options": "i"}
 
     projection = {
         "_id": 0, "id": 1, "name": 1, "description": 1, "category": 1,
-        "subcategory": 1, "region": 1, "location": 1, "address": 1,
-        "image_url": 1, "tags": 1, "related_items": 1, "metadata": 1,
-        "created_at": 1, "iq_results.score": 1
+        "subcategory": 1, "region": 1, "distrito": 1, "concelho": 1, "freguesia": 1,
+        "location": 1, "address": 1, "image_url": 1, "tags": 1,
+        "related_items": 1, "metadata": 1, "created_at": 1, "iq_results.score": 1
     }
     capped = min(limit, 10000)
     items = await _db_holder.db.heritage_items.find(query, projection).limit(capped).to_list(capped)
