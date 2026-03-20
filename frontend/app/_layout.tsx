@@ -161,6 +161,10 @@ function ThemedStack() {
           name="profile/[id]"
           options={{ presentation: 'card', animation: 'slide_from_right' }}
         />
+        <Stack.Screen
+          name="itinerary/[id]"
+          options={{ presentation: 'card', animation: 'slide_from_right' }}
+        />
       </Stack>
     </>
   );

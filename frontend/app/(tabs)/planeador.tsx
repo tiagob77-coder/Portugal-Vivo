@@ -15,6 +15,7 @@ import {
   Platform,
   TextInput,
   Switch,
+  Alert,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
@@ -25,9 +26,13 @@ import api, {
   getLocalities,
   generateSmartItinerary,
   generateAiItinerary,
+  saveItinerary,
+  listItineraries,
+  deleteItinerary,
   SmartItineraryResponse,
   SmartItineraryLocality,
   AiItineraryResponse,
+  SavedItinerary,
 } from '../../src/services/api';
 import { colors, shadows } from '../../src/theme';
 import { useTheme } from '../../src/context/ThemeContext';
@@ -171,6 +176,10 @@ export default function PlaneadorTab() {
   const [aiResult, setAiResult] = useState<SmartItineraryResponse | null>(null);
   const [aiNarrative, setAiNarrative] = useState<AiItineraryResponse['narrative'] | null>(null);
   const [aiLoading, setAiLoading] = useState(false);
+  const [saveLoading, setSaveLoading] = useState(false);
+  const [myPlansOpen, setMyPlansOpen] = useState(false);
+  const [myPlans, setMyPlans] = useState<SavedItinerary[]>([]);
+  const [myPlansLoading, setMyPlansLoading] = useState(false);
 
   // Fetch localities for the selected region
   const { data: localitiesData } = useQuery({
@@ -234,6 +243,59 @@ export default function PlaneadorTab() {
     } finally {
       setAiLoading(false);
     }
+  };
+
+  const handleSaveItinerary = async () => {
+    if (!aiResult) return;
+    setSaveLoading(true);
+    try {
+      const title = aiResult.locality
+        ? `${aiResult.locality} · ${aiResult.days} dia${aiResult.days > 1 ? 's' : ''}`
+        : `${aiResult.region} · ${aiResult.days} dia${aiResult.days > 1 ? 's' : ''}`;
+      await saveItinerary({
+        title,
+        itinerary_data: aiResult,
+        locality: aiResult.locality || undefined,
+        region: aiResult.region || undefined,
+        days: aiResult.days,
+        profile: aiResult.profile,
+        pace: aiResult.pace,
+        interests: aiResult.interests,
+        is_public: false,
+      });
+      Alert.alert('Guardado!', 'O seu roteiro foi guardado em "Meus Planos".');
+    } catch {
+      Alert.alert('Erro', 'Não foi possível guardar o roteiro.');
+    } finally {
+      setSaveLoading(false);
+    }
+  };
+
+  const loadMyPlans = async () => {
+    setMyPlansLoading(true);
+    try {
+      const data = await listItineraries();
+      setMyPlans(data.items || []);
+    } catch {
+      setMyPlans([]);
+    } finally {
+      setMyPlansLoading(false);
+    }
+  };
+
+  const handleDeletePlan = async (id: string) => {
+    Alert.alert('Eliminar', 'Tem a certeza que quer eliminar este roteiro?', [
+      { text: 'Cancelar', style: 'cancel' },
+      {
+        text: 'Eliminar', style: 'destructive',
+        onPress: async () => {
+          try {
+            await deleteItinerary(id);
+            setMyPlans(prev => prev.filter(p => p.id !== id));
+          } catch { /* ignore */ }
+        },
+      },
+    ]);
   };
 
   const renderToolCard = (tool: typeof PLANNING_TOOLS[0]) => (
@@ -737,6 +799,21 @@ export default function PlaneadorTab() {
               </View>
             )}
 
+            {/* Save button */}
+            {isPremium && (
+              <TouchableOpacity
+                style={styles.saveBtn}
+                onPress={handleSaveItinerary}
+                disabled={saveLoading}
+              >
+                {saveLoading
+                  ? <ActivityIndicator size="small" color="#FFF" />
+                  : <MaterialIcons name="bookmark-add" size={18} color="#FFF" />
+                }
+                <Text style={styles.saveBtnText}>Guardar Roteiro</Text>
+              </TouchableOpacity>
+            )}
+
             {/* Reset button */}
             <TouchableOpacity
               style={styles.resetResultBtn}
@@ -745,6 +822,61 @@ export default function PlaneadorTab() {
               <MaterialIcons name="refresh" size={18} color={colors.terracotta[500]} />
               <Text style={styles.resetResultText}>Novo Roteiro</Text>
             </TouchableOpacity>
+          </View>
+        )}
+
+        {/* My Plans section */}
+        {isPremium && (
+          <View style={styles.section}>
+            <TouchableOpacity
+              style={styles.myPlansHeader}
+              onPress={() => {
+                const next = !myPlansOpen;
+                setMyPlansOpen(next);
+                if (next && myPlans.length === 0) loadMyPlans();
+              }}
+            >
+              <MaterialIcons name="folder" size={20} color="#C49A6C" />
+              <Text style={styles.sectionTitle}>Meus Planos</Text>
+              <MaterialIcons
+                name={myPlansOpen ? 'expand-less' : 'expand-more'}
+                size={22}
+                color="#94A3B8"
+                style={{ marginLeft: 'auto' }}
+              />
+            </TouchableOpacity>
+
+            {myPlansOpen && (
+              myPlansLoading ? (
+                <ActivityIndicator size="small" color="#C49A6C" style={{ padding: 20 }} />
+              ) : myPlans.length === 0 ? (
+                <Text style={[styles.emptyText, { paddingHorizontal: 20 }]}>
+                  Ainda não tem roteiros guardados.
+                </Text>
+              ) : (
+                <View style={{ paddingHorizontal: 20, gap: 8, marginTop: 8 }}>
+                  {myPlans.map((plan) => (
+                    <TouchableOpacity
+                      key={plan.id}
+                      style={styles.planCard}
+                      onPress={() => router.push(`/itinerary/${plan.id}` as any)}
+                    >
+                      <View style={{ flex: 1 }}>
+                        <Text style={styles.planTitle} numberOfLines={1}>{plan.title}</Text>
+                        <Text style={styles.planMeta}>
+                          {plan.days} dia{plan.days > 1 ? 's' : ''} · {plan.total_pois} POIs
+                          {plan.collaborators_count > 0 ? ` · ${plan.collaborators_count} colaborador${plan.collaborators_count > 1 ? 'es' : ''}` : ''}
+                        </Text>
+                      </View>
+                      <TouchableOpacity onPress={() => handleDeletePlan(plan.id)} style={{ padding: 4 }}>
+                        <MaterialIcons name="delete-outline" size={18} color="#94A3B8" />
+                      </TouchableOpacity>
+                      <MaterialIcons name="chevron-right" size={20} color="#94A3B8" />
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              )
+            )}
           </View>
         )}
 
@@ -1346,6 +1478,38 @@ const styles = StyleSheet.create({
     color: '#A78BFA',
     marginTop: 1,
   },
+  // Save button
+  saveBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#2E5E4E',
+    marginHorizontal: 20,
+    marginTop: 8,
+    borderRadius: 12,
+    paddingVertical: 12,
+    gap: 8,
+  },
+  saveBtnText: { color: '#FFF', fontSize: 14, fontWeight: '700' },
+  // My Plans
+  myPlansHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    marginBottom: 4,
+    gap: 8,
+  },
+  planCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.background.secondary,
+    borderRadius: 12,
+    padding: 14,
+    gap: 8,
+    ...shadows.sm,
+  },
+  planTitle: { fontSize: 14, fontWeight: '600', color: colors.gray[800] },
+  planMeta: { fontSize: 11, color: colors.gray[500], marginTop: 2 },
   // AI narrative cards
   narrativeCard: {
     backgroundColor: 'rgba(139, 92, 246, 0.06)',
