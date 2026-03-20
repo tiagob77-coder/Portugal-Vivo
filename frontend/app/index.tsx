@@ -123,6 +123,13 @@ export default function WelcomeScreen() {
   const { data: topScored } = useQuery({ queryKey: ['top-scored'], queryFn: getTopScoredItems });
   const { data: stories } = useQuery({ queryKey: ['stories'], queryFn: getStories });
 
+  // Redirect new users to onboarding on first launch
+  useEffect(() => {
+    AsyncStorage.getItem('onboarding_complete').then((done) => {
+      if (!done) router.replace('/onboarding');
+    });
+  }, []);
+
   useEffect(() => {
     Animated.parallel([
       Animated.timing(fadeAnim, { toValue: 1, duration: 800, useNativeDriver: true }),

@@ -63,6 +63,7 @@ const QUICK_ACTIONS = [
   { label: 'IQ Dashboard', icon: 'insights', route: '/iq-dashboard', color: '#3B82F6' },
   { label: 'Importador', icon: 'cloud-upload', route: '/importer', color: '#22C55E' },
   { label: 'Premium Stats', icon: 'diamond', route: '/premium', color: '#C49A6C' },
+  { label: 'Analytics', icon: 'bar-chart', route: '/analytics', color: '#F59E0B' },
   { label: 'Moderação Imagens', icon: 'photo-library', route: '', color: '#EC4899' },
 ];
 
