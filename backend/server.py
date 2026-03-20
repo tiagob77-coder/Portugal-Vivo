@@ -628,6 +628,12 @@ set_ambassador_db(db)
 set_ambassador_auth(require_auth, require_admin)
 api_router.include_router(ambassador_router)
 
+# Saved Itineraries — Trip Planner persistence, collaboration, budget
+from saved_itineraries_api import itineraries_router, set_itineraries_db, set_itineraries_auth
+set_itineraries_db(db)
+set_itineraries_auth(require_auth)
+api_router.include_router(itineraries_router)
+
 # Include the router in the main app
 app.include_router(api_router)
 

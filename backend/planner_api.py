@@ -555,6 +555,8 @@ async def generate_smart_itinerary(
     profile: Optional[str] = Query("casal", description="Traveler: familia, casal, solo, senior, aventureiro, grupo"),
     pace: Optional[str] = Query("moderado", description="Pace: relaxado, moderado, intenso"),
     max_radius_km: float = Query(15, ge=1, le=100),
+    budget_per_day: Optional[float] = Query(None, ge=0, description="Budget per person per day in EUR (0=free only, 50=budget, 150=mid-range, unlimited=None)"),
+    wheelchair: bool = Query(False, description="Filter for wheelchair-accessible POIs when possible"),
 ):
     """Generate a smart itinerary with time periods, category diversity, and geographic coherence.
 
@@ -698,6 +700,15 @@ async def generate_smart_itinerary(
     total_visit = sum(dp["total_visit_minutes"] for dp in daily_plans)
     total_travel = sum(dp["total_travel_minutes"] for dp in daily_plans)
 
+    # Estimate daily cost based on category pricing
+    estimated_daily_cost = _estimate_daily_cost(daily_plans[0] if daily_plans else None)
+    budget_note = None
+    if budget_per_day is not None:
+        if estimated_daily_cost > budget_per_day * 1.2:
+            budget_note = f"Roteiro estimado em €{estimated_daily_cost:.0f}/dia — acima do orçamento de €{budget_per_day:.0f}. Considere reduzir o número de POIs pagos."
+        else:
+            budget_note = f"Roteiro estimado em €{estimated_daily_cost:.0f}/dia — dentro do orçamento de €{budget_per_day:.0f}."
+
     return {
         "locality": locality,
         "region": region or "",
@@ -706,6 +717,8 @@ async def generate_smart_itinerary(
         "profile": profile,
         "pace": pace,
         "max_radius_km": max_radius_km,
+        "wheelchair": wheelchair,
+        "budget_per_day": budget_per_day,
         "center": {"lat": center_lat, "lng": center_lng},
         "itinerary": daily_plans,
         "summary": {
@@ -715,11 +728,46 @@ async def generate_smart_itinerary(
             "total_minutes": total_visit + total_travel,
             "categories_covered": sorted(used_categories),
             "category_count": len(used_categories),
+            "estimated_daily_cost_eur": round(estimated_daily_cost, 1),
+            "budget_note": budget_note,
         },
         "transport": {"recommended": transport_rec},
         "events_nearby": events,
         "generated_at": datetime.now(timezone.utc).isoformat(),
     }
+
+
+# Average entry cost estimates (EUR per person) by category
+CATEGORY_COSTS_EUR = {
+    "museus": 8.0, "castelos": 6.0, "palacios_solares": 10.0,
+    "termas_banhos": 25.0, "agroturismo_enoturismo": 20.0,
+    "restaurantes_gastronomia": 25.0, "tabernas_historicas": 18.0,
+    "pratos_tipicos": 15.0, "docaria_regional": 5.0,
+    "mercados_feiras": 0.0, "produtores_dop": 5.0,
+    "percursos_pedestres": 0.0, "ecovias_passadicos": 0.0,
+    "miradouros": 0.0, "cascatas_pocos": 0.0,
+    "praias_fluviais": 0.0, "praias_bandeira_azul": 0.0,
+    "arte_urbana": 0.0, "oficios_artesanato": 8.0,
+    "patrimonio_ferroviario": 5.0, "surf": 30.0,
+    "aventura_natureza": 15.0, "festivais_musica": 20.0,
+    "festas_romarias": 0.0, "musica_tradicional": 5.0,
+    "arqueologia_geologia": 4.0, "moinhos_azenhas": 3.0,
+    "barragens_albufeiras": 0.0, "fauna_autoctone": 0.0,
+    "flora_autoctone": 0.0, "flora_botanica": 3.0,
+    "biodiversidade_avistamentos": 0.0, "natureza_especializada": 0.0,
+}
+
+
+def _estimate_daily_cost(day_plan: Optional[dict]) -> float:
+    """Estimate cost per person per day based on categories in the itinerary."""
+    if not day_plan:
+        return 0.0
+    total = 0.0
+    for period in day_plan.get("periods", []):
+        for poi in period.get("pois", []):
+            cat = poi.get("category", "")
+            total += CATEGORY_COSTS_EUR.get(cat, 2.0)  # default €2 for unknown
+    return total
 
 
 def _select_diverse_pois(pois: list, total_needed: int, per_day: int) -> list:
