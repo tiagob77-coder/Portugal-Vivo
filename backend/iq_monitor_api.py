@@ -2,8 +2,18 @@
 IQ Engine Monitor API
 Provides detailed monitoring and statistics for the IQ Engine processing pipeline.
 Used by both admin panel and user-facing dashboard.
+
+v2 additions:
+  - GET /iq-monitor/reliability-stats   — A/B/C level breakdown
+  - GET /iq-monitor/export/yaml/{poi_id} — single POI YAML export
+  - GET /iq-monitor/export/geojson       — bbox-filtered GeoJSON export
 """
-from fastapi import APIRouter
+import json
+from typing import Optional
+
+import yaml
+from fastapi import APIRouter, Query
+from fastapi.responses import PlainTextResponse, JSONResponse
 from shared_utils import DatabaseHolder
 
 iq_monitor_router = APIRouter(prefix="/iq-monitor", tags=["IQ Monitor"])
@@ -186,3 +196,164 @@ async def get_iq_admin():
             for b in batches if b["_id"]
         ],
     }
+
+
+# ──────────────────────────────────────────────────────────────────────────────
+# v2 ENDPOINTS
+# ──────────────────────────────────────────────────────────────────────────────
+
+@iq_monitor_router.get("/reliability-stats")
+async def get_reliability_stats():
+    """
+    Returns breakdown of POIs by reliability level (A / B / C).
+    Also includes avg iq_score per level and list of sources responsible
+    for the most C-level POIs.
+    """
+    db = _get_db()
+    c = db.heritage_items
+
+    levels = {}
+    for level in ["A", "B", "C"]:
+        count = await c.count_documents({"iq_reliability_level": level})
+        avg_pipeline = [
+            {"$match": {"iq_reliability_level": level, "iq_score": {"$exists": True}}},
+            {"$group": {"_id": None, "avg": {"$avg": "$iq_score"}}},
+        ]
+        avg_result = await c.aggregate(avg_pipeline).to_list(length=1)
+        avg_score = round(avg_result[0]["avg"], 1) if avg_result else 0.0
+        levels[level] = {"count": count, "avg_iq_score": avg_score}
+
+    # Total with any reliability level set
+    total_classified = sum(v["count"] for v in levels.values())
+
+    # Top sources responsible for C-level POIs
+    c_sources_pipeline = [
+        {"$match": {"iq_reliability_level": "C"}},
+        {"$group": {"_id": "$source", "count": {"$sum": 1}}},
+        {"$sort": {"count": -1}},
+        {"$limit": 5},
+    ]
+    c_sources = await c.aggregate(c_sources_pipeline).to_list(length=5)
+
+    return {
+        "levels": levels,
+        "total_classified": total_classified,
+        "c_level_top_sources": [
+            {"source": s["_id"] or "unknown", "count": s["count"]}
+            for s in c_sources
+        ],
+    }
+
+
+@iq_monitor_router.get("/export/yaml/{poi_id}", response_class=PlainTextResponse)
+async def export_poi_yaml(poi_id: str):
+    """
+    Export a single POI as YAML — includes all IQ Engine fields.
+    """
+    db = _get_db()
+    poi = await db.heritage_items.find_one(
+        {"id": poi_id},
+        {"_id": 0}
+    )
+    if not poi:
+        return PlainTextResponse(f"# POI not found: {poi_id}\n", status_code=404)
+
+    # Convert datetime objects to ISO strings for YAML serialisation
+    def _serialise(obj):
+        if hasattr(obj, "isoformat"):
+            return obj.isoformat()
+        return str(obj)
+
+    poi_clean = json.loads(json.dumps(poi, default=_serialise))
+    yaml_str = yaml.dump(poi_clean, allow_unicode=True, default_flow_style=False, sort_keys=False)
+    return PlainTextResponse(yaml_str, media_type="text/yaml")
+
+
+@iq_monitor_router.get("/export/geojson")
+async def export_geojson(
+    min_lat: float = Query(..., description="Bounding box south latitude"),
+    max_lat: float = Query(..., description="Bounding box north latitude"),
+    min_lng: float = Query(..., description="Bounding box west longitude"),
+    max_lng: float = Query(..., description="Bounding box east longitude"),
+    min_score: Optional[float] = Query(None, ge=0, le=100, description="Minimum IQ score filter"),
+    reliability: Optional[str] = Query(None, description="Filter by reliability level: A, B or C"),
+    limit: int = Query(200, ge=1, le=1000),
+):
+    """
+    Export POIs within a bounding box as GeoJSON FeatureCollection.
+    Includes iq_score, reliability_level, category, name, slug.
+    """
+    db = _get_db()
+
+    query: dict = {
+        "location.coordinates": {
+            "$geoWithin": {
+                "$box": [
+                    [min_lng, min_lat],
+                    [max_lng, max_lat],
+                ]
+            }
+        }
+    }
+
+    if min_score is not None:
+        query["iq_score"] = {"$gte": min_score}
+
+    if reliability:
+        query["iq_reliability_level"] = reliability.upper()
+
+    projection = {
+        "_id": 0,
+        "id": 1,
+        "name": 1,
+        "slug": 1,
+        "category": 1,
+        "region": 1,
+        "iq_score": 1,
+        "iq_reliability_level": 1,
+        "location": 1,
+        "micro_pitch": 1,
+    }
+
+    pois = await db.heritage_items.find(query, projection).limit(limit).to_list(length=limit)
+
+    features = []
+    for poi in pois:
+        loc = poi.get("location")
+        coords = None
+        if isinstance(loc, dict):
+            if "coordinates" in loc:
+                coords = loc["coordinates"]  # [lng, lat]
+            elif "lng" in loc and "lat" in loc:
+                coords = [loc["lng"], loc["lat"]]
+
+        if not coords:
+            continue
+
+        features.append({
+            "type": "Feature",
+            "geometry": {"type": "Point", "coordinates": coords},
+            "properties": {
+                "id": poi.get("id"),
+                "name": poi.get("name"),
+                "slug": poi.get("slug"),
+                "category": poi.get("category"),
+                "region": poi.get("region"),
+                "iq_score": poi.get("iq_score"),
+                "reliability_level": poi.get("iq_reliability_level"),
+                "micro_pitch": poi.get("micro_pitch"),
+            },
+        })
+
+    return JSONResponse({
+        "type": "FeatureCollection",
+        "features": features,
+        "meta": {
+            "count": len(features),
+            "bbox": [min_lng, min_lat, max_lng, max_lat],
+            "filters": {
+                "min_score": min_score,
+                "reliability": reliability,
+            },
+        },
+    })

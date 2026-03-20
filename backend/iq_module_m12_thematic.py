@@ -2,12 +2,47 @@
 IQ Engine - Module M12: Thematic Routing Analysis
 Analisa a afinidade temática de um POI para geração de rotas por tema.
 
-Temas suportados: Religioso, Gastronómico, Natureza, Cultural, Histórico,
-Arquitectura, Arte, Aventura, Familiar, Romântico
+v2 additions:
+  - Lightweight ontology: Surf ⊂ Aventura (inherited parent theme scores)
+  - Narrative arc classification: intro / climax / closure role for route building
 """
 from iq_engine_base import (
     IQModule, ModuleType, ProcessingResult, ProcessingStatus, POIProcessingData
 )
+
+# ──────────────────────────────────────────
+# LIGHTWEIGHT ONTOLOGY
+# child_theme → parent_theme
+# Child themes inherit 40% of their parent's score (avoids double-counting)
+# ──────────────────────────────────────────
+THEME_ONTOLOGY: dict = {
+    "surf":        "aventura",     # Surf ⊂ Aventura
+    "arquitetura": "historico",    # Arquitectura ⊂ Histórico
+    "romantico":   "natureza",     # Romântico partially inherits natureza
+}
+
+# Inheritance weight: child gets this fraction of parent's keyword score added
+_INHERIT_WEIGHT = 0.40
+
+# ──────────────────────────────────────────
+# NARRATIVE ARC ROLES
+# POI role within a multi-POI route narrative
+# ──────────────────────────────────────────
+NARRATIVE_INTRO_SIGNALS = [
+    "entrada", "início", "partida", "ponto de partida", "começo",
+    "receção", "boas-vindas", "miradouro", "panorâmica",
+    "museu", "centro de interpretação", "visitor center",
+]
+NARRATIVE_CLIMAX_SIGNALS = [
+    "castelo", "palácio", "catedral", "santuário", "monumento", "ruínas",
+    "cascata", "cume", "pico", "summit", "topo", "vistas espetaculares",
+    "patrimônio mundial", "unesco", "único", "imperdível", "icónico",
+]
+NARRATIVE_CLOSURE_SIGNALS = [
+    "restaurante", "tasca", "taberna", "mercado", "adega", "queijaria",
+    "miradouro do por do sol", "pôr do sol", "praia", "termais", "spa",
+    "artes e ofícios", "loja", "mercado local",
+]
 
 # Theme definitions with keywords and category mappings
 THEMES = {
@@ -73,7 +108,14 @@ THEMES = {
                      "romântico", "beleza", "vista", "panorâmica", "encantador", "charme"],
         "categories": [],
         "weight": 0.6
-    }
+    },
+    "surf": {
+        "name": "Rota de Surf & Desportos de Onda",
+        "keywords": ["surf", "onda", "bodyboard", "longboard", "escola de surf",
+                     "prancha", "fato de banho", "wipeout", "pico de surf", "break"],
+        "categories": ["surf"],
+        "weight": 1.0
+    },
 }
 
 
@@ -105,29 +147,41 @@ class ThematicRoutingModule(IQModule):
                     score += 5
                     matched_keywords.append(keyword)
 
-            # Cap keyword contribution at 40
             keyword_score = min(len(matched_keywords) * 5, 40)
             score = min(50 if category in theme_config["categories"] else 0, 50) + keyword_score
-
-            # Apply theme weight
             score = min(score * theme_config["weight"], 100)
 
             theme_scores[theme_id] = {
                 "score": round(score, 1),
                 "matched_keywords": matched_keywords[:5],
-                "theme_name": theme_config["name"]
+                "theme_name": theme_config["name"],
             }
 
-            if score >= 50:
+        # ── Ontology inheritance: child inherits from parent ───────────────────
+        for child_theme, parent_theme in THEME_ONTOLOGY.items():
+            if child_theme in theme_scores and parent_theme in theme_scores:
+                child_score = theme_scores[child_theme]["score"]
+                parent_score = theme_scores[parent_theme]["score"]
+                # Child score boosts parent
+                inherited = child_score * _INHERIT_WEIGHT
+                new_parent = min(100, parent_score + inherited)
+                theme_scores[parent_theme]["score"] = round(new_parent, 1)
+                theme_scores[parent_theme]["inherited_from"] = child_theme
+
+        # Classify primary / secondary
+        for theme_id, ts in theme_scores.items():
+            if ts["score"] >= 50:
                 primary_themes.append(theme_id)
-            elif score >= 25:
+            elif ts["score"] >= 25:
                 secondary_themes.append(theme_id)
 
-        # Sort themes by score
         sorted_themes = sorted(theme_scores.items(), key=lambda x: x[1]["score"], reverse=True)
         top_theme = sorted_themes[0] if sorted_themes else None
 
-        # Overall score: based on having clear thematic affinity
+        # ── Narrative arc classification ───────────────────────────────────────
+        narrative_role = self._classify_narrative_role(text_corpus, category)
+
+        # Overall score
         max_theme_score = top_theme[1]["score"] if top_theme else 0
         theme_diversity = len(primary_themes) + len(secondary_themes) * 0.5
         overall_score = min(max_theme_score * 0.7 + theme_diversity * 10, 100)
@@ -151,7 +205,27 @@ class ThematicRoutingModule(IQModule):
                 "top_theme_score": top_theme[1]["score"] if top_theme else 0,
                 "theme_count": len(primary_themes),
                 "all_themes": {k: v["score"] for k, v in sorted_themes[:5]},
+                "narrative_role": narrative_role,  # "intro" | "climax" | "closure" | "flexible"
             },
             issues=[],
-            warnings=suggestions
+            warnings=suggestions,
         )
+
+    def _classify_narrative_role(self, text: str, category: str) -> str:
+        """
+        Classify the POI's role in a narrative route arc.
+        Returns one of: "intro" | "climax" | "closure" | "flexible"
+        """
+        intro_score = sum(1 for s in NARRATIVE_INTRO_SIGNALS if s in text)
+        climax_score = sum(1 for s in NARRATIVE_CLIMAX_SIGNALS if s in text)
+        closure_score = sum(1 for s in NARRATIVE_CLOSURE_SIGNALS if s in text)
+
+        max_score = max(intro_score, climax_score, closure_score)
+        if max_score == 0:
+            return "flexible"
+
+        if climax_score == max_score:
+            return "climax"
+        if closure_score == max_score:
+            return "closure"
+        return "intro"

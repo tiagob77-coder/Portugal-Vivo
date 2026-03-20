@@ -1,6 +1,11 @@
 """
 IQ Engine - Módulo 9-10: Data Enrichment
-Enriquecimento de dados via scraping e APIs externas
+Enriquecimento de dados via scraping e APIs externas.
+
+v2 additions:
+  - Seasonal closure inference from description text
+  - Binary flags: reserva_obrigatoria, pagamento_numerario, estacionamento_local
+  - Source confidence weighting (official 0.4 + maps 0.4 + wikipedia 0.2)
 """
 from typing import Dict, Optional
 import logging
@@ -41,7 +46,7 @@ class DataEnrichmentModule(IQModule):
         self.places_url = "https://maps.googleapis.com/maps/api/place"
 
     async def _process_impl(self, data: POIProcessingData) -> ProcessingResult:
-        """Enrich POI with additional data"""
+        """Enrich POI with additional data (v2)."""
 
         enriched_data = {}
         sources_used = []
@@ -74,6 +79,21 @@ class DataEnrichmentModule(IQModule):
                 enriched_data.update(wiki_data)
                 sources_used.append("wikipedia")
 
+        # ── v2: Seasonal closure inference ─────────────────────────────────────
+        seasonal_closure = self._infer_seasonal_closure(data)
+        if seasonal_closure:
+            enriched_data["seasonal_closure"] = seasonal_closure
+            warnings.append(
+                f"Fecho sazonal inferido: {seasonal_closure.get('note', '')}"
+            )
+
+        # ── v2: Binary flags ───────────────────────────────────────────────────
+        flags = self._extract_binary_flags(data)
+        enriched_data.update(flags)
+
+        # ── Source confidence weighting ────────────────────────────────────────
+        source_confidence = self._calculate_source_confidence(sources_used, enriched_data)
+
         # Calculate enrichment score
         score = self._calculate_enrichment_score(enriched_data)
 
@@ -91,12 +111,18 @@ class DataEnrichmentModule(IQModule):
             module=self.module_type,
             status=status,
             score=score,
-            confidence=0.8 if sources_used else 0.3,
+            confidence=source_confidence,
             data={
                 "enriched_fields": enriched_data,
                 "sources_used": sources_used,
                 "fields_added": list(enriched_data.keys()),
-                "enrichment_percentage": score
+                "enrichment_percentage": score,
+                "source_confidence": source_confidence,
+                # Binary flags surfaced at top level for easy access
+                "reserva_obrigatoria": flags.get("reserva_obrigatoria", False),
+                "pagamento_numerario": flags.get("pagamento_numerario", False),
+                "estacionamento_local": flags.get("estacionamento_local", None),
+                "seasonal_closure": seasonal_closure,
             },
             issues=issues,
             warnings=warnings
@@ -315,6 +341,115 @@ class DataEnrichmentModule(IQModule):
             logger.debug(f"Wikipedia enrichment failed: {e}")
 
         return {}
+
+    # ── v2 new helpers ─────────────────────────────────────────────────────────
+
+    def _infer_seasonal_closure(self, data: POIProcessingData) -> Optional[Dict]:
+        """
+        Infer seasonal closure from description text.
+        Returns dict like {"months": [12, 1, 2], "note": "Encerrado no inverno"} or None.
+        """
+        text = (data.description or "").lower()
+
+        # Explicit closure mentions
+        closure_patterns = [
+            (["encerrado no inverno", "fecha no inverno", "fechado no inverno"],
+             [12, 1, 2], "Encerrado no inverno"),
+            (["encerrado no verão", "fecha no verão"],
+             [6, 7, 8], "Encerrado no verão"),
+            (["só abre na primavera", "abre em abril", "abre em março"],
+             [10, 11, 12, 1, 2, 3], "Abre apenas na primavera/verão"),
+            (["temporada de verão", "funciona no verão", "aberto no verão"],
+             [10, 11, 12, 1, 2, 3, 4, 5], "Funciona apenas na temporada de verão"),
+            (["período balnear", "época balnear"],
+             [10, 11, 12, 1, 2, 3, 4, 5], "Aberto apenas no período balnear"),
+        ]
+
+        for triggers, closed_months, note in closure_patterns:
+            if any(t in text for t in triggers):
+                return {"months_closed": closed_months, "note": note, "inferred": True}
+
+        # Check metadata for explicit closure
+        meta = data.metadata or {}
+        if meta.get("seasonal_closure"):
+            val = meta["seasonal_closure"]
+            if isinstance(val, dict):
+                return val
+            return {"months_closed": [], "note": str(val), "inferred": False}
+
+        return None
+
+    def _extract_binary_flags(self, data: POIProcessingData) -> Dict:
+        """
+        Extract binary operational flags from description + metadata.
+
+        reserva_obrigatoria  — reservation required
+        pagamento_numerario  — cash only
+        estacionamento_local — has local parking (True/False/None=unknown)
+        """
+        text = (data.description or "").lower()
+        meta = data.metadata or {}
+        flags: Dict = {}
+
+        # reserva_obrigatoria
+        reservation_pos = ["reserva obrigatória", "marcação obrigatória", "reserva prévia",
+                            "só com reserva", "marcação prévia", "booking required"]
+        reservation_neg = ["sem reserva", "entrada livre", "free entry", "walk-in"]
+
+        if meta.get("reserva_obrigatoria") is not None:
+            flags["reserva_obrigatoria"] = bool(meta["reserva_obrigatoria"])
+        elif any(p in text for p in reservation_pos):
+            flags["reserva_obrigatoria"] = True
+        elif any(p in text for p in reservation_neg):
+            flags["reserva_obrigatoria"] = False
+        else:
+            flags["reserva_obrigatoria"] = False
+
+        # pagamento_numerario (cash only)
+        cash_pos = ["só numerário", "apenas numerário", "cash only", "não aceita cartão",
+                    "sem multibanco", "pagamento em dinheiro"]
+        if meta.get("pagamento_numerario") is not None:
+            flags["pagamento_numerario"] = bool(meta["pagamento_numerario"])
+        elif any(p in text for p in cash_pos):
+            flags["pagamento_numerario"] = True
+        else:
+            flags["pagamento_numerario"] = False
+
+        # estacionamento_local
+        parking_pos = ["estacionamento gratuito", "parque de estacionamento", "lugar de estacionamento",
+                        "parking disponível", "fácil estacionamento"]
+        parking_neg = ["sem estacionamento", "não há estacionamento", "estacionamento pago distante"]
+        if meta.get("estacionamento_local") is not None:
+            flags["estacionamento_local"] = bool(meta["estacionamento_local"])
+        elif any(p in text for p in parking_pos):
+            flags["estacionamento_local"] = True
+        elif any(p in text for p in parking_neg):
+            flags["estacionamento_local"] = False
+        else:
+            flags["estacionamento_local"] = None  # unknown
+
+        return flags
+
+    def _calculate_source_confidence(
+        self,
+        sources_used: list,
+        enriched_data: Dict,
+    ) -> float:
+        """
+        Source confidence weighting:
+          official/google_places: 0.4
+          existing_metadata/maps: 0.4
+          wikipedia:              0.2
+        Returns weighted confidence 0-1.
+        """
+        weights = {
+            "google_places": 0.4,
+            "existing_metadata": 0.2,
+            "description_extraction": 0.2,
+            "wikipedia": 0.2,
+        }
+        total_weight = sum(weights.get(s, 0.1) for s in sources_used)
+        return min(1.0, round(total_weight, 2)) if sources_used else 0.3
 
     def _calculate_enrichment_score(self, enriched_data: Dict) -> float:
         """Calculate enrichment quality score (0-100)"""

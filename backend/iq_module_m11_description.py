@@ -1,6 +1,10 @@
 """
 IQ Engine - Módulo 11: Description Generation
-Geração de descrições evocativas via RAG (Retrieval-Augmented Generation)
+Geração de descrições evocativas via RAG (Retrieval-Augmented Generation).
+
+v2: dual output
+  micro_pitch     ≤ 160 chars — ultra-short teaser for cards / push notifications
+  descricao_curta ≤ 300 chars — standard description for detail pages
 """
 from typing import Optional
 import logging
@@ -48,6 +52,8 @@ class DescriptionGenerationModule(IQModule):
         needs_improvement, reason = self._needs_improvement(data)
 
         if not needs_improvement:
+            # Description is already good — still generate micro_pitch
+            micro_pitch = self._make_micro_pitch(original_desc)
             return ProcessingResult(
                 module=self.module_type,
                 status=ProcessingStatus.COMPLETED,
@@ -57,7 +63,9 @@ class DescriptionGenerationModule(IQModule):
                     "original_description": original_desc,
                     "needs_improvement": False,
                     "reason": "Descrição já é adequada",
-                    "original_length": len(original_desc)
+                    "original_length": len(original_desc),
+                    "descricao_curta": original_desc[:300],
+                    "micro_pitch": micro_pitch,
                 },
                 issues=[],
                 warnings=[]
@@ -79,13 +87,17 @@ class DescriptionGenerationModule(IQModule):
             generated_desc = self._improve_existing(data)
             method_used = "text_improvement"
 
+        # ── Dual output ────────────────────────────────────────────────────────
+        descricao_curta = generated_desc[:300] if generated_desc else ""
+        micro_pitch = self._make_micro_pitch(descricao_curta or original_desc)
+
         # Calculate score
-        score = self._calculate_quality_score(generated_desc, data) if generated_desc else 0
+        score = self._calculate_quality_score(descricao_curta, data) if descricao_curta else 0
 
         issues = []
         warnings = []
 
-        if not generated_desc:
+        if not descricao_curta:
             issues.append("Não foi possível gerar descrição")
             status = ProcessingStatus.FAILED
         elif score < 60:
@@ -101,16 +113,38 @@ class DescriptionGenerationModule(IQModule):
             confidence=0.9 if method_used == "llm_generation" else 0.7,
             data={
                 "original_description": original_desc,
-                "generated_description": generated_desc,
+                "generated_description": descricao_curta,
+                "descricao_curta": descricao_curta,          # ≤ 300 chars
+                "micro_pitch": micro_pitch,                  # ≤ 160 chars
                 "method_used": method_used,
                 "original_length": len(original_desc),
-                "generated_length": len(generated_desc) if generated_desc else 0,
+                "generated_length": len(descricao_curta) if descricao_curta else 0,
                 "improvement_reason": reason,
-                "within_limit": len(generated_desc) <= 300 if generated_desc else False
+                "within_limit": len(descricao_curta) <= 300 if descricao_curta else False,
             },
             issues=issues,
             warnings=warnings
         )
+
+    def _make_micro_pitch(self, text: str) -> str:
+        """
+        Generate a micro_pitch (≤ 160 chars) from an existing description.
+        Picks the first sentence; if too long, truncates at last word boundary.
+        """
+        if not text:
+            return ""
+        # First sentence
+        import re
+        sentences = re.split(r"(?<=[.!?])\s+", text.strip())
+        pitch = sentences[0] if sentences else text
+        if len(pitch) <= 160:
+            return pitch
+        # Truncate at last word boundary within 157 chars
+        truncated = pitch[:157]
+        last_space = truncated.rfind(" ")
+        if last_space > 100:
+            truncated = truncated[:last_space]
+        return truncated + "…"
 
     def _needs_improvement(self, data: POIProcessingData) -> tuple:
         """Check if description needs improvement"""

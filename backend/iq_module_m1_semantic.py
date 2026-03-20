@@ -30,6 +30,60 @@ VALID_CATEGORY_IDS = [
 
 _ai_classify_cache: Dict[str, Dict] = {}
 
+# ──────────────────────────────────────────
+# MULTI-LABEL: secondary categories
+# A POI may have 1 primary + up to 2 secondary PV labels.
+# ──────────────────────────────────────────
+SECONDARY_ELIGIBLE: Dict[str, List[str]] = {
+    # If primary is X, these categories can be secondary
+    "miradouros":        ["aventura_natureza", "percursos_pedestres", "natureza_especializada"],
+    "surf":              ["aventura_natureza", "praias_fluviais"],
+    "termas_banhos":     ["natureza_especializada", "aventura_natureza"],
+    "percursos_pedestres": ["aventura_natureza", "cascatas_pocos", "natureza_especializada"],
+    "castelos":          ["museus", "arqueologia_geologia"],
+    "museus":            ["arte_urbana", "arqueologia_geologia"],
+    "praias_fluviais":   ["aventura_natureza", "natureza_especializada"],
+    "aventura_natureza": ["percursos_pedestres", "praias_fluviais", "surf"],
+}
+
+# ──────────────────────────────────────────
+# HARD RULES
+# Dict of (primary_category, condition) → required_data_field or warning
+# "condition" is a secondary category or keyword that triggers the rule.
+# ──────────────────────────────────────────
+HARD_RULES: List[Dict] = [
+    {
+        "primary": "miradouros",
+        "trigger_keyword": "astroturismo",
+        "required_field": "sky_quality_data",
+        "message": "Miradouro de astroturismo requer dados de qualidade do céu (Bortle scale / SQM)",
+    },
+    {
+        "primary": "surf",
+        "trigger_keyword": None,  # always
+        "required_field": "transport_access",
+        "message": "POI de Surf deve incluir acesso por transporte (estacionamento / transportes públicos)",
+    },
+    {
+        "primary": "praias_fluviais",
+        "trigger_keyword": "bandeira azul",
+        "required_field": "water_quality_certification",
+        "message": "Praia com Bandeira Azul requer certificação de qualidade da água",
+    },
+    {
+        "primary": "termas_banhos",
+        "trigger_keyword": None,
+        "required_field": "reserva_obrigatoria",
+        "message": "Termas/Spa geralmente requerem reserva — verificar campo reserva_obrigatoria",
+    },
+    {
+        "primary": "percursos_pedestres",
+        "trigger_keyword": "pr ",  # PR routes (Pequena Rota)
+        "required_field": "distance_km",
+        "message": "Percurso com código PR deve incluir distância em km",
+    },
+]
+
 # Categorias PV (Portugal Vivo) - new subcategory IDs
 PV_CATEGORIES = {
     "musica_tradicional": ["lenda", "mito", "história", "narrativa", "conto", "moura", "encantada",
@@ -86,19 +140,14 @@ class SemanticValidationModule(IQModule):
 
     async def _process_impl(self, data: POIProcessingData) -> ProcessingResult:
         """
-        Process POI for semantic validation
-        
-        Returns:
-            ProcessingResult with:
-            - score: confidence score (0-100)
-            - data: {
-                "suggested_category": str,
-                "category_confidence": float,
-                "suggested_subcategory": str,
-                "subcategory_confidence": float,
-                "keywords_found": list,
-                "ai_classification": dict (if use_ai)
-              }
+        Process POI for semantic validation.
+
+        Returns ProcessingResult with:
+          score             — category confidence 0-100
+          data.suggested_category      — primary PV category
+          data.secondary_categories    — up to 2 secondary PV categories
+          data.hard_rule_violations    — list of hard-rule warning dicts
+          data.all_category_scores     — top-5 scored categories
         """
         # Combine text for analysis
         text = f"{data.name} {data.description}".lower()
@@ -112,6 +161,11 @@ class SemanticValidationModule(IQModule):
         # Get best matches
         best_category, category_confidence = self._get_best_match(category_scores)
         best_subcategory, subcategory_confidence = self._get_best_match(subcategory_scores)
+
+        # ── Multi-label: up to 2 secondary categories ──────────────────────────
+        secondary_categories = self._get_secondary_categories(
+            best_category, category_scores, category_confidence
+        )
 
         # Validate existing category
         issues = []
@@ -135,8 +189,12 @@ class SemanticValidationModule(IQModule):
                 best_category = ai_result.get("category", best_category)
                 category_confidence = max(category_confidence, ai_result.get("confidence", 0))
 
-        # Calculate overall score
-        # Score formula: category confidence (60%) + has subcategory (20%) + completeness (20%)
+        # ── Hard rules check ───────────────────────────────────────────────────
+        hard_rule_violations = self._check_hard_rules(best_category, text, data)
+        for violation in hard_rule_violations:
+            warnings.append(violation["message"])
+
+        # ── Score formula ──────────────────────────────────────────────────────
         completeness = 0
         if data.category:
             completeness += 0.5
@@ -145,9 +203,12 @@ class SemanticValidationModule(IQModule):
         if data.tags:
             completeness += 0.2
 
+        secondary_bonus = 0.1 if secondary_categories else 0
+
         overall_score = (
             category_confidence * 0.6 +
-            (subcategory_confidence if best_subcategory else 0) * 0.2 +
+            (subcategory_confidence if best_subcategory else 0) * 0.1 +
+            secondary_bonus +
             completeness * 0.2
         ) * 100
 
@@ -169,15 +230,17 @@ class SemanticValidationModule(IQModule):
             data={
                 "suggested_category": best_category,
                 "category_confidence": category_confidence,
+                "secondary_categories": secondary_categories,
                 "suggested_subcategory": best_subcategory,
                 "subcategory_confidence": subcategory_confidence,
                 "keywords_found": self._extract_keywords(text, best_category),
                 "ai_classification": ai_result,
+                "hard_rule_violations": hard_rule_violations,
                 "all_category_scores": dict(sorted(
                     category_scores.items(),
                     key=lambda x: x[1],
                     reverse=True
-                )[:5])  # Top 5
+                )[:5])
             },
             issues=issues,
             warnings=warnings
@@ -225,6 +288,60 @@ class SemanticValidationModule(IQModule):
 
         best = max(scores.items(), key=lambda x: x[1])
         return best[0], best[1]
+
+    def _get_secondary_categories(
+        self,
+        primary: Optional[str],
+        scores: Dict[str, float],
+        primary_confidence: float,
+    ) -> List[str]:
+        """
+        Return up to 2 secondary PV categories that:
+        - Are eligible given the primary (see SECONDARY_ELIGIBLE)
+        - Have keyword-match score ≥ 0.2
+        - Are not the same as the primary
+        """
+        if not primary or primary_confidence < 0.4:
+            return []
+
+        eligible = SECONDARY_ELIGIBLE.get(primary, [])
+        if not eligible:
+            # Fallback: top-2 other scored categories
+            eligible = [c for c in scores if c != primary]
+
+        secondary = []
+        for cat in eligible:
+            if cat != primary and scores.get(cat, 0) >= 0.2:
+                secondary.append(cat)
+            if len(secondary) >= 2:
+                break
+
+        return secondary
+
+    def _check_hard_rules(
+        self,
+        primary_category: Optional[str],
+        text: str,
+        data: POIProcessingData,
+    ) -> List[Dict]:
+        """Return list of triggered hard-rule violation dicts."""
+        violations = []
+        for rule in HARD_RULES:
+            if rule["primary"] != primary_category:
+                continue
+            trigger = rule.get("trigger_keyword")
+            if trigger and trigger not in text:
+                continue
+            # Rule is triggered — check if the required field exists
+            field = rule["required_field"]
+            value = data.metadata.get(field)
+            if not value:
+                violations.append({
+                    "rule": f"{rule['primary']}:{field}",
+                    "required_field": field,
+                    "message": rule["message"],
+                })
+        return violations
 
     def _extract_keywords(self, text: str, category: str) -> List[str]:
         """Extract matching keywords for a category"""

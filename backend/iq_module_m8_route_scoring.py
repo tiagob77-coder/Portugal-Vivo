@@ -1,41 +1,50 @@
 """
 IQ Engine - Módulo 8: Route Scoring
-Sistema de pontuação para rotas (0-100)
+Sistema de pontuação para rotas (0-100).
+
+v2 additions:
+  - logistical_robustness_score: checks if POIs have consistent opening-hours
+    coverage and transport accessibility
+  - internal_diversity_score: checks category/theme diversity within the route
 """
-from typing import Dict
+from typing import Dict, List
 import logging
 from iq_engine_base import (
     IQModule,
     ModuleType,
     ProcessingResult,
     ProcessingStatus,
-    POIProcessingData
+    POIProcessingData,
 )
 
 logger = logging.getLogger(__name__)
 
+
 class RouteScoringModule(IQModule):
     """
-    Módulo 8: Route Score (0-100)
-    
-    Critérios de pontuação para rotas:
-    1. Coerência Temática (25 pontos)
-    2. Qualidade Geográfica (25 pontos)
-    3. Acessibilidade (20 pontos)
-    4. Qualidade dos POIs (20 pontos)
-    5. Experiência do Utilizador (10 pontos)
+    Módulo 8: Route Score (0-100) v2
+
+    Criteria:
+    1. Coerência Temática (20%)
+    2. Qualidade Geográfica (20%)
+    3. Acessibilidade (15%)
+    4. Qualidade dos POIs (20%)
+    5. Experiência do Utilizador (10%)
+    6. Robustez Logística (10%)   — v2
+    7. Diversidade Interna (5%)   — v2
     """
 
     def __init__(self):
         super().__init__(ModuleType.ROUTE_SCORING)
 
-        # Pesos dos critérios
         self.weights = {
-            "thematic_coherence": 0.25,
-            "geographic_quality": 0.25,
-            "accessibility": 0.20,
-            "poi_quality": 0.20,
-            "user_experience": 0.10
+            "thematic_coherence":      0.20,
+            "geographic_quality":      0.20,
+            "accessibility":           0.15,
+            "poi_quality":             0.20,
+            "user_experience":         0.10,
+            "logistical_robustness":   0.10,  # v2
+            "internal_diversity":      0.05,  # v2
         }
 
     async def _process_impl(self, data: POIProcessingData) -> ProcessingResult:
@@ -74,6 +83,16 @@ class RouteScoringModule(IQModule):
         ux_score, ux_details = self._score_user_experience(data, route_data)
         scores["user_experience"] = ux_score
         details["user_experience"] = ux_details
+
+        # 6. Robustez Logística (v2)
+        logistic_score, logistic_details = self._score_logistical_robustness(data, route_data)
+        scores["logistical_robustness"] = logistic_score
+        details["logistical_robustness"] = logistic_details
+
+        # 7. Diversidade Interna (v2)
+        diversity_score, diversity_details = self._score_internal_diversity(data, route_data)
+        scores["internal_diversity"] = diversity_score
+        details["internal_diversity"] = diversity_details
 
         # Score final ponderado
         final_score = sum(
@@ -250,6 +269,81 @@ class RouteScoringModule(IQModule):
             details["highlight_count"] = len(highlights)
 
         return min(1.0, score), details
+
+    def _score_logistical_robustness(self, data: POIProcessingData, route_data: Dict) -> tuple:
+        """
+        Score logistical robustness (0-1).
+        Checks:
+        - POIs have opening hours → routes won't break due to closed venues
+        - At least one transport option is mentioned
+        - Total visit duration is ≤ 12h (realistic for a day route)
+        """
+        score = 0.4  # base
+        details = {}
+
+        poi_ids = route_data.get("poi_ids", [])
+        poi_count = len(poi_ids) if poi_ids else route_data.get("poi_count", 0)
+
+        # Opening hours coverage
+        pois_with_hours = route_data.get("pois_with_opening_hours", 0)
+        if poi_count > 0:
+            coverage = pois_with_hours / poi_count
+            score += coverage * 0.3
+            details["opening_hours_coverage"] = round(coverage, 2)
+        else:
+            details["opening_hours_coverage"] = None
+
+        # Transport info present
+        transport_info = route_data.get("transport_info") or route_data.get("accessibility_notes")
+        if transport_info:
+            score += 0.15
+            details["has_transport_info"] = True
+
+        # Duration sanity check (≤ 12h total = 720 min)
+        duration_min = route_data.get("duration_minutes") or (
+            (route_data.get("duration_hours") or 0) * 60
+        )
+        if duration_min > 0:
+            if duration_min <= 720:
+                score += 0.15
+                details["duration_realistic"] = True
+            else:
+                details["duration_realistic"] = False
+                details["duration_minutes"] = duration_min
+
+        return min(1.0, score), details
+
+    def _score_internal_diversity(self, data: POIProcessingData, route_data: Dict) -> tuple:
+        """
+        Score internal category/theme diversity (0-1).
+        A good route mixes different category types (nature + culture + gastronomy etc.)
+        """
+        score = 0.3  # base
+        details = {}
+
+        poi_categories: List[str] = route_data.get("poi_categories", [])
+        if not poi_categories:
+            return score, {"note": "Sem dados de categorias dos POIs"}
+
+        unique_categories = set(poi_categories)
+        diversity_ratio = len(unique_categories) / max(len(poi_categories), 1)
+        details["unique_categories"] = list(unique_categories)
+        details["diversity_ratio"] = round(diversity_ratio, 2)
+
+        if len(unique_categories) >= 4:
+            score = 1.0
+            details["diversity_level"] = "excelente"
+        elif len(unique_categories) >= 3:
+            score = 0.8
+            details["diversity_level"] = "bom"
+        elif len(unique_categories) == 2:
+            score = 0.6
+            details["diversity_level"] = "moderado"
+        else:
+            score = 0.3
+            details["diversity_level"] = "baixo"
+
+        return score, details
 
     def _get_quality_level(self, score: float) -> str:
         """Determine quality level"""
