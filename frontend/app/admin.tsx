@@ -64,6 +64,7 @@ const QUICK_ACTIONS = [
   { label: 'Importador', icon: 'cloud-upload', route: '/importer', color: '#22C55E' },
   { label: 'Premium Stats', icon: 'diamond', route: '/premium', color: '#C49A6C' },
   { label: 'Analytics', icon: 'bar-chart', route: '/analytics', color: '#F59E0B' },
+  { label: 'CAOP', icon: 'public', route: '', color: '#10B981' },
   { label: 'Moderação Imagens', icon: 'photo-library', route: '', color: '#EC4899' },
 ];
 
@@ -73,6 +74,8 @@ export default function AdminDashboard() {
   const { colors } = useTheme();
   const queryClient = useQueryClient();
   const [showModeration, setShowModeration] = useState(false);
+  const [showCaop, setShowCaop] = useState(false);
+  const [caopLaunching, setCaopLaunching] = useState(false);
 
   const { data, isLoading } = useQuery({
     queryKey: ['admin-dashboard'],
@@ -85,6 +88,50 @@ export default function AdminDashboard() {
     queryFn: async () => { const res = await api.get('/admin/uploads', { params: { limit: 20 } }); return res.data; },
     enabled: showModeration,
   });
+
+  // CAOP stats + live job status
+  const { data: caopStats, refetch: refetchCaopStats } = useQuery({
+    queryKey: ['caop-stats'],
+    queryFn: async () => { const res = await api.get('/geo/stats'); return res.data; },
+    enabled: showCaop,
+    staleTime: 0,
+  });
+
+  const { data: caopJob, refetch: refetchCaopJob } = useQuery({
+    queryKey: ['caop-job'],
+    queryFn: async () => { const res = await api.get('/geo/enrich-status'); return res.data; },
+    enabled: showCaop,
+    refetchInterval: (data: any) => (data?.status === 'running' ? 3000 : false),
+  });
+
+  const handleStartCaop = async () => {
+    if (caopJob?.status === 'running') {
+      Platform.OS === 'web'
+        ? window.alert('Já existe um job em curso. Aguarda a conclusão.')
+        : Alert.alert('Em curso', 'Já existe um job em curso. Aguarda a conclusão.');
+      return;
+    }
+    setCaopLaunching(true);
+    try {
+      await api.post('/geo/enrich-all', null, { params: { only_missing: true, delay: 1.1 } });
+      setTimeout(() => { refetchCaopJob(); refetchCaopStats(); }, 800);
+    } catch (e: any) {
+      const msg = e?.response?.data?.detail || 'Erro ao iniciar job';
+      Platform.OS === 'web' ? window.alert(msg) : Alert.alert('Erro', msg);
+    } finally {
+      setCaopLaunching(false);
+    }
+  };
+
+  const handleCancelCaop = async () => {
+    try {
+      await api.post('/geo/enrich-cancel');
+      refetchCaopJob();
+    } catch (e: any) {
+      const msg = e?.response?.data?.detail || 'Erro ao cancelar';
+      Platform.OS === 'web' ? window.alert(msg) : Alert.alert('Erro', msg);
+    }
+  };
 
   const handleModerate = useCallback(async (imageId: string, action: 'approve' | 'reject' | 'delete') => {
     try {
@@ -217,6 +264,8 @@ export default function AdminDashboard() {
                 onPress={() => {
                   if (action.label === 'Moderação Imagens') {
                     setShowModeration(!showModeration);
+                  } else if (action.label === 'CAOP') {
+                    setShowCaop(!showCaop);
                   } else {
                     router.push(action.route as any);
                   }
@@ -230,6 +279,117 @@ export default function AdminDashboard() {
             ))}
           </View>
         </View>
+
+        {/* CAOP Enrichment Panel */}
+        {showCaop && (
+          <View style={[styles.section, { backgroundColor: colors.surface }]}>
+            <View style={styles.moderationHeader}>
+              <MaterialIcons name="public" size={22} color="#10B981" />
+              <Text style={[styles.sectionTitle, { color: colors.textPrimary, marginBottom: 0 }]}>
+                CAOP — Dados Administrativos
+              </Text>
+            </View>
+
+            {/* Coverage stats */}
+            {caopStats && (
+              <View style={styles.caopStatsRow}>
+                <View style={[styles.caopStat, { backgroundColor: '#10B98115' }]}>
+                  <Text style={[styles.caopStatVal, { color: '#10B981' }]}>
+                    {caopStats.caop_coverage?.pct_concelho ?? '–'}%
+                  </Text>
+                  <Text style={[styles.caopStatLabel, { color: colors.textMuted }]}>Concelhos</Text>
+                </View>
+                <View style={[styles.caopStat, { backgroundColor: '#3B82F615' }]}>
+                  <Text style={[styles.caopStatVal, { color: '#3B82F6' }]}>
+                    {caopStats.caop_coverage?.pct_freguesia ?? '–'}%
+                  </Text>
+                  <Text style={[styles.caopStatLabel, { color: colors.textMuted }]}>Freguesias</Text>
+                </View>
+                <View style={[styles.caopStat, { backgroundColor: '#F59E0B15' }]}>
+                  <Text style={[styles.caopStatVal, { color: '#F59E0B' }]}>
+                    {caopStats.pending_enrichment ?? '–'}
+                  </Text>
+                  <Text style={[styles.caopStatLabel, { color: colors.textMuted }]}>Pendentes</Text>
+                </View>
+              </View>
+            )}
+
+            {/* Job status bar */}
+            {caopJob && caopJob.status !== 'idle' && (
+              <View style={[styles.caopJobBox, { borderColor: colors.borderLight }]}>
+                <View style={styles.caopJobHeader}>
+                  <Text style={[styles.caopJobStatus, {
+                    color: caopJob.status === 'running' ? '#10B981'
+                         : caopJob.status === 'done' ? '#3B82F6'
+                         : '#EF4444'
+                  }]}>
+                    {caopJob.status === 'running' ? '⬤ A enriquecer…'
+                   : caopJob.status === 'done' ? '✓ Concluído'
+                   : caopJob.status === 'error' ? '✗ Erro'
+                   : caopJob.status}
+                  </Text>
+                  <Text style={[styles.caopJobMeta, { color: colors.textMuted }]}>
+                    {caopJob.processed}/{caopJob.total} POIs
+                  </Text>
+                </View>
+
+                {/* Progress bar */}
+                <View style={[styles.caopProgressBg, { backgroundColor: colors.borderLight }]}>
+                  <View style={[styles.caopProgressFill, {
+                    width: `${caopJob.pct_complete ?? 0}%` as any,
+                    backgroundColor: caopJob.status === 'error' ? '#EF4444' : '#10B981',
+                  }]} />
+                </View>
+
+                <Text style={[styles.caopJobDetail, { color: colors.textMuted }]}>
+                  {caopJob.pct_complete}% · {caopJob.updated} atualizados · {caopJob.errors} erros
+                  {caopJob.last_poi ? ` · ${caopJob.last_poi}` : ''}
+                </Text>
+              </View>
+            )}
+
+            {/* Action buttons */}
+            <View style={styles.caopBtnRow}>
+              <TouchableOpacity
+                style={[styles.caopBtn, {
+                  backgroundColor: caopJob?.status === 'running' ? '#6B7280' : '#10B981',
+                  flex: 1,
+                }]}
+                onPress={handleStartCaop}
+                disabled={caopLaunching || caopJob?.status === 'running'}
+              >
+                {caopLaunching
+                  ? <ActivityIndicator size="small" color="#FFF" />
+                  : <MaterialIcons name="play-arrow" size={18} color="#FFF" />
+                }
+                <Text style={styles.caopBtnText}>
+                  {caopJob?.status === 'running' ? 'Em curso…' : 'Iniciar Enriquecimento'}
+                </Text>
+              </TouchableOpacity>
+
+              {caopJob?.status === 'running' && (
+                <TouchableOpacity
+                  style={[styles.caopBtn, { backgroundColor: '#EF4444', paddingHorizontal: 14 }]}
+                  onPress={handleCancelCaop}
+                >
+                  <MaterialIcons name="stop" size={18} color="#FFF" />
+                </TouchableOpacity>
+              )}
+
+              <TouchableOpacity
+                style={[styles.caopBtn, { backgroundColor: colors.borderLight, paddingHorizontal: 14 }]}
+                onPress={() => { refetchCaopStats(); refetchCaopJob(); }}
+              >
+                <MaterialIcons name="refresh" size={18} color={colors.textMuted} />
+              </TouchableOpacity>
+            </View>
+
+            <Text style={[styles.caopNote, { color: colors.textMuted }]}>
+              Corre dentro do Docker — sem necessidade de SSH.{'\n'}
+              Fonte: GeoAPI.pt (DGT/CAOP oficial). Rate: 1 req/s.
+            </Text>
+          </View>
+        )}
 
         {/* Image Moderation */}
         {showModeration && (
@@ -438,4 +598,24 @@ const styles = StyleSheet.create({
   modStatusBadge: { alignSelf: 'flex-start', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 6, marginTop: 2 },
   modActions: { flexDirection: 'column', gap: 4 },
   modBtn: { width: 28, height: 28, borderRadius: 6, alignItems: 'center', justifyContent: 'center' },
+
+  // CAOP
+  caopStatsRow: { flexDirection: 'row', gap: 10, marginBottom: 16 },
+  caopStat: { flex: 1, borderRadius: 12, padding: 12, alignItems: 'center' },
+  caopStatVal: { fontSize: 22, fontWeight: '800', marginBottom: 2 },
+  caopStatLabel: { fontSize: 11, fontWeight: '500' },
+  caopJobBox: { borderWidth: 1, borderRadius: 12, padding: 12, marginBottom: 14, gap: 8 },
+  caopJobHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  caopJobStatus: { fontSize: 13, fontWeight: '700' },
+  caopJobMeta: { fontSize: 12 },
+  caopProgressBg: { height: 6, borderRadius: 3, overflow: 'hidden' },
+  caopProgressFill: { height: 6, borderRadius: 3 },
+  caopJobDetail: { fontSize: 11 },
+  caopBtnRow: { flexDirection: 'row', gap: 8, marginBottom: 12 },
+  caopBtn: {
+    flexDirection: 'row', alignItems: 'center', gap: 6,
+    paddingVertical: 11, paddingHorizontal: 16, borderRadius: 10,
+  },
+  caopBtnText: { color: '#FFF', fontSize: 14, fontWeight: '700' },
+  caopNote: { fontSize: 11, lineHeight: 17, textAlign: 'center' },
 });
