@@ -71,6 +71,16 @@ const SLIDES = [
     title: 'Funciona Sem\nInternet',
     desc: 'Os teus favoritos e narrativas ficam guardados no dispositivo. Explora sem rede, em qualquer lugar.',
   },
+  {
+    id: 'premium',
+    icon: 'diamond' as const,
+    iconColor: '#C49A6C',
+    bg: ['#2D1500', '#5C2E00'] as [string, string],
+    image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/1/14/Geres1.jpg/800px-Geres1.jpg',
+    label: 'DESCOBRIDOR',
+    title: 'Desbloqueia\nPortugal Completo',
+    desc: 'Roteiros IA, áudio guias, modo offline e muito mais. Experimenta 7 dias grátis.',
+  },
 ];
 
 export default function OnboardingScreen() {
@@ -97,6 +107,11 @@ export default function OnboardingScreen() {
     router.replace('/(tabs)');
   };
 
+  const handleTryPremium = async () => {
+    await AsyncStorage.setItem(ONBOARDING_KEY, '1');
+    router.replace('/premium' as any);
+  };
+
   const handleScroll = (e: any) => {
     const idx = Math.round(e.nativeEvent.contentOffset.x / width);
     setCurrentIndex(idx);
@@ -104,6 +119,7 @@ export default function OnboardingScreen() {
 
   const slide = SLIDES[currentIndex];
   const isLast = currentIndex === SLIDES.length - 1;
+  const isPremiumSlide = slide.id === 'premium';
 
   return (
     <View style={styles.container}>
@@ -180,6 +196,37 @@ export default function OnboardingScreen() {
           </View>
         )}
 
+        {/* Premium features on last slide */}
+        {isPremiumSlide && (
+          <View style={styles.premiumFeatures}>
+            {[
+              { icon: 'auto-awesome' as const, text: 'Roteiros personalizados por IA' },
+              { icon: 'headphones' as const, text: 'Áudio guias em 9 vozes' },
+              { icon: 'cloud-download' as const, text: 'Modo offline completo' },
+              { icon: 'route' as const, text: 'Rotas e coleções exclusivas' },
+            ].map((b) => (
+              <View key={b.text} style={styles.premiumRow}>
+                <View style={styles.premiumIconWrap}>
+                  <MaterialIcons name={b.icon} size={16} color="#C49A6C" />
+                </View>
+                <Text style={styles.bulletText}>{b.text}</Text>
+              </View>
+            ))}
+            <View style={styles.pricingRow}>
+              <View style={styles.priceCard}>
+                <Text style={styles.priceLabel}>Mensal</Text>
+                <Text style={styles.priceAmount}>€4.99</Text>
+                <Text style={styles.pricePer}>/mês</Text>
+              </View>
+              <View style={[styles.priceCard, styles.priceCardHighlight]}>
+                <Text style={[styles.priceLabel, { color: '#C49A6C' }]}>Anual</Text>
+                <Text style={[styles.priceAmount, { color: '#FFF' }]}>€39.99</Text>
+                <Text style={[styles.pricePer, { color: 'rgba(255,255,255,0.6)' }]}>/ano · -33%</Text>
+              </View>
+            </View>
+          </View>
+        )}
+
         {/* Spacer */}
         <View style={{ flex: 1 }} />
 
@@ -198,21 +245,37 @@ export default function OnboardingScreen() {
         </View>
 
         {/* Buttons */}
-        <View style={styles.btnRow}>
-          {currentIndex > 0 && (
-            <TouchableOpacity style={styles.backBtn} onPress={() => goTo(currentIndex - 1)}>
-              <MaterialIcons name="arrow-back" size={20} color="rgba(255,255,255,0.7)" />
+        {isPremiumSlide ? (
+          <View style={styles.premiumBtnCol}>
+            <TouchableOpacity
+              style={[styles.nextBtn, { backgroundColor: '#C49A6C' }]}
+              onPress={handleTryPremium}
+              activeOpacity={0.85}
+            >
+              <MaterialIcons name="diamond" size={18} color="#FFF" style={{ marginRight: 8 }} />
+              <Text style={styles.nextBtnText}>Experimentar Descobridor</Text>
             </TouchableOpacity>
-          )}
-          <TouchableOpacity
-            style={[styles.nextBtn, { backgroundColor: slide.iconColor }]}
-            onPress={handleNext}
-            activeOpacity={0.85}
-          >
-            <Text style={styles.nextBtnText}>{isLast ? 'Começar a Explorar' : 'Continuar'}</Text>
-            {!isLast && <MaterialIcons name="arrow-forward" size={18} color="#FFF" style={{ marginLeft: 6 }} />}
-          </TouchableOpacity>
-        </View>
+            <TouchableOpacity style={styles.skipFreeBtn} onPress={handleFinish}>
+              <Text style={styles.skipFreeText}>Começar grátis</Text>
+            </TouchableOpacity>
+          </View>
+        ) : (
+          <View style={styles.btnRow}>
+            {currentIndex > 0 && (
+              <TouchableOpacity style={styles.backBtn} onPress={() => goTo(currentIndex - 1)}>
+                <MaterialIcons name="arrow-back" size={20} color="rgba(255,255,255,0.7)" />
+              </TouchableOpacity>
+            )}
+            <TouchableOpacity
+              style={[styles.nextBtn, { backgroundColor: slide.iconColor }]}
+              onPress={handleNext}
+              activeOpacity={0.85}
+            >
+              <Text style={styles.nextBtnText}>Continuar</Text>
+              <MaterialIcons name="arrow-forward" size={18} color="#FFF" style={{ marginLeft: 6 }} />
+            </TouchableOpacity>
+          </View>
+        )}
       </View>
     </View>
   );
@@ -329,5 +392,69 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontSize: 16,
     fontWeight: '700',
+  },
+  premiumFeatures: {
+    marginTop: 16,
+    gap: 10,
+  },
+  premiumRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  premiumIconWrap: {
+    width: 28,
+    height: 28,
+    borderRadius: 8,
+    backgroundColor: 'rgba(196,154,108,0.2)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  pricingRow: {
+    flexDirection: 'row',
+    gap: 10,
+    marginTop: 16,
+  },
+  priceCard: {
+    flex: 1,
+    borderRadius: 12,
+    backgroundColor: 'rgba(255,255,255,0.08)',
+    paddingVertical: 12,
+    paddingHorizontal: 14,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.12)',
+  },
+  priceCardHighlight: {
+    backgroundColor: 'rgba(196,154,108,0.18)',
+    borderColor: 'rgba(196,154,108,0.5)',
+  },
+  priceLabel: {
+    fontSize: 11,
+    color: 'rgba(255,255,255,0.6)',
+    fontWeight: '700',
+    letterSpacing: 1,
+    marginBottom: 4,
+  },
+  priceAmount: {
+    fontSize: 22,
+    fontWeight: '800',
+    color: '#FFFFFF',
+  },
+  pricePer: {
+    fontSize: 11,
+    color: 'rgba(255,255,255,0.5)',
+    marginTop: 2,
+  },
+  premiumBtnCol: {
+    gap: 10,
+  },
+  skipFreeBtn: {
+    alignItems: 'center',
+    paddingVertical: 12,
+  },
+  skipFreeText: {
+    color: 'rgba(255,255,255,0.55)',
+    fontSize: 14,
+    fontWeight: '500',
   },
 });
