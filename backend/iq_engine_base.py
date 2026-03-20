@@ -1,6 +1,11 @@
 """
 IQ Engine - Base Classes and Pipeline
 Sistema de processamento inteligente para POIs e Rotas
+
+Two-level architecture:
+  Level 1 — Data Quality Pipeline: M1–M7 + M9–M10 + dedup
+  Level 2 — Recommendation / Routing Engine: M8 + M12–M19
+             (fed by features produced at Level 1)
 """
 from typing import Dict, Any, List, Optional
 from pydantic import BaseModel, Field
@@ -9,6 +14,16 @@ from enum import Enum
 import logging
 
 logger = logging.getLogger(__name__)
+
+# Re-export quality profile types so callers only need one import
+from iq_quality_profiles import (   # noqa: E402
+    ReliabilityLevel,
+    SourceType,
+    TerrainType,
+    POIQualityProfile,
+    RouteContextProfile,
+    compute_reliability_level,
+)
 
 # ========================
 # ENUMS & CONSTANTS
@@ -60,6 +75,7 @@ class ProcessingResult(BaseModel):
     status: ProcessingStatus
     score: Optional[float] = None  # 0-100 score
     confidence: Optional[float] = None  # 0-1 confidence
+    reliability_level: Optional[ReliabilityLevel] = None  # set by M7; propagated to pipeline
     data: Dict[str, Any] = Field(default_factory=dict)
     issues: List[str] = Field(default_factory=list)
     warnings: List[str] = Field(default_factory=list)
@@ -94,6 +110,41 @@ class POIProcessingData(BaseModel):
     image_url: Optional[str] = None
     tags: List[str] = Field(default_factory=list)
     metadata: Dict[str, Any] = Field(default_factory=dict)
+
+    # Stable identity — survives merges/dedup (set by M6 or at ingest)
+    lifetime_id: Optional[str] = None
+    # Context vector injected at processing time (consumed by Level-2 modules)
+    route_context: Optional[RouteContextProfile] = None
+
+# ──────────────────────────────────────────
+# TWO-LEVEL ARCHITECTURE CONSTANTS
+# ──────────────────────────────────────────
+
+# Level 1: Data Quality Pipeline (run first; produces POIQualityProfile features)
+DATA_QUALITY_MODULES = {
+    ModuleType.SEMANTIC_VALIDATION,    # M1
+    ModuleType.COGNITIVE_INFERENCE,    # M2
+    ModuleType.IMAGE_QUALITY,          # M3
+    ModuleType.SLUG_GENERATOR,         # M4
+    ModuleType.ADDRESS_NORMALIZATION,  # M5
+    ModuleType.DEDUPLICATION,          # M6
+    ModuleType.POI_SCORING,            # M7 — produces iq_score + reliability_level
+    ModuleType.DATA_ENRICHMENT,        # M9-M10
+    ModuleType.DESCRIPTION_GENERATION, # M11
+}
+
+# Level 2: Recommendation / Routing Engine (consumes Level-1 features)
+RECOMMENDATION_MODULES = {
+    ModuleType.ROUTE_SCORING,          # M8
+    ModuleType.THEMATIC_ROUTING,       # M12
+    ModuleType.TIME_ROUTING,           # M13
+    ModuleType.DIFFICULTY_ROUTING,     # M14
+    ModuleType.PROFILE_ROUTING,        # M15
+    ModuleType.WEATHER_ROUTING,        # M16
+    ModuleType.TIME_OF_DAY_ROUTING,    # M17
+    ModuleType.MULTI_DAY_ROUTING,      # M18
+    ModuleType.ROUTE_OPTIMIZER,        # M19
+}
 
 # ========================
 # BASE PROCESSOR CLASS
@@ -201,9 +252,17 @@ class IQEngine:
         raw_results = await asyncio.gather(*[_run_module(m) for m in modules])
         results = [r for r in raw_results if r is not None]
 
-        # Calculate overall score
-        scores = [r.score for r in results if r.score is not None]
-        overall_score = sum(scores) / len(scores) if scores else None
+        # Overall score: M7 (POI_SCORING) is authoritative when present;
+        # fall back to mean of all module scores.
+        m7_result = next(
+            (r for r in results if r.module == ModuleType.POI_SCORING and r.score is not None),
+            None,
+        )
+        if m7_result is not None:
+            overall_score = m7_result.score
+        else:
+            scores = [r.score for r in results if r.score is not None]
+            overall_score = sum(scores) / len(scores) if scores else None
 
         overall_score_str = f"{overall_score:.1f}" if overall_score is not None else "N/A"
         self.logger.info(

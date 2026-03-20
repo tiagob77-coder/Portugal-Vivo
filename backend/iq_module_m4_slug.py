@@ -1,7 +1,13 @@
 """
 IQ Engine - Módulo 4: Slug Generator
-Geração de slugs únicos e normalizados
+Geração de slugs únicos e normalizados.
+
+v2 additions:
+  - canonical_slug  — primary stable slug
+  - aliases         — 2-3 alternative slugs (short, initials, region-prefixed)
+  - checksum        — 4-6 char hash for fast dirty-check (id + name)
 """
+import hashlib
 import logging
 from slugify import slugify as make_slug
 from iq_engine_base import (
@@ -83,8 +89,11 @@ class SlugGeneratorModule(IQModule):
         if word_count >= 3:
             quality_score = min(100, quality_score + 5)
 
-        # Generate alternative slugs
-        alternatives = self._generate_alternatives(data.name)
+        # Generate aliases (alternative slugs)
+        aliases = self._generate_aliases(data)
+
+        # Generate checksum (4-6 char, stable)
+        checksum = self._generate_checksum(data.id, data.name)
 
         return ProcessingResult(
             module=self.module_type,
@@ -93,32 +102,55 @@ class SlugGeneratorModule(IQModule):
             confidence=1.0,
             data={
                 "slug": final_slug,
+                "canonical_slug": final_slug,
+                "aliases": aliases[:3],
+                "checksum": checksum,
                 "length": len(final_slug),
                 "word_count": word_count,
-                "alternatives": alternatives[:3],
                 "original_name": data.name
             },
             issues=issues,
             warnings=warnings
         )
 
-    def _generate_alternatives(self, name: str) -> list:
-        """Generate alternative slug variations"""
-        alternatives = []
+    def _generate_aliases(self, data: POIProcessingData) -> list:
+        """
+        Generate 2-3 alias slugs:
+          1. Short version (first 3 words)
+          2. Region-prefixed version (e.g., 'norte-castelo-de-guimaraes')
+          3. Initials abbreviation
+        """
+        aliases = []
 
-        # Short version (first 3 words)
+        name = data.name
+
+        # 1. Short version (first 3 words)
         words = name.split()[:3]
         if len(words) >= 2:
             short = make_slug(' '.join(words))
             if short:
-                alternatives.append(short)
+                aliases.append(short)
 
-        # With category prefix (if available)
-        # This would be done with full context in real implementation
+        # 2. Region-prefixed
+        if data.region:
+            region_slug = make_slug(data.region)
+            full_slug = make_slug(name)
+            region_prefixed = f"{region_slug}-{full_slug}"
+            if region_prefixed not in aliases and len(region_prefixed) <= 80:
+                aliases.append(region_prefixed[:80])
 
-        # Abbreviated version
-        initials = ''.join([w[0] for w in name.split() if w])
+        # 3. Initials (fallback for short names)
+        initials = "".join([w[0] for w in name.split() if w])
         if len(initials) >= 2:
-            alternatives.append(initials.lower())
+            aliases.append(initials.lower())
 
-        return alternatives
+        return aliases
+
+    def _generate_checksum(self, poi_id: str, name: str) -> str:
+        """
+        Generate a stable 5-char base16 checksum from (id + name).
+        Used for fast dirty-checking without re-running the full pipeline.
+        """
+        raw = f"{poi_id}|{name}".encode("utf-8")
+        digest = hashlib.sha256(raw).hexdigest()
+        return digest[:5].upper()  # e.g., "A3F2E"

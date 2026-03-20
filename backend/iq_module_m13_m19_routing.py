@@ -7,11 +7,18 @@ M16: Weather Dependency (sensibilidade meteorológica)
 M17: Time of Day (melhor hora de visita)
 M18: Multi-day Suitability (aptidão para itinerários multi-dia)
 M19: Route Connectivity (conectividade geográfica e temática)
+
+v2 additions:
+  - Context vector (RouteContextProfile) consumed by M13, M14, M15, M19
+  - Micro-route flag in M13: POI fits in <2h walk-only route
+  - Solar orientation in M19: sunrise/sunset suitability for outdoor POIs
 """
 import math
+from datetime import datetime, timezone
 from typing import List, Optional
 from iq_engine_base import (
-    IQModule, ModuleType, ProcessingResult, ProcessingStatus, POIProcessingData
+    IQModule, ModuleType, ProcessingResult, ProcessingStatus, POIProcessingData,
+    RouteContextProfile,
 )
 
 
@@ -75,15 +82,22 @@ class TimeRoutingModule(IQModule):
     async def _process_impl(self, data: POIProcessingData) -> ProcessingResult:
         category = (data.category or "").lower()
         desc_len = len(data.description or "")
+        context: Optional[RouteContextProfile] = data.route_context
 
         # Estimate visit time
         base_time = self.VISIT_TIMES.get(category, 30)
 
-        # Adjust based on description richness (more to see = more time)
+        # Adjust based on description richness
         if desc_len > 300:
             base_time = int(base_time * 1.3)
         elif desc_len < 50:
             base_time = int(base_time * 0.8)
+
+        # Context: if max_route_hours is very short, prefer shorter POIs
+        if context and context.max_route_hours and context.max_route_hours <= 2:
+            # Micro-route context — penalise POIs > 60 min
+            if base_time > 60:
+                base_time = 60
 
         # Determine suitable time slots
         suitable_slots = []
@@ -91,7 +105,9 @@ class TimeRoutingModule(IQModule):
             if base_time <= slot_config["max_minutes"] * 0.8:
                 suitable_slots.append(slot_id)
 
-        # Score: POIs that fit in more time slots are more versatile
+        # ── Micro-route flag (< 2h walk-only) ─────────────────────────────────
+        fits_micro_route = base_time <= 90  # single POI takes ≤ 90 min
+
         versatility = len(suitable_slots) / len(self.TIME_SLOTS)
         score = 40 + versatility * 40 + (20 if base_time <= 60 else 10 if base_time <= 120 else 0)
 
@@ -106,6 +122,7 @@ class TimeRoutingModule(IQModule):
                 "suitable_time_slots": suitable_slots,
                 "time_flexibility": round(versatility * 100, 1),
                 "travel_buffer_minutes": 15,
+                "fits_micro_route": fits_micro_route,  # v2
             },
             issues=[],
             warnings=["Tempo estimado via categoria - dados de horário melhoram precisão"] if base_time == 30 else []
@@ -137,6 +154,7 @@ class DifficultyRoutingModule(IQModule):
 
     async def _process_impl(self, data: POIProcessingData) -> ProcessingResult:
         text = f"{data.name} {data.description} {data.category or ''}".lower()
+        context: Optional[RouteContextProfile] = data.route_context
 
         # Determine difficulty level
         difficulty_scores = {}
@@ -144,15 +162,13 @@ class DifficultyRoutingModule(IQModule):
             matches = sum(1 for kw in keywords if kw in text)
             difficulty_scores[level] = matches
 
-        # Pick the highest matching difficulty
         max_diff = max(difficulty_scores, key=difficulty_scores.get)
         if difficulty_scores[max_diff] == 0:
-            max_diff = "moderado"  # Default
+            max_diff = "moderado"
 
         difficulty_levels = {"facil": 1, "moderado": 2, "dificil": 3, "expert": 4}
         difficulty_num = difficulty_levels[max_diff]
 
-        # Accessibility analysis
         accessibility = {}
         for access_type, keywords in self.ACCESSIBILITY_KEYWORDS.items():
             matches = sum(1 for kw in keywords if kw in text)
@@ -160,10 +176,18 @@ class DifficultyRoutingModule(IQModule):
 
         wheelchair_score = 80 if accessibility.get("wheelchair") else (40 if max_diff == "facil" else 20)
 
-        # Overall score: easier & more accessible = higher score
+        # Context: if wheelchair constraint present, downgrade score for hard POIs
+        context_penalty = 0
+        context_notes = []
+        if context and "wheelchair" in (context.mobility_constraints or []):
+            if wheelchair_score < 60:
+                context_penalty = 30
+                context_notes.append("POI pode não ser adequado para cadeira de rodas")
+
         score = 100 - (difficulty_num - 1) * 15
         if wheelchair_score >= 60:
             score += 10
+        score = max(0, score - context_penalty)
 
         return ProcessingResult(
             module=self.module_type,
@@ -173,15 +197,20 @@ class DifficultyRoutingModule(IQModule):
             data={
                 "difficulty_level": max_diff,
                 "difficulty_numeric": difficulty_num,
-                "difficulty_label": {"facil": "Fácil", "moderado": "Moderado", "dificil": "Difícil", "expert": "Especialista"}[max_diff],
+                "difficulty_label": {"facil": "Fácil", "moderado": "Moderado",
+                                      "dificil": "Difícil", "expert": "Especialista"}[max_diff],
                 "wheelchair_accessible": wheelchair_score >= 60,
                 "wheelchair_score": wheelchair_score,
                 "suitable_for_elderly": accessibility.get("elderly", False),
                 "suitable_for_children": accessibility.get("children", False),
                 "requires_mobility": accessibility.get("mobility", False),
+                "context_notes": context_notes,
             },
             issues=[],
-            warnings=["Nível de dificuldade inferido - dados explícitos melhoram precisão"]
+            warnings=(
+                ["Nível de dificuldade inferido - dados explícitos melhoram precisão"]
+                + context_notes
+            ),
         )
 
 
@@ -242,6 +271,7 @@ class ProfileRoutingModule(IQModule):
     async def _process_impl(self, data: POIProcessingData) -> ProcessingResult:
         text = f"{data.name} {data.description} {' '.join(data.tags)}".lower()
         category = (data.category or "").lower()
+        context: Optional[RouteContextProfile] = data.route_context
 
         profile_scores = {}
         best_profile = None
@@ -250,19 +280,20 @@ class ProfileRoutingModule(IQModule):
         for profile_id, config in self.PROFILES.items():
             score = 0
 
-            # Category match
             if category in config["preferred_categories"]:
                 score += 40
 
-            # Positive keyword match
             pos_matches = sum(1 for kw in config["positive"] if kw in text)
             score += min(pos_matches * 8, 40)
 
-            # Negative keyword penalty
             neg_matches = sum(1 for kw in config["negative"] if kw in text)
             score -= neg_matches * 15
 
             score = max(0, min(score, 100))
+
+            # Context boost: if request targets this profile, boost its score
+            if context and context.visitor_profile == profile_id:
+                score = min(100, score * 1.2)
 
             profile_scores[profile_id] = {
                 "score": round(score, 1),
@@ -273,12 +304,16 @@ class ProfileRoutingModule(IQModule):
                 best_score = score
                 best_profile = profile_id
 
-        # Overall score: broad appeal = high score
         scores = [v["score"] for v in profile_scores.values()]
         avg_score = sum(scores) / len(scores) if scores else 0
         suitable_count = sum(1 for s in scores if s >= 40)
 
         overall = avg_score * 0.5 + (suitable_count / len(self.PROFILES)) * 50
+
+        # If context specifies a profile, overall reflects that profile score
+        if context and context.visitor_profile and context.visitor_profile in profile_scores:
+            targeted_score = profile_scores[context.visitor_profile]["score"]
+            overall = targeted_score * 0.7 + overall * 0.3
 
         return ProcessingResult(
             module=self.module_type,
@@ -291,7 +326,10 @@ class ProfileRoutingModule(IQModule):
                 "best_profile_score": round(best_score, 1),
                 "suitable_profiles": [pid for pid, ps in profile_scores.items() if ps["score"] >= 40],
                 "profile_count": suitable_count,
-                "profiles": {k: v["score"] for k, v in sorted(profile_scores.items(), key=lambda x: x[1]["score"], reverse=True)},
+                "context_profile": context.visitor_profile if context else None,
+                "profiles": {k: v["score"] for k, v in sorted(
+                    profile_scores.items(), key=lambda x: x[1]["score"], reverse=True
+                )},
             },
             issues=[],
             warnings=[]
@@ -539,6 +577,7 @@ class RouteOptimizerModule(IQModule):
 
     async def _process_impl(self, data: POIProcessingData) -> ProcessingResult:
         coords = _get_coords(data)
+        context: Optional[RouteContextProfile] = data.route_context
 
         if not coords:
             return ProcessingResult(
@@ -559,7 +598,7 @@ class RouteOptimizerModule(IQModule):
 
         # Find nearest city center
         nearest_city = None
-        nearest_dist = float('inf')
+        nearest_dist = float("inf")
         city_distances = {}
 
         for city, (clat, clng) in self.CITY_CENTERS.items():
@@ -569,10 +608,8 @@ class RouteOptimizerModule(IQModule):
                 nearest_dist = dist
                 nearest_city = city
 
-        # Sort cities by distance
         sorted_cities = sorted(city_distances.items(), key=lambda x: x[1])[:3]
 
-        # Connectivity score based on proximity to urban centers
         if nearest_dist <= 5:
             proximity_score = 40
             accessibility = "urbano"
@@ -586,7 +623,6 @@ class RouteOptimizerModule(IQModule):
             proximity_score = 10
             accessibility = "rural"
 
-        # Check nearby POIs for clustering
         nearby_count = 0
         for poi in self.nearby_pois:
             poi_coords = _get_coords(poi)
@@ -596,11 +632,9 @@ class RouteOptimizerModule(IQModule):
                     nearby_count += 1
 
         cluster_score = min(nearby_count * 10, 30)
+        route_potential = proximity_score + cluster_score + 20
 
-        # Route integration potential
-        route_potential = proximity_score + cluster_score + 20  # base 20 for having coords
-
-        # Walkability estimate
+        # Walkability
         if nearest_dist <= 2:
             walkable = True
             transport = "a pé"
@@ -610,6 +644,13 @@ class RouteOptimizerModule(IQModule):
         else:
             walkable = False
             transport = "carro necessário"
+
+        # Transport mode context override
+        if context and context.transport_mode == "pe" and not walkable:
+            route_potential = max(0, route_potential - 20)
+
+        # ── Solar orientation (v2) ─────────────────────────────────────────────
+        solar_info = self._solar_orientation(lat, lng, context)
 
         return ProcessingResult(
             module=self.module_type,
@@ -628,7 +669,60 @@ class RouteOptimizerModule(IQModule):
                 "walkable_from_center": walkable,
                 "transport_recommendation": transport,
                 "closest_cities": dict(sorted_cities),
+                "solar": solar_info,             # v2
             },
             issues=[],
             warnings=[]
         )
+
+    def _solar_orientation(
+        self,
+        lat: float,
+        lng: float,
+        context: Optional[RouteContextProfile],
+    ) -> dict:
+        """
+        Simple solar orientation helper.
+        For outdoor POIs (miradouros, praias, trilhos):
+          - morning sun faces east → good for east-facing viewpoints in the morning
+          - golden hour (sunset) → west-facing
+
+        Returns advisory dict without blocking score; consumed by route planner
+        for scheduling.
+        """
+        hour = context.hour_of_day if context and context.hour_of_day is not None else None
+        month = context.current_month if context and context.current_month else datetime.now(timezone.utc).month
+
+        # Portugal is in the northern hemisphere → sun travels east→south→west
+        # Simplified: for west-facing sites, recommend fim_tarde/pôr do sol
+        # For east-facing, recommend manhã
+
+        # Sun azimuth heuristic based on time of day
+        if hour is None:
+            sun_direction = "unknown"
+            advisory = "Hora não especificada - verificar orientação solar no local"
+        elif 6 <= hour < 10:
+            sun_direction = "este"
+            advisory = "Sol a nascer — bom para miradouros virados a este ou norte"
+        elif 10 <= hour < 14:
+            sun_direction = "sul"
+            advisory = "Sol alto a sul — sombra curta; bom para trilhos"
+        elif 14 <= hour < 18:
+            sun_direction = "oeste-sul"
+            advisory = "Sol descendo — bom para fotografia de paisagem"
+        elif 18 <= hour <= 21:
+            sun_direction = "oeste"
+            advisory = "Hora dourada / pôr do sol — ideal para miradouros e praias"
+        else:
+            sun_direction = "noite"
+            advisory = "Fora de horas de luz solar"
+
+        # Summer days are longer in Portugal
+        golden_hour_start = 20 if month in [6, 7, 8] else (18 if month in [4, 5, 9, 10] else 17)
+
+        return {
+            "current_sun_direction": sun_direction,
+            "advisory": advisory,
+            "golden_hour_start_local": f"{golden_hour_start}:00",
+            "hemisphere": "north",
+        }
