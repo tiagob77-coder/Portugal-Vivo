@@ -4,19 +4,23 @@ Exposes the official Portuguese administrative hierarchy via GeoAPI.pt,
 which is based on DGT/CAOP data.
 
 Endpoints:
-  GET /geo/distritos              - All distritos
-  GET /geo/concelhos              - All concelhos (optionally by distrito)
-  GET /geo/freguesias             - All freguesias (optionally by concelho)
-  GET /geo/hierarchy              - Full nested hierarchy (cached)
-  GET /geo/lookup?lat=&lng=       - Reverse geocode → admin hierarchy
-  GET /geo/municipio/{nome}       - Info about a municipality
-  POST /geo/enrich/{poi_id}       - Enrich a single POI with admin data
+  GET  /geo/distritos              - All distritos
+  GET  /geo/concelhos              - All concelhos (optionally by distrito)
+  GET  /geo/freguesias             - All freguesias (optionally by concelho)
+  GET  /geo/hierarchy              - Full nested hierarchy (cached)
+  GET  /geo/lookup?lat=&lng=       - Reverse geocode → admin hierarchy
+  GET  /geo/municipio/{nome}       - Info about a municipality
+  POST /geo/enrich/{poi_id}        - Enrich a single POI with admin data
+  POST /geo/enrich-all             - Batch enrich all POIs (background job)
+  GET  /geo/enrich-status          - Progress of running batch job
+  GET  /geo/stats                  - Coverage statistics
 """
 import asyncio
 import logging
+from datetime import datetime, timezone
 from typing import Optional, List, Dict, Any
 
-from fastapi import APIRouter, HTTPException, Query, Path
+from fastapi import APIRouter, BackgroundTasks, HTTPException, Query, Path
 from pydantic import BaseModel
 
 from services.geoapi_service import GeoAPIService
@@ -366,3 +370,157 @@ async def geo_coverage_stats():
         },
         "pending_enrichment": with_loc - with_concelho,
     }
+
+
+# ---------------------------------------------------------------------------
+# Batch enrichment — background job with live progress tracking
+# ---------------------------------------------------------------------------
+
+# In-memory job state (single-container safe; resets on restart)
+_job: Dict[str, Any] = {
+    "status": "idle",        # idle | running | done | error
+    "started_at": None,
+    "finished_at": None,
+    "total": 0,
+    "processed": 0,
+    "updated": 0,
+    "skipped": 0,
+    "errors": 0,
+    "last_poi": "",
+}
+
+
+async def _run_batch_enrichment(only_missing: bool, delay: float) -> None:
+    """Background coroutine that enriches all POIs with CAOP data."""
+    global _job
+    db = _db_holder.db
+    if db is None:
+        _job["status"] = "error"
+        _job["finished_at"] = datetime.now(timezone.utc).isoformat()
+        return
+
+    _job.update({
+        "status": "running",
+        "started_at": datetime.now(timezone.utc).isoformat(),
+        "finished_at": None,
+        "processed": 0, "updated": 0, "skipped": 0, "errors": 0,
+        "last_poi": "",
+    })
+
+    query: dict = {"location": {"$exists": True}}
+    if only_missing:
+        query["$or"] = [
+            {"concelho": {"$exists": False}},
+            {"concelho": ""},
+            {"concelho": None},
+        ]
+
+    _job["total"] = await db.heritage_items.count_documents(query)
+
+    try:
+        async for poi in db.heritage_items.find(query, {"_id": 0, "id": 1, "name": 1, "location": 1}):
+            if _job["status"] != "running":
+                break  # allow external cancel
+
+            poi_id = poi.get("id", "")
+            loc = poi.get("location") or {}
+            lat = loc.get("lat")
+            lng = loc.get("lng")
+            _job["last_poi"] = poi.get("name", poi_id)[:40]
+            _job["processed"] += 1
+
+            if not lat or not lng:
+                _job["skipped"] += 1
+                continue
+
+            try:
+                geo = await _geoapi.reverse_geocode(lat, lng)
+            except Exception as e:
+                logger.warning("CAOP batch: GeoAPI error for %s: %s", poi_id, e)
+                _job["errors"] += 1
+                await asyncio.sleep(delay)
+                continue
+
+            if not geo:
+                _job["skipped"] += 1
+                await asyncio.sleep(delay)
+                continue
+
+            fields: dict = {"caop_enriched_at": datetime.now(timezone.utc).isoformat()}
+            if geo.concelho:
+                fields["concelho"] = geo.concelho
+            if geo.freguesia:
+                fields["freguesia"] = geo.freguesia
+            if geo.distrito:
+                fields["distrito"] = geo.distrito
+            if geo.nuts_iii:
+                fields["nuts_iii"] = geo.nuts_iii
+            if geo.codigo_postal:
+                fields["codigo_postal"] = geo.codigo_postal
+
+            await db.heritage_items.update_one({"id": poi_id}, {"$set": fields})
+            _job["updated"] += 1
+            await asyncio.sleep(delay)
+
+        _job["status"] = "done"
+    except Exception as e:
+        logger.exception("CAOP batch job crashed: %s", e)
+        _job["status"] = "error"
+
+    _job["finished_at"] = datetime.now(timezone.utc).isoformat()
+
+
+@geo_router.post(
+    "/enrich-all",
+    summary="Iniciar enriquecimento CAOP em batch (background)",
+)
+async def start_batch_enrichment(
+    background_tasks: BackgroundTasks,
+    only_missing: bool = Query(True, description="Processar apenas POIs sem concelho (recomendado)"),
+    delay: float = Query(1.1, description="Intervalo entre pedidos à GeoAPI.pt (seg)"),
+):
+    """
+    Lança o enriquecimento administrativo CAOP em background para todos os POIs.
+    Executa dentro do container Docker — não é necessário SSH.
+    Usa GET /geo/enrich-status para acompanhar o progresso.
+    """
+    if _job["status"] == "running":
+        raise HTTPException(
+            status_code=409,
+            detail="Já existe um job de enriquecimento em curso. Aguarda a conclusão.",
+        )
+
+    background_tasks.add_task(_run_batch_enrichment, only_missing=only_missing, delay=delay)
+    return {
+        "message": "Job de enriquecimento CAOP iniciado em background.",
+        "only_missing": only_missing,
+        "delay_seconds": delay,
+        "track": "/api/geo/enrich-status",
+    }
+
+
+@geo_router.get(
+    "/enrich-status",
+    summary="Estado do job de enriquecimento CAOP",
+)
+async def get_enrich_status():
+    """
+    Retorna o progresso em tempo real do job de enriquecimento em background.
+    Faz polling a cada 3–5 segundos para acompanhar a evolução.
+    """
+    pct = 0
+    if _job["total"] > 0:
+        pct = round(_job["processed"] / _job["total"] * 100, 1)
+    return {**_job, "pct_complete": pct}
+
+
+@geo_router.post(
+    "/enrich-cancel",
+    summary="Cancelar job de enriquecimento em curso",
+)
+async def cancel_batch_enrichment():
+    """Para o job de enriquecimento em background (define status='idle')."""
+    if _job["status"] != "running":
+        raise HTTPException(status_code=409, detail="Nenhum job em execução.")
+    _job["status"] = "idle"
+    return {"message": "Job cancelado. Pode levar até ao próximo ciclo para parar."}
