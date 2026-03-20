@@ -639,6 +639,32 @@ from narrative_routes_api import narrative_routes_router, set_narrative_routes_d
 set_narrative_routes_db(db)
 api_router.include_router(narrative_routes_router)
 
+# ========================
+# CONTENT STRATEGY — "Conteúdo Vivo"
+# ========================
+from content_strategy_api import content_strategy_router, set_content_strategy_db, set_content_strategy_llm_key
+set_content_strategy_db(db)
+set_content_strategy_llm_key(EMERGENT_LLM_KEY)
+api_router.include_router(content_strategy_router)
+
+# Regional Historical Timeline
+from timeline_api import timeline_router, set_timeline_db
+set_timeline_db(db)
+api_router.include_router(timeline_router)
+
+# AI Toolkit for Cultural Agents (draft → enrich → review → publish)
+from content_toolkit_api import toolkit_router, set_content_toolkit_db, set_toolkit_llm_key
+set_content_toolkit_db(db)
+set_toolkit_llm_key(EMERGENT_LLM_KEY)
+api_router.include_router(toolkit_router)
+
+# Content Engagement Metrics
+from content_metrics_api import metrics_router, set_content_metrics_db
+set_content_metrics_db(db)
+api_router.include_router(metrics_router)
+
+logger.info("📚 Content Strategy ('Conteúdo Vivo') routes registered")
+
 # Include the router in the main app
 app.include_router(api_router)
 
