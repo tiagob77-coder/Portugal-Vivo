@@ -3,10 +3,12 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity, FlatList, Activit
 import { MaterialIcons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useRouter } from 'expo-router';
 import { getApprovedContributions, createContribution, voteContribution, Contribution, ContributionCreate, getCategories } from '../../src/services/api';
 import { useAuth } from '../../src/context/AuthContext';
 import ImageUpload from '../../src/components/ImageUpload';
 import { useTheme, palette, stateColors } from '../../src/theme';
+import api from '../../src/services/api';
 
 const CONTRIBUTION_TYPES = [
   { id: 'story', name: 'História', icon: 'auto-stories', color: '#8B5CF6' },
@@ -25,12 +27,15 @@ const REGIONS = [
   { id: 'madeira', name: 'Madeira' },
 ];
 
+type FeedTab = 'featured' | 'recent' | 'following';
+
 export default function CommunityScreen() {
   const insets = useSafeAreaInsets();
   const { colors } = useTheme();
   const queryClient = useQueryClient();
-  const { isAuthenticated, sessionToken, login } = useAuth();
-  
+  const { isAuthenticated, sessionToken, user, login } = useAuth();
+  const router = useRouter();
+  const [feedTab, setFeedTab] = useState<FeedTab>('featured');
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [newContribution, setNewContribution] = useState<ContributionCreate>({
     type: 'story',
@@ -42,6 +47,36 @@ export default function CommunityScreen() {
   const { data: contributions = [], isLoading, refetch } = useQuery({
     queryKey: ['contributions', 'approved'],
     queryFn: getApprovedContributions,
+  });
+
+  const { data: featuredData } = useQuery({
+    queryKey: ['contributions', 'featured'],
+    queryFn: async () => {
+      const res = await api.get('/community/contributions/featured', { params: { limit: 20 } });
+      return res.data.items as Contribution[];
+    },
+  });
+
+  const { data: followingFeed } = useQuery({
+    queryKey: ['contributions', 'following'],
+    queryFn: async () => {
+      if (!sessionToken) return [];
+      const res = await api.get('/community/feed/following', { params: { limit: 20 } });
+      return res.data.items as Contribution[];
+    },
+    enabled: isAuthenticated,
+  });
+
+  const reportMutation = useMutation({
+    mutationFn: async ({ id, reason }: { id: string; reason: string }) => {
+      await api.post(`/community/contributions/${id}/report`, { reason });
+    },
+    onSuccess: () => {
+      Alert.alert('Obrigado', 'Report submetido. A moderação irá analisar.');
+    },
+    onError: (e: any) => {
+      Alert.alert('Erro', e?.response?.data?.detail || 'Não foi possível submeter o report.');
+    },
   });
 
   const { data: _categories = [] } = useQuery({
@@ -89,6 +124,25 @@ export default function CommunityScreen() {
     voteMutation.mutate(id);
   };
 
+  const handleReport = (id: string) => {
+    if (!isAuthenticated) {
+      Alert.alert('Atenção', 'Precisa de iniciar sessão para reportar.');
+      return;
+    }
+    Alert.alert('Reportar conteúdo', 'Qual o motivo do report?', [
+      { text: 'Cancelar', style: 'cancel' },
+      { text: 'Informação falsa', onPress: () => reportMutation.mutate({ id, reason: 'Informação falsa' }) },
+      { text: 'Conteúdo ofensivo', onPress: () => reportMutation.mutate({ id, reason: 'Conteúdo ofensivo' }) },
+      { text: 'Spam', onPress: () => reportMutation.mutate({ id, reason: 'Spam' }) },
+    ]);
+  };
+
+  const activeFeed: Contribution[] = feedTab === 'featured'
+    ? (featuredData || [])
+    : feedTab === 'following'
+    ? (followingFeed || [])
+    : (contributions || []);
+
   const getTypeInfo = (type: string) => {
     return CONTRIBUTION_TYPES.find(t => t.id === type) || CONTRIBUTION_TYPES[0];
   };
@@ -111,24 +165,36 @@ export default function CommunityScreen() {
         <Text style={styles.contributionContent} numberOfLines={3}>{item.content}</Text>
         
         <View style={styles.contributionFooter}>
-          <View style={styles.authorInfo}>
+          <TouchableOpacity
+            style={styles.authorInfo}
+            onPress={() => router.push(`/profile/${item.user_id}` as any)}
+          >
             <MaterialIcons name="person" size={14} color={palette.gray[500]} />
             <Text style={styles.authorName}>{item.user_name}</Text>
-          </View>
-          
+          </TouchableOpacity>
+
           {item.region && (
             <View style={styles.regionInfo}>
               <MaterialIcons name="place" size={14} color={palette.gray[500]} />
               <Text style={styles.regionName}>{item.region}</Text>
             </View>
           )}
-          
-          <TouchableOpacity 
+
+          <View style={{ flex: 1 }} />
+
+          <TouchableOpacity
             style={styles.voteButton}
             onPress={() => handleVote(item.id)}
           >
             <MaterialIcons name="thumb-up" size={16} color={palette.terracotta[500]} />
             <Text style={styles.voteCount}>{item.votes}</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.voteButton, { marginLeft: 4 }]}
+            onPress={() => handleReport(item.id)}
+          >
+            <MaterialIcons name="flag" size={15} color={palette.gray[400]} />
           </TouchableOpacity>
         </View>
       </View>
@@ -166,9 +232,28 @@ export default function CommunityScreen() {
         ))}
       </ScrollView>
 
+      {/* Feed tabs */}
+      <View style={styles.feedTabs}>
+        {([
+          { id: 'featured', label: '⭐ Em Destaque' },
+          { id: 'recent', label: 'Recentes' },
+          { id: 'following', label: 'A Seguir' },
+        ] as { id: FeedTab; label: string }[]).map((tab) => (
+          <TouchableOpacity
+            key={tab.id}
+            style={[styles.feedTab, feedTab === tab.id && styles.feedTabActive]}
+            onPress={() => setFeedTab(tab.id)}
+          >
+            <Text style={[styles.feedTabText, feedTab === tab.id && styles.feedTabTextActive]}>
+              {tab.label}
+            </Text>
+          </TouchableOpacity>
+        ))}
+      </View>
+
       {/* Contributions List */}
       <FlatList
-        data={contributions}
+        data={activeFeed}
         keyExtractor={(item) => item.id}
         renderItem={renderContributionCard}
         contentContainerStyle={styles.listContent}
@@ -469,6 +554,32 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '600',
     color: palette.terracotta[500],
+  },
+  feedTabs: {
+    flexDirection: 'row',
+    backgroundColor: 'rgba(0,0,0,0.15)',
+    marginHorizontal: 16,
+    borderRadius: 12,
+    padding: 4,
+    marginBottom: 8,
+  },
+  feedTab: {
+    flex: 1,
+    paddingVertical: 7,
+    alignItems: 'center',
+    borderRadius: 9,
+  },
+  feedTabActive: {
+    backgroundColor: 'rgba(255,255,255,0.18)',
+  },
+  feedTabText: {
+    fontSize: 12,
+    fontWeight: '500',
+    color: 'rgba(255,255,255,0.6)',
+  },
+  feedTabTextActive: {
+    color: '#FFFFFF',
+    fontWeight: '700',
   },
   loader: {
     marginTop: 40,
