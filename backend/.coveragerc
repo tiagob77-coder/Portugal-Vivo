@@ -1,0 +1,23 @@
+[run]
+source = .
+omit =
+    tests/*
+    */__pycache__/*
+    seed_*.py
+    migrate_*.py
+    import_*.py
+    create_*.py
+    add_*.py
+    enrich_*.py
+    backup_*.py
+    restore_*.py
+    demo_*.py
+    scripts/*
+
+[report]
+exclude_lines =
+    pragma: no cover
+    def __repr__
+    if TYPE_CHECKING:
+    raise NotImplementedError
+    if __name__ == .__main__.:

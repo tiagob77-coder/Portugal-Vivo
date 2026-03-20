@@ -1,6 +1,9 @@
 """
-Sentry Error Monitoring & Health Check Endpoints
-Provides Sentry SDK initialization for FastAPI and detailed health check routes.
+Sentry Error Monitoring, Prometheus Metrics & Health Check Endpoints (P2-3)
+
+- Sentry: captures unhandled exceptions + explicit 5xx alert via middleware
+- Prometheus: exposes /api/metrics compatible with prometheus_client
+- Health: /api/health and /api/health/detailed
 """
 import os
 import time
@@ -12,8 +15,17 @@ import sentry_sdk
 from sentry_sdk.integrations.fastapi import FastApiIntegration
 from sentry_sdk.integrations.starlette import StarletteIntegration
 from sentry_sdk.integrations.logging import LoggingIntegration
-from fastapi import APIRouter, FastAPI
+from fastapi import APIRouter, FastAPI, Request, Response
+from starlette.middleware.base import BaseHTTPMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
+
+try:
+    from prometheus_client import (
+        Counter, Histogram, generate_latest, CONTENT_TYPE_LATEST, REGISTRY
+    )
+    _PROMETHEUS_AVAILABLE = True
+except ImportError:
+    _PROMETHEUS_AVAILABLE = False
 
 logger = logging.getLogger(__name__)
 
@@ -66,10 +78,83 @@ def init_sentry() -> bool:
 
 
 # ---------------------------------------------------------------------------
+# Prometheus metrics (P2-3)
+# ---------------------------------------------------------------------------
+
+if _PROMETHEUS_AVAILABLE:
+    _http_requests_total = Counter(
+        "http_requests_total",
+        "Total HTTP requests",
+        ["method", "endpoint", "status_code"],
+    )
+    _http_request_duration = Histogram(
+        "http_request_duration_seconds",
+        "HTTP request latency",
+        ["method", "endpoint"],
+    )
+    _http_5xx_total = Counter(
+        "http_5xx_errors_total",
+        "Total HTTP 5xx errors",
+        ["method", "endpoint"],
+    )
+
+
+class _MetricsMiddleware(BaseHTTPMiddleware):
+    """Record per-request metrics and capture 5xx to Sentry."""
+
+    async def dispatch(self, request: Request, call_next):
+        start = time.monotonic()
+        response = await call_next(request)
+        duration = time.monotonic() - start
+
+        # Normalise endpoint label (strip query string, cap length)
+        path = request.url.path[:120]
+        method = request.method
+        status = response.status_code
+
+        if _PROMETHEUS_AVAILABLE:
+            _http_requests_total.labels(method, path, status).inc()
+            _http_request_duration.labels(method, path).observe(duration)
+            if status >= 500:
+                _http_5xx_total.labels(method, path).inc()
+
+        # Sentry: explicit capture for 5xx so it appears as an issue even
+        # when the exception was caught internally (e.g. HTTPException 500).
+        if status >= 500:
+            with sentry_sdk.new_scope() as scope:
+                scope.set_tag("http.method", method)
+                scope.set_tag("http.path", path)
+                scope.set_tag("http.status_code", status)
+                scope.set_extra("duration_ms", round(duration * 1000, 1))
+                sentry_sdk.capture_message(
+                    f"HTTP {status} {method} {path}",
+                    level="error",
+                    scope=scope,
+                )
+
+        return response
+
+
+# ---------------------------------------------------------------------------
 # Health Check Router
 # ---------------------------------------------------------------------------
 
 health_router = APIRouter(prefix="/api/health", tags=["Stats"])
+
+
+@health_router.get("/metrics", tags=["Stats"], include_in_schema=False)
+async def prometheus_metrics():
+    """Prometheus scrape endpoint — exposes all registered metrics."""
+    if not _PROMETHEUS_AVAILABLE:
+        return Response(
+            content="# prometheus_client not installed\n",
+            media_type="text/plain",
+            status_code=503,
+        )
+    return Response(
+        content=generate_latest(REGISTRY),
+        media_type=CONTENT_TYPE_LATEST,
+    )
 
 
 @health_router.get("", summary="Simple health check (UptimeRobot-compatible)")
@@ -164,7 +249,10 @@ async def detailed_health():
 # ---------------------------------------------------------------------------
 
 def init_monitoring(app: FastAPI) -> None:
-    """Initialize Sentry and register health check routes on the FastAPI app."""
+    """Initialize Sentry, Prometheus middleware, and health check routes."""
     init_sentry()
+    app.add_middleware(_MetricsMiddleware)
     app.include_router(health_router)
+    if _PROMETHEUS_AVAILABLE:
+        logger.info("Prometheus metrics available at /api/health/metrics")
     logger.info("Monitoring and health check routes registered")

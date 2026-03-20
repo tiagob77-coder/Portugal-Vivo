@@ -665,6 +665,14 @@ api_router.include_router(metrics_router)
 
 logger.info("📚 Content Strategy ('Conteúdo Vivo') routes registered")
 
+# Curated Collections (P1-5)
+from curated_collections_api import (
+    curated_collections_router, set_curated_collections_db, set_curated_collections_auth
+)
+set_curated_collections_db(db)
+set_curated_collections_auth(require_auth)
+api_router.include_router(curated_collections_router)
+
 # Include the router in the main app
 app.include_router(api_router)
 
