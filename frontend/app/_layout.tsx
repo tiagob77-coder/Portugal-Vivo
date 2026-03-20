@@ -169,6 +169,14 @@ function ThemedStack() {
           name="explore-around"
           options={{ title: 'Explorar à Volta', presentation: 'card', animation: 'slide_from_bottom' }}
         />
+        <Stack.Screen
+          name="timeline/[region]"
+          options={{ presentation: 'card', animation: 'slide_from_right' }}
+        />
+        <Stack.Screen
+          name="content-toolkit"
+          options={{ presentation: 'card', animation: 'slide_from_bottom' }}
+        />
       </Stack>
     </>
   );

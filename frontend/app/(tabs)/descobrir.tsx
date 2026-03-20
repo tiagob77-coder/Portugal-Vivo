@@ -12,11 +12,13 @@ import { useQuery } from '@tanstack/react-query';
 import { LinearGradient } from 'expo-linear-gradient';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import SkeletonCard from '../../src/components/SkeletonCard';
+import MicroStoryCard, { MicroStory } from '../../src/components/MicroStoryCard';
 import {
   getDiscoveryFeed, getTrendingItems, getEncyclopediaUniverses,
   getPOIDoDia, DiscoveryFeedItem, TrendingItem, EncyclopediaUniverse,
   getWeatherForecast, getWeatherAlerts, getSafetyCheck, getActiveFires, getAllSpotsConditions,
 } from '../../src/services/api';
+import { API_BASE } from '../../src/config/api';
 import { typography, shadows, regionImages } from '../../src/theme';
 import { useTheme } from '../../src/context/ThemeContext';
 import OnboardingModal from '../../src/components/OnboardingModal';
@@ -141,6 +143,26 @@ export default function DescobrerTab() {
     queryKey: ['poi-do-dia'],
     queryFn: getPOIDoDia,
     staleTime: 60 * 60 * 1000,
+  });
+
+  // Micro-stories: fetched from content strategy API
+  const { data: microStoriesData } = useQuery({
+    queryKey: ['micro-stories', activePerfil],
+    queryFn: async () => {
+      const body = {
+        poi_ids: [],  // empty = random sample from backend
+        cognitive_profile: activePerfil || undefined,
+        limit: 6,
+      };
+      const res = await fetch(`${API_BASE}/content/micro-stories`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      });
+      if (!res.ok) return null;
+      return res.json();
+    },
+    staleTime: 10 * 60 * 1000,
   });
 
   const onRefresh = async () => { setRefreshing(true); await refetchFeed(); setRefreshing(false); };
@@ -693,6 +715,74 @@ export default function DescobrerTab() {
           </View>
         )}
 
+        {/* Micro-Stories */}
+        {microStoriesData?.stories && microStoriesData.stories.length > 0 && (
+          <View style={styles.section}>
+            <View style={styles.sectionHeader}>
+              <View style={styles.sectionTitleRow}>
+                <MaterialIcons name="auto-stories" size={18} color={colors.accent} />
+                <Text style={[styles.sectionTitle, ds.textPrimary]}>Micro-histórias</Text>
+              </View>
+              <TouchableOpacity onPress={() => router.push('/search' as any)}>
+                <Text style={[styles.sectionLink, { color: colors.accent }]}>Ver mais</Text>
+              </TouchableOpacity>
+            </View>
+            {microStoriesData.stories.map((story: MicroStory) => (
+              <MicroStoryCard
+                key={story.poi_id}
+                story={story}
+                onPress={() => router.push(`/heritage/${story.poi_id}` as any)}
+                onQueroSaberMais={(id) => router.push(`/heritage/${id}` as any)}
+              />
+            ))}
+          </View>
+        )}
+
+        {/* Linha do Tempo — quick access by region */}
+        <View style={styles.section}>
+          <View style={styles.sectionHeader}>
+            <View style={styles.sectionTitleRow}>
+              <MaterialIcons name="history-edu" size={18} color={colors.accent} />
+              <Text style={[styles.sectionTitle, ds.textPrimary]}>Linha do Tempo</Text>
+            </View>
+          </View>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.horizontalScroll}>
+            {[
+              { id: 'minho', label: 'Minho', emoji: '🏰' },
+              { id: 'lisboa', label: 'Lisboa', emoji: '⚓' },
+              { id: 'alentejo', label: 'Alentejo', emoji: '🫒' },
+              { id: 'algarve', label: 'Algarve', emoji: '🌊' },
+            ].map((r) => (
+              <TouchableOpacity
+                key={r.id}
+                style={[styles.timelineChip, { backgroundColor: colors.surface, borderColor: colors.borderLight }]}
+                onPress={() => router.push(`/timeline/${r.id}` as any)}
+              >
+                <Text style={styles.timelineEmoji}>{r.emoji}</Text>
+                <Text style={[styles.timelineLabel, ds.textPrimary]}>{r.label}</Text>
+                <MaterialIcons name="chevron-right" size={14} color={colors.textMuted} />
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
+        </View>
+
+        {/* Toolkit IA — for cultural agents */}
+        <TouchableOpacity
+          style={[styles.toolkitBanner, { backgroundColor: colors.surface, borderColor: colors.borderLight }]}
+          onPress={() => router.push('/content-toolkit' as any)}
+        >
+          <View style={[styles.toolkitIcon, { backgroundColor: (colors.primary || '#4A6741') + '18' }]}>
+            <MaterialIcons name="auto-awesome" size={22} color={colors.primary || '#4A6741'} />
+          </View>
+          <View style={{ flex: 1 }}>
+            <Text style={[styles.toolkitTitle, ds.textPrimary]}>Toolkit IA para Agentes Culturais</Text>
+            <Text style={[styles.toolkitSub, ds.textSecondary]}>
+              Cria e enriquece conteúdo cultural com IA
+            </Text>
+          </View>
+          <MaterialIcons name="arrow-forward-ios" size={14} color={colors.textMuted} />
+        </TouchableOpacity>
+
         {/* Empty State */}
         {(!feedData?.items || feedData.items.length === 0) && !feedLoading && (
           <View style={styles.emptyState}>
@@ -853,4 +943,29 @@ const styles = StyleSheet.create({
   poiDiaInfoText: { fontSize: 12, textTransform: 'capitalize' },
   poiDiaRarity: { paddingHorizontal: 8, paddingVertical: 2, borderRadius: 8, marginLeft: 6 },
   poiDiaRarityText: { fontSize: 10, fontWeight: '600' },
+
+  // Section link
+  sectionLink: { fontSize: 13, fontWeight: '600' },
+
+  // Timeline chips
+  timelineChip: {
+    flexDirection: 'row', alignItems: 'center', gap: 6,
+    paddingHorizontal: 14, paddingVertical: 10,
+    borderRadius: 20, borderWidth: 1, marginRight: 8,
+  },
+  timelineEmoji: { fontSize: 16 },
+  timelineLabel: { fontSize: 13, fontWeight: '600' },
+
+  // Content toolkit banner
+  toolkitBanner: {
+    flexDirection: 'row', alignItems: 'center', gap: 12,
+    marginHorizontal: 16, marginVertical: 8,
+    borderRadius: 14, borderWidth: 1, padding: 14,
+  },
+  toolkitIcon: {
+    width: 44, height: 44, borderRadius: 12,
+    alignItems: 'center', justifyContent: 'center',
+  },
+  toolkitTitle: { fontSize: 14, fontWeight: '700' },
+  toolkitSub: { fontSize: 12, marginTop: 2 },
 });
