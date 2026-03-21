@@ -18,6 +18,8 @@ node_modules/
 
 # Testing
 /coverage
+.coverage
+htmlcov/
 
 # Next.js
 /.next/
