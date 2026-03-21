@@ -358,15 +358,27 @@ async def root():
 
 @api_router.get("/health", tags=["Stats"])
 async def health():
-    """Health check with DB connectivity verification"""
+    """Health check with DB and Redis connectivity verification"""
     db_ok = False
+    redis_ok = False
     try:
         await db.command("ping")
         db_ok = True
     except Exception:
         pass
-    status = "healthy" if db_ok else "degraded"
-    return {"status": status, "database": "connected" if db_ok else "unreachable", "timestamp": datetime.now(timezone.utc).isoformat()}
+    try:
+        if redis_lb.redis:
+            await redis_lb.redis.ping()
+            redis_ok = True
+    except Exception:
+        pass
+    status = "healthy" if (db_ok and redis_ok) else "degraded"
+    return {
+        "status": status,
+        "database": "connected" if db_ok else "unreachable",
+        "cache": "connected" if redis_ok else "unreachable",
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+    }
 
 # Include Excel Importer router
 from excel_importer_api import importer_router, set_importer_db
