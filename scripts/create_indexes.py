@@ -25,7 +25,8 @@ async def create_indexes():
     await db.heritage_items.create_index('category')
     await db.heritage_items.create_index('region')
     await db.heritage_items.create_index([('name', 'text'), ('description', 'text'), ('tags', 'text')])
-    print("  heritage_items: id (unique), category, region, text search")
+    await db.heritage_items.create_index([('geo_location', '2dsphere')], sparse=True)
+    print("  heritage_items: id (unique), category, region, text search, geo_location (2dsphere)")
 
     # routes
     await db.routes.create_index('id', unique=True)
