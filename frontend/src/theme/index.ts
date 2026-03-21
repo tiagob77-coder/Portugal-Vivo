@@ -8,7 +8,7 @@
 // Re-export color system (single source of truth)
 // Backward compat: `colors` merges palette scales with flat semantic keys
 // that the old theme/index.ts exported (background, success, error, categories, etc.)
-import { palette, categoryColors as _catColors } from './colors';
+import { palette, categoryColors } from './colors';
 
 // ============================================
 // COMPONENT DEFAULTS (light-mode baseline)
@@ -32,18 +32,18 @@ export { useTheme, ThemeProvider } from '../context/ThemeContext';
 export type { ThemeMode } from '../context/ThemeContext';
 
 export const colors = {
-  ..._palette,
+  ...palette,
   background: {
-    primary: _palette.gray[50],       // #FAF8F3
-    secondary: _palette.white,        // #FFFFFF
+    primary: palette.gray[50],       // #FAF8F3
+    secondary: palette.white,        // #FFFFFF
     tertiary: '#F7F4EE',
-    dark: _palette.forest[500],       // #2E5E4E
+    dark: palette.forest[500],       // #2E5E4E
   },
   success: '#3FA66B',
   warning: '#E8A23A',
   error: '#C44536',
   info: '#2A6F97',
-  categories: _catColors,
+  categories: categoryColors,
 } as const;
 
 // ============================================
