@@ -89,6 +89,7 @@ export default function TabLayout() {
           ...(Platform.OS !== 'web' ? { animation: 'fade' } : {}),
         }}
       >
+        {/* ── 4 visible tabs ── */}
         <Tabs.Screen
           name="descobrir"
           options={{
@@ -101,46 +102,41 @@ export default function TabLayout() {
         <Tabs.Screen
           name="mapa"
           options={{
-            title: 'Mapa',
+            title: 'Explorar',
             tabBarIcon: ({ color }) => (
-              <MaterialIcons name="map" size={22} color={color} />
+              <MaterialIcons name="explore" size={22} color={color} />
             ),
           }}
         />
         <Tabs.Screen
-          name="planeador"
+          name="experienciar"
           options={{
-            title: 'Planeador',
+            title: 'Viver',
             tabBarIcon: ({ color }) => (
-              <MaterialIcons name="edit-calendar" size={22} color={color} />
-            ),
-          }}
-        />
-        <Tabs.Screen
-          name="eventos"
-          options={{
-            title: 'Eventos',
-            tabBarIcon: ({ color }) => (
-              <MaterialIcons name="event" size={22} color={color} />
+              <MaterialIcons name="local-activity" size={22} color={color} />
             ),
           }}
         />
         <Tabs.Screen
           name="profile"
           options={{
-            title: 'Perfil',
+            title: 'Eu',
             tabBarIcon: ({ color }) => (
               <MaterialIcons name="person" size={22} color={color} />
             ),
           }}
         />
-        
-        {/* Hidden tabs — accessible via deep links */}
+
+        {/* ── Hidden — not ready yet, accessible via deep links ── */}
+        <Tabs.Screen name="index" options={{ href: null }} />
+        <Tabs.Screen name="planeador" options={{ href: null }} />
+        <Tabs.Screen name="eventos" options={{ href: null }} />
         <Tabs.Screen name="community" options={{ href: null }} />
-        <Tabs.Screen name="experienciar" options={{ href: null }} />
-        <Tabs.Screen name="beachcams" options={{ href: null }} />
         <Tabs.Screen name="coleccoes" options={{ href: null }} />
+        <Tabs.Screen name="beachcams" options={{ href: null }} />
         <Tabs.Screen name="transportes" options={{ href: null }} />
+        <Tabs.Screen name="routes" options={{ href: null }} />
+        <Tabs.Screen name="map" options={{ href: null }} />
       </Tabs>
       </ErrorBoundary>
     </View>
