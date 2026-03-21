@@ -11,6 +11,7 @@ import os
 import sys
 
 import pytest
+import pytest_asyncio
 
 # Ensure backend is importable
 _backend_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -101,12 +102,13 @@ def anyio_backend():
     return "asyncio"
 
 
-@pytest.fixture(scope="session")
+@pytest_asyncio.fixture(scope="session", loop_scope="session")
 async def client():
     """Async test client that talks to the FastAPI app in-process (no running server).
 
-    Session-scoped so the Motor client (created once at server import) stays on
-    the same event loop for the entire test run.
+    Session-scoped with an explicit session loop_scope so the Motor client (created
+    once at server import) stays on the same event loop for the entire test run,
+    regardless of asyncio_default_fixture_loop_scope ini settings.
     """
     if not APP_AVAILABLE:
         pytest.skip(f"App import failed: {_import_error}")
