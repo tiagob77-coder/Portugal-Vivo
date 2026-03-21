@@ -55,11 +55,10 @@ describe('MicroStoryCard', () => {
 
   it('calls onSave with poi_id when save button pressed', () => {
     const onSave = jest.fn();
-    const { getAllByRole } = render(<MicroStoryCard story={mockStory} onSave={onSave} saved={false} />);
-    // Find pressable buttons
-    const buttons = getAllByRole('button');
-    // Save button should be among them
-    expect(buttons.length).toBeGreaterThan(0);
+    const { getByLabelText } = render(<MicroStoryCard story={mockStory} onSave={onSave} saved={false} />);
+    const saveBtn = getByLabelText('Guardar');
+    fireEvent.press(saveBtn);
+    expect(onSave).toHaveBeenCalledWith('castelo-guimaraes');
   });
 
   it('renders without optional props', () => {
