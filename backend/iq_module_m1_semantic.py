@@ -2,7 +2,7 @@
 IQ Engine - Módulo 1: Validação Semântica
 Atribuição automática de categorias com score de confiança usando IA
 """
-from typing import Dict, List, Tuple
+from typing import Dict, List, Optional, Tuple
 import os
 import hashlib
 import logging

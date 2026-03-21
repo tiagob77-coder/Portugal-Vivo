@@ -1,7 +1,7 @@
 """
 Community API - Community contributions, reports, moderation, profiles.
 """
-from fastapi import APIRouter, HTTPException, Depends, Query
+from fastapi import APIRouter, HTTPException, Depends, Query, Request
 from pydantic import BaseModel, Field
 from typing import List, Optional, Dict, Any
 from datetime import datetime, timezone
@@ -25,6 +25,10 @@ _require_auth = None
 def set_community_auth(auth_fn):
     global _require_auth
     _require_auth = auth_fn
+
+
+async def _auth_dep(request: Request):
+    return await _require_auth(request)
 
 
 # Models
@@ -60,7 +64,7 @@ class Contribution(BaseModel):
 @community_router.post("/contributions", response_model=Contribution)
 async def create_contribution(
     contribution: ContributionCreate,
-    current_user: User = Depends(lambda r: _require_auth(r))
+    current_user: User = Depends(_auth_dep)
 ):
     """Create a new community contribution"""
     new_contribution = {
@@ -129,7 +133,7 @@ async def get_approved_contributions(limit: int = 50):
 
 
 @community_router.get("/contributions/my", response_model=List[Contribution])
-async def get_my_contributions(current_user: User = Depends(lambda r: _require_auth(r))):
+async def get_my_contributions(current_user: User = Depends(_auth_dep)):
     """Get current user's contributions"""
     contributions = await _db_holder.db.contributions.find(
         {"user_id": current_user.user_id},
@@ -141,7 +145,7 @@ async def get_my_contributions(current_user: User = Depends(lambda r: _require_a
 @community_router.post("/contributions/{contribution_id}/vote")
 async def vote_contribution(
     contribution_id: str,
-    current_user: User = Depends(lambda r: _require_auth(r))
+    current_user: User = Depends(_auth_dep)
 ):
     """Vote for a contribution (idempotent per user)"""
     db = _db_holder.db
@@ -181,7 +185,7 @@ class ReportCreate(BaseModel):
 async def report_contribution(
     contribution_id: str,
     body: ReportCreate,
-    current_user: User = Depends(lambda r: _require_auth(r)),
+    current_user: User = Depends(_auth_dep),
 ):
     """Report a contribution for moderation review."""
     db = _db_holder.db
@@ -229,8 +233,8 @@ async def get_featured_contributions(
 @community_router.patch("/contributions/{contribution_id}/moderate")
 async def moderate_contribution(
     contribution_id: str,
-    action: str = Query(..., regex="^(approve|reject|feature)$"),
-    current_user: User = Depends(lambda r: _require_auth(r)),
+    action: str = Query(..., pattern="^(approve|reject|feature)$"),
+    current_user: User = Depends(_auth_dep),
 ):
     """Admin: approve, reject or feature a contribution."""
     # Basic role check — allow ambassadors and admins
@@ -276,7 +280,7 @@ async def get_user_community_badges(user_id: str):
 
 class ProfileUpdate(BaseModel):
     bio: Optional[str] = Field(None, max_length=300)
-    interests: Optional[List[str]] = Field(None, max_items=10)
+    interests: Optional[List[str]] = Field(None, max_length=10)
     favorite_region: Optional[str] = Field(None, max_length=50)
     instagram: Optional[str] = Field(None, max_length=60)
     website: Optional[str] = Field(None, max_length=200)
@@ -304,7 +308,7 @@ async def get_public_profile(user_id: str):
 @community_router.put("/profiles/me")
 async def update_my_profile(
     body: ProfileUpdate,
-    current_user: User = Depends(lambda r: _require_auth(r)),
+    current_user: User = Depends(_auth_dep),
 ):
     """Update the authenticated user's community profile."""
     db = _db_holder.db
@@ -321,7 +325,7 @@ async def update_my_profile(
 @community_router.post("/profiles/{user_id}/follow")
 async def follow_user(
     user_id: str,
-    current_user: User = Depends(lambda r: _require_auth(r)),
+    current_user: User = Depends(_auth_dep),
 ):
     """Follow or unfollow a user (toggle)."""
     if user_id == current_user.user_id:
@@ -364,7 +368,7 @@ async def get_following(user_id: str, limit: int = Query(50, le=100)):
 
 @community_router.get("/feed/following")
 async def get_following_feed(
-    current_user: User = Depends(lambda r: _require_auth(r)),
+    current_user: User = Depends(_auth_dep),
     limit: int = Query(20, le=50),
     skip: int = 0,
 ):

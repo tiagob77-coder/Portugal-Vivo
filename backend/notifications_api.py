@@ -1,7 +1,7 @@
 """
 Notifications API - Push notifications endpoints extracted from server.py.
 """
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Request
 from pydantic import BaseModel
 from datetime import datetime, timezone
 import httpx
@@ -25,6 +25,10 @@ def set_notifications_auth(require_auth_func):
     _require_auth = require_auth_func
 
 
+async def _auth_dep(request: Request):
+    return await _require_auth(request)
+
+
 class PushTokenRegister(BaseModel):
     token: str
     platform: str
@@ -40,7 +44,7 @@ class NotificationPreferences(BaseModel):
 @notifications_router.post("/notifications/register")
 async def register_push_token(
     data: PushTokenRegister,
-    current_user: User = Depends(lambda r: _require_auth(r))
+    current_user: User = Depends(_auth_dep)
 ):
     """Register a device push token for notifications"""
     await _db_holder.db.push_tokens.update_one(
@@ -61,7 +65,7 @@ async def register_push_token(
 @notifications_router.delete("/notifications/unregister")
 async def unregister_push_token(
     token: str,
-    current_user: User = Depends(lambda r: _require_auth(r))
+    current_user: User = Depends(_auth_dep)
 ):
     """Unregister a push token"""
     await _db_holder.db.push_tokens.update_one(
@@ -73,7 +77,7 @@ async def unregister_push_token(
 
 
 @notifications_router.get("/notifications/preferences")
-async def get_notification_preferences(current_user: User = Depends(lambda r: _require_auth(r))):
+async def get_notification_preferences(current_user: User = Depends(_auth_dep)):
     """Get user's notification preferences"""
     prefs = await _db_holder.db.notification_prefs.find_one(
         {"user_id": current_user.user_id},
@@ -89,7 +93,7 @@ async def get_notification_preferences(current_user: User = Depends(lambda r: _r
 @notifications_router.put("/notifications/preferences")
 async def update_notification_preferences(
     prefs: NotificationPreferences,
-    current_user: User = Depends(lambda r: _require_auth(r))
+    current_user: User = Depends(_auth_dep)
 ):
     """Update user's notification preferences"""
     await _db_holder.db.notification_prefs.update_one(
@@ -111,7 +115,7 @@ async def update_notification_preferences(
 @notifications_router.get("/notifications/history")
 async def get_notification_history(
     limit: int = 20,
-    current_user: User = Depends(lambda r: _require_auth(r))
+    current_user: User = Depends(_auth_dep)
 ):
     """Get user's notification history"""
     from shared_utils import clamp_pagination
@@ -199,7 +203,7 @@ async def trigger_safety_alert(region: str, alert_type: str = "fire", message: s
 
 
 @notifications_router.get("/notifications/unread-count")
-async def get_unread_count(current_user: User = Depends(lambda r: _require_auth(r))):
+async def get_unread_count(current_user: User = Depends(_auth_dep)):
     """Get count of unread notifications"""
     count = await _db_holder.db.notification_history.count_documents({
         "user_id": current_user.user_id,

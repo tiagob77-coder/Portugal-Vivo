@@ -4,7 +4,7 @@ Favorites API - Dedicated favorites collection (P1-5).
 Storage: dedicated `favorites` collection with {user_id, poi_id, created_at}
 instead of embedding an array in the users document.
 """
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter, HTTPException, Depends, Request
 from pydantic import BaseModel
 from typing import List, Optional
 from datetime import datetime, timezone
@@ -29,6 +29,10 @@ def set_favorites_auth(auth_fn):
     _require_auth = auth_fn
 
 
+async def _auth_dep(request: Request):
+    return await _require_auth(request)
+
+
 class FavoriteEntry(BaseModel):
     id: str
     user_id: str
@@ -41,7 +45,7 @@ class FavoriteEntry(BaseModel):
 # ---------------------------------------------------------------------------
 
 @favorites_router.get("/favorites", response_model=List[HeritageItem], tags=["Auth"])
-async def get_favorites(current_user: User = Depends(lambda r: _require_auth(r))):
+async def get_favorites(current_user: User = Depends(_auth_dep)):
     """Get user's favorite POIs from the dedicated favorites collection."""
     fav_docs = await _db_holder.db.favorites.find(
         {"user_id": current_user.user_id},
@@ -58,7 +62,7 @@ async def get_favorites(current_user: User = Depends(lambda r: _require_auth(r))
 
 
 @favorites_router.get("/favorites/ids", tags=["Auth"])
-async def get_favorite_ids(current_user: User = Depends(lambda r: _require_auth(r))):
+async def get_favorite_ids(current_user: User = Depends(_auth_dep)):
     """Return only the list of favorited POI IDs (lightweight for UI state)."""
     fav_docs = await _db_holder.db.favorites.find(
         {"user_id": current_user.user_id},
@@ -68,7 +72,7 @@ async def get_favorite_ids(current_user: User = Depends(lambda r: _require_auth(
 
 
 @favorites_router.post("/favorites/{item_id}", tags=["Auth"])
-async def add_favorite(item_id: str, current_user: User = Depends(lambda r: _require_auth(r))):
+async def add_favorite(item_id: str, current_user: User = Depends(_auth_dep)):
     """Add a POI to favorites (idempotent)."""
     existing = await _db_holder.db.favorites.find_one(
         {"user_id": current_user.user_id, "poi_id": item_id}
@@ -89,7 +93,7 @@ async def add_favorite(item_id: str, current_user: User = Depends(lambda r: _req
 
 
 @favorites_router.delete("/favorites/{item_id}", tags=["Auth"])
-async def remove_favorite(item_id: str, current_user: User = Depends(lambda r: _require_auth(r))):
+async def remove_favorite(item_id: str, current_user: User = Depends(_auth_dep)):
     """Remove a POI from favorites."""
     try:
         await _db_holder.db.favorites.delete_one(

@@ -23,7 +23,7 @@ import logging
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from pydantic import BaseModel, Field
 
 from shared_utils import DatabaseHolder, clamp_pagination
@@ -42,6 +42,10 @@ _require_auth = None
 def set_itineraries_auth(auth_fn):
     global _require_auth
     _require_auth = auth_fn
+
+
+async def _auth_dep(request: Request):
+    return await _require_auth(request)
 
 
 # ---------------------------------------------------------------------------
@@ -71,12 +75,12 @@ class ItineraryUpdate(BaseModel):
 
 
 class ShareCreate(BaseModel):
-    role: str = Field("viewer", regex="^(editor|voter|viewer)$")
+    role: str = Field("viewer", pattern="^(editor|voter|viewer)$")
     expires_days: Optional[int] = Field(None, ge=1, le=30)
 
 
 class VoteBody(BaseModel):
-    vote: str = Field(..., regex="^(up|down)$")
+    vote: str = Field(..., pattern="^(up|down)$")
 
 
 class CommentCreate(BaseModel):
@@ -88,7 +92,7 @@ class CommentCreate(BaseModel):
 class AttachmentCreate(BaseModel):
     day: int = Field(..., ge=1)
     poi_id: Optional[str] = None
-    type: str = Field(..., regex="^(booking|ticket|note|link)$")
+    type: str = Field(..., pattern="^(booking|ticket|note|link)$")
     title: str = Field(..., min_length=2, max_length=150)
     reference: Optional[str] = Field(None, max_length=100, description="Booking ref / confirmation code")
     url: Optional[str] = Field(None, max_length=500)
@@ -122,7 +126,7 @@ async def _get_itinerary_or_404(db, itin_id: str, user_id: Optional[str] = None)
 @itineraries_router.post("", status_code=201)
 async def save_itinerary(
     body: ItinerarySave,
-    current_user: User = Depends(lambda r: _require_auth(r)),
+    current_user: User = Depends(_auth_dep),
 ):
     """Save a generated itinerary to the user's account."""
     db = _db_holder.db
@@ -161,7 +165,7 @@ async def save_itinerary(
 async def list_itineraries(
     skip: int = 0,
     limit: int = Query(20, le=50),
-    current_user: User = Depends(lambda r: _require_auth(r)),
+    current_user: User = Depends(_auth_dep),
 ):
     """List the authenticated user's saved itineraries (own + collaborating)."""
     db = _db_holder.db
@@ -193,7 +197,7 @@ async def get_shared_itinerary(token: str):
 @itineraries_router.get("/{itin_id}")
 async def get_itinerary(
     itin_id: str,
-    current_user: User = Depends(lambda r: _require_auth(r)),
+    current_user: User = Depends(_auth_dep),
 ):
     """Get a specific saved itinerary."""
     db = _db_holder.db
@@ -204,7 +208,7 @@ async def get_itinerary(
 async def update_itinerary(
     itin_id: str,
     body: ItineraryUpdate,
-    current_user: User = Depends(lambda r: _require_auth(r)),
+    current_user: User = Depends(_auth_dep),
 ):
     """Update itinerary metadata or reorder POIs (owner or editor collaborator)."""
     db = _db_holder.db
@@ -226,7 +230,7 @@ async def update_itinerary(
 @itineraries_router.delete("/{itin_id}")
 async def delete_itinerary(
     itin_id: str,
-    current_user: User = Depends(lambda r: _require_auth(r)),
+    current_user: User = Depends(_auth_dep),
 ):
     """Delete an itinerary (owner only)."""
     db = _db_holder.db
@@ -245,7 +249,7 @@ async def delete_itinerary(
 async def create_share_link(
     itin_id: str,
     body: ShareCreate,
-    current_user: User = Depends(lambda r: _require_auth(r)),
+    current_user: User = Depends(_auth_dep),
 ):
     """Generate a shareable link. Only owner can create/rotate the link."""
     db = _db_holder.db
@@ -265,7 +269,7 @@ async def create_share_link(
 async def join_itinerary(
     itin_id: str,
     token: str = Query(..., description="Share token from the invite link"),
-    current_user: User = Depends(lambda r: _require_auth(r)),
+    current_user: User = Depends(_auth_dep),
 ):
     """Join a shared itinerary as a collaborator."""
     db = _db_holder.db
@@ -293,7 +297,7 @@ async def join_itinerary(
 @itineraries_router.get("/{itin_id}/collaborators")
 async def get_collaborators(
     itin_id: str,
-    current_user: User = Depends(lambda r: _require_auth(r)),
+    current_user: User = Depends(_auth_dep),
 ):
     """List all collaborators of an itinerary."""
     db = _db_holder.db
@@ -318,7 +322,7 @@ async def vote_on_poi(
     itin_id: str,
     poi_id: str,
     body: VoteBody,
-    current_user: User = Depends(lambda r: _require_auth(r)),
+    current_user: User = Depends(_auth_dep),
 ):
     """Vote 👍 or 👎 on a POI inside the itinerary (collaborators and owner)."""
     db = _db_holder.db
@@ -354,7 +358,7 @@ async def vote_on_poi(
 async def add_comment(
     itin_id: str,
     body: CommentCreate,
-    current_user: User = Depends(lambda r: _require_auth(r)),
+    current_user: User = Depends(_auth_dep),
 ):
     """Add a comment to an itinerary block (day/POI)."""
     db = _db_holder.db
@@ -379,7 +383,7 @@ async def add_comment(
 async def get_comments(
     itin_id: str,
     day: Optional[int] = None,
-    current_user: User = Depends(lambda r: _require_auth(r)),
+    current_user: User = Depends(_auth_dep),
 ):
     """Get all comments for an itinerary, optionally filtered by day."""
     db = _db_holder.db
@@ -399,7 +403,7 @@ async def get_comments(
 async def add_attachment(
     itin_id: str,
     body: AttachmentCreate,
-    current_user: User = Depends(lambda r: _require_auth(r)),
+    current_user: User = Depends(_auth_dep),
 ):
     """
     Attach a reservation or ticket to an itinerary block.
@@ -434,7 +438,7 @@ async def add_attachment(
 async def remove_attachment(
     itin_id: str,
     att_id: str,
-    current_user: User = Depends(lambda r: _require_auth(r)),
+    current_user: User = Depends(_auth_dep),
 ):
     """Remove an attachment from an itinerary."""
     db = _db_holder.db
@@ -456,7 +460,7 @@ async def remove_attachment(
 @itineraries_router.get("/{itin_id}/budget")
 async def get_budget_summary(
     itin_id: str,
-    current_user: User = Depends(lambda r: _require_auth(r)),
+    current_user: User = Depends(_auth_dep),
 ):
     """Calculate total budget from all attachments of type 'booking' or 'ticket'."""
     db = _db_holder.db
