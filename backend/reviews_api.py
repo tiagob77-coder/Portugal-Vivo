@@ -1,7 +1,7 @@
 """
 Reviews API - Reviews and ratings endpoints extracted from server.py.
 """
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter, HTTPException, Depends, Request
 from pydantic import BaseModel, Field
 from typing import List, Optional, Dict
 from datetime import datetime, timezone
@@ -70,10 +70,14 @@ def set_auth_deps(require_auth_func):
     _require_auth = require_auth_func
 
 
+async def _auth_dep(request: Request):
+    return await _require_auth(request)
+
+
 @reviews_router.post("/reviews", response_model=Review)
 async def create_review(
     review: ReviewCreate,
-    current_user: User = Depends(lambda r: _require_auth(r))
+    current_user: User = Depends(_auth_dep)
 ):
     """Create a new review for a heritage item"""
     try:
@@ -189,7 +193,7 @@ async def get_review_summary(item_id: str):
 
 
 @reviews_router.get("/reviews/user", response_model=List[Review])
-async def get_user_reviews(current_user: User = Depends(lambda r: _require_auth(r))):
+async def get_user_reviews(current_user: User = Depends(_auth_dep)):
     """Get reviews by the current user"""
     reviews = await _db_holder.db.reviews.find(
         {"user_id": current_user.user_id},
@@ -203,7 +207,7 @@ async def get_user_reviews(current_user: User = Depends(lambda r: _require_auth(
 async def update_review(
     review_id: str,
     data: ReviewUpdate,
-    current_user: User = Depends(lambda r: _require_auth(r))
+    current_user: User = Depends(_auth_dep)
 ):
     """Update user's own review"""
     try:
@@ -240,7 +244,7 @@ async def update_review(
 @reviews_router.delete("/reviews/{review_id}")
 async def delete_review(
     review_id: str,
-    current_user: User = Depends(lambda r: _require_auth(r))
+    current_user: User = Depends(_auth_dep)
 ):
     """Delete user's own review"""
     try:
@@ -265,7 +269,7 @@ async def delete_review(
 @reviews_router.post("/reviews/{review_id}/helpful")
 async def vote_review_helpful(
     review_id: str,
-    current_user: User = Depends(lambda r: _require_auth(r))
+    current_user: User = Depends(_auth_dep)
 ):
     """Vote a review as helpful"""
     try:

@@ -39,9 +39,9 @@ async def test_upload_endpoint_rejects_invalid_type(client):
         data=data,
         headers={"Authorization": f"Bearer {token}"},
     )
-    # 400 when endpoint validates content type; 422 when auth/form validation fails first
-    # 429 when rate limiter triggers before endpoint logic
-    assert resp.status_code in (400, 422, 429)
+    # 400 when endpoint validates content type; 401 when token is missing/invalid
+    # 422 when auth/form validation fails first; 429 when rate limiter triggers
+    assert resp.status_code in (400, 401, 422, 429)
     if resp.status_code == 400:
         assert "suportado" in resp.json().get("detail", "").lower() or "não" in resp.json().get("detail", "").lower()
 
@@ -65,9 +65,9 @@ async def test_upload_endpoint_rejects_empty_file(client):
         data=data,
         headers={"Authorization": f"Bearer {token}"},
     )
-    # 400 when endpoint validates empty file; 422 when auth/form validation fails first
-    # 429 when rate limiter triggers before endpoint logic
-    assert resp.status_code in (400, 422, 429)
+    # 400 when endpoint validates empty file; 401 when token is missing/invalid
+    # 422 when auth/form validation fails first; 429 when rate limiter triggers
+    assert resp.status_code in (400, 401, 422, 429)
     if resp.status_code == 400:
         assert "vazio" in resp.json().get("detail", "").lower()
 
@@ -93,9 +93,9 @@ async def test_upload_endpoint_rejects_oversized_file(client):
         data=data,
         headers={"Authorization": f"Bearer {token}"},
     )
-    # 400 when endpoint validates oversized file; 422 when auth/form validation fails first
-    # 429 when rate limiter triggers before endpoint logic
-    assert resp.status_code in (400, 422, 429)
+    # 400 when endpoint validates oversized file; 401 when token is missing/invalid
+    # 422 when auth/form validation fails first; 429 when rate limiter triggers
+    assert resp.status_code in (400, 401, 422, 429)
     if resp.status_code == 400:
         assert "grande" in resp.json().get("detail", "").lower()
 

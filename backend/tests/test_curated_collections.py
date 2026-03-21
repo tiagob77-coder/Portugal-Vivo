@@ -6,6 +6,7 @@ import pytest
 from conftest import requires_db
 
 
+@requires_db
 @pytest.mark.anyio
 async def test_list_collections_empty(client):
     """GET /api/curated-collections returns 200 even with no data."""
@@ -14,6 +15,7 @@ async def test_list_collections_empty(client):
     assert isinstance(r.json(), list)
 
 
+@requires_db
 @pytest.mark.anyio
 async def test_get_nonexistent_collection(client):
     """GET /api/curated-collections/{id} with unknown id returns 404."""
@@ -21,6 +23,7 @@ async def test_get_nonexistent_collection(client):
     assert r.status_code == 404
 
 
+@requires_db
 @pytest.mark.anyio
 async def test_get_collection_pois_nonexistent(client):
     """GET /api/curated-collections/{id}/pois with unknown id returns 404."""
@@ -40,6 +43,7 @@ async def test_create_collection_requires_auth(client):
     assert r.status_code in (401, 403)
 
 
+@requires_db
 @pytest.mark.anyio
 async def test_list_collections_filters(client):
     """Query params region/tag/search are accepted without error."""
@@ -47,6 +51,7 @@ async def test_list_collections_filters(client):
     assert r.status_code == 200
 
 
+@requires_db
 @pytest.mark.anyio
 async def test_list_collections_pagination(client):
     """offset and limit params work."""

@@ -26,6 +26,14 @@ os.environ.setdefault("LOG_LEVEL", "WARNING")
 
 import httpx
 
+# Try to import the rate limiter store so we can reset it between tests
+try:
+    from rate_limiter import _store as _rate_limit_store
+    _RATE_LIMITER_AVAILABLE = True
+except Exception:
+    _RATE_LIMITER_AVAILABLE = False
+    _rate_limit_store = None
+
 # Try to import the app
 try:
     from server import app  # noqa: E402
@@ -78,6 +86,14 @@ def pytest_collection_modifyitems(config, items):
                 item.add_marker(skip_marker)
         except Exception:
             pass
+
+
+@pytest.fixture(autouse=True)
+def reset_rate_limiter():
+    """Reset the in-memory rate limiter store before each test to prevent
+    accumulated request counts from triggering 429 responses in the test suite."""
+    if _RATE_LIMITER_AVAILABLE and _rate_limit_store is not None:
+        _rate_limit_store._store.clear()
 
 
 @pytest.fixture(scope="session")

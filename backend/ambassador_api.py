@@ -14,7 +14,7 @@ import logging
 from datetime import datetime, timezone
 from typing import List, Optional
 
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from pydantic import BaseModel, Field
 
 from shared_utils import DatabaseHolder, clamp_pagination
@@ -38,6 +38,14 @@ def set_ambassador_auth(auth_fn, admin_fn):
     _require_admin = admin_fn
 
 
+async def _auth_dep(request: Request):
+    return await _require_auth(request)
+
+
+async def _admin_dep(request: Request):
+    return await _require_admin(request)
+
+
 # ---------------------------------------------------------------------------
 # Pydantic models
 # ---------------------------------------------------------------------------
@@ -47,11 +55,11 @@ class AmbassadorApplication(BaseModel):
     region: str = Field(..., max_length=50, description="Primary region of expertise")
     bio: str = Field(..., min_length=50, max_length=1000, description="Why should you be an ambassador?")
     local_expertise: str = Field(..., min_length=20, max_length=500)
-    social_links: Optional[List[str]] = Field(None, max_items=3)
+    social_links: Optional[List[str]] = Field(None, max_length=3)
 
 
 class ApplicationReview(BaseModel):
-    action: str = Field(..., regex="^(approve|reject)$")
+    action: str = Field(..., pattern="^(approve|reject)$")
     note: Optional[str] = Field(None, max_length=300)
 
 
@@ -84,7 +92,7 @@ async def get_ambassador_roles():
 @ambassador_router.post("/apply")
 async def apply_ambassador(
     body: AmbassadorApplication,
-    current_user: User = Depends(lambda r: _require_auth(r)),
+    current_user: User = Depends(_auth_dep),
 ):
     """
     Submit an ambassador application.
@@ -159,10 +167,10 @@ async def list_ambassadors(
 
 @ambassador_router.get("/applications")
 async def list_applications(
-    status: str = Query("pending", regex="^(pending|approved|rejected|all)$"),
+    status: str = Query("pending", pattern="^(pending|approved|rejected|all)$"),
     skip: int = 0,
     limit: int = Query(20, le=100),
-    current_user: User = Depends(lambda r: _require_admin(r)),
+    current_user: User = Depends(_admin_dep),
 ):
     """Admin: list ambassador applications."""
     db = _db_holder.db
@@ -178,7 +186,7 @@ async def list_applications(
 async def review_application(
     application_id: str,
     body: ApplicationReview,
-    current_user: User = Depends(lambda r: _require_admin(r)),
+    current_user: User = Depends(_admin_dep),
 ):
     """Admin: approve or reject an ambassador application."""
     db = _db_holder.db
@@ -262,7 +270,7 @@ async def get_ambassador_profile(user_id: str):
 async def revoke_ambassador(
     user_id: str,
     reason: Optional[str] = Query(None, max_length=200),
-    current_user: User = Depends(lambda r: _require_admin(r)),
+    current_user: User = Depends(_admin_dep),
 ):
     """Admin: revoke ambassador status."""
     db = _db_holder.db

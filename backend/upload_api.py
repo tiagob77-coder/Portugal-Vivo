@@ -10,7 +10,7 @@ import base64
 import logging
 from datetime import datetime, timezone
 
-from fastapi import APIRouter, HTTPException, Depends, UploadFile, File, Form
+from fastapi import APIRouter, HTTPException, Depends, UploadFile, File, Form, Request
 from typing import Optional
 
 from shared_utils import DatabaseHolder
@@ -29,6 +29,10 @@ _require_auth = None
 def set_upload_auth(auth_fn):
     global _require_auth
     _require_auth = auth_fn
+
+
+async def _auth_dep(request: Request):
+    return await _require_auth(request)
 
 
 # Cloudinary config (optional — degrades to MongoDB base64 storage)
@@ -95,7 +99,7 @@ async def upload_image(
     file: UploadFile = File(...),
     context: str = Form("general"),  # "poi", "review", "contribution", "general"
     item_id: Optional[str] = Form(None),
-    current_user: User = Depends(lambda r: _require_auth(r)),
+    current_user: User = Depends(_auth_dep),
 ):
     """
     Upload a user image. Returns the image URL.

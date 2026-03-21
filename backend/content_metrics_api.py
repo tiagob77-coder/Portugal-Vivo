@@ -115,7 +115,7 @@ class ContentEvent(BaseModel):
 
 
 class BatchEventsRequest(BaseModel):
-    events: List[ContentEvent] = Field(..., max_items=50)
+    events: List[ContentEvent] = Field(..., max_length=50)
 
 
 class FlagRequest(BaseModel):

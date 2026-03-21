@@ -8,7 +8,7 @@ Each Collection has:
   - poi_ids: ordered list of POI IDs
   - created_at, updated_at, is_published
 """
-from fastapi import APIRouter, HTTPException, Query, Depends
+from fastapi import APIRouter, HTTPException, Query, Depends, Request
 from pydantic import BaseModel, Field
 from typing import List, Optional, Literal
 from datetime import datetime, timezone
@@ -32,6 +32,10 @@ _require_auth = None
 def set_curated_collections_auth(auth_fn):
     global _require_auth
     _require_auth = auth_fn
+
+
+async def _auth_dep(request: Request):
+    return await _require_auth(request)
 
 
 # ---------------------------------------------------------------------------
@@ -169,7 +173,7 @@ async def get_collection_pois(collection_id: str):
 @curated_collections_router.post("", response_model=CollectionResponse, status_code=201)
 async def create_collection(
     payload: CollectionCreate,
-    current_user: User = Depends(lambda r: _require_auth(r)),
+    current_user: User = Depends(_auth_dep),
 ):
     """Create a new curated collection."""
     now = datetime.now(timezone.utc)
@@ -204,7 +208,7 @@ async def create_collection(
 async def update_collection(
     collection_id: str,
     payload: CollectionUpdate,
-    current_user: User = Depends(lambda r: _require_auth(r)),
+    current_user: User = Depends(_auth_dep),
 ):
     """Update a collection (owner only)."""
     doc = await _db_holder.db.curated_collections.find_one({"id": collection_id}, {"_id": 0})
@@ -224,7 +228,7 @@ async def update_collection(
 async def add_poi_to_collection(
     collection_id: str,
     poi_id: str,
-    current_user: User = Depends(lambda r: _require_auth(r)),
+    current_user: User = Depends(_auth_dep),
 ):
     """Append a POI to a collection."""
     doc = await _db_holder.db.curated_collections.find_one({"id": collection_id}, {"_id": 0})
@@ -243,7 +247,7 @@ async def add_poi_to_collection(
 async def remove_poi_from_collection(
     collection_id: str,
     poi_id: str,
-    current_user: User = Depends(lambda r: _require_auth(r)),
+    current_user: User = Depends(_auth_dep),
 ):
     """Remove a POI from a collection."""
     doc = await _db_holder.db.curated_collections.find_one({"id": collection_id}, {"_id": 0})
@@ -261,7 +265,7 @@ async def remove_poi_from_collection(
 @curated_collections_router.delete("/{collection_id}")
 async def delete_collection(
     collection_id: str,
-    current_user: User = Depends(lambda r: _require_auth(r)),
+    current_user: User = Depends(_auth_dep),
 ):
     """Delete a collection (owner only)."""
     doc = await _db_holder.db.curated_collections.find_one({"id": collection_id}, {"_id": 0})
