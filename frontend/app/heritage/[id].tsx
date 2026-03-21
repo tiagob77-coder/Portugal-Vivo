@@ -779,7 +779,7 @@ export default function HeritageDetailScreen() {
                 <View style={styles.mapTapOverlay} pointerEvents="none">
                   <View style={styles.mapTapHintBottom}>
                     <MaterialIcons name="touch-app" size={14} color="#FFFFFF" />
-                    <Text style={styles.mapTapHintText}>Toque "Abrir no Maps" para navegar</Text>
+                    <Text style={styles.mapTapHintText}>Toque &quot;Abrir no Maps&quot; para navegar</Text>
                   </View>
                 </View>
               </View>
