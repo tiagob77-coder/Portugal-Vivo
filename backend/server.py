@@ -15,6 +15,15 @@ from datetime import datetime, timezone, timedelta
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
 
+# Validate required environment variables before anything else
+_REQUIRED_ENV_VARS = ['MONGO_URL', 'DB_NAME', 'JWT_SECRET_KEY']
+_missing_vars = [v for v in _REQUIRED_ENV_VARS if not os.environ.get(v)]
+if _missing_vars:
+    raise RuntimeError(
+        f"Missing required environment variables: {', '.join(_missing_vars)}. "
+        f"Check your .env file or environment configuration."
+    )
+
 # Rate limiter
 limiter = Limiter(key_func=get_remote_address, default_limits=["200/minute"])
 
@@ -692,8 +701,10 @@ _env = os.environ.get("ENVIRONMENT", "development")
 ALLOWED_ORIGINS = [o.strip() for o in os.environ.get("CORS_ORIGINS", "").split(",") if o.strip()]
 if not ALLOWED_ORIGINS:
     if _env == "production":
-        logger.warning("CORS_ORIGINS not set in production — defaulting to no origins")
-        ALLOWED_ORIGINS = []
+        raise RuntimeError(
+            "CORS_ORIGINS must be set in production. "
+            "Example: CORS_ORIGINS=https://portugalvivo.pt,https://www.portugalvivo.pt"
+        )
     else:
         ALLOWED_ORIGINS = ["http://localhost:3000", "http://localhost:8081", "http://localhost:19006"]
 
@@ -750,6 +761,17 @@ app.include_router(iq_router)
 
 logger.info("🧠 IQ Engine routes registered")
 logger.info("📥 Excel Importer routes registered")
+
+@app.on_event("startup")
+async def verify_database_connection():
+    """Verify MongoDB connectivity before accepting requests."""
+    try:
+        await client.admin.command("ping")
+        logger.info("✅ MongoDB connection verified")
+    except Exception as e:
+        logger.critical("❌ MongoDB connection failed on startup: %s", e)
+        raise RuntimeError(f"Cannot connect to MongoDB: {e}") from e
+
 
 @app.on_event("startup")
 async def ensure_indexes():
