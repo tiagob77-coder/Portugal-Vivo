@@ -6,10 +6,21 @@ from motor.motor_asyncio import AsyncIOMotorClient
 from typing import Optional, Dict, List
 from datetime import datetime, timezone
 import logging
+import json
 from slugify import slugify
 import redis.asyncio as aioredis
 
 logger = logging.getLogger(__name__)
+
+
+def _serialize_tenant(tenant: Dict) -> str:
+    """Serializa documento de tenant para JSON, convertendo datetimes."""
+    tenant_json = tenant.copy()
+    for field in ("created_at", "updated_at"):
+        if field in tenant_json and isinstance(tenant_json[field], datetime):
+            tenant_json[field] = tenant_json[field].isoformat()
+    return json.dumps(tenant_json)
+
 
 class TenantManager:
     """Manages tenants and their isolated databases"""
@@ -17,7 +28,14 @@ class TenantManager:
     def __init__(self, mongo_url: str, redis_url: str = "redis://localhost:6379"):
         self.mongo_url = mongo_url
         self.redis_url = redis_url
-        self.client = AsyncIOMotorClient(mongo_url)
+        self.client = AsyncIOMotorClient(
+            mongo_url,
+            maxPoolSize=50,
+            minPoolSize=5,
+            maxIdleTimeMS=30000,
+            serverSelectionTimeoutMS=5000,
+            connectTimeoutMS=10000,
+        )
         self.redis: Optional[aioredis.Redis] = None
         self._db_cache: Dict[str, any] = {}
         logger.info("TenantManager initialized")
@@ -45,6 +63,17 @@ class TenantManager:
     def _get_tenant_db_name(self, tenant_id: str) -> str:
         """Generate database name for tenant"""
         return f"tenant_{slugify(tenant_id, separator='_')}_db"
+
+    def _cache_key(self, tenant_id: str) -> str:
+        return f"tenant:{tenant_id}"
+
+    async def _invalidate_tenant_cache(self, tenant_id: str):
+        """Remove tenant entry from Redis cache."""
+        if self.redis:
+            try:
+                await self.redis.delete(self._cache_key(tenant_id))
+            except Exception as e:
+                logger.warning(f"Redis cache invalidation failed: {e}")
 
     async def get_tenant_db(self, tenant_id: str):
         """Get database instance for specific tenant"""
@@ -103,23 +132,28 @@ class TenantManager:
         result = await admin_db.tenants.insert_one(tenant_doc)
         tenant_doc["_id"] = str(result.inserted_id)
 
-        # Initialize tenant database with collections
+        # Initialize tenant database with collections and indexes
         tenant_db = await self.get_tenant_db(tenant_slug)
         await self._init_tenant_collections(tenant_db)
 
         # Cache tenant info in Redis
         if self.redis:
-            await self.redis.setex(
-                f"tenant:{tenant_slug}",
-                3600,  # 1 hour cache
-                str(tenant_doc)
-            )
+            try:
+                await self.redis.setex(
+                    self._cache_key(tenant_slug),
+                    3600,
+                    _serialize_tenant(tenant_doc)
+                )
+            except Exception as e:
+                logger.warning(f"Redis cache write failed on create: {e}")
 
         logger.info(f"✅ Tenant '{tenant_slug}' created successfully")
         return tenant_doc
 
     async def _init_tenant_collections(self, db):
-        """Initialize collections for a new tenant"""
+        """Initialize collections and all indexes for a new tenant."""
+        from create_indexes import create_all_indexes
+
         collections = [
             "heritage_items",
             "routes",
@@ -128,60 +162,42 @@ class TenantManager:
             "user_progress",
             "contributions",
             "iq_processing_queue",
-            "iq_processing_results"
+            "iq_processing_results",
+            "reviews",
+            "review_votes",
+            "visits",
+            "push_tokens",
+            "notification_history",
+            "gamification_profiles",
+            "checkins",
+            "user_preferences",
+            "user_badges",
+            "favorite_spots",
+            "password_resets",
+            "encyclopedia_articles",
+            "notifications",
+            "poi_translations",
         ]
 
         for collection in collections:
             await db.create_collection(collection, check_exists=False)
 
-        # Create indexes
-        await db.heritage_items.create_index("category")
-        await db.heritage_items.create_index("region")
-        await db.heritage_items.create_index([("location", "2dsphere")])
-        await db.heritage_items.create_index("name")
-        await db.heritage_items.create_index("tags")
-        await db.users.create_index("email", unique=True)
-        await db.users.create_index("user_id", unique=True)
-        await db.user_sessions.create_index("session_token", unique=True)
-        await db.user_sessions.create_index("expires_at")
+        await create_all_indexes(db)
 
-        # Reviews indexes (including unique constraint to prevent duplicates)
-        await db.reviews.create_index("item_id")
-        await db.reviews.create_index("user_id")
-        await db.reviews.create_index([("created_at", -1)])
-        await db.reviews.create_index(
-            [("user_id", 1), ("item_id", 1)], unique=True
-        )
-
-        # Review votes unique constraint (prevents duplicate votes)
+        # review_votes: índice único para evitar votos duplicados
         await db.review_votes.create_index("key", unique=True)
-
-        # User progress indexes
-        await db.user_progress.create_index("user_id", unique=True)
-
-        # Contributions indexes
-        await db.contributions.create_index("user_id")
-        await db.contributions.create_index("status")
-
-        # Visits indexes
-        await db.visits.create_index("user_id")
-        await db.visits.create_index([("user_id", 1), ("poi_id", 1)])
-
-        # Push tokens and notification history
+        # push_tokens e notification_history (não cobertos pelo create_all_indexes)
         await db.push_tokens.create_index("user_id")
-        await db.notification_history.create_index(
-            [("user_id", 1), ("sent_at", -1)]
-        )
+        await db.notification_history.create_index([("user_id", 1), ("sent_at", -1)])
 
-        logger.info("Collections initialized for tenant database")
+        logger.info("Collections and indexes initialized for tenant database")
 
     async def get_tenant(self, tenant_id: str) -> Optional[Dict]:
         """Get tenant information"""
         # Try cache first
         if self.redis:
             try:
-                import json
-                cached = await self.redis.get(f"tenant:{tenant_id}")
+                cached = await self.redis.get(self._cache_key(tenant_id))
                 if cached:
                     return json.loads(cached)
             except Exception as e:
@@ -196,18 +212,28 @@ class TenantManager:
 
         if tenant and self.redis:
             try:
-                import json
-                # Convert datetime to string for JSON
-                tenant_json = tenant.copy()
-                if 'created_at' in tenant_json:
-                    tenant_json['created_at'] = tenant_json['created_at'].isoformat()
-                if 'updated_at' in tenant_json:
-                    tenant_json['updated_at'] = tenant_json['updated_at'].isoformat()
-                await self.redis.setex(f"tenant:{tenant_id}", 3600, json.dumps(tenant_json))
+                await self.redis.setex(self._cache_key(tenant_id), 3600, _serialize_tenant(tenant))
             except Exception as e:
                 logger.warning(f"Redis cache write failed: {e}")
 
         return tenant
+
+    async def update_tenant(self, tenant_id: str, updates: Dict) -> Optional[Dict]:
+        """Update tenant fields and invalidate cache."""
+        admin_db = self.client['admin_tenants']
+        updates["updated_at"] = datetime.now(timezone.utc)
+
+        result = await admin_db.tenants.find_one_and_update(
+            {"tenant_id": tenant_id},
+            {"$set": updates},
+            projection={"_id": 0},
+            return_document=True
+        )
+
+        if result:
+            await self._invalidate_tenant_cache(tenant_id)
+
+        return result
 
     async def list_tenants(self, skip: int = 0, limit: int = 50) -> List[Dict]:
         """List all tenants"""
@@ -232,9 +258,8 @@ class TenantManager:
         admin_db = self.client['admin_tenants']
         await admin_db.tenants.delete_one({"tenant_id": tenant_id})
 
-        # Clear cache
-        if self.redis:
-            await self.redis.delete(f"tenant:{tenant_id}")
+        # Clear Redis cache
+        await self._invalidate_tenant_cache(tenant_id)
 
         # Clear local cache
         if tenant_id in self._db_cache:
@@ -258,8 +283,10 @@ class TenantManager:
 
         return stats
 
+
 # Global instance
 tenant_manager: Optional[TenantManager] = None
+
 
 def get_tenant_manager() -> TenantManager:
     """Get global tenant manager instance"""
@@ -267,6 +294,7 @@ def get_tenant_manager() -> TenantManager:
     if tenant_manager is None:
         raise RuntimeError("TenantManager not initialized")
     return tenant_manager
+
 
 async def init_tenant_manager(mongo_url: str, redis_url: str = "redis://localhost:6379"):
     """Initialize global tenant manager"""
