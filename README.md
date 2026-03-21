@@ -13,7 +13,7 @@ O Portugal Vivo é uma plataforma completa de turismo cultural que combina:
 - Sistema de gamificação com conquistas, streaks e leaderboard
 - Modo offline com sincronização inteligente
 - Guias de áudio, previsão de surf/marés, câmeras de praia
-- Transportes públicos (CP) e mobilidade em tempo real
+- Transportes públicos (CP, GTFS) e mobilidade em tempo real
 - Multi-tenant com suporte a múltiplas regiões
 - i18n em PT, EN, ES e FR
 
@@ -24,18 +24,19 @@ O Portugal Vivo é uma plataforma completa de turismo cultural que combina:
 ```
 Portugal-Vivo/
 ├── backend/                  # FastAPI + MongoDB
-│   ├── server.py             # Ponto de entrada (55+ routers, 260+ endpoints)
+│   ├── server.py             # Ponto de entrada (67 routers, 260+ endpoints)
 │   ├── iq_engine_base.py     # IQ Engine — orquestrador dos 19 módulos
 │   ├── iq_module_m1_*.py     # M1-M19: semântico, cognitivo, imagem, slug,
 │   │   ...                   #   endereço, dedup, scoring, enriquecimento,
 │   │                         #   descrição, temático, routing e outros
 │   ├── models/               # Modelos Pydantic / MongoDB schemas
-│   ├── services/             # Serviços externos (IPMA, GBIF, CP, Cloudinary…)
-│   ├── tests/                # Suite de testes (40+ ficheiros pytest)
+│   ├── services/             # 20 serviços externos (IPMA, GBIF, CP, GTFS,
+│   │                         #   Cloudinary, Fogos.pt, ICNF, Overpass…)
+│   ├── tests/                # Suite de testes (44 ficheiros pytest)
 │   └── requirements.txt
 │
 ├── frontend/                 # React Native + Expo SDK 54
-│   ├── app/                  # Ecrãs (Expo Router file-based)
+│   ├── app/                  # 51 ecrãs (Expo Router file-based)
 │   │   ├── (tabs)/           # Tabs principais: mapa, descobrir, experienciar,
 │   │   │                     #   transportes, planeador, eventos, coleções, praia
 │   │   ├── heritage/         # Detalhe de patrimônio
@@ -44,9 +45,9 @@ Portugal-Vivo/
 │   │   ├── evento/[id]       # Detalhe de evento
 │   │   ├── encyclopedia/     # Enciclopédia cultural
 │   │   ├── settings/         # Idioma + modo offline
-│   │   └── ...               # 43 ecrãs no total
+│   │   └── ...
 │   ├── src/
-│   │   ├── components/       # 35+ componentes reutilizáveis
+│   │   ├── components/       # 42+ componentes reutilizáveis
 │   │   ├── services/         # API, gamification, geofencing, offline,
 │   │   │                     #   audioGuide, pushNotifications, PWA
 │   │   ├── context/          # AuthContext, ThemeContext
@@ -73,7 +74,7 @@ Portugal-Vivo/
 ### Backend
 | Componente | Tecnologia |
 |---|---|
-| Framework | FastAPI 0.135+ |
+| Framework | FastAPI 0.135.1 |
 | Base de dados | MongoDB 6.x (Motor async) |
 | Cache / Leaderboard | Redis (aioredis) |
 | Autenticação | JWT + Google OAuth2 + sessões |
@@ -81,12 +82,12 @@ Portugal-Vivo/
 | Imagens | Cloudinary |
 | Monitorização | Sentry + structured logging |
 | Segurança | CSRF, rate limiting, security headers, CORS |
-| Infra | Docker, multi-tenant por região |
+| Infra | Docker multi-stage, multi-tenant por região |
 
 ### Frontend
 | Componente | Tecnologia |
 |---|---|
-| Framework | React Native + Expo SDK 54 |
+| Framework | React Native + Expo SDK 54.0.33 |
 | Navegação | Expo Router (file-based) |
 | Mapas | Leaflet (web) + react-native-maps (mobile) |
 | Estado | Zustand + React Query (TanStack) |
@@ -130,8 +131,9 @@ Portugal-Vivo/
 
 ### Natureza e Mar
 - Previsão de surf e condições de onda (IPMA)
-- Previsão de marés
-- Trilhos e fauna (integração GBIF)
+- Previsão de marés e informação marinha
+- Trilhos e fauna (integração GBIF + ICNF)
+- Alertas de fogos (Fogos.pt)
 - Widget de clima
 
 ### Gamificação
@@ -239,7 +241,7 @@ cd backend
 pytest tests/ -v
 ```
 
-Suite com 40+ ficheiros cobrindo: auth, gamification, leaderboard, offline, surf, transportes, IQ Engine, upload, reviews, routes, map, encyclopedia, e2e críticos, e mais.
+Suite com 44 ficheiros cobrindo: auth, gamification, leaderboard, offline, surf, transportes, IQ Engine, upload, reviews, routes, map, encyclopedia, e2e críticos, e mais.
 
 ### Frontend (Jest)
 
@@ -257,6 +259,19 @@ cd e2e && npm test
 # Maestro (mobile)
 maestro test e2e/maestro/
 ```
+
+---
+
+## CI/CD
+
+O pipeline GitHub Actions executa automaticamente em cada push:
+
+| Job | O que verifica |
+|---|---|
+| `backend-tests` | pytest com MongoDB + Redis reais |
+| `frontend-tests` | Jest + TypeScript type check |
+| `docker-build` | Build multi-stage com target `production` |
+| `secret-scan` | Gitleaks — nenhum segredo no repositório |
 
 ---
 
