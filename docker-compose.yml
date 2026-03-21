@@ -25,6 +25,22 @@ services:
       timeout: 3s
       retries: 5
 
+  seed:
+    build:
+      context: ./backend
+      target: production
+    command: python scripts/init_seed.py
+    env_file:
+      - ./backend/.env
+    environment:
+      - MONGO_URL=mongodb://mongodb:27017
+      - REDIS_URL=redis://redis:6379
+      - ENVIRONMENT=development
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    restart: "no"
+
   backend:
     build:
       context: ./backend
@@ -43,6 +59,8 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
+      seed:
+        condition: service_completed_successfully
 
 volumes:
   mongo_data:
