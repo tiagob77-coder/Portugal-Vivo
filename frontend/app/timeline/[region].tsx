@@ -1,7 +1,7 @@
 import React, { useState, useCallback } from 'react';
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity,
-  ActivityIndicator, RefreshControl, Platform, Linking,
+  ActivityIndicator, RefreshControl,
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
@@ -158,7 +158,7 @@ export default function TimelineScreen() {
   const { region } = useLocalSearchParams<{ region: string }>();
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const { colors, isDark } = useTheme();
+  const { colors, isDark: _isDark } = useTheme();
 
   const [showRecurring, setShowRecurring] = useState(true);
   const [eraFilter, setEraFilter] = useState<string | null>(null);

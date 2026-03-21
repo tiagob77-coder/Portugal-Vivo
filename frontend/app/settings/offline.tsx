@@ -6,7 +6,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../src/context/ThemeContext';
 import { useAuth } from '../../src/context/AuthContext';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import offlineCache from '../../src/services/offlineCache'; // eslint-disable-line import/no-named-as-default
+import offlineCache from '../../src/services/offlineCache';
 import { useQuery } from '@tanstack/react-query';
 import api from '../../src/services/api';
 
@@ -101,10 +101,10 @@ export default function OfflineSettingsPage() {
       }));
     } catch {
       const msg = 'Não foi possível descarregar o pacote.';
-      Platform.OS === 'web' ? window.alert(msg) : Alert.alert('Erro', msg);
+      if (Platform.OS === 'web') { window.alert(msg); } else { Alert.alert('Erro', msg); }
       setThematicDownloads(prev => ({ ...prev, [pkgId]: { ...prev[pkgId], downloading: false, progress: 0 } }));
     }
-  }, [isPremium]);
+  }, [isPremium, router]);
 
   const removeThematic = useCallback(async (pkgId: string) => {
     await AsyncStorage.removeItem(`offline_thematic_${pkgId}`);
@@ -170,10 +170,10 @@ export default function OfflineSettingsPage() {
       setTotalUsedMb(prev => prev + (data.package_size_mb || 0));
     } catch {
       const msg = 'Não foi possível descarregar. Verifique a ligação.';
-      Platform.OS === 'web' ? window.alert(msg) : Alert.alert('Erro', msg); // eslint-disable-line no-unused-expressions
+      if (Platform.OS === 'web') { window.alert(msg); } else { Alert.alert('Erro', msg); }
       setDownloads(prev => ({ ...prev, [regionId]: { ...prev[regionId], downloading: false, progress: 0 } }));
     }
-  }, []);
+  }, [isPremium, router]);
 
   const [downloadingAll, setDownloadingAll] = useState(false);
 
@@ -201,15 +201,15 @@ export default function OfflineSettingsPage() {
     }
     setDownloadingAll(false);
     const msg = 'Todas as regioes foram descarregadas!';
-    Platform.OS === 'web' ? window.alert(msg) : Alert.alert('Sucesso', msg); // eslint-disable-line no-unused-expressions
-  }, [regions, downloads, downloadRegion, isPremium]);
+    if (Platform.OS === 'web') { window.alert(msg); } else { Alert.alert('Sucesso', msg); }
+  }, [regions, downloads, downloadRegion, isPremium, router]);
 
   const removeAll = useCallback(async () => {
     for (const region of regions) {
       await removeRegion(region.id);
     }
     const msg = 'Todos os dados offline foram removidos.';
-    Platform.OS === 'web' ? window.alert(msg) : Alert.alert('Removido', msg); // eslint-disable-line no-unused-expressions
+    if (Platform.OS === 'web') { window.alert(msg); } else { Alert.alert('Removido', msg); }
   }, [regions, removeRegion]);
 
   const downloadedCount = Object.values(downloads).filter(d => d.downloaded).length;

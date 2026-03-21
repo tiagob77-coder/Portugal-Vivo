@@ -5,8 +5,7 @@
 import React from 'react';
 import { Text, StyleSheet, ViewStyle, TextStyle, ActivityIndicator } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
-import { useTheme } from '../../theme';
-import { typography, spacing, borders } from '../../theme';
+import { useTheme , typography, spacing, borders } from '../../theme';
 import PressableScale from '../PressableScale';
 
 interface ButtonProps {

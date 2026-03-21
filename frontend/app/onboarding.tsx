@@ -12,7 +12,6 @@ import {
   TouchableOpacity,
   Dimensions,
   ScrollView,
-  Platform,
   StatusBar,
   Image,
 } from 'react-native';
@@ -143,7 +142,7 @@ export default function OnboardingScreen() {
   };
 
   const slide = SLIDES[currentIndex];
-  const isLast = currentIndex === SLIDES.length - 1;
+  const _isLast = currentIndex === SLIDES.length - 1;
   const isPremiumSlide = slide.id === 'premium';
 
   // Qualification slides require a selection before advancing

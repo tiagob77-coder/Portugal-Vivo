@@ -6,8 +6,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import {
   getCategories, planRoute, RoutePlanRequest,
-  generateSmartItinerary, SmartItineraryResponse, SmartItineraryRequest,
-  getLocalities,
+  generateSmartItinerary, SmartItineraryResponse,
 } from '../src/services/api';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useAuth } from '../src/context/AuthContext';

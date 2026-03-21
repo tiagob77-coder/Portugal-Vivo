@@ -41,7 +41,12 @@ async def create_all_indexes(db):
         [("location.lat", 1), ("location.lng", 1)],
         name="idx_heritage_location"
     )
-    logger.info("  heritage_items: 9 indexes created")
+    await db.heritage_items.create_index(
+        [("geo_location", "2dsphere")],
+        sparse=True,
+        name="idx_heritage_geo_2dsphere"
+    )
+    logger.info("  heritage_items: 10 indexes created")
 
     # users
     await db.users.create_index("user_id", unique=True, name="idx_users_userid")
@@ -157,7 +162,7 @@ async def create_all_indexes(db):
     )
     logger.info("  iq_processing_results: 2 indexes created (with TTL 30d)")
 
-    total = 9 + 2 + 3 + 3 + 5 + 3 + 3 + 5 + 3 + 1 + 2 + 1 + 2 + 3 + 2 + 4 + 3 + 2 + 2
+    total = 10 + 2 + 3 + 3 + 5 + 3 + 3 + 5 + 3 + 1 + 2 + 1 + 2 + 3 + 2 + 4 + 3 + 2 + 2
     logger.info(f"\nTotal: {total} indexes across 19 collections")
 
 

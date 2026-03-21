@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { enrichEvent, getEventToNatureItinerary } from '../services/api';
-import { palette, stateColors, withOpacity } from '../theme';
+import { palette, stateColors } from '../theme';
 
 interface DiscoveryCardProps {
   eventName: string;

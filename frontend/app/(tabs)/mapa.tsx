@@ -26,7 +26,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import api from '../../src/services/api';
 import { colors, typography, spacing, borders, shadows } from '../../src/theme';
 // import { categoryColors } from '../../src/context/ThemeContext';
-import AccessibilityFilters from '../../src/components/AccessibilityFilters'; // eslint-disable-line import/no-named-as-default
+import AccessibilityFilters from '../../src/components/AccessibilityFilters';
 import MapView, { Marker, Callout, PROVIDER_GOOGLE, isMapAvailable, LeafletMapComponent } from '../../src/components/NativeMap';
 import {
   MapLayerSelector,
@@ -482,7 +482,7 @@ export default function MapaTab() {
   }, {}) || {};
 
   // Count items per layer
-  const layerCounts = MAP_LAYERS.reduce((acc, layer) => {
+  const _layerCounts = MAP_LAYERS.reduce((acc, layer) => {
     const layerSubs = getLayerSubcategories(layer.id);
     acc[layer.id] = mapItems?.filter(item => 
       layerSubs.includes(item.category)

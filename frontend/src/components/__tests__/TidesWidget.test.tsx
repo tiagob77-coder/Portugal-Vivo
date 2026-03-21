@@ -1,6 +1,9 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react-native';
 
+import { useQuery } from '@tanstack/react-query';
+import { TidesWidget } from '../TidesWidget';
+
 // Mock dependencies
 jest.mock('@tanstack/react-query', () => ({
   useQuery: jest.fn(),
@@ -17,9 +20,6 @@ jest.mock('@expo/vector-icons', () => ({
 jest.mock('../../config/api', () => ({
   API_URL: 'http://localhost:8000',
 }));
-
-import { useQuery } from '@tanstack/react-query';
-import { TidesWidget } from '../TidesWidget';
 
 const mockUseQuery = useQuery as jest.Mock;
 
@@ -64,7 +64,7 @@ describe('TidesWidget', () => {
       <TidesWidget latitude={39.6} longitude={-9.07} />
     );
 
-    const { ActivityIndicator } = require('react-native');
+    const { ActivityIndicator } = require('react-native'); // eslint-disable-line @typescript-eslint/no-require-imports
     expect(UNSAFE_getByType(ActivityIndicator)).toBeTruthy();
   });
 

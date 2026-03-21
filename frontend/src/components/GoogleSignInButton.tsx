@@ -4,7 +4,6 @@
  */
 import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Platform, ActivityIndicator } from 'react-native';
-import { MaterialIcons } from '@expo/vector-icons';
 import { API_BASE } from '../config/api';
 import { palette } from '../theme/colors';
 
@@ -31,6 +30,7 @@ export default function GoogleSignInButton({ onSuccess, onError, style }: Google
         }
       })
       .catch(() => {});
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const loadGoogleScript = (cid: string) => {

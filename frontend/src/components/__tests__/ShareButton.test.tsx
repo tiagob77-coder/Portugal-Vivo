@@ -30,7 +30,7 @@ describe('ShareButton', () => {
     const { UNSAFE_getAllByType } = render(
       <ShareButton title="Test Title" description="Test Description" />
     );
-    const touchables = UNSAFE_getAllByType(require('react-native').TouchableOpacity);
+    const touchables = UNSAFE_getAllByType(require('react-native').TouchableOpacity); // eslint-disable-line @typescript-eslint/no-require-imports
 
     await act(async () => {
       fireEvent.press(touchables[0]);

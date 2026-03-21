@@ -4,7 +4,7 @@
  */
 import React, { useState, useEffect, useCallback } from 'react';
 // import { Platform } from 'react-native';
-import geofenceService, { ProximityAlert } from '../services/geofencing'; // eslint-disable-line import/no-named-as-default
+import geofenceService, { ProximityAlert } from '../services/geofencing';
 import ProximityAlertBanner from './ProximityAlertBanner';
 
 interface Props {

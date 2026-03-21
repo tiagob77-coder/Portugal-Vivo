@@ -3,7 +3,7 @@
  * AI-powered trip planner with optimized itineraries
  * Smart Route Engine: locality-based, time-period-aware, category-diverse
  */
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -30,14 +30,12 @@ import api, {
   listItineraries,
   deleteItinerary,
   SmartItineraryResponse,
-  SmartItineraryLocality,
   AiItineraryResponse,
   SavedItinerary,
 } from '../../src/services/api';
 import { colors, shadows } from '../../src/theme';
 import { useTheme } from '../../src/context/ThemeContext';
 import { useAuth } from '../../src/context/AuthContext';
-import PremiumGate from '../../src/components/PremiumGate';
 
 const { width } = Dimensions.get('window');
 const serif = Platform.OS === 'web' ? 'Cormorant Garamond, Georgia, serif' : undefined;

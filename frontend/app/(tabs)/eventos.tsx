@@ -22,8 +22,7 @@ import { useRouter } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useQuery } from '@tanstack/react-query';
-import api from '../../src/services/api';
-import { getAgendaEvents, AgendaEvent } from '../../src/services/api';
+import api, { getAgendaEvents, AgendaEvent } from '../../src/services/api';
 import { colors, shadows } from '../../src/theme';
 import { useTheme } from '../../src/context/ThemeContext';
 import EmptyState from '../../src/components/EmptyState';
@@ -61,7 +60,7 @@ const REGIONS = [
 ];
 
 // All categories allowed
-const ALLOWED_CATEGORIES = ['festas', 'religioso', 'gastronomia', 'natureza', 'cultural', 'festival'];
+const _ALLOWED_CATEGORIES = ['festas', 'religioso', 'gastronomia', 'natureza', 'cultural', 'festival'];
 
 interface CalendarEvent {
   id: string;

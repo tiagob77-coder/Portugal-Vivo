@@ -66,8 +66,8 @@ class PushNotificationService {
 
   private async initializeNative(): Promise<string | null> {
     try {
-      const Notifications = require('expo-notifications');
-      const Device = require('expo-device');
+      const Notifications = require('expo-notifications'); // eslint-disable-line @typescript-eslint/no-require-imports
+      const Device = require('expo-device'); // eslint-disable-line @typescript-eslint/no-require-imports
 
       if (!Device.isDevice) {
         console.log('Push notifications require a physical device');
@@ -155,7 +155,7 @@ class PushNotificationService {
     }
 
     try {
-      const Notifications = require('expo-notifications');
+      const Notifications = require('expo-notifications'); // eslint-disable-line @typescript-eslint/no-require-imports
       const id = await Notifications.scheduleNotificationAsync({
         content: { title, body, data, sound: 'default' },
         trigger: triggerSeconds ? { seconds: triggerSeconds } : null,
@@ -243,7 +243,7 @@ class PushNotificationService {
   async cancelAllNotifications(): Promise<void> {
     if (Platform.OS !== 'web') {
       try {
-        const Notifications = require('expo-notifications');
+        const Notifications = require('expo-notifications'); // eslint-disable-line @typescript-eslint/no-require-imports
         await Notifications.cancelAllScheduledNotificationsAsync();
       } catch (_e) { /* ignore */ }
     }
@@ -261,7 +261,7 @@ class PushNotificationService {
   async dismissAllNotifications(): Promise<void> {
     if (Platform.OS !== 'web') {
       try {
-        const Notifications = require('expo-notifications');
+        const Notifications = require('expo-notifications'); // eslint-disable-line @typescript-eslint/no-require-imports
         await Notifications.dismissAllNotificationsAsync();
       } catch (_e) { /* ignore */ }
     }
@@ -270,7 +270,7 @@ class PushNotificationService {
   async getBadgeCount(): Promise<number> {
     if (Platform.OS !== 'web') {
       try {
-        const Notifications = require('expo-notifications');
+        const Notifications = require('expo-notifications'); // eslint-disable-line @typescript-eslint/no-require-imports
         return await Notifications.getBadgeCountAsync();
       } catch (_e) { return 0; }
     }
@@ -280,7 +280,7 @@ class PushNotificationService {
   async setBadgeCount(count: number): Promise<void> {
     if (Platform.OS !== 'web') {
       try {
-        const Notifications = require('expo-notifications');
+        const Notifications = require('expo-notifications'); // eslint-disable-line @typescript-eslint/no-require-imports
         await Notifications.setBadgeCountAsync(count);
       } catch (_e) { /* ignore */ }
     }

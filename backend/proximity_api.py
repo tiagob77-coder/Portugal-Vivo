@@ -23,40 +23,65 @@ async def get_nearby_pois(
     category: Optional[str] = None,
 ):
     """Get POIs near a GPS position, sorted by distance."""
-    query = {"location.lat": {"$exists": True, "$ne": None}}
-    if category:
-        query["category"] = category
-
     projection = {
         "_id": 0, "id": 1, "name": 1, "category": 1, "region": 1,
         "location": 1, "iq_score": 1, "image_url": 1, "description": 1,
     }
 
-    # Get candidates (pre-filter with bounding box)
-    lat_delta = radius_km / 111.0
-    lng_delta = radius_km / (111.0 * cos(radians(lat)))
-    query["location.lat"] = {"$gte": lat - lat_delta, "$lte": lat + lat_delta}
-    query["location.lng"] = {"$gte": lng - lng_delta, "$lte": lng + lng_delta}
-
     db = _get_db()
-    candidates = await db.heritage_items.find(query, projection).limit(500).to_list(500)
-
     nearby = []
-    for poi in candidates:
-        loc = poi.get("location", {})
-        dist = haversine_km(lat, lng, loc["lat"], loc["lng"])
-        if dist <= radius_km:
-            iq = poi.get("iq_score") or 0
-            if iq >= min_iq:
+
+    # Fast path: use 2dsphere $near when geo_location is indexed
+    try:
+        query: dict = {
+            "geo_location": {
+                "$near": {
+                    "$geometry": {"type": "Point", "coordinates": [lng, lat]},
+                    "$maxDistance": int(radius_km * 1000),
+                }
+            }
+        }
+        if category:
+            query["category"] = category
+        if min_iq > 0:
+            query["iq_score"] = {"$gte": min_iq}
+
+        candidates = await db.heritage_items.find(query, projection).limit(limit).to_list(limit)
+        for poi in candidates:
+            loc = poi.get("location", {})
+            dist = haversine_km(lat, lng, loc.get("lat", 0), loc.get("lng", 0))
+            poi["distance_km"] = round(dist, 2)
+            poi["distance_m"] = round(dist * 1000)
+            desc = poi.get("description") or ""
+            poi["description"] = desc[:100] + ("..." if len(desc) > 100 else "")
+            nearby.append(poi)
+
+    except Exception:
+        # Fallback: bounding box when 2dsphere index not yet available
+        lat_delta = radius_km / 111.0
+        lng_delta = radius_km / (111.0 * cos(radians(lat)))
+        query = {
+            "location.lat": {"$gte": lat - lat_delta, "$lte": lat + lat_delta},
+            "location.lng": {"$gte": lng - lng_delta, "$lte": lng + lng_delta},
+        }
+        if category:
+            query["category"] = category
+
+        candidates = await db.heritage_items.find(query, projection).limit(500).to_list(500)
+        for poi in candidates:
+            loc = poi.get("location", {})
+            dist = haversine_km(lat, lng, loc["lat"], loc["lng"])
+            if dist <= radius_km and (poi.get("iq_score") or 0) >= min_iq:
                 poi["distance_km"] = round(dist, 2)
                 poi["distance_m"] = round(dist * 1000)
                 desc = poi.get("description") or ""
                 poi["description"] = desc[:100] + ("..." if len(desc) > 100 else "")
                 nearby.append(poi)
+        nearby.sort(key=lambda x: x["distance_km"])
+        nearby = nearby[:limit]
 
-    nearby.sort(key=lambda x: x["distance_km"])
     return {
-        "pois": nearby[:limit],
+        "pois": nearby,
         "total": len(nearby),
         "center": {"lat": lat, "lng": lng},
         "radius_km": radius_km,
@@ -69,28 +94,39 @@ async def get_proximity_alerts(
     lng: float = Query(..., ge=-180, le=180),
 ):
     """Get special alerts for nearby rare/high-IQ POIs (within 500m)."""
-    query = {
-        "location.lat": {"$exists": True, "$ne": None},
-        "iq_score": {"$gte": 55},
-    }
-
-    lat_delta = 0.5 / 111.0
-    lng_delta = 0.5 / (111.0 * cos(radians(lat)))
-    query["location.lat"] = {"$gte": lat - lat_delta, "$lte": lat + lat_delta}
-    query["location.lng"] = {"$gte": lng - lng_delta, "$lte": lng + lng_delta}
-
     projection = {
         "_id": 0, "id": 1, "name": 1, "category": 1, "region": 1,
         "location": 1, "iq_score": 1,
     }
 
     db = _get_db()
-    candidates = await db.heritage_items.find(query, projection).limit(50).to_list(50)
+    candidates = []
+
+    try:
+        query = {
+            "geo_location": {
+                "$near": {
+                    "$geometry": {"type": "Point", "coordinates": [lng, lat]},
+                    "$maxDistance": 500,
+                }
+            },
+            "iq_score": {"$gte": 55},
+        }
+        candidates = await db.heritage_items.find(query, projection).limit(50).to_list(50)
+    except Exception:
+        lat_delta = 0.5 / 111.0
+        lng_delta = 0.5 / (111.0 * cos(radians(lat)))
+        query = {
+            "location.lat": {"$gte": lat - lat_delta, "$lte": lat + lat_delta},
+            "location.lng": {"$gte": lng - lng_delta, "$lte": lng + lng_delta},
+            "iq_score": {"$gte": 55},
+        }
+        candidates = await db.heritage_items.find(query, projection).limit(50).to_list(50)
 
     alerts = []
     for poi in candidates:
         loc = poi.get("location", {})
-        dist_m = haversine_km(lat, lng, loc["lat"], loc["lng"]) * 1000
+        dist_m = haversine_km(lat, lng, loc.get("lat", 0), loc.get("lng", 0)) * 1000
         if dist_m <= 500:
             alert_type = "rare" if (poi.get("iq_score") or 0) >= 60 else "nearby"
             alerts.append({

@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { 
   View, Text, StyleSheet, TouchableOpacity, Dimensions, ScrollView,
-  ImageBackground, Animated, TextInput, StatusBar, Platform, Image,
+  ImageBackground, Animated, TextInput, StatusBar, Platform,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -9,8 +9,7 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useQuery } from '@tanstack/react-query';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { getStats, getTopScoredItems, getStories, getMainCategories, TopScoredItem, StoryItem } from '../src/services/api';
-import { useTheme } from '../src/context/ThemeContext';
+import { getStats, getTopScoredItems, getStories, TopScoredItem, StoryItem } from '../src/services/api';
 import { regionImages } from '../src/theme';
 
 const { width } = Dimensions.get('window');
@@ -128,14 +127,14 @@ export default function WelcomeScreen() {
     AsyncStorage.getItem('onboarding_complete').then((done) => {
       if (!done) router.replace('/onboarding');
     });
-  }, []);
+  }, [router]);
 
   useEffect(() => {
     Animated.parallel([
       Animated.timing(fadeAnim, { toValue: 1, duration: 800, useNativeDriver: true }),
       Animated.timing(slideAnim, { toValue: 0, duration: 800, useNativeDriver: true }),
     ]).start();
-  }, []);
+  }, [fadeAnim, slideAnim]);
 
   const isWide = width > 768;
   const greeting = getGreeting();

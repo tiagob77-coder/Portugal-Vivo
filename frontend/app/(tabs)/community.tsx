@@ -4,11 +4,10 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'expo-router';
-import { getApprovedContributions, createContribution, voteContribution, Contribution, ContributionCreate, getCategories } from '../../src/services/api';
+import api, { getApprovedContributions, createContribution, voteContribution, Contribution, ContributionCreate, getCategories } from '../../src/services/api';
 import { useAuth } from '../../src/context/AuthContext';
 import ImageUpload from '../../src/components/ImageUpload';
-import { useTheme, palette, stateColors } from '../../src/theme';
-import api from '../../src/services/api';
+import { useTheme, palette } from '../../src/theme';
 
 const CONTRIBUTION_TYPES = [
   { id: 'story', name: 'História', icon: 'auto-stories', color: '#8B5CF6' },
@@ -31,9 +30,9 @@ type FeedTab = 'featured' | 'recent' | 'following';
 
 export default function CommunityScreen() {
   const insets = useSafeAreaInsets();
-  const { colors } = useTheme();
+  const { colors: _colors } = useTheme();
   const queryClient = useQueryClient();
-  const { isAuthenticated, sessionToken, user, login } = useAuth();
+  const { isAuthenticated, sessionToken, user: _user, login } = useAuth();
   const router = useRouter();
   const [feedTab, setFeedTab] = useState<FeedTab>('featured');
   const [showCreateModal, setShowCreateModal] = useState(false);

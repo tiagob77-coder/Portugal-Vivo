@@ -14,8 +14,7 @@ import {
 } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import { colors, typography, spacing, borders, shadows } from '../theme';
-import { palette, stateColors, withOpacity } from '../theme';
+import { typography, spacing, borders, shadows, palette, withOpacity } from '../theme';
 import { ProximityAlert } from '../services/geofencing';
 
 const { width: _width } = Dimensions.get('window');

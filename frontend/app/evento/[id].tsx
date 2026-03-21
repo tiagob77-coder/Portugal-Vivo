@@ -18,8 +18,7 @@ import { useLocalSearchParams, useRouter, Stack } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useQuery } from '@tanstack/react-query';
-import api from '../../src/services/api';
-import { getAgendaEventDetail } from '../../src/services/api';
+import api, { getAgendaEventDetail } from '../../src/services/api';
 import { colors, shadows } from '../../src/theme';
 import { useTheme } from '../../src/context/ThemeContext';
 
@@ -260,7 +259,7 @@ export default function EventDetailPage() {
               if (Platform.OS === 'web') {
                 if (navigator.clipboard) navigator.clipboard.writeText(text);
               } else {
-                const Share = require('react-native').Share;
+                const Share = require('react-native').Share; // eslint-disable-line @typescript-eslint/no-require-imports
                 Share.share({ message: text });
               }
             }}

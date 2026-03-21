@@ -1,6 +1,9 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react-native';
 
+import { useQuery } from '@tanstack/react-query';
+import { SurfForecastWidget } from '../SurfForecastWidget';
+
 jest.mock('@tanstack/react-query', () => ({
   useQuery: jest.fn(),
 }));
@@ -17,9 +20,6 @@ jest.mock('../../services/api', () => ({
   __esModule: true,
   default: { get: jest.fn() },
 }));
-
-import { useQuery } from '@tanstack/react-query';
-import { SurfForecastWidget } from '../SurfForecastWidget';
 
 const mockUseQuery = useQuery as jest.Mock;
 
@@ -49,7 +49,7 @@ describe('SurfForecastWidget', () => {
     });
 
     const { UNSAFE_getByType } = render(<SurfForecastWidget />);
-    const { ActivityIndicator } = require('react-native');
+    const { ActivityIndicator } = require('react-native'); // eslint-disable-line @typescript-eslint/no-require-imports
     expect(UNSAFE_getByType(ActivityIndicator)).toBeTruthy();
     expect(screen.getByText('A carregar previsão...')).toBeTruthy();
   });

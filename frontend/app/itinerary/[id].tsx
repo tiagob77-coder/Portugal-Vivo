@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity,
-  ActivityIndicator, Alert, TextInput, Platform,
+  ActivityIndicator, Alert, TextInput,
 } from 'react-native';
 import { useLocalSearchParams, useRouter, Stack } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
@@ -15,9 +15,7 @@ import {
   getItineraryComments,
   addItineraryComment,
   getItineraryBudget,
-  addItineraryAttachment,
   voteItineraryPoi,
-  SavedItineraryDetail,
   ItineraryComment,
 } from '../../src/services/api';
 import { useAuth } from '../../src/context/AuthContext';
@@ -44,7 +42,7 @@ type TabId = 'timeline' | 'comments' | 'budget' | 'collaborators';
 export default function ItineraryDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
-  const insets = useSafeAreaInsets();
+  const _insets = useSafeAreaInsets();
   const { colors } = useTheme();
   const { user } = useAuth();
   const queryClient = useQueryClient();

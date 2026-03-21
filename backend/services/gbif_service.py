@@ -12,7 +12,7 @@ from pydantic import BaseModel
 logger = logging.getLogger(__name__)
 
 PORTUGAL_COUNTRY_CODE = "PT"
-PORTUGAL_PUBLISHING_ORG_KEY = "1cd669d0-80ea-11de-a9d0-f1765f95f18b"  # GBIF Portugal
+PORTUGAL_PUBLISHING_ORG_KEY = "1cd669d0-80ea-11de-a9d0-f1765f95f18b"  # GBIF Portugal public org UUID — not a secret  # gitleaks:allow
 
 
 class SpeciesOccurrence(BaseModel):

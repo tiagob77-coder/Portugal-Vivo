@@ -6,6 +6,14 @@
  */
 
 // Re-export color system (single source of truth)
+// Backward compat: `colors` merges palette scales with flat semantic keys
+// that the old theme/index.ts exported (background, success, error, categories, etc.)
+import { palette, categoryColors } from './colors';
+
+// ============================================
+// COMPONENT DEFAULTS (light-mode baseline)
+// ============================================
+
 export {
   palette,
   lightColors,
@@ -23,23 +31,19 @@ export type { SemanticColors } from './colors';
 export { useTheme, ThemeProvider } from '../context/ThemeContext';
 export type { ThemeMode } from '../context/ThemeContext';
 
-// Backward compat: `colors` merges palette scales with flat semantic keys
-// that the old theme/index.ts exported (background, success, error, categories, etc.)
-import { palette as _palette, categoryColors as _catColors } from './colors';
-
 export const colors = {
-  ..._palette,
+  ...palette,
   background: {
-    primary: _palette.gray[50],       // #FAF8F3
-    secondary: _palette.white,        // #FFFFFF
+    primary: palette.gray[50],       // #FAF8F3
+    secondary: palette.white,        // #FFFFFF
     tertiary: '#F7F4EE',
-    dark: _palette.forest[500],       // #2E5E4E
+    dark: palette.forest[500],       // #2E5E4E
   },
   success: '#3FA66B',
   warning: '#E8A23A',
   error: '#C44536',
   info: '#2A6F97',
-  categories: _catColors,
+  categories: categoryColors,
 } as const;
 
 // ============================================
@@ -161,12 +165,6 @@ export const regionImages = {
   acores: 'https://customer-assets.emergentagent.com/job_3262e738-25ea-4984-9682-d41451888e20/artifacts/ctr0hkwp_regiao-acores.jpg',
   madeira: 'https://customer-assets.emergentagent.com/job_24ca32ce-1389-47f3-a7d2-be353c2637e3/artifacts/zik2moq4_regiao-madeira.jpg',
 };
-
-// ============================================
-// COMPONENT DEFAULTS (light-mode baseline)
-// ============================================
-
-import { palette } from './colors';
 
 export const components = {
   buttonPrimary: {

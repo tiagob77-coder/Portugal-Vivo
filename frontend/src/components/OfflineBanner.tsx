@@ -4,7 +4,7 @@ import NetInfo from '@react-native-community/netinfo';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../context/ThemeContext';
-import offlineCache from '../services/offlineCache'; // eslint-disable-line import/no-named-as-default
+import offlineCache from '../services/offlineCache';
 
 export default function OfflineBanner() {
   const { colors: _colors } = useTheme();

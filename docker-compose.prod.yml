@@ -17,7 +17,10 @@ services:
       - mongo_data:/data/db
       - ./ops/mongo-init.js:/docker-entrypoint-initdb.d/init.js:ro
     environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_ROOT_USER}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD}
       MONGO_INITDB_DATABASE: portugal_vivo
+      MONGO_APP_PASSWORD: ${MONGO_APP_PASSWORD}
     healthcheck:
       test: mongosh --eval "db.adminCommand('ping')" --quiet
       interval: 15s
@@ -61,7 +64,7 @@ services:
     env_file:
       - ./backend/.env
     environment:
-      - MONGO_URL=mongodb://mongodb:27017
+      - MONGO_URL=mongodb://pv_app:${MONGO_APP_PASSWORD}@mongodb:27017/portugal_vivo?authSource=portugal_vivo
       - REDIS_URL=redis://redis:6379
       - ENVIRONMENT=production
     depends_on:

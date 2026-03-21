@@ -4,8 +4,7 @@
  */
 import React from 'react';
 import { View, ViewStyle, StyleSheet } from 'react-native';
-import { useTheme } from '../../theme';
-import { borders, shadows, spacing } from '../../theme';
+import { useTheme , borders, shadows, spacing } from '../../theme';
 
 interface CardProps {
   children: React.ReactNode;

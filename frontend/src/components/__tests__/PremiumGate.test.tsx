@@ -2,12 +2,14 @@ import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
 import { Text } from 'react-native';
 
+import PremiumGate from '../PremiumGate';
+
 // Mock dependencies
 const mockPush = jest.fn();
 jest.mock('expo-router', () => ({ useRouter: () => ({ push: mockPush }) }));
 jest.mock('expo-linear-gradient', () => ({
   LinearGradient: ({ children, ...props }: any) => {
-    const { View } = require('react-native');
+    const { View } = require('react-native'); // eslint-disable-line @typescript-eslint/no-require-imports
     return <View {...props}>{children}</View>;
   },
 }));
@@ -41,8 +43,6 @@ jest.mock('../../theme', () => ({
   },
   withOpacity: (_hex: string, opacity: number) => `rgba(0,0,0,${opacity})`,
 }));
-
-import PremiumGate from '../PremiumGate';
 
 describe('PremiumGate', () => {
   beforeEach(() => {

@@ -106,9 +106,11 @@ export default function AdminDashboard() {
 
   const handleStartCaop = async () => {
     if (caopJob?.status === 'running') {
-      Platform.OS === 'web'
-        ? window.alert('Já existe um job em curso. Aguarda a conclusão.')
-        : Alert.alert('Em curso', 'Já existe um job em curso. Aguarda a conclusão.');
+      if (Platform.OS === 'web') {
+        window.alert('Já existe um job em curso. Aguarda a conclusão.');
+      } else {
+        Alert.alert('Em curso', 'Já existe um job em curso. Aguarda a conclusão.');
+      }
       return;
     }
     setCaopLaunching(true);
@@ -117,7 +119,7 @@ export default function AdminDashboard() {
       setTimeout(() => { refetchCaopJob(); refetchCaopStats(); }, 800);
     } catch (e: any) {
       const msg = e?.response?.data?.detail || 'Erro ao iniciar job';
-      Platform.OS === 'web' ? window.alert(msg) : Alert.alert('Erro', msg);
+      if (Platform.OS === 'web') { window.alert(msg); } else { Alert.alert('Erro', msg); }
     } finally {
       setCaopLaunching(false);
     }
@@ -129,7 +131,7 @@ export default function AdminDashboard() {
       refetchCaopJob();
     } catch (e: any) {
       const msg = e?.response?.data?.detail || 'Erro ao cancelar';
-      Platform.OS === 'web' ? window.alert(msg) : Alert.alert('Erro', msg);
+      if (Platform.OS === 'web') { window.alert(msg); } else { Alert.alert('Erro', msg); }
     }
   };
 
