@@ -55,8 +55,8 @@ describe('MicroStoryCard', () => {
 
   it('calls onSave with poi_id when save button pressed', () => {
     const onSave = jest.fn();
-    const { getByLabelText } = render(<MicroStoryCard story={mockStory} onSave={onSave} saved={false} />);
-    const saveBtn = getByLabelText('Guardar');
+    const { UNSAFE_getByProps } = render(<MicroStoryCard story={mockStory} onSave={onSave} saved={false} />);
+    const saveBtn = UNSAFE_getByProps({ accessibilityLabel: 'Guardar' });
     fireEvent.press(saveBtn);
     expect(onSave).toHaveBeenCalledWith('castelo-guimaraes');
   });
