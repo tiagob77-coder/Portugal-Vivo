@@ -85,7 +85,7 @@ curl -X POST http://api.portugalvivo.com/login \
 Then use the token provided in the response for subsequent requests:
 ```bash
 curl -X GET http://api.portugalvivo.com/users/1 \
--H 'Authorization: Bearer YOUR_TOKEN_HERE'
+-H 'Authorization: Bearer <token>'
 ```
 
 ## Conclusion
