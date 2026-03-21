@@ -17,7 +17,7 @@ import ImageUpload from '../../src/components/ImageUpload';
 
 const { width: _width } = Dimensions.get('window');
 
-const GOOGLE_MAPS_API_KEY = process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY || '';
+const _GOOGLE_MAPS_API_KEY = process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY || '';
 
 // Conditional import for WebView (only on native)
 let _WebView: any = null;
@@ -960,7 +960,7 @@ export default function HeritageDetailScreen() {
               token={sessionToken}
               context="poi"
               itemId={id as string}
-              onUpload={(url) => {
+              onUpload={(_url) => {
                 queryClient.invalidateQueries({ queryKey: ['heritage', id] });
                 queryClient.invalidateQueries({ queryKey: ['poi-images', id] });
                 if (Platform.OS === 'web') {

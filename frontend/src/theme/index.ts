@@ -6,6 +6,14 @@
  */
 
 // Re-export color system (single source of truth)
+// Backward compat: `colors` merges palette scales with flat semantic keys
+// that the old theme/index.ts exported (background, success, error, categories, etc.)
+import { palette, categoryColors as _catColors } from './colors';
+
+// ============================================
+// COMPONENT DEFAULTS (light-mode baseline)
+// ============================================
+
 export {
   palette,
   lightColors,
@@ -22,10 +30,6 @@ export type { SemanticColors } from './colors';
 // Re-export ThemeContext (runtime light/dark)
 export { useTheme, ThemeProvider } from '../context/ThemeContext';
 export type { ThemeMode } from '../context/ThemeContext';
-
-// Backward compat: `colors` merges palette scales with flat semantic keys
-// that the old theme/index.ts exported (background, success, error, categories, etc.)
-import { palette as _palette, categoryColors as _catColors } from './colors';
 
 export const colors = {
   ..._palette,
@@ -161,12 +165,6 @@ export const regionImages = {
   acores: 'https://customer-assets.emergentagent.com/job_3262e738-25ea-4984-9682-d41451888e20/artifacts/ctr0hkwp_regiao-acores.jpg',
   madeira: 'https://customer-assets.emergentagent.com/job_24ca32ce-1389-47f3-a7d2-be353c2637e3/artifacts/zik2moq4_regiao-madeira.jpg',
 };
-
-// ============================================
-// COMPONENT DEFAULTS (light-mode baseline)
-// ============================================
-
-import { palette } from './colors';
 
 export const components = {
   buttonPrimary: {

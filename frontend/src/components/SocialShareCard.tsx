@@ -12,7 +12,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { palette } from '../theme';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
-const CARD_WIDTH = Math.min(SCREEN_WIDTH - 48, 380);
+const _CARD_WIDTH = Math.min(SCREEN_WIDTH - 48, 380);
 
 interface SocialShareCardProps {
   type: 'poi' | 'route';

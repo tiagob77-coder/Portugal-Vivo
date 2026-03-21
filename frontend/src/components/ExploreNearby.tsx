@@ -113,7 +113,7 @@ const useDeviceLocation = () => {
         );
       } else {
         // React Native / Expo
-        const ExpoLocation = require('expo-location');
+        const ExpoLocation = require('expo-location'); // eslint-disable-line @typescript-eslint/no-require-imports
         const { status } = await ExpoLocation.requestForegroundPermissionsAsync();
         if (status !== 'granted') {
           setError('Permissão de localização negada');

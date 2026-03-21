@@ -23,7 +23,7 @@ export default function RoutesScreen() {
   const insets = useSafeAreaInsets();
   const [selectedCategory, setSelectedCategory] = useState('all');
 
-  const { data: routes = [], isLoading, refetch } = useQuery({
+  const { data: routes = [], isLoading, refetch: _refetch } = useQuery({
     queryKey: ['routes', selectedCategory],
     queryFn: () => getRoutes({
       category: selectedCategory !== 'all' ? selectedCategory : undefined,

@@ -83,7 +83,7 @@ export default function ARTimeTravelScreen() {
 }
 
 // Fallback UI while item loads (if needed)
-function LoadingPlaceholder({ onClose }: { onClose: () => void }) {
+function _LoadingPlaceholder({ onClose }: { onClose: () => void }) {
   return (
     <View style={styles.loadingContainer}>
       <MaterialIcons name="camera" size={64} color="#C49A6C" />

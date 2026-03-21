@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, Dimensions, Image } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { HeritageItem, Category } from '../types';
 import PressableScale from './PressableScale';
-import { useTheme, typography, spacing, borders, shadows, getCategoryColor, getCategoryBg } from '../theme';
+import { useTheme, typography, spacing, borders, getCategoryColor, getCategoryBg } from '../theme';
 
 const { width: _width } = Dimensions.get('window');
 

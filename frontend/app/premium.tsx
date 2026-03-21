@@ -31,7 +31,6 @@ import {
   createCustomerPortal,
   getSubscriptionStatus,
 } from '../src/services/api';
-import type { PremiumTiersResponse, SubscriptionStatus } from '../src/services/api';
 
 const serif = Platform.OS === 'web' ? 'Cormorant Garamond, Georgia, serif' : undefined;
 
@@ -47,7 +46,7 @@ export default function PremiumScreen() {
   const params = useLocalSearchParams();
   const insets = useSafeAreaInsets();
   const { colors: tc } = useTheme();
-  const { isAuthenticated, user, refreshSubscription, isPremium } = useAuth();
+  const { isAuthenticated, user, refreshSubscription, isPremium: _isPremium } = useAuth();
   const [selectedTier, setSelectedTier] = useState<string>('premium');
   const [selectedPayment, setSelectedPayment] = useState<string>('card');
   const [checkoutLoading, setCheckoutLoading] = useState(false);
@@ -77,7 +76,7 @@ export default function PremiumScreen() {
         window.history.replaceState({}, document.title, '/premium');
       }
     }
-  }, [params.success]);
+  }, [params.success, refreshSubscription]);
 
   const handleSubscribe = async () => {
     if (!isAuthenticated) {
@@ -135,7 +134,7 @@ export default function PremiumScreen() {
           await RNLinking.openURL(result.portal_url);
         }
       }
-    } catch (error: any) {
+    } catch {
       Alert.alert('Erro', 'Não foi possível abrir o portal de gestão');
     } finally {
       setCheckoutLoading(false);

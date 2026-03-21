@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity,
-  Image, ActivityIndicator, Platform, Alert,
+  Image, ActivityIndicator,
 } from 'react-native';
 import { useLocalSearchParams, useRouter, Stack } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
@@ -22,8 +22,8 @@ const AMBASSADOR_ROLE_COLORS: Record<string, string> = {
 
 export default function PublicProfileScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
-  const router = useRouter();
-  const insets = useSafeAreaInsets();
+  const _router = useRouter();
+  const _insets = useSafeAreaInsets();
   const { colors } = useTheme();
   const { user, sessionToken } = useAuth();
   const queryClient = useQueryClient();

@@ -18,7 +18,7 @@ let isMapAvailable: boolean = false;
 if (Platform.OS === 'web') {
   try {
     // Dynamic require to avoid bundling issues
-    const webModule = require('./NativeMap.web');
+    const webModule = require('./NativeMap.web'); // eslint-disable-line @typescript-eslint/no-require-imports
     MapComponent = webModule.default;
     LeafletMapComponent = webModule.LeafletMapComponent;
     Marker = webModule.Marker;

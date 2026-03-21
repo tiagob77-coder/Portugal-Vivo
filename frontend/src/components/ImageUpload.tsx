@@ -70,7 +70,7 @@ export default function ImageUpload({
 
   const handleNativePick = async () => {
     try {
-      const ImagePicker = require('expo-image-picker');
+      const ImagePicker = require('expo-image-picker'); // eslint-disable-line @typescript-eslint/no-require-imports
       const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
       if (status !== 'granted') {
         Alert.alert('Permissão necessária', 'Precisamos de acesso à galeria para carregar fotos.');

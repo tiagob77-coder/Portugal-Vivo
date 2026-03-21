@@ -1,6 +1,9 @@
 import React from 'react';
 import { render, screen, waitFor } from '@testing-library/react-native';
 
+import { enrichEvent } from '../../services/api';
+import DiscoveryCard from '../DiscoveryCard';
+
 jest.mock('@expo/vector-icons', () => ({
   MaterialIcons: 'MaterialIcons',
 }));
@@ -9,9 +12,6 @@ jest.mock('../../services/api', () => ({
   enrichEvent: jest.fn(),
   getEventToNatureItinerary: jest.fn(),
 }));
-
-import { enrichEvent } from '../../services/api';
-import DiscoveryCard from '../DiscoveryCard';
 
 const mockEnrichEvent = enrichEvent as jest.Mock;
 
@@ -44,7 +44,7 @@ describe('DiscoveryCard', () => {
       <DiscoveryCard eventName="Festa de São João" lat={41.15} lng={-8.61} />
     );
 
-    const { ActivityIndicator } = require('react-native');
+    const { ActivityIndicator } = require('react-native'); // eslint-disable-line @typescript-eslint/no-require-imports
     expect(UNSAFE_getByType(ActivityIndicator)).toBeTruthy();
   });
 

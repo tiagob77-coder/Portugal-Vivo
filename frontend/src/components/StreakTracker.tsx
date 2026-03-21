@@ -7,7 +7,7 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { useQuery } from '@tanstack/react-query';
 import { API_BASE } from '../config/api';
 import axios from 'axios';
-import { palette, withOpacity } from '../theme/colors';
+import { palette } from '../theme/colors';
 
 interface StreakTrackerProps {
   userId: string;

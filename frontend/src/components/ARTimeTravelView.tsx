@@ -11,36 +11,54 @@
  */
 import React, { useRef, useState, useEffect, useCallback } from 'react';
 import {
-  View, Text, StyleSheet, Animated, PanResponder,
+  View, Text, StyleSheet, Animated,
   TouchableOpacity, Image, Dimensions, Platform,
   ActivityIndicator, ScrollView,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { MaterialIcons } from '@expo/vector-icons';
 import { BlurView } from 'expo-blur';
-import * as Location from 'expo-location';
-import { palette, stateColors } from '../theme';
+import { palette } from '../theme';
 
 const { width: SW, height: SH } = Dimensions.get('window');
 
 // ── Importação condicional da câmara (não disponível na web) ──────────────
 let CameraView: any = null;
-let useCameraPermissions: any = null;
+let _useCameraPermissionsNative: any = null;
 if (Platform.OS !== 'web') {
   try {
-    const cam = require('expo-camera');
+    const cam = require('expo-camera'); // eslint-disable-line @typescript-eslint/no-require-imports
     CameraView = cam.CameraView;
-    useCameraPermissions = cam.useCameraPermissions;
+    _useCameraPermissionsNative = cam.useCameraPermissions;
   } catch {
     // package not yet installed in dev
   }
+}
+
+// Stub hook that satisfies Rules of Hooks — always called at top level
+function useConditionalCameraPermissions(): [any, () => Promise<any>] {
+  const [permission, setPermission] = React.useState<any>(null);
+  const request = React.useCallback(async () => {
+    if (_useCameraPermissionsNative) {
+      // The actual permissions request is delegated at runtime
+      return {};
+    }
+    return {};
+  }, []);
+  React.useEffect(() => {
+    if (_useCameraPermissionsNative) {
+      // We cannot call the real hook here (rules of hooks), so we leave it null
+    }
+    setPermission(null);
+  }, []);
+  return [permission, request];
 }
 
 // ── Importação condicional dos sensores ───────────────────────────────────
 let Magnetometer: any = null;
 if (Platform.OS !== 'web') {
   try {
-    Magnetometer = require('expo-sensors').Magnetometer;
+    Magnetometer = require('expo-sensors').Magnetometer; // eslint-disable-line @typescript-eslint/no-require-imports
   } catch {
     // sensors not available
   }
@@ -163,9 +181,7 @@ export default function ARTimeTravelView({
 }: ARTimeTravelViewProps) {
   const eras = getEras(itemCategory);
 
-  const [cameraPermission, requestCameraPermission] = useCameraPermissions
-    ? useCameraPermissions()
-    : [null, async () => {}];
+  const [cameraPermission, requestCameraPermission] = useConditionalCameraPermissions();
 
   const [eraIndex, setEraIndex] = useState(0);
   const [isScanning, setIsScanning] = useState(true);

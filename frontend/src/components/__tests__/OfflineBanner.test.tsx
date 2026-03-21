@@ -1,6 +1,8 @@
 import React from 'react';
 import { render, act } from '@testing-library/react-native';
 
+import OfflineBanner from '../OfflineBanner';
+
 // Capture the NetInfo listener callback
 let netInfoCallback: (state: any) => void;
 
@@ -29,8 +31,6 @@ jest.mock('../../services/offlineCache', () => ({
     getPendingActionCount: jest.fn().mockResolvedValue(0),
   },
 }));
-
-import OfflineBanner from '../OfflineBanner';
 
 describe('OfflineBanner', () => {
   beforeEach(() => {

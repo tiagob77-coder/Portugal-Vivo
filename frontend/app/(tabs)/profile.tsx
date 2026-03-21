@@ -31,7 +31,7 @@ export default function ProfileScreen() {
   const insets = useSafeAreaInsets();
   const { t, i18n } = useTranslation();
   const { colors, isDark, toggleTheme } = useTheme();
-  const { user, isLoading: authLoading, isAuthenticated, login, logout, sessionToken, isPremium, premiumTier } = useAuth();
+  const { user, isLoading: authLoading, isAuthenticated, login, logout, sessionToken, isPremium, premiumTier: _premiumTier } = useAuth();
   const currentLang = LANGUAGES.find(l => l.code === i18n.language) || LANGUAGES[0];
 
   const { data: categories = [] } = useQuery({ queryKey: ['categories'], queryFn: getCategories });

@@ -1,6 +1,6 @@
 import axios from 'axios';
 import { HeritageItem, Route, Category, MainCategory, Subcategory, Region, User, Stats } from '../types';
-import offlineCache from './offlineCache'; // eslint-disable-line import/no-named-as-default
+import offlineCache from './offlineCache';
 
 import { API_BASE } from '../config/api';
 

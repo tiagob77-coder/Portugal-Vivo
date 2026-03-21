@@ -227,11 +227,11 @@ class OfflineStorageService {
     const response = await axios.get(
       `${API_BASE}/offline/package/all/manifest`
     );
-    const manifest = response.data.manifest as Array<{
+    const manifest = response.data.manifest as {
       region: string;
       region_name: string;
       version_hash: string;
-    }>;
+    }[];
 
     // Cache manifest for reference
     await AsyncStorage.setItem(

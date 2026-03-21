@@ -58,7 +58,7 @@ async function runWebProximityCheck(): Promise<void> {
 
       if (!response.ok) return;
 
-      const data: { notifications: Array<{ title: string; body: string; poi_id: string }> } =
+      const data: { notifications: { title: string; body: string; poi_id: string }[] } =
         await response.json();
 
       if (data.notifications?.length > 0) {

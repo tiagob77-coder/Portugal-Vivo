@@ -5,8 +5,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, ViewStyle } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
-import { useTheme } from '../../theme';
-import { typography, spacing, borders, withOpacity } from '../../theme';
+import { useTheme , typography, spacing, borders, withOpacity } from '../../theme';
 
 interface BadgeProps {
   label: string;

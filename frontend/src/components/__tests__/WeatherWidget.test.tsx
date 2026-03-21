@@ -1,6 +1,9 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react-native';
 
+import { useQuery } from '@tanstack/react-query';
+import { WeatherWidget } from '../WeatherWidget';
+
 jest.mock('@tanstack/react-query', () => ({
   useQuery: jest.fn(),
 }));
@@ -27,9 +30,6 @@ jest.mock('../../theme', () => ({
   borders: { radius: { lg: 12, xl: 16 } },
   shadows: { md: {} },
 }));
-
-import { useQuery } from '@tanstack/react-query';
-import { WeatherWidget } from '../WeatherWidget';
 
 const mockUseQuery = useQuery as jest.Mock;
 
@@ -63,7 +63,7 @@ describe('WeatherWidget', () => {
     });
 
     const { UNSAFE_getByType } = render(<WeatherWidget />);
-    const { ActivityIndicator } = require('react-native');
+    const { ActivityIndicator } = require('react-native'); // eslint-disable-line @typescript-eslint/no-require-imports
     expect(UNSAFE_getByType(ActivityIndicator)).toBeTruthy();
   });
 
