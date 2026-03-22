@@ -184,8 +184,17 @@ export const LeafletMapComponent = ({
     
     // Draw trail if provided
     if (trailData.length > 1) {
-      L.polyline(trailData, { color: trailColor, weight: 4 }).addTo(map);
-      map.fitBounds(L.latLngBounds(trailData), { padding: [30, 30] });
+      // Shadow for contrast on any tile
+      L.polyline(trailData, { color: '#000', weight: 6, opacity: 0.18, lineCap: 'round', lineJoin: 'round' }).addTo(map);
+      // Main trail line
+      L.polyline(trailData, { color: trailColor, weight: 4, opacity: 0.9, lineCap: 'round', lineJoin: 'round' }).addTo(map);
+      // Start marker (green)
+      const startIcon = L.divIcon({ className: '', html: '<div style="background:#22C55E;width:28px;height:28px;border-radius:50%;border:2px solid #fff;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 6px rgba(0,0,0,.4);font-family:Material+Icons,sans-serif;font-size:14px;color:#fff">flag</div>', iconSize:[28,28], iconAnchor:[14,14] });
+      // End marker (red)
+      const endIcon = L.divIcon({ className: '', html: '<div style="background:#EF4444;width:28px;height:28px;border-radius:50%;border:2px solid #fff;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 6px rgba(0,0,0,.4);font-family:Material+Icons,sans-serif;font-size:14px;color:#fff">sports_score</div>', iconSize:[28,28], iconAnchor:[14,14] });
+      L.marker(trailData[0], { icon: startIcon }).bindPopup('Partida').addTo(map);
+      L.marker(trailData[trailData.length-1], { icon: endIcon }).bindPopup('Chegada').addTo(map);
+      map.fitBounds(L.latLngBounds(trailData), { padding: [40, 40] });
     }
   </script>
 </body>

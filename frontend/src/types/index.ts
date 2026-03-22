@@ -42,6 +42,10 @@ export interface Route {
   image_url?: string;
   external_url?: string;
   highlights?: string[];
+  subtitle?: string;
+  best_season?: string;
+  audience?: string[];
+  rating?: number;
   created_at: string;
 }
 

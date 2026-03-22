@@ -62,15 +62,26 @@ def _extract_waypoints(route_obj: dict) -> list[dict]:
         or route_obj.get("stops")
         or route_obj.get("pontos")
         or route_obj.get("locais")
+        or route_obj.get("itinerary")  # Schema.org TouristTrip
         or []
     )
     results = []
     for wp in raw:
         if not isinstance(wp, dict):
             continue
-        # Coordenadas podem vir como lat/lng ou GeoJSON coordinates: [lng, lat]
+
+        # Coordenadas: lat/lng directos
         lat = _parse_coord(_v(wp, "lat", "latitude"))
         lng = _parse_coord(_v(wp, "lng", "lon", "longitude"))
+
+        # Schema.org: geo.latitude / geo.longitude
+        if lat is None or lng is None:
+            geo = wp.get("geo") or {}
+            if geo:
+                lat = _parse_coord(geo.get("latitude")) if lat is None else lat
+                lng = _parse_coord(geo.get("longitude")) if lng is None else lng
+
+        # GeoJSON coordinates: [lng, lat]
         if lat is None and lng is None:
             coords = wp.get("coordinates") or wp.get("geometry", {}).get("coordinates")
             if coords and len(coords) >= 2:
@@ -87,38 +98,112 @@ def _extract_waypoints(route_obj: dict) -> list[dict]:
     return results
 
 
+def _extract_schema_org(raw: dict) -> dict:
+    """
+    Extrai campos Schema.org TouristTrip para o formato interno.
+    Devolve um dict parcial que é merged com os campos principais.
+    """
+    extras: dict = {}
+
+    # Região: location.name ou location.address.addressRegion
+    loc = raw.get("location") or {}
+    if isinstance(loc, dict):
+        region_str = loc.get("name") or (loc.get("address") or {}).get("addressRegion")
+        if region_str:
+            extras["region"] = region_str
+
+    # Distância: distance.value
+    dist = raw.get("distance") or {}
+    if isinstance(dist, dict) and dist.get("value") is not None:
+        extras["distance_km"] = _parse_coord(dist["value"])
+
+    # Tema/categoria: touristType (lista ou string)
+    tourist_type = raw.get("touristType")
+    if tourist_type:
+        if isinstance(tourist_type, list):
+            extras["theme"] = tourist_type[0] if tourist_type else "megalítico"
+            extras["tourist_types"] = tourist_type
+        else:
+            extras["theme"] = str(tourist_type)
+
+    # Rating: aggregateRating.ratingValue
+    rating = raw.get("aggregateRating") or {}
+    if isinstance(rating, dict) and rating.get("ratingValue") is not None:
+        extras["rating"] = _parse_coord(rating["ratingValue"])
+
+    # URL canónica e slug (de @id)
+    schema_id = raw.get("@id") or raw.get("url")
+    if schema_id:
+        extras["external_url"] = schema_id
+        # Extrair slug do path: .../rotas/cromeleques-alentejo → cromeleques-alentejo
+        slug = schema_id.rstrip("/").split("/")[-1]
+        if slug:
+            extras["slug"] = slug
+
+    # Imagem
+    image = raw.get("image")
+    if image and isinstance(image, str):
+        extras["image_url"] = image
+
+    # Keywords → tags extras
+    kw = raw.get("keywords")
+    if kw and isinstance(kw, str):
+        extras["_extra_tags"] = [k.strip() for k in kw.split(",") if k.strip()]
+
+    return extras
+
+
 def _normalise_route(raw: dict) -> Optional[dict]:
     """Constrói um objecto de rota normalizado a partir do JSON bruto."""
     name = _v(raw, "name", "nome", "title", "titulo", "título")
     if not name:
         return None
 
+    # Schema.org enrichment (merged in below)
+    schema_extras = _extract_schema_org(raw) if raw.get("@type") == "TouristTrip" or raw.get("@context") else {}
+
     # Tags automáticas para megalíticos
     tags: list = list(raw.get("tags") or [])
     for auto in ["megalítico", "pré-história", "arqueologia", "portugal"]:
         if auto not in tags:
             tags.append(auto)
+    for t in schema_extras.pop("_extra_tags", []):
+        if t not in tags:
+            tags.append(t)
 
     # Geometry da rota (LineString GeoJSON), se existir
     geometry = raw.get("geometry") or raw.get("geojson")
 
-    return {
-        "id": _v(raw, "id") or str(uuid.uuid4())[:8],
+    slug = schema_extras.pop("slug", None)
+
+    route = {
+        "id": _v(raw, "id") or slug or str(uuid.uuid4())[:8],
         "name": name,
-        "description": _v(raw, "description", "descricao", "descrição", default="Rota megalítica de Portugal Vivo."),
+        # Formato 1: narrativa é mais rica que description; usar como descrição principal
+        "description": _v(raw, "narrativa", "description", "descricao", "descrição",
+                          default="Rota megalítica de Portugal Vivo."),
+        "subtitle": _v(raw, "titulo_narrativo"),             # "Onde o Neolítico dorme entre lameiros"
         "category": _v(raw, "category", "categoria", default="arqueologia"),
-        "theme": _v(raw, "theme", "tema", default="megalítico"),
-        "region": _v(raw, "region", "regiao", "região", "distrito"),
-        "distance_km": _parse_coord(_v(raw, "distance_km", "distancia_km", "distancia", "distance")),
+        "theme": _v(raw, "theme", "tema") or schema_extras.pop("theme", "megalítico"),
+        "region": _v(raw, "region", "regiao", "região", "distrito") or schema_extras.pop("region", None),
+        "distance_km": _parse_coord(_v(raw, "distance_km", "distancia_km", "distancia", "distance"))
+                       or schema_extras.pop("distance_km", None),
         "duration_hours": _parse_coord(_v(raw, "duration_hours", "duracao_horas", "duracao")),
         "difficulty": _v(raw, "difficulty", "dificuldade"),
-        "image_url": _v(raw, "image_url", "imagem"),
+        "image_url": _v(raw, "image_url", "imagem") or schema_extras.pop("image_url", None),
+        "external_url": slug and f"https://portugalsecretoapp.pt/rotas/{slug}" or schema_extras.pop("external_url", None),
+        "rating": schema_extras.pop("rating", None) or _parse_coord(_v(raw, "score")),
+        "best_season": _v(raw, "melhor_epoca"),              # "Maio–Junho"
+        "highlights": raw.get("destaques") or [],            # lista de destaques
+        "audience": raw.get("perfil") or [],                 # ["Casal", "Solitário"]
         "tags": tags,
         "geometry": geometry,
         "source": "megaliticos_json",
         "created_at": datetime.now(timezone.utc),
         "_raw_waypoints": _extract_waypoints(raw),
     }
+    # Remover campos None para não poluir o documento
+    return {k: v for k, v in route.items() if v is not None}
 
 
 async def _resolve_waypoint(db, wp: dict, dry_run: bool) -> Optional[str]:
