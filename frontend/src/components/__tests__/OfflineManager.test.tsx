@@ -1,9 +1,7 @@
 import React from 'react';
 import { render, waitFor } from '@testing-library/react-native';
 
-import OfflineManager from '../OfflineManager';
-
-// ── Mocks ────────────────────────────────────────────────────────────────────
+// ── Mocks ─────────────────────────────────────────────────────────────────────
 
 jest.mock('@expo/vector-icons', () => ({
   MaterialIcons: 'MaterialIcons',
@@ -20,7 +18,6 @@ jest.mock('../../config/api', () => ({
   API_BASE: 'http://localhost:8000/api',
 }));
 
-// Mock PressableScale as a simple TouchableOpacity
 jest.mock('../PressableScale', () => {
   const { TouchableOpacity } = require('react-native');
   const React = require('react');
@@ -33,36 +30,39 @@ jest.mock('../PressableScale', () => {
   };
 });
 
-const mockOfflineStorage = {
-  isOffline: jest.fn().mockResolvedValue(false),
-  getOfflineRegions: jest.fn().mockResolvedValue([]),
-  getStorageUsage: jest.fn().mockResolvedValue(0),
-  downloadRegion: jest.fn().mockResolvedValue(undefined),
-  deleteRegion: jest.fn().mockResolvedValue(undefined),
-  checkForUpdates: jest.fn().mockResolvedValue([]),
-};
+// Control values via module-level mutable references (prefixed with `mock` to
+// satisfy jest.mock's hoisting constraint).
+let mockIsOffline = false;
+let mockDownloadedRegions: any[] = [];
+let mockStorageUsage = 0;
+let mockAvailableRegions: any[] = [];
 
 jest.mock('../../services/offlineStorage', () => ({
   __esModule: true,
-  default: mockOfflineStorage,
+  default: {
+    isOffline: jest.fn(() => Promise.resolve(mockIsOffline)),
+    getOfflineRegions: jest.fn(() => Promise.resolve(mockDownloadedRegions)),
+    getStorageUsage: jest.fn(() => Promise.resolve(mockStorageUsage)),
+    downloadRegion: jest.fn().mockResolvedValue(undefined),
+    deleteRegion: jest.fn().mockResolvedValue(undefined),
+    checkForUpdates: jest.fn().mockResolvedValue([]),
+  },
 }));
 
-const mockAxiosGet = jest.fn().mockResolvedValue({ data: { regions: [] } });
 jest.mock('axios', () => ({
-  get: (...args: any[]) => mockAxiosGet(...args),
+  get: jest.fn(() => Promise.resolve({ data: { regions: mockAvailableRegions } })),
 }));
+
+import OfflineManager from '../OfflineManager';
 
 // ── Tests ─────────────────────────────────────────────────────────────────────
 
 describe('OfflineManager', () => {
   beforeEach(() => {
-    mockOfflineStorage.isOffline.mockReset().mockResolvedValue(false);
-    mockOfflineStorage.getOfflineRegions.mockReset().mockResolvedValue([]);
-    mockOfflineStorage.getStorageUsage.mockReset().mockResolvedValue(0);
-    mockOfflineStorage.downloadRegion.mockReset().mockResolvedValue(undefined);
-    mockOfflineStorage.deleteRegion.mockReset().mockResolvedValue(undefined);
-    mockOfflineStorage.checkForUpdates.mockReset().mockResolvedValue([]);
-    mockAxiosGet.mockReset().mockResolvedValue({ data: { regions: [] } });
+    mockIsOffline = false;
+    mockDownloadedRegions = [];
+    mockStorageUsage = 0;
+    mockAvailableRegions = [];
   });
 
   it('renders the Offline Regions header after loading', async () => {
@@ -80,16 +80,30 @@ describe('OfflineManager', () => {
     await waitFor(() => expect(getByText('0 region(s) downloaded')).toBeTruthy());
   });
 
+  it('shows empty state when no regions are downloaded or available', async () => {
+    const { getByText } = render(<OfflineManager />);
+    await waitFor(() => expect(getByText('No regions available')).toBeTruthy());
+  });
+
+  it('shows the empty state subtitle text', async () => {
+    const { getByText } = render(<OfflineManager />);
+    await waitFor(() =>
+      expect(
+        getByText('Pull down to refresh and check for available regions.')
+      ).toBeTruthy()
+    );
+  });
+
   it('shows offline notice when device is offline', async () => {
-    mockOfflineStorage.isOffline.mockResolvedValue(true);
+    mockIsOffline = true;
     const { getByText } = render(<OfflineManager />);
     await waitFor(() =>
       expect(getByText('You are offline. Showing downloaded data only.')).toBeTruthy()
     );
   });
 
-  it('shows downloaded regions when they exist', async () => {
-    mockOfflineStorage.getOfflineRegions.mockResolvedValue([
+  it('shows downloaded region name when a region is downloaded', async () => {
+    mockDownloadedRegions = [
       {
         regionId: 'algarve',
         regionName: 'Algarve',
@@ -100,55 +114,28 @@ describe('OfflineManager', () => {
         downloadedAt: new Date().toISOString(),
         version: '1',
       },
-    ]);
+    ];
 
     const { getByText } = render(<OfflineManager />);
     await waitFor(() => expect(getByText('Algarve')).toBeTruthy());
     expect(getByText('Downloaded')).toBeTruthy();
+    expect(getByText('1 region(s) downloaded')).toBeTruthy();
   });
 
   it('shows available regions from API', async () => {
-    mockAxiosGet.mockResolvedValue({
-      data: {
-        regions: [
-          {
-            id: 'norte',
-            name: 'Norte',
-            poi_count: 100,
-            routes_count: 10,
-            events_count: 5,
-            estimated_size_mb: 12,
-          },
-        ],
+    mockAvailableRegions = [
+      {
+        id: 'norte',
+        name: 'Norte',
+        poi_count: 100,
+        routes_count: 10,
+        events_count: 5,
+        estimated_size_mb: 12,
       },
-    });
+    ];
 
     const { getByText } = render(<OfflineManager />);
     await waitFor(() => expect(getByText('Norte')).toBeTruthy());
     expect(getByText('Available Regions')).toBeTruthy();
-  });
-
-  it('shows empty state when no regions are downloaded or available', async () => {
-    const { getByText } = render(<OfflineManager />);
-    await waitFor(() => expect(getByText('No regions available')).toBeTruthy());
-  });
-
-  it('shows region download stats when regions are downloaded', async () => {
-    mockOfflineStorage.getOfflineRegions.mockResolvedValue([
-      {
-        regionId: 'madeira',
-        regionName: 'Madeira',
-        poiCount: 20,
-        routesCount: 3,
-        eventsCount: 2,
-        sizeBytes: 512 * 1024,
-        downloadedAt: new Date().toISOString(),
-        version: '1',
-      },
-    ]);
-
-    const { getByText } = render(<OfflineManager />);
-    await waitFor(() => expect(getByText('Madeira')).toBeTruthy());
-    expect(getByText('1 region(s) downloaded')).toBeTruthy();
   });
 });
