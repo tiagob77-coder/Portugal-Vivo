@@ -85,6 +85,11 @@ function setPlatformOS(os: string) {
   (Platform as any).OS = os;
 }
 
+// Ensure `navigator` exists (jest-expo runs in a non-jsdom env where it is undefined)
+if (typeof navigator === 'undefined') {
+  (global as any).navigator = {};
+}
+
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 function buildSwRegistration(subscriptionJSON?: object) {
