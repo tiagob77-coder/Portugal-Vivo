@@ -13,7 +13,7 @@ import { useQuery } from '@tanstack/react-query';
 import { WebView } from 'react-native-webview';
 import { colors, typography } from '../../src/theme';
 import { useTheme } from '../../src/context/ThemeContext';
-import api from '../../src/services/api';
+import api, { getBeaches, getBeachBandeiraAzul } from '../../src/services/api';
 
 const { width: _screenWidth } = Dimensions.get('window');
 
@@ -22,8 +22,19 @@ const REGIONS = [
   { id: 'Norte', label: 'Norte', color: '#2563EB' },
   { id: 'Centro', label: 'Centro', color: '#059669' },
   { id: 'Lisboa', label: 'Lisboa', color: '#DC2626' },
+  { id: 'Alentejo', label: 'Alentejo', color: '#854D0E' },
   { id: 'Algarve', label: 'Algarve', color: '#C49A6C' },
+  { id: 'Açores', label: 'Açores', color: '#0E7490' },
+  { id: 'Madeira', label: 'Madeira', color: '#7C3AED' },
 ];
+
+const QUALITY_COLORS: Record<string, string> = {
+  'Excelente': '#22C55E',
+  'Boa': '#84CC16',
+  'Suficiente': '#EAB308',
+  'Insuficiente': '#F97316',
+  'Proibida': '#DC2626',
+};
 
 const SURF_COLORS: Record<string, string> = {
   'Extremo': '#DC2626',
@@ -41,6 +52,7 @@ export default function BeachcamsScreen() {
   const { colors: tc } = useTheme();
   const [activeRegion, setActiveRegion] = useState<string | null>(null);
   const [expandedCam, setExpandedCam] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<'webcams' | 'qualidade'>('webcams');
 
   const { data } = useQuery({
     queryKey: ['beachcams', activeRegion],
@@ -51,7 +63,19 @@ export default function BeachcamsScreen() {
     },
   });
 
+  const { data: beachesData } = useQuery({
+    queryKey: ['beaches-quality', activeRegion],
+    queryFn: () => getBeaches({ region: activeRegion || undefined, limit: 100 }),
+  });
+
+  const { data: baData } = useQuery({
+    queryKey: ['bandeira-azul'],
+    queryFn: () => getBeachBandeiraAzul(),
+    staleTime: 1000 * 60 * 60 * 24, // 24h — atualizado anualmente
+  });
+
   const beachcams = data?.beachcams || [];
+  const beaches = beachesData?.beaches || [];
 
   return (
     <View style={[styles.container, { paddingTop: insets.top, backgroundColor: tc.background }]}>
@@ -73,6 +97,31 @@ export default function BeachcamsScreen() {
           </View>
         </View>
 
+        {/* Tab Toggle */}
+        <View style={styles.tabToggle}>
+          <TouchableOpacity
+            style={[styles.tabBtn, activeTab === 'webcams' && styles.tabBtnActive]}
+            onPress={() => setActiveTab('webcams')}
+          >
+            <MaterialIcons name="videocam" size={16} color={activeTab === 'webcams' ? '#FFF' : 'rgba(255,255,255,0.5)'} />
+            <Text style={[styles.tabBtnText, activeTab === 'webcams' && styles.tabBtnTextActive]}>Webcams</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.tabBtn, activeTab === 'qualidade' && styles.tabBtnActive]}
+            onPress={() => setActiveTab('qualidade')}
+          >
+            <MaterialIcons name="water" size={16} color={activeTab === 'qualidade' ? '#FFF' : 'rgba(255,255,255,0.5)'} />
+            <Text style={[styles.tabBtnText, activeTab === 'qualidade' && styles.tabBtnTextActive]}>
+              Qualidade da Água
+            </Text>
+            {baData && (
+              <View style={styles.baBadge}>
+                <Text style={styles.baBadgeText}>{baData.total} 🔵</Text>
+              </View>
+            )}
+          </TouchableOpacity>
+        </View>
+
         {/* Region Filters */}
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.filtersScroll} contentContainerStyle={styles.filtersContent}>
           {REGIONS.map((reg) => {
@@ -92,8 +141,8 @@ export default function BeachcamsScreen() {
           })}
         </ScrollView>
 
-        {/* Beach Cards */}
-        <View style={styles.camGrid}>
+        {/* === WEBCAMS TAB === */}
+        {activeTab === 'webcams' && <View style={styles.camGrid}>
           {beachcams.map((cam: any) => {
             const isExpanded = expandedCam === cam.id;
             const surfColor = SURF_COLORS[cam.surf_level] || '#666';
@@ -201,7 +250,64 @@ export default function BeachcamsScreen() {
               </View>
             );
           })}
-        </View>
+        </View>}
+
+        {/* === QUALIDADE DA ÁGUA TAB === */}
+        {activeTab === 'qualidade' && (
+          <View style={styles.camGrid}>
+            {beaches.length === 0 ? (
+              <View style={styles.emptyQuality}>
+                <MaterialIcons name="water" size={40} color="rgba(255,255,255,0.2)" />
+                <Text style={styles.emptyQualityText}>A carregar dados APA...</Text>
+              </View>
+            ) : (
+              beaches.map((beach: any) => {
+                const qColor = QUALITY_COLORS[beach.water_quality] || '#94A3B8';
+                return (
+                  <View key={beach.id} style={styles.beachQualityCard}>
+                    <View style={styles.beachQualityHeader}>
+                      <View style={{ flex: 1 }}>
+                        <Text style={styles.beachQualityName}>{beach.name}</Text>
+                        <Text style={styles.beachQualityConc}>{beach.concelho} · {beach.region}</Text>
+                      </View>
+                      {beach.bandeira_azul && (
+                        <View style={styles.baFlag}>
+                          <Text style={styles.baFlagText}>🔵 Bandeira Azul {beach.bandeira_azul_year}</Text>
+                        </View>
+                      )}
+                    </View>
+
+                    <View style={styles.beachQualityRow}>
+                      <View style={[styles.qualityBadge, { backgroundColor: qColor + '22', borderColor: qColor + '55', borderWidth: 1 }]}>
+                        <View style={[styles.qualityDot, { backgroundColor: qColor }]} />
+                        <Text style={[styles.qualityBadgeText, { color: qColor }]}>
+                          {beach.water_quality}
+                        </Text>
+                        {beach.water_quality_source === 'apa_live' && (
+                          <Text style={[styles.qualitySource, { color: qColor }]}>· APA</Text>
+                        )}
+                      </View>
+                      <Text style={styles.beachTypePill}>{beach.type}</Text>
+                      {beach.length_m && (
+                        <Text style={styles.beachLength}>{(beach.length_m / 1000).toFixed(1)} km</Text>
+                      )}
+                    </View>
+
+                    {beach.facilities?.length > 0 && (
+                      <View style={styles.facilitiesRow}>
+                        {beach.facilities.slice(0, 3).map((f: string, i: number) => (
+                          <View key={i} style={styles.facilityTag}>
+                            <Text style={styles.facilityText}>{f}</Text>
+                          </View>
+                        ))}
+                      </View>
+                    )}
+                  </View>
+                );
+              })
+            )}
+          </View>
+        )}
 
         <View style={{ height: 100 }} />
       </ScrollView>
@@ -253,4 +359,31 @@ const styles = StyleSheet.create({
   highlightText: { fontSize: 10, color: 'rgba(255,255,255,0.5)', fontWeight: '500' },
   camDirectLink: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, backgroundColor: 'rgba(198,93,59,0.9)', paddingVertical: 12, paddingHorizontal: 16, borderRadius: 12, marginTop: 8 },
   camDirectLinkText: { color: '#FFF', fontSize: 12, fontWeight: '600', flex: 1 },
+  // Tab toggle
+  tabToggle: { flexDirection: 'row', marginHorizontal: 20, marginTop: 16, backgroundColor: 'rgba(255,255,255,0.06)', borderRadius: 12, padding: 4, gap: 4 },
+  tabBtn: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingVertical: 10, borderRadius: 10, gap: 6 },
+  tabBtnActive: { backgroundColor: colors.terracotta[500] },
+  tabBtnText: { fontSize: 13, fontWeight: '600', color: 'rgba(255,255,255,0.5)' },
+  tabBtnTextActive: { color: '#FFF' },
+  baBadge: { backgroundColor: 'rgba(255,255,255,0.15)', paddingHorizontal: 7, paddingVertical: 2, borderRadius: 8 },
+  baBadgeText: { fontSize: 10, fontWeight: '700', color: '#FFF' },
+  // Beach quality cards
+  beachQualityCard: { backgroundColor: 'rgba(255,255,255,0.06)', borderRadius: 16, padding: 16, borderWidth: 1, borderColor: 'rgba(255,255,255,0.08)' },
+  beachQualityHeader: { flexDirection: 'row', alignItems: 'flex-start', gap: 10, marginBottom: 10 },
+  beachQualityName: { fontSize: 15, fontWeight: '700', color: '#FFF' },
+  beachQualityConc: { fontSize: 12, color: 'rgba(255,255,255,0.5)', marginTop: 2 },
+  baFlag: { backgroundColor: 'rgba(59,130,246,0.15)', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 8, borderWidth: 1, borderColor: 'rgba(59,130,246,0.3)' },
+  baFlagText: { fontSize: 10, fontWeight: '700', color: '#93C5FD' },
+  beachQualityRow: { flexDirection: 'row', alignItems: 'center', gap: 8, flexWrap: 'wrap' },
+  qualityBadge: { flexDirection: 'row', alignItems: 'center', gap: 5, paddingHorizontal: 10, paddingVertical: 5, borderRadius: 10 },
+  qualityDot: { width: 7, height: 7, borderRadius: 3.5 },
+  qualityBadgeText: { fontSize: 12, fontWeight: '700' },
+  qualitySource: { fontSize: 10, fontWeight: '500', opacity: 0.7 },
+  beachTypePill: { fontSize: 10, color: 'rgba(255,255,255,0.4)', backgroundColor: 'rgba(255,255,255,0.06)', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 8, textTransform: 'capitalize' },
+  beachLength: { fontSize: 10, color: 'rgba(255,255,255,0.4)' },
+  facilitiesRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginTop: 10 },
+  facilityTag: { backgroundColor: 'rgba(255,255,255,0.05)', paddingHorizontal: 8, paddingVertical: 3, borderRadius: 6 },
+  facilityText: { fontSize: 10, color: 'rgba(255,255,255,0.45)' },
+  emptyQuality: { alignItems: 'center', paddingVertical: 60, gap: 12 },
+  emptyQualityText: { fontSize: 14, color: 'rgba(255,255,255,0.3)' },
 });

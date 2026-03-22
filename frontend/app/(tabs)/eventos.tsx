@@ -22,7 +22,7 @@ import { useRouter } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useQuery } from '@tanstack/react-query';
-import api, { getAgendaEvents, AgendaEvent } from '../../src/services/api';
+import api, { getAgendaLive, AgendaEvent } from '../../src/services/api';
 import { colors, shadows } from '../../src/theme';
 import { useTheme } from '../../src/context/ThemeContext';
 import EmptyState from '../../src/components/EmptyState';
@@ -112,28 +112,26 @@ const getUpcomingEvents = async (
 };
 
 /**
- * Fetch complementary events from Agenda Viral API
- * and normalize them to CalendarEvent format
+ * Fetch live merged events from /agenda/live (DB + Viral Agenda RSS server-side)
+ * and normalize to CalendarEvent format.
  */
-const fetchAgendaViralEvents = async (
+const fetchLiveEvents = async (
   month?: number,
   region?: string | null,
-): Promise<CalendarEvent[]> => {
+): Promise<{ events: CalendarEvent[]; sources: { database: number; viralagenda: number } }> => {
   try {
-    const params: Record<string, string | number> = { limit: 100 };
+    const params: Record<string, string | number> = { limit: 150 };
     if (month) params.month = month;
     if (region) params.region = region;
-    const result = await getAgendaEvents(params);
-    // Normalize agenda events to CalendarEvent format
-    return (result.events || []).map((evt: AgendaEvent) => {
+    const result = await getAgendaLive(params);
+    const events = (result.events || []).map((evt: AgendaEvent) => {
       const m = evt.month || month || 1;
       const dayStart = evt.day_start || 1;
       const dayEnd = evt.day_end || dayStart;
-      // Map agenda type to our category: "festa" -> "festas", otherwise keep
       let category = 'festas';
       if (evt.type === 'festa') category = 'festas';
       else if (evt.type === 'religioso') category = 'religioso';
-      else category = evt.type || 'festas';
+      else if (evt.type) category = evt.type;
       return {
         id: evt.id,
         name: evt.name,
@@ -142,7 +140,7 @@ const fetchAgendaViralEvents = async (
         category,
         region: (evt.region || '').toLowerCase(),
         description: evt.description || '',
-        source: evt.source || 'agenda_viral',
+        source: evt.source || 'curated',
         has_tickets: evt.has_tickets || false,
         ticket_url: evt.ticket_url,
         type: evt.type,
@@ -153,9 +151,9 @@ const fetchAgendaViralEvents = async (
         month: m,
       };
     });
+    return { events, sources: result.sources || { database: 0, viralagenda: 0 } };
   } catch {
-    // Agenda Viral API may not be available - graceful degradation
-    return [];
+    return { events: [], sources: { database: 0, viralagenda: 0 } };
   }
 };
 
@@ -200,16 +198,11 @@ export default function EventosTab() {
 
   const currentMonth = selectedDate.getMonth() + 1;
 
-  // Fetch calendar events from main API
-  const { data: eventsData, isLoading, refetch } = useQuery({
-    queryKey: ['calendar-events', currentMonth, selectedCategory, selectedRegion],
-    queryFn: () => getCalendarEvents(currentMonth, selectedCategory, selectedRegion),
-  });
-
-  // Fetch complementary events from Agenda Viral API
-  const { data: agendaData, refetch: refetchAgenda } = useQuery({
-    queryKey: ['agenda-viral-events', currentMonth, selectedRegion],
-    queryFn: () => fetchAgendaViralEvents(currentMonth, selectedRegion),
+  // Single /agenda/live query: server-side merges DB + Viral Agenda RSS
+  const { data: liveData, isLoading, refetch } = useQuery({
+    queryKey: ['agenda-live', currentMonth, selectedRegion],
+    queryFn: () => fetchLiveEvents(currentMonth, selectedRegion),
+    staleTime: 1000 * 60 * 5, // 5 min
   });
 
   const { data: upcomingData } = useQuery({
@@ -217,39 +210,23 @@ export default function EventosTab() {
     queryFn: () => getUpcomingEvents(10, selectedCategory, selectedRegion),
   });
 
+  const liveSources = liveData?.sources || { database: 0, viralagenda: 0 };
+
   const onRefresh = async () => {
     setRefreshing(true);
-    await Promise.all([refetch(), refetchAgenda()]);
+    await refetch();
     setRefreshing(false);
   };
 
-  // Merge calendar + agenda viral events, deduplicate, filter by allowed regions/categories
+  // Filter merged live events by selected category
   const filteredEvents = useMemo(() => {
-    const calendarEvents = eventsData || [];
-    const agendaEvents = agendaData || [];
-    // Merge and deduplicate by id
-    const seenIds = new Set<string>();
-    const merged: CalendarEvent[] = [];
-    for (const evt of calendarEvents) {
-      if (!seenIds.has(evt.id)) {
-        seenIds.add(evt.id);
-        merged.push(evt);
-      }
-    }
-    for (const evt of agendaEvents) {
-      if (!seenIds.has(evt.id)) {
-        seenIds.add(evt.id);
-        merged.push(evt);
-      }
-    }
-    // Apply region and category restrictions
-    let filtered = filterAllowedEvents(merged);
-    // Apply user-selected category filter
+    let events = liveData?.events || [];
+    events = filterAllowedEvents(events);
     if (selectedCategory) {
-      filtered = filtered.filter(e => (e.category || '').toLowerCase() === selectedCategory);
+      events = events.filter(e => (e.category || '').toLowerCase() === selectedCategory);
     }
-    return filtered;
-  }, [eventsData, agendaData, selectedCategory]);
+    return events;
+  }, [liveData, selectedCategory]);
 
   // Filter upcoming events too
   const filteredUpcoming = useMemo(() => {
@@ -389,9 +366,9 @@ export default function EventosTab() {
               {event.concelho ? `${event.concelho}, ` : ''}{event.region}
             </Text>
           </View>
-          {event.source === 'agenda_viral' && (
+          {event.source === 'viralagenda' && (
             <View style={[styles.sourceBadge, { backgroundColor: '#06B6D420' }]}>
-              <Text style={[styles.sourceText, { color: '#06B6D4' }]}>Agenda Viral</Text>
+              <Text style={[styles.sourceText, { color: '#06B6D4' }]}>● Viral Agenda</Text>
             </View>
           )}
           {event.has_tickets && event.ticket_url && (
@@ -410,7 +387,7 @@ export default function EventosTab() {
     );
   };
 
-  if (isLoading && !eventsData) {
+  if (isLoading && !liveData) {
     return (
       <View style={[styles.container, styles.loadingContainer, { backgroundColor: tc.background }]}>
         <ActivityIndicator size="large" color="#C49A6C" />
@@ -625,15 +602,16 @@ export default function EventosTab() {
           )}
         </View>
 
-        {/* Agenda Viral Info */}
+        {/* Live Sources Banner */}
         <View style={styles.agendaViralBanner}>
-          <MaterialIcons name="auto-awesome" size={20} color="#C49A6C" />
+          <View style={styles.liveDot} />
           <View style={{ flex: 1 }}>
-            <Text style={styles.agendaViralTitle}>Dados da Agenda Viral</Text>
+            <Text style={styles.agendaViralTitle}>Eventos em Tempo Real</Text>
             <Text style={styles.agendaViralSubtitle}>
-              Eventos complementados com informação de fontes públicas portuguesas
+              {liveSources.database} da base de dados · {liveSources.viralagenda} do Viral Agenda RSS
             </Text>
           </View>
+          <MaterialIcons name="rss-feed" size={18} color="#C49A6C" />
         </View>
 
         {/* Quick Stats */}
@@ -992,6 +970,12 @@ const styles = StyleSheet.create({
     gap: 12,
     borderWidth: 1,
     borderColor: 'rgba(196,154,108,0.2)',
+  },
+  liveDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: '#22C55E',
   },
   agendaViralTitle: {
     fontSize: 13,

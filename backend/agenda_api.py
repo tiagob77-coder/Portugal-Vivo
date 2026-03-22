@@ -323,6 +323,76 @@ async def get_event_detail(event_id: str):
     return _enrich_with_ticket(event)
 
 
+@agenda_router.get("/live")
+async def get_live_events(
+    region: Optional[str] = Query(None),
+    type: Optional[str] = Query(None),
+    month: Optional[int] = Query(None, ge=1, le=12),
+    limit: int = Query(60, ge=1, le=200),
+):
+    """
+    Eventos em tempo real: fusão de base de dados interna + Viral Agenda RSS.
+    Ordenados por data, deduplicados por título.
+    """
+    from services.viralagenda_service import viralagenda_service
+
+    # --- DB events ---
+    query: dict = {}
+    if type:
+        query["type"] = type
+    if region:
+        query["region"] = {"$regex": sanitize_regex(region), "$options": "i"}
+
+    db_events = await _db_holder.db.events.find(query, {"_id": 0}).limit(200).to_list(200)
+    if month:
+        db_events = [
+            e for e in db_events
+            if e.get("month") == month or month in detect_month(e.get("date_text", ""))
+        ]
+    db_events = [_enrich_with_ticket(e) for e in db_events]
+
+    # --- Viral Agenda RSS ---
+    va_events = await viralagenda_service.get_events(region=region, event_type=type, limit=100)
+    if month:
+        va_events = [e for e in va_events if e.get("month") == month]
+
+    # --- Merge + deduplicate by title similarity ---
+    existing_titles = {e["name"].lower() for e in db_events}
+    new_va = [e for e in va_events if e["name"].lower() not in existing_titles]
+
+    merged = db_events + new_va
+    merged.sort(key=lambda e: (e.get("month", 13), e.get("day_start", 0)))
+
+    return {
+        "events": merged[:limit],
+        "total": len(merged),
+        "sources": {
+            "database": len(db_events),
+            "viralagenda": len(new_va),
+        },
+    }
+
+
+@agenda_router.get("/viralagenda")
+async def get_viralagenda_events(
+    region: Optional[str] = Query(None),
+    type: Optional[str] = Query(None),
+    limit: int = Query(50, ge=1, le=100),
+):
+    """
+    Eventos do Viral Agenda RSS em tempo real (viralagenda.com).
+    Cache de 30 minutos.
+    """
+    from services.viralagenda_service import viralagenda_service
+    events = await viralagenda_service.get_events(region=region, event_type=type, limit=limit)
+    return {
+        "events": events,
+        "total": len(events),
+        "source": "viralagenda.com",
+        "cache_ttl_minutes": 30,
+    }
+
+
 async def _get_last_sync_time() -> Optional[str]:
     """Get timestamp of last event sync."""
     try:

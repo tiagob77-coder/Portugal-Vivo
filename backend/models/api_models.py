@@ -114,6 +114,8 @@ class Route(BaseModel):
     icon: Optional[str] = None
     tags: List[str] = []
     image_url: Optional[str] = None
+    external_url: Optional[str] = None
+    highlights: List[str] = []
     created_at: Optional[datetime] = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 

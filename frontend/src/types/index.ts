@@ -29,14 +29,19 @@ export interface Route {
   id: string;
   name: string;
   description: string;
-  category: string;
+  category?: string;
+  theme?: string;
   region?: string;
   items: string[];
   duration_hours?: number;
+  duration_days?: number;
   distance_km?: number;
   difficulty?: string;
+  icon?: string;
   tags: string[];
   image_url?: string;
+  external_url?: string;
+  highlights?: string[];
   created_at: string;
 }
 
