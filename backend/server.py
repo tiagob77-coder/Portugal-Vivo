@@ -450,6 +450,9 @@ api_router.include_router(transport_router)
 from beachcam_api import beachcam_router
 api_router.include_router(beachcam_router)
 
+from beaches_realtime_api import beaches_router
+api_router.include_router(beaches_router)
+
 # Agenda Viral
 from agenda_api import agenda_router, set_agenda_db, seed_grande_expedicao
 set_agenda_db(db)

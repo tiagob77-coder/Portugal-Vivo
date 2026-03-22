@@ -600,6 +600,58 @@ export const getAgendaStats = async (): Promise<any> => {
   return response.data;
 };
 
+// Agenda — Live (DB + Viral Agenda RSS merged)
+export const getAgendaLive = async (params?: {
+  region?: string;
+  type?: string;
+  month?: number;
+  limit?: number;
+}): Promise<{ events: AgendaEvent[]; total: number; sources: { database: number; viralagenda: number } }> => {
+  const response = await api.get('/agenda/live', { params });
+  return response.data;
+};
+
+// Viral Agenda RSS — direto
+export const getViralAgendaEvents = async (params?: {
+  region?: string;
+  type?: string;
+  limit?: number;
+}): Promise<{ events: AgendaEvent[]; total: number; source: string }> => {
+  const response = await api.get('/agenda/viralagenda', { params });
+  return response.data;
+};
+
+// Beaches — qualidade da água APA + Bandeira Azul
+export const getBeaches = async (params?: {
+  region?: string;
+  bandeira_azul?: boolean;
+  quality?: string;
+  limit?: number;
+  offset?: number;
+}): Promise<{ beaches: any[]; total: number }> => {
+  const response = await api.get('/beaches/', { params });
+  return response.data;
+};
+
+export const getBeachBandeiraAzul = async (): Promise<{
+  total: number;
+  year: number;
+  by_region: Record<string, { id: string; name: string; concelho: string }[]>;
+}> => {
+  const response = await api.get('/beaches/bandeira-azul');
+  return response.data;
+};
+
+export const getBeachDetail = async (beachId: string): Promise<any> => {
+  const response = await api.get(`/beaches/${beachId}`);
+  return response.data;
+};
+
+export const getBeachTides = async (beachId: string): Promise<any> => {
+  const response = await api.get(`/beaches/${beachId}/tides`);
+  return response.data;
+};
+
 // Auth
 export const exchangeSession = async (sessionId: string): Promise<User> => {
   const response = await api.post('/auth/session', {}, {
