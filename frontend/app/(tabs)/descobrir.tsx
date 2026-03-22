@@ -53,8 +53,8 @@ const QUICK_ACTIONS = [
   { id: 'ranking', title: 'Ranking', icon: 'leaderboard', route: '/leaderboard' },
   { id: 'transportes', title: 'Transportes', icon: 'train', route: '/(tabs)/transportes' },
   { id: 'beachcams', title: 'Beachcams', icon: 'videocam', route: '/beachcams' },
-  { id: 'agenda', title: 'Agenda', icon: 'celebration', route: '/(tabs)/agenda' },
-  { id: 'planner', title: 'Viagem IA', icon: 'auto-awesome', route: '/(tabs)/planner' },
+  { id: 'agenda', title: 'Agenda', icon: 'celebration', route: '/(tabs)/eventos' },
+  { id: 'planner', title: 'Viagem IA', icon: 'auto-awesome', route: '/(tabs)/planeador' },
   { id: 'coleccoes', title: 'Enciclopédia', icon: 'collections-bookmark', route: '/(tabs)/coleccoes' },
   { id: 'guia', title: 'Guia Viajante', icon: 'menu-book', route: null },
 ];
