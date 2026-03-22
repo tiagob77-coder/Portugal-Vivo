@@ -26,6 +26,11 @@ jest.mock('@react-native-async-storage/async-storage', () => ({
   __esModule: true,
 }));
 
+// Ensure `navigator` is defined — jest-expo runs in node env where it is absent
+if (typeof globalThis.navigator === 'undefined') {
+  globalThis.navigator = {};
+}
+
 // Mock NetInfo
 jest.mock('@react-native-community/netinfo', () => ({
   default: {
