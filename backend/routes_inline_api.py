@@ -36,7 +36,8 @@ async def get_routes(
     _, limit = clamp_pagination(0, limit, max_limit=200)
     query = {}
     if category:
-        query["category"] = category
+        # Match on either category or theme field (seed_routes.py uses theme)
+        query["$or"] = [{"category": category}, {"theme": category}]
     if region:
         query["region"] = region
 

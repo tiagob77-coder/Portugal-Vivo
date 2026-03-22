@@ -10,12 +10,16 @@ import { Route } from '../../src/types';
 
 const ROUTE_CATEGORIES = [
   { id: 'all', name: 'Todas', icon: 'route' },
-  { id: 'vinho', name: 'Vinho', icon: 'local-bar' },
-  { id: 'pao', name: 'Pão', icon: 'bakery-dining' },
-  { id: 'azeite', name: 'Azeite', icon: 'local-florist' },
-  { id: 'cultural', name: 'Cultural', icon: 'museum' },
-  { id: 'religioso', name: 'Religioso', icon: 'church' },
+  { id: 'peregrino', name: 'Santiago', icon: 'directions-walk' },
+  { id: 'road_trip', name: 'Road Trip', icon: 'directions-car' },
+  { id: 'caminhada', name: 'Trilhos', icon: 'hiking' },
+  { id: 'patrimonio', name: 'Patrimônio', icon: 'castle' },
   { id: 'natureza', name: 'Natureza', icon: 'forest' },
+  { id: 'gastronomia', name: 'Gastronomia', icon: 'restaurant' },
+  { id: 'cultural', name: 'Cultural', icon: 'museum' },
+  { id: 'bem-estar', name: 'Bem-estar', icon: 'spa' },
+  { id: 'vinho', name: 'Vinho', icon: 'local-bar' },
+  { id: 'religioso', name: 'Religioso', icon: 'church' },
 ];
 
 export default function RoutesScreen() {
