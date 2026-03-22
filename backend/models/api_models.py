@@ -116,6 +116,10 @@ class Route(BaseModel):
     image_url: Optional[str] = None
     external_url: Optional[str] = None
     highlights: List[str] = []
+    subtitle: Optional[str] = None
+    best_season: Optional[str] = None
+    audience: List[str] = []
+    rating: Optional[float] = None
     created_at: Optional[datetime] = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 
