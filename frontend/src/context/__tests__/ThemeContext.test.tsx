@@ -82,8 +82,9 @@ beforeEach(() => {
   Object.keys(mockStorage).forEach((k) => delete mockStorage[k]);
   jest.clearAllMocks();
   mockColorScheme = 'light';
-  // Restore the implementation after clearAllMocks resets it
-  mockUseColorScheme.mockImplementation(() => mockColorScheme);
+  // Restore the mock implementation after clearAllMocks resets it.
+  // useColorScheme is the jest.fn created in the factory above.
+  (useColorScheme as jest.Mock).mockImplementation(() => mockColorScheme);
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -194,7 +195,7 @@ describe('toggleTheme', () => {
 
   it('toggles from system+dark to light', async () => {
     mockColorScheme = 'dark';
-    mockUseColorScheme.mockReturnValue('dark');
+    (useColorScheme as jest.Mock).mockReturnValue('dark');
     const { getByTestId } = renderWithProvider();
 
     // Set to system mode — system says dark, so isDark should be true
@@ -291,7 +292,7 @@ describe('AsyncStorage persistence', () => {
 describe('system color scheme', () => {
   it('isDark=false when mode=system and system scheme is light', async () => {
     mockColorScheme = 'light';
-    mockUseColorScheme.mockReturnValue('light');
+    (useColorScheme as jest.Mock).mockReturnValue('light');
     const { getByTestId } = renderWithProvider();
 
     await act(async () => { getByTestId('set-system').props.onPress(); });
@@ -301,7 +302,7 @@ describe('system color scheme', () => {
 
   it('isDark=true when mode=system and system scheme is dark', async () => {
     mockColorScheme = 'dark';
-    mockUseColorScheme.mockReturnValue('dark');
+    (useColorScheme as jest.Mock).mockReturnValue('dark');
     const { getByTestId } = renderWithProvider();
 
     await act(async () => { getByTestId('set-system').props.onPress(); });
@@ -311,7 +312,7 @@ describe('system color scheme', () => {
 
   it('isDark=false when mode=system and system scheme is null', async () => {
     mockColorScheme = null;
-    mockUseColorScheme.mockReturnValue(null);
+    (useColorScheme as jest.Mock).mockReturnValue(null);
     const { getByTestId } = renderWithProvider();
 
     await act(async () => { getByTestId('set-system').props.onPress(); });
