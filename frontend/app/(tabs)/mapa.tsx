@@ -24,6 +24,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useQuery } from '@tanstack/react-query';
 import { LinearGradient } from 'expo-linear-gradient';
 import api from '../../src/services/api';
+import * as DocumentPicker from 'expo-document-picker';
 import { colors, typography, spacing, borders, shadows } from '../../src/theme';
 // import { categoryColors } from '../../src/context/ThemeContext';
 import AccessibilityFilters from '../../src/components/AccessibilityFilters';
@@ -257,36 +258,55 @@ export default function MapaTab() {
     enabled: mapMode === 'timeline' && !!timelineEpoch,
   });
 
-  // GPX Upload handler
+  // GPX Upload handler — web uses <input>, native uses expo-document-picker
   const handleGpxUpload = async () => {
-    if (Platform.OS !== 'web') return;
-    const input = document.createElement('input');
-    input.type = 'file';
-    input.accept = '.gpx';
-    input.onchange = async (e: any) => {
-      const file = e.target.files?.[0];
-      if (!file) return;
-      setGpxUploading(true);
-      try {
-        const formData = new FormData();
-        formData.append('file', file);
-        const res = await api.post('/trails/upload', formData, {
-          headers: { 'Content-Type': 'multipart/form-data' },
+    setGpxUploading(true);
+    try {
+      let fileBlob: Blob | null = null;
+      let fileName = 'trail.gpx';
+
+      if (Platform.OS === 'web') {
+        // Web: use hidden file input
+        fileBlob = await new Promise((resolve) => {
+          const input = document.createElement('input');
+          input.type = 'file';
+          input.accept = '.gpx,application/gpx+xml,application/octet-stream';
+          input.onchange = (e: any) => resolve(e.target.files?.[0] ?? null);
+          input.oncancel = () => resolve(null);
+          input.click();
         });
-        if (res.data?.id) {
-          setSelectedTrail(res.data.id);
-          // Invalidate trails list cache
-          const msg = `Trilho "${res.data.name}" carregado com sucesso!`;
-          Platform.OS === 'web' ? window.alert(msg) : Alert.alert('Sucesso', msg); // eslint-disable-line no-unused-expressions
-        }
-      } catch (_err) {
-        const msg = 'Erro ao carregar ficheiro GPX. Verifique o formato.';
-        Platform.OS === 'web' ? window.alert(msg) : Alert.alert('Erro', msg); // eslint-disable-line no-unused-expressions
-      } finally {
-        setGpxUploading(false);
+        if (!fileBlob) { setGpxUploading(false); return; }
+        fileName = (fileBlob as any).name || fileName;
+      } else {
+        // Native: expo-document-picker
+        const result = await DocumentPicker.getDocumentAsync({
+          type: ['application/gpx+xml', 'application/octet-stream', '*/*'],
+          copyToCacheDirectory: true,
+        });
+        if (result.canceled || !result.assets?.[0]) { setGpxUploading(false); return; }
+        const asset = result.assets[0];
+        fileName = asset.name;
+        // Fetch file content from local URI as blob
+        const response = await fetch(asset.uri);
+        fileBlob = await response.blob();
       }
-    };
-    input.click();
+
+      const formData = new FormData();
+      formData.append('file', fileBlob, fileName);
+      const res = await api.post('/trails/upload', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+      if (res.data?.id) {
+        setSelectedTrail(res.data.id);
+        const msg = `Trilho "${res.data.name}" carregado! ${res.data.distance_km}km`;
+        Platform.OS === 'web' ? window.alert(msg) : Alert.alert('Trilho carregado', msg);
+      }
+    } catch (_err) {
+      const msg = 'Erro ao carregar ficheiro GPX. Verifique o formato.';
+      Platform.OS === 'web' ? window.alert(msg) : Alert.alert('Erro', msg);
+    } finally {
+      setGpxUploading(false);
+    }
   };
 
   // Active categories = directly from selected subcategories
@@ -314,7 +334,18 @@ export default function MapaTab() {
       const res = await api.get('/trails');
       return res.data;
     },
+    enabled: mapMode === 'trails',
   });
+
+  // Auto-select first trail when entering trails mode (if none selected)
+  useEffect(() => {
+    if (mapMode === 'trails' && !selectedTrail && trailsList?.length > 0) {
+      setSelectedTrail(trailsList[0].id);
+    }
+    if (mapMode !== 'trails') {
+      setSelectedTrail(null);
+    }
+  }, [mapMode, trailsList]);
 
   const { data: trailData } = useQuery({
     queryKey: ['trail-detail', selectedTrail],
