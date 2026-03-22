@@ -8,7 +8,7 @@
 
 import React from 'react';
 import { render, act, waitFor } from '@testing-library/react-native';
-import { Text } from 'react-native';
+import { Text, useColorScheme } from 'react-native';
 
 // ─── In-memory AsyncStorage mock ─────────────────────────────────────────────
 const mockStorage: Record<string, string> = {};
@@ -42,10 +42,9 @@ let mockColorScheme: 'light' | 'dark' | null = 'light';
 
 jest.mock('react-native', () => {
   const RN = jest.requireActual('react-native');
-  return {
-    ...RN,
-    useColorScheme: jest.fn(() => mockColorScheme),
-  };
+  RN.Platform.OS = 'ios';
+  RN.useColorScheme = jest.fn(() => mockColorScheme);
+  return RN;
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -83,6 +82,8 @@ beforeEach(() => {
   Object.keys(mockStorage).forEach((k) => delete mockStorage[k]);
   jest.clearAllMocks();
   mockColorScheme = 'light';
+  // Restore the implementation after clearAllMocks resets it
+  mockUseColorScheme.mockImplementation(() => mockColorScheme);
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -193,6 +194,7 @@ describe('toggleTheme', () => {
 
   it('toggles from system+dark to light', async () => {
     mockColorScheme = 'dark';
+    mockUseColorScheme.mockReturnValue('dark');
     const { getByTestId } = renderWithProvider();
 
     // Set to system mode — system says dark, so isDark should be true
@@ -289,6 +291,7 @@ describe('AsyncStorage persistence', () => {
 describe('system color scheme', () => {
   it('isDark=false when mode=system and system scheme is light', async () => {
     mockColorScheme = 'light';
+    mockUseColorScheme.mockReturnValue('light');
     const { getByTestId } = renderWithProvider();
 
     await act(async () => { getByTestId('set-system').props.onPress(); });
@@ -298,6 +301,7 @@ describe('system color scheme', () => {
 
   it('isDark=true when mode=system and system scheme is dark', async () => {
     mockColorScheme = 'dark';
+    mockUseColorScheme.mockReturnValue('dark');
     const { getByTestId } = renderWithProvider();
 
     await act(async () => { getByTestId('set-system').props.onPress(); });
@@ -307,6 +311,7 @@ describe('system color scheme', () => {
 
   it('isDark=false when mode=system and system scheme is null', async () => {
     mockColorScheme = null;
+    mockUseColorScheme.mockReturnValue(null);
     const { getByTestId } = renderWithProvider();
 
     await act(async () => { getByTestId('set-system').props.onPress(); });
