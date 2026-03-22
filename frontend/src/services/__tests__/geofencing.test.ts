@@ -24,12 +24,8 @@ jest.mock('expo-location', () => ({
   },
 }));
 
-// ─── Platform mock (set to 'web' by default; individual tests override) ───────
-jest.mock('react-native', () => {
-  const RN = jest.requireActual('react-native');
-  RN.Platform.OS = 'web';
-  return RN;
-});
+// ─── Platform mock — keep real RN so Platform is mutable; each beforeEach sets OS ─
+jest.mock('react-native', () => jest.requireActual('react-native'));
 
 // ─── API URL mock ─────────────────────────────────────────────────────────────
 jest.mock('../../config/api', () => ({
@@ -93,7 +89,7 @@ describe('GeofenceService — basic state', () => {
     jest.clearAllMocks();
     geofenceService.stop();
     geofenceService.clearHistory();
-    jest.spyOn(Platform, 'OS', 'get').mockReturnValue('web');
+    (Platform as any).OS = 'web';
     mockFetch();
   });
 
@@ -125,7 +121,7 @@ describe('GeofenceService — web start/stop', () => {
     jest.clearAllMocks();
     geofenceService.stop();
     geofenceService.clearHistory();
-    jest.spyOn(Platform, 'OS', 'get').mockReturnValue('web');
+    (Platform as any).OS = 'web';
     geo = buildGeolocationMock();
     (global.navigator as any).geolocation = geo;
     mockFetch();
@@ -186,7 +182,7 @@ describe('GeofenceService — location callback', () => {
     jest.clearAllMocks();
     geofenceService.stop();
     geofenceService.clearHistory();
-    jest.spyOn(Platform, 'OS', 'get').mockReturnValue('web');
+    (Platform as any).OS = 'web';
     geo = buildGeolocationMock(38.7, -9.1);
     (global.navigator as any).geolocation = geo;
     mockFetch();
@@ -222,7 +218,7 @@ describe('GeofenceService — alert handling', () => {
     jest.clearAllMocks();
     geofenceService.stop();
     geofenceService.clearHistory();
-    jest.spyOn(Platform, 'OS', 'get').mockReturnValue('web');
+    (Platform as any).OS = 'web';
     geo = buildGeolocationMock();
     (global.navigator as any).geolocation = geo;
     mockNotificationAPI('denied');
@@ -355,7 +351,7 @@ describe('GeofenceService — nearby POIs', () => {
     jest.clearAllMocks();
     geofenceService.stop();
     geofenceService.clearHistory();
-    jest.spyOn(Platform, 'OS', 'get').mockReturnValue('web');
+    (Platform as any).OS = 'web';
     (global.navigator as any).geolocation = buildGeolocationMock();
     mockNotificationAPI('denied');
   });
@@ -431,7 +427,7 @@ describe('GeofenceService — notification permission (web)', () => {
     jest.clearAllMocks();
     geofenceService.stop();
     geofenceService.clearHistory();
-    jest.spyOn(Platform, 'OS', 'get').mockReturnValue('web');
+    (Platform as any).OS = 'web';
   });
 
   it('requestNotificationPermission returns true when granted', async () => {
@@ -467,7 +463,7 @@ describe('GeofenceService — native start (expo-location)', () => {
     jest.clearAllMocks();
     geofenceService.stop();
     geofenceService.clearHistory();
-    jest.spyOn(Platform, 'OS', 'get').mockReturnValue('ios');
+    (Platform as any).OS = 'ios';
     mockWatchPositionAsync.mockResolvedValue({ remove: mockRemove });
     mockFetch();
   });

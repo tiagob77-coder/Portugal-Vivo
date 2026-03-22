@@ -25,10 +25,11 @@ jest.mock('../../theme', () => {
 });
 
 // Ensure Platform.OS is 'web' so the camera branch is skipped in test env
-jest.mock('react-native/Libraries/Utilities/Platform', () => ({
-  OS: 'web',
-  select: (obj: any) => obj.web ?? obj.default,
-}));
+jest.mock('react-native', () => {
+  const RN = jest.requireActual('react-native');
+  RN.Platform.OS = 'web';
+  return RN;
+});
 
 const defaultProps = {
   itemName: 'Castelo de Guimarães',
@@ -82,8 +83,9 @@ describe('ARTimeTravelView', () => {
   it('calls onClose when close button is pressed', () => {
     const onClose = jest.fn();
     render(<ARTimeTravelView {...defaultProps} onClose={onClose} />);
-    // Find close button by accessibility role — it renders as MaterialIcons "close"
-    const closeButtons = screen.UNSAFE_getAllByType('TouchableOpacity' as any);
+    // Find any pressable element and press the first one (close button)
+    const { TouchableOpacity } = require('react-native'); // eslint-disable-line @typescript-eslint/no-require-imports
+    const closeButtons = screen.UNSAFE_getAllByType(TouchableOpacity);
     fireEvent.press(closeButtons[0]);
     expect(onClose).toHaveBeenCalledTimes(1);
   });

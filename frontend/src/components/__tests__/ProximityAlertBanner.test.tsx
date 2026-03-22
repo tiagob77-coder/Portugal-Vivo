@@ -38,6 +38,8 @@ const makeAlert = (overrides: Partial<any> = {}) => ({
   distance_m: 150,
   alert_type: 'normal',
   iq_score: null,
+  category: 'Monumento',
+  timestamp: Date.now(),
   ...overrides,
 });
 

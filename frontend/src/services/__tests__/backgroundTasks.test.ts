@@ -126,12 +126,12 @@ describe('registerBackgroundTasks', () => {
   });
 
   it('is a no-op on web and resolves without error', async () => {
-    jest.spyOn(Platform, 'OS', 'get').mockReturnValue('web');
+    (Platform as any).OS = 'web';
     await expect(registerBackgroundTasks()).resolves.toBeUndefined();
   });
 
   it('resolves without error on native (deferred native build)', async () => {
-    jest.spyOn(Platform, 'OS', 'get').mockReturnValue('ios');
+    (Platform as any).OS = 'ios';
     await expect(registerBackgroundTasks()).resolves.toBeUndefined();
   });
 });
@@ -142,12 +142,12 @@ describe('unregisterBackgroundTasks', () => {
   });
 
   it('is a no-op on web and resolves without error', async () => {
-    jest.spyOn(Platform, 'OS', 'get').mockReturnValue('web');
+    (Platform as any).OS = 'web';
     await expect(unregisterBackgroundTasks()).resolves.toBeUndefined();
   });
 
   it('resolves without error on native (deferred native build)', async () => {
-    jest.spyOn(Platform, 'OS', 'get').mockReturnValue('ios');
+    (Platform as any).OS = 'ios';
     await expect(unregisterBackgroundTasks()).resolves.toBeUndefined();
   });
 });
@@ -161,7 +161,7 @@ describe('startWebProximityPolling', () => {
     jest.clearAllMocks();
     Object.keys(mockStorage).forEach((k) => delete mockStorage[k]);
     jest.useFakeTimers();
-    jest.spyOn(Platform, 'OS', 'get').mockReturnValue('web');
+    (Platform as any).OS = 'web';
     mockGeolocation();
     mockFetchNearby();
   });
@@ -172,7 +172,7 @@ describe('startWebProximityPolling', () => {
   });
 
   it('is a no-op when Platform.OS is not "web"', () => {
-    jest.spyOn(Platform, 'OS', 'get').mockReturnValue('ios');
+    (Platform as any).OS = 'ios';
     const spy = jest.spyOn(global, 'setInterval');
     startWebProximityPolling();
     expect(spy).not.toHaveBeenCalled();
@@ -202,7 +202,7 @@ describe('stopWebProximityPolling', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     jest.useFakeTimers();
-    jest.spyOn(Platform, 'OS', 'get').mockReturnValue('web');
+    (Platform as any).OS = 'web';
     mockGeolocation();
     mockFetchNearby();
   });
@@ -240,7 +240,7 @@ describe('web proximity check — notification scheduling', () => {
     jest.clearAllMocks();
     Object.keys(mockStorage).forEach((k) => delete mockStorage[k]);
     jest.useFakeTimers();
-    jest.spyOn(Platform, 'OS', 'get').mockReturnValue('web');
+    (Platform as any).OS = 'web';
   });
 
   afterEach(() => {
@@ -256,10 +256,9 @@ describe('web proximity check — notification scheduling', () => {
 
     startWebProximityPolling();
 
-    // Flush promises so the async geolocation success callback runs
-    await Promise.resolve();
-    await Promise.resolve();
-    await Promise.resolve();
+    // Flush promises: each await inside the geolocation callback needs a microtask tick
+    // (session_token, user_id, fetch, json, scheduleLocalNotification)
+    for (let i = 0; i < 10; i++) await Promise.resolve();
 
     expect(mockScheduleLocalNotification).toHaveBeenCalledWith(
       'Castelo',

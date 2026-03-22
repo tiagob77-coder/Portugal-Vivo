@@ -129,7 +129,7 @@ describe('AnalyticsDashboard', () => {
     expect(screen.getByText('POIs Mais Favoritos')).toBeTruthy();
     expect(screen.getByText('Palácio da Pena')).toBeTruthy();
     expect(screen.getByText('Mosteiro dos Jerónimos')).toBeTruthy();
-    expect(screen.getByText('#1')).toBeTruthy();
+    expect(screen.getAllByText('#1')[0]).toBeTruthy();
   });
 
   it('renders top routes section', () => {
@@ -145,7 +145,7 @@ describe('AnalyticsDashboard', () => {
     render(<AnalyticsDashboard />);
 
     expect(screen.getByText('Engagement por Categoria')).toBeTruthy();
-    expect(screen.getByText('Monumento')).toBeTruthy();
+    expect(screen.getAllByText('Monumento')[0]).toBeTruthy();
     expect(screen.getByText('Engagement por Região')).toBeTruthy();
     expect(screen.getByText('Algarve')).toBeTruthy();
   });

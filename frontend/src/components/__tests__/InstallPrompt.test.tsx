@@ -37,14 +37,20 @@ describe('InstallPrompt', () => {
 
   it('renders nothing initially on web when no beforeinstallprompt event fires', () => {
     const originalOS = Platform.OS;
+    const originalMatchMedia = (window as any).matchMedia;
     // @ts-ignore
     Platform.OS = 'web';
+    // matchMedia and addEventListener are not available in jsdom — provide stubs
+    (window as any).matchMedia = jest.fn(() => ({ matches: false, addEventListener: jest.fn(), removeEventListener: jest.fn() }));
+    (window as any).addEventListener = jest.fn();
+    (window as any).removeEventListener = jest.fn();
     try {
       const { toJSON } = render(<InstallPrompt />);
       expect(toJSON()).toBeNull();
     } finally {
       // @ts-ignore
       Platform.OS = originalOS;
+      (window as any).matchMedia = originalMatchMedia;
     }
   });
 

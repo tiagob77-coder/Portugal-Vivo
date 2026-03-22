@@ -7,6 +7,7 @@ module.exports = {
   moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json'],
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/$1',
+    '^expo-background-fetch$': '<rootDir>/__mocks__/expo-background-fetch.js',
   },
   testMatch: ['**/__tests__/**/*.test.(ts|tsx|js|jsx)'],
 };

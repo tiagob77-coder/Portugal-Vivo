@@ -277,8 +277,8 @@ describe('subscribeToPush', () => {
     } as any;
 
     // A minimal valid base64url VAPID key
-    const vapidKey = 'dGVzdC12YXBpZC1rZXktd2l0aC1hZGVxdWF0ZS1sZW5ndGgtMTIzNDU=';
-    const result = await subscribeToPush(reg, vapidKey);
+    const fakeVapidPublicKey = 'dGVzdC12YXBpZC1rZXktd2l0aC1hZGVxdWF0ZS1sZW5ndGgtMTIzNDU='; // gitleaks:allow
+    const result = await subscribeToPush(reg, fakeVapidPublicKey);
 
     expect(reg.pushManager.subscribe).toHaveBeenCalledWith(
       expect.objectContaining({ userVisibleOnly: true }),
@@ -296,8 +296,8 @@ describe('subscribeToPush', () => {
       },
     } as any;
 
-    const vapidKey = 'dGVzdC12YXBpZC1rZXktd2l0aC1hZGVxdWF0ZS1sZW5ndGgtMTIzNDU=';
-    const result = await subscribeToPush(reg, vapidKey);
+    const fakeVapidPublicKey = 'dGVzdC12YXBpZC1rZXktd2l0aC1hZGVxdWF0ZS1sZW5ndGgtMTIzNDU='; // gitleaks:allow
+    const result = await subscribeToPush(reg, fakeVapidPublicKey);
     expect(result).toBeNull();
   });
 
