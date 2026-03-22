@@ -95,6 +95,7 @@ Portugal-Vivo/
 | Offline | AsyncStorage + cache inteligente |
 | Notificações | expo-notifications |
 | Áudio | expo-av (guias de áudio) |
+| Ficheiros | expo-document-picker (upload GPX nativo) |
 | Geofencing | expo-task-manager + expo-location |
 | PWA | Service Worker + Web App Manifest |
 | Monitorização | @sentry/react |
@@ -105,8 +106,10 @@ Portugal-Vivo/
 
 ### Descoberta e Exploração
 - Feed de descoberta personalizado com scoring de relevância
-- Mapa interativo com layers (satélite, ciclismo, pedestres, acessibilidade)
-- Modo "Explorador Noturno" e filtros de proximidade
+- Mapa interativo com 8 modos: Camadas, Heatmap, Trilhos, Épocas, Timeline, Proximidade, Noturno, Satélite
+- Upload de ficheiros GPX — web (`<input>`) e nativo iOS/Android (`expo-document-picker`)
+- Trilhos com polyline + marcadores de partida/chegada + perfil de elevação + stats (distância, desnível, tempo)
+- Modo "Explorador Noturno" e filtros de proximidade GPS
 - Enciclopédia cultural com universos temáticos
 - Câmeras de praia em tempo real
 
@@ -128,6 +131,18 @@ Portugal-Vivo/
 - Transportes públicos (GTFS)
 - Planeador de rotas com múltiplos modos de transporte
 - Rotas inteligentes com sugestões adaptativas
+
+### Trilhos e GPX
+
+| Endpoint | Descrição |
+|---|---|
+| `POST /api/trails/upload` | Upload `.gpx` → calcula distância, desnível, tempo estimado |
+| `GET /api/trails` | Listar todos os trilhos (sem pontos, para performance) |
+| `GET /api/trails/{id}` | Detalhe com todos os pontos GPS |
+| `GET /api/trails/{id}/pois` | POIs próximos do trilho (raio configurável) |
+| `GET /api/trails/elevation/{id}` | Perfil de elevação para gráfico |
+
+O mapa entra no modo Trilhos, carrega a lista da API e auto-selecciona o primeiro trilho disponível. O utilizador pode alternar entre trilhos via chips ou fazer upload de um novo ficheiro GPX (suporta GPX 1.0 e 1.1).
 
 ### Natureza e Mar
 - Previsão de surf e condições de onda (IPMA)
