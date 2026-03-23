@@ -794,15 +794,23 @@ export const getDiscoveryFeed = async (
   lng?: number,
   limit?: number,
   token?: string,
-  traveler_profile?: string
+  traveler_profile?: string,
+  category?: string
 ): Promise<DiscoveryFeedResponse> => {
   const headers: any = { 'Content-Type': 'application/json' };
   if (token) headers.Authorization = `Bearer ${token}`;
-  
-  const response = await api.post('/discover/feed', 
-    { lat, lng, limit: limit || 30, traveler_profile },
+  const response = await api.post('/discover/feed',
+    { lat, lng, limit: limit || 30, traveler_profile, category: category || null },
     { headers }
   );
+  return response.data;
+};
+
+export const getSurprisePOI = async (traveler_profile?: string, region?: string) => {
+  const params: any = {};
+  if (traveler_profile) params.traveler_profile = traveler_profile;
+  if (region) params.region = region;
+  const response = await api.get('/discover/surprise', { params });
   return response.data;
 };
 

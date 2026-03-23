@@ -3,7 +3,7 @@
  * AI-powered trip planner with optimized itineraries
  * Smart Route Engine: locality-based, time-period-aware, category-diverse
  */
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -18,6 +18,7 @@ import {
   Alert,
 } from 'react-native';
 import { useRouter } from 'expo-router';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useQuery } from '@tanstack/react-query';
@@ -178,6 +179,15 @@ export default function PlaneadorTab() {
   const [myPlansOpen, setMyPlansOpen] = useState(false);
   const [myPlans, setMyPlans] = useState<SavedItinerary[]>([]);
   const [myPlansLoading, setMyPlansLoading] = useState(false);
+
+  // Pre-fill trip duration from onboarding time preference
+  useEffect(() => {
+    AsyncStorage.getItem('time_preference').then(tp => {
+      if (!tp) return;
+      const map: Record<string, string> = { '1h': '1', '3h': '1', 'dia': '1', 'fds': '2' };
+      if (map[tp]) setTripDays(map[tp]);
+    });
+  }, []);
 
   // Fetch localities for the selected region
   const { data: localitiesData } = useQuery({

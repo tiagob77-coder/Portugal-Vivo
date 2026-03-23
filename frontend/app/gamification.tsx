@@ -8,6 +8,7 @@ import {
   ActivityIndicator, Alert, Platform, RefreshControl,
 } from 'react-native';
 import { useRouter, Stack } from 'expo-router';
+import * as Haptics from 'expo-haptics';
 import { ShareButton } from '../src/components/ShareButton';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -89,8 +90,10 @@ export default function GamificationScreen() {
         // Trigger celebration if new badges earned
         if (data.new_badges && data.new_badges.length > 0) {
           const b = data.new_badges[0];
+          if (Platform.OS !== 'web') Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
           setCelebration({ visible: true, name: b.name, icon: b.icon || 'military-tech', color: b.color || colors.terracotta[500], xp: data.xp_earned || 0 });
         } else {
+          if (Platform.OS !== 'web') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
           if (Platform.OS === 'web') {
             window.alert(`${data.message}\n${msg}`);
           } else {

@@ -9,6 +9,7 @@ import { palette, withOpacity } from '../../theme';
 
 const MAP_MODES = [
   { id: 'markers', icon: 'place', label: 'Camadas' },
+  { id: 'explorador', icon: 'explore', label: 'Explorador' },
   { id: 'heatmap', icon: 'whatshot', label: 'Heatmap' },
   { id: 'trails', icon: 'hiking', label: 'Trilhos' },
   { id: 'epochs', icon: 'history', label: 'Épocas' },

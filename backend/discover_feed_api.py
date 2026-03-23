@@ -31,6 +31,13 @@ class DiscoveryFeedRequest(BaseModel):
     lng: Optional[float] = None
     limit: int = Field(30, ge=1, le=100)
     traveler_profile: Optional[str] = None
+    category: Optional[str] = None  # stories | trails | events | nearby
+
+CATEGORY_FILTERS = {
+    "stories": ["lendas", "historia", "cultura", "arte", "religioso", "aldeias", "saberes"],
+    "trails": ["percursos", "percursos_pedestres", "ecovias_passadicos", "trilhos", "natureza", "fauna"],
+    "events": ["festas", "eventos", "romarias", "festivais", "musica_tradicional"],
+}
 
 PROFILE_CATEGORIES = {
     "aventureiro": ["percursos_pedestres", "percursos", "aventura_natureza", "aventura", "cascatas_pocos", "cascatas", "ecovias_passadicos", "baloicos", "natureza_especializada", "areas_protegidas"],
@@ -67,8 +74,16 @@ async def get_discovery_feed(
             if profiles:
                 active_profile = max(profiles, key=profiles.get)
 
-    # Boost items matching profile
+    # Filter by category tab
     items = [item.dict() for item in feed]
+    if request.category and request.category in CATEGORY_FILTERS:
+        allowed = set(CATEGORY_FILTERS[request.category])
+        items = [
+            i for i in items
+            if ((i.get("content_data") or {}).get("category") or i.get("category", "")) in allowed
+        ] or items  # fallback to all if filter yields empty
+
+    # Boost items matching profile
     if active_profile and active_profile in PROFILE_CATEGORIES:
         boost_cats = set(PROFILE_CATEGORIES[active_profile])
         for item in items:
@@ -156,4 +171,36 @@ async def get_seasonal_content():
         "events": season_events,
         "recommended_items": items[:10],
         "categories_in_focus": categories
+    }
+
+
+@router.get("/discover/surprise")
+async def get_surprise_poi(
+    traveler_profile: Optional[str] = None,
+    region: Optional[str] = None,
+):
+    """Return one hidden/lesser-known POI based on profile — the 'Surpreende-me' feature."""
+    import random
+    db = _db_holder.db
+
+    query: Dict = {"content_health_score": {"$lt": 60}}  # lower-profile items = hidden gems
+    if region:
+        query["region"] = region
+    if traveler_profile and traveler_profile in PROFILE_CATEGORIES:
+        query["category"] = {"$in": PROFILE_CATEGORIES[traveler_profile]}
+
+    total = await db.heritage_items.count_documents(query)
+    if total == 0:
+        query = {}  # fallback: no filter
+        total = await db.heritage_items.count_documents(query)
+
+    skip = random.randint(0, max(0, total - 1))
+    item = await db.heritage_items.find_one(query, {"_id": 0}, skip=skip)
+    if not item:
+        raise HTTPException(status_code=404, detail="Nenhum POI encontrado")
+
+    return {
+        "item": item,
+        "message": "Descobriste um lugar escondido!",
+        "surprise": True,
     }

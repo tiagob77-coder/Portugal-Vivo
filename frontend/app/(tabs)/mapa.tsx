@@ -411,6 +411,26 @@ export default function MapaTab() {
       );
     }
   }, [mapMode]); // eslint-disable-line react-hooks/exhaustive-deps
+  // Explorador mode — technical overlays (weather, fires, surf)
+  const { data: exploradorWeather } = useQuery({
+    queryKey: ['explorador-weather'],
+    queryFn: async () => { const res = await api.get('/weather/forecast?region=lisboa'); return res.data; },
+    enabled: mapMode === 'explorador',
+    staleTime: 30 * 60 * 1000,
+  });
+  const { data: exploradorFires } = useQuery({
+    queryKey: ['explorador-fires'],
+    queryFn: async () => { const res = await api.get('/safety/fires'); return res.data; },
+    enabled: mapMode === 'explorador',
+    staleTime: 5 * 60 * 1000,
+  });
+  const { data: exploradorSurf } = useQuery({
+    queryKey: ['explorador-surf'],
+    queryFn: async () => { const res = await api.get('/surf/all-spots'); return res.data; },
+    enabled: mapMode === 'explorador',
+    staleTime: 5 * 60 * 1000,
+  });
+
   // Night explorer data
   const { data: nightData, isLoading: nightLoading } = useQuery({
     queryKey: ['night-explorer'],
@@ -986,6 +1006,49 @@ export default function MapaTab() {
           )}
 
           {/* Night Explorer Panel (shown in noturno mode) */}
+          {mapMode === 'explorador' && (
+            <ScrollView style={{ maxHeight: 220 }} showsVerticalScrollIndicator={false}>
+              <View style={{ padding: 12, gap: 8 }}>
+                <Text style={{ color: '#FFF', fontWeight: '700', fontSize: 13, marginBottom: 4 }}>Dados Técnicos em Tempo Real</Text>
+
+                {/* Weather */}
+                {exploradorWeather?.forecast?.[0] && (
+                  <View style={{ backgroundColor: 'rgba(255,255,255,0.1)', borderRadius: 10, padding: 10, flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+                    <MaterialIcons name="wb-sunny" size={20} color="#FCD34D" />
+                    <View>
+                      <Text style={{ color: '#FFF', fontWeight: '600', fontSize: 13 }}>Meteorologia</Text>
+                      <Text style={{ color: 'rgba(255,255,255,0.7)', fontSize: 12 }}>{exploradorWeather.forecast[0].description} · {exploradorWeather.forecast[0].temp_max}°C max</Text>
+                    </View>
+                  </View>
+                )}
+
+                {/* Fires */}
+                <View style={{ backgroundColor: 'rgba(255,255,255,0.1)', borderRadius: 10, padding: 10, flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+                  <MaterialIcons name="local-fire-department" size={20} color={exploradorFires?.active_fires > 0 ? '#EF4444' : '#4ADE80'} />
+                  <View>
+                    <Text style={{ color: '#FFF', fontWeight: '600', fontSize: 13 }}>Risco de Incêndio</Text>
+                    <Text style={{ color: 'rgba(255,255,255,0.7)', fontSize: 12 }}>
+                      {exploradorFires?.active_fires != null ? `${exploradorFires.active_fires} ocorrências activas` : 'A carregar...'}
+                    </Text>
+                  </View>
+                </View>
+
+                {/* Surf/Tides */}
+                {exploradorSurf?.spots?.[0] && (
+                  <View style={{ backgroundColor: 'rgba(255,255,255,0.1)', borderRadius: 10, padding: 10, flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+                    <MaterialIcons name="waves" size={20} color="#38BDF8" />
+                    <View>
+                      <Text style={{ color: '#FFF', fontWeight: '600', fontSize: 13 }}>Mar — {exploradorSurf.spots[0].name}</Text>
+                      <Text style={{ color: 'rgba(255,255,255,0.7)', fontSize: 12 }}>
+                        Ondas {exploradorSurf.spots[0].wave_height_m}m · Vento {exploradorSurf.spots[0].wind_speed_kmh} km/h
+                      </Text>
+                    </View>
+                  </View>
+                )}
+              </View>
+            </ScrollView>
+          )}
+
           {mapMode === 'noturno' && (
             <NightExplorerPanel
               isLoading={nightLoading}
