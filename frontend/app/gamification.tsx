@@ -21,13 +21,15 @@ import { colors, shadows } from '../src/theme';
 import BadgeCelebration from '../src/components/BadgeCelebration';
 import AnimatedListItem from '../src/components/AnimatedListItem';
 import SkeletonCard from '../src/components/SkeletonCard';
+import MissionCard, { Mission } from '../src/components/MissionCard';
+import { API_BASE } from '../src/config/api';
 
 export default function GamificationScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const queryClient = useQueryClient();
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
-  const [tab, setTab] = useState<'badges' | 'nearby' | 'checkins'>('badges');
+  const [tab, setTab] = useState<'badges' | 'nearby' | 'checkins' | 'missions'>('badges');
   const [celebration, setCelebration] = useState<{ visible: boolean; name: string; icon: string; color: string; xp: number }>({
     visible: false, name: '', icon: '', color: '', xp: 0,
   });
@@ -47,6 +49,27 @@ export default function GamificationScreen() {
   const { data: profile, isLoading, refetch, isRefetching } = useQuery({
     queryKey: ['gamification-profile'],
     queryFn: () => getGamificationProfile(),
+  });
+
+  const { data: missionsData, refetch: refetchMissions } = useQuery({
+    queryKey: ['missions-my'],
+    queryFn: async () => {
+      const res = await fetch(`${API_BASE}/missions/my`);
+      if (!res.ok) return { missions: [] };
+      return res.json();
+    },
+  });
+
+  const claimMission = useMutation({
+    mutationFn: async (missionId: string) => {
+      const res = await fetch(`${API_BASE}/missions/${missionId}/claim`, { method: 'POST' });
+      if (!res.ok) throw new Error('Não foi possível reclamar a recompensa');
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['missions-my'] });
+      queryClient.invalidateQueries({ queryKey: ['gamification-profile'] });
+    },
   });
 
   const { data: nearbyData } = useQuery({
@@ -153,6 +176,7 @@ export default function GamificationScreen() {
         <View style={s.tabRow}>
           {[
             { id: 'badges' as const, label: 'Badges', icon: 'military-tech' },
+            { id: 'missions' as const, label: 'Missões', icon: 'flag' },
             { id: 'nearby' as const, label: 'Perto', icon: 'near-me' },
             { id: 'checkins' as const, label: 'Histórico', icon: 'history' },
           ].map(t => (
@@ -202,6 +226,28 @@ export default function GamificationScreen() {
               </View>
               </AnimatedListItem>
             ))}
+          </View>
+        )}
+
+        {/* Missions Tab */}
+        {tab === 'missions' && (
+          <View style={s.missionsList}>
+            {!missionsData?.missions?.length ? (
+              <View style={s.emptyState}>
+                <MaterialIcons name="flag" size={40} color={colors.gray[300]} />
+                <Text style={s.emptyText}>Sem missões activas</Text>
+                <Text style={s.emptySubtext}>Volta na próxima semana!</Text>
+              </View>
+            ) : (
+              missionsData.missions.map((mission: Mission) => (
+                <MissionCard
+                  key={mission.mission_id}
+                  mission={mission}
+                  onClaim={(id) => claimMission.mutate(id)}
+                  onPress={(m) => {}}
+                />
+              ))
+            )}
           </View>
         )}
 
@@ -352,6 +398,9 @@ const s = StyleSheet.create({
   earnedTag: { position: 'absolute', top: 8, right: 8, width: 18, height: 18, borderRadius: 9, alignItems: 'center', justifyContent: 'center' },
   earnedRow: { position: 'absolute', top: 6, right: 6, flexDirection: 'row', alignItems: 'center', gap: 4 },
   badgeShareBtn: { width: 24, height: 24, borderRadius: 12, backgroundColor: 'rgba(0,0,0,0.08)' },
+
+  // Missions
+  missionsList: { paddingHorizontal: 16, marginTop: 12 },
 
   // Nearby
   nearbyList: { paddingHorizontal: 16, marginTop: 12 },

@@ -14,6 +14,8 @@ import { offlineCache } from '../../src/services/offlineCache';
 import { ReviewsSection } from '../../src/components/ReviewsSection';
 import { ShareButton } from '../../src/components/ShareButton';
 import ImageUpload from '../../src/components/ImageUpload';
+import PoiVideoPlayer from '../../src/components/PoiVideoPlayer';
+import Panorama360View from '../../src/components/Panorama360View';
 
 const { width: _width } = Dimensions.get('window');
 
@@ -254,6 +256,8 @@ export default function HeritageDetailScreen() {
   const [showFreeResume, setShowFreeResume] = useState(false);
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [isSpeakingNarrative, setIsSpeakingNarrative] = useState(false);
+  const [isSpeakingDesc, setIsSpeakingDesc] = useState(false);
+  const [showPanorama, setShowPanorama] = useState(false);
 
   // Get user location for check-in
   useEffect(() => {
@@ -507,6 +511,24 @@ export default function HeritageDetailScreen() {
     });
   };
 
+  // Device TTS for description (free)
+  const handleSpeakDescription = () => {
+    if (!item?.description) return;
+    if (isSpeakingDesc) {
+      Speech.stop();
+      setIsSpeakingDesc(false);
+      return;
+    }
+    setIsSpeakingDesc(true);
+    Speech.speak(item.description, {
+      language: 'pt-PT',
+      rate: 0.9,
+      onDone: () => setIsSpeakingDesc(false),
+      onError: () => setIsSpeakingDesc(false),
+      onStopped: () => setIsSpeakingDesc(false),
+    });
+  };
+
   const addFavoriteMutation = useMutation({
     mutationFn: () => addFavorite(id!, sessionToken!),
     onMutate: () => setIsFavoriteLocal(true),
@@ -663,7 +685,17 @@ export default function HeritageDetailScreen() {
 
         {/* Description */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Descrição</Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
+            <Text style={styles.sectionTitle}>Descrição</Text>
+            <TouchableOpacity
+              onPress={handleSpeakDescription}
+              style={{ flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 10, paddingVertical: 5, borderRadius: 8, backgroundColor: isSpeakingDesc ? '#C49A6C20' : 'transparent' }}
+              accessibilityLabel="Ouvir descrição"
+            >
+              <MaterialIcons name={isSpeakingDesc ? 'stop' : 'volume-up'} size={18} color="#C49A6C" />
+              <Text style={{ fontSize: 12, color: '#C49A6C', fontWeight: '600' }}>{isSpeakingDesc ? 'Parar' : 'Ouvir'}</Text>
+            </TouchableOpacity>
+          </View>
           <Text style={styles.description}>{item.description}</Text>
 
           {/* Free brief AI expansion — shown when description is short (<120 chars) */}
@@ -710,6 +742,42 @@ export default function HeritageDetailScreen() {
             </View>
           )}
         </View>
+
+        {/* Short Video */}
+        {(item as any).video_url && (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Vídeo</Text>
+            <PoiVideoPlayer
+              videoUrl={(item as any).video_url}
+              posterUrl={(item as any).image_url || undefined}
+              autoPlay={false}
+            />
+          </View>
+        )}
+
+        {/* 360° Panorama */}
+        {(item as any).panorama_url && (
+          <View style={styles.section}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+              <Text style={styles.sectionTitle}>Vista 360°</Text>
+              <TouchableOpacity
+                onPress={() => setShowPanorama(true)}
+                style={{ flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: '#C49A6C', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 8 }}
+              >
+                <MaterialIcons name="360" size={16} color="#fff" />
+                <Text style={{ color: '#fff', fontSize: 13, fontWeight: '700' }}>Abrir Panorama</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        )}
+
+        {showPanorama && (item as any).panorama_url && (
+          <Panorama360View
+            imageUrl={(item as any).panorama_url}
+            title={item.name}
+            onClose={() => setShowPanorama(false)}
+          />
+        )}
 
         {/* Location Map Preview */}
         {item.location && (

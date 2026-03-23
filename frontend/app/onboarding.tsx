@@ -27,6 +27,7 @@ export const ONBOARDING_KEY = 'onboarding_complete';
 export const PROFILE_TRAVELER_KEY = 'profile_traveler_type';
 export const PROFILE_INTERESTS_KEY = 'profile_interests';
 export const PROFILE_REGION_KEY = 'profile_region';
+export const PROFILE_TIME_KEY = 'time_preference';
 
 // ─── Slide backgrounds ────────────────────────────────────────────────────────
 
@@ -50,6 +51,11 @@ const SLIDES = [
     id: 'location',
     bg: ['#052e16', '#14532d'] as [string, string],
     image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/f/ff/Azores_paysage.jpg/800px-Azores_paysage.jpg',
+  },
+  {
+    id: 'time',
+    bg: ['#1a1a2e', '#16213e'] as [string, string],
+    image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/8/8e/Sunset_at_Pena_Palace%2C_Sintra.jpg/800px-Sunset_at_Pena_Palace%2C_Sintra.jpg',
   },
   {
     id: 'premium',
@@ -91,6 +97,13 @@ const REGIONS = [
   { id: 'all', label: 'Todo Portugal', desc: 'Sem preferência' },
 ] as const;
 
+const TIME_OPTIONS = [
+  { id: '1h', icon: 'hourglass-bottom', label: '1 hora', desc: 'Uma visita rápida' },
+  { id: '3h', icon: 'hourglass-top', label: 'Meio-dia', desc: 'Explorar com calma' },
+  { id: 'dia', icon: 'wb-sunny', label: 'Dia inteiro', desc: 'Imersão completa' },
+  { id: 'fds', icon: 'weekend', label: 'Fim de semana', desc: 'Rota de 2 dias' },
+] as const;
+
 // ─── Main component ───────────────────────────────────────────────────────────
 
 export default function OnboardingScreen() {
@@ -103,6 +116,7 @@ export default function OnboardingScreen() {
   const [travelerType, setTravelerType] = useState('');
   const [interests, setInterests] = useState<string[]>([]);
   const [region, setRegion] = useState('');
+  const [timePreference, setTimePreference] = useState('');
 
   const goTo = (index: number) => {
     scrollRef.current?.scrollTo({ x: index * width, animated: true });
@@ -117,6 +131,7 @@ export default function OnboardingScreen() {
         ? AsyncStorage.setItem(PROFILE_INTERESTS_KEY, JSON.stringify(interests))
         : Promise.resolve(),
       region ? AsyncStorage.setItem(PROFILE_REGION_KEY, region) : Promise.resolve(),
+      timePreference ? AsyncStorage.setItem(PROFILE_TIME_KEY, timePreference) : Promise.resolve(),
     ]);
 
   const handleFinish = async () => {
@@ -150,11 +165,12 @@ export default function OnboardingScreen() {
     slide.id === 'traveler' ? travelerType !== '' :
     slide.id === 'interest' ? interests.length > 0 :
     slide.id === 'location' ? region !== '' :
+    slide.id === 'time' ? timePreference !== '' :
     true;
 
   const nextLabel =
     currentIndex === 0 ? 'Começar' :
-    slide.id === 'location' ? 'Ver o meu feed' :
+    slide.id === 'time' ? 'Ver o meu feed' :
     'Continuar';
 
   return (
@@ -206,6 +222,9 @@ export default function OnboardingScreen() {
         )}
         {slide.id === 'location' && (
           <LocationStep selected={region} onSelect={setRegion} />
+        )}
+        {slide.id === 'time' && (
+          <TimeStep selected={timePreference} onSelect={setTimePreference} />
         )}
         {isPremiumSlide && <PremiumContent />}
 
@@ -404,6 +423,43 @@ function LocationStep({
           );
         })}
       </ScrollView>
+    </View>
+  );
+}
+
+function TimeStep({
+  selected,
+  onSelect,
+}: {
+  selected: string;
+  onSelect: (id: string) => void;
+}) {
+  return (
+    <View style={styles.qualWrap}>
+      <Text style={styles.qualStep}>PASSO 4 DE 4</Text>
+      <Text style={styles.qualQuestion}>Quanto tempo tens disponível?</Text>
+      <Text style={styles.qualSubtitle}>Ajustamos as sugestões ao teu ritmo</Text>
+      <View style={styles.cardGrid}>
+        {TIME_OPTIONS.map((t) => {
+          const active = selected === t.id;
+          return (
+            <TouchableOpacity
+              key={t.id}
+              style={[styles.typeCard, active && styles.cardSelected]}
+              onPress={() => onSelect(t.id)}
+              activeOpacity={0.75}
+            >
+              <MaterialIcons
+                name={t.icon as any}
+                size={22}
+                color={active ? '#C49A6C' : 'rgba(255,255,255,0.65)'}
+              />
+              <Text style={[styles.cardLabel, active && styles.cardLabelSelected]}>{t.label}</Text>
+              <Text style={styles.cardDesc}>{t.desc}</Text>
+            </TouchableOpacity>
+          );
+        })}
+      </View>
     </View>
   );
 }
