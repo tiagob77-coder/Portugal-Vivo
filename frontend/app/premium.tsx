@@ -30,6 +30,7 @@ import {
   createCheckoutMultibanco,
   createCustomerPortal,
   getSubscriptionStatus,
+  logPaywallIntent,
 } from '../src/services/api';
 
 const serif = Platform.OS === 'web' ? 'Cormorant Garamond, Georgia, serif' : undefined;
@@ -88,6 +89,12 @@ export default function PremiumScreen() {
     }
 
     if (!data?.stripe_enabled) {
+      // Track intent signal for revenue model validation
+      logPaywallIntent({
+        tier: selectedTier,
+        payment_method: selectedPayment,
+        source: 'premium_screen',
+      });
       Alert.alert(
         'Brevemente',
         'O sistema de pagamentos será ativado em breve. Obrigado pelo seu interesse!',

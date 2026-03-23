@@ -2048,6 +2048,27 @@ export const createCustomerPortal = async (userId: string): Promise<{ portal_url
   return response.data;
 };
 
+// ─── Paywall Intent Tracking (validation signal) ─────────────────────────────
+
+/**
+ * Logs a paywall intent event without completing payment.
+ * Used during the pre-Stripe validation phase to measure real purchase intent.
+ * Falls back to console.log when the endpoint is unavailable.
+ */
+export const logPaywallIntent = async (payload: {
+  tier: string;
+  payment_method: string;
+  source: 'premium_screen' | 'premium_gate';
+  feature?: string;
+}): Promise<void> => {
+  try {
+    await api.post('/premium/intent', payload);
+  } catch {
+    // Non-blocking: log locally if backend not ready
+    console.info('[paywall_intent]', JSON.stringify(payload));
+  }
+};
+
 export const checkFeatureAccess = async (
   _userId: string, featureId: string
 ): Promise<{ has_access: boolean; user_tier: string; upgrade_needed: boolean }> => {
