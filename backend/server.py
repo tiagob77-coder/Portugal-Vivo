@@ -722,7 +722,13 @@ set_contributions_db(db)
 set_contributions_auth(require_auth, require_admin)
 api_router.include_router(contributions_router)
 
-logger.info("🌱 Editorial systems registered: health, partner, seasonal, contributions")
+# ── Weekly Missions (Gamification) ───────────────────────────────────────────
+from weekly_missions_api import missions_router, set_missions_db, set_missions_auth
+set_missions_db(db)
+set_missions_auth(require_auth, require_admin)
+api_router.include_router(missions_router)
+
+logger.info("🌱 Editorial systems registered: health, partner, seasonal, contributions, missions")
 
 # Include the router in the main app
 app.include_router(api_router)

@@ -75,6 +75,8 @@ export default function DescobrerTab() {
   const [expandedWidget, setExpandedWidget] = useState<string | null>(null);
   const [guiaOpen, setGuiaOpen] = useState(false);
   const [activePerfil, setActivePerfil] = useState<string | null>(null);
+  const [activeCategory, setActiveCategory] = useState<string>('todos');
+  const [feedPage, setFeedPage] = useState(1);
   const refreshSpin = useRef(new Animated.Value(0)).current;
 
   // Animated refresh spinner
@@ -683,6 +685,36 @@ export default function DescobrerTab() {
           </View>
         )}
 
+        {/* Category Filter Tabs */}
+        {feedData?.items && feedData.items.length > 0 && (
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            style={styles.categoryTabsWrap}
+            contentContainerStyle={styles.categoryTabsContent}
+          >
+            {[
+              { id: 'todos', label: 'Para Ti', icon: 'person' },
+              { id: 'nearby', label: 'Próximo', icon: 'near-me' },
+              { id: 'stories', label: 'Histórias', icon: 'auto-stories' },
+              { id: 'trails', label: 'Trilhos', icon: 'directions-walk' },
+              { id: 'events', label: 'Eventos', icon: 'event' },
+            ].map((cat) => (
+              <TouchableOpacity
+                key={cat.id}
+                style={[
+                  styles.categoryTab,
+                  { backgroundColor: activeCategory === cat.id ? colors.accent : colors.surface, borderColor: activeCategory === cat.id ? colors.accent : colors.borderLight },
+                ]}
+                onPress={() => { setActiveCategory(cat.id); setFeedPage(1); }}
+              >
+                <MaterialIcons name={cat.icon as any} size={14} color={activeCategory === cat.id ? '#fff' : colors.textMuted} />
+                <Text style={[styles.categoryTabText, { color: activeCategory === cat.id ? '#fff' : colors.textMuted }]}>{cat.label}</Text>
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
+        )}
+
         {/* Discovery Feed */}
         {groupedFeed['for_you'] && groupedFeed['for_you'].length > 0 && (
           <View style={styles.section}>
@@ -693,7 +725,7 @@ export default function DescobrerTab() {
               </View>
             </View>
             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.horizontalScroll}>
-              {groupedFeed['for_you'].slice(0, 6).map((item: DiscoveryFeedItem) => (
+              {groupedFeed['for_you'].slice(0, 6 * feedPage).map((item: DiscoveryFeedItem) => (
                 <TouchableOpacity
                   key={item.id}
                   style={[styles.discoveryCard, { backgroundColor: colors.surface, borderColor: colors.borderLight }]}
@@ -712,6 +744,15 @@ export default function DescobrerTab() {
                 </TouchableOpacity>
               ))}
             </ScrollView>
+            {groupedFeed['for_you'].length > 6 * feedPage && (
+              <TouchableOpacity
+                style={[styles.loadMoreBtn, { borderColor: colors.borderLight }]}
+                onPress={() => setFeedPage(p => p + 1)}
+              >
+                <Text style={[styles.loadMoreText, { color: colors.accent }]}>Carregar mais</Text>
+                <MaterialIcons name="expand-more" size={18} color={colors.accent} />
+              </TouchableOpacity>
+            )}
           </View>
         )}
 
@@ -955,6 +996,22 @@ const styles = StyleSheet.create({
   },
   timelineEmoji: { fontSize: 16 },
   timelineLabel: { fontSize: 13, fontWeight: '600' },
+
+  // Category tabs
+  categoryTabsWrap: { marginTop: 4 },
+  categoryTabsContent: { paddingHorizontal: 16, gap: 8, paddingVertical: 8 },
+  categoryTab: {
+    flexDirection: 'row', alignItems: 'center', gap: 5,
+    paddingHorizontal: 12, paddingVertical: 7, borderRadius: 20, borderWidth: 1,
+  },
+  categoryTabText: { fontSize: 13, fontWeight: '600' },
+
+  // Load more
+  loadMoreBtn: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6,
+    marginHorizontal: 16, marginTop: 8, paddingVertical: 12, borderRadius: 12, borderWidth: 1,
+  },
+  loadMoreText: { fontSize: 14, fontWeight: '600' },
 
   // Content toolkit banner
   toolkitBanner: {

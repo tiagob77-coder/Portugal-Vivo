@@ -1,172 +1,20 @@
 /**
- * NativeMap.web.tsx - Interactive Leaflet Map for Web
- * Features: Light/Dark tiles, MarkerCluster, Heatmap, IQ score popups
+ * NativeMap.web.tsx — MapLibre GL Map (replaces Leaflet)
+ *
+ * Mapa vectorial com:
+ *   • 3D terrain real (AWS elevation tiles, toggle)
+ *   • 4 estilos de tiles (CARTO — sem API key)
+ *   • Clustering nativo GeoJSON
+ *   • Trail rendering com gradiente de elevação
+ *   • Popups com dados do POI
+ *   • Controlo de câmara suave
  */
-import React, { useEffect, useRef, useState } from 'react';
-import { View, StyleSheet, Platform } from 'react-native';
-import { palette } from '../theme';
+import React, { useEffect, useRef, useState, useCallback } from 'react';
+import { View, StyleSheet, TouchableOpacity, Text } from 'react-native';
 
-let L: any = null;
+// ─── Tipos partilhados com native ─────────────────────────────────────────────
 
-// Load Leaflet only on client-side (not during SSR)
-function loadLeaflet(): Promise<any> {
-  if (L) return Promise.resolve(L);
-  if (typeof window === 'undefined') return Promise.resolve(null);
-  
-  return new Promise((resolve) => {
-    L = require('leaflet'); // eslint-disable-line @typescript-eslint/no-require-imports
-    require('leaflet.markercluster'); // eslint-disable-line @typescript-eslint/no-require-imports
-    resolve(L);
-  });
-}
-
-// Tile layers
-const TILES = {
-  light: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-  dark: 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
-  satellite: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
-  voyager: 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',
-};
-
-// Inject CSS once
-let cssInjected = false;
-function injectCSS() {
-  if (cssInjected || typeof window === 'undefined' || typeof document === 'undefined') return;
-  cssInjected = true;
-
-  const link = document.createElement('link');
-  link.rel = 'stylesheet';
-  link.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
-  document.head.appendChild(link);
-
-  const clusterLink = document.createElement('link');
-  clusterLink.rel = 'stylesheet';
-  clusterLink.href = 'https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css';
-  document.head.appendChild(clusterLink);
-
-  const iconLink = document.createElement('link');
-  iconLink.rel = 'stylesheet';
-  iconLink.href = 'https://fonts.googleapis.com/icon?family=Material+Icons';
-  document.head.appendChild(iconLink);
-
-  // Load leaflet.heat from CDN
-  const heatScript = document.createElement('script');
-  heatScript.src = 'https://unpkg.com/leaflet.heat@0.2.0/dist/leaflet-heat.js';
-  document.head.appendChild(heatScript);
-
-  const style = document.createElement('style');
-  style.textContent = `
-    .leaflet-container { background: #F1F5F9 !important; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
-
-    /* Cluster styles */
-    .marker-cluster-small { background-color: rgba(245,158,11,0.25); }
-    .marker-cluster-small div { background-color: rgba(245,158,11,0.85); }
-    .marker-cluster-medium { background-color: rgba(234,88,12,0.25); }
-    .marker-cluster-medium div { background-color: rgba(234,88,12,0.85); }
-    .marker-cluster-large { background-color: rgba(220,38,38,0.25); }
-    .marker-cluster-large div { background-color: rgba(220,38,38,0.85); }
-    .marker-cluster {
-      background-clip: padding-box;
-      border-radius: 50%;
-    }
-    .marker-cluster div {
-      width: 32px; height: 32px; margin: 5px;
-      text-align: center; border-radius: 50%;
-      font-size: 13px; font-weight: 700; color: #fff;
-      display: flex; align-items: center; justify-content: center;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.15);
-    }
-    .marker-cluster span { line-height: 1; }
-
-    /* POI marker */
-    .poi-marker {
-      display: flex; align-items: center; justify-content: center;
-      border-radius: 50%; border: 2.5px solid #fff;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
-      cursor: pointer;
-      transition: box-shadow 0.15s ease, border-color 0.15s ease;
-    }
-    .poi-marker:hover { box-shadow: 0 3px 14px rgba(0,0,0,0.35); border-color: #FFD700; z-index: 9999 !important; }
-    .poi-marker .m-icon { font-family: 'Material Icons'; font-size: 14px; color: #fff; line-height: 1; }
-
-    /* Popup - high z-index to stay above markers and clusters */
-    .poi-popup .leaflet-popup-content-wrapper {
-      background: #fff; border-radius: 14px;
-      box-shadow: 0 8px 32px rgba(0,0,0,0.18);
-      border: 1px solid ${palette.gray[100]};
-    }
-    .poi-popup .leaflet-popup-content { margin: 0; padding: 0; min-width: 240px; }
-    .poi-popup .leaflet-popup-tip { background: #fff; }
-    .poi-popup .leaflet-popup-close-button { color: #64748B !important; top: 8px !important; right: 10px !important; font-size: 18px !important; z-index: 999 !important; }
-    .leaflet-popup-pane { z-index: 900 !important; }
-    .leaflet-popup { z-index: 900 !important; }
-    .leaflet-marker-pane { z-index: 600 !important; }
-
-    /* Fix React Native Web overflow clipping */
-    .leaflet-container { overflow: visible !important; }
-    [data-testid="map-container"] { overflow: visible !important; }
-    [data-testid="map-container"] > div { overflow: visible !important; }
-
-    .popup-inner { padding: 16px; }
-    .popup-inner h3 { margin: 0 0 4px; font-size: 15px; font-weight: 700; color: ${palette.forest[500]}; line-height: 1.35; }
-    .popup-inner .popup-cat { font-size: 12px; color: #64748B; text-transform: capitalize; margin-bottom: 8px; display: flex; align-items: center; gap: 4px; }
-    .popup-inner .popup-cat .cat-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
-    .popup-inner .popup-desc { font-size: 12px; color: #3D4A3D; line-height: 1.55; margin-bottom: 10px; max-height: 50px; overflow: hidden; }
-    .popup-inner .popup-badges { display: flex; gap: 6px; margin-bottom: 10px; flex-wrap: wrap; }
-    .popup-inner .popup-badge {
-      display: inline-flex; align-items: center; gap: 3px;
-      padding: 3px 8px; border-radius: 6px; font-size: 11px; font-weight: 600;
-    }
-    .popup-inner .badge-iq { background: #FEF3C7; color: ${palette.terracotta[600]}; }
-    .popup-inner .badge-region { background: #EDE9FE; color: #7C3AED; }
-    .popup-inner .popup-link {
-      display: block; width: 100%; padding: 9px; text-align: center;
-      background: linear-gradient(135deg, ${palette.terracotta[500]}, ${palette.terracotta[600]});
-      border: none; border-radius: 10px; color: #fff; font-weight: 600;
-      font-size: 13px; cursor: pointer; text-decoration: none;
-      transition: opacity 0.15s;
-    }
-    .popup-inner .popup-link:hover { opacity: 0.9; }
-
-    /* Map mode switcher */
-    .map-mode-control {
-      background: rgba(255,255,255,0.95); backdrop-filter: blur(8px);
-      border-radius: 10px; padding: 4px; box-shadow: 0 2px 12px rgba(0,0,0,0.1);
-      display: flex; gap: 2px; border: 1px solid ${palette.gray[100]};
-    }
-    .map-mode-btn {
-      padding: 6px 10px; border: none; border-radius: 8px;
-      font-size: 11px; font-weight: 600; cursor: pointer;
-      background: transparent; color: #64748B; transition: all 0.15s;
-      display: flex; align-items: center; gap: 4px;
-    }
-    .map-mode-btn:hover { background: #F1F5F9; color: ${palette.forest[500]}; }
-    .map-mode-btn.active { background: ${palette.terracotta[500]}; color: #fff; }
-    .map-mode-btn .m-icon { font-family: 'Material Icons'; font-size: 15px; }
-  `;
-  document.head.appendChild(style);
-}
-
-const ICON_MAP: Record<string, string> = {
-  terrain: 'terrain', 'account-balance': 'account_balance',
-  restaurant: 'restaurant', event: 'event',
-  'beach-access': 'beach_access', hiking: 'hiking', place: 'place',
-  pets: 'pets', 'local-florist': 'local_florist', park: 'park',
-  visibility: 'visibility', panorama: 'panorama', water: 'water',
-  waves: 'waves', pool: 'pool', diamond: 'diamond', settings: 'settings',
-  'directions-walk': 'directions_walk', fort: 'fort', villa: 'villa',
-  museum: 'museum', handyman: 'handyman', 'hot-tub': 'hot_tub',
-  train: 'train', palette: 'palette', 'local-bar': 'local_bar',
-  storefront: 'storefront', agriculture: 'agriculture', 'wine-bar': 'wine_bar',
-  'lunch-dining': 'lunch_dining', cake: 'cake', 'music-note': 'music_note',
-  celebration: 'celebration', festival: 'festival', surfing: 'surfing',
-  flag: 'flag', route: 'route', explore: 'explore', star: 'star',
-  cottage: 'cottage', 'holiday-village': 'holiday_village', hotel: 'hotel',
-  'support-agent': 'support_agent', business: 'business', 'menu-book': 'menu_book',
-  'directions-bus': 'directions_bus', eco: 'eco',
-};
-
-interface MapItem {
+export interface MapItem {
   id: string;
   name: string;
   category: string;
@@ -174,9 +22,10 @@ interface MapItem {
   location: { lat: number; lng: number };
   description?: string;
   iq_score?: number;
+  image_url?: string;
 }
 
-interface LeafletMapProps {
+export interface LeafletMapProps {
   items: MapItem[];
   onItemPress?: (item: MapItem) => void;
   getMarkerColor: (category: string) => string;
@@ -191,376 +40,368 @@ interface LeafletMapProps {
   initialRegion?: any;
   onMapReady?: () => void;
   showsUserLocation?: boolean;
-  showsMyLocationButton?: boolean;
-  showsCompass?: boolean;
-  customMapStyle?: any;
-  mapPadding?: any;
   [key: string]: any;
 }
 
-const LeafletMapComponent = ({ items, onItemPress, getMarkerColor, getLayerIcon, mapMode = 'markers', trailPoints, trailColor = palette.terracotta[500], style }: LeafletMapProps) => {
-  const containerRef = useRef<any>(null);
-  const mapRef = useRef<any>(null);
-  const tileRef = useRef<any>(null);
-  const clusterRef = useRef<any>(null);
-  const heatRef = useRef<any>(null);
-  const trailRef = useRef<any>(null);
-  const _modeControlRef = useRef<any>(null);
-  const [leafletLoaded, setLeafletLoaded] = useState(false);
-  // Store callbacks in refs to avoid re-triggering the marker useEffect
-  const onItemPressRef = useRef(onItemPress);
-  const getMarkerColorRef = useRef(getMarkerColor);
-  const getLayerIconRef = useRef(getLayerIcon);
-  onItemPressRef.current = onItemPress;
-  getMarkerColorRef.current = getMarkerColor;
-  getLayerIconRef.current = getLayerIcon;
+// ─── Estilos CARTO (gratuitos, sem API key) ───────────────────────────────────
 
-  // Load Leaflet on mount (client-side only)
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-    loadLeaflet().then((leaflet) => {
-      if (leaflet) setLeafletLoaded(true);
-    });
-  }, []);
-
-  // Initialize map once
-  useEffect(() => {
-    if (!leafletLoaded || !L) return;
-    injectCSS();
-
-    const el = containerRef.current;
-    if (!el || mapRef.current) return;
-    const domNode = el instanceof HTMLElement ? el : el;
-    if (!domNode || typeof domNode.getAttribute !== 'function') return;
-
-    const map = L.map(domNode, {
-      center: [37.0, -17.0],
-      zoom: 5,
-      zoomControl: false,
-      attributionControl: false,
-      maxBounds: [[30, -35], [44, -5]],
-      minZoom: 5,
-    });
-
-    L.control.zoom({ position: 'topright' }).addTo(map);
-    L.control.attribution({ position: 'bottomright', prefix: false })
-      .addAttribution('&copy; CartoDB &copy; OSM')
-      .addTo(map);
-
-    // Start with light tiles
-    tileRef.current = L.tileLayer(TILES.light, { maxZoom: 19, crossOrigin: 'anonymous', attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a>' }).addTo(map);
-
-    mapRef.current = map;
-
-    return () => {
-      map.remove();
-      mapRef.current = null;
-      tileRef.current = null;
-      clusterRef.current = null;
-      heatRef.current = null;
-    };
-  }, [leafletLoaded]);
-
-  // Update tile layer when mapMode changes
-  useEffect(() => {
-    if (!mapRef.current || !tileRef.current || !L) return;
-
-    const tileUrl = mapMode === 'satellite' ? TILES.satellite
-      : mapMode === 'heatmap' ? TILES.light
-      : TILES.light;
-
-    tileRef.current.setUrl(tileUrl);
-  }, [mapMode]);
-
-  // Update markers/heatmap when items or mode change
-  useEffect(() => {
-    if (!mapRef.current || !L) return;
-    const map = mapRef.current;
-
-    // Clear previous layers
-    if (clusterRef.current) {
-      map.removeLayer(clusterRef.current);
-      clusterRef.current = null;
-    }
-    if (heatRef.current) {
-      map.removeLayer(heatRef.current);
-      heatRef.current = null;
-    }
-
-    if (!items || items.length === 0) return;
-
-    const validItems = items.filter(i => i.location?.lat && i.location?.lng);
-
-    if (mapMode === 'heatmap') {
-      // Heatmap mode - wait for leaflet-heat to load
-      let heatRetries = 0;
-      const tryHeat = () => {
-        if ((L as any).heatLayer) {
-          const heatData = validItems.map(i => [
-            i.location.lat,
-            i.location.lng,
-            (i.iq_score || 40) / 100 // Normalize score to 0-1 intensity
-          ]);
-          heatRef.current = (L as any).heatLayer(heatData, {
-            radius: 25,
-            blur: 20,
-            maxZoom: 12,
-            max: 0.8,
-            gradient: {
-              0.2: '#3B82F6',
-              0.4: '#22D3EE',
-              0.5: '#22C55E',
-              0.65: palette.terracotta[500],
-              0.8: '#EF4444',
-              1.0: '#DC2626',
-            },
-          }).addTo(map);
-        } else {
-          if (++heatRetries < 25) setTimeout(tryHeat, 200);
-        }
-      };
-      tryHeat();
-
-      // Also show small dots for context
-      const dotCluster = (L as any).markerClusterGroup({
-        maxClusterRadius: 40,
-        iconCreateFunction: (cluster: any) => {
-          const count = cluster.getChildCount();
-          return L.divIcon({
-            html: `<div><span>${count}</span></div>`,
-            className: 'marker-cluster marker-cluster-' + (count < 20 ? 'small' : count < 50 ? 'medium' : 'large'),
-            iconSize: L.point(42, 42),
-          });
-        },
-        spiderfyOnMaxZoom: true,
-        showCoverageOnHover: false,
-        disableClusteringAtZoom: 14,
-      });
-
-      validItems.forEach(item => {
-        const color = getMarkerColorRef.current(item.category);
-        const icon = L.divIcon({
-          className: 'poi-marker',
-          html: `<span class="m-icon" style="font-size:10px">place</span>`,
-          iconSize: [18, 18],
-          iconAnchor: [9, 9],
-          popupAnchor: [0, -12],
-        });
-
-        const marker = L.marker([item.location.lat, item.location.lng], { icon })
-          .on('add', function(this: any) {
-            const el = this.getElement(); // eslint-disable-line react/no-this-in-sfc
-            if (el) { el.style.background = color; el.style.width = '18px'; el.style.height = '18px'; el.style.opacity = '0.7'; }
-          });
-
-        marker.on('click', (e: any) => {
-          L.DomEvent.stopPropagation(e);
-          L.popup({ className: 'poi-popup', maxWidth: 280, closeButton: true, autoPan: true })
-            .setLatLng(marker.getLatLng())
-            .setContent(buildPopup(item, color))
-            .openOn(mapRef.current!);
-          if (onItemPressRef.current) onItemPressRef.current(item);
-        });
-        dotCluster.addLayer(marker);
-      });
-
-      clusterRef.current = dotCluster;
-      map.addLayer(dotCluster);
-
-    } else {
-      // Standard marker cluster mode
-      const markerCluster = (L as any).markerClusterGroup({
-        maxClusterRadius: 50,
-        iconCreateFunction: (cluster: any) => {
-          const count = cluster.getChildCount();
-          const size = count < 20 ? 'small' : count < 80 ? 'medium' : 'large';
-          const dim = count < 20 ? 42 : count < 80 ? 48 : 56;
-          return L.divIcon({
-            html: `<div><span>${count}</span></div>`,
-            className: `marker-cluster marker-cluster-${size}`,
-            iconSize: L.point(dim, dim),
-          });
-        },
-        spiderfyOnMaxZoom: true,
-        showCoverageOnHover: false,
-        disableClusteringAtZoom: 15,
-        animateAddingMarkers: false,
-      });
-
-      validItems.forEach(item => {
-        const color = getMarkerColorRef.current(item.category);
-        const iconName = getLayerIconRef.current(item.category);
-        const materialIcon = ICON_MAP[iconName] || 'place';
-
-        const icon = L.divIcon({
-          className: 'poi-marker',
-          html: `<span class="m-icon">${materialIcon}</span>`,
-          iconSize: [30, 30],
-          iconAnchor: [15, 15],
-          popupAnchor: [0, -18],
-        });
-
-        const marker = L.marker([item.location.lat, item.location.lng], { icon })
-          .on('add', function(this: any) {
-            const el = this.getElement(); // eslint-disable-line react/no-this-in-sfc
-            if (el) { el.style.background = color; el.style.width = '30px'; el.style.height = '30px'; }
-          });
-
-        // Bind popup directly to marker for better reliability
-        marker.bindPopup(buildPopup(item, color), {
-          className: 'poi-popup',
-          maxWidth: 280,
-          closeButton: true,
-          autoPan: true,
-          autoPanPadding: L.point(60, 60),
-          keepInView: true,
-        });
-
-        marker.on('click', () => {
-          if (onItemPressRef.current) onItemPressRef.current(item);
-        });
-
-        markerCluster.addLayer(marker);
-      });
-
-      clusterRef.current = markerCluster;
-      map.addLayer(markerCluster);
-    }
-
-    // Fit bounds
-    if (validItems.length > 0) {
-      const bounds = L.latLngBounds(validItems.map(i => [i.location.lat, i.location.lng]));
-      map.fitBounds(bounds, { padding: [30, 30], maxZoom: 12 });
-    }
-  }, [items, mapMode]);
-
-  // Draw trail polyline when trailPoints change
-  useEffect(() => {
-    if (!mapRef.current || !L) return;
-    const map = mapRef.current;
-
-    // Clear previous trail
-    if (trailRef.current) {
-      map.removeLayer(trailRef.current);
-      trailRef.current = null;
-    }
-
-    if (!trailPoints || trailPoints.length < 2) return;
-
-    const latlngs = trailPoints.map(p => [p.lat, p.lng]);
-
-    // Draw a shadow line first for better visibility
-    const shadow = L.polyline(latlngs, {
-      color: '#000',
-      weight: 6,
-      opacity: 0.2,
-      lineCap: 'round',
-      lineJoin: 'round',
-    }).addTo(map);
-
-    // Main trail line
-    const line = L.polyline(latlngs, {
-      color: trailColor,
-      weight: 4,
-      opacity: 0.9,
-      lineCap: 'round',
-      lineJoin: 'round',
-      dashArray: null,
-    }).addTo(map);
-
-    // Start/End markers
-    const startIcon = L.divIcon({
-      className: 'poi-marker',
-      html: '<span class="m-icon" style="font-size:14px">flag</span>',
-      iconSize: [28, 28],
-      iconAnchor: [14, 14],
-    });
-    const endIcon = L.divIcon({
-      className: 'poi-marker',
-      html: '<span class="m-icon" style="font-size:14px">sports_score</span>',
-      iconSize: [28, 28],
-      iconAnchor: [14, 14],
-    });
-
-    const startMarker = L.marker(latlngs[0], { icon: startIcon })
-      .on('add', function(this: any) {
-        const el = this.getElement(); // eslint-disable-line react/no-this-in-sfc
-        if (el) { el.style.background = '#22C55E'; el.style.width = '28px'; el.style.height = '28px'; }
-      })
-      .bindPopup('<div class="popup-inner"><h3>Ponto de Partida</h3></div>', { className: 'poi-popup' })
-      .addTo(map);
-
-    const endMarker = L.marker(latlngs[latlngs.length - 1], { icon: endIcon })
-      .on('add', function(this: any) {
-        const el = this.getElement(); // eslint-disable-line react/no-this-in-sfc
-        if (el) { el.style.background = '#EF4444'; el.style.width = '28px'; el.style.height = '28px'; }
-      })
-      .bindPopup('<div class="popup-inner"><h3>Ponto de Chegada</h3></div>', { className: 'poi-popup' })
-      .addTo(map);
-
-    // Group for removal
-    trailRef.current = L.layerGroup([shadow, line, startMarker, endMarker]).addTo(map);
-
-    // Fit to trail bounds
-    map.fitBounds(L.latLngBounds(latlngs), { padding: [50, 50], maxZoom: 12 });
-
-    return () => {
-      if (trailRef.current) {
-        map.removeLayer(trailRef.current);
-        trailRef.current = null;
-      }
-    };
-  }, [trailPoints, trailColor]);
-
-  if (typeof window === 'undefined' || Platform.OS !== 'web') {
-    return <View style={[styles.container, style]} />;
-  }
-
-  return (
-    <View
-      ref={containerRef}
-      style={[styles.container, style]}
-      data-testid="leaflet-map"
-    />
-  );
+const MAP_STYLES: Record<string, string> = {
+  light:     'https://basemaps.cartocdn.com/gl/voyager-gl-style/style.json',
+  voyager:   'https://basemaps.cartocdn.com/gl/voyager-gl-style/style.json',
+  dark:      'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json',
+  satellite: 'https://basemaps.cartocdn.com/gl/positron-gl-style/style.json',
+  terrain:   'https://basemaps.cartocdn.com/gl/voyager-gl-style/style.json',
 };
 
-function buildPopup(item: MapItem, color: string): string {
-  const desc = item.description ? item.description.slice(0, 100) + (item.description.length > 100 ? '...' : '') : '';
-  const iqBadge = item.iq_score
-    ? `<span class="popup-badge badge-iq">IQ ${item.iq_score.toFixed(1)}</span>`
-    : '';
-  const regionBadge = item.region
-    ? `<span class="popup-badge badge-region">${item.region}</span>`
-    : '';
+// Centro de Portugal e limites
+const PT_CENTER: [number, number] = [-7.8491, 39.6945];
+const PT_ZOOM = 6.2;
+const PT_BOUNDS: [[number, number], [number, number]] = [[-31.5, 30], [0, 42.5]];
 
-  return `
-    <div class="popup-inner">
-      <h3>${item.name}</h3>
-      <div class="popup-cat">
-        <span class="cat-dot" style="background:${color}"></span>
-        ${item.category}
-      </div>
-      <div class="popup-badges">${iqBadge}${regionBadge}</div>
-      ${desc ? `<div class="popup-desc">${desc}</div>` : ''}
-      <a class="popup-link" href="/heritage/${item.id}">Ver Detalhes</a>
-    </div>
-  `;
+// ─── Loader lazy do MapLibre GL ──────────────────────────────────────────────
+
+let _mlgl: any = null;
+
+async function loadMapLibre(): Promise<any> {
+  if (_mlgl) return _mlgl;
+  if (typeof window === 'undefined') return null;
+  try {
+    const mod = await import('maplibre-gl');
+    _mlgl = (mod as any).default || mod;
+
+    // Injectar CSS do MapLibre
+    if (!document.getElementById('maplibre-gl-css')) {
+      const link = document.createElement('link');
+      link.id = 'maplibre-gl-css';
+      link.rel = 'stylesheet';
+      link.href = 'https://unpkg.com/maplibre-gl@latest/dist/maplibre-gl.css';
+      document.head.appendChild(link);
+    }
+    return _mlgl;
+  } catch (err) {
+    console.warn('[MapLibre] Falha ao carregar:', err);
+    return null;
+  }
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    minHeight: 500,
-  },
-});
+// ─── Helpers ──────────────────────────────────────────────────────────────────
 
-const MarkerFallback = (_props: any) => null;
-const CalloutFallback = (_props: any) => null;
+function toGeoJSON(items: MapItem[], getColor: (c: string) => string) {
+  return {
+    type: 'FeatureCollection' as const,
+    features: items.map(item => ({
+      type: 'Feature' as const,
+      geometry: { type: 'Point' as const, coordinates: [item.location.lng, item.location.lat] },
+      properties: {
+        id: item.id,
+        name: item.name,
+        category: item.category,
+        region: item.region,
+        description: item.description ?? '',
+        iq_score: item.iq_score ?? 0,
+        color: getColor(item.category),
+      },
+    })),
+  };
+}
+
+// ─── Componente principal ─────────────────────────────────────────────────────
+
+export function LeafletMapComponent({
+  items,
+  onItemPress,
+  getMarkerColor,
+  mapMode = 'light',
+  trailPoints,
+  trailColor = '#22C55E',
+  style,
+  onMapReady,
+}: LeafletMapProps) {
+  const containerRef = useRef<any>(null);
+  const mapRef = useRef<any>(null);
+  const popupRef = useRef<any>(null);
+  const [is3D, setIs3D] = useState(false);
+  const [ready, setReady] = useState(false);
+
+  // ── Inicializar mapa ──────────────────────────────────────────────────────
+  useEffect(() => {
+    let map: any;
+
+    (async () => {
+      const ml = await loadMapLibre();
+      if (!ml || !containerRef.current) return;
+
+      map = new ml.Map({
+        container: containerRef.current,
+        style: MAP_STYLES[mapMode] || MAP_STYLES.light,
+        center: PT_CENTER,
+        zoom: PT_ZOOM,
+        pitch: 0,
+        bearing: 0,
+        maxBounds: PT_BOUNDS,
+        attributionControl: false,
+      });
+
+      mapRef.current = map;
+
+      map.addControl(new ml.AttributionControl({ compact: true }), 'bottom-right');
+      map.addControl(new ml.NavigationControl({ visualizePitch: true }), 'top-right');
+
+      map.on('load', () => {
+        _addTerrainSource(map);
+        _addPOIsLayer(map);
+        _addTrailLayers(map);
+        setReady(true);
+        onMapReady?.();
+      });
+    })();
+
+    return () => { map?.remove(); mapRef.current = null; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  function _addTerrainSource(map: any) {
+    try {
+      map.addSource('terrain-dem', {
+        type: 'raster-dem',
+        tiles: ['https://s3.amazonaws.com/elevation-tiles-prod/terrarium/{z}/{x}/{y}.png'],
+        encoding: 'terrarium',
+        tileSize: 256,
+        maxzoom: 14,
+      });
+    } catch (_) {}
+  }
+
+  function _addPOIsLayer(map: any) {
+    map.addSource('pois', {
+      type: 'geojson',
+      data: { type: 'FeatureCollection', features: [] },
+      cluster: true,
+      clusterMaxZoom: 13,
+      clusterRadius: 44,
+    });
+
+    // Clusters — círculos coloridos por tamanho
+    map.addLayer({
+      id: 'clusters',
+      type: 'circle',
+      source: 'pois',
+      filter: ['has', 'point_count'],
+      paint: {
+        'circle-color': ['step', ['get', 'point_count'],
+          '#6B9E78', 10, '#C49A6C', 30, '#7C3AED'],
+        'circle-radius': ['step', ['get', 'point_count'], 18, 10, 26, 30, 34],
+        'circle-stroke-width': 2,
+        'circle-stroke-color': '#fff',
+        'circle-opacity': 0.92,
+      },
+    });
+
+    // Número dentro do cluster
+    map.addLayer({
+      id: 'cluster-count',
+      type: 'symbol',
+      source: 'pois',
+      filter: ['has', 'point_count'],
+      layout: {
+        'text-field': '{point_count_abbreviated}',
+        'text-font': ['Open Sans Bold', 'Arial Unicode MS Bold'],
+        'text-size': 12,
+      },
+      paint: { 'text-color': '#ffffff' },
+    });
+
+    // Pontos individuais
+    map.addLayer({
+      id: 'poi-point',
+      type: 'circle',
+      source: 'pois',
+      filter: ['!', ['has', 'point_count']],
+      paint: {
+        'circle-color': ['get', 'color'],
+        'circle-radius': ['interpolate', ['linear'], ['zoom'], 6, 5, 12, 9],
+        'circle-stroke-width': 2,
+        'circle-stroke-color': '#ffffff',
+        'circle-opacity': 0.95,
+      },
+    });
+
+    // Clique em ponto individual
+    map.on('click', 'poi-point', (e: any) => {
+      const feat = e.features?.[0];
+      if (!feat) return;
+      const p = feat.properties;
+      const coords = feat.geometry.coordinates.slice();
+
+      popupRef.current?.remove();
+
+      if (_mlgl) {
+        popupRef.current = new _mlgl.Popup({ closeButton: true, offset: 14, maxWidth: '260px' })
+          .setLngLat(coords)
+          .setHTML(`
+            <div style="font-family:system-ui,sans-serif;padding:2px 0">
+              <p style="font-weight:700;font-size:13px;margin:0 0 3px;color:#1a1a1a">${p.name}</p>
+              <p style="font-size:11px;color:#64748b;margin:0 0 6px">${p.category} · ${p.region}</p>
+              ${p.iq_score > 0 ? `<span style="font-size:10px;background:#f1f5f9;border-radius:4px;padding:2px 6px;color:#475569">IQ ${p.iq_score}</span>` : ''}
+              <a href="#" data-pid="${p.id}" style="display:block;margin-top:8px;font-size:11px;font-weight:700;color:#2E5E4E;text-decoration:none">Ver detalhes →</a>
+            </div>
+          `)
+          .addTo(map);
+
+        setTimeout(() => {
+          document.querySelector(`[data-pid="${p.id}"]`)?.addEventListener('click', ev => {
+            ev.preventDefault();
+            onItemPress?.({
+              id: p.id, name: p.name, category: p.category, region: p.region,
+              location: { lat: coords[1], lng: coords[0] },
+              description: p.description, iq_score: p.iq_score,
+            });
+            popupRef.current?.remove();
+          });
+        }, 50);
+      }
+    });
+
+    // Clique em cluster → zoom in
+    map.on('click', 'clusters', (e: any) => {
+      const [feat] = map.queryRenderedFeatures(e.point, { layers: ['clusters'] });
+      if (!feat) return;
+      map.getSource('pois').getClusterExpansionZoom(
+        feat.properties.cluster_id,
+        (err: any, zoom: number) => {
+          if (!err) map.easeTo({ center: feat.geometry.coordinates, zoom: zoom + 0.5 });
+        },
+      );
+    });
+
+    map.on('mouseenter', 'poi-point', () => { map.getCanvas().style.cursor = 'pointer'; });
+    map.on('mouseleave', 'poi-point', () => { map.getCanvas().style.cursor = ''; });
+    map.on('mouseenter', 'clusters', () => { map.getCanvas().style.cursor = 'pointer'; });
+    map.on('mouseleave', 'clusters', () => { map.getCanvas().style.cursor = ''; });
+  }
+
+  function _addTrailLayers(map: any) {
+    map.addSource('trail', { type: 'geojson', data: { type: 'FeatureCollection', features: [] } });
+    map.addLayer({
+      id: 'trail-shadow', type: 'line', source: 'trail',
+      paint: { 'line-color': '#000', 'line-width': 6, 'line-opacity': 0.12, 'line-blur': 4 },
+    });
+    map.addLayer({
+      id: 'trail-line', type: 'line', source: 'trail',
+      paint: {
+        'line-color': trailColor, 'line-width': 4, 'line-opacity': 0.88,
+        'line-cap': 'round', 'line-join': 'round',
+      },
+    });
+  }
+
+  // ── Actualizar marcadores ──────────────────────────────────────────────────
+  useEffect(() => {
+    if (!mapRef.current || !ready) return;
+    mapRef.current.getSource('pois')?.setData(toGeoJSON(items, getMarkerColor));
+  }, [items, ready, getMarkerColor]);
+
+  // ── Actualizar trilho ──────────────────────────────────────────────────────
+  useEffect(() => {
+    if (!mapRef.current || !ready) return;
+    const src = mapRef.current.getSource('trail');
+    if (!src) return;
+
+    if (trailPoints && trailPoints.length > 1) {
+      src.setData({
+        type: 'FeatureCollection',
+        features: [{
+          type: 'Feature',
+          geometry: { type: 'LineString', coordinates: trailPoints.map(p => [p.lng, p.lat, p.ele ?? 0]) },
+          properties: {},
+        }],
+      });
+      const lngs = trailPoints.map(p => p.lng);
+      const lats = trailPoints.map(p => p.lat);
+      mapRef.current.fitBounds(
+        [[Math.min(...lngs) - 0.02, Math.min(...lats) - 0.02],
+         [Math.max(...lngs) + 0.02, Math.max(...lats) + 0.02]],
+        { padding: 48 },
+      );
+    } else {
+      src.setData({ type: 'FeatureCollection', features: [] });
+    }
+  }, [trailPoints, ready]);
+
+  // ── Mudar estilo de mapa ───────────────────────────────────────────────────
+  useEffect(() => {
+    if (!mapRef.current || !ready) return;
+    mapRef.current.setStyle(MAP_STYLES[mapMode] || MAP_STYLES.light);
+  }, [mapMode, ready]);
+
+  // ── Toggle terrain 3D ─────────────────────────────────────────────────────
+  const toggle3D = useCallback(() => {
+    const map = mapRef.current;
+    if (!map) return;
+
+    if (is3D) {
+      map.setTerrain(null);
+      map.easeTo({ pitch: 0, bearing: 0, duration: 700 });
+    } else {
+      try {
+        if (!map.getSource('terrain-dem')) _addTerrainSource(map);
+        map.setTerrain({ source: 'terrain-dem', exaggeration: 1.5 });
+        map.easeTo({ pitch: 52, bearing: -15, duration: 900 });
+      } catch (_) {}
+    }
+    setIs3D(prev => !prev);
+  }, [is3D]);
+
+  // ─── Render ─────────────────────────────────────────────────────────────────
+  return (
+    <View style={[s.container, style]}>
+      {/* Container DOM para o MapLibre */}
+      <div
+        ref={containerRef}
+        style={{ position: 'absolute', inset: 0, width: '100%', height: '100%' }}
+      />
+
+      {/* Botão 3D */}
+      <TouchableOpacity
+        style={[s.btn3d, is3D && s.btn3dActive]}
+        onPress={toggle3D}
+        activeOpacity={0.85}
+      >
+        <Text style={[s.btn3dText, is3D && { color: '#fff' }]}>
+          {is3D ? '▲ 3D' : '⬡ 3D'}
+        </Text>
+      </TouchableOpacity>
+    </View>
+  );
+}
 
 export default LeafletMapComponent;
-export { LeafletMapComponent };
-export const Marker = MarkerFallback;
-export const Callout = CalloutFallback;
+
+// Stubs de compatibilidade
+export const Marker: React.FC<any> = () => null;
+export const Callout: React.FC<any> = () => null;
 export const PROVIDER_GOOGLE = null;
-export const isMapAvailable = false;
+export const isMapAvailable = true;
+
+// ─── Estilos ──────────────────────────────────────────────────────────────────
+
+const s = StyleSheet.create({
+  container: { flex: 1, overflow: 'hidden' as any },
+  btn3d: {
+    position: 'absolute',
+    top: 60,
+    left: 10,
+    zIndex: 10,
+    backgroundColor: 'rgba(255,255,255,0.92)',
+    borderRadius: 6,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.18,
+    shadowRadius: 3,
+    elevation: 4,
+  },
+  btn3dActive: { backgroundColor: '#2E5E4E' },
+  btn3dText: { fontSize: 12, fontWeight: '700', color: '#2E5E4E' },
+});
