@@ -749,7 +749,7 @@ export default function HeritageDetailScreen() {
             <Text style={styles.sectionTitle}>Vídeo</Text>
             <PoiVideoPlayer
               videoUrl={(item as any).video_url}
-              thumbnail={(item as any).image_url || undefined}
+              posterUrl={(item as any).image_url || undefined}
               autoPlay={false}
             />
           </View>
