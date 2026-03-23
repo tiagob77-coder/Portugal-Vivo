@@ -697,6 +697,33 @@ set_curated_collections_db(db)
 set_curated_collections_auth(require_auth)
 api_router.include_router(curated_collections_router)
 
+# ── Content Health Score + Stale Queue ────────────────────────────────────────
+from content_health_api import health_router, set_content_health_db, set_content_health_auth
+set_content_health_db(db)
+set_content_health_auth(require_auth, require_admin)
+api_router.include_router(health_router)
+
+# ── Partner Portal (Câmaras / Museus) ─────────────────────────────────────────
+from partner_portal_api import partner_router, set_partner_db, set_partner_auth
+set_partner_db(db)
+set_partner_auth(require_auth, require_admin)
+api_router.include_router(partner_router)
+
+# ── Seasonal Event Triggers ───────────────────────────────────────────────────
+from seasonal_triggers_api import seasonal_router, set_seasonal_db, set_seasonal_auth, set_seasonal_llm_key
+set_seasonal_db(db)
+set_seasonal_auth(require_auth, require_admin)
+set_seasonal_llm_key(EMERGENT_LLM_KEY)
+api_router.include_router(seasonal_router)
+
+# ── Community Micro Contributions ─────────────────────────────────────────────
+from micro_contributions_api import contributions_router, set_contributions_db, set_contributions_auth
+set_contributions_db(db)
+set_contributions_auth(require_auth, require_admin)
+api_router.include_router(contributions_router)
+
+logger.info("🌱 Editorial systems registered: health, partner, seasonal, contributions")
+
 # Include the router in the main app
 app.include_router(api_router)
 
