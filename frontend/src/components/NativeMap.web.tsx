@@ -147,6 +147,17 @@ export function LeafletMapComponent({
       map.addControl(new ml.AttributionControl({ compact: true }), 'bottom-right');
       map.addControl(new ml.NavigationControl({ visualizePitch: true }), 'top-right');
 
+      // Inject popup styles
+      if (!document.getElementById('pv-popup-style')) {
+        const style = document.createElement('style');
+        style.id = 'pv-popup-style';
+        style.textContent = `
+          .pv-popup .maplibregl-popup-content { padding: 0; border-radius: 12px; overflow: hidden; box-shadow: 0 8px 32px rgba(0,0,0,0.15); }
+          .pv-popup .maplibregl-popup-close-button { color: white; font-size: 18px; padding: 4px 8px; z-index: 1; text-shadow: 0 1px 2px rgba(0,0,0,0.5); }
+        `;
+        document.head.appendChild(style);
+      }
+
       map.on('load', () => {
         _addTerrainSource(map);
         _addPOIsLayer(map);
@@ -256,14 +267,23 @@ export function LeafletMapComponent({
       popupRef.current?.remove();
 
       if (_mlgl) {
-        popupRef.current = new _mlgl.Popup({ closeButton: true, offset: 14, maxWidth: '260px' })
+        popupRef.current = new _mlgl.Popup({ closeButton: true, offset: 16, maxWidth: '260px', className: 'pv-popup' })
           .setLngLat(coords)
           .setHTML(`
-            <div style="font-family:system-ui,sans-serif;padding:2px 0">
-              <p style="font-weight:700;font-size:13px;margin:0 0 3px;color:#1a1a1a">${p.name}</p>
-              <p style="font-size:11px;color:#64748b;margin:0 0 6px">${p.category} · ${p.region}</p>
-              ${p.iq_score > 0 ? `<span style="font-size:10px;background:#f1f5f9;border-radius:4px;padding:2px 6px;color:#475569">IQ ${p.iq_score}</span>` : ''}
-              <a href="#" data-pid="${p.id}" style="display:block;margin-top:8px;font-size:11px;font-weight:700;color:#2E5E4E;text-decoration:none">Ver detalhes →</a>
+            <div style="font-family:system-ui,-apple-system,sans-serif;min-width:200px;max-width:240px">
+              <div style="position:relative;overflow:hidden;border-radius:8px 8px 0 0;height:80px;background:#E5E7EB">
+                ${p.image_url ? `<img src="${p.image_url}" style="width:100%;height:100%;object-fit:cover;display:block" loading="lazy" onerror="this.style.display='none'"/>` : ''}
+                <div style="position:absolute;inset:0;background:linear-gradient(to bottom,transparent 40%,rgba(0,0,0,0.5))"></div>
+                <span style="position:absolute;bottom:6px;left:8px;font-size:10px;font-weight:700;color:#fff;background:rgba(0,0,0,0.35);padding:2px 6px;border-radius:4px;text-transform:capitalize">${p.category.replace(/_/g,' ')}</span>
+              </div>
+              <div style="padding:10px 12px 12px">
+                <p style="font-weight:700;font-size:13px;margin:0 0 2px;color:#111827;line-height:1.3">${p.name}</p>
+                <p style="font-size:11px;color:#6B7280;margin:0 0 8px">${p.region}</p>
+                <div style="display:flex;align-items:center;justify-content:space-between">
+                  ${p.iq_score > 0 ? `<span style="font-size:10px;background:#F0FDF4;border-radius:6px;padding:2px 7px;color:#15803D;font-weight:700">IQ ${p.iq_score}</span>` : '<span></span>'}
+                  <a href="#" data-pid="${p.id}" style="font-size:11px;font-weight:700;color:#2E5E4E;text-decoration:none;background:#F0FDF4;padding:4px 10px;border-radius:6px;display:inline-block">Ver →</a>
+                </div>
+              </div>
             </div>
           `)
           .addTo(map);

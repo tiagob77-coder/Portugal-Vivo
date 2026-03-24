@@ -735,6 +735,23 @@ from community_encounters_api import router as encounters_router, set_encounters
 set_encounters_db(db)
 api_router.include_router(encounters_router)
 
+# ── Map Layers — Dynamic layer configuration ──────────────────────────────────
+from map_layers_api import router as map_layers_router, set_map_layers_db
+set_map_layers_db(db)
+api_router.include_router(map_layers_router)
+
+# ── Multi-tenant RBAC ─────────────────────────────────────────────────────────
+from tenant_middleware import tenant_router, set_tenant_db
+set_tenant_db(db)
+api_router.include_router(tenant_router)
+
+# ── Excel / CSV Import ────────────────────────────────────────────────────────
+from excel_import_api import router as import_router, set_import_db
+set_import_db(db)
+api_router.include_router(import_router)
+
+logger.info("🏛️  Multi-tenant RBAC + Excel importer registered")
+
 # Include the router in the main app
 app.include_router(api_router)
 
