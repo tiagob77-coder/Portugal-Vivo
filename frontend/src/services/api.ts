@@ -171,6 +171,56 @@ export const getRouteItems = async (id: string): Promise<HeritageItem[]> => {
   return response.data;
 };
 
+// ─── Trails ───────────────────────────────────────────────────────────────────
+
+export interface Trail {
+  id: string;
+  name: string;
+  description?: string;
+  region?: string;
+  difficulty?: 'facil' | 'moderado' | 'dificil' | 'muito_dificil';
+  distance_km?: number;
+  elevation_gain?: number;
+  elevation_loss?: number;
+  min_elevation?: number;
+  max_elevation?: number;
+  estimated_hours?: number;
+  trail_type?: 'linear' | 'circular' | 'ida_volta';
+  terrain_type?: string;
+  color?: string;
+  tags?: string[];
+  points?: { lat: number; lng: number; ele?: number }[];
+}
+
+export interface ElevationProfilePoint {
+  distance_km: number;
+  elevation: number;
+  lat: number;
+  lng: number;
+}
+
+export const getTrails = async (region?: string): Promise<Trail[]> => {
+  const params: Record<string, string> = {};
+  if (region) params.region = region;
+  const response = await api.get('/trails', { params });
+  return response.data;
+};
+
+export const getTrail = async (id: string): Promise<Trail> => {
+  const response = await api.get(`/trails/${id}`);
+  return response.data;
+};
+
+export const getTrailElevation = async (id: string): Promise<{ trail_name: string; profile: ElevationProfilePoint[] }> => {
+  const response = await api.get(`/trails/elevation/${id}`);
+  return response.data;
+};
+
+export const getTrailPOIs = async (id: string): Promise<any[]> => {
+  const response = await api.get(`/trails/${id}/pois`);
+  return response.data?.pois || response.data || [];
+};
+
 // Route Planning
 export interface RoutePlanRequest {
   origin: string;
@@ -1939,7 +1989,7 @@ export const getLongDistanceTrails = async (region?: string): Promise<{ trails: 
   });
 };
 
-export const getTrailPOIs = async (lat: number, lng: number, radius_m: number = 2000): Promise<{ pois: any[]; total: number }> => {
+export const getTrailPOIsNearby = async (lat: number, lng: number, radius_m: number = 2000): Promise<{ pois: any[]; total: number }> => {
   const response = await api.get('/discovery/trails/pois-nearby', { params: { lat, lng, radius_m } });
   return response.data;
 };
