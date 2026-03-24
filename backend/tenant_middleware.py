@@ -215,3 +215,68 @@ async def update_tenant_user(
     if result.matched_count == 0:
         raise HTTPException(status_code=404, detail="Utilizador não encontrado")
     return {"success": True, "updated": update}
+
+
+class TenantInvite(BaseModel):
+    email: str
+    name: str
+    tenant_role: TenantRole = TenantRole.VIEWER
+
+
+@tenant_router.post("/invite")
+async def invite_tenant_user(
+    body: TenantInvite,
+    tenant: TenantContext = Depends(require_tenant_delete),
+):
+    """Convida (cria) um utilizador na equipa do município."""
+    if _db is None:
+        raise HTTPException(status_code=500, detail="DB não disponível")
+
+    if body.tenant_role == TenantRole.ADMIN_GLOBAL and not tenant.is_admin_global:
+        raise HTTPException(status_code=403, detail="Só o admin global pode atribuir esse role")
+
+    import uuid, datetime
+    existing = await _db.users.find_one({"email": body.email}, {"_id": 0, "user_id": 1})
+    if existing:
+        # Update role for existing user
+        await _db.users.update_one(
+            {"email": body.email},
+            {"$set": {
+                "tenant_role": body.tenant_role.value,
+                "municipality_id": tenant.municipality_id,
+            }},
+        )
+        return {"success": True, "action": "updated", "email": body.email}
+
+    new_user = {
+        "user_id": str(uuid.uuid4()),
+        "email": body.email,
+        "name": body.name,
+        "tenant_role": body.tenant_role.value,
+        "municipality_id": tenant.municipality_id,
+        "created_at": datetime.datetime.utcnow().isoformat(),
+        "invited_by": tenant.user_id,
+        "password_hash": None,  # Must set password on first login
+    }
+    await _db.users.insert_one(new_user)
+    return {"success": True, "action": "created", "email": body.email}
+
+
+@tenant_router.delete("/users/{user_id}")
+async def remove_tenant_user(
+    user_id: str,
+    tenant: TenantContext = Depends(require_tenant_delete),
+):
+    """Remove o acesso municipal de um utilizador."""
+    if _db is None:
+        raise HTTPException(status_code=500, detail="DB não disponível")
+    if not tenant.is_admin_global:
+        target = await _db.users.find_one({"user_id": user_id}, {"municipality_id": 1})
+        if target and target.get("municipality_id") != tenant.municipality_id:
+            raise HTTPException(status_code=403, detail="Sem permissão")
+
+    await _db.users.update_one(
+        {"user_id": user_id},
+        {"$unset": {"tenant_role": "", "municipality_id": ""}},
+    )
+    return {"success": True}
