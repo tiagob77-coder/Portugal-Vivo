@@ -33,6 +33,7 @@ class Trail(BaseModel):
     max_elevation: float = 0
     estimated_hours: float = 0
     trail_type: str = "linear"  # linear, circular, ida_volta
+    terrain_type: Optional[str] = None
     points: List[TrailPoint] = []
     color: str = "#F59E0B"
     tags: List[str] = []

@@ -735,6 +735,11 @@ from community_encounters_api import router as encounters_router, set_encounters
 set_encounters_db(db)
 api_router.include_router(encounters_router)
 
+# ── Map Layers — Dynamic layer configuration ──────────────────────────────────
+from map_layers_api import router as map_layers_router, set_map_layers_db
+set_map_layers_db(db)
+api_router.include_router(map_layers_router)
+
 # Include the router in the main app
 app.include_router(api_router)
 
