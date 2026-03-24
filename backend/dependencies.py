@@ -23,11 +23,22 @@ _db: Optional[AsyncIOMotorDatabase] = None
 
 
 def init_database(mongo_url: str, db_name: str) -> AsyncIOMotorDatabase:
-    """Initialize the database connection. Called once at startup."""
+    """Initialize the database connection with optimized pooling. Called once at startup."""
     global _client, _db
-    _client = AsyncIOMotorClient(mongo_url)
+    _client = AsyncIOMotorClient(
+        mongo_url,
+        maxPoolSize=50,
+        minPoolSize=5,
+        maxIdleTimeMS=30000,
+        serverSelectionTimeoutMS=5000,
+        connectTimeoutMS=10000,
+        socketTimeoutMS=30000,
+        retryWrites=True,
+        retryReads=True,
+        w="majority",
+    )
     _db = _client[db_name]
-    logger.info(f"Database initialized: {db_name}")
+    logger.info("Database initialized: %s (pool: 5-50, timeouts: connect=10s, socket=30s)", db_name)
     return _db
 
 

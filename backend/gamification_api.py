@@ -5,7 +5,7 @@ Sistema de check-in por proximidade GPS com badges e progressão.
 import uuid
 from datetime import datetime, timezone
 from fastapi import APIRouter, HTTPException, Query
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from typing import Optional
 from shared_constants import GAMIFICATION_BADGES
 from shared_utils import haversine_meters, DatabaseHolder
@@ -23,10 +23,10 @@ CHECK_IN_RADIUS_METERS = 500  # 500m proximity radius
 
 
 class CheckInRequest(BaseModel):
-    user_lat: float
-    user_lng: float
-    poi_id: str
-    user_id: Optional[str] = None
+    user_lat: float = Field(..., ge=-90, le=90)
+    user_lng: float = Field(..., ge=-180, le=180)
+    poi_id: str = Field(..., min_length=1, max_length=100)
+    user_id: Optional[str] = Field(None, max_length=100)
 
 
 @gamification_router.get("/badges")
@@ -263,13 +263,80 @@ async def get_nearby_checkable_pois(
     radius_km: float = Query(5, ge=0.1, le=50),
     limit: int = Query(20, ge=1, le=100),
 ):
-    """Get POIs near user that can be checked in"""
+    """Get POIs near user that can be checked in.
+    Uses MongoDB $geoNear for server-side distance calculation (requires 2dsphere index).
+    Falls back to bounding-box + client-side haversine when geo_location field is absent.
+    """
     db = _get_db()
+    radius_m = radius_km * 1000
+
+    # Try $geoNear first (requires geo_location 2dsphere index)
+    try:
+        pipeline = [
+            {"$geoNear": {
+                "near": {"type": "Point", "coordinates": [lng, lat]},
+                "distanceField": "distance_m",
+                "maxDistance": radius_m,
+                "spherical": True,
+                "query": {"geo_location": {"$exists": True}},
+            }},
+            {"$project": {
+                "_id": 0, "id": 1, "name": 1, "category": 1, "region": 1,
+                "location": 1, "iq_score": 1, "distance_m": 1,
+            }},
+            {"$sort": {"distance_m": 1}},
+            {"$limit": limit},
+        ]
+        results = await db.heritage_items.aggregate(pipeline).to_list(length=limit)
+
+        if results:
+            # Count total nearby (with a reasonable cap)
+            count_pipeline = [
+                {"$geoNear": {
+                    "near": {"type": "Point", "coordinates": [lng, lat]},
+                    "distanceField": "dist",
+                    "maxDistance": radius_m,
+                    "spherical": True,
+                    "query": {"geo_location": {"$exists": True}},
+                }},
+                {"$count": "total"},
+            ]
+            count_result = await db.heritage_items.aggregate(count_pipeline).to_list(1)
+            total_nearby = count_result[0]["total"] if count_result else len(results)
+
+            return {
+                "pois": [
+                    {
+                        "id": p["id"],
+                        "name": p["name"],
+                        "category": p.get("category", ""),
+                        "region": p.get("region", ""),
+                        "distance_m": int(p["distance_m"]),
+                        "iq_score": p.get("iq_score", 0),
+                        "location": p.get("location"),
+                        "can_checkin": p["distance_m"] <= CHECK_IN_RADIUS_METERS,
+                    }
+                    for p in results
+                ],
+                "total_nearby": total_nearby,
+            }
+    except Exception:
+        pass  # Fall back to bounding-box approach
+
+    # Fallback: bounding-box filter + client-side haversine
+    import math
+    deg_offset = radius_km / 111.0
+    lat_min, lat_max = lat - deg_offset, lat + deg_offset
+    lng_offset = radius_km / (111.0 * max(math.cos(math.radians(lat)), 0.01))
+    lng_min, lng_max = lng - lng_offset, lng + lng_offset
 
     pois = await db.heritage_items.find(
-        {"location.lat": {"$exists": True}},
-        {"_id": 0, "id": 1, "name": 1, "category": 1, "region": 1, "location": 1, "iq_score": 1, "address": 1}
-    ).limit(5000).to_list(length=5000)
+        {
+            "location.lat": {"$gte": lat_min, "$lte": lat_max},
+            "location.lng": {"$gte": lng_min, "$lte": lng_max},
+        },
+        {"_id": 0, "id": 1, "name": 1, "category": 1, "region": 1, "location": 1, "iq_score": 1}
+    ).limit(500).to_list(length=500)
 
     nearby = []
     for p in pois:
@@ -277,7 +344,7 @@ async def get_nearby_checkable_pois(
         if not loc.get("lat"):
             continue
         dist = haversine_meters(lat, lng, loc["lat"], loc["lng"])
-        if dist <= radius_km * 1000:
+        if dist <= radius_m:
             nearby.append({
                 "id": p["id"],
                 "name": p["name"],
