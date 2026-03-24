@@ -2,7 +2,7 @@
  * Leaderboard Screen - Top Explorers + Rankings
  */
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, Platform } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useQuery } from '@tanstack/react-query';
@@ -15,14 +15,28 @@ const PERIODS = [
   { id: 'week', label: 'Semana' },
 ];
 
+const REGIONS = [
+  { id: '', label: 'Portugal' },
+  { id: 'norte', label: 'Norte' },
+  { id: 'centro', label: 'Centro' },
+  { id: 'lisboa', label: 'Lisboa' },
+  { id: 'alentejo', label: 'Alentejo' },
+  { id: 'algarve', label: 'Algarve' },
+  { id: 'acores', label: 'Açores' },
+  { id: 'madeira', label: 'Madeira' },
+];
+
 export default function LeaderboardScreen() {
   const router = useRouter();
   const [period, setPeriod] = useState('all');
+  const [region, setRegion] = useState('');
 
   const { data: leaderboard, isLoading } = useQuery({
-    queryKey: ['leaderboard', period],
+    queryKey: ['leaderboard', period, region],
     queryFn: async () => {
-      const res = await api.get(`/leaderboard/top?period=${period}&limit=20`);
+      const params = new URLSearchParams({ period, limit: '20' });
+      if (region) params.append('region', region);
+      const res = await api.get(`/leaderboard/top?${params.toString()}`);
       return res.data;
     },
   });
@@ -86,6 +100,19 @@ export default function LeaderboardScreen() {
             </TouchableOpacity>
           ))}
         </View>
+
+        {/* Region Filter */}
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ paddingHorizontal: 16, marginBottom: 4 }} contentContainerStyle={{ gap: 8, paddingVertical: 8 }}>
+          {REGIONS.map(r => (
+            <TouchableOpacity
+              key={r.id}
+              style={[styles.periodBtn, region === r.id && styles.periodBtnActive, { marginRight: 0 }]}
+              onPress={() => setRegion(r.id)}
+            >
+              <Text style={[styles.periodText, region === r.id && styles.periodTextActive]}>{r.label}</Text>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
 
         {/* Leaderboard List */}
         <View style={styles.listContainer}>

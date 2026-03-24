@@ -151,6 +151,7 @@ export function LeafletMapComponent({
         _addTerrainSource(map);
         _addPOIsLayer(map);
         _addTrailLayers(map);
+        _applySolarLight(map);
         setReady(true);
         onMapReady?.();
       });
@@ -159,6 +160,25 @@ export function LeafletMapComponent({
     return () => { map?.remove(); mapRef.current = null; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  function _applySolarLight(map: any) {
+    try {
+      const now = new Date();
+      const hour = now.getHours() + now.getMinutes() / 60;
+      const isDay = hour >= 6 && hour < 20;
+      if (!isDay) return;
+      // Azimuth: 90° (east, 6h) → 180° (south, 12h) → 270° (west, 18h)
+      const azimuth = 90 + ((hour - 6) / 12) * 180;
+      // Altitude: peaks at noon (60°), low at dawn/dusk (10°)
+      const altitude = 10 + Math.sin(((hour - 6) / 14) * Math.PI) * 50;
+      map.setLight({
+        anchor: 'viewport',
+        color: hour < 8 || hour > 17 ? '#FFD580' : '#FFFFFF',
+        intensity: hour < 8 || hour > 17 ? 0.25 : 0.35,
+        position: [1.5, azimuth, altitude],
+      });
+    } catch (_) {}
+  }
 
   function _addTerrainSource(map: any) {
     try {

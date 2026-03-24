@@ -16,6 +16,7 @@ import { ShareButton } from '../../src/components/ShareButton';
 import ImageUpload from '../../src/components/ImageUpload';
 import PoiVideoPlayer from '../../src/components/PoiVideoPlayer';
 import Panorama360View from '../../src/components/Panorama360View';
+import SensoryCard from '../../src/components/SensoryCard';
 
 const { width: _width } = Dimensions.get('window');
 
@@ -742,6 +743,19 @@ export default function HeritageDetailScreen() {
             </View>
           )}
         </View>
+
+        {/* Sensory Experiences */}
+        {((item as any).aroma_note || (item as any).flavor_note || (item as any).photo_angle_tip || (item as any).sound_label) && (
+          <View style={styles.section}>
+            <SensoryCard data={{
+              sound_url: (item as any).sound_url,
+              sound_label: (item as any).sound_label,
+              aroma_note: (item as any).aroma_note,
+              flavor_note: (item as any).flavor_note,
+              photo_angle_tip: (item as any).photo_angle_tip,
+            }} />
+          </View>
+        )}
 
         {/* Short Video */}
         {(item as any).video_url && (

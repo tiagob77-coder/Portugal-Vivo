@@ -25,6 +25,7 @@ describe('MapModeSelector', () => {
   it('renders all mode buttons', () => {
     render(<MapModeSelector activeMode="markers" onModeChange={onModeChange} />);
     expect(screen.getByText('Camadas')).toBeTruthy();
+    expect(screen.getByText('Explorador')).toBeTruthy();
     expect(screen.getByText('Heatmap')).toBeTruthy();
     expect(screen.getByText('Trilhos')).toBeTruthy();
     expect(screen.getByText('Épocas')).toBeTruthy();
@@ -32,6 +33,12 @@ describe('MapModeSelector', () => {
     expect(screen.getByText('Proximidade')).toBeTruthy();
     expect(screen.getByText('Noturno')).toBeTruthy();
     expect(screen.getByText('Satélite')).toBeTruthy();
+  });
+
+  it('calls onModeChange with "explorador" when Explorador is pressed', () => {
+    render(<MapModeSelector activeMode="markers" onModeChange={onModeChange} />);
+    fireEvent.press(screen.getByText('Explorador'));
+    expect(onModeChange).toHaveBeenCalledWith('explorador');
   });
 
   it('calls onModeChange with "heatmap" when Heatmap is pressed', () => {
@@ -89,7 +96,7 @@ describe('MapModeSelector', () => {
     );
     const { TouchableOpacity } = require('react-native'); // eslint-disable-line @typescript-eslint/no-require-imports
     const buttons = UNSAFE_getAllByType(TouchableOpacity);
-    // 8 mode buttons per render
-    expect(buttons.length).toBe(8);
+    // 9 mode buttons per render (includes 'Explorador' mode)
+    expect(buttons.length).toBe(9);
   });
 });

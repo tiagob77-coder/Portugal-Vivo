@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import {
   View, Text, StyleSheet, ScrollView, RefreshControl,
-  TouchableOpacity, Image, Dimensions,
+  TouchableOpacity, Image, Dimensions, ActivityIndicator,
   ImageBackground, Animated, Platform,
 } from 'react-native';
 import { useRouter } from 'expo-router';
@@ -17,6 +17,7 @@ import {
   getDiscoveryFeed, getTrendingItems, getEncyclopediaUniverses,
   getPOIDoDia, DiscoveryFeedItem, TrendingItem, EncyclopediaUniverse,
   getWeatherForecast, getWeatherAlerts, getSafetyCheck, getActiveFires, getAllSpotsConditions,
+  getSurprisePOI,
 } from '../../src/services/api';
 import { API_BASE } from '../../src/config/api';
 import { typography, shadows, regionImages } from '../../src/theme';
@@ -50,6 +51,7 @@ const QUICK_ACTIONS = [
   { id: 'pesquisar', title: 'Pesquisar', icon: 'search', route: '/search' },
   { id: 'perto', title: 'Perto de Mim', icon: 'near-me', route: '/nearby' },
   { id: 'conquistas', title: 'Conquistas', icon: 'military-tech', route: '/gamification' },
+  { id: 'album', title: 'Álbum', icon: 'photo-album', route: '/album' },
   { id: 'ranking', title: 'Ranking', icon: 'leaderboard', route: '/leaderboard' },
   { id: 'transportes', title: 'Transportes', icon: 'train', route: '/(tabs)/transportes' },
   { id: 'beachcams', title: 'Beachcams', icon: 'videocam', route: '/beachcams' },
@@ -77,6 +79,16 @@ export default function DescobrerTab() {
   const [activePerfil, setActivePerfil] = useState<string | null>(null);
   const [activeCategory, setActiveCategory] = useState<string>('todos');
   const [feedPage, setFeedPage] = useState(1);
+  const { data: missionsData } = useQuery({
+    queryKey: ['missions-badge'],
+    queryFn: async () => {
+      const res = await fetch(`${API_BASE}/missions/my`);
+      if (!res.ok) return { missions: [] };
+      return res.json();
+    },
+    staleTime: 5 * 60 * 1000,
+  });
+  const claimableMissions = (missionsData?.missions || []).filter((m: any) => m.completed && !m.claimed).length;
   const refreshSpin = useRef(new Animated.Value(0)).current;
 
   // Animated refresh spinner
@@ -129,9 +141,28 @@ export default function DescobrerTab() {
   const { data: firesData } = useQuery({ queryKey: ['active-fires'], queryFn: () => getActiveFires(), staleTime: 5 * 60 * 1000 });
   const { data: surfData } = useQuery({ queryKey: ['surf-all'], queryFn: getAllSpotsConditions, staleTime: 5 * 60 * 1000 });
 
+  const [surprisePOI, setSurprisePOI] = useState<any>(null);
+  const [surpriseLoading, setSurpriseLoading] = useState(false);
+
+  const handleSurprise = async () => {
+    setSurpriseLoading(true);
+    setSurprisePOI(null);
+    try {
+      const data = await getSurprisePOI(activePerfil || undefined);
+      setSurprisePOI(data.item);
+    } catch { /* ignore */ } finally {
+      setSurpriseLoading(false);
+    }
+  };
+
   const { data: feedData, isLoading: feedLoading, refetch: refetchFeed } = useQuery({
-    queryKey: ['discovery-feed', token, activePerfil],
-    queryFn: () => getDiscoveryFeed(undefined, undefined, 30, token || undefined, activePerfil || undefined),
+    queryKey: ['discovery-feed', token, activePerfil, activeCategory],
+    queryFn: () => getDiscoveryFeed(
+      undefined, undefined, 30,
+      token || undefined,
+      activePerfil || undefined,
+      activeCategory !== 'todos' ? activeCategory : undefined
+    ),
   });
   const { data: trendingData } = useQuery({
     queryKey: ['trending'],
@@ -267,6 +298,9 @@ export default function DescobrerTab() {
             >
               <View style={[styles.actionIcon, { backgroundColor: colors.primary + '15' }]}>
                 <MaterialIcons name={action.icon as any} size={20} color={colors.primary} />
+                {action.id === 'conquistas' && claimableMissions > 0 && (
+                  <View style={styles.actionBadge}><Text style={styles.actionBadgeText}>{claimableMissions}</Text></View>
+                )}
               </View>
               <Text style={[styles.actionText, ds.textSecondary]} numberOfLines={1}>{action.title}</Text>
             </TouchableOpacity>
@@ -649,6 +683,41 @@ export default function DescobrerTab() {
           </View>
         )}
 
+        {/* Surpreende-me */}
+        <TouchableOpacity
+          style={[styles.surpriseCard, { backgroundColor: colors.surface, borderColor: colors.borderLight }]}
+          onPress={surprisePOI ? () => router.push(`/heritage/${surprisePOI.id}`) : handleSurprise}
+          activeOpacity={0.85}
+          data-testid="surprise-card"
+        >
+          {surpriseLoading ? (
+            <ActivityIndicator size="small" color={colors.accent} />
+          ) : surprisePOI ? (
+            <>
+              <View style={[styles.surpriseIcon, { backgroundColor: colors.accent + '20' }]}>
+                <MaterialIcons name="auto-awesome" size={24} color={colors.accent} />
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={[{ fontSize: 11, fontWeight: '700', letterSpacing: 1, color: colors.accent, marginBottom: 2 }]}>LUGAR ESCONDIDO</Text>
+                <Text style={[styles.surpriseTitle, ds.textPrimary]} numberOfLines={1}>{surprisePOI.name}</Text>
+                <Text style={[{ fontSize: 12, color: colors.textMuted }]} numberOfLines={1}>{surprisePOI.region} · {surprisePOI.category}</Text>
+              </View>
+              <MaterialIcons name="arrow-forward-ios" size={14} color={colors.textMuted} />
+            </>
+          ) : (
+            <>
+              <View style={[styles.surpriseIcon, { backgroundColor: colors.accent + '20' }]}>
+                <MaterialIcons name="shuffle" size={24} color={colors.accent} />
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={[styles.surpriseTitle, ds.textPrimary]}>Surpreende-me</Text>
+                <Text style={[{ fontSize: 12, color: colors.textMuted }]}>Descobre um lugar escondido</Text>
+              </View>
+              <MaterialIcons name="arrow-forward-ios" size={14} color={colors.textMuted} />
+            </>
+          )}
+        </TouchableOpacity>
+
         {/* Trending */}
         {trendingData?.items && trendingData.items.length > 0 && (
           <View style={styles.section}>
@@ -996,6 +1065,23 @@ const styles = StyleSheet.create({
   },
   timelineEmoji: { fontSize: 16 },
   timelineLabel: { fontSize: 13, fontWeight: '600' },
+
+  // Mission badge on quick action
+  actionBadge: {
+    position: 'absolute', top: -4, right: -4,
+    backgroundColor: '#EF4444', borderRadius: 8,
+    minWidth: 16, height: 16, alignItems: 'center', justifyContent: 'center',
+  },
+  actionBadgeText: { color: '#FFF', fontSize: 9, fontWeight: '800', paddingHorizontal: 2 },
+
+  // Surpreende-me
+  surpriseCard: {
+    flexDirection: 'row', alignItems: 'center', gap: 12,
+    marginHorizontal: 16, marginVertical: 8, borderRadius: 16,
+    borderWidth: 1, padding: 14,
+  },
+  surpriseIcon: { width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center' },
+  surpriseTitle: { fontSize: 15, fontWeight: '700' },
 
   // Category tabs
   categoryTabsWrap: { marginTop: 4 },
