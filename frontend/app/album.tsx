@@ -12,7 +12,7 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useQuery } from '@tanstack/react-query';
 import { LinearGradient } from 'expo-linear-gradient';
-import { getGamificationProfile } from '../src/services/api';
+import { getGamificationProfile, GamificationProfile } from '../src/services/api';
 import { colors, shadows } from '../src/theme';
 
 type AlbumTab = 'visitas' | 'badges' | 'favoritos';
@@ -24,7 +24,7 @@ export default function AlbumScreen() {
 
   const { data: profile, isLoading } = useQuery({
     queryKey: ['gamification-profile'],
-    queryFn: getGamificationProfile,
+    queryFn: (): Promise<GamificationProfile> => getGamificationProfile(),
   });
 
   const handleShare = async () => {

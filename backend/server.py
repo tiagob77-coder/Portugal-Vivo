@@ -730,6 +730,11 @@ api_router.include_router(missions_router)
 
 logger.info("🌱 Editorial systems registered: health, partner, seasonal, contributions, missions")
 
+# ── Community Encounters (artesãos, músicos, pescadores, …) ──────────────────
+from community_encounters_api import router as encounters_router, set_encounters_db
+set_encounters_db(db)
+api_router.include_router(encounters_router)
+
 # Include the router in the main app
 app.include_router(api_router)
 
