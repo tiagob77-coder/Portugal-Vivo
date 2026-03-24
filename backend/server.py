@@ -750,7 +750,12 @@ from excel_import_api import router as import_router, set_import_db
 set_import_db(db)
 api_router.include_router(import_router)
 
-logger.info("🏛️  Multi-tenant RBAC + Excel importer registered")
+# ── Admin Eventos ─────────────────────────────────────────────────────────────
+from admin_eventos_api import router as admin_eventos_router, set_eventos_db
+set_eventos_db(db)
+api_router.include_router(admin_eventos_router)
+
+logger.info("🏛️  Multi-tenant RBAC + Excel importer + Admin Eventos registered")
 
 # Include the router in the main app
 app.include_router(api_router)
