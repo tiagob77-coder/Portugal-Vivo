@@ -71,7 +71,9 @@ async def create_all_indexes(db):
     await db.visits.create_index([("user_id", 1), ("poi_id", 1)], name="idx_visits_user_poi")
     await db.visits.create_index("timestamp", name="idx_visits_timestamp")
     await db.visits.create_index([("user_id", 1), ("timestamp", -1)], name="idx_visits_user_time")
-    logger.info("  visits: 5 indexes created")
+    await db.visits.create_index("category", sparse=True, name="idx_visits_category")
+    await db.visits.create_index("region", sparse=True, name="idx_visits_region")
+    logger.info("  visits: 7 indexes created")
 
     # gamification_profiles
     await db.gamification_profiles.create_index("user_id", unique=True, name="idx_gamification_userid")
@@ -100,7 +102,10 @@ async def create_all_indexes(db):
     await db.routes.create_index("id", unique=True, name="idx_routes_id")
     await db.routes.create_index("category", name="idx_routes_category")
     await db.routes.create_index("region", name="idx_routes_region")
-    logger.info("  routes: 3 indexes created")
+    await db.routes.create_index(
+        [("share_count", -1)], sparse=True, name="idx_routes_share_count"
+    )
+    logger.info("  routes: 4 indexes created")
 
     # user_preferences
     await db.user_preferences.create_index("user_id", unique=True, name="idx_prefs_userid")
@@ -129,14 +134,42 @@ async def create_all_indexes(db):
     # notifications
     await db.notifications.create_index("user_id", name="idx_notif_userid")
     await db.notifications.create_index([("user_id", 1), ("read", 1)], name="idx_notif_user_read")
-    logger.info("  notifications: 2 indexes created")
+    await db.notifications.create_index(
+        [("user_id", 1), ("created_at", -1)], name="idx_notif_user_date"
+    )
+    logger.info("  notifications: 3 indexes created")
+
+    # notification_history - TTL de 90 dias para histórico de push
+    await db.notification_history.create_index(
+        [("user_id", 1), ("sent_at", -1)], name="idx_notif_history_user_date"
+    )
+    await db.notification_history.create_index(
+        "sent_at", expireAfterSeconds=7776000, name="idx_notif_history_ttl"  # 90 dias
+    )
+    logger.info("  notification_history: 2 indexes created (with TTL 90d)")
+
+    # push_tokens
+    await db.push_tokens.create_index(
+        [("user_id", 1), ("token", 1)], unique=True, name="idx_push_tokens_user_token"
+    )
+    logger.info("  push_tokens: 1 index created")
+
+    # notification_prefs
+    await db.notification_prefs.create_index("user_id", unique=True, name="idx_notif_prefs_userid")
+    logger.info("  notification_prefs: 1 index created")
 
     # reviews
     await db.reviews.create_index("item_id", name="idx_reviews_itemid")
     await db.reviews.create_index("user_id", name="idx_reviews_userid")
     await db.reviews.create_index([("user_id", 1), ("item_id", 1)], unique=True, name="idx_reviews_unique_user_item")
     await db.reviews.create_index([("item_id", 1), ("created_at", -1)], name="idx_reviews_item_date")
-    logger.info("  reviews: 4 indexes created")
+    await db.reviews.create_index(
+        [("item_id", 1), ("rating", -1)], name="idx_reviews_item_rating"
+    )
+    await db.reviews.create_index(
+        [("item_id", 1), ("helpful_votes", -1)], name="idx_reviews_item_helpful"
+    )
+    logger.info("  reviews: 6 indexes created")
 
     # poi_translations
     await db.poi_translations.create_index(
@@ -162,8 +195,20 @@ async def create_all_indexes(db):
     )
     logger.info("  iq_processing_results: 2 indexes created (with TTL 30d)")
 
-    total = 10 + 2 + 3 + 3 + 5 + 3 + 3 + 5 + 3 + 1 + 2 + 1 + 2 + 3 + 2 + 4 + 3 + 2 + 2
-    logger.info(f"\nTotal: {total} indexes across 19 collections")
+    # schema_versions - track database migrations
+    await db.schema_versions.create_index("version", unique=True, name="idx_schema_version")
+    logger.info("  schema_versions: 1 index created")
+
+    # --- Total ---
+    # heritage_items: 10, users: 2, user_sessions: 3, user_progress: 3,
+    # visits: 7, gamification_profiles: 3, checkins: 3, contributions: 5,
+    # routes: 4, user_preferences: 1, user_badges: 2, favorite_spots: 1,
+    # password_resets: 2, encyclopedia_articles: 3, notifications: 3,
+    # notification_history: 2, push_tokens: 1, notification_prefs: 1,
+    # reviews: 6, poi_translations: 3, iq_processing_queue: 2,
+    # iq_processing_results: 2, schema_versions: 1
+    total = 10 + 2 + 3 + 3 + 7 + 3 + 3 + 5 + 4 + 1 + 2 + 1 + 2 + 3 + 3 + 2 + 1 + 1 + 6 + 3 + 2 + 2 + 1
+    logger.info(f"\nTotal: {total} indexes across 23 collections")
 
 
 async def create_indexes():

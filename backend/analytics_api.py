@@ -39,50 +39,56 @@ async def analytics_dashboard(period_days: int = 30):
     period_start = now - timedelta(days=period_days)
     period_iso = period_start.isoformat()
 
-    # --- Run all independent queries in parallel ---
+    # --- Run queries in parallel, using $facet to batch visit aggregations ---
     (
-        total_visits,
-        unique_visitors_result,
-        returning_visitors_result,
+        visit_facets_result,
         top_pois_by_favorites,
         top_routes_shared,
         new_users_total,
         weekly_growth,
-        category_engagement,
-        region_engagement,
         total_users,
         total_pois,
         total_routes,
     ) = await asyncio.gather(
-        # Total visits in period
-        db.visits.count_documents({"timestamp": {"$gte": period_start}}),
-
-        # Unique visitors in period
+        # Single $facet pipeline for all visit analytics (1 roundtrip instead of 5)
         db.visits.aggregate([
             {"$match": {"timestamp": {"$gte": period_start}}},
-            {"$group": {"_id": "$user_id"}},
-            {"$count": "total"},
+            {"$facet": {
+                "total": [{"$count": "count"}],
+                "unique_visitors": [
+                    {"$group": {"_id": "$user_id"}},
+                    {"$count": "count"},
+                ],
+                "returning_visitors": [
+                    {"$group": {"_id": "$user_id", "c": {"$sum": 1}}},
+                    {"$match": {"c": {"$gt": 1}}},
+                    {"$count": "count"},
+                ],
+                "category_engagement": [
+                    {"$group": {"_id": "$category", "count": {"$sum": 1}}},
+                    {"$sort": {"count": -1}},
+                    {"$limit": 20},
+                ],
+                "region_engagement": [
+                    {"$group": {"_id": "$region", "count": {"$sum": 1}}},
+                    {"$sort": {"count": -1}},
+                    {"$limit": 20},
+                ],
+            }},
         ]).to_list(1),
 
-        # Returning visitors (users with > 1 visit in period)
-        db.visits.aggregate([
-            {"$match": {"timestamp": {"$gte": period_start}}},
-            {"$group": {"_id": "$user_id", "count": {"$sum": 1}}},
-            {"$match": {"count": {"$gt": 1}}},
-            {"$count": "total"},
-        ]).to_list(1),
-
-        # Top 10 most favorited POIs
+        # Top 10 most favorited POIs (from favorite_spots collection if available, else users)
         db.users.aggregate([
+            {"$match": {"favorites": {"$exists": True, "$ne": []}}},
             {"$unwind": "$favorites"},
             {"$group": {"_id": "$favorites", "fav_count": {"$sum": 1}}},
             {"$sort": {"fav_count": -1}},
             {"$limit": 10},
         ]).to_list(10),
 
-        # Top 10 most shared routes (by share_count or view_count)
+        # Top 10 most shared routes
         db.routes.find(
-            {},
+            {"share_count": {"$exists": True}},
             {"_id": 0, "id": 1, "name": 1, "share_count": 1, "view_count": 1, "category": 1}
         ).sort("share_count", -1).limit(10).to_list(10),
 
@@ -108,29 +114,19 @@ async def analytics_dashboard(period_days: int = 30):
             {"$sort": {"_id": 1}},
         ]).to_list(52),
 
-        # Visits per category in period
-        db.visits.aggregate([
-            {"$match": {"timestamp": {"$gte": period_start}}},
-            {"$group": {"_id": "$category", "count": {"$sum": 1}}},
-            {"$sort": {"count": -1}},
-            {"$limit": 20},
-        ]).to_list(20),
-
-        # Visits per region in period
-        db.visits.aggregate([
-            {"$match": {"timestamp": {"$gte": period_start}}},
-            {"$group": {"_id": "$region", "count": {"$sum": 1}}},
-            {"$sort": {"count": -1}},
-        ]).to_list(20),
-
         # Totals
         db.users.count_documents({}),
         db.heritage_items.count_documents({}),
         db.routes.count_documents({}),
     )
 
-    unique_visitors = unique_visitors_result[0]["total"] if unique_visitors_result else 0
-    returning_visitors = returning_visitors_result[0]["total"] if returning_visitors_result else 0
+    # Extract facet results
+    facets = visit_facets_result[0] if visit_facets_result else {}
+    total_visits = facets.get("total", [{}])[0].get("count", 0) if facets.get("total") else 0
+    unique_visitors = facets.get("unique_visitors", [{}])[0].get("count", 0) if facets.get("unique_visitors") else 0
+    returning_visitors = facets.get("returning_visitors", [{}])[0].get("count", 0) if facets.get("returning_visitors") else 0
+    category_engagement = facets.get("category_engagement", [])
+    region_engagement = facets.get("region_engagement", [])
     retention_rate = round(returning_visitors / max(unique_visitors, 1) * 100, 1)
 
     # Enrich top POIs with names

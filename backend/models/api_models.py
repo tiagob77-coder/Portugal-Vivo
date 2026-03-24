@@ -1,10 +1,11 @@
 """
 Pydantic models extracted from server.py - shared across all API modules.
 """
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 from typing import List, Optional, Dict, Any
 from datetime import datetime, timezone
 import uuid
+import re
 
 
 class User(BaseModel):
@@ -78,15 +79,32 @@ class HeritageItem(BaseModel):
 class HeritageItemCreate(BaseModel):
     name: str = Field(..., min_length=2, max_length=300)
     description: str = Field(..., min_length=10, max_length=10000)
-    category: str = Field(..., max_length=50)
+    category: str = Field(..., min_length=1, max_length=50)
     subcategory: Optional[str] = Field(None, max_length=50)
-    region: str = Field(..., max_length=50)
+    region: str = Field(..., min_length=1, max_length=50)
     location: Optional[Location] = None
     address: Optional[str] = Field(None, max_length=500)
     image_url: Optional[str] = Field(None, max_length=2000)
     tags: List[str] = Field(default=[], max_length=30)
     related_items: List[str] = Field(default=[], max_length=50)
-    metadata: Optional[Dict[str, Any]] = {}
+    metadata: Optional[Dict[str, Any]] = Field(default_factory=dict)
+
+    @field_validator("image_url")
+    @classmethod
+    def validate_image_url(cls, v: Optional[str]) -> Optional[str]:
+        if v is not None and not re.match(r'^https?://', v):
+            raise ValueError("image_url must be a valid HTTP(S) URL")
+        return v
+
+    @field_validator("category")
+    @classmethod
+    def normalize_category(cls, v: str) -> str:
+        return v.strip().lower()
+
+    @field_validator("region")
+    @classmethod
+    def normalize_region(cls, v: str) -> str:
+        return v.strip().lower()
 
 
 class RouteItem(BaseModel):
@@ -106,7 +124,7 @@ class Route(BaseModel):
     category: Optional[str] = None
     theme: Optional[str] = None
     region: Optional[str] = None
-    items: List[Any] = []
+    items: List[Any] = Field(default_factory=list, max_length=500)
     duration_hours: Optional[float] = None
     duration_days: Optional[int] = None
     distance_km: Optional[float] = None
@@ -213,12 +231,12 @@ class EncyclopediaArticle(BaseModel):
     region: Optional[str] = None
     location: Optional[Location] = None
     image_url: Optional[str] = None
-    gallery: List[str] = []
-    related_articles: List[str] = []
-    related_items: List[str] = []
-    tags: List[str] = []
-    sources: List[str] = []
-    metadata: Optional[Dict[str, Any]] = {}
+    gallery: List[str] = Field(default_factory=list, max_length=100)
+    related_articles: List[str] = Field(default_factory=list, max_length=50)
+    related_items: List[str] = Field(default_factory=list, max_length=50)
+    tags: List[str] = Field(default_factory=list, max_length=50)
+    sources: List[str] = Field(default_factory=list, max_length=50)
+    metadata: Optional[Dict[str, Any]] = Field(default_factory=dict)
     author: Optional[str] = None
     views: int = 0
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
@@ -226,20 +244,27 @@ class EncyclopediaArticle(BaseModel):
 
 
 class EncyclopediaArticleCreate(BaseModel):
-    title: str
-    slug: str
-    universe: str
-    summary: str
-    content: str
-    region: Optional[str] = None
+    title: str = Field(..., min_length=1, max_length=500)
+    slug: str = Field(..., min_length=1, max_length=200)
+    universe: str = Field(..., min_length=1, max_length=50)
+    summary: str = Field(..., min_length=1, max_length=2000)
+    content: str = Field(..., min_length=1)
+    region: Optional[str] = Field(None, max_length=50)
     location: Optional[Location] = None
-    image_url: Optional[str] = None
-    gallery: List[str] = []
-    related_articles: List[str] = []
-    related_items: List[str] = []
-    tags: List[str] = []
-    sources: List[str] = []
-    metadata: Optional[Dict[str, Any]] = {}
+    image_url: Optional[str] = Field(None, max_length=2000)
+    gallery: List[str] = Field(default_factory=list, max_length=100)
+    related_articles: List[str] = Field(default_factory=list, max_length=50)
+    related_items: List[str] = Field(default_factory=list, max_length=50)
+    tags: List[str] = Field(default_factory=list, max_length=50)
+    sources: List[str] = Field(default_factory=list, max_length=50)
+    metadata: Optional[Dict[str, Any]] = Field(default_factory=dict)
+
+    @field_validator("image_url")
+    @classmethod
+    def validate_image_url(cls, v: Optional[str]) -> Optional[str]:
+        if v is not None and not re.match(r'^https?://', v):
+            raise ValueError("image_url must be a valid HTTP(S) URL")
+        return v
 
 
 class UserBadge(BaseModel):

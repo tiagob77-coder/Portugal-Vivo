@@ -838,24 +838,25 @@ async def verify_database_connection():
 
 @app.on_event("startup")
 async def ensure_indexes():
-    """Create MongoDB indexes for common query patterns."""
+    """Create all MongoDB indexes using the centralized index script."""
     try:
-        await db.heritage_items.create_index("id", unique=True)
-        await db.heritage_items.create_index("category")
-        await db.heritage_items.create_index("region")
-        await db.heritage_items.create_index([("location.lat", 1), ("location.lng", 1)])
-        await db.users.create_index("email", unique=True)
-        await db.users.create_index("user_id", unique=True)
-        await db.user_sessions.create_index("session_token")
-        await db.user_sessions.create_index("user_id")
-        await db.reviews.create_index("item_id")
-        await db.checkins.create_index([("user_id", 1), ("poi_id", 1), ("checked_in_at", -1)])
-        await db.events.create_index("region")
-        await db.encyclopedia_articles.create_index("universe")
-        await db.encyclopedia_articles.create_index("slug", unique=True)
-        logger.info("MongoDB indexes ensured")
+        from create_indexes import create_all_indexes
+        await create_all_indexes(db)
+        logger.info("All MongoDB indexes ensured (centralized)")
     except Exception as e:
         logger.warning("Index creation partial failure (non-critical): %s", e)
+
+
+@app.on_event("startup")
+async def run_schema_migrations():
+    """Run pending database schema migrations on startup."""
+    try:
+        from schema_versioning import run_migrations
+        applied = await run_migrations(db)
+        if applied:
+            logger.info("Applied %d schema migration(s)", applied)
+    except Exception as e:
+        logger.warning("Schema migration failure (non-critical): %s", e)
 
 
 @app.on_event("startup")
