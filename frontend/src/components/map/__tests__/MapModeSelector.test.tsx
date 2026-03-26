@@ -33,6 +33,8 @@ describe('MapModeSelector', () => {
     expect(screen.getByText('Proximidade')).toBeTruthy();
     expect(screen.getByText('Noturno')).toBeTruthy();
     expect(screen.getByText('Satélite')).toBeTruthy();
+    expect(screen.getByText('Técnico')).toBeTruthy();
+    expect(screen.getByText('Premium')).toBeTruthy();
   });
 
   it('calls onModeChange with "explorador" when Explorador is pressed', () => {
@@ -89,14 +91,26 @@ describe('MapModeSelector', () => {
     ).not.toThrow();
   });
 
-  it('renders 8 mode buttons total', () => {
-    render(<MapModeSelector activeMode="markers" onModeChange={onModeChange} />);
+  it('renders 11 mode buttons total', () => {
     const { UNSAFE_getAllByType } = render(
       <MapModeSelector activeMode="markers" onModeChange={onModeChange} />
     );
     const { TouchableOpacity } = require('react-native'); // eslint-disable-line @typescript-eslint/no-require-imports
     const buttons = UNSAFE_getAllByType(TouchableOpacity);
-    // 9 mode buttons per render (includes 'Explorador' mode)
-    expect(buttons.length).toBe(9);
+    // 11 modes: markers, explorador, heatmap, trails, epochs, timeline,
+    //           proximity, noturno, satellite, tecnico, premium
+    expect(buttons.length).toBe(11);
+  });
+
+  it('calls onModeChange with "tecnico" when Técnico is pressed', () => {
+    render(<MapModeSelector activeMode="markers" onModeChange={onModeChange} />);
+    fireEvent.press(screen.getByText('Técnico'));
+    expect(onModeChange).toHaveBeenCalledWith('tecnico');
+  });
+
+  it('calls onModeChange with "premium" when Premium is pressed', () => {
+    render(<MapModeSelector activeMode="markers" onModeChange={onModeChange} />);
+    fireEvent.press(screen.getByText('Premium'));
+    expect(onModeChange).toHaveBeenCalledWith('premium');
   });
 });
