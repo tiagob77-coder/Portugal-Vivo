@@ -151,6 +151,56 @@ LAYER_DEFINITIONS = [
         "visible_zoom": 9,
         "premium": True,
     },
+    {
+        "id": "mercados",
+        "label": "Mercados",
+        "icon": "storefront",
+        "color": "#D97706",
+        "categories": ["mercado_municipal", "feira", "mercados_feiras"],
+        "description": "Mercados municipais e feiras tradicionais",
+        "visible_zoom": 9,
+        "group": "economia",
+    },
+    {
+        "id": "artesaos",
+        "label": "Artesãos",
+        "icon": "handyman",
+        "color": "#7C3AED",
+        "categories": ["artesanato", "oficios_artesanato", "artesao"],
+        "description": "Artesãos, oficinas e lojas tradicionais",
+        "visible_zoom": 10,
+        "group": "economia",
+    },
+    {
+        "id": "pesca_artesanal",
+        "label": "Pesca",
+        "icon": "phishing",
+        "color": "#0369A1",
+        "categories": ["pesca", "pesca_artesanal", "zona_pesca"],
+        "description": "Portos, zonas e tradições de pesca artesanal",
+        "visible_zoom": 8,
+        "group": "economia",
+    },
+    {
+        "id": "produtos_regionais",
+        "label": "Produtos DOP/IGP",
+        "icon": "workspace_premium",
+        "color": "#059669",
+        "categories": ["produtores_dop", "gastronomia", "vinhos", "queijos"],
+        "description": "Produtos com denominação de origem protegida",
+        "visible_zoom": 9,
+        "group": "economia",
+    },
+    {
+        "id": "rotas_economicas",
+        "label": "Rotas Económicas",
+        "icon": "route",
+        "color": "#C2410C",
+        "categories": ["rota_mercados", "rota_peixe", "rota_artesanato"],
+        "description": "Rotas do peixe fresco, mercados e artesanato",
+        "visible_zoom": 7,
+        "group": "economia",
+    },
 ]
 
 
@@ -165,9 +215,14 @@ def _haversine_km(lat1, lon1, lat2, lon2):
 @router.get("/layers")
 async def get_map_layers():
     """Retorna definições de camadas do mapa com metadados para o frontend."""
+    groups: dict = {}
+    for layer in LAYER_DEFINITIONS:
+        g = layer.get("group", "geral")
+        groups.setdefault(g, []).append(layer["id"])
     return {
         "layers": LAYER_DEFINITIONS,
         "total": len(LAYER_DEFINITIONS),
+        "groups": groups,
     }
 
 

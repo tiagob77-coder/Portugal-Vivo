@@ -767,7 +767,12 @@ from ai_itinerary_api import ai_itinerary_router, set_ai_itinerary_db
 set_ai_itinerary_db(db)
 api_router.include_router(ai_itinerary_router)
 
-logger.info("🌊  Costa + AI Itinerary registered")
+# ── Economy API ───────────────────────────────────────────────────────────────
+from economy_api import economy_router, set_economy_db
+set_economy_db(db)
+api_router.include_router(economy_router)
+
+logger.info("🌊  Costa + AI Itinerary + Economy registered")
 
 # Include the router in the main app
 app.include_router(api_router)
