@@ -201,6 +201,10 @@ LAYER_DEFINITIONS = [
         "visible_zoom": 7,
         "group": "economia",
     },
+    {"id":"megalitos","label":"Megalitos","icon":"account-balance","color":"#B45309","categories":["megalito","dolmen","menir","cromeleque","mamoa"],"description":"Dólmenes, menires, cromeleques e mamoas neolíticas","visible_zoom":7,"group":"prehistoria"},
+    {"id":"arte_rupestre","label":"Arte Rupestre","icon":"brush","color":"#B91C1C","categories":["rupestre","gravura_paleolitica","gravura_rupestre"],"description":"Gravuras e pinturas rupestres","visible_zoom":8,"group":"prehistoria"},
+    {"id":"geossitios","label":"Geossítios","icon":"terrain","color":"#7C3AED","categories":["geositio","afloramento_granitico"],"description":"Geossítios LNEG","visible_zoom":7,"group":"prehistoria"},
+    {"id":"astronomia_prehistorica","label":"Astronomia","icon":"nights-stay","color":"#0F766E","categories":["santuario","alinhamento_solar","alinhamento_lunar"],"description":"Sítios com alinhamentos astronómicos","visible_zoom":7,"group":"prehistoria","premium":True},
 ]
 
 

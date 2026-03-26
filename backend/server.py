@@ -772,7 +772,11 @@ from economy_api import economy_router, set_economy_db
 set_economy_db(db)
 api_router.include_router(economy_router)
 
-logger.info("🌊  Costa + AI Itinerary + Economy registered")
+from geo_prehistoria_api import geo_prehistoria_router, set_geo_prehistoria_db
+set_geo_prehistoria_db(db)
+api_router.include_router(geo_prehistoria_router)
+
+logger.info("🌊  Costa + AI Itinerary + Economy + GeoPrehistoria registered")
 
 # Include the router in the main app
 app.include_router(api_router)
