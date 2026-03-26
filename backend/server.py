@@ -776,7 +776,17 @@ from geo_prehistoria_api import geo_prehistoria_router, set_geo_prehistoria_db
 set_geo_prehistoria_db(db)
 api_router.include_router(geo_prehistoria_router)
 
-logger.info("🌊  Costa + AI Itinerary + Economy + GeoPrehistoria registered")
+# ── Marine Biodiversity API ───────────────────────────────────────────────────
+from marine_biodiversity_api import (
+    marine_biodiversity_router,
+    set_marine_biodiversity_db,
+    set_marine_biodiversity_llm_key,
+)
+set_marine_biodiversity_db(db)
+set_marine_biodiversity_llm_key(EMERGENT_LLM_KEY)
+api_router.include_router(marine_biodiversity_router)
+
+logger.info("🌊  Costa + AI + Economy + GeoPrehistoria + MarineBiodiversity registered")
 
 # Include the router in the main app
 app.include_router(api_router)
