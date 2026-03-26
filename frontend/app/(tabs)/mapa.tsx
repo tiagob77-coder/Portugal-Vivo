@@ -1077,7 +1077,7 @@ export default function MapaTab() {
                 return timelineEpoch?.color || '#C49A6C';
               }) : getMarkerColor}
               getLayerIcon={getLayerIcon}
-              mapMode={['trails', 'epochs', 'timeline', 'proximity', 'noturno'].includes(mapMode) ? 'markers' : mapMode}
+              mapMode={['trails', 'epochs', 'timeline', 'proximity'].includes(mapMode) ? 'markers' : mapMode}
               trailPoints={trailData?.points}
               trailColor={trailData?.color || '#C49A6C'}
               style={{ flex: 1, minHeight: 480, borderRadius: 16 }}

@@ -1,6 +1,7 @@
-from fastapi import APIRouter, Response, HTTPException, Body
-from datetime import datetime, timezone
-from typing import Optional
+from fastapi import APIRouter, Response, HTTPException, Body, Query
+from datetime import datetime, timezone, timedelta
+from typing import Optional, List
+import math
 
 from shared_constants import CATEGORIES, REGIONS
 
@@ -261,3 +262,176 @@ async def moderate_upload(
         }}
     )
     return {"success": True, "message": f"Imagem {action}d"}
+
+
+# ── Doc 4 v2 — Admin IQ Score by module ──────────────────────────────────────
+
+@router.get("/admin/iq-score", tags=["Admin"])
+async def get_iq_score_by_module(
+    module: Optional[str] = Query(None, description="trilhos | patrimonio | gastronomia | natureza | all"),
+    tenant_id: Optional[str] = Query(None),
+    period: int = Query(30, description="Dias de histórico"),
+):
+    """IQ Score médio por módulo/categoria — Doc4 §3.3"""
+    query: dict = {}
+    if tenant_id:
+        query["municipality_id"] = tenant_id
+
+    # Map module to category groups
+    module_map = {
+        "trilhos":     ["percursos_pedestres", "ecovias_passadicos", "aventura_natureza"],
+        "patrimonio":  ["historia", "arqueologia", "castelos", "museus", "arte", "religioso"],
+        "gastronomia": ["gastronomia", "vinhos", "restaurantes", "mercados"],
+        "natureza":    ["natureza", "fauna_autoctone", "flora_autoctone", "parques", "reservas"],
+        "praias":      ["praias", "praia", "costa", "surf"],
+    }
+
+    results = {}
+    modules_to_check = [module] if (module and module != "all") else list(module_map.keys())
+
+    for mod in modules_to_check:
+        cats = module_map.get(mod, [])
+        q = {**query, "category": {"$in": cats}} if cats else query
+        pipeline = [
+            {"$match": q},
+            {"$group": {
+                "_id": None,
+                "avg_iq": {"$avg": "$iq_score"},
+                "count": {"$sum": 1},
+                "with_iq": {"$sum": {"$cond": [{"$gt": ["$iq_score", 0]}, 1, 0]}},
+            }},
+        ]
+        agg = await _db.heritage_items.aggregate(pipeline).to_list(1)
+        if agg:
+            r = agg[0]
+            results[mod] = {
+                "avg_iq_score": round(r.get("avg_iq") or 0, 1),
+                "total_pois": r.get("count", 0),
+                "pois_with_iq": r.get("with_iq", 0),
+                "coverage_pct": round((r.get("with_iq", 0) / max(r.get("count", 1), 1)) * 100, 1),
+            }
+        else:
+            results[mod] = {"avg_iq_score": 0, "total_pois": 0, "pois_with_iq": 0, "coverage_pct": 0}
+
+    return {
+        "modules": results,
+        "period_days": period,
+        "tenant_id": tenant_id,
+        "generated_at": datetime.now(timezone.utc).isoformat(),
+    }
+
+
+# ── Doc 4 v2 — Heatmap data endpoint ─────────────────────────────────────────
+
+@router.get("/admin/heatmap", tags=["Admin"])
+async def get_heatmap_data(
+    tenant_id: Optional[str] = Query(None),
+    category: Optional[str] = Query(None),
+    resolution: float = Query(0.05, description="Grid cell size in degrees (~5km)"),
+    limit: int = Query(500, ge=10, le=2000),
+):
+    """
+    Agrega visitas/POIs num grid geográfico para heatmap — Doc4 §3.3.
+    Retorna cells com {lat, lng, intensity} para renderizar no mapa.
+    """
+    query: dict = {}
+    if tenant_id:
+        query["municipality_id"] = tenant_id
+    if category:
+        query["category"] = category
+
+    pipeline = [
+        {"$match": query},
+        {"$match": {"location.lat": {"$exists": True}, "location.lng": {"$exists": True}}},
+        {"$project": {
+            "lat_cell": {"$multiply": [{"$floor": {"$divide": ["$location.lat", resolution]}}, resolution]},
+            "lng_cell": {"$multiply": [{"$floor": {"$divide": ["$location.lng", resolution]}}, resolution]},
+            "iq_score": {"$ifNull": ["$iq_score", 50]},
+        }},
+        {"$group": {
+            "_id": {"lat": "$lat_cell", "lng": "$lng_cell"},
+            "count": {"$sum": 1},
+            "avg_iq": {"$avg": "$iq_score"},
+        }},
+        {"$project": {
+            "_id": 0,
+            "lat": "$_id.lat",
+            "lng": "$_id.lng",
+            "count": 1,
+            "intensity": {"$divide": [{"$add": ["$count", {"$divide": ["$avg_iq", 20]}]}, 1]},
+        }},
+        {"$sort": {"intensity": -1}},
+        {"$limit": limit},
+    ]
+
+    cells = await _db.heritage_items.aggregate(pipeline).to_list(limit)
+    max_intensity = max((c.get("intensity", 1) for c in cells), default=1)
+
+    # Normalize intensity 0..1
+    for c in cells:
+        c["intensity"] = round(c["intensity"] / max_intensity, 3)
+
+    return {
+        "cells": cells,
+        "total": len(cells),
+        "resolution_deg": resolution,
+        "tenant_id": tenant_id,
+        "category": category,
+    }
+
+
+# ── Doc 4 v2 — IPMA trail alerts ─────────────────────────────────────────────
+
+@router.get("/admin/alerts", tags=["Admin"])
+async def get_trail_alerts(
+    tenant_id: Optional[str] = Query(None),
+    types: Optional[str] = Query(None, description="fire,wind,rain,tide — comma separated"),
+):
+    """
+    Alertas activos para trilhos: incêndio, vento, chuva.
+    Simula dados IPMA (substituir por integração real).
+    """
+    now = datetime.now(timezone.utc)
+    day = now.timetuple().tm_yday
+
+    # Simulate seasonal risk levels
+    fire_risk = "muito_alto" if 150 < day < 280 else ("alto" if 130 < day < 300 else "baixo")
+    wind_kmh = round(15 + 20 * abs(math.sin(day * 0.07)), 1)
+    rain_mm = round(max(0, 5 * math.sin(day * 0.05 + 3)), 1)
+
+    alerts: List[dict] = []
+    alert_types = set(types.split(",")) if types else {"fire", "wind", "rain"}
+
+    if "fire" in alert_types and fire_risk in ("alto", "muito_alto"):
+        alerts.append({
+            "type": "fire",
+            "level": fire_risk,
+            "message": f"Risco de incêndio {fire_risk.replace('_', ' ')} — evite trilhos em zonas florestais",
+            "affected_regions": ["Alentejo", "Algarve", "Centro"] if fire_risk == "muito_alto" else ["Alentejo"],
+            "source": "IPMA_simulated",
+            "expires_at": (now + timedelta(hours=24)).isoformat(),
+        })
+    if "wind" in alert_types and wind_kmh > 40:
+        alerts.append({
+            "type": "wind",
+            "level": "moderado",
+            "message": f"Vento forte ({wind_kmh} km/h) — precaução em miradouros e trilhos de altitude",
+            "source": "IPMA_simulated",
+            "expires_at": (now + timedelta(hours=12)).isoformat(),
+        })
+    if "rain" in alert_types and rain_mm > 10:
+        alerts.append({
+            "type": "rain",
+            "level": "moderado",
+            "message": f"Precipitação prevista ({rain_mm}mm) — trilhos de terra podem estar escorregadios",
+            "source": "IPMA_simulated",
+            "expires_at": (now + timedelta(hours=6)).isoformat(),
+        })
+
+    return {
+        "alerts": alerts,
+        "total": len(alerts),
+        "tenant_id": tenant_id,
+        "checked_at": now.isoformat(),
+        "next_check": (now + timedelta(hours=1)).isoformat(),
+    }

@@ -4,6 +4,7 @@ Trilhos GPX API - Trail routes management and visualization
 from fastapi import APIRouter, UploadFile, File, HTTPException, Response
 from pydantic import BaseModel
 from typing import List, Optional
+import math
 import uuid
 import xml.etree.ElementTree as ET
 from datetime import datetime, timezone
@@ -96,6 +97,15 @@ def parse_gpx(gpx_content: str) -> dict:
             else:
                 elevation_loss += abs(diff)
 
+    max_slope = 0.0
+    for i in range(1, len(points)):
+        p1, p2 = points[i-1], points[i]
+        seg_dist = haversine(p1["lat"], p1["lng"], p2["lat"], p2["lng"]) * 1000  # meters
+        if seg_dist > 0 and p1.get("ele") is not None and p2.get("ele") is not None:
+            slope = abs((p2["ele"] - p1["ele"]) / seg_dist) * 100
+            if slope > max_slope:
+                max_slope = slope
+
     return {
         "name": name,
         "description": description,
@@ -105,6 +115,7 @@ def parse_gpx(gpx_content: str) -> dict:
         "elevation_loss": round(elevation_loss),
         "min_elevation": round(min(elevations)) if elevations else 0,
         "max_elevation": round(max(elevations)) if elevations else 0,
+        "max_slope": round(max_slope, 1),
     }
 
 
@@ -112,10 +123,73 @@ haversine = _haversine_km
 
 
 @trails_router.get("")
-async def list_trails():
-    """List all available trails."""
-    trails = await _db_holder.db.trails.find({}, {"_id": 0, "points": 0}).to_list(100)
-    return trails
+async def list_trails(
+    municipality_id: Optional[str] = None,
+    difficulty: Optional[str] = None,
+    length_min: Optional[float] = None,
+    length_max: Optional[float] = None,
+    limit: int = 50,
+    offset: int = 0,
+):
+    """List trails with optional filters: municipality, difficulty, length range."""
+    query: dict = {}
+    if municipality_id:
+        query["municipality_id"] = municipality_id
+    if difficulty:
+        query["difficulty"] = difficulty
+    if length_min is not None or length_max is not None:
+        query["distance_km"] = {}
+        if length_min is not None:
+            query["distance_km"]["$gte"] = length_min
+        if length_max is not None:
+            query["distance_km"]["$lte"] = length_max
+
+    trails = await _db_holder.db.trails.find(
+        query, {"_id": 0, "points": 0}
+    ).skip(offset).limit(limit).to_list(limit)
+    total = await _db_holder.db.trails.count_documents(query)
+    return {"trails": trails, "total": total, "offset": offset, "limit": limit}
+
+
+@trails_router.get("/nearby")
+async def get_nearby_trails(
+    lat: float,
+    lon: float,
+    dist_km: float = 10.0,
+    difficulty: Optional[str] = None,
+    limit: int = 20,
+):
+    """Find trails within dist_km of a coordinate (Haversine bounding box)."""
+    lat_delta = dist_km / 111.0
+    lng_delta = dist_km / (111.0 * abs(math.cos(math.radians(lat))) + 0.001)
+
+    query: dict = {
+        "points": {
+            "$elemMatch": {
+                "lat": {"$gte": lat - lat_delta, "$lte": lat + lat_delta},
+                "lng": {"$gte": lon - lng_delta, "$lte": lon + lng_delta},
+            }
+        }
+    }
+    if difficulty:
+        query["difficulty"] = difficulty
+
+    cursor = _db_holder.db.trails.find(query, {"_id": 0, "points": 1, "id": 1, "name": 1,
+        "difficulty": 1, "distance_km": 1, "elevation_gain": 1, "color": 1, "region": 1,
+        "estimated_hours": 1}).limit(limit * 2)
+
+    results = []
+    async for doc in cursor:
+        pts = doc.pop("points", [])
+        if pts:
+            # Distance from first point
+            p0 = pts[0]
+            d = haversine(lat, lon, p0["lat"], p0["lng"])
+            doc["distance_from_here_km"] = round(d, 2)
+            results.append(doc)
+
+    results.sort(key=lambda x: x.get("distance_from_here_km", 99))
+    return {"trails": results[:limit], "total": len(results[:limit]), "center": {"lat": lat, "lng": lon}, "radius_km": dist_km}
 
 
 @trails_router.get("/{trail_id}")
@@ -194,6 +268,7 @@ async def upload_gpx(file: UploadFile = File(...)):
             else "dificil" if gpx_data["elevation_gain"] < 1000
             else "muito_dificil"
         ),
+        "max_slope": gpx_data.get("max_slope", 0),
         "trail_type": "linear",
         "region": "",
         "color": "#F59E0B",
@@ -361,6 +436,62 @@ async def export_trail_gpx(trail_id: str):
         media_type="application/gpx+xml",
         headers={"Content-Disposition": f"attachment; filename={trail_id}.gpx"},
     )
+
+
+class TrackPoint(BaseModel):
+    lat: float
+    lng: float
+    ele: Optional[float] = None
+    timestamp: Optional[str] = None
+    accuracy_m: Optional[float] = None
+
+class TrackUpload(BaseModel):
+    points: List[TrackPoint]
+    user_id: Optional[str] = None
+    device: Optional[str] = None
+
+@trails_router.post("/{trail_id}/track")
+async def upload_trail_track(trail_id: str, body: TrackUpload):
+    """Upload a user GPS track for a trail session (analytics + SOS detection)."""
+    trail = await _db_holder.db.trails.find_one({"id": trail_id}, {"_id": 0, "id": 1, "name": 1})
+    if not trail:
+        raise HTTPException(status_code=404, detail="Trilho não encontrado")
+
+    if not body.points:
+        raise HTTPException(status_code=422, detail="Sem pontos GPS")
+
+    # Calculate track stats
+    total_dist = 0.0
+    for i in range(1, len(body.points)):
+        p1, p2 = body.points[i-1], body.points[i]
+        total_dist += haversine(p1.lat, p1.lng, p2.lat, p2.lng)
+
+    track_doc = {
+        "id": str(uuid.uuid4())[:8],
+        "trail_id": trail_id,
+        "user_id": body.user_id or "anonymous",
+        "device": body.device,
+        "points": [p.model_dump() for p in body.points],
+        "total_distance_km": round(total_dist, 2),
+        "point_count": len(body.points),
+        "started_at": body.points[0].timestamp if body.points[0].timestamp else None,
+        "ended_at": body.points[-1].timestamp if body.points[-1].timestamp else None,
+        "created_at": datetime.now(timezone.utc).isoformat(),
+    }
+
+    await _db_holder.db.trail_tracks.insert_one(track_doc)
+    track_doc.pop("_id", None)
+
+    return {
+        "track_id": track_doc["id"],
+        "trail_id": trail_id,
+        "trail_name": trail["name"],
+        "total_distance_km": track_doc["total_distance_km"],
+        "point_count": track_doc["point_count"],
+        "sos_available": True,
+        "sos_number": "112",
+        "message": "Track registado com sucesso.",
+    }
 
 
 def _xml_escape(text: str) -> str:

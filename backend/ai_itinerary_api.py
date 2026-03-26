@@ -423,3 +423,90 @@ async def enrich_poi(body: EnrichRequest):
         "fonte": "ai_generated" if llm_text else "fallback_template",
         "gerado_em": datetime.datetime.utcnow().isoformat() + "Z",
     }
+
+
+class RecommendationsRequest(BaseModel):
+    lat: float
+    lng: float
+    interests: List[str] = Field(default_factory=list, description="ex: ['natureza','historia','surf']")
+    radius_km: float = Field(25.0, ge=1, le=100)
+    limit: int = Field(10, ge=1, le=30)
+    exclude_ids: List[str] = Field(default_factory=list, description="IDs já vistos")
+
+
+@ai_itinerary_router.post("/recommendations")
+async def get_recommendations(body: RecommendationsRequest):
+    """
+    Recomendações personalizadas por localização + interesses.
+    Combina proximidade geográfica, categorias de interesse e IQ score.
+    """
+    # Map interests to categories
+    interest_categories: List[str] = []
+    for interest in body.interests:
+        cats = THEME_CATEGORIES.get(interest, [])
+        interest_categories.extend(cats)
+    # If no interests specified, use broad categories
+    if not interest_categories:
+        interest_categories = ["historia", "natureza", "miradouros", "patrimonio", "percursos_pedestres"]
+
+    lat_delta = body.radius_km / 111.0
+    lng_delta = body.radius_km / (111.0 * abs(math.cos(math.radians(body.lat))) + 0.001)
+
+    query: dict = {
+        "location.lat": {"$gte": body.lat - lat_delta, "$lte": body.lat + lat_delta},
+        "location.lng": {"$gte": body.lng - lng_delta, "$lte": body.lng + lng_delta},
+        "category": {"$in": list(set(interest_categories))},
+    }
+    if body.exclude_ids:
+        query["id"] = {"$nin": body.exclude_ids}
+
+    recs: list = []
+    if _db is not None:
+        cursor = _db["heritage_items"].find(query, {
+            "_id": 0, "id": 1, "name": 1, "category": 1, "description": 1,
+            "region": 1, "location": 1, "iq_score": 1, "image_url": 1,
+        }).limit(body.limit * 4)
+
+        async for doc in cursor:
+            loc = doc.get("location", {})
+            plat = loc.get("lat") or 0
+            plng = loc.get("lng") or 0
+            dist = _haversine_km(body.lat, body.lng, plat, plng)
+            if dist <= body.radius_km:
+                # Score: weighted mix of proximity + IQ score
+                iq = doc.get("iq_score") or 50
+                proximity_score = max(0, 1 - dist / body.radius_km)
+                doc["_score"] = round(proximity_score * 0.5 + (iq / 100) * 0.5, 3)
+                doc["distance_km"] = round(dist, 2)
+                recs.append(doc)
+
+    # Sort by combined score desc
+    recs.sort(key=lambda x: x.get("_score", 0), reverse=True)
+    top = recs[:body.limit]
+
+    # Clean internal score field
+    for r in top:
+        r.pop("_score", None)
+
+    # Generate AI micro-descriptions if LLM available
+    if top and _get_llm_key():
+        names = ", ".join(r["name"] for r in top[:5])
+        try:
+            tip = await _call_llm([
+                {"role": "system", "content": "És um guia turístico português. Responde em português europeu, conciso."},
+                {"role": "user", "content": f"Em 1 frase evocativa (máx 120 chars), descreve por que visitar esta zona com estes locais: {names}"}
+            ], max_tokens=80)
+        except Exception:
+            tip = None
+    else:
+        tip = None
+
+    return {
+        "recommendations": top,
+        "total": len(top),
+        "interests": body.interests,
+        "center": {"lat": body.lat, "lng": body.lng},
+        "radius_km": body.radius_km,
+        "ai_tip": tip,
+        "source": "geo_iq_weighted",
+    }
