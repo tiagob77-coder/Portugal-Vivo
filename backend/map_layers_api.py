@@ -2,10 +2,16 @@
 map_layers_api.py — Configuração dinâmica de camadas do mapa
 GET /map/layers     → lista de layers disponíveis com metadados
 GET /map/pois       → POIs próximos por coordenada e raio
+POST /map/search    → pesquisa full-text com filtro geográfico opcional
+GET /map/trails     → trilhos filtrados por bounding box
+GET /map/environmental → dados ambientais simulados (vento, UV, qualidade do ar)
 """
 from fastapi import APIRouter, Query
+from fastapi.responses import JSONResponse
+from pydantic import BaseModel
 from typing import Optional, List
 import math
+import datetime
 
 router = APIRouter(prefix="/map", tags=["Map Layers"])
 
@@ -108,7 +114,45 @@ LAYER_DEFINITIONS = [
         "description": "Património imaterial e tradições",
         "visible_zoom": 9,
     },
+    {
+        "id": "vegetacao",
+        "label": "Vegetação",
+        "icon": "forest",
+        "color": "#15803D",
+        "categories": ["flora_autoctone", "flora_botanica", "natureza_especializada"],
+        "description": "Flora autóctone e habitats naturais",
+        "visible_zoom": 9,
+    },
+    {
+        "id": "geologia",
+        "label": "Geologia",
+        "icon": "diamond",
+        "color": "#92400E",
+        "categories": ["arqueologia_geologia", "minas", "grutas"],
+        "description": "Geologia, grutas e sítios arqueológicos",
+        "visible_zoom": 8,
+    },
+    {
+        "id": "hidrografia",
+        "label": "Hidrografia",
+        "icon": "water",
+        "color": "#0EA5E9",
+        "categories": ["cascatas_pocos", "barragens_albufeiras", "praias_fluviais", "rios"],
+        "description": "Rios, cascatas, barragens e praias fluviais",
+        "visible_zoom": 8,
+    },
+    {
+        "id": "miradouros_360",
+        "label": "Miradouros 360°",
+        "icon": "panorama",
+        "color": "#6366F1",
+        "categories": ["miradouros", "miradouro"],
+        "description": "Pontos panorâmicos com vista 360°",
+        "visible_zoom": 9,
+        "premium": True,
+    },
 ]
+
 
 def _haversine_km(lat1, lon1, lat2, lon2):
     R = 6371
@@ -117,6 +161,7 @@ def _haversine_km(lat1, lon1, lat2, lon2):
     a = math.sin(dLat / 2) ** 2 + math.cos(math.radians(lat1)) * math.cos(math.radians(lat2)) * math.sin(dLon / 2) ** 2
     return R * 2 * math.asin(math.sqrt(a))
 
+
 @router.get("/layers")
 async def get_map_layers():
     """Retorna definições de camadas do mapa com metadados para o frontend."""
@@ -124,6 +169,7 @@ async def get_map_layers():
         "layers": LAYER_DEFINITIONS,
         "total": len(LAYER_DEFINITIONS),
     }
+
 
 @router.get("/pois")
 async def get_nearby_pois(
@@ -176,3 +222,244 @@ async def get_nearby_pois(
 
     pois.sort(key=lambda p: p.get("distance_km", 99))
     return {"pois": pois[:limit], "total": len(pois)}
+
+
+# ─── Search request body ────────────────────────────────────────────────────────
+
+class SearchRequest(BaseModel):
+    q: str
+    lat: Optional[float] = None
+    lng: Optional[float] = None
+    radius_km: float = 50
+    layers: Optional[List[str]] = None
+    limit: int = 20
+
+
+@router.post("/search")
+async def search_map(body: SearchRequest):
+    """Pesquisa full-text nos heritage_items com filtro geográfico e por camada opcionais."""
+    if _db is None:
+        return {"results": [], "total": 0, "query": body.q, "geo_filtered": False}
+
+    query: dict = {
+        "$or": [
+            {"name": {"$regex": body.q, "$options": "i"}},
+            {"description": {"$regex": body.q, "$options": "i"}},
+        ]
+    }
+
+    geo_filtered = False
+
+    # Bounding box filter when coordinates are provided
+    if body.lat is not None and body.lng is not None:
+        geo_filtered = True
+        lat_delta = body.radius_km / 111.0
+        lng_delta = body.radius_km / (111.0 * abs(math.cos(math.radians(body.lat))) + 0.001)
+        query["location.lat"] = {"$gte": body.lat - lat_delta, "$lte": body.lat + lat_delta}
+        query["location.lng"] = {"$gte": body.lng - lng_delta, "$lte": body.lng + lng_delta}
+
+    # Layer category filter
+    if body.layers:
+        allowed_categories: List[str] = []
+        for layer_id in body.layers:
+            layer_def = next((l for l in LAYER_DEFINITIONS if l["id"] == layer_id), None)
+            if layer_def:
+                allowed_categories.extend(layer_def["categories"])
+        if allowed_categories:
+            query["category"] = {"$in": list(set(allowed_categories))}
+
+    cursor = _db["heritage_items"].find(query, {
+        "_id": 0, "id": 1, "name": 1, "category": 1, "region": 1,
+        "location": 1, "iq_score": 1, "image_url": 1, "description": 1,
+    }).limit(body.limit * 3)
+
+    results = []
+    async for doc in cursor:
+        if body.lat is not None and body.lng is not None:
+            loc = doc.get("location", {})
+            poi_lat = loc.get("lat") or loc.get("latitude")
+            poi_lng = loc.get("lng") or loc.get("longitude")
+            if poi_lat and poi_lng:
+                dist = _haversine_km(body.lat, body.lng, poi_lat, poi_lng)
+                if dist <= body.radius_km:
+                    doc["distance_km"] = round(dist, 2)
+                    results.append(doc)
+            # Skip items without valid coordinates when geo filtering
+        else:
+            results.append(doc)
+
+    if body.lat is not None and body.lng is not None:
+        results.sort(key=lambda p: p.get("distance_km", 99))
+
+    results = results[: body.limit]
+    return {
+        "results": results,
+        "total": len(results),
+        "query": body.q,
+        "geo_filtered": geo_filtered,
+    }
+
+
+@router.get("/trails")
+async def get_map_trails(
+    bbox: Optional[str] = Query(None, description="minLng,minLat,maxLng,maxLat"),
+    difficulty: Optional[str] = Query(None, description="facil|moderado|dificil|muito_dificil"),
+    limit: int = Query(50, ge=1, le=200),
+):
+    """Trilhos filtrados por bounding box e/ou dificuldade."""
+    if _db is None:
+        return {"trails": [], "total": 0}
+
+    query: dict = {}
+
+    if difficulty:
+        query["difficulty"] = difficulty
+
+    if bbox:
+        try:
+            min_lng, min_lat, max_lng, max_lat = [float(v) for v in bbox.split(",")]
+            # Filter trails whose points overlap with the bounding box
+            query["$or"] = [
+                {
+                    "points": {
+                        "$elemMatch": {
+                            "lat": {"$gte": min_lat, "$lte": max_lat},
+                            "lng": {"$gte": min_lng, "$lte": max_lng},
+                        }
+                    }
+                }
+            ]
+        except (ValueError, AttributeError):
+            pass  # Ignore malformed bbox — return all
+
+    cursor = _db["trails"].find(query, {
+        "_id": 0,
+        "id": 1,
+        "name": 1,
+        "difficulty": 1,
+        "distance_km": 1,
+        "elevation_gain": 1,
+        "color": 1,
+        "region": 1,
+        "points": 1,  # needed for point_count; excluded below
+    }).limit(limit)
+
+    trails = []
+    async for doc in cursor:
+        points = doc.pop("points", [])
+        doc["point_count"] = len(points)
+        trails.append(doc)
+
+    return {"trails": trails, "total": len(trails)}
+
+
+@router.get("/environmental")
+async def get_environmental_data(
+    lat: float = Query(..., description="Latitude"),
+    lng: float = Query(..., description="Longitude"),
+):
+    """Dados ambientais simulados para sobreposição no mapa (sem API externa)."""
+    now = datetime.datetime.utcnow()
+    day_of_year = now.timetuple().tm_yday
+    hour = now.hour
+
+    # ── Wind simulation ─────────────────────────────────────────────────────
+    # Base speed varies by season and a pseudo-random element from lat/lng
+    seasonal_factor = 1.0 + 0.4 * math.sin(2 * math.pi * (day_of_year - 80) / 365)
+    pseudo_random = abs(math.sin(lat * 17.3 + lng * 31.7 + day_of_year * 0.1))
+    wind_speed_kmh = round(10 + 15 * seasonal_factor * pseudo_random, 1)
+    # Direction: dominant westerlies in Portugal, with some variation
+    direction_deg = int((270 + 60 * math.sin(lat * 0.5 + day_of_year * 0.05)) % 360)
+    directions = ["N", "NE", "E", "SE", "S", "SW", "W", "NW"]
+    direction_label = directions[int((direction_deg + 22.5) / 45) % 8]
+
+    # ── UV Index simulation ──────────────────────────────────────────────────
+    # Peaks midday in summer; Portugal latitude ~37–42°N
+    solar_elevation = max(
+        0.0,
+        math.sin(math.radians(lat)) * math.sin(math.radians(-23.45 * math.cos(math.radians(360 / 365 * (day_of_year + 10)))))
+        + math.cos(math.radians(lat)) * math.cos(math.radians(-23.45 * math.cos(math.radians(360 / 365 * (day_of_year + 10)))))
+        * math.cos(math.radians(15 * (hour - 12)))
+    )
+    uv_index = round(min(11, 11 * solar_elevation * (0.7 + 0.3 * math.sin(2 * math.pi * (day_of_year - 80) / 365))), 1)
+    if uv_index <= 2:
+        uv_level = "Baixo"
+    elif uv_index <= 5:
+        uv_level = "Moderado"
+    elif uv_index <= 7:
+        uv_level = "Alto"
+    elif uv_index <= 10:
+        uv_level = "Muito Alto"
+    else:
+        uv_level = "Extremo"
+
+    # ── Air quality simulation ───────────────────────────────────────────────
+    # Higher AQI near coasts and cities (approximated by lng proximity to coast)
+    aqi_base = 30 + 20 * abs(math.sin(lng * 5.3 + day_of_year * 0.07))
+    aqi = int(min(150, aqi_base + 10 * pseudo_random))
+    if aqi <= 50:
+        aqi_level = "Boa"
+    elif aqi <= 100:
+        aqi_level = "Moderada"
+    elif aqi <= 150:
+        aqi_level = "Insalubre para grupos sensíveis"
+    else:
+        aqi_level = "Insalubre"
+
+    # ── Sunrise / Sunset (simplified for Portugal) ───────────────────────────
+    # Solar declination
+    decl_rad = math.radians(-23.45 * math.cos(math.radians(360 / 365 * (day_of_year + 10))))
+    lat_rad = math.radians(lat)
+    cos_ha = -math.tan(lat_rad) * math.tan(decl_rad)
+    cos_ha = max(-1.0, min(1.0, cos_ha))
+    hour_angle_deg = math.degrees(math.acos(cos_ha))
+    # Equation of time approximation (minutes)
+    B = math.radians(360 / 365 * (day_of_year - 81))
+    eot = 9.87 * math.sin(2 * B) - 7.53 * math.cos(B) - 1.5 * math.sin(B)
+    # UTC offset for Portugal (WET = 0, WEST = +1 in summer)
+    utc_offset = 1 if 80 <= day_of_year <= 300 else 0
+    longitude_correction = (lng - 0) / 15  # degrees east of 0 meridian
+    solar_noon = 12 - longitude_correction - eot / 60 + utc_offset
+    sunrise_h = solar_noon - hour_angle_deg / 15
+    sunset_h = solar_noon + hour_angle_deg / 15
+
+    def _fmt_time(frac_h: float) -> str:
+        total_min = int(round(frac_h * 60))
+        return f"{total_min // 60:02d}:{total_min % 60:02d}"
+
+    sunrise_str = _fmt_time(sunrise_h)
+    sunset_str = _fmt_time(sunset_h)
+
+    # ── Moon phase ───────────────────────────────────────────────────────────
+    # Days since known new moon (Jan 6 2000 = JD 2451549.5)
+    jd = 2451545.0 + (now - datetime.datetime(2000, 1, 1, 12, 0, 0)).total_seconds() / 86400
+    moon_age = (jd - 2451549.5) % 29.53058867
+    if moon_age < 1.85:
+        moon_phase = "Lua Nova"
+    elif moon_age < 7.38:
+        moon_phase = "Quarto Crescente"
+    elif moon_age < 14.77:
+        moon_phase = "Lua Cheia"
+    elif moon_age < 22.15:
+        moon_phase = "Quarto Minguante"
+    else:
+        moon_phase = "Lua Nova"
+
+    return {
+        "wind": {
+            "speed_kmh": wind_speed_kmh,
+            "direction": direction_label,
+            "direction_deg": direction_deg,
+        },
+        "uv": {
+            "index": uv_index,
+            "level": uv_level,
+        },
+        "air_quality": {
+            "aqi": aqi,
+            "level": aqi_level,
+        },
+        "sunrise": sunrise_str,
+        "sunset": sunset_str,
+        "moon_phase": moon_phase,
+    }

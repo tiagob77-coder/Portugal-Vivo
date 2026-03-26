@@ -1,7 +1,7 @@
 """
 Trilhos GPX API - Trail routes management and visualization
 """
-from fastapi import APIRouter, UploadFile, File, HTTPException
+from fastapi import APIRouter, UploadFile, File, HTTPException, Response
 from pydantic import BaseModel
 from typing import List, Optional
 import uuid
@@ -185,8 +185,15 @@ async def upload_gpx(file: UploadFile = File(...)):
         "elevation_loss": gpx_data["elevation_loss"],
         "min_elevation": gpx_data["min_elevation"],
         "max_elevation": gpx_data["max_elevation"],
-        "estimated_hours": round(gpx_data["distance_km"] / 4, 1),
-        "difficulty": "moderado",
+        "estimated_hours": round(
+            gpx_data["distance_km"] / 4.0 + gpx_data["elevation_gain"] / 600.0, 1
+        ),
+        "difficulty": (
+            "facil" if gpx_data["elevation_gain"] < 200
+            else "moderado" if gpx_data["elevation_gain"] < 500
+            else "dificil" if gpx_data["elevation_gain"] < 1000
+            else "muito_dificil"
+        ),
         "trail_type": "linear",
         "region": "",
         "color": "#F59E0B",
@@ -226,3 +233,142 @@ async def get_elevation_profile(trail_id: str):
         profile = profile[::step] + [profile[-1]]
 
     return {"trail_name": trail["name"], "profile": profile}
+
+
+@trails_router.get("/{trail_id}/segments")
+async def get_trail_segments(trail_id: str):
+    """Calcula segmentos do trilho com declive, distância e classificação de superfície."""
+    trail = await _db_holder.db.trails.find_one({"id": trail_id}, {"_id": 0, "points": 1, "name": 1})
+    if not trail:
+        raise HTTPException(status_code=404, detail="Trilho não encontrado")
+
+    points = trail["points"]
+    if len(points) < 2:
+        raise HTTPException(status_code=422, detail="Trilho sem pontos suficientes para calcular segmentos")
+
+    # Downsample to max 100 segments (101 points)
+    if len(points) > 101:
+        step = (len(points) - 1) / 100
+        indices = [int(round(i * step)) for i in range(100)] + [len(points) - 1]
+        # Remove duplicates while preserving order
+        seen = set()
+        unique_indices = []
+        for idx in indices:
+            if idx not in seen:
+                seen.add(idx)
+                unique_indices.append(idx)
+        points = [points[i] for i in unique_indices]
+
+    def _slope_class(abs_slope_pct: float) -> str:
+        if abs_slope_pct < 2:
+            return "plano"
+        elif abs_slope_pct < 5:
+            return "suave"
+        elif abs_slope_pct < 10:
+            return "moderado"
+        elif abs_slope_pct < 20:
+            return "inclinado"
+        else:
+            return "muito_inclinado"
+
+    segments = []
+    class_counts: dict = {
+        "plano": 0, "suave": 0, "moderado": 0, "inclinado": 0, "muito_inclinado": 0
+    }
+
+    for i in range(1, len(points)):
+        p1, p2 = points[i - 1], points[i]
+        dist_km = haversine(p1["lat"], p1["lng"], p2["lat"], p2["lng"])
+        dist_m = dist_km * 1000
+        ele_start = p1.get("ele") or 0.0
+        ele_end = p2.get("ele") or 0.0
+        ele_diff = ele_end - ele_start
+        slope_pct = round((ele_diff / dist_m) * 100, 1) if dist_m > 0 else 0.0
+        s_class = _slope_class(abs(slope_pct))
+        class_counts[s_class] += 1
+
+        segments.append({
+            "segment_index": i - 1,
+            "distance_m": round(dist_m, 1),
+            "elevation_start": round(ele_start, 1),
+            "elevation_end": round(ele_end, 1),
+            "slope_pct": slope_pct,
+            "slope_class": s_class,
+            "surface_type": "terra",
+        })
+
+    total = len(segments) or 1
+    slope_summary = {
+        f"{k}_pct": round(v / total * 100, 1)
+        for k, v in class_counts.items()
+    }
+
+    return {
+        "trail_id": trail_id,
+        "trail_name": trail.get("name", ""),
+        "total_segments": len(segments),
+        "segments": segments,
+        "slope_summary": slope_summary,
+    }
+
+
+@trails_router.get("/{trail_id}/export/gpx")
+async def export_trail_gpx(trail_id: str):
+    """Exporta o trilho em formato GPX 1.1."""
+    trail = await _db_holder.db.trails.find_one({"id": trail_id}, {"_id": 0})
+    if not trail:
+        raise HTTPException(status_code=404, detail="Trilho não encontrado")
+
+    name = trail.get("name", trail_id)
+    description = trail.get("description", "")
+    points = trail.get("points", [])
+    created_at = trail.get("created_at", datetime.now(timezone.utc).isoformat())
+
+    lines = [
+        '<?xml version="1.0" encoding="UTF-8"?>',
+        '<gpx version="1.1" creator="Portugal Vivo"',
+        '     xmlns="http://www.topografix.com/GPX/1/1"',
+        '     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"',
+        '     xsi:schemaLocation="http://www.topografix.com/GPX/1/1 http://www.topografix.com/GPX/1/1/gpx.xsd">',
+        "  <metadata>",
+        f"    <name>{_xml_escape(name)}</name>",
+        f"    <desc>{_xml_escape(description)}</desc>",
+        f"    <time>{created_at}</time>",
+        "  </metadata>",
+        "  <trk>",
+        f"    <name>{_xml_escape(name)}</name>",
+        "    <trkseg>",
+    ]
+
+    for pt in points:
+        lat = pt.get("lat", 0)
+        lng = pt.get("lng", 0)
+        ele = pt.get("ele")
+        if ele is not None:
+            lines.append(f'      <trkpt lat="{lat}" lon="{lng}"><ele>{ele}</ele></trkpt>')
+        else:
+            lines.append(f'      <trkpt lat="{lat}" lon="{lng}"/>')
+
+    lines += [
+        "    </trkseg>",
+        "  </trk>",
+        "</gpx>",
+    ]
+
+    gpx_xml = "\n".join(lines)
+    return Response(
+        content=gpx_xml,
+        media_type="application/gpx+xml",
+        headers={"Content-Disposition": f"attachment; filename={trail_id}.gpx"},
+    )
+
+
+def _xml_escape(text: str) -> str:
+    """Escape special XML characters."""
+    return (
+        text.replace("&", "&amp;")
+            .replace("<", "&lt;")
+            .replace(">", "&gt;")
+            .replace('"', "&quot;")
+            .replace("'", "&apos;")
+    )
