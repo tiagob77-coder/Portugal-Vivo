@@ -791,7 +791,17 @@ from infrastructure_api import infrastructure_router, set_infrastructure_db
 set_infrastructure_db(db)
 api_router.include_router(infrastructure_router)
 
-logger.info("🌊  Costa + AI + Economy + GeoPrehistoria + MarineBiodiversity + Infrastructure registered")
+# ── Maritime Culture API ──────────────────────────────────────────────────────
+from maritime_culture_api import (
+    maritime_culture_router,
+    set_maritime_culture_db,
+    set_maritime_culture_llm_key,
+)
+set_maritime_culture_db(db)
+set_maritime_culture_llm_key(EMERGENT_LLM_KEY)
+api_router.include_router(maritime_culture_router)
+
+logger.info("🌊  Costa+AI+Economy+GeoPrehistoria+MarineBio+Infrastructure+MaritimeCulture registered")
 
 # Include the router in the main app
 app.include_router(api_router)

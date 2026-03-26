@@ -215,6 +215,10 @@ LAYER_DEFINITIONS = [
     {"id":"pontes_suspensas","label":"Pontes Suspensas","icon":"link","color":"#7C3AED","categories":["ponte_suspensa","ponte_pedonal"],"description":"Pontes pedonais suspensas e panorâmicas","visible_zoom":8,"group":"infraestrutura"},
     {"id":"ecovias","label":"Ecovias","icon":"nature","color":"#16A34A","categories":["ecovia","via_verde","ciclovia"],"description":"Ecovias, vias verdes e ciclovias naturais","visible_zoom":7,"group":"infraestrutura"},
     {"id":"miradouros","label":"Miradouros","icon":"landscape","color":"#D97706","categories":["miradouro","miradouro_montanha","miradouro_costeiro","torre_observacao"],"description":"Miradouros naturais e torres de observação","visible_zoom":8,"group":"infraestrutura"},
+    # ── Cultura Marítima ─────────────────────────────────────────────────────
+    {"id":"procissoes_maritimas","label":"Procissões","icon":"directions-boat","color":"#1D4ED8","categories":["procissao_maritima","bencao_barcos"],"description":"Procissões ao mar e bênçãos das frotas pesqueiras","visible_zoom":8,"group":"cultura_maritima"},
+    {"id":"festas_mar","label":"Festas do Mar","icon":"celebration","color":"#B45309","categories":["festa_mar","ritual_religioso","banho_santo"],"description":"Festas, romarias e rituais marítimos tradicionais","visible_zoom":7,"group":"cultura_maritima"},
+    {"id":"tradicoes_piscatorias","label":"Tradições","icon":"anchor","color":"#0F766E","categories":["tradicao_piscatoria","arte_xavega","pesca_artesanal"],"description":"Tradições piscatórias vivas da costa portuguesa","visible_zoom":8,"group":"cultura_maritima"},
 ]
 
 
