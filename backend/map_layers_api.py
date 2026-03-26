@@ -205,6 +205,11 @@ LAYER_DEFINITIONS = [
     {"id":"arte_rupestre","label":"Arte Rupestre","icon":"brush","color":"#B91C1C","categories":["rupestre","gravura_paleolitica","gravura_rupestre"],"description":"Gravuras e pinturas rupestres","visible_zoom":8,"group":"prehistoria"},
     {"id":"geossitios","label":"Geossítios","icon":"terrain","color":"#7C3AED","categories":["geositio","afloramento_granitico"],"description":"Geossítios LNEG","visible_zoom":7,"group":"prehistoria"},
     {"id":"astronomia_prehistorica","label":"Astronomia","icon":"nights-stay","color":"#0F766E","categories":["santuario","alinhamento_solar","alinhamento_lunar"],"description":"Sítios com alinhamentos astronómicos","visible_zoom":7,"group":"prehistoria","premium":True},
+    # ── Biodiversidade Marinha ──────────────────────────────────────────────
+    {"id":"avistamentos_marinhos","label":"Avistamentos","icon":"visibility","color":"#0EA5E9","categories":["avistamento","whale_watching","birdwatching"],"description":"Avistamentos de espécies marinhas reportados pela comunidade","visible_zoom":8,"group":"biodiversidade"},
+    {"id":"habitats_marinhos","label":"Habitats","icon":"water","color":"#0D9488","categories":["lagoon","estuary","rocky_shore","seamount","reef"],"description":"Habitats costeiros e marinhos protegidos","visible_zoom":7,"group":"biodiversidade"},
+    {"id":"zonas_protegidas_mar","label":"Áreas Protegidas","icon":"shield","color":"#16A34A","categories":["marine_protected_area","natura_2000","ramsar","parque_natural"],"description":"Áreas marinhas e costeiras protegidas","visible_zoom":6,"group":"biodiversidade"},
+    {"id":"rotas_migracoes","label":"Migrações","icon":"flight","color":"#7C3AED","categories":["migracao_cetaceos","migracao_aves","migracao_peixes"],"description":"Rotas sazonais de migração de cetáceos, aves e peixes","visible_zoom":5,"group":"biodiversidade"},
 ]
 
 
