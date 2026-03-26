@@ -318,21 +318,28 @@ def _simulate_conditions(zone: dict) -> dict:
     seg = zone["condicoes"]["seguranca"]
     flag_map = {
         "muito_alta": ("verde", "Segura"),
-        "alta": ("verde", "Boa"),
-        "media": ("amarelo", "Atenção"),
+        "alta": ("verde", "Segura"),
+        "media": ("amarelo", "Precaução"),
         "baixa": ("vermelho", "Perigosa"),
     }
-    flag_cor, nivel = flag_map.get(seg, ("amarelo", "Atenção"))
+    flag_cor, nivel = flag_map.get(seg, ("amarelo", "Precaução"))
     if wave_h > 3.0:
         flag_cor, nivel = "vermelho", "Perigosa"
     if wave_h > 5.0:
         flag_cor, nivel = "roxo", "Interdita"
 
+    observacao_map = {
+        "verde": "Condições seguras para banhos e atividades aquáticas.",
+        "amarelo": "Atenção às correntes e às ondas. Recomenda-se cautela.",
+        "vermelho": "Condições perigosas. Desaconselhados os banhos.",
+        "roxo": "Condições extremas. Acesso interdito à orla.",
+    }
+
     return {
         "mares": {
             "altura_atual_m": tide_height,
             "estado": tide_direction,
-            "proximas": proximas_mares,
+            "proxima_mares": proximas_mares,
         },
         "ondas": {
             "altura_m": wave_h,
@@ -352,7 +359,7 @@ def _simulate_conditions(zone: dict) -> dict:
         "seguranca": {
             "flag_cor": flag_cor,
             "nivel": nivel,
-            "observacao": zone["condicoes"]["melhor_epoca"],
+            "observacao": observacao_map[flag_cor],
         },
         "timestamp": datetime.datetime.utcnow().isoformat() + "Z",
     }
@@ -363,23 +370,24 @@ def _simulate_conditions(zone: dict) -> dict:
 @costa_router.get("/")
 async def list_costa_zones(
     region: Optional[str] = Query(None, description="Norte | Centro | Lisboa | Alentejo | Algarve"),
-    perfil: Optional[str] = Query(None, description="surfer | familia | fotografo | natureza"),
-    order_by: str = Query("order", description="order | name | seguranca"),
+    perfil: Optional[str] = Query(None, description="surfer | familia | fotografo | natureza — ordena por este perfil (desc)"),
+    order_by: str = Query("order", description="order | name | region"),
 ):
-    """Lista todas as zonas costeiras com filtros opcionais."""
+    """Lista todas as zonas costeiras com filtros opcionais por região e ordenação por perfil."""
     zones = list(COASTAL_ZONES)
 
     if region:
         zones = [z for z in zones if z["region"].lower() == region.lower()]
 
-    if perfil and perfil in ("surfer", "familia", "fotografo", "natureza"):
-        zones = [z for z in zones if z["perfis"].get(perfil, 0) >= 4]
-
-    if order_by == "name":
+    valid_perfis = {"surfer", "familia", "fotografo", "natureza"}
+    if perfil and perfil in valid_perfis:
+        # Sort descending by the chosen perfil score
+        zones = sorted(zones, key=lambda z: z["perfis"].get(perfil, 0), reverse=True)
+    elif order_by == "name":
         zones = sorted(zones, key=lambda z: z["name"])
-    elif order_by == "seguranca":
-        seg_order = {"muito_alta": 0, "alta": 1, "media": 2, "baixa": 3}
-        zones = sorted(zones, key=lambda z: seg_order.get(z["condicoes"]["seguranca"], 9))
+    elif order_by == "region":
+        zones = sorted(zones, key=lambda z: (z["region"], z["order"]))
+    # default: keep natural order (already ordered by "order" field)
 
     # Remove internal detail for list view
     return {
@@ -388,7 +396,7 @@ async def list_costa_zones(
             for z in zones
         ],
         "total": len(zones),
-        "filters": {"region": region, "perfil": perfil},
+        "filters": {"region": region, "perfil": perfil, "order_by": perfil if (perfil and perfil in valid_perfis) else order_by},
         "source": "costa_curated_v1",
     }
 
