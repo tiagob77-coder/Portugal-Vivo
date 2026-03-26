@@ -1,17 +1,17 @@
 /**
  * Economia Local — markets, artisans, and regional products explorer
  */
-import React, { useState, useRef } from 'react';
+import React, { useState } from 'react';
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity,
-  Animated, Dimensions,
+  Dimensions,
 } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import EconomyMarketCard from '../../src/components/EconomyMarketCard';
 
-const { width: SCREEN_WIDTH } = Dimensions.get('window');
+const { width: _SCREEN_WIDTH } = Dimensions.get('window');
 
 // ─── Colors ───────────────────────────────────────────────────────────────────
 
@@ -322,7 +322,7 @@ export default function EconomiaScreen() {
               <MaterialIcons name="search-off" size={36} color={C.textLight} />
               <Text style={styles.emptyStateTitle}>Sem produtos nesta época</Text>
               <Text style={styles.emptyStateText}>
-                Tente outro mês ou selecione "Todos".
+                Tente outro mês ou selecione &quot;Todos&quot;.
               </Text>
             </View>
           )}
