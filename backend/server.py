@@ -786,7 +786,12 @@ set_marine_biodiversity_db(db)
 set_marine_biodiversity_llm_key(EMERGENT_LLM_KEY)
 api_router.include_router(marine_biodiversity_router)
 
-logger.info("🌊  Costa + AI + Economy + GeoPrehistoria + MarineBiodiversity registered")
+# ── Infrastructure API ────────────────────────────────────────────────────────
+from infrastructure_api import infrastructure_router, set_infrastructure_db
+set_infrastructure_db(db)
+api_router.include_router(infrastructure_router)
+
+logger.info("🌊  Costa + AI + Economy + GeoPrehistoria + MarineBiodiversity + Infrastructure registered")
 
 # Include the router in the main app
 app.include_router(api_router)

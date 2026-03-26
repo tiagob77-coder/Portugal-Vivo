@@ -210,6 +210,11 @@ LAYER_DEFINITIONS = [
     {"id":"habitats_marinhos","label":"Habitats","icon":"water","color":"#0D9488","categories":["lagoon","estuary","rocky_shore","seamount","reef"],"description":"Habitats costeiros e marinhos protegidos","visible_zoom":7,"group":"biodiversidade"},
     {"id":"zonas_protegidas_mar","label":"Áreas Protegidas","icon":"shield","color":"#16A34A","categories":["marine_protected_area","natura_2000","ramsar","parque_natural"],"description":"Áreas marinhas e costeiras protegidas","visible_zoom":6,"group":"biodiversidade"},
     {"id":"rotas_migracoes","label":"Migrações","icon":"flight","color":"#7C3AED","categories":["migracao_cetaceos","migracao_aves","migracao_peixes"],"description":"Rotas sazonais de migração de cetáceos, aves e peixes","visible_zoom":5,"group":"biodiversidade"},
+    # ── Infraestrutura Natural ───────────────────────────────────────────────
+    {"id":"passadiços","label":"Passadiços","icon":"directions-walk","color":"#0369A1","categories":["passadico","passadico_costeiro","passadico_ribeirinho"],"description":"Passadiços de madeira costeiros, ribeirinhos e de montanha","visible_zoom":9,"group":"infraestrutura"},
+    {"id":"pontes_suspensas","label":"Pontes Suspensas","icon":"link","color":"#7C3AED","categories":["ponte_suspensa","ponte_pedonal"],"description":"Pontes pedonais suspensas e panorâmicas","visible_zoom":8,"group":"infraestrutura"},
+    {"id":"ecovias","label":"Ecovias","icon":"nature","color":"#16A34A","categories":["ecovia","via_verde","ciclovia"],"description":"Ecovias, vias verdes e ciclovias naturais","visible_zoom":7,"group":"infraestrutura"},
+    {"id":"miradouros","label":"Miradouros","icon":"landscape","color":"#D97706","categories":["miradouro","miradouro_montanha","miradouro_costeiro","torre_observacao"],"description":"Miradouros naturais e torres de observação","visible_zoom":8,"group":"infraestrutura"},
 ]
 
 
