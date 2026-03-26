@@ -17,6 +17,8 @@ const MAP_MODES = [
   { id: 'proximity', icon: 'near-me', label: 'Proximidade' },
   { id: 'noturno', icon: 'nightlight-round', label: 'Noturno' },
   { id: 'satellite', icon: 'satellite', label: 'Satélite' },
+  { id: 'tecnico', icon: 'my-location', label: 'Técnico' },
+  { id: 'premium', icon: 'auto-awesome', label: 'Premium' },
 ] as const;
 
 export type MapMode = typeof MAP_MODES[number]['id'];

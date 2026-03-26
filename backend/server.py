@@ -757,6 +757,18 @@ api_router.include_router(admin_eventos_router)
 
 logger.info("🏛️  Multi-tenant RBAC + Excel importer + Admin Eventos registered")
 
+# ── Costa API ─────────────────────────────────────────────────────────────────
+from costa_api import costa_router, set_costa_db
+set_costa_db(db)
+api_router.include_router(costa_router)
+
+# ── AI Itinerary API ──────────────────────────────────────────────────────────
+from ai_itinerary_api import ai_itinerary_router, set_ai_itinerary_db
+set_ai_itinerary_db(db)
+api_router.include_router(ai_itinerary_router)
+
+logger.info("🌊  Costa + AI Itinerary registered")
+
 # Include the router in the main app
 app.include_router(api_router)
 

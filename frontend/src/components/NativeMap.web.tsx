@@ -51,6 +51,8 @@ const MAP_STYLES: Record<string, string> = {
   dark:      'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json',
   satellite: 'https://basemaps.cartocdn.com/gl/positron-gl-style/style.json',
   terrain:   'https://basemaps.cartocdn.com/gl/voyager-gl-style/style.json',
+  tecnico:   'https://basemaps.cartocdn.com/gl/voyager-gl-style/style.json',
+  premium:   'https://basemaps.cartocdn.com/gl/positron-gl-style/style.json',
 };
 
 // Centro de Portugal e limites
@@ -122,6 +124,8 @@ export function LeafletMapComponent({
   const popupRef = useRef<any>(null);
   const [is3D, setIs3D] = useState(false);
   const [ready, setReady] = useState(false);
+  const [coords, setCoords] = useState<{lng: number; lat: number} | null>(null);
+  const [isTecnico, setIsTecnico] = useState(false);
 
   // ── Inicializar mapa ──────────────────────────────────────────────────────
   useEffect(() => {
@@ -165,6 +169,9 @@ export function LeafletMapComponent({
         _applySolarLight(map);
         setReady(true);
         onMapReady?.();
+        map.on('mousemove', (e: any) => {
+          setCoords({ lng: parseFloat(e.lngLat.lng.toFixed(5)), lat: parseFloat(e.lngLat.lat.toFixed(5)) });
+        });
       });
     })();
 
@@ -199,6 +206,19 @@ export function LeafletMapComponent({
         encoding: 'terrarium',
         tileSize: 256,
         maxzoom: 14,
+      });
+    } catch (_) {}
+    try {
+      map.addLayer({
+        id: 'hillshade',
+        type: 'hillshade',
+        source: 'terrain-dem',
+        paint: {
+          'hillshade-exaggeration': 0.5,
+          'hillshade-shadow-color': '#000',
+          'hillshade-illumination-direction': 335,
+        },
+        layout: { visibility: 'none' },
       });
     } catch (_) {}
   }
@@ -371,7 +391,17 @@ export function LeafletMapComponent({
   // ── Mudar estilo de mapa ───────────────────────────────────────────────────
   useEffect(() => {
     if (!mapRef.current || !ready) return;
-    mapRef.current.setStyle(MAP_STYLES[mapMode] || MAP_STYLES.light);
+    const map = mapRef.current;
+    if (mapMode === 'premium') {
+      map.setStyle(MAP_STYLES.premium);
+      setTimeout(() => {
+        try {
+          map.setPaintProperty('background', 'background-color', '#F5F0E8');
+        } catch (_) {}
+      }, 500);
+      return;
+    }
+    map.setStyle(MAP_STYLES[mapMode] || MAP_STYLES.light);
   }, [mapMode, ready]);
 
   // ── Toggle terrain 3D ─────────────────────────────────────────────────────
@@ -380,17 +410,46 @@ export function LeafletMapComponent({
     if (!map) return;
 
     if (is3D) {
+      try { map.setFog(null); } catch (_) {}
       map.setTerrain(null);
       map.easeTo({ pitch: 0, bearing: 0, duration: 700 });
     } else {
       try {
         if (!map.getSource('terrain-dem')) _addTerrainSource(map);
         map.setTerrain({ source: 'terrain-dem', exaggeration: 1.5 });
+        try {
+          map.setFog({
+            color: 'rgb(220, 230, 240)',
+            'high-color': 'rgb(180, 210, 240)',
+            'horizon-blend': 0.08,
+            'space-color': 'rgb(15, 30, 60)',
+            'star-intensity': 0.3,
+          });
+        } catch (_fogErr) {}
         map.easeTo({ pitch: 52, bearing: -15, duration: 900 });
       } catch (_) {}
     }
     setIs3D(prev => !prev);
   }, [is3D]);
+
+  // ── Toggle Técnico ────────────────────────────────────────────────────────
+  const toggleTecnico = useCallback(() => {
+    const map = mapRef.current;
+    if (!map || !ready) return;
+    const next = !isTecnico;
+    setIsTecnico(next);
+    try {
+      map.setLayoutProperty('hillshade', 'visibility', next ? 'visible' : 'none');
+    } catch (_) {}
+    if (next && !is3D) {
+      if (!map.getSource('terrain-dem')) _addTerrainSource(map);
+      try {
+        map.setTerrain({ source: 'terrain-dem', exaggeration: 1.2 });
+      } catch (_) {}
+    } else if (!next && !is3D) {
+      try { map.setTerrain(null); } catch (_) {}
+    }
+  }, [isTecnico, is3D, ready]);
 
   // ─── Render ─────────────────────────────────────────────────────────────────
   return (
@@ -411,6 +470,24 @@ export function LeafletMapComponent({
           {is3D ? '▲ 3D' : '⬡ 3D'}
         </Text>
       </TouchableOpacity>
+
+      {/* Botão Técnico */}
+      <TouchableOpacity
+        style={[s.btn3d, { top: 95 }, isTecnico && s.btn3dActive]}
+        onPress={toggleTecnico}
+        activeOpacity={0.85}
+      >
+        <Text style={[s.btn3dText, isTecnico && { color: '#fff' }]}>
+          {isTecnico ? '◎ TEC' : '◎ TEC'}
+        </Text>
+      </TouchableOpacity>
+
+      {/* Coordinate HUD (Technical mode) */}
+      {isTecnico && coords && (
+        <View style={s.coordHUD}>
+          <Text style={s.coordText}>{coords.lat}° N  {Math.abs(coords.lng)}° W</Text>
+        </View>
+      )}
     </View>
   );
 }
@@ -444,4 +521,10 @@ const s = StyleSheet.create({
   },
   btn3dActive: { backgroundColor: '#2E5E4E' },
   btn3dText: { fontSize: 12, fontWeight: '700', color: '#2E5E4E' },
+  coordHUD: {
+    position: 'absolute', bottom: 32, left: 10, zIndex: 10,
+    backgroundColor: 'rgba(0,0,0,0.72)', borderRadius: 6,
+    paddingHorizontal: 10, paddingVertical: 5,
+  },
+  coordText: { color: '#00FF88', fontSize: 11, fontFamily: 'monospace', fontWeight: '600' },
 });
