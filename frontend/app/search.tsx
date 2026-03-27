@@ -3,7 +3,8 @@
  * Results grouped by type with region chips and counters
  */
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Platform, Image } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Platform } from 'react-native';
+import OptimizedImage from '../src/components/OptimizedImage';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -170,10 +171,9 @@ export default function SearchPage() {
                         data-testid={`result-${item.id}`}
                       >
                         {item.image_url ? (
-                          <Image
-                            source={{ uri: item.image_url }}
+                          <OptimizedImage
+                            uri={item.image_url}
                             style={{ width: 64, height: 64, borderRadius: 10, marginRight: 12 }}
-                            resizeMode="cover"
                           />
                         ) : null}
                         <View style={{ flex: 1 }}>

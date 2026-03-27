@@ -5,9 +5,9 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  Image,
   Dimensions,
 } from 'react-native';
+import OptimizedImage from './OptimizedImage';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useQuery } from '@tanstack/react-query';
 import api from '../services/api';
@@ -107,7 +107,7 @@ function RecommendationCard({
       {/* Thumbnail */}
       <View style={styles.thumbContainer}>
         {item.image_url ? (
-          <Image source={{ uri: item.image_url }} style={styles.thumb} resizeMode="cover" />
+          <OptimizedImage uri={item.image_url} style={styles.thumb} />
         ) : (
           <View style={[styles.thumb, styles.thumbPlaceholder]}>
             <MaterialIcons name="place" size={26} color={C.accent} />

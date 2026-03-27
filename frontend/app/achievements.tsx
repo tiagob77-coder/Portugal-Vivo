@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, Image, RefreshControl, Modal } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, RefreshControl, Modal } from 'react-native';
+import OptimizedImage from '../src/components/OptimizedImage';
 import { useRouter, Stack } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -94,7 +95,7 @@ export default function AchievementsScreen() {
             <TouchableOpacity key={entry.user_id} style={s.podiumCol} onPress={() => openExplorer(entry.user_id)} activeOpacity={0.7}>
               <View style={s.podiumAvatar}>
                 {entry.picture ? (
-                  <Image source={{ uri: entry.picture }} style={s.podiumImg} />
+                  <OptimizedImage uri={entry.picture} style={s.podiumImg} />
                 ) : (
                   <View style={[s.podiumImgPlaceholder, { backgroundColor: MEDAL_COLORS[realIdx] }]}>
                     <Text style={s.avatarLetter}>{entry.name.charAt(0)}</Text>
@@ -129,7 +130,7 @@ export default function AchievementsScreen() {
       >
         <View style={s.lbRank}><Text style={s.rankNum}>{entry.rank}</Text></View>
         {entry.picture ? (
-          <Image source={{ uri: entry.picture }} style={s.lbAvatar} />
+          <OptimizedImage uri={entry.picture} style={s.lbAvatar} />
         ) : (
           <View style={s.lbAvatarPlaceholder}><Text style={s.avatarText}>{entry.name.charAt(0)}</Text></View>
         )}
@@ -286,7 +287,7 @@ export default function AchievementsScreen() {
               <ScrollView showsVerticalScrollIndicator={false}>
                 <View style={s.explorerHeader}>
                   {explorerModal.picture ? (
-                    <Image source={{ uri: explorerModal.picture }} style={s.explorerAvatar} />
+                    <OptimizedImage uri={explorerModal.picture} style={s.explorerAvatar} />
                   ) : (
                     <View style={s.explorerAvatarPlaceholder}><Text style={s.explorerAvatarText}>{explorerModal.name.charAt(0)}</Text></View>
                   )}

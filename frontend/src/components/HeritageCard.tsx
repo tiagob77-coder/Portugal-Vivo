@@ -1,5 +1,6 @@
 import React from 'react';
-import { View, Text, StyleSheet, Dimensions, Image, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, Dimensions, TouchableOpacity } from 'react-native';
+import OptimizedImage from './OptimizedImage';
 import { MaterialIcons } from '@expo/vector-icons';
 import { HeritageItem, Category } from '../types';
 import PressableScale from './PressableScale';
@@ -104,7 +105,7 @@ export default function HeritageCard({ item, categories, onPress, variant = 'def
         accessibilityRole="button"
         accessibilityHint="Toque para ver detalhes"
       >
-        <Image source={{ uri: imageUrl }} style={[styles.compactImage, { backgroundColor: colors.border }]} />
+        <OptimizedImage uri={imageUrl} style={[styles.compactImage, { backgroundColor: colors.border }]} />
         <View style={styles.compactContent}>
           <View style={[styles.smallBadge, { backgroundColor: getCategoryBg(item.category) }]}>
             <MaterialIcons
@@ -130,7 +131,7 @@ export default function HeritageCard({ item, categories, onPress, variant = 'def
       accessibilityHint="Toque para ver detalhes"
     >
       <View style={styles.cardContent}>
-        <Image source={{ uri: imageUrl }} style={[styles.thumbnail, { backgroundColor: colors.border }]} />
+        <OptimizedImage uri={imageUrl} style={[styles.thumbnail, { backgroundColor: colors.border }]} />
         <View style={styles.cardText}>
           <View style={styles.header}>
             <View style={[styles.categoryBadge, { backgroundColor: getCategoryBg(item.category) }]}>

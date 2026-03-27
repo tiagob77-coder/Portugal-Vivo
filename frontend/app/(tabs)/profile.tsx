@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, ActivityIndicator, Alert, Platform } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, Alert, Platform } from 'react-native';
+import OptimizedImage from '../../src/components/OptimizedImage';
 import { useRouter } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -193,7 +194,7 @@ export default function ProfileScreen() {
           <View style={[styles.userCard, { backgroundColor: colors.surface, borderColor: colors.borderLight }]}>
             <View style={styles.userInfo}>
               {user?.picture ? (
-                <Image source={{ uri: user.picture }} style={styles.avatar} />
+                <OptimizedImage uri={user.picture} style={styles.avatar} />
               ) : (
                 <View style={[styles.avatarPlaceholder, { backgroundColor: colors.accent }]}>
                   <Text style={styles.avatarText}>{user?.name?.charAt(0).toUpperCase()}</Text>
