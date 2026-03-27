@@ -801,6 +801,28 @@ set_maritime_culture_db(db)
 set_maritime_culture_llm_key(EMERGENT_LLM_KEY)
 api_router.include_router(maritime_culture_router)
 
+# ── Coastal Gastronomy API ────────────────────────────────────────────────────
+from coastal_gastronomy_api import (
+    gastronomy_router,
+    set_gastronomy_db,
+    set_gastronomy_llm_key,
+)
+set_gastronomy_db(db)
+set_gastronomy_llm_key(EMERGENT_LLM_KEY)
+api_router.include_router(gastronomy_router)
+
+# ── Flora, Fauna & Habitats API ───────────────────────────────────────────────
+from flora_fauna_api import (
+    flora_fauna_router,
+    set_flora_fauna_db,
+    set_flora_fauna_llm_key,
+)
+set_flora_fauna_db(db)
+set_flora_fauna_llm_key(EMERGENT_LLM_KEY)
+api_router.include_router(flora_fauna_router)
+
+logger.info("🌿  Gastronomy+FloraFauna registered")
+
 logger.info("🌊  Costa+AI+Economy+GeoPrehistoria+MarineBio+Infrastructure+MaritimeCulture registered")
 
 # Include the router in the main app
