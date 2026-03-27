@@ -22,8 +22,10 @@ interface SearchResult {
   name: string;
   description?: string;
   category: string;
+  category_name?: string;
   region?: string;
   average_rating?: number;
+  image_url?: string;
   type?: string; // 'poi' | 'route' | 'event' | 'article'
 }
 
