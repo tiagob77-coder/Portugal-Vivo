@@ -9,7 +9,7 @@ import pytest
 import requests
 import os
 
-BASE_URL = os.environ.get('EXPO_PUBLIC_BACKEND_URL', 'https://current-state-check.preview.emergentagent.com')
+BASE_URL = os.environ.get('EXPO_PUBLIC_BACKEND_URL', 'https://project-analyzer-131.preview.emergentagent.com')
 
 # Expected 7 regions
 EXPECTED_REGIONS = ['norte', 'centro', 'lisboa', 'alentejo', 'algarve', 'acores', 'madeira']

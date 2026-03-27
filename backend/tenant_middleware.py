@@ -280,3 +280,43 @@ async def remove_tenant_user(
         {"$unset": {"tenant_role": "", "municipality_id": ""}},
     )
     return {"success": True}
+
+
+
+# ─── ASGI Middleware (no-op passthrough when require_tenant=False) ─────────
+from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.requests import Request as StarletteRequest
+
+class TenantMiddleware(BaseHTTPMiddleware):
+    """
+    Optional ASGI middleware that attaches tenant context to request.state.
+    When require_tenant=False it simply passes through without enforcement.
+    """
+
+    def __init__(self, app, require_tenant: bool = False):
+        super().__init__(app)
+        self.require_tenant = require_tenant
+
+    async def dispatch(self, request: StarletteRequest, call_next):
+        # Attach empty tenant state by default
+        request.state.tenant_id = None
+        request.state.municipality_id = None
+
+        # Extract tenant hint from header (X-Tenant-Id) if present
+        tenant_header = request.headers.get("x-tenant-id")
+        if tenant_header:
+            request.state.tenant_id = tenant_header
+
+        municipality_header = request.headers.get("x-municipality-id")
+        if municipality_header:
+            request.state.municipality_id = municipality_header
+
+        if self.require_tenant and not request.state.tenant_id:
+            from starlette.responses import JSONResponse
+            return JSONResponse(
+                status_code=400,
+                content={"detail": "X-Tenant-Id header required"},
+            )
+
+        response = await call_next(request)
+        return response

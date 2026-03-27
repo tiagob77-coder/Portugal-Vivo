@@ -16,7 +16,7 @@ import asyncio
 import uuid
 from datetime import datetime
 
-BASE_URL = "https://current-state-check.preview.emergentagent.com"
+BASE_URL = "https://project-analyzer-131.preview.emergentagent.com"
 API_BASE = f"{BASE_URL}/api"
 
 
