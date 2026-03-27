@@ -116,6 +116,9 @@ backend:
         - working: true
           agent: "testing"
           comment: "✅ GET /api/health endpoint working correctly. Returns status 'healthy' with timestamp."
+        - working: true
+          agent: "testing"
+          comment: "✅ VERIFIED: GET /api/health returns status 'ok' as expected for 5678 POIs import verification."
           
   - task: "Statistics API"
     implemented: true
@@ -128,6 +131,9 @@ backend:
         - working: true
           agent: "testing"
           comment: "✅ GET /api/stats endpoint working correctly. Returns exactly 254 heritage items and 20 routes as expected. Includes category and region breakdowns."
+        - working: true
+          agent: "testing"
+          comment: "✅ VERIFIED: GET /api/stats now returns 5678 heritage items and 60 routes after Excel import. Includes complete categories array with 44 categories."
           
   - task: "Categories API"
     implemented: true
@@ -140,6 +146,9 @@ backend:
         - working: true
           agent: "testing"
           comment: "✅ GET /api/categories endpoint working correctly. Returns exactly 20 categories as expected with proper structure (id, name, icon, color)."
+        - working: true
+          agent: "testing"
+          comment: "✅ VERIFIED: GET /api/categories returns 44 categories including expected ones like percursos_pedestres, castelos, restaurantes_gastronomia."
           
   - task: "Regions API"
     implemented: true
@@ -152,6 +161,9 @@ backend:
         - working: true
           agent: "testing"
           comment: "✅ GET /api/regions endpoint working correctly. Returns exactly 7 regions as expected (Norte, Centro, Lisboa e Vale do Tejo, Alentejo, Algarve, Açores, Madeira)."
+        - working: true
+          agent: "testing"
+          comment: "✅ VERIFIED: GET /api/regions returns all 7 Portuguese regions correctly."
           
   - task: "Heritage Items API"
     implemented: true
@@ -164,6 +176,33 @@ backend:
         - working: true
           agent: "testing"
           comment: "✅ GET /api/heritage endpoint working correctly. Returns heritage items with proper pagination (100 items by default). Filtering by category 'lendas' returns 20 items, filtering by region 'norte' returns 71 items."
+        - working: true
+          agent: "testing"
+          comment: "✅ VERIFIED: GET /api/heritage with limit=5 returns 5 items with all required fields (id, name, description, category, region, location). GPS coordinates valid for Portugal (32-42 lat, -31 to -6 lng). Category filtering works for 'castelos' and 'restaurantes_gastronomia'. Region filtering works for 'norte'."
+          
+  - task: "Heritage Search API"
+    implemented: true
+    working: true
+    file: "backend/heritage_api.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "✅ VERIFIED: GET /api/heritage with search parameter works correctly. Search for 'Gerês' returns 5 items as expected."
+          
+  - task: "Nearby POIs API"
+    implemented: true
+    working: true
+    file: "backend/map_nearby_api.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "✅ VERIFIED: POST /api/nearby with coordinates (latitude: 41.15, longitude: -8.61, radius_km: 50) works correctly. Returns proper response structure with user_location, pois array, total_found count."
           
   - task: "Single Heritage Item API"
     implemented: true
@@ -212,7 +251,7 @@ metadata:
 
 test_plan:
   current_focus:
-    - "All backend API endpoints tested successfully"
+    - "All backend API endpoints tested successfully for 5678 POIs import"
   stuck_tasks: []
   test_all: true
   test_priority: "high_first"
@@ -222,3 +261,5 @@ agent_communication:
       message: "Completed comprehensive testing of Portuguese Cultural Heritage API. All 10 requested endpoints are working correctly with 100% success rate. API returns expected data counts: 254 heritage items, 20 routes, 20 categories, 7 regions. All filtering and individual item retrieval functions working properly. Backend is fully functional and ready for production use."
     - agent: "testing"
       message: "Re-verified backend functionality - all core endpoints working perfectly. CLARIFICATIONS: 1) Categories now return 44 items (expanded from original 20), 2) Search functionality works via /heritage?search=query and /search POST endpoint, 3) Map POIs available via /map/items (not /map/pois), 4) Single route retrieval via /routes/{id} confirmed working. Backend at 100% functionality with excellent performance."
+    - agent: "testing"
+      message: "✅ FINAL VERIFICATION COMPLETE: All 10 core endpoints for 5678 POIs import tested successfully with 100% pass rate. Health check returns 'ok', stats show 5678 items and 60 routes, all required fields present with valid GPS coordinates for Portugal. Categories (44), regions (7), search, and nearby functionality all working correctly. Backend is production-ready."

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-Backend API Testing for Portuguese Cultural Heritage API (Património Vivo de Portugal)
-Tests all the main API endpoints to verify functionality.
+Backend API Testing for Portugal Vivo API after importing 5678 POIs from Excel
+Tests the core endpoints that are critical for the heritage discovery platform.
 """
 
 import requests
@@ -22,7 +22,7 @@ def get_backend_url():
     except Exception as e:
         print(f"Error reading frontend .env: {e}")
     
-    # Fallback to localhost
+    # Fallback to localhost as specified in review request
     return "http://localhost:8001/api"
 
 BACKEND_URL = get_backend_url()
@@ -35,7 +35,8 @@ class APITester:
         self.results = []
         
     def test_endpoint(self, method: str, endpoint: str, expected_status: int = 200, 
-                     params: Optional[Dict] = None, description: str = "") -> Dict[str, Any]:
+                     params: Optional[Dict] = None, json_data: Optional[Dict] = None, 
+                     description: str = "") -> Dict[str, Any]:
         """Test a single API endpoint"""
         url = f"{self.base_url}{endpoint}"
         
@@ -43,8 +44,10 @@ class APITester:
             print(f"\n🔍 Testing {method} {endpoint}")
             if params:
                 print(f"   Parameters: {params}")
+            if json_data:
+                print(f"   JSON Body: {json_data}")
             
-            response = self.session.request(method, url, params=params, timeout=30)
+            response = self.session.request(method, url, params=params, json=json_data, timeout=30)
             
             result = {
                 "endpoint": endpoint,
@@ -55,7 +58,8 @@ class APITester:
                 "success": response.status_code == expected_status,
                 "description": description,
                 "timestamp": datetime.now().isoformat(),
-                "params": params
+                "params": params,
+                "json_data": json_data
             }
             
             if response.status_code == expected_status:
@@ -74,6 +78,8 @@ class APITester:
                         print(f"   📊 Returned {len(data)} items")
                     elif isinstance(data, dict) and 'total_items' in data:
                         print(f"   📊 Stats: {data.get('total_items', 0)} items, {data.get('total_routes', 0)} routes")
+                    elif isinstance(data, dict) and 'status' in data:
+                        print(f"   📊 Status: {data.get('status')}")
                         
                 except json.JSONDecodeError:
                     result["response_text"] = response.text
@@ -93,7 +99,8 @@ class APITester:
                 "error": str(e),
                 "description": description,
                 "timestamp": datetime.now().isoformat(),
-                "params": params
+                "params": params,
+                "json_data": json_data
             }
             print(f"   ❌ REQUEST FAILED - {str(e)}")
             
@@ -101,60 +108,54 @@ class APITester:
         return result
     
     def run_all_tests(self):
-        """Run all API tests as specified in the review request"""
+        """Run all API tests as specified in the review request for 5678 POIs"""
         print("=" * 80)
-        print("🇵🇹 PORTUGUESE CULTURAL HERITAGE API TESTING")
+        print("🇵🇹 PORTUGAL VIVO API TESTING - 5678 POIs IMPORT VERIFICATION")
         print("=" * 80)
         
-        # 1. Health check
+        # 1. Health check - Should return {"status":"ok"}
         self.test_endpoint("GET", "/health", description="Health check endpoint")
         
-        # 2. Statistics
-        stats_result = self.test_endpoint("GET", "/stats", description="Get API statistics")
+        # 2. Statistics - Should return total_items > 5000, total_routes > 0, with categories array
+        self.test_endpoint("GET", "/stats", description="Get API statistics - should show >5000 items")
         
-        # 3. Categories (should return 20)
-        categories_result = self.test_endpoint("GET", "/categories", description="Get all heritage categories")
+        # 3. Categories - Should return array of categories like percursos_pedestres, castelos, museus, etc.
+        self.test_endpoint("GET", "/categories", description="Get all heritage categories")
         
-        # 4. Regions (should return 7)
-        regions_result = self.test_endpoint("GET", "/regions", description="Get all regions")
+        # 4. Heritage items with limit=5 - Should return 5 heritage items with id, name, description, category, region, location fields
+        self.test_endpoint("GET", "/heritage", params={"limit": 5}, 
+                          description="Get 5 heritage items with required fields")
         
-        # 5. Heritage items
-        heritage_result = self.test_endpoint("GET", "/heritage", description="Get heritage items")
+        # 5. Heritage by category castelos with limit=3 - Should return castelos items with proper descriptions
+        self.test_endpoint("GET", "/heritage", params={"category": "castelos", "limit": 3}, 
+                          description="Filter heritage by category 'castelos'")
         
-        # 6. Heritage by category (lendas)
-        self.test_endpoint("GET", "/heritage", params={"category": "lendas"}, 
-                          description="Filter heritage by category 'lendas'")
+        # 6. Heritage by category restaurantes_gastronomia with limit=3 - Should return restaurant items
+        self.test_endpoint("GET", "/heritage", params={"category": "restaurantes_gastronomia", "limit": 3}, 
+                          description="Filter heritage by category 'restaurantes_gastronomia'")
         
-        # 7. Heritage by region (norte)
-        self.test_endpoint("GET", "/heritage", params={"region": "norte"}, 
+        # 7. Heritage by region norte with limit=3 - Should return items in Norte region
+        self.test_endpoint("GET", "/heritage", params={"region": "norte", "limit": 3}, 
                           description="Filter heritage by region 'norte'")
         
-        # 8. Single heritage item (get ID from heritage list if available)
-        heritage_id = None
-        if heritage_result.get("success") and heritage_result.get("response_data"):
-            items = heritage_result["response_data"]
-            if items and len(items) > 0:
-                heritage_id = items[0].get("id")
-                if heritage_id:
-                    self.test_endpoint("GET", f"/heritage/{heritage_id}", 
-                                     description=f"Get single heritage item with ID: {heritage_id}")
-                else:
-                    print("   ⚠️  No heritage item ID found in response")
-            else:
-                print("   ⚠️  No heritage items returned to test single item endpoint")
+        # 8. Regions - Should return array of regions
+        self.test_endpoint("GET", "/regions", description="Get all regions")
         
-        # 9. Routes (should return 20)
-        self.test_endpoint("GET", "/routes", description="Get thematic routes")
+        # 9. Heritage search for Gerês with limit=5 - Should return items mentioning Gerês
+        self.test_endpoint("GET", "/heritage", params={"search": "Gerês", "limit": 5}, 
+                          description="Search heritage items for 'Gerês'")
         
-        # 10. Map items
-        self.test_endpoint("GET", "/map/items", description="Get heritage items with locations for map")
+        # 10. POST nearby with coordinates - Should return nearby items
+        nearby_data = {"latitude": 41.15, "longitude": -8.61, "radius_km": 50}
+        self.test_endpoint("POST", "/nearby", json_data=nearby_data,
+                          description="Find nearby POIs using coordinates")
         
         return self.results
     
     def print_summary(self):
-        """Print test summary"""
+        """Print test summary with validation for 5678 POIs import"""
         print("\n" + "=" * 80)
-        print("📋 TEST SUMMARY")
+        print("📋 TEST SUMMARY - PORTUGAL VIVO API")
         print("=" * 80)
         
         total_tests = len(self.results)
@@ -172,36 +173,104 @@ class APITester:
                 if not result.get("success", False):
                     print(f"   • {result['method']} {result['endpoint']} - {result.get('error', 'Unknown error')}")
         
-        # Validate expected data counts
-        print(f"\n📊 DATA VALIDATION:")
+        # Validate expected data for 5678 POIs import
+        print(f"\n📊 DATA VALIDATION FOR 5678 POIs IMPORT:")
+        
         for result in self.results:
             if result.get("success") and result.get("response_data"):
                 endpoint = result["endpoint"]
                 data = result["response_data"]
                 
-                if endpoint == "/categories" and isinstance(data, list):
-                    expected = 20
-                    actual = len(data)
-                    status = "✅" if actual == expected else "⚠️"
-                    print(f"   {status} Categories: Expected {expected}, Got {actual}")
-                    
-                elif endpoint == "/regions" and isinstance(data, list):
-                    expected = 7
-                    actual = len(data)
-                    status = "✅" if actual == expected else "⚠️"
-                    print(f"   {status} Regions: Expected {expected}, Got {actual}")
+                if endpoint == "/health":
+                    status = data.get("status", "")
+                    expected_status = "ok" if "ok" in status.lower() else "healthy"
+                    status_check = "✅" if status.lower() in ["ok", "healthy"] else "❌"
+                    print(f"   {status_check} Health Status: Expected 'ok', Got '{status}'")
                     
                 elif endpoint == "/stats" and isinstance(data, dict):
                     items = data.get("total_items", 0)
                     routes = data.get("total_routes", 0)
-                    expected_items = 254
-                    expected_routes = 20
+                    categories = data.get("categories", [])
                     
-                    items_status = "✅" if items == expected_items else "⚠️"
-                    routes_status = "✅" if routes == expected_routes else "⚠️"
+                    items_status = "✅" if items > 5000 else "❌"
+                    routes_status = "✅" if routes > 0 else "❌"
+                    categories_status = "✅" if isinstance(categories, list) and len(categories) > 0 else "❌"
                     
-                    print(f"   {items_status} Heritage Items: Expected {expected_items}, Got {items}")
-                    print(f"   {routes_status} Routes: Expected {expected_routes}, Got {routes}")
+                    print(f"   {items_status} Heritage Items: Expected >5000, Got {items}")
+                    print(f"   {routes_status} Routes: Expected >0, Got {routes}")
+                    print(f"   {categories_status} Categories Array: Expected array, Got {len(categories) if isinstance(categories, list) else 'not array'}")
+                    
+                elif endpoint == "/categories" and isinstance(data, list):
+                    # Check for expected categories
+                    category_names = [cat.get("name", "") if isinstance(cat, dict) else str(cat) for cat in data]
+                    expected_categories = ["percursos_pedestres", "castelos", "museus", "restaurantes_gastronomia"]
+                    found_categories = [cat for cat in expected_categories if any(cat in name.lower() for name in category_names)]
+                    
+                    categories_status = "✅" if len(found_categories) >= 2 else "⚠️"
+                    print(f"   {categories_status} Categories: Found {len(data)} categories, including {len(found_categories)} expected ones")
+                    
+                elif endpoint == "/regions" and isinstance(data, list):
+                    # Check for Portuguese regions
+                    region_names = [reg.get("name", "") if isinstance(reg, dict) else str(reg) for reg in data]
+                    expected_regions = ["norte", "centro", "lisboa", "alentejo", "algarve", "acores", "madeira"]
+                    found_regions = [reg for reg in expected_regions if any(reg in name.lower() for name in region_names)]
+                    
+                    regions_status = "✅" if len(found_regions) >= 5 else "⚠️"
+                    print(f"   {regions_status} Regions: Found {len(data)} regions, including {len(found_regions)} expected Portuguese regions")
+                    
+                elif endpoint == "/heritage" and isinstance(data, list):
+                    params = result.get("params", {})
+                    limit = params.get("limit")
+                    category = params.get("category")
+                    region = params.get("region")
+                    search = params.get("search")
+                    
+                    if limit == 5 and not category and not region and not search:
+                        # Validate required fields for heritage items
+                        required_fields = ["id", "name", "description", "category", "region", "location"]
+                        items_with_all_fields = 0
+                        gps_valid_items = 0
+                        
+                        for item in data:
+                            if isinstance(item, dict):
+                                has_all_fields = all(field in item for field in required_fields)
+                                if has_all_fields:
+                                    items_with_all_fields += 1
+                                
+                                # Check GPS coordinates for Portugal
+                                location = item.get("location", {})
+                                if isinstance(location, dict):
+                                    lat = location.get("lat") or location.get("latitude")
+                                    lng = location.get("lng") or location.get("longitude")
+                                    if lat and lng:
+                                        try:
+                                            lat, lng = float(lat), float(lng)
+                                            if 32 <= lat <= 42 and -31 <= lng <= -6:
+                                                gps_valid_items += 1
+                                        except (ValueError, TypeError):
+                                            pass
+                        
+                        fields_status = "✅" if items_with_all_fields == len(data) else "⚠️"
+                        gps_status = "✅" if gps_valid_items >= len(data) * 0.8 else "⚠️"
+                        
+                        print(f"   {fields_status} Heritage Fields: {items_with_all_fields}/{len(data)} items have all required fields")
+                        print(f"   {gps_status} GPS Coordinates: {gps_valid_items}/{len(data)} items have valid Portugal coordinates")
+                        
+                    elif category:
+                        category_status = "✅" if len(data) > 0 else "❌"
+                        print(f"   {category_status} Category '{category}': Found {len(data)} items")
+                        
+                    elif region:
+                        region_status = "✅" if len(data) > 0 else "❌"
+                        print(f"   {region_status} Region '{region}': Found {len(data)} items")
+                        
+                    elif search:
+                        search_status = "✅" if len(data) > 0 else "⚠️"
+                        print(f"   {search_status} Search Results: Found {len(data)} items for '{search}'")
+                    
+                elif endpoint == "/nearby" and isinstance(data, list):
+                    nearby_status = "✅" if len(data) > 0 else "⚠️"
+                    print(f"   {nearby_status} Nearby POIs: Found {len(data)} items within 50km radius")
 
 def main():
     """Main test execution"""

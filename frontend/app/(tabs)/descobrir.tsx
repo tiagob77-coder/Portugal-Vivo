@@ -22,7 +22,7 @@ import {
 import { API_BASE } from '../../src/config/api';
 import { typography, shadows, regionImages } from '../../src/theme';
 import { useTheme } from '../../src/context/ThemeContext';
-import OnboardingModal from '../../src/components/OnboardingModal';
+// OnboardingModal removed — handled by /onboarding screen
 
 const { width } = Dimensions.get('window');
 const serif = Platform.OS === 'web' ? 'Cormorant Garamond, Georgia, serif' : undefined;
@@ -246,7 +246,7 @@ export default function DescobrerTab() {
           <link rel="canonical" href="https://portugal-vivo.app/descobrir" />
         </Head>
       )}
-      <OnboardingModal />
+      {/* OnboardingModal removed — onboarding screen handles first-time users */}
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={[styles.scrollContent, { paddingTop: insets.top }]}

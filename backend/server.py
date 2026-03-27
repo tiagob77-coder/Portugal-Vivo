@@ -993,6 +993,20 @@ async def seed_expedicao_data():
         logger.warning("Grande Expedição seed (non-critical): %s", e)
 
 @app.on_event("startup")
+async def auto_seed_from_excel():
+    """Auto-seed heritage_items from Excel if collection is empty or too small."""
+    try:
+        count = await db.heritage_items.count_documents({})
+        if count < 500:  # Less than 500 = needs full import
+            from import_excel_real import import_all
+            imported = await import_all(db)
+            logger.info("✅ Auto-seed: imported %d POIs from Excel", imported)
+        else:
+            logger.info("📊 heritage_items already has %d items — skipping auto-seed", count)
+    except Exception as e:
+        logger.warning("Auto-seed from Excel (non-critical): %s", e)
+
+@app.on_event("startup")
 async def seed_encyclopedia_data():
     """Seed encyclopedia articles from heritage_items if empty."""
     try:
