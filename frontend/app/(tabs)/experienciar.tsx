@@ -168,7 +168,7 @@ export default function ExperienciarTab() {
     <TouchableOpacity
       key={event.id}
       style={styles.eventCard}
-      onPress={() => router.push(`/event/${event.id}`)}
+      onPress={() => router.push(`/evento/${event.id}` as any)}
       activeOpacity={0.8}
       data-testid={`event-card-${event.id}`}
     >

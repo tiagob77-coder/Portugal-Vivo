@@ -563,10 +563,9 @@ export default function HeritageDetailScreen() {
     });
   };
 
+  // Server-side favorites (for authenticated users only - Premium feature)
   const addFavoriteMutation = useMutation({
     mutationFn: () => addFavorite(id!, sessionToken!),
-    onMutate: () => setIsFavoriteLocal(true),
-    onError: () => setIsFavoriteLocal(false),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['favorites'] });
       refreshUser();
@@ -575,8 +574,6 @@ export default function HeritageDetailScreen() {
 
   const removeFavoriteMutation = useMutation({
     mutationFn: () => removeFavorite(id!, sessionToken!),
-    onMutate: () => setIsFavoriteLocal(false),
-    onError: () => setIsFavoriteLocal(true),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['favorites'] });
       refreshUser();

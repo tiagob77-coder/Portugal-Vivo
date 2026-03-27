@@ -141,7 +141,7 @@ export default function UniverseDetailPage() {
     <TouchableOpacity
       key={article.id}
       style={styles.articleCard}
-      onPress={() => router.push(`/encyclopedia/article/${article.slug || article.id}`)}
+      onPress={() => router.push(`/encyclopedia/article/${article.slug || article.id}` as any)}
       activeOpacity={0.8}
     >
       {article.image_url ? (

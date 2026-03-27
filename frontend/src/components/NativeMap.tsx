@@ -4,6 +4,9 @@
 
 import { Platform } from 'react-native';
 
+// Export types from the shared types file
+export type { MapItem, LeafletMapProps } from './NativeMap.types';
+
 // On web, export the Leaflet-based web implementation
 // On native, this file won't be loaded (Metro uses .native.tsx)
 
