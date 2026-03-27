@@ -17,6 +17,7 @@ import { registerServiceWorker } from '../src/services/pwaRegistration';
 import { initMonitoring, captureException } from '../src/utils/monitoring';
 import { pushNotificationService } from '../src/services/pushNotifications';
 import { offlineCache } from '../src/services/offlineCache';
+import { FavoritesProvider } from '../src/context/FavoritesContext';
 import {
   registerBackgroundTasks,
   startWebProximityPolling,
@@ -223,11 +224,13 @@ export default function RootLayout() {
             <ThemeProvider>
               <QueryClientProvider client={queryClient}>
                 <AuthProvider>
-                  <ThemedStack />
-                  <NotificationManager />
-                  <CacheWarmer />
-                  <OfflineBanner />
-                  {Platform.OS === 'web' && <InstallPrompt />}
+                  <FavoritesProvider>
+                    <ThemedStack />
+                    <NotificationManager />
+                    <CacheWarmer />
+                    <OfflineBanner />
+                    {Platform.OS === 'web' && <InstallPrompt />}
+                  </FavoritesProvider>
                 </AuthProvider>
               </QueryClientProvider>
             </ThemeProvider>

@@ -67,7 +67,7 @@ async def advanced_search(filters: SearchFilters):
 
     results_with_ratings = []
     for item in items:
-        item_with_rating = {**item}
+        item_with_rating = {**item, "type": "poi"}
         rating = ratings_map.get(item["id"])
         if rating:
             item_with_rating["average_rating"] = round(rating["avg"], 1)

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-Backend API Testing for Portugal Vivo Specialized Modules
-Tests all specialized module endpoints as requested in the review.
+Backend API Testing for Portugal Vivo
+Tests the 3 new features: Search, Encyclopedia, and General endpoints
 """
 
 import asyncio
@@ -9,259 +9,452 @@ import aiohttp
 import json
 import sys
 from typing import Dict, Any, List
-from datetime import datetime
 
 # Backend URL from environment
-BACKEND_URL = "https://project-analyzer-131.preview.emergentagent.com/api"
+BACKEND_URL = "https://project-analyzer-131.preview.emergentagent.com"
+API_BASE = f"{BACKEND_URL}/api"
 
-class PortugalVivoTester:
+class TestResult:
     def __init__(self):
-        self.session = None
+        self.passed = 0
+        self.failed = 0
         self.results = []
-        self.total_tests = 0
-        self.passed_tests = 0
-        
-    async def __aenter__(self):
-        self.session = aiohttp.ClientSession(
-            timeout=aiohttp.ClientTimeout(total=30),
-            headers={"User-Agent": "PortugalVivo-Tester/1.0"}
-        )
-        return self
-        
-    async def __aexit__(self, exc_type, exc_val, exc_tb):
-        if self.session:
-            await self.session.close()
     
-    def log_test(self, endpoint: str, expected_count: Any, actual_result: Any, passed: bool, details: str = ""):
-        """Log test result"""
-        self.total_tests += 1
-        if passed:
-            self.passed_tests += 1
-            
-        result = {
-            "endpoint": endpoint,
-            "expected": expected_count,
-            "actual": actual_result,
+    def add_result(self, test_name: str, passed: bool, message: str, details: Dict = None):
+        self.results.append({
+            "test": test_name,
             "passed": passed,
-            "details": details,
-            "timestamp": datetime.now().isoformat()
-        }
-        self.results.append(result)
-        
-        status = "✅ PASS" if passed else "❌ FAIL"
-        print(f"{status} {endpoint} - Expected: {expected_count}, Got: {actual_result}")
-        if details:
-            print(f"    Details: {details}")
-    
-    async def test_endpoint(self, method: str, endpoint: str, expected_count: Any = None, 
-                          data: Dict = None, check_fields: List[str] = None) -> Dict[str, Any]:
-        """Test a single endpoint"""
-        url = f"{BACKEND_URL}{endpoint}"
-        
-        try:
-            if method.upper() == "GET":
-                async with self.session.get(url) as response:
-                    result = await self._process_response(response, endpoint, expected_count, check_fields)
-            elif method.upper() == "POST":
-                async with self.session.post(url, json=data) as response:
-                    result = await self._process_response(response, endpoint, expected_count, check_fields)
-            else:
-                raise ValueError(f"Unsupported method: {method}")
-                
-            return result
-            
-        except Exception as e:
-            error_msg = f"Request failed: {str(e)}"
-            self.log_test(endpoint, expected_count, "ERROR", False, error_msg)
-            return {"error": error_msg}
-    
-    async def _process_response(self, response, endpoint: str, expected_count: Any, check_fields: List[str]) -> Dict[str, Any]:
-        """Process HTTP response"""
-        if response.status != 200:
-            error_msg = f"HTTP {response.status}"
-            try:
-                error_data = await response.json()
-                error_msg += f": {error_data.get('detail', 'Unknown error')}"
-            except:
-                error_msg += f": {await response.text()}"
-            
-            self.log_test(endpoint, expected_count, f"HTTP {response.status}", False, error_msg)
-            return {"error": error_msg, "status": response.status}
-        
-        try:
-            data = await response.json()
-        except Exception as e:
-            error_msg = f"Invalid JSON response: {str(e)}"
-            self.log_test(endpoint, expected_count, "INVALID_JSON", False, error_msg)
-            return {"error": error_msg}
-        
-        # Validate response structure and count
-        return self._validate_response(data, endpoint, expected_count, check_fields)
-    
-    def _validate_response(self, data: Any, endpoint: str, expected_count: Any, check_fields: List[str]) -> Dict[str, Any]:
-        """Validate response data"""
-        details = []
-        
-        # Check if it's an array response
-        if isinstance(data, list):
-            actual_count = len(data)
-            passed = True
-            
-            if expected_count is not None:
-                if isinstance(expected_count, int):
-                    passed = actual_count == expected_count
-                elif isinstance(expected_count, str) and expected_count.startswith(">="):
-                    min_count = int(expected_count[2:])
-                    passed = actual_count >= min_count
-                    
-            # Check required fields in first item
-            if data and check_fields:
-                first_item = data[0]
-                missing_fields = [field for field in check_fields if field not in first_item]
-                if missing_fields:
-                    details.append(f"Missing fields: {missing_fields}")
-                    passed = False
-                else:
-                    details.append(f"All required fields present: {check_fields}")
-                    
-            self.log_test(endpoint, expected_count, actual_count, passed, "; ".join(details))
-            return {"count": actual_count, "data": data, "passed": passed}
-            
-        # Check if it's an object with specific structure
-        elif isinstance(data, dict):
-            if "total" in data and "trails" in data:
-                # Trails endpoint special case
-                actual_count = data["total"]
-                passed = True
-                
-                if expected_count and expected_count.startswith(">="):
-                    min_count = int(expected_count[2:])
-                    passed = actual_count >= min_count
-                    
-                # Check trail fields
-                if data["trails"] and check_fields:
-                    first_trail = data["trails"][0]
-                    missing_fields = [field for field in check_fields if field not in first_trail]
-                    if missing_fields:
-                        details.append(f"Missing trail fields: {missing_fields}")
-                        passed = False
-                    else:
-                        details.append(f"All trail fields present: {check_fields}")
-                        
-                    # Check image_url populated
-                    if "image_url" in check_fields:
-                        has_images = all(trail.get("image_url") for trail in data["trails"][:5])
-                        if has_images:
-                            details.append("Image URLs populated")
-                        else:
-                            details.append("Some trails missing image_url")
-                            
-                self.log_test(endpoint, expected_count, actual_count, passed, "; ".join(details))
-                return {"count": actual_count, "data": data, "passed": passed}
-                
-            elif "overview" in data:
-                # Dashboard endpoint
-                passed = True
-                details.append("Dashboard object with overview key found")
-                self.log_test(endpoint, "dashboard object", "dashboard object", passed, "; ".join(details))
-                return {"data": data, "passed": passed}
-                
-            else:
-                # Generic object response
-                passed = True
-                details.append(f"Object response with keys: {list(data.keys())}")
-                self.log_test(endpoint, "object", "object", passed, "; ".join(details))
-                return {"data": data, "passed": passed}
-        
-        # Unexpected response format
-        self.log_test(endpoint, expected_count, type(data).__name__, False, f"Unexpected response type: {type(data)}")
-        return {"data": data, "passed": False}
-
-    async def run_all_tests(self):
-        """Run all specialized module tests"""
-        print("🧪 Starting Portugal Vivo Specialized Modules Testing")
-        print(f"🔗 Backend URL: {BACKEND_URL}")
-        print("=" * 80)
-        
-        # Test 1: Costa API - Coastal zones
-        await self.test_endpoint("GET", "/costa/", 10)
-        
-        # Test 2: Economy API - Markets
-        await self.test_endpoint("GET", "/economy/markets", 5)
-        
-        # Test 3: Geo-Prehistoria API - Archaeological sites
-        await self.test_endpoint("GET", "/geo-prehistoria/sites", 12)
-        
-        # Test 4: Marine API - Marine spots
-        await self.test_endpoint("GET", "/marine/spots", 10)
-        
-        # Test 5: Infrastructure API - Infrastructure items
-        await self.test_endpoint("GET", "/infrastructure/list", 14)
-        
-        # Test 6: Maritime Culture API - Maritime culture events
-        await self.test_endpoint("GET", "/maritime-culture/events", 14)
-        
-        # Test 7: Gastronomy API - Gastronomy items
-        await self.test_endpoint("GET", "/gastronomy/items", 14)
-        
-        # Test 8: Flora-Fauna API - Flora species
-        await self.test_endpoint("GET", "/flora-fauna/flora", ">=8")
-        
-        # Test 9: Flora-Fauna API - Fauna species
-        await self.test_endpoint("GET", "/flora-fauna/fauna", ">=8")
-        
-        # Test 10: Trails API - Trails with specific requirements
-        trail_fields = ["id", "name", "description", "region", "difficulty", "distance_km", "image_url"]
-        await self.test_endpoint("GET", "/trails?limit=5", ">=600", check_fields=trail_fields)
-        
-        # Test 11: Admin Dashboard API
-        await self.test_endpoint("GET", "/admin/dashboard")
-        
-        # Test 12: AI Itinerary API
-        itinerary_data = {
-            "duration": "1dia",
-            "theme": "natureza",
-            "lat": 41.15,
-            "lng": -8.61,
-            "radius_km": 30.0
-        }
-        await self.test_endpoint("POST", "/ai/itinerary", data=itinerary_data)
-        
-        print("=" * 80)
-        print(f"🏁 Testing Complete: {self.passed_tests}/{self.total_tests} tests passed")
-        
-        if self.passed_tests == self.total_tests:
-            print("🎉 All tests PASSED!")
+            "message": message,
+            "details": details or {}
+        })
+        if passed:
+            self.passed += 1
         else:
-            print(f"⚠️  {self.total_tests - self.passed_tests} tests FAILED")
+            self.failed += 1
+    
+    def print_summary(self):
+        print(f"\n{'='*60}")
+        print(f"TEST SUMMARY")
+        print(f"{'='*60}")
+        print(f"✅ PASSED: {self.passed}")
+        print(f"❌ FAILED: {self.failed}")
+        print(f"TOTAL: {self.passed + self.failed}")
+        print(f"{'='*60}")
+        
+        if self.failed > 0:
+            print("\n❌ FAILED TESTS:")
+            for result in self.results:
+                if not result["passed"]:
+                    print(f"  - {result['test']}: {result['message']}")
+        
+        print(f"\n✅ PASSED TESTS:")
+        for result in self.results:
+            if result["passed"]:
+                print(f"  - {result['test']}: {result['message']}")
+
+async def make_request(session: aiohttp.ClientSession, method: str, url: str, **kwargs) -> Dict[str, Any]:
+    """Make HTTP request and return response data"""
+    try:
+        async with session.request(method, url, **kwargs) as response:
+            text = await response.text()
+            try:
+                data = json.loads(text) if text else {}
+            except json.JSONDecodeError:
+                data = {"raw_response": text}
             
-        return self.results
+            return {
+                "status": response.status,
+                "data": data,
+                "headers": dict(response.headers)
+            }
+    except Exception as e:
+        return {
+            "status": 0,
+            "data": {"error": str(e)},
+            "headers": {}
+        }
+
+async def test_search_endpoints(session: aiohttp.ClientSession, test_result: TestResult):
+    """Test all search endpoints"""
+    print("\n🔍 TESTING SEARCH ENDPOINTS")
+    print("-" * 40)
+    
+    # 1. POST /api/search with body {"query":"castelo","limit":5}
+    search_data = {"query": "castelo", "limit": 5}
+    response = await make_request(session, "POST", f"{API_BASE}/search", json=search_data)
+    
+    if response["status"] == 200:
+        results = response["data"].get("results", [])
+        if results and len(results) > 0:
+            # Check if results have "type":"poi" field
+            has_poi_type = all(result.get("type") == "poi" for result in results)
+            if has_poi_type:
+                test_result.add_result(
+                    "POST /api/search (castelo)", True,
+                    f"✅ Returns {len(results)} results with type='poi'",
+                    {"results_count": len(results), "sample_result": results[0] if results else None}
+                )
+            else:
+                test_result.add_result(
+                    "POST /api/search (castelo)", False,
+                    "❌ Results missing 'type':'poi' field",
+                    {"results": results[:2]}
+                )
+        else:
+            test_result.add_result(
+                "POST /api/search (castelo)", False,
+                "❌ No results returned",
+                {"response": response["data"]}
+            )
+    else:
+        test_result.add_result(
+            "POST /api/search (castelo)", False,
+            f"❌ HTTP {response['status']}: {response['data']}",
+            {"response": response}
+        )
+    
+    # 2. GET /api/search/global?q=praia&limit=5
+    response = await make_request(session, "GET", f"{API_BASE}/search/global?q=praia&limit=5")
+    
+    if response["status"] == 200:
+        results = response["data"].get("results", [])
+        test_result.add_result(
+            "GET /api/search/global (praia)", True,
+            f"✅ Returns {len(results)} results",
+            {"results_count": len(results), "total": response["data"].get("total", 0)}
+        )
+    else:
+        test_result.add_result(
+            "GET /api/search/global (praia)", False,
+            f"❌ HTTP {response['status']}: {response['data']}",
+            {"response": response}
+        )
+    
+    # 3. GET /api/search/suggestions?q=serra
+    response = await make_request(session, "GET", f"{API_BASE}/search/suggestions?q=serra")
+    
+    if response["status"] == 200:
+        suggestions = response["data"].get("suggestions", [])
+        test_result.add_result(
+            "GET /api/search/suggestions (serra)", True,
+            f"✅ Returns {len(suggestions)} suggestions",
+            {"suggestions_count": len(suggestions), "suggestions": suggestions[:3]}
+        )
+    else:
+        test_result.add_result(
+            "GET /api/search/suggestions (serra)", False,
+            f"❌ HTTP {response['status']}: {response['data']}",
+            {"response": response}
+        )
+    
+    # 4. GET /api/search/popular
+    response = await make_request(session, "GET", f"{API_BASE}/search/popular")
+    
+    if response["status"] == 200:
+        popular = response["data"]
+        test_result.add_result(
+            "GET /api/search/popular", True,
+            "✅ Returns popular searches array",
+            {"popular_data": popular}
+        )
+    else:
+        test_result.add_result(
+            "GET /api/search/popular", False,
+            f"❌ HTTP {response['status']}: {response['data']}",
+            {"response": response}
+        )
+    
+    # 5. POST /api/search with body {"query":"gerês","limit":5} - Check image_url
+    search_data = {"query": "gerês", "limit": 5}
+    response = await make_request(session, "POST", f"{API_BASE}/search", json=search_data)
+    
+    if response["status"] == 200:
+        results = response["data"].get("results", [])
+        if results:
+            # Check if all results have image_url
+            has_image_urls = all(result.get("image_url") for result in results)
+            if has_image_urls:
+                test_result.add_result(
+                    "POST /api/search (gerês) - image_url", True,
+                    f"✅ All {len(results)} results have image_url",
+                    {"results_with_images": len(results)}
+                )
+            else:
+                missing_images = [r for r in results if not r.get("image_url")]
+                test_result.add_result(
+                    "POST /api/search (gerês) - image_url", False,
+                    f"❌ {len(missing_images)} results missing image_url",
+                    {"missing_images_count": len(missing_images)}
+                )
+        else:
+            test_result.add_result(
+                "POST /api/search (gerês) - image_url", False,
+                "❌ No results returned for gerês",
+                {"response": response["data"]}
+            )
+    else:
+        test_result.add_result(
+            "POST /api/search (gerês) - image_url", False,
+            f"❌ HTTP {response['status']}: {response['data']}",
+            {"response": response}
+        )
+
+async def test_encyclopedia_endpoints(session: aiohttp.ClientSession, test_result: TestResult):
+    """Test encyclopedia endpoints"""
+    print("\n📚 TESTING ENCYCLOPEDIA ENDPOINTS")
+    print("-" * 40)
+    
+    # 1. GET /api/encyclopedia/articles?limit=3 - Check body field
+    response = await make_request(session, "GET", f"{API_BASE}/encyclopedia/articles?limit=3")
+    
+    if response["status"] == 200:
+        articles = response["data"].get("articles", [])
+        if articles:
+            # Check if articles have non-empty "body" field (not "NO BODY")
+            articles_with_body = []
+            articles_without_body = []
+            
+            for article in articles:
+                body = article.get("body") or article.get("content", "")
+                if body and body != "NO BODY" and len(body.strip()) > 0:
+                    articles_with_body.append(article)
+                else:
+                    articles_without_body.append(article)
+            
+            if len(articles_with_body) == len(articles):
+                test_result.add_result(
+                    "GET /api/encyclopedia/articles - body field", True,
+                    f"✅ All {len(articles)} articles have non-empty body",
+                    {"articles_with_body": len(articles_with_body)}
+                )
+            else:
+                test_result.add_result(
+                    "GET /api/encyclopedia/articles - body field", False,
+                    f"❌ {len(articles_without_body)} articles have empty/missing body",
+                    {"articles_without_body": len(articles_without_body)}
+                )
+        else:
+            test_result.add_result(
+                "GET /api/encyclopedia/articles - body field", False,
+                "❌ No articles returned",
+                {"response": response["data"]}
+            )
+    else:
+        test_result.add_result(
+            "GET /api/encyclopedia/articles - body field", False,
+            f"❌ HTTP {response['status']}: {response['data']}",
+            {"response": response}
+        )
+    
+    # 2. GET /api/encyclopedia/articles?limit=3 - Check image_url
+    response = await make_request(session, "GET", f"{API_BASE}/encyclopedia/articles?limit=3")
+    
+    if response["status"] == 200:
+        articles = response["data"].get("articles", [])
+        if articles:
+            articles_with_images = [a for a in articles if a.get("image_url")]
+            if len(articles_with_images) == len(articles):
+                test_result.add_result(
+                    "GET /api/encyclopedia/articles - image_url", True,
+                    f"✅ All {len(articles)} articles have image_url",
+                    {"articles_with_images": len(articles_with_images)}
+                )
+            else:
+                test_result.add_result(
+                    "GET /api/encyclopedia/articles - image_url", False,
+                    f"❌ {len(articles) - len(articles_with_images)} articles missing image_url",
+                    {"articles_without_images": len(articles) - len(articles_with_images)}
+                )
+        else:
+            test_result.add_result(
+                "GET /api/encyclopedia/articles - image_url", False,
+                "❌ No articles returned",
+                {"response": response["data"]}
+            )
+    else:
+        test_result.add_result(
+            "GET /api/encyclopedia/articles - image_url", False,
+            f"❌ HTTP {response['status']}: {response['data']}",
+            {"response": response}
+        )
+    
+    # 3. GET /api/encyclopedia/articles?limit=3 - Check reading_time field
+    response = await make_request(session, "GET", f"{API_BASE}/encyclopedia/articles?limit=3")
+    
+    if response["status"] == 200:
+        articles = response["data"].get("articles", [])
+        if articles:
+            articles_with_reading_time = [a for a in articles if "reading_time" in a]
+            if len(articles_with_reading_time) == len(articles):
+                test_result.add_result(
+                    "GET /api/encyclopedia/articles - reading_time", True,
+                    f"✅ All {len(articles)} articles have reading_time field",
+                    {"articles_with_reading_time": len(articles_with_reading_time)}
+                )
+            else:
+                test_result.add_result(
+                    "GET /api/encyclopedia/articles - reading_time", False,
+                    f"❌ {len(articles) - len(articles_with_reading_time)} articles missing reading_time",
+                    {"articles_without_reading_time": len(articles) - len(articles_with_reading_time)}
+                )
+        else:
+            test_result.add_result(
+                "GET /api/encyclopedia/articles - reading_time", False,
+                "❌ No articles returned",
+                {"response": response["data"]}
+            )
+    else:
+        test_result.add_result(
+            "GET /api/encyclopedia/articles - reading_time", False,
+            f"❌ HTTP {response['status']}: {response['data']}",
+            {"response": response}
+        )
+    
+    # 4. GET /api/encyclopedia/universes - Should return 6 universes with article counts
+    response = await make_request(session, "GET", f"{API_BASE}/encyclopedia/universes")
+    
+    if response["status"] == 200:
+        universes = response["data"]
+        if isinstance(universes, list) and len(universes) == 6:
+            # Check if all universes have article_count
+            universes_with_counts = [u for u in universes if "article_count" in u]
+            if len(universes_with_counts) == 6:
+                test_result.add_result(
+                    "GET /api/encyclopedia/universes", True,
+                    f"✅ Returns 6 universes with article counts",
+                    {"universes_count": len(universes), "sample_universe": universes[0] if universes else None}
+                )
+            else:
+                test_result.add_result(
+                    "GET /api/encyclopedia/universes", False,
+                    f"❌ {6 - len(universes_with_counts)} universes missing article_count",
+                    {"universes_without_counts": 6 - len(universes_with_counts)}
+                )
+        else:
+            test_result.add_result(
+                "GET /api/encyclopedia/universes", False,
+                f"❌ Expected 6 universes, got {len(universes) if isinstance(universes, list) else 'non-list'}",
+                {"universes": universes}
+            )
+    else:
+        test_result.add_result(
+            "GET /api/encyclopedia/universes", False,
+            f"❌ HTTP {response['status']}: {response['data']}",
+            {"response": response}
+        )
+
+async def test_general_endpoints(session: aiohttp.ClientSession, test_result: TestResult):
+    """Test general endpoints"""
+    print("\n🏥 TESTING GENERAL ENDPOINTS")
+    print("-" * 40)
+    
+    # 1. GET /api/health - Should return ok
+    response = await make_request(session, "GET", f"{API_BASE}/health")
+    
+    if response["status"] == 200:
+        status = response["data"].get("status")
+        if status == "ok" or status == "healthy":
+            test_result.add_result(
+                "GET /api/health", True,
+                f"✅ Returns status: {status}",
+                {"health_data": response["data"]}
+            )
+        else:
+            test_result.add_result(
+                "GET /api/health", False,
+                f"❌ Expected status 'ok', got '{status}'",
+                {"health_data": response["data"]}
+            )
+    else:
+        test_result.add_result(
+            "GET /api/health", False,
+            f"❌ HTTP {response['status']}: {response['data']}",
+            {"response": response}
+        )
+    
+    # 2. GET /api/stats - total_items >= 5678
+    response = await make_request(session, "GET", f"{API_BASE}/stats")
+    
+    if response["status"] == 200:
+        total_items = response["data"].get("total_items", 0)
+        if total_items >= 5678:
+            test_result.add_result(
+                "GET /api/stats", True,
+                f"✅ total_items = {total_items} (>= 5678)",
+                {"stats_data": response["data"]}
+            )
+        else:
+            test_result.add_result(
+                "GET /api/stats", False,
+                f"❌ total_items = {total_items} (< 5678)",
+                {"stats_data": response["data"]}
+            )
+    else:
+        test_result.add_result(
+            "GET /api/stats", False,
+            f"❌ HTTP {response['status']}: {response['data']}",
+            {"response": response}
+        )
+    
+    # 3. GET /api/heritage?limit=2 - Each item has non-empty image_url
+    response = await make_request(session, "GET", f"{API_BASE}/heritage?limit=2")
+    
+    if response["status"] == 200:
+        # Handle both list and dict responses
+        data = response["data"]
+        if isinstance(data, list):
+            items = data
+        else:
+            items = data.get("items", [])
+        
+        if items:
+            items_with_images = [item for item in items if item.get("image_url")]
+            if len(items_with_images) == len(items):
+                test_result.add_result(
+                    "GET /api/heritage - image_url", True,
+                    f"✅ All {len(items)} items have non-empty image_url",
+                    {"items_with_images": len(items_with_images)}
+                )
+            else:
+                test_result.add_result(
+                    "GET /api/heritage - image_url", False,
+                    f"❌ {len(items) - len(items_with_images)} items missing image_url",
+                    {"items_without_images": len(items) - len(items_with_images)}
+                )
+        else:
+            test_result.add_result(
+                "GET /api/heritage - image_url", False,
+                "❌ No heritage items returned",
+                {"response": response["data"]}
+            )
+    else:
+        test_result.add_result(
+            "GET /api/heritage - image_url", False,
+            f"❌ HTTP {response['status']}: {response['data']}",
+            {"response": response}
+        )
 
 async def main():
     """Main test runner"""
-    async with PortugalVivoTester() as tester:
-        results = await tester.run_all_tests()
-        
-        # Print detailed results
-        print("\n" + "=" * 80)
-        print("📊 DETAILED TEST RESULTS")
-        print("=" * 80)
-        
-        failed_tests = [r for r in results if not r["passed"]]
-        if failed_tests:
-            print("\n❌ FAILED TESTS:")
-            for test in failed_tests:
-                print(f"  • {test['endpoint']}: {test['details']}")
-        
-        passed_tests = [r for r in results if r["passed"]]
-        if passed_tests:
-            print(f"\n✅ PASSED TESTS ({len(passed_tests)}):")
-            for test in passed_tests:
-                print(f"  • {test['endpoint']}: Expected {test['expected']}, Got {test['actual']}")
-        
-        # Return exit code
-        return 0 if len(failed_tests) == 0 else 1
+    print("🚀 STARTING PORTUGAL VIVO BACKEND TESTS")
+    print(f"Backend URL: {BACKEND_URL}")
+    print(f"API Base: {API_BASE}")
+    
+    test_result = TestResult()
+    
+    # Create HTTP session with timeout
+    timeout = aiohttp.ClientTimeout(total=30)
+    async with aiohttp.ClientSession(timeout=timeout) as session:
+        # Test all endpoint groups
+        await test_search_endpoints(session, test_result)
+        await test_encyclopedia_endpoints(session, test_result)
+        await test_general_endpoints(session, test_result)
+    
+    # Print final summary
+    test_result.print_summary()
+    
+    # Exit with appropriate code
+    sys.exit(0 if test_result.failed == 0 else 1)
 
 if __name__ == "__main__":
-    exit_code = asyncio.run(main())
-    sys.exit(exit_code)
+    asyncio.run(main())

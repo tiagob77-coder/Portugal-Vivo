@@ -7,6 +7,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { getHeritageItem, getCategories, generateNarrative, addFavorite, removeFavorite, getAudioGuideForItem, doCheckin, getPoiImages } from '../../src/services/api';
 import { useAuth } from '../../src/context/AuthContext';
+import { useFavorites } from '../../src/context/FavoritesContext';
 import { Category } from '../../src/types';
 import { Audio } from 'expo-av';
 import * as Speech from 'expo-speech';
@@ -440,14 +441,10 @@ export default function HeritageDetailScreen() {
     enabled: !!id,
   });
 
-  // Optimistic local favorite state — syncs with auth context
-  const [isFavoriteLocal, setIsFavoriteLocal] = useState<boolean>(
-    user?.favorites?.includes(id!) || false
-  );
-  useEffect(() => {
-    setIsFavoriteLocal(user?.favorites?.includes(id!) || false);
-  }, [user, id]);
-  const isFavorite = isFavoriteLocal;
+  // Offline favorites via AsyncStorage (works without login)
+  const { isFavorite: isFavOffline, toggleFavorite: toggleFavOffline } = useFavorites();
+  const isFavorite = isFavOffline(id!);
+  const handleToggleFavorite = () => { toggleFavOffline(id!); };
 
   const [isPlayingAudio, setIsPlayingAudio] = useState(false);
   const [isLoadingAudio, setIsLoadingAudio] = useState(false);
@@ -587,15 +584,8 @@ export default function HeritageDetailScreen() {
   });
 
   const toggleFavorite = () => {
-    if (!isAuthenticated) {
-      Alert.alert('Atenção', 'Precisa de iniciar sessão para guardar favoritos.');
-      return;
-    }
-    if (isFavorite) {
-      removeFavoriteMutation.mutate();
-    } else {
-      addFavoriteMutation.mutate();
-    }
+    // Use offline favorites (AsyncStorage) — works without login
+    handleToggleFavorite();
   };
 
   const category = categories.find((c: Category) => c.id === item?.category);

@@ -1,9 +1,10 @@
 import React from 'react';
-import { View, Text, StyleSheet, Dimensions, Image } from 'react-native';
+import { View, Text, StyleSheet, Dimensions, Image, TouchableOpacity } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { HeritageItem, Category } from '../types';
 import PressableScale from './PressableScale';
 import { useTheme, typography, spacing, borders, getCategoryColor, getCategoryBg } from '../theme';
+import { useFavorites } from '../context/FavoritesContext';
 
 const { width: _width } = Dimensions.get('window');
 
@@ -86,10 +87,12 @@ const CATEGORY_IMAGES: Record<string, string> = {
 
 export default function HeritageCard({ item, categories, onPress, variant = 'default' }: HeritageCardProps) {
   const { colors } = useTheme();
+  const { isFavorite, toggleFavorite } = useFavorites();
   const category = categories.find(c => c.id === item.category);
   const imageUrl = item.image_url || CATEGORY_IMAGES[item.category] || CATEGORY_IMAGES.lendas;
   const catColor = getCategoryColor(category?.color ? item.category : item.category);
   const actualColor = category?.color || catColor;
+  const faved = isFavorite(item.id);
 
   // Compact variant
   if (variant === 'compact') {
@@ -143,6 +146,17 @@ export default function HeritageCard({ item, categories, onPress, variant = 'def
             {item.location && (
               <MaterialIcons name="location-on" size={14} color={colors.success} />
             )}
+            <TouchableOpacity
+              onPress={(e) => { e.stopPropagation(); toggleFavorite(item.id); }}
+              style={{ padding: 4, marginLeft: 4 }}
+              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            >
+              <MaterialIcons
+                name={faved ? 'favorite' : 'favorite-border'}
+                size={18}
+                color={faved ? '#EF4444' : colors.textMuted}
+              />
+            </TouchableOpacity>
           </View>
 
           <Text style={[styles.name, { color: colors.textOnPrimary }]} numberOfLines={2}>{item.name}</Text>

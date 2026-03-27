@@ -3,7 +3,7 @@
  * Results grouped by type with region chips and counters
  */
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Platform } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Platform, Image } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -169,11 +169,18 @@ export default function SearchPage() {
                         onPress={() => router.push(`/heritage/${item.id}`)}
                         data-testid={`result-${item.id}`}
                       >
+                        {item.image_url ? (
+                          <Image
+                            source={{ uri: item.image_url }}
+                            style={{ width: 64, height: 64, borderRadius: 10, marginRight: 12 }}
+                            resizeMode="cover"
+                          />
+                        ) : null}
                         <View style={{ flex: 1 }}>
                           <Text style={styles.resultName} numberOfLines={1}>{item.name}</Text>
                           <View style={styles.resultMeta}>
                             <View style={styles.catBadge}>
-                              <Text style={styles.catBadgeText}>{item.category}</Text>
+                              <Text style={styles.catBadgeText}>{item.category_name || item.category}</Text>
                             </View>
                             {item.region && <Text style={styles.regionText}>{item.region}</Text>}
                             {item.average_rating != null && (
