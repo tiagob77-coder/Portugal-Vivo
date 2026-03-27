@@ -219,6 +219,17 @@ LAYER_DEFINITIONS = [
     {"id":"procissoes_maritimas","label":"Procissões","icon":"directions-boat","color":"#1D4ED8","categories":["procissao_maritima","bencao_barcos"],"description":"Procissões ao mar e bênçãos das frotas pesqueiras","visible_zoom":8,"group":"cultura_maritima"},
     {"id":"festas_mar","label":"Festas do Mar","icon":"celebration","color":"#B45309","categories":["festa_mar","ritual_religioso","banho_santo"],"description":"Festas, romarias e rituais marítimos tradicionais","visible_zoom":7,"group":"cultura_maritima"},
     {"id":"tradicoes_piscatorias","label":"Tradições","icon":"anchor","color":"#0F766E","categories":["tradicao_piscatoria","arte_xavega","pesca_artesanal"],"description":"Tradições piscatórias vivas da costa portuguesa","visible_zoom":8,"group":"cultura_maritima"},
+    # ── Gastronomia ──────────────────────────────────────────────────────────────
+    {"id":"pratos_regionais","label":"Pratos Regionais","icon":"restaurant","color":"#EA580C","categories":["prato","sopa","sobremesa","gastronomia"],"description":"Pratos típicos e receitas regionais de Portugal","visible_zoom":8,"group":"gastronomia_atlas"},
+    {"id":"dop_igp","label":"DOP / IGP","icon":"workspace_premium","color":"#CA8A04","categories":["queijo","vinho","azeite","enchido","dop","igp"],"description":"Produtos com denominação de origem protegida ou indicação geográfica","visible_zoom":7,"group":"gastronomia_atlas"},
+    {"id":"restaurantes_tipicos","label":"Restaurantes","icon":"storefront","color":"#DC2626","categories":["restaurante","tasca","taberna","petisco"],"description":"Restaurantes de cozinha regional e tascos tradicionais","visible_zoom":10,"group":"gastronomia_atlas"},
+    {"id":"mercados_gastronomicos","label":"Mercados","icon":"local_mall","color":"#D97706","categories":["mercado_gastronomico","feira_gastronomica","mercado_municipal"],"description":"Mercados e feiras gastronómicas regionais","visible_zoom":9,"group":"gastronomia_atlas"},
+    {"id":"rotas_gastronomicas","label":"Rotas Gastronómicas","icon":"route","color":"#B45309","categories":["rota_gastronomica","rota_vinho","rota_queijo","rota_azeite"],"description":"Rotas temáticas gastronómicas por região","visible_zoom":7,"group":"gastronomia_atlas"},
+    # ── Flora, Fauna & Habitats ───────────────────────────────────────────────
+    {"id":"flora_endemica","label":"Flora Endémica","icon":"local_florist","color":"#16A34A","categories":["flora_endemica","especie_protegida","planta_autocone"],"description":"Espécies de flora endémica e protegida de Portugal","visible_zoom":8,"group":"flora_fauna"},
+    {"id":"fauna_hotspots","label":"Fauna Hotspots","icon":"pets","color":"#7C3AED","categories":["ave_rapina","cetaceo","anfibio","reptil","mamifero_terrestre"],"description":"Zonas de avistamento de fauna selvagem e espécies protegidas","visible_zoom":7,"group":"flora_fauna"},
+    {"id":"habitats_naturais","label":"Habitats","icon":"forest","color":"#059669","categories":["habitat_prioritario","mata_autocone","zona_humida","duna_costeira","charneca"],"description":"Habitats naturais prioritários e áreas de conservação","visible_zoom":6,"group":"flora_fauna"},
+    {"id":"raca_autocone","label":"Raças Autóctones","icon":"agriculture","color":"#92400E","categories":["raca_autocone","pastagem","gado","ovino","bovino"],"description":"Raças autóctones portuguesas e seus territórios de criação","visible_zoom":8,"group":"flora_fauna"},
 ]
 
 
