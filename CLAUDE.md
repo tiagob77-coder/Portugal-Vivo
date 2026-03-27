@@ -119,6 +119,12 @@ estimated_hours = distance_km / 4.0 + elevation_gain / 600.0
 | Admin Dashboard | `admin_dashboard_api.py` | — |
 | Economia Local | `economy_api.py` | `app/economia/index.tsx`, `EconomyMarketCard.tsx` |
 | Pré-História + Astronomia | `geo_prehistoria_api.py` | `app/prehistoria/index.tsx`, `PrehistoriaCard.tsx` |
+| Biodiversidade Marinha | `marine_biodiversity_api.py` | `app/biodiversidade/index.tsx`, `MarineSpeciesCard.tsx` |
+| Infraestrutura Natural | `infrastructure_api.py` | `app/infraestrutura/index.tsx`, `InfrastructureCard.tsx` |
+| Cultura Marítima | `maritime_culture_api.py` | `app/cultura-maritima/index.tsx`, `MaritimeCultureCard.tsx` |
+| Gastronomia Atlas | `coastal_gastronomy_api.py` | `app/gastronomia/index.tsx`, `GastronomyDishCard.tsx` |
+| Flora Endémica | `flora_fauna_api.py` | `app/flora/index.tsx`, `FloraSpeciesCard.tsx` |
+| Fauna & Habitats | `flora_fauna_api.py` | `app/fauna/index.tsx`, `FaunaSpeciesCard.tsx` |
 
 ## Git
 - **Branch de desenvolvimento**: `claude/analyze-database-improvements-ATr3a`
