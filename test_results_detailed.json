@@ -6,8 +6,8 @@
     "status_code": 200,
     "expected_status": 200,
     "success": true,
-    "description": "Health check endpoint",
-    "timestamp": "2026-03-27T20:52:55.241599",
+    "description": "Health check endpoint - should return 'ok'",
+    "timestamp": "2026-03-27T21:15:33.636825",
     "params": null,
     "json_data": null,
     "response_data": {
@@ -25,8 +25,8 @@
     "status_code": 200,
     "expected_status": 200,
     "success": true,
-    "description": "Get API statistics - should show >5000 items",
-    "timestamp": "2026-03-27T20:52:55.305845",
+    "description": "Get API statistics - should show total_items >= 5678",
+    "timestamp": "2026-03-27T21:15:33.694425",
     "params": null,
     "json_data": null,
     "response_data": {
@@ -309,8 +309,8 @@
     "status_code": 200,
     "expected_status": 200,
     "success": true,
-    "description": "Get all heritage categories",
-    "timestamp": "2026-03-27T20:52:55.374748",
+    "description": "Get all heritage categories with proper IDs",
+    "timestamp": "2026-03-27T21:15:33.754996",
     "params": null,
     "json_data": null,
     "response_data": [
@@ -592,196 +592,8 @@
     "status_code": 200,
     "expected_status": 200,
     "success": true,
-    "description": "Get 5 heritage items with required fields",
-    "timestamp": "2026-03-27T20:52:55.427454",
-    "params": {
-      "limit": 5
-    },
-    "json_data": null,
-    "response_data": [
-      {
-        "id": "poi_gr50-grande-rota-peneda-geres_5cb359",
-        "name": "GR50 \u2014 Grande Rota Peneda-Ger\u00eas",
-        "description": "\ud83d\udccd POIs: Portela do Homem (marco da Geira Romana) \u00b7 Campo do Ger\u00eas \u00b7 Caldas do Ger\u00eas (termas) \u00b7 Vilar da Veiga (espigueiros) \u00b7 Covide \u00b7 Ermida de S\u00e3o Bento \u00b7 Aldeias de brandas e inverneiras medievais \u00b7 \u00danico Parque Nacional de Portugal \u00b7 Carvalhos-alvarhinhos e garrano selvagem",
-        "category": "percursos_pedestres",
-        "subcategory": null,
-        "region": "norte",
-        "distrito": null,
-        "concelho": null,
-        "freguesia": null,
-        "nuts_iii": null,
-        "codigo_postal": null,
-        "location": {
-          "lat": 41.7665,
-          "lng": -8.1853
-        },
-        "address": "Portela do Homem \u2014 EN308, 4850 Terras de Bouro",
-        "image_url": "",
-        "tags": [
-          "Percursos Pedestres",
-          "norte",
-          "Natureza"
-        ],
-        "related_items": [],
-        "metadata": {
-          "distance": "180 km",
-          "duration": "10-12 dias",
-          "difficulty": "Dif\u00edcil",
-          "type": "Linear",
-          "altitude": "1 548 m",
-          "best_season": "Maio\u2013Outubro"
-        },
-        "created_at": "2026-03-27T20:47:19.610000"
-      },
-      {
-        "id": "poi_pr1-tbr-trilho-da-cidade-da-calcedonia_4238a6",
-        "name": "PR1 TBR \u2014 Trilho da Cidade da Calced\u00f3nia",
-        "description": "\ud83d\udccd POIs: Planalto gran\u00edtico da Calced\u00f3nia \u00b7 Moinhos de pedra medievais do Rio Homem \u00b7 Piscina natural do Rio Homem \u00b7 Carvalhos milenares \u00b7 Lenda da Cidade da Calced\u00f3nia \u00b7 Afloramentos de granito pr\u00e9-c\u00e2mbrico \u00b7 Fauna de Lobo Ib\u00e9rico e garrano",
-        "category": "percursos_pedestres",
-        "subcategory": null,
-        "region": "norte",
-        "distrito": null,
-        "concelho": null,
-        "freguesia": null,
-        "nuts_iii": null,
-        "codigo_postal": null,
-        "location": {
-          "lat": 41.7012,
-          "lng": -8.172
-        },
-        "address": "Aldeia de Vilar da Veiga, Terras de Bouro",
-        "image_url": "",
-        "tags": [
-          "Percursos Pedestres",
-          "norte",
-          "Natureza"
-        ],
-        "related_items": [],
-        "metadata": {
-          "distance": "7 km",
-          "duration": "4h30",
-          "difficulty": "Elevada",
-          "type": "Circular",
-          "altitude": "999 m",
-          "best_season": "Abr\u2013Jun | Set\u2013Out"
-        },
-        "created_at": "2026-03-27T20:47:19.610000"
-      },
-      {
-        "id": "poi_pr2-tbr-trilho-do-castelo_974cb7",
-        "name": "PR2 TBR \u2014 Trilho do Castelo",
-        "description": "\ud83d\udccd POIs: Castelo medieval de Ger\u00eas (s\u00e9c. XII) \u00b7 Muralha romana via XVII Geira \u00b7 Ru\u00ednas das Termas Romanas do s\u00e9c. I \u00b7 Miradouro sobre o Rio Caldo \u00b7 Albufeira da Cani\u00e7ada \u00b7 Vegeta\u00e7\u00e3o de carvalho-alvarinho e pinheiro-bravo",
-        "category": "percursos_pedestres",
-        "subcategory": null,
-        "region": "norte",
-        "distrito": null,
-        "concelho": null,
-        "freguesia": null,
-        "nuts_iii": null,
-        "codigo_postal": null,
-        "location": {
-          "lat": 41.7198,
-          "lng": -8.1631
-        },
-        "address": "Ger\u00eas, Terras de Bouro",
-        "image_url": "",
-        "tags": [
-          "Percursos Pedestres",
-          "norte",
-          "Natureza"
-        ],
-        "related_items": [],
-        "metadata": {
-          "distance": "6 km",
-          "duration": "3h",
-          "difficulty": "Moderada",
-          "type": "Circular",
-          "altitude": "820 m",
-          "best_season": "Mar\u2013Jun | Set\u2013Nov"
-        },
-        "created_at": "2026-03-27T20:47:19.610000"
-      },
-      {
-        "id": "poi_pr3-tbr-trilho-dos-currais_878def",
-        "name": "PR3 TBR \u2014 Trilho dos Currais",
-        "description": "\ud83d\udccd POIs: Currais de vezeira medievais (pastoreio comunit\u00e1rio \u00fanico em Portugal) \u00b7 Planaltos de altitude do Ger\u00eas \u00b7 Garranos selvagens (ra\u00e7a equina aut\u00f3ctone) \u00b7 Habitat de Lobo Ib\u00e9rico \u00b7 Brandas de altitude com pastores sazonais \u00b7 Granito e urzal",
-        "category": "percursos_pedestres",
-        "subcategory": null,
-        "region": "norte",
-        "distrito": null,
-        "concelho": null,
-        "freguesia": null,
-        "nuts_iii": null,
-        "codigo_postal": null,
-        "location": {
-          "lat": 41.722,
-          "lng": -8.165
-        },
-        "address": "Ger\u00eas, Terras de Bouro",
-        "image_url": "",
-        "tags": [
-          "Percursos Pedestres",
-          "norte",
-          "Natureza"
-        ],
-        "related_items": [],
-        "metadata": {
-          "distance": "10 km",
-          "duration": "4h",
-          "difficulty": "M\u00e9dio-Elevada",
-          "type": "Circular",
-          "altitude": "1 200 m",
-          "best_season": "Mai\u2013Set (vezeira"
-        },
-        "created_at": "2026-03-27T20:47:19.610000"
-      },
-      {
-        "id": "poi_pr4-tbr-trilho-dos-moinhos-e-regadios-tradicionais_b9ee68",
-        "name": "PR4 TBR \u2014 Trilho dos Moinhos e Regadios Tradicionais",
-        "description": "\ud83d\udccd POIs: Moinhos de \u00e1gua do s\u00e9c. XVII em fileira \u00b7 Sistema de regadios tradicionais de Vilar da Veiga \u00b7 A\u00e7udes e levadas hist\u00f3ricas \u00b7 Lontra e gar\u00e7a-real nos ribeiros \u00b7 Azenhas restauradas \u00b7 Piscinas naturais de xisto e granito",
-        "category": "percursos_pedestres",
-        "subcategory": null,
-        "region": "norte",
-        "distrito": null,
-        "concelho": null,
-        "freguesia": null,
-        "nuts_iii": null,
-        "codigo_postal": null,
-        "location": {
-          "lat": 41.7665,
-          "lng": -8.1853
-        },
-        "address": "Portela do Homem, Terras de Bouro",
-        "image_url": "",
-        "tags": [
-          "Percursos Pedestres",
-          "norte",
-          "Natureza"
-        ],
-        "related_items": [],
-        "metadata": {
-          "distance": "8 km",
-          "duration": "3h",
-          "difficulty": "F\u00e1cil",
-          "type": "Circular",
-          "altitude": "600 m",
-          "best_season": "Abr\u2013Out"
-        },
-        "created_at": "2026-03-27T20:47:19.610000"
-      }
-    ],
-    "data_type": "list",
-    "item_count": 5
-  },
-  {
-    "endpoint": "/heritage",
-    "method": "GET",
-    "url": "https://project-analyzer-131.preview.emergentagent.com/api/heritage",
-    "status_code": 200,
-    "expected_status": 200,
-    "success": true,
-    "description": "Filter heritage by category 'castelos'",
-    "timestamp": "2026-03-27T20:52:55.488359",
+    "description": "CRITICAL: castelos items MUST have non-empty image_url with unsplash.com",
+    "timestamp": "2026-03-27T21:15:33.820063",
     "params": {
       "category": "castelos",
       "limit": 3
@@ -805,7 +617,7 @@
           "lng": -8.4239
         },
         "address": "R. da Torre, 4585-011 Aguiar de Sousa, Paredes",
-        "image_url": "",
+        "image_url": "https://images.unsplash.com/photo-1518998053901-5348d3961a04?w=800&q=80",
         "tags": [
           "Castelos",
           "norte",
@@ -837,7 +649,7 @@
           "lng": -7.3061
         },
         "address": "Selores, 5140-302 Carrazeda de Ansi\u00e3es",
-        "image_url": "",
+        "image_url": "https://images.unsplash.com/photo-1560179707-f14e90ef3623?w=800&q=80",
         "tags": [
           "Castelos",
           "norte",
@@ -869,7 +681,7 @@
           "lng": -8.0583
         },
         "address": "Arnoia, 4890-000 Celorico de Basto",
-        "image_url": "",
+        "image_url": "https://images.unsplash.com/photo-1555881400-74d7acaacd8b?w=800&q=80",
         "tags": [
           "Castelos",
           "norte",
@@ -895,8 +707,8 @@
     "status_code": 200,
     "expected_status": 200,
     "success": true,
-    "description": "Filter heritage by category 'restaurantes_gastronomia'",
-    "timestamp": "2026-03-27T20:52:55.550917",
+    "description": "CRITICAL: restaurantes_gastronomia items MUST have non-empty image_url",
+    "timestamp": "2026-03-27T21:15:33.872235",
     "params": {
       "category": "restaurantes_gastronomia",
       "limit": 3
@@ -920,7 +732,7 @@
           "lng": -8.567127
         },
         "address": "Rua do Porto de Recreio 72, Peniche",
-        "image_url": "",
+        "image_url": "https://images.unsplash.com/photo-1559339352-11d035aa65de?w=800&q=80",
         "tags": [
           "Restaurantes",
           "norte",
@@ -952,7 +764,7 @@
           "lng": -8.192879
         },
         "address": "Morgavel, Sines (Porto Covo)",
-        "image_url": "",
+        "image_url": "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=800&q=80",
         "tags": [
           "Restaurantes",
           "norte",
@@ -984,7 +796,7 @@
           "lng": -8.336471
         },
         "address": "Rua do Porto de Pesca, Arrifana",
-        "image_url": "",
+        "image_url": "https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=800&q=80",
         "tags": [
           "Restaurantes",
           "norte",
@@ -1010,10 +822,122 @@
     "status_code": 200,
     "expected_status": 200,
     "success": true,
-    "description": "Filter heritage by region 'norte'",
-    "timestamp": "2026-03-27T20:52:55.610018",
+    "description": "CRITICAL: surf items MUST have non-empty image_url",
+    "timestamp": "2026-03-27T21:15:33.925616",
     "params": {
-      "region": "norte",
+      "category": "surf",
+      "limit": 3
+    },
+    "json_data": null,
+    "response_data": [
+      {
+        "id": "poi_afife_bfcbd8",
+        "name": "Afife",
+        "description": "Um dos mais consistentes do Norte. V\u00e1rios picos de alta qualidade.",
+        "category": "surf",
+        "subcategory": null,
+        "region": "norte",
+        "distrito": null,
+        "concelho": null,
+        "freguesia": null,
+        "nuts_iii": null,
+        "codigo_postal": null,
+        "location": {
+          "lat": 41.7706,
+          "lng": -8.8736
+        },
+        "address": "",
+        "image_url": "https://images.unsplash.com/photo-1476673160081-cf065607f449?w=800&q=80",
+        "tags": [
+          "Surf",
+          "norte",
+          "Mar & Praias"
+        ],
+        "related_items": [],
+        "metadata": {
+          "best_season": "Out-Abr",
+          "level": "Interm\u00e9dio",
+          "wave_type": "Beach break \u2014 m\u00faltiplos picos"
+        },
+        "created_at": "2026-03-27T20:47:19.933000"
+      },
+      {
+        "id": "poi_viana-do-castelo-cabedelo_707795",
+        "name": "Viana do Castelo \u2014 Cabedelo",
+        "description": "Praia de concursos. Beach break com picos variados.",
+        "category": "surf",
+        "subcategory": null,
+        "region": "norte",
+        "distrito": null,
+        "concelho": null,
+        "freguesia": null,
+        "nuts_iii": null,
+        "codigo_postal": null,
+        "location": {
+          "lat": 41.67,
+          "lng": -8.855
+        },
+        "address": "",
+        "image_url": "https://images.unsplash.com/photo-1500917293891-ef795e70e1f6?w=800&q=80",
+        "tags": [
+          "Surf",
+          "norte",
+          "Mar & Praias"
+        ],
+        "related_items": [],
+        "metadata": {
+          "best_season": "Set-Abr",
+          "level": "Interm\u00e9dio",
+          "wave_type": "Beach break"
+        },
+        "created_at": "2026-03-27T20:47:19.933000"
+      },
+      {
+        "id": "poi_moledo_1a6ff4",
+        "name": "Moledo",
+        "description": "Praia larga com ondas acess\u00edveis. Norte de Portugal.",
+        "category": "surf",
+        "subcategory": null,
+        "region": "norte",
+        "distrito": null,
+        "concelho": null,
+        "freguesia": null,
+        "nuts_iii": null,
+        "codigo_postal": null,
+        "location": {
+          "lat": 41.8463,
+          "lng": -8.8611
+        },
+        "address": "Av. da Praia, 4920 Caminha",
+        "image_url": "https://images.unsplash.com/photo-1476673160081-cf065607f449?w=800&q=80",
+        "tags": [
+          "Surf",
+          "norte",
+          "Mar & Praias"
+        ],
+        "related_items": [],
+        "metadata": {
+          "best_season": "Mar-Nov",
+          "level": "Iniciante/Interm\u00e9dio",
+          "wave_type": "Beach break"
+        },
+        "created_at": "2026-03-27T20:47:19.933000"
+      }
+    ],
+    "data_type": "list",
+    "item_count": 3
+  },
+  {
+    "endpoint": "/heritage",
+    "method": "GET",
+    "url": "https://project-analyzer-131.preview.emergentagent.com/api/heritage",
+    "status_code": 200,
+    "expected_status": 200,
+    "success": true,
+    "description": "CRITICAL: percursos_pedestres items MUST have non-empty image_url",
+    "timestamp": "2026-03-27T21:15:33.974249",
+    "params": {
+      "category": "percursos_pedestres",
       "limit": 3
     },
     "json_data": null,
@@ -1035,7 +959,7 @@
           "lng": -8.1853
         },
         "address": "Portela do Homem \u2014 EN308, 4850 Terras de Bouro",
-        "image_url": "",
+        "image_url": "https://images.unsplash.com/photo-1551632811-561732d1e306?w=800&q=80",
         "tags": [
           "Percursos Pedestres",
           "norte",
@@ -1069,7 +993,7 @@
           "lng": -8.172
         },
         "address": "Aldeia de Vilar da Veiga, Terras de Bouro",
-        "image_url": "",
+        "image_url": "https://images.unsplash.com/photo-1445217143695-467124038776?w=800&q=80",
         "tags": [
           "Percursos Pedestres",
           "norte",
@@ -1103,7 +1027,7 @@
           "lng": -8.1631
         },
         "address": "Ger\u00eas, Terras de Bouro",
-        "image_url": "",
+        "image_url": "https://images.unsplash.com/photo-1501554728187-ce583db33af7?w=800&q=80",
         "tags": [
           "Percursos Pedestres",
           "norte",
@@ -1125,277 +1049,2853 @@
     "item_count": 3
   },
   {
-    "endpoint": "/regions",
+    "endpoint": "/map/items",
     "method": "GET",
-    "url": "https://project-analyzer-131.preview.emergentagent.com/api/regions",
+    "url": "https://project-analyzer-131.preview.emergentagent.com/api/map/items",
     "status_code": 200,
     "expected_status": 200,
     "success": true,
-    "description": "Get all regions",
-    "timestamp": "2026-03-27T20:52:55.664284",
-    "params": null,
-    "json_data": null,
-    "response_data": [
-      {
-        "id": "norte",
-        "name": "Norte",
-        "color": "#3B82F6"
-      },
-      {
-        "id": "centro",
-        "name": "Centro",
-        "color": "#22C55E"
-      },
-      {
-        "id": "lisboa",
-        "name": "Lisboa e Vale do Tejo",
-        "color": "#F59E0B"
-      },
-      {
-        "id": "alentejo",
-        "name": "Alentejo",
-        "color": "#EF4444"
-      },
-      {
-        "id": "algarve",
-        "name": "Algarve",
-        "color": "#06B6D4"
-      },
-      {
-        "id": "acores",
-        "name": "Acores",
-        "color": "#8B5CF6"
-      },
-      {
-        "id": "madeira",
-        "name": "Madeira",
-        "color": "#EC4899"
-      }
-    ],
-    "data_type": "list",
-    "item_count": 7
-  },
-  {
-    "endpoint": "/heritage",
-    "method": "GET",
-    "url": "https://project-analyzer-131.preview.emergentagent.com/api/heritage",
-    "status_code": 200,
-    "expected_status": 200,
-    "success": true,
-    "description": "Search heritage items for 'Ger\u00eas'",
-    "timestamp": "2026-03-27T20:52:55.719898",
+    "description": "Map items for castelos should have image_url",
+    "timestamp": "2026-03-27T21:15:34.048895",
     "params": {
-      "search": "Ger\u00eas",
-      "limit": 5
+      "categories": "castelos"
     },
     "json_data": null,
     "response_data": [
       {
-        "id": "poi_gr50-grande-rota-peneda-geres_5cb359",
-        "name": "GR50 \u2014 Grande Rota Peneda-Ger\u00eas",
-        "description": "\ud83d\udccd POIs: Portela do Homem (marco da Geira Romana) \u00b7 Campo do Ger\u00eas \u00b7 Caldas do Ger\u00eas (termas) \u00b7 Vilar da Veiga (espigueiros) \u00b7 Covide \u00b7 Ermida de S\u00e3o Bento \u00b7 Aldeias de brandas e inverneiras medievais \u00b7 \u00danico Parque Nacional de Portugal \u00b7 Carvalhos-alvarhinhos e garrano selvagem",
-        "category": "percursos_pedestres",
-        "subcategory": null,
+        "id": "poi_castelo-de-aguiar-de-sousa_d9c25d",
+        "name": "Castelo de Aguiar de Sousa",
+        "description": "Fortaleza dos s\u00e9culos XI-XII em Paredes. Testemunho da reconquista e do senhorio medieval portugu\u00eas, com muralhas, torre de menagem e vistas panor\u00e2micas sobre o territ\u00f3rio hist\u00f3rico da regi\u00e3o. Entrada gratuita.",
+        "category": "castelos",
         "region": "norte",
-        "distrito": null,
-        "concelho": null,
-        "freguesia": null,
-        "nuts_iii": null,
-        "codigo_postal": null,
+        "address": "R. da Torre, 4585-011 Aguiar de Sousa, Paredes",
         "location": {
-          "lat": 41.7665,
-          "lng": -8.1853
+          "lat": 41.1292,
+          "lng": -8.4239
         },
-        "address": "Portela do Homem \u2014 EN308, 4850 Terras de Bouro",
-        "image_url": "",
+        "image_url": "https://images.unsplash.com/photo-1518998053901-5348d3961a04?w=800&q=80",
         "tags": [
-          "Percursos Pedestres",
+          "Castelos",
           "norte",
-          "Natureza"
+          "Hist\u00f3ria & Patrim\u00f3nio"
         ],
-        "related_items": [],
+        "created_at": "2026-03-27 20:47:19.745000",
         "metadata": {
-          "distance": "180 km",
-          "duration": "10-12 dias",
-          "difficulty": "Dif\u00edcil",
-          "type": "Linear",
-          "altitude": "1 548 m",
-          "best_season": "Maio\u2013Outubro"
+          "period": "Pr\u00e9-S\u00e9c. XII",
+          "schedule": "Ter-Dom 9h-17h30; Fechado 2\u00aa feira",
+          "price": "Adulto 4\u20ac; <12 Gr\u00e1tis; Dom manh\u00e3 Gr\u00e1tis",
+          "website": "https://monumentos.gov.pt"
         },
-        "created_at": "2026-03-27T20:47:19.610000"
+        "iq_score": null
       },
       {
-        "id": "poi_pr2-tbr-trilho-do-castelo_974cb7",
-        "name": "PR2 TBR \u2014 Trilho do Castelo",
-        "description": "\ud83d\udccd POIs: Castelo medieval de Ger\u00eas (s\u00e9c. XII) \u00b7 Muralha romana via XVII Geira \u00b7 Ru\u00ednas das Termas Romanas do s\u00e9c. I \u00b7 Miradouro sobre o Rio Caldo \u00b7 Albufeira da Cani\u00e7ada \u00b7 Vegeta\u00e7\u00e3o de carvalho-alvarinho e pinheiro-bravo",
-        "category": "percursos_pedestres",
-        "subcategory": null,
+        "id": "poi_castelo-de-ansiaes_90b240",
+        "name": "Castelo de Ansi\u00e3es",
+        "description": "Fortaleza dos s\u00e9culos XI-XII em 5140-302 Carrazeda de Ansi\u00e3es. Testemunho da reconquista e do senhorio medieval portugu\u00eas, com muralhas, torre de menagem e vistas panor\u00e2micas sobre o territ\u00f3rio hist\u00f3rico da regi\u00e3o. Entrada gratuita.",
+        "category": "castelos",
         "region": "norte",
-        "distrito": null,
-        "concelho": null,
-        "freguesia": null,
-        "nuts_iii": null,
-        "codigo_postal": null,
+        "address": "Selores, 5140-302 Carrazeda de Ansi\u00e3es",
         "location": {
-          "lat": 41.7198,
-          "lng": -8.1631
+          "lat": 41.2017,
+          "lng": -7.3061
         },
-        "address": "Ger\u00eas, Terras de Bouro",
-        "image_url": "",
+        "image_url": "https://images.unsplash.com/photo-1560179707-f14e90ef3623?w=800&q=80",
         "tags": [
-          "Percursos Pedestres",
+          "Castelos",
           "norte",
-          "Natureza"
+          "Hist\u00f3ria & Patrim\u00f3nio"
         ],
-        "related_items": [],
+        "created_at": "2026-03-27 20:47:19.745000",
         "metadata": {
-          "distance": "6 km",
-          "duration": "3h",
-          "difficulty": "Moderada",
-          "type": "Circular",
-          "altitude": "820 m",
-          "best_season": "Mar\u2013Jun | Set\u2013Nov"
+          "period": "Pr\u00e9-S\u00e9c. XII",
+          "schedule": "Ter-Dom 9h-17h30; Fechado 2\u00aa feira",
+          "price": "Adulto 4\u20ac; <12 Gr\u00e1tis; Dom manh\u00e3 Gr\u00e1tis",
+          "website": "https://monumentos.gov.pt"
         },
-        "created_at": "2026-03-27T20:47:19.610000"
+        "iq_score": null
       },
       {
-        "id": "poi_pr3-tbr-trilho-dos-currais_878def",
-        "name": "PR3 TBR \u2014 Trilho dos Currais",
-        "description": "\ud83d\udccd POIs: Currais de vezeira medievais (pastoreio comunit\u00e1rio \u00fanico em Portugal) \u00b7 Planaltos de altitude do Ger\u00eas \u00b7 Garranos selvagens (ra\u00e7a equina aut\u00f3ctone) \u00b7 Habitat de Lobo Ib\u00e9rico \u00b7 Brandas de altitude com pastores sazonais \u00b7 Granito e urzal",
-        "category": "percursos_pedestres",
-        "subcategory": null,
+        "id": "poi_castelo-de-arnoia-castelo-de-basto_c30dfc",
+        "name": "Castelo de Arnoia (Castelo de Basto)",
+        "description": "Fortaleza dos s\u00e9culos XI-XII em 4890-000 Celorico de Basto. Testemunho da reconquista e do senhorio medieval portugu\u00eas, com muralhas, torre de menagem e vistas panor\u00e2micas sobre o territ\u00f3rio hist\u00f3rico da regi\u00e3o. Entrada gratuita.",
+        "category": "castelos",
         "region": "norte",
-        "distrito": null,
-        "concelho": null,
-        "freguesia": null,
-        "nuts_iii": null,
-        "codigo_postal": null,
+        "address": "Arnoia, 4890-000 Celorico de Basto",
         "location": {
-          "lat": 41.722,
-          "lng": -8.165
+          "lat": 41.3644,
+          "lng": -8.0583
         },
-        "address": "Ger\u00eas, Terras de Bouro",
-        "image_url": "",
+        "image_url": "https://images.unsplash.com/photo-1555881400-74d7acaacd8b?w=800&q=80",
         "tags": [
-          "Percursos Pedestres",
+          "Castelos",
           "norte",
-          "Natureza"
+          "Hist\u00f3ria & Patrim\u00f3nio"
         ],
-        "related_items": [],
+        "created_at": "2026-03-27 20:47:19.745000",
         "metadata": {
-          "distance": "10 km",
-          "duration": "4h",
-          "difficulty": "M\u00e9dio-Elevada",
-          "type": "Circular",
-          "altitude": "1 200 m",
-          "best_season": "Mai\u2013Set (vezeira"
+          "period": "Pr\u00e9-S\u00e9c. XII",
+          "schedule": "Ter-Dom 9h-17h30; Fechado 2\u00aa feira",
+          "price": "Adulto 4\u20ac; <12 Gr\u00e1tis; Dom manh\u00e3 Gr\u00e1tis",
+          "website": "https://monumentos.gov.pt"
         },
-        "created_at": "2026-03-27T20:47:19.610000"
+        "iq_score": null
       },
       {
-        "id": "poi_pr5-tbr-trilho-da-aguia-do-sarilhao_60eebf",
-        "name": "PR5 TBR \u2014 Trilho da \u00c1guia do Sarilh\u00e3o",
-        "description": "\ud83d\udccd POIs: Habitat de \u00c1guia-Real (Aquila chrysaetos) \u00b7 Pinheiros bravos seculares \u00b7 Carvalhos-alvarhinhos \u00b7 Miradouro sobre o Vale do Homem \u00b7 Planalto do Ger\u00eas a 1000m \u00b7 Sarilh\u00e3o (zona de observa\u00e7\u00e3o de rapinas) \u00b7 Corredeiras do Rio Homem",
-        "category": "percursos_pedestres",
-        "subcategory": null,
+        "id": "poi_castelo-de-guimaraes_6856c7",
+        "name": "Castelo de Guimar\u00e3es",
+        "description": "Fortaleza dos s\u00e9culos XI-XII em 4800-412 Guimar\u00e3es. Testemunho da reconquista e do senhorio medieval portugu\u00eas, com muralhas, torre de menagem e vistas panor\u00e2micas sobre o territ\u00f3rio hist\u00f3rico da regi\u00e3o. Entrada gratuita.",
+        "category": "castelos",
         "region": "norte",
-        "distrito": null,
-        "concelho": null,
-        "freguesia": null,
-        "nuts_iii": null,
-        "codigo_postal": null,
+        "address": "R. Conde D. Henrique, 4800-412 Guimar\u00e3es",
         "location": {
-          "lat": 41.735,
-          "lng": -8.158
+          "lat": 41.4478,
+          "lng": -8.2903
         },
-        "address": "Vale do Homem, Terras de Bouro",
-        "image_url": "",
+        "image_url": "https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?w=800&q=80",
         "tags": [
-          "Percursos Pedestres",
+          "Castelos",
           "norte",
-          "Natureza"
+          "Hist\u00f3ria & Patrim\u00f3nio"
         ],
-        "related_items": [],
+        "created_at": "2026-03-27 20:47:19.745000",
         "metadata": {
-          "distance": "9 km",
-          "duration": "3h",
-          "difficulty": "M\u00e9dia",
-          "type": "Linear",
-          "altitude": "650 m",
-          "best_season": "Abr\u2013Jun | Set\u2013Nov"
+          "period": "Pr\u00e9-S\u00e9c. XII",
+          "schedule": "Ter-Dom 9h-17h30; Fechado 2\u00aa feira",
+          "price": "Adulto 4\u20ac; <12 Gr\u00e1tis; Dom manh\u00e3 Gr\u00e1tis",
+          "website": "https://patrimoniomundial.cm-guimaraes.pt"
         },
-        "created_at": "2026-03-27T20:47:19.610000"
+        "iq_score": null
       },
       {
-        "id": "poi_pr6-tbr-trilho-dos-miradouros_180739",
-        "name": "PR6 TBR \u2014 Trilho dos Miradouros",
-        "description": "\ud83d\udccd POIs: S\u00e9rie de miradouros panor\u00e2micos \u00b7 Rio Caldo em garganta profunda \u00b7 Albufeira da Cani\u00e7ada (espelho de \u00e1gua) \u00b7 Granitos polidos glaciares \u00b7 Serra do Ger\u00eas ao entardecer \u00b7 Vegeta\u00e7\u00e3o de azevinho e loendro end\u00e9mico",
-        "category": "percursos_pedestres",
-        "subcategory": null,
+        "id": "poi_castelo-rodrigo_d8c1ca",
+        "name": "Castelo Rodrigo",
+        "description": "Fortaleza do s\u00e9culo XII em 6440-031 Castelo Rodrigo. Testemunho da reconquista e do senhorio medieval portugu\u00eas, com muralhas, torre de menagem e vistas panor\u00e2micas sobre o territ\u00f3rio hist\u00f3rico da regi\u00e3o. Entrada gratuita.",
+        "category": "castelos",
         "region": "norte",
-        "distrito": null,
-        "concelho": null,
-        "freguesia": null,
-        "nuts_iii": null,
-        "codigo_postal": null,
+        "address": "Largo do Castelo, 6440-031 Castelo Rodrigo",
         "location": {
-          "lat": 41.7198,
-          "lng": -8.1631
+          "lat": 40.8773,
+          "lng": -6.9642
         },
-        "address": "Ger\u00eas, Terras de Bouro",
-        "image_url": "",
+        "image_url": "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&q=80",
         "tags": [
-          "Percursos Pedestres",
+          "Castelos",
           "norte",
-          "Natureza"
+          "Hist\u00f3ria & Patrim\u00f3nio"
         ],
-        "related_items": [],
+        "created_at": "2026-03-27 20:47:19.746000",
         "metadata": {
-          "distance": "10 km",
-          "duration": "5h",
-          "difficulty": "M\u00e9dio-Elevada",
-          "type": "Circular",
-          "altitude": "930 m",
-          "best_season": "Abr\u2013Jun | Set\u2013Out"
+          "period": "S\u00e9c. XII",
+          "schedule": "Ter-Dom 9h-17h30; Fechado 2\u00aa feira",
+          "price": "Adulto 4\u20ac; <12 Gr\u00e1tis; Dom manh\u00e3 Gr\u00e1tis",
+          "website": "https://monumentos.gov.pt"
         },
-        "created_at": "2026-03-27T20:47:19.610000"
+        "iq_score": null
+      },
+      {
+        "id": "poi_castelo-de-braganca_9b07de",
+        "name": "Castelo de Bragan\u00e7a",
+        "description": "Fortaleza do s\u00e9culo XIII em 5300-025 Bragan\u00e7a. Testemunho da reconquista e do senhorio medieval portugu\u00eas, com muralhas, torre de menagem e vistas panor\u00e2micas sobre o territ\u00f3rio hist\u00f3rico da regi\u00e3o. Entrada gratuita.",
+        "category": "castelos",
+        "region": "norte",
+        "address": "R. do Castelo, 5300-025 Bragan\u00e7a",
+        "location": {
+          "lat": 41.8034,
+          "lng": -6.749
+        },
+        "image_url": "https://images.unsplash.com/photo-1560179707-f14e90ef3623?w=800&q=80",
+        "tags": [
+          "Castelos",
+          "norte",
+          "Hist\u00f3ria & Patrim\u00f3nio"
+        ],
+        "created_at": "2026-03-27 20:47:19.746000",
+        "metadata": {
+          "period": "S\u00e9c. XIII",
+          "schedule": "Ter-Dom 9h-17h30; Fechado 2\u00aa feira",
+          "price": "Adulto 4\u20ac; <12 Gr\u00e1tis; Dom manh\u00e3 Gr\u00e1tis",
+          "website": "https://monumentos.gov.pt"
+        },
+        "iq_score": null
+      },
+      {
+        "id": "poi_castelo-de-lindoso_651270",
+        "name": "Castelo de Lindoso",
+        "description": "Fortaleza do s\u00e9culo XIII em 4980-020 Lindoso. Testemunho da reconquista e do senhorio medieval portugu\u00eas, com muralhas, torre de menagem e vistas panor\u00e2micas sobre o territ\u00f3rio hist\u00f3rico da regi\u00e3o. Entrada gratuita.",
+        "category": "castelos",
+        "region": "norte",
+        "address": "Lugar do Castelo, 4980-020 Lindoso",
+        "location": {
+          "lat": 41.8671,
+          "lng": -8.2003
+        },
+        "image_url": "https://images.unsplash.com/photo-1560179707-f14e90ef3623?w=800&q=80",
+        "tags": [
+          "Castelos",
+          "norte",
+          "Hist\u00f3ria & Patrim\u00f3nio"
+        ],
+        "created_at": "2026-03-27 20:47:19.746000",
+        "metadata": {
+          "period": "S\u00e9c. XIII",
+          "schedule": "Ter-Dom 9h-17h30; Fechado 2\u00aa feira",
+          "price": "Adulto 4\u20ac; <12 Gr\u00e1tis; Dom manh\u00e3 Gr\u00e1tis",
+          "website": "https://monumentos.gov.pt"
+        },
+        "iq_score": null
+      },
+      {
+        "id": "poi_castelo-de-braga-antigo_cb175b",
+        "name": "Castelo de Braga (Antigo)",
+        "description": "Fortaleza Romano / S\u00e9c. XIV em Braga. Testemunho da reconquista e do senhorio medieval portugu\u00eas, com muralhas, torre de menagem e vistas panor\u00e2micas sobre o territ\u00f3rio hist\u00f3rico da regi\u00e3o. Entrada gratuita.",
+        "category": "castelos",
+        "region": "norte",
+        "address": "Largo Carlos Amarante, Braga",
+        "location": {
+          "lat": 41.5459,
+          "lng": -8.4265
+        },
+        "image_url": "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&q=80",
+        "tags": [
+          "Castelos",
+          "norte",
+          "Hist\u00f3ria & Patrim\u00f3nio"
+        ],
+        "created_at": "2026-03-27 20:47:19.746000",
+        "metadata": {
+          "period": "Romano / S\u00e9c. XIV",
+          "schedule": "Exterior livre",
+          "price": "Gratuito",
+          "website": "https://monumentos.gov.pt"
+        },
+        "iq_score": null
+      },
+      {
+        "id": "poi_castelo-de-viana-do-castelo_30f108",
+        "name": "Castelo de Viana do Castelo",
+        "description": "Fortaleza do s\u00e9culo XIV em Viana. Testemunho da reconquista e do senhorio medieval portugu\u00eas, com muralhas, torre de menagem e vistas panor\u00e2micas sobre o territ\u00f3rio hist\u00f3rico da regi\u00e3o. Entrada gratuita.",
+        "category": "castelos",
+        "region": "norte",
+        "address": "Monte de Santa Luzia, Viana",
+        "location": {
+          "lat": 41.7081,
+          "lng": -8.8241
+        },
+        "image_url": "https://images.unsplash.com/photo-1518998053901-5348d3961a04?w=800&q=80",
+        "tags": [
+          "Castelos",
+          "norte",
+          "Hist\u00f3ria & Patrim\u00f3nio"
+        ],
+        "created_at": "2026-03-27 20:47:19.746000",
+        "metadata": {
+          "period": "S\u00e9c. XIV",
+          "schedule": "Exterior livre",
+          "price": "Gratuito",
+          "website": "https://monumentos.gov.pt"
+        },
+        "iq_score": null
+      },
+      {
+        "id": "poi_castelo-de-moncao_7f84f4",
+        "name": "Castelo de Mon\u00e7\u00e3o",
+        "description": "Fortaleza do s\u00e9culo XIV em Mon\u00e7\u00e3o. Testemunho da reconquista e do senhorio medieval portugu\u00eas, com muralhas, torre de menagem e vistas panor\u00e2micas sobre o territ\u00f3rio hist\u00f3rico da regi\u00e3o. Entrada gratuita.",
+        "category": "castelos",
+        "region": "norte",
+        "address": "Largo do Castelo, Mon\u00e7\u00e3o",
+        "location": {
+          "lat": 42.0761,
+          "lng": -8.4801
+        },
+        "image_url": "https://images.unsplash.com/photo-1537572263443-91a0e27d78e2?w=800&q=80",
+        "tags": [
+          "Castelos",
+          "norte",
+          "Hist\u00f3ria & Patrim\u00f3nio"
+        ],
+        "created_at": "2026-03-27 20:47:19.746000",
+        "metadata": {
+          "period": "S\u00e9c. XIV",
+          "schedule": "Exterior livre",
+          "price": "Gratuito",
+          "website": "https://monumentos.gov.pt"
+        },
+        "iq_score": null
+      },
+      {
+        "id": "poi_castelo-de-melgaco_c8abb7",
+        "name": "Castelo de Melga\u00e7o",
+        "description": "Fortaleza do s\u00e9culo XII em Melga\u00e7o. Testemunho da reconquista e do senhorio medieval portugu\u00eas, com muralhas, torre de menagem e vistas panor\u00e2micas sobre o territ\u00f3rio hist\u00f3rico da regi\u00e3o. Entrada gratuita.",
+        "category": "castelos",
+        "region": "norte",
+        "address": "Largo do Castelo, Melga\u00e7o",
+        "location": {
+          "lat": 42.1141,
+          "lng": -8.2601
+        },
+        "image_url": "https://images.unsplash.com/photo-1599946347371-68eb71b16afc?w=800&q=80",
+        "tags": [
+          "Castelos",
+          "norte",
+          "Hist\u00f3ria & Patrim\u00f3nio"
+        ],
+        "created_at": "2026-03-27 20:47:19.746000",
+        "metadata": {
+          "period": "S\u00e9c. XII",
+          "schedule": "Exterior livre",
+          "price": "Gratuito",
+          "website": "https://monumentos.gov.pt"
+        },
+        "iq_score": null
+      },
+      {
+        "id": "poi_castelo-de-vila-nova-de-cerveira_388477",
+        "name": "Castelo de Vila Nova de Cerveira",
+        "description": "Fortaleza do s\u00e9culo XIV em Cerveira. Testemunho da reconquista e do senhorio medieval portugu\u00eas, com muralhas, torre de menagem e vistas panor\u00e2micas sobre o territ\u00f3rio hist\u00f3rico da regi\u00e3o. Entrada gratuita.",
+        "category": "castelos",
+        "region": "norte",
+        "address": "Pra\u00e7a do Munic\u00edpio, Cerveira",
+        "location": {
+          "lat": 41.9361,
+          "lng": -8.7401
+        },
+        "image_url": "https://images.unsplash.com/photo-1537572263443-91a0e27d78e2?w=800&q=80",
+        "tags": [
+          "Castelos",
+          "norte",
+          "Hist\u00f3ria & Patrim\u00f3nio"
+        ],
+        "created_at": "2026-03-27 20:47:19.746000",
+        "metadata": {
+          "period": "S\u00e9c. XIV",
+          "schedule": "Pousada \u2014 visita jardins livres",
+          "price": "Gratuito (exterior)",
+          "website": "https://monumentos.gov.pt"
+        },
+        "iq_score": null
+      },
+      {
+        "id": "poi_castelo-de-valenca_044f7c",
+        "name": "Castelo de Valen\u00e7a",
+        "description": "Fortaleza do s\u00e9culo XIII em Norte. Testemunho da reconquista e do senhorio medieval portugu\u00eas, com muralhas, torre de menagem e vistas panor\u00e2micas sobre o territ\u00f3rio hist\u00f3rico da regi\u00e3o. Entrada gratuita.",
+        "category": "castelos",
+        "region": "norte",
+        "address": "Fortaleza de Valen\u00e7a",
+        "location": {
+          "lat": 41.9331,
+          "lng": -8.6301
+        },
+        "image_url": "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&q=80",
+        "tags": [
+          "Castelos",
+          "norte",
+          "Hist\u00f3ria & Patrim\u00f3nio"
+        ],
+        "created_at": "2026-03-27 20:47:19.746000",
+        "metadata": {
+          "period": "S\u00e9c. XIII",
+          "schedule": "Seg-Dom 24h (muralhas exteriores)",
+          "price": "Gratuito",
+          "website": "https://cm-valenca.pt"
+        },
+        "iq_score": null
+      },
+      {
+        "id": "poi_castelo-de-caminha_d88b9e",
+        "name": "Castelo de Caminha",
+        "description": "Fortaleza do s\u00e9culo XIV em Caminha. Testemunho da reconquista e do senhorio medieval portugu\u00eas, com muralhas, torre de menagem e vistas panor\u00e2micas sobre o territ\u00f3rio hist\u00f3rico da regi\u00e3o. Entrada gratuita.",
+        "category": "castelos",
+        "region": "norte",
+        "address": "Largo Conselheiro Silva Torres, Caminha",
+        "location": {
+          "lat": 41.8721,
+          "lng": -8.8381
+        },
+        "image_url": "https://images.unsplash.com/photo-1562616895-62ab12f81f2e?w=800&q=80",
+        "tags": [
+          "Castelos",
+          "norte",
+          "Hist\u00f3ria & Patrim\u00f3nio"
+        ],
+        "created_at": "2026-03-27 20:47:19.746000",
+        "metadata": {
+          "period": "S\u00e9c. XIV",
+          "schedule": "Exterior livre",
+          "price": "Gratuito",
+          "website": "https://monumentos.gov.pt"
+        },
+        "iq_score": null
+      },
+      {
+        "id": "poi_castelo-de-chaves_7b6d6d",
+        "name": "Castelo de Chaves",
+        "description": "Fortaleza Romano / S\u00e9c. XIV em Chaves. Testemunho da reconquista e do senhorio medieval portugu\u00eas, com muralhas, torre de menagem e vistas panor\u00e2micas sobre o territ\u00f3rio hist\u00f3rico da regi\u00e3o. Entrada gratuita.",
+        "category": "castelos",
+        "region": "norte",
+        "address": "Pra\u00e7a de Cam\u00f5es, Chaves",
+        "location": {
+          "lat": 41.7381,
+          "lng": -7.4701
+        },
+        "image_url": "https://images.unsplash.com/photo-1537572263443-91a0e27d78e2?w=800&q=80",
+        "tags": [
+          "Castelos",
+          "norte",
+          "Hist\u00f3ria & Patrim\u00f3nio"
+        ],
+        "created_at": "2026-03-27 20:47:19.746000",
+        "metadata": {
+          "period": "Romano / S\u00e9c. XIV",
+          "schedule": "Ter-Dom 9h-12h/14h-17h",
+          "price": "Gratuito",
+          "website": "https://monumentos.gov.pt"
+        },
+        "iq_score": null
+      },
+      {
+        "id": "poi_castelo-de-braganca_26e7b9",
+        "name": "Castelo de Bragan\u00e7a",
+        "description": "Fortaleza do s\u00e9culo XII em Norte. Testemunho da reconquista e do senhorio medieval portugu\u00eas, com muralhas, torre de menagem e vistas panor\u00e2micas sobre o territ\u00f3rio hist\u00f3rico da regi\u00e3o. Entrada Adulto 2\u20ac.",
+        "category": "castelos",
+        "region": "norte",
+        "address": "Cidadela de Bragan\u00e7a",
+        "location": {
+          "lat": 41.8061,
+          "lng": -6.7471
+        },
+        "image_url": "https://images.unsplash.com/photo-1560179707-f14e90ef3623?w=800&q=80",
+        "tags": [
+          "Castelos",
+          "norte",
+          "Hist\u00f3ria & Patrim\u00f3nio"
+        ],
+        "created_at": "2026-03-27 20:47:19.746000",
+        "metadata": {
+          "period": "S\u00e9c. XII",
+          "schedule": "Ter-Dom 9h-17h30",
+          "price": "Adulto 2\u20ac",
+          "website": "https://monumentos.gov.pt"
+        },
+        "iq_score": null
+      },
+      {
+        "id": "poi_castelo-de-miranda-do-douro_11cbf8",
+        "name": "Castelo de Miranda do Douro",
+        "description": "Fortaleza do s\u00e9culo XVI em Norte. Testemunho da reconquista e do senhorio medieval portugu\u00eas, com muralhas, torre de menagem e vistas panor\u00e2micas sobre o territ\u00f3rio hist\u00f3rico da regi\u00e3o. Entrada gratuita.",
+        "category": "castelos",
+        "region": "norte",
+        "address": "Castro de Miranda do Douro",
+        "location": {
+          "lat": 41.4981,
+          "lng": -6.2741
+        },
+        "image_url": "https://images.unsplash.com/photo-1533154683836-84ea7a0bc310?w=800&q=80",
+        "tags": [
+          "Castelos",
+          "norte",
+          "Hist\u00f3ria & Patrim\u00f3nio"
+        ],
+        "created_at": "2026-03-27 20:47:19.746000",
+        "metadata": {
+          "period": "S\u00e9c. XVI",
+          "schedule": "Exterior livre",
+          "price": "Gratuito",
+          "website": "https://monumentos.gov.pt"
+        },
+        "iq_score": null
+      },
+      {
+        "id": "poi_castelo-de-montalegre_744262",
+        "name": "Castelo de Montalegre",
+        "description": "Fortaleza do s\u00e9culo XIV em Montalegre. Testemunho da reconquista e do senhorio medieval portugu\u00eas, com muralhas, torre de menagem e vistas panor\u00e2micas sobre o territ\u00f3rio hist\u00f3rico da regi\u00e3o. Entrada Adulto 1\u20ac.",
+        "category": "castelos",
+        "region": "norte",
+        "address": "Largo do Castelo, Montalegre",
+        "location": {
+          "lat": 41.8221,
+          "lng": -7.7901
+        },
+        "image_url": "https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?w=800&q=80",
+        "tags": [
+          "Castelos",
+          "norte",
+          "Hist\u00f3ria & Patrim\u00f3nio"
+        ],
+        "created_at": "2026-03-27 20:47:19.746000",
+        "metadata": {
+          "period": "S\u00e9c. XIV",
+          "schedule": "Ter-Dom 9h-12h30/13h30-17h",
+          "price": "Adulto 1\u20ac",
+          "website": "https://monumentos.gov.pt"
+        },
+        "iq_score": null
+      },
+      {
+        "id": "poi_castelo-de-lindoso_13dbce",
+        "name": "Castelo de Lindoso",
+        "description": "Fortaleza do s\u00e9culo XIII em Ponte da Barca. Testemunho da reconquista e do senhorio medieval portugu\u00eas, com muralhas, torre de menagem e vistas panor\u00e2micas sobre o territ\u00f3rio hist\u00f3rico da regi\u00e3o. Entrada Adulto 1,50\u20ac.",
+        "category": "castelos",
+        "region": "norte",
+        "address": "Aldeia do Lindoso, Ponte da Barca",
+        "location": {
+          "lat": 41.8681,
+          "lng": -8.1941
+        },
+        "image_url": "https://images.unsplash.com/photo-1560179707-f14e90ef3623?w=800&q=80",
+        "tags": [
+          "Castelos",
+          "norte",
+          "Hist\u00f3ria & Patrim\u00f3nio"
+        ],
+        "created_at": "2026-03-27 20:47:19.746000",
+        "metadata": {
+          "period": "S\u00e9c. XIII",
+          "schedule": "Ter-Dom 10h-12h30/14h-17h30",
+          "price": "Adulto 1,50\u20ac",
+          "website": "https://monumentos.gov.pt"
+        },
+        "iq_score": null
+      },
+      {
+        "id": "poi_torre-de-menagem-de-barcelos_373549",
+        "name": "Torre de Menagem de Barcelos",
+        "description": "Fortaleza do s\u00e9culo XIV em Barcelos. Testemunho da reconquista e do senhorio medieval portugu\u00eas, com muralhas, torre de menagem e vistas panor\u00e2micas sobre o territ\u00f3rio hist\u00f3rico da regi\u00e3o.",
+        "category": "castelos",
+        "region": "norte",
+        "address": "Largo Dr. Jos\u00e9 Novais, Barcelos",
+        "location": {
+          "lat": 41.5351,
+          "lng": -8.6201
+        },
+        "image_url": "https://images.unsplash.com/photo-1533154683836-84ea7a0bc310?w=800&q=80",
+        "tags": [
+          "Castelos",
+          "norte",
+          "Hist\u00f3ria & Patrim\u00f3nio"
+        ],
+        "created_at": "2026-03-27 20:47:19.747000",
+        "metadata": {
+          "period": "S\u00e9c. XIV",
+          "schedule": "Fechado para obras (2024)",
+          "price": "Consultar CM Barcelos",
+          "website": "https://monumentos.gov.pt"
+        },
+        "iq_score": null
+      },
+      {
+        "id": "poi_castelo-de-lamego_4172ab",
+        "name": "Castelo de Lamego",
+        "description": "Fortaleza do s\u00e9culo XII em Lamego. Testemunho da reconquista e do senhorio medieval portugu\u00eas, com muralhas, torre de menagem e vistas panor\u00e2micas sobre o territ\u00f3rio hist\u00f3rico da regi\u00e3o. Entrada gratuita.",
+        "category": "castelos",
+        "region": "norte",
+        "address": "Largo do Castelo, Lamego",
+        "location": {
+          "lat": 41.1021,
+          "lng": -7.8121
+        },
+        "image_url": "https://images.unsplash.com/photo-1537572263443-91a0e27d78e2?w=800&q=80",
+        "tags": [
+          "Castelos",
+          "norte",
+          "Hist\u00f3ria & Patrim\u00f3nio"
+        ],
+        "created_at": "2026-03-27 20:47:19.747000",
+        "metadata": {
+          "period": "S\u00e9c. XII",
+          "schedule": "Exterior livre",
+          "price": "Gratuito",
+          "website": "https://monumentos.gov.pt"
+        },
+        "iq_score": null
+      },
+      {
+        "id": "poi_castelo-de-penedono_639112",
+        "name": "Castelo de Penedono",
+        "description": "Fortaleza S\u00e9c. X em Norte. Testemunho da reconquista e do senhorio medieval portugu\u00eas, com muralhas, torre de menagem e vistas panor\u00e2micas sobre o territ\u00f3rio hist\u00f3rico da regi\u00e3o. Entrada Adulto 1\u20ac.",
+        "category": "castelos",
+        "region": "norte",
+        "address": "Penedono",
+        "location": {
+          "lat": 40.9961,
+          "lng": -7.4001
+        },
+        "image_url": "https://images.unsplash.com/photo-1568393691622-c7ba131d63b4?w=800&q=80",
+        "tags": [
+          "Castelos",
+          "norte",
+          "Hist\u00f3ria & Patrim\u00f3nio"
+        ],
+        "created_at": "2026-03-27 20:47:19.747000",
+        "metadata": {
+          "period": "S\u00e9c. X",
+          "schedule": "Ter-Dom 10h-12h30/14h-17h",
+          "price": "Adulto 1\u20ac",
+          "website": "https://monumentos.gov.pt"
+        },
+        "iq_score": null
+      },
+      {
+        "id": "poi_castelo-de-numao_6035fb",
+        "name": "Castelo de Num\u00e3o",
+        "description": "Fortaleza Romano / S\u00e9c. XII em Norte. Testemunho da reconquista e do senhorio medieval portugu\u00eas, com muralhas, torre de menagem e vistas panor\u00e2micas sobre o territ\u00f3rio hist\u00f3rico da regi\u00e3o. Entrada gratuita.",
+        "category": "castelos",
+        "region": "norte",
+        "address": "Vila Nova de Foz C\u00f4a",
+        "location": {
+          "lat": 41.0901,
+          "lng": -7.2741
+        },
+        "image_url": "https://images.unsplash.com/photo-1599946347371-68eb71b16afc?w=800&q=80",
+        "tags": [
+          "Castelos",
+          "norte",
+          "Hist\u00f3ria & Patrim\u00f3nio"
+        ],
+        "created_at": "2026-03-27 20:47:19.747000",
+        "metadata": {
+          "period": "Romano / S\u00e9c. XII",
+          "schedule": "Exterior livre",
+          "price": "Gratuito",
+          "website": "https://monumentos.gov.pt"
+        },
+        "iq_score": null
+      },
+      {
+        "id": "poi_castelo-de-freixo-de-espada-a-cinta_fbf878",
+        "name": "Castelo de Freixo de Espada \u00e0 Cinta",
+        "description": "Fortaleza do s\u00e9culo XIV em Norte. Testemunho da reconquista e do senhorio medieval portugu\u00eas, com muralhas, torre de menagem e vistas panor\u00e2micas sobre o territ\u00f3rio hist\u00f3rico da regi\u00e3o. Entrada gratuita.",
+        "category": "castelos",
+        "region": "norte",
+        "address": "Freixo de Espada \u00e0 Cinta",
+        "location": {
+          "lat": 41.0911,
+          "lng": -6.8121
+        },
+        "image_url": "https://images.unsplash.com/photo-1599946347371-68eb71b16afc?w=800&q=80",
+        "tags": [
+          "Castelos",
+          "norte",
+          "Hist\u00f3ria & Patrim\u00f3nio"
+        ],
+        "created_at": "2026-03-27 20:47:19.747000",
+        "metadata": {
+          "period": "S\u00e9c. XIV",
+          "schedule": "Exterior livre",
+          "price": "Gratuito",
+          "website": "https://monumentos.gov.pt"
+        },
+        "iq_score": null
+      },
+      {
+        "id": "poi_castelo-de-alcanede_53a0dc",
+        "name": "Castelo de Alcanede",
+        "description": "Fortaleza dos s\u00e9culos XI-XII em Santar\u00e9m. Testemunho da reconquista e do senhorio medieval portugu\u00eas, com muralhas, torre de menagem e vistas panor\u00e2micas sobre o territ\u00f3rio hist\u00f3rico da regi\u00e3o. Entrada gratuita.",
+        "category": "castelos",
+        "region": "centro",
+        "address": "R. do Castelo, 2025-013 Alcanede, Santar\u00e9m",
+        "location": {
+          "lat": 39.4147,
+          "lng": -8.8222
+        },
+        "image_url": "https://images.unsplash.com/photo-1562616895-62ab12f81f2e?w=800&q=80",
+        "tags": [
+          "Castelos",
+          "centro",
+          "Hist\u00f3ria & Patrim\u00f3nio"
+        ],
+        "created_at": "2026-03-27 20:47:19.747000",
+        "metadata": {
+          "period": "Pr\u00e9-S\u00e9c. XII",
+          "schedule": "Ter-Dom 9h-17h30; Fechado 2\u00aa feira",
+          "price": "Adulto 4\u20ac; <12 Gr\u00e1tis; Dom manh\u00e3 Gr\u00e1tis",
+          "website": "https://monumentos.gov.pt"
+        },
+        "iq_score": null
+      },
+      {
+        "id": "poi_castelo-de-alcobaca_29f2ff",
+        "name": "Castelo de Alcoba\u00e7a",
+        "description": "Fortaleza dos s\u00e9culos XI-XII em 2460-018 Alcoba\u00e7a. Testemunho da reconquista e do senhorio medieval portugu\u00eas, com muralhas, torre de menagem e vistas panor\u00e2micas sobre o territ\u00f3rio hist\u00f3rico da regi\u00e3o. Entrada gratuita.",
+        "category": "castelos",
+        "region": "centro",
+        "address": "R. do Castelo, 2460-018 Alcoba\u00e7a",
+        "location": {
+          "lat": 39.5513,
+          "lng": -8.9796
+        },
+        "image_url": "https://images.unsplash.com/photo-1568393691622-c7ba131d63b4?w=800&q=80",
+        "tags": [
+          "Castelos",
+          "centro",
+          "Hist\u00f3ria & Patrim\u00f3nio"
+        ],
+        "created_at": "2026-03-27 20:47:19.747000",
+        "metadata": {
+          "period": "Pr\u00e9-S\u00e9c. XII",
+          "schedule": "Ter-Dom 9h-17h30; Fechado 2\u00aa feira",
+          "price": "Adulto 4\u20ac; <12 Gr\u00e1tis; Dom manh\u00e3 Gr\u00e1tis",
+          "website": "https://monumentos.gov.pt"
+        },
+        "iq_score": null
+      },
+      {
+        "id": "poi_castelo-de-almourol_59fbec",
+        "name": "Castelo de Almourol",
+        "description": "Fortaleza do s\u00e9culo XII em Vila Nova da Barquinha. Testemunho da reconquista e do senhorio medieval portugu\u00eas, com muralhas, torre de menagem e vistas panor\u00e2micas sobre o territ\u00f3rio hist\u00f3rico da regi\u00e3o. Entrada gratuita.",
+        "category": "castelos",
+        "region": "centro",
+        "address": "Praia do Ribatejo, Vila Nova da Barquinha",
+        "location": {
+          "lat": 39.4615,
+          "lng": -8.384
+        },
+        "image_url": "https://images.unsplash.com/photo-1537572263443-91a0e27d78e2?w=800&q=80",
+        "tags": [
+          "Castelos",
+          "centro",
+          "Hist\u00f3ria & Patrim\u00f3nio"
+        ],
+        "created_at": "2026-03-27 20:47:19.747000",
+        "metadata": {
+          "period": "S\u00e9c. XII",
+          "schedule": "Ter-Dom 9h-17h30; Fechado 2\u00aa feira",
+          "price": "Adulto 4\u20ac; <12 Gr\u00e1tis; Dom manh\u00e3 Gr\u00e1tis",
+          "website": "https://monumentos.gov.pt"
+        },
+        "iq_score": null
+      },
+      {
+        "id": "poi_castelo-de-leiria_d9c48d",
+        "name": "Castelo de Leiria",
+        "description": "Fortaleza do s\u00e9culo XII em 2400-235 Leiria. Testemunho da reconquista e do senhorio medieval portugu\u00eas, com muralhas, torre de menagem e vistas panor\u00e2micas sobre o territ\u00f3rio hist\u00f3rico da regi\u00e3o. Entrada gratuita.",
+        "category": "castelos",
+        "region": "centro",
+        "address": "Largo de S\u00e3o Pedro, 2400-235 Leiria",
+        "location": {
+          "lat": 39.7473,
+          "lng": -8.808
+        },
+        "image_url": "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&q=80",
+        "tags": [
+          "Castelos",
+          "centro",
+          "Hist\u00f3ria & Patrim\u00f3nio"
+        ],
+        "created_at": "2026-03-27 20:47:19.747000",
+        "metadata": {
+          "period": "S\u00e9c. XII",
+          "schedule": "Ter-Dom 9h-17h30; Fechado 2\u00aa feira",
+          "price": "Adulto 4\u20ac; <12 Gr\u00e1tis; Dom manh\u00e3 Gr\u00e1tis",
+          "website": "https://monumentos.gov.pt"
+        },
+        "iq_score": null
+      },
+      {
+        "id": "poi_castelo-de-monsanto_97c0f2",
+        "name": "Castelo de Monsanto",
+        "description": "Fortaleza do s\u00e9culo XII em Idanha-a-Nova. Testemunho da reconquista e do senhorio medieval portugu\u00eas, com muralhas, torre de menagem e vistas panor\u00e2micas sobre o territ\u00f3rio hist\u00f3rico da regi\u00e3o. Entrada gratuita.",
+        "category": "castelos",
+        "region": "centro",
+        "address": "R. do Castelo, 6060-091 Monsanto, Idanha-a-Nova",
+        "location": {
+          "lat": 39.9575,
+          "lng": -7.1123
+        },
+        "image_url": "https://images.unsplash.com/photo-1533154683836-84ea7a0bc310?w=800&q=80",
+        "tags": [
+          "Castelos",
+          "centro",
+          "Hist\u00f3ria & Patrim\u00f3nio"
+        ],
+        "created_at": "2026-03-27 20:47:19.747000",
+        "metadata": {
+          "period": "S\u00e9c. XII",
+          "schedule": "Ter-Dom 9h-17h30; Fechado 2\u00aa feira",
+          "price": "Adulto 4\u20ac; <12 Gr\u00e1tis; Dom manh\u00e3 Gr\u00e1tis",
+          "website": "https://aldeias-historicas.pt"
+        },
+        "iq_score": null
+      },
+      {
+        "id": "poi_castelo-de-tomar_a74aca",
+        "name": "Castelo de Tomar",
+        "description": "Fortaleza do s\u00e9culo XII em 2300-000 Tomar. Testemunho da reconquista e do senhorio medieval portugu\u00eas, com muralhas, torre de menagem e vistas panor\u00e2micas sobre o territ\u00f3rio hist\u00f3rico da regi\u00e3o. Entrada gratuita.",
+        "category": "castelos",
+        "region": "centro",
+        "address": "Estrada do Convento, 2300-000 Tomar",
+        "location": {
+          "lat": 39.6038,
+          "lng": -8.419
+        },
+        "image_url": "https://images.unsplash.com/photo-1562616895-62ab12f81f2e?w=800&q=80",
+        "tags": [
+          "Castelos",
+          "centro",
+          "Hist\u00f3ria & Patrim\u00f3nio"
+        ],
+        "created_at": "2026-03-27 20:47:19.747000",
+        "metadata": {
+          "period": "S\u00e9c. XII",
+          "schedule": "Ter-Dom 9h-17h30; Fechado 2\u00aa feira",
+          "price": "Adulto 4\u20ac; <12 Gr\u00e1tis; Dom manh\u00e3 Gr\u00e1tis",
+          "website": "https://monumentos.gov.pt"
+        },
+        "iq_score": null
+      },
+      {
+        "id": "poi_castelo-de-obidos_820392",
+        "name": "Castelo de \u00d3bidos",
+        "description": "Fortaleza do s\u00e9culo XII em 2510-001 \u00d3bidos. Testemunho da reconquista e do senhorio medieval portugu\u00eas, com muralhas, torre de menagem e vistas panor\u00e2micas sobre o territ\u00f3rio hist\u00f3rico da regi\u00e3o. Entrada gratuita.",
+        "category": "castelos",
+        "region": "centro",
+        "address": "R. Direita, 2510-001 \u00d3bidos",
+        "location": {
+          "lat": 39.3639,
+          "lng": -9.1572
+        },
+        "image_url": "https://images.unsplash.com/photo-1518998053901-5348d3961a04?w=800&q=80",
+        "tags": [
+          "Castelos",
+          "centro",
+          "Hist\u00f3ria & Patrim\u00f3nio"
+        ],
+        "created_at": "2026-03-27 20:47:19.747000",
+        "metadata": {
+          "period": "S\u00e9c. XII",
+          "schedule": "Ter-Dom 9h-17h30; Fechado 2\u00aa feira",
+          "price": "Adulto 4\u20ac; <12 Gr\u00e1tis; Dom manh\u00e3 Gr\u00e1tis",
+          "website": "https://obidos.pt"
+        },
+        "iq_score": null
+      },
+      {
+        "id": "poi_castelo-de-pombal_07e98b",
+        "name": "Castelo de Pombal",
+        "description": "Fortaleza do s\u00e9culo XII em 3100-440 Pombal. Testemunho da reconquista e do senhorio medieval portugu\u00eas, com muralhas, torre de menagem e vistas panor\u00e2micas sobre o territ\u00f3rio hist\u00f3rico da regi\u00e3o. Entrada gratuita.",
+        "category": "castelos",
+        "region": "centro",
+        "address": "Encosta do Castelo, 3100-440 Pombal",
+        "location": {
+          "lat": 39.915,
+          "lng": -8.6253
+        },
+        "image_url": "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&q=80",
+        "tags": [
+          "Castelos",
+          "centro",
+          "Hist\u00f3ria & Patrim\u00f3nio"
+        ],
+        "created_at": "2026-03-27 20:47:19.747000",
+        "metadata": {
+          "period": "S\u00e9c. XII",
+          "schedule": "Ter-Dom 9h-17h30; Fechado 2\u00aa feira",
+          "price": "Adulto 4\u20ac; <12 Gr\u00e1tis; Dom manh\u00e3 Gr\u00e1tis",
+          "website": "https://cm-pombal.pt"
+        },
+        "iq_score": null
+      },
+      {
+        "id": "poi_castelo-de-sortelha_8e15d9",
+        "name": "Castelo de Sortelha",
+        "description": "Fortaleza do s\u00e9culo XIII em Sabugal. Testemunho da reconquista e do senhorio medieval portugu\u00eas, com muralhas, torre de menagem e vistas panor\u00e2micas sobre o territ\u00f3rio hist\u00f3rico da regi\u00e3o. Entrada gratuita.",
+        "category": "castelos",
+        "region": "centro",
+        "address": "R. do Castelo, 6320-540 Sortelha, Sabugal",
+        "location": {
+          "lat": 40.3308,
+          "lng": -7.212
+        },
+        "image_url": "https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?w=800&q=80",
+        "tags": [
+          "Castelos",
+          "centro",
+          "Hist\u00f3ria & Patrim\u00f3nio"
+        ],
+        "created_at": "2026-03-27 20:47:19.747000",
+        "metadata": {
+          "period": "S\u00e9c. XIII",
+          "schedule": "Ter-Dom 9h-17h30; Fechado 2\u00aa feira",
+          "price": "Adulto 4\u20ac; <12 Gr\u00e1tis; Dom manh\u00e3 Gr\u00e1tis",
+          "website": "https://aldeias-historicas.pt"
+        },
+        "iq_score": null
+      },
+      {
+        "id": "poi_castelo-de-coimbra_ef7caa",
+        "name": "Castelo de Coimbra",
+        "description": "Fortaleza do s\u00e9culo XII em Coimbra. Testemunho da reconquista e do senhorio medieval portugu\u00eas, com muralhas, torre de menagem e vistas panor\u00e2micas sobre o territ\u00f3rio hist\u00f3rico da regi\u00e3o. Entrada gratuita.",
+        "category": "castelos",
+        "region": "centro",
+        "address": "Rua do Castelo, Coimbra",
+        "location": {
+          "lat": 40.2091,
+          "lng": -8.4271
+        },
+        "image_url": "https://images.unsplash.com/photo-1555881400-74d7acaacd8b?w=800&q=80",
+        "tags": [
+          "Castelos",
+          "centro",
+          "Hist\u00f3ria & Patrim\u00f3nio"
+        ],
+        "created_at": "2026-03-27 20:47:19.747000",
+        "metadata": {
+          "period": "S\u00e9c. XII",
+          "schedule": "Exterior livre",
+          "price": "Gratuito",
+          "website": "https://cm-coimbra.pt"
+        },
+        "iq_score": null
+      },
+      {
+        "id": "poi_castelo-de-leiria_c29c6e",
+        "name": "Castelo de Leiria",
+        "description": "Fortaleza do s\u00e9culo XII em Leiria. Testemunho da reconquista e do senhorio medieval portugu\u00eas, com muralhas, torre de menagem e vistas panor\u00e2micas sobre o territ\u00f3rio hist\u00f3rico da regi\u00e3o. Entrada gratuita.",
+        "category": "castelos",
+        "region": "centro",
+        "address": "Largo do Castelo, Leiria",
+        "location": {
+          "lat": 39.7461,
+          "lng": -8.8071
+        },
+        "image_url": "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&q=80",
+        "tags": [
+          "Castelos",
+          "centro",
+          "Hist\u00f3ria & Patrim\u00f3nio"
+        ],
+        "created_at": "2026-03-27 20:47:19.747000",
+        "metadata": {
+          "period": "S\u00e9c. XII",
+          "schedule": "Ter-Dom 9h-17h30; Ver\u00e3o at\u00e9 18h30",
+          "price": "Adulto 4\u20ac; <12 Gr\u00e1tis",
+          "website": "https://monumentos.gov.pt"
+        },
+        "iq_score": null
+      },
+      {
+        "id": "poi_castelo-de-tomar_a01809",
+        "name": "Castelo de Tomar",
+        "description": "Fortaleza S\u00e9c. XII \u2014 Templ\u00e1rios em Tomar. Testemunho da reconquista e do senhorio medieval portugu\u00eas, com muralhas, torre de menagem e vistas panor\u00e2micas sobre o territ\u00f3rio hist\u00f3rico da regi\u00e3o. Entrada Adulto 6\u20ac.",
+        "category": "castelos",
+        "region": "centro",
+        "address": "Convento de Cristo, Tomar",
+        "location": {
+          "lat": 39.6041,
+          "lng": -8.4111
+        },
+        "image_url": "https://images.unsplash.com/photo-1562616895-62ab12f81f2e?w=800&q=80",
+        "tags": [
+          "Castelos",
+          "centro",
+          "Hist\u00f3ria & Patrim\u00f3nio"
+        ],
+        "created_at": "2026-03-27 20:47:19.747000",
+        "metadata": {
+          "period": "S\u00e9c. XII \u2014 Templ\u00e1rios",
+          "schedule": "Ter-Dom 9h-17h30",
+          "price": "Adulto 6\u20ac; UNESCO",
+          "website": "https://monumentos.gov.pt"
+        },
+        "iq_score": null
+      },
+      {
+        "id": "poi_castelo-de-abrantes_4c2760",
+        "name": "Castelo de Abrantes",
+        "description": "Fortaleza do s\u00e9culo XII em Abrantes. Testemunho da reconquista e do senhorio medieval portugu\u00eas, com muralhas, torre de menagem e vistas panor\u00e2micas sobre o territ\u00f3rio hist\u00f3rico da regi\u00e3o. Entrada gratuita.",
+        "category": "castelos",
+        "region": "centro",
+        "address": "Largo do Castelo, Abrantes",
+        "location": {
+          "lat": 39.4601,
+          "lng": -8.1981
+        },
+        "image_url": "https://images.unsplash.com/photo-1560179707-f14e90ef3623?w=800&q=80",
+        "tags": [
+          "Castelos",
+          "centro",
+          "Hist\u00f3ria & Patrim\u00f3nio"
+        ],
+        "created_at": "2026-03-27 20:47:19.747000",
+        "metadata": {
+          "period": "S\u00e9c. XII",
+          "schedule": "Ter-Dom 10h-12h/14h-17h",
+          "price": "Gratuito",
+          "website": "https://cm-abrantes.pt"
+        },
+        "iq_score": null
+      },
+      {
+        "id": "poi_castelo-de-pombal_6b027c",
+        "name": "Castelo de Pombal",
+        "description": "Fortaleza do s\u00e9culo XII em Pombal. Testemunho da reconquista e do senhorio medieval portugu\u00eas, com muralhas, torre de menagem e vistas panor\u00e2micas sobre o territ\u00f3rio hist\u00f3rico da regi\u00e3o. Entrada gratuita.",
+        "category": "castelos",
+        "region": "centro",
+        "address": "Colina do Castelo, Pombal",
+        "location": {
+          "lat": 39.9141,
+          "lng": -8.6271
+        },
+        "image_url": "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&q=80",
+        "tags": [
+          "Castelos",
+          "centro",
+          "Hist\u00f3ria & Patrim\u00f3nio"
+        ],
+        "created_at": "2026-03-27 20:47:19.747000",
+        "metadata": {
+          "period": "S\u00e9c. XII",
+          "schedule": "Exterior livre",
+          "price": "Gratuito",
+          "website": "https://cm-pombal.pt"
+        },
+        "iq_score": null
+      },
+      {
+        "id": "poi_castelo-de-penela_db0759",
+        "name": "Castelo de Penela",
+        "description": "Fortaleza do s\u00e9culo XII em Centro. Testemunho da reconquista e do senhorio medieval portugu\u00eas, com muralhas, torre de menagem e vistas panor\u00e2micas sobre o territ\u00f3rio hist\u00f3rico da regi\u00e3o. Entrada Adulto 1\u20ac.",
+        "category": "castelos",
+        "region": "centro",
+        "address": "Penela",
+        "location": {
+          "lat": 40.0281,
+          "lng": -8.3821
+        },
+        "image_url": "https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?w=800&q=80",
+        "tags": [
+          "Castelos",
+          "centro",
+          "Hist\u00f3ria & Patrim\u00f3nio"
+        ],
+        "created_at": "2026-03-27 20:47:19.747000",
+        "metadata": {
+          "period": "S\u00e9c. XII",
+          "schedule": "Ter-Dom 9h-12h30/14h-17h",
+          "price": "Adulto 1\u20ac",
+          "website": "https://monumentos.gov.pt"
+        },
+        "iq_score": null
+      },
+      {
+        "id": "poi_castelo-de-montemor-o-velho_1542ac",
+        "name": "Castelo de Montemor-o-Velho",
+        "description": "Fortaleza S\u00e9c. X em Montemor. Testemunho da reconquista e do senhorio medieval portugu\u00eas, com muralhas, torre de menagem e vistas panor\u00e2micas sobre o territ\u00f3rio hist\u00f3rico da regi\u00e3o. Entrada Adulto 2\u20ac.",
+        "category": "castelos",
+        "region": "centro",
+        "address": "Alto do Castelo, Montemor",
+        "location": {
+          "lat": 40.1731,
+          "lng": -8.6871
+        },
+        "image_url": "https://images.unsplash.com/photo-1533154683836-84ea7a0bc310?w=800&q=80",
+        "tags": [
+          "Castelos",
+          "centro",
+          "Hist\u00f3ria & Patrim\u00f3nio"
+        ],
+        "created_at": "2026-03-27 20:47:19.747000",
+        "metadata": {
+          "period": "S\u00e9c. X",
+          "schedule": "Seg-Dom 10h-18h",
+          "price": "Adulto 2\u20ac",
+          "website": "https://cm-montemor-o-velho.pt"
+        },
+        "iq_score": null
+      },
+      {
+        "id": "poi_castelo-de-santa-olaia-figueira_bff019",
+        "name": "Castelo de Santa Olaia (Figueira)",
+        "description": "Fortaleza Romano / S\u00e9c. XIV em Centro. Testemunho da reconquista e do senhorio medieval portugu\u00eas, com muralhas, torre de menagem e vistas panor\u00e2micas sobre o territ\u00f3rio hist\u00f3rico da regi\u00e3o. Entrada gratuita.",
+        "category": "castelos",
+        "region": "centro",
+        "address": "Figueira da Foz",
+        "location": {
+          "lat": 40.1601,
+          "lng": -8.8601
+        },
+        "image_url": "https://images.unsplash.com/photo-1533154683836-84ea7a0bc310?w=800&q=80",
+        "tags": [
+          "Castelos",
+          "centro",
+          "Hist\u00f3ria & Patrim\u00f3nio"
+        ],
+        "created_at": "2026-03-27 20:47:19.747000",
+        "metadata": {
+          "period": "Romano / S\u00e9c. XIV",
+          "schedule": "Exterior livre",
+          "price": "Gratuito",
+          "website": "https://monumentos.gov.pt"
+        },
+        "iq_score": null
+      },
+      {
+        "id": "poi_castelo-de-seia-torres-vermelhas_e7a55d",
+        "name": "Castelo de Seia (Torres Vermelhas)",
+        "description": "Fortaleza do s\u00e9culo XII em Centro. Testemunho da reconquista e do senhorio medieval portugu\u00eas, com muralhas, torre de menagem e vistas panor\u00e2micas sobre o territ\u00f3rio hist\u00f3rico da regi\u00e3o. Entrada gratuita.",
+        "category": "castelos",
+        "region": "centro",
+        "address": "Seia",
+        "location": {
+          "lat": 40.4181,
+          "lng": -7.7041
+        },
+        "image_url": "https://images.unsplash.com/photo-1562616895-62ab12f81f2e?w=800&q=80",
+        "tags": [
+          "Castelos",
+          "centro",
+          "Hist\u00f3ria & Patrim\u00f3nio"
+        ],
+        "created_at": "2026-03-27 20:47:19.748000",
+        "metadata": {
+          "period": "S\u00e9c. XII",
+          "schedule": "Exterior livre",
+          "price": "Gratuito",
+          "website": "https://monumentos.gov.pt"
+        },
+        "iq_score": null
+      },
+      {
+        "id": "poi_castelo-de-viseu_82fd92",
+        "name": "Castelo de Viseu",
+        "description": "Fortaleza do s\u00e9culo XII em Viseu. Testemunho da reconquista e do senhorio medieval portugu\u00eas, com muralhas, torre de menagem e vistas panor\u00e2micas sobre o territ\u00f3rio hist\u00f3rico da regi\u00e3o. Entrada gratuita.",
+        "category": "castelos",
+        "region": "centro",
+        "address": "Adro da S\u00e9, Viseu",
+        "location": {
+          "lat": 40.6611,
+          "lng": -7.9101
+        },
+        "image_url": "https://images.unsplash.com/photo-1533154683836-84ea7a0bc310?w=800&q=80",
+        "tags": [
+          "Castelos",
+          "centro",
+          "Hist\u00f3ria & Patrim\u00f3nio"
+        ],
+        "created_at": "2026-03-27 20:47:19.748000",
+        "metadata": {
+          "period": "S\u00e9c. XII",
+          "schedule": "Exterior livre",
+          "price": "Gratuito",
+          "website": "https://monumentos.gov.pt"
+        },
+        "iq_score": null
+      },
+      {
+        "id": "poi_castelo-de-trancoso_e2f061",
+        "name": "Castelo de Trancoso",
+        "description": "Fortaleza do s\u00e9culo XII em Trancoso. Testemunho da reconquista e do senhorio medieval portugu\u00eas, com muralhas, torre de menagem e vistas panor\u00e2micas sobre o territ\u00f3rio hist\u00f3rico da regi\u00e3o. Entrada gratuita.",
+        "category": "castelos",
+        "region": "centro",
+        "address": "Largo do Castelo, Trancoso",
+        "location": {
+          "lat": 40.7821,
+          "lng": -7.3481
+        },
+        "image_url": "https://images.unsplash.com/photo-1560179707-f14e90ef3623?w=800&q=80",
+        "tags": [
+          "Castelos",
+          "centro",
+          "Hist\u00f3ria & Patrim\u00f3nio"
+        ],
+        "created_at": "2026-03-27 20:47:19.748000",
+        "metadata": {
+          "period": "S\u00e9c. XII",
+          "schedule": "Exterior livre",
+          "price": "Gratuito",
+          "website": "https://cm-trancoso.pt"
+        },
+        "iq_score": null
+      },
+      {
+        "id": "poi_castelo-de-pinhel_4dadd3",
+        "name": "Castelo de Pinhel",
+        "description": "Fortaleza do s\u00e9culo XII em Pinhel. Testemunho da reconquista e do senhorio medieval portugu\u00eas, com muralhas, torre de menagem e vistas panor\u00e2micas sobre o territ\u00f3rio hist\u00f3rico da regi\u00e3o. Entrada gratuita.",
+        "category": "castelos",
+        "region": "centro",
+        "address": "Largo do Castelo, Pinhel",
+        "location": {
+          "lat": 40.7761,
+          "lng": -7.0641
+        },
+        "image_url": "https://images.unsplash.com/photo-1599946347371-68eb71b16afc?w=800&q=80",
+        "tags": [
+          "Castelos",
+          "centro",
+          "Hist\u00f3ria & Patrim\u00f3nio"
+        ],
+        "created_at": "2026-03-27 20:47:19.748000",
+        "metadata": {
+          "period": "S\u00e9c. XII",
+          "schedule": "Exterior livre",
+          "price": "Gratuito",
+          "website": "https://monumentos.gov.pt"
+        },
+        "iq_score": null
+      },
+      {
+        "id": "poi_castelo-de-almeida_474f37",
+        "name": "Castelo de Almeida",
+        "description": "Fortaleza do s\u00e9culo XVII em Almeida. Testemunho da reconquista e do senhorio medieval portugu\u00eas, com muralhas, torre de menagem e vistas panor\u00e2micas sobre o territ\u00f3rio hist\u00f3rico da regi\u00e3o. Entrada gratuita.",
+        "category": "castelos",
+        "region": "centro",
+        "address": "Pra\u00e7a da Pra\u00e7a, Almeida",
+        "location": {
+          "lat": 40.7291,
+          "lng": -6.9041
+        },
+        "image_url": "https://images.unsplash.com/photo-1537572263443-91a0e27d78e2?w=800&q=80",
+        "tags": [
+          "Castelos",
+          "centro",
+          "Hist\u00f3ria & Patrim\u00f3nio"
+        ],
+        "created_at": "2026-03-27 20:47:19.748000",
+        "metadata": {
+          "period": "S\u00e9c. XVII",
+          "schedule": "Exterior livre (Fortaleza)",
+          "price": "Gratuito",
+          "website": "https://monumentos.gov.pt"
+        },
+        "iq_score": null
+      },
+      {
+        "id": "poi_castelo-de-belmonte_71f5b1",
+        "name": "Castelo de Belmonte",
+        "description": "Fortaleza do s\u00e9culo XII em Centro. Testemunho da reconquista e do senhorio medieval portugu\u00eas, com muralhas, torre de menagem e vistas panor\u00e2micas sobre o territ\u00f3rio hist\u00f3rico da regi\u00e3o. Entrada Adulto 1,50\u20ac.",
+        "category": "castelos",
+        "region": "centro",
+        "address": "Castelo de Belmonte",
+        "location": {
+          "lat": 40.3561,
+          "lng": -7.3561
+        },
+        "image_url": "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&q=80",
+        "tags": [
+          "Castelos",
+          "centro",
+          "Hist\u00f3ria & Patrim\u00f3nio"
+        ],
+        "created_at": "2026-03-27 20:47:19.748000",
+        "metadata": {
+          "period": "S\u00e9c. XII",
+          "schedule": "Ter-Dom 9h-12h30/14h-17h30",
+          "price": "Adulto 1,50\u20ac",
+          "website": "https://monumentos.gov.pt"
+        },
+        "iq_score": null
+      },
+      {
+        "id": "poi_castelo-de-sortelha_430888",
+        "name": "Castelo de Sortelha",
+        "description": "Fortaleza do s\u00e9culo XII em Centro. Testemunho da reconquista e do senhorio medieval portugu\u00eas, com muralhas, torre de menagem e vistas panor\u00e2micas sobre o territ\u00f3rio hist\u00f3rico da regi\u00e3o. Entrada gratuita.",
+        "category": "castelos",
+        "region": "centro",
+        "address": "Aldeia Hist\u00f3rica de Sortelha",
+        "location": {
+          "lat": 40.3021,
+          "lng": -7.1701
+        },
+        "image_url": "https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?w=800&q=80",
+        "tags": [
+          "Castelos",
+          "centro",
+          "Hist\u00f3ria & Patrim\u00f3nio"
+        ],
+        "created_at": "2026-03-27 20:47:19.748000",
+        "metadata": {
+          "period": "S\u00e9c. XII",
+          "schedule": "Seg-Dom 24h",
+          "price": "Gratuito",
+          "website": "https://aldeias-historicas.pt"
+        },
+        "iq_score": null
+      },
+      {
+        "id": "poi_castelo-de-idanha-a-velha_8365d1",
+        "name": "Castelo de Idanha-a-Velha",
+        "description": "Fortaleza Romano / S\u00e9c. VI em Centro. Testemunho da reconquista e do senhorio medieval portugu\u00eas, com muralhas, torre de menagem e vistas panor\u00e2micas sobre o territ\u00f3rio hist\u00f3rico da regi\u00e3o. Entrada gratuita.",
+        "category": "castelos",
+        "region": "centro",
+        "address": "Idanha-a-Velha",
+        "location": {
+          "lat": 39.9991,
+          "lng": -7.1471
+        },
+        "image_url": "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&q=80",
+        "tags": [
+          "Castelos",
+          "centro",
+          "Hist\u00f3ria & Patrim\u00f3nio"
+        ],
+        "created_at": "2026-03-27 20:47:19.748000",
+        "metadata": {
+          "period": "Romano / S\u00e9c. VI",
+          "schedule": "Exterior livre",
+          "price": "Gratuito",
+          "website": "https://monumentos.gov.pt"
+        },
+        "iq_score": null
+      },
+      {
+        "id": "poi_castelo-de-penamacor_2d8b15",
+        "name": "Castelo de Penamacor",
+        "description": "Fortaleza do s\u00e9culo XII em Centro. Testemunho da reconquista e do senhorio medieval portugu\u00eas, com muralhas, torre de menagem e vistas panor\u00e2micas sobre o territ\u00f3rio hist\u00f3rico da regi\u00e3o. Entrada gratuita.",
+        "category": "castelos",
+        "region": "centro",
+        "address": "Penamacor",
+        "location": {
+          "lat": 40.1671,
+          "lng": -7.1731
+        },
+        "image_url": "https://images.unsplash.com/photo-1518998053901-5348d3961a04?w=800&q=80",
+        "tags": [
+          "Castelos",
+          "centro",
+          "Hist\u00f3ria & Patrim\u00f3nio"
+        ],
+        "created_at": "2026-03-27 20:47:19.748000",
+        "metadata": {
+          "period": "S\u00e9c. XII",
+          "schedule": "Exterior livre",
+          "price": "Gratuito",
+          "website": "https://monumentos.gov.pt"
+        },
+        "iq_score": null
+      },
+      {
+        "id": "poi_castelo-de-sabugal_a3177f",
+        "name": "Castelo de Sabugal",
+        "description": "Fortaleza do s\u00e9culo XIII em Sabugal. Testemunho da reconquista e do senhorio medieval portugu\u00eas, com muralhas, torre de menagem e vistas panor\u00e2micas sobre o territ\u00f3rio hist\u00f3rico da regi\u00e3o. Entrada Adulto 1\u20ac.",
+        "category": "castelos",
+        "region": "centro",
+        "address": "Largo do Castelo, Sabugal",
+        "location": {
+          "lat": 40.3521,
+          "lng": -7.0921
+        },
+        "image_url": "https://images.unsplash.com/photo-1562616895-62ab12f81f2e?w=800&q=80",
+        "tags": [
+          "Castelos",
+          "centro",
+          "Hist\u00f3ria & Patrim\u00f3nio"
+        ],
+        "created_at": "2026-03-27 20:47:19.748000",
+        "metadata": {
+          "period": "S\u00e9c. XIII",
+          "schedule": "Ter-Dom 10h-12h/14h-17h30",
+          "price": "Adulto 1\u20ac",
+          "website": "https://monumentos.gov.pt"
+        },
+        "iq_score": null
+      },
+      {
+        "id": "poi_castelo-de-castelo-branco_e32d55",
+        "name": "Castelo de Castelo Branco",
+        "description": "Fortaleza do s\u00e9culo XIII em Castelo Branco. Testemunho da reconquista e do senhorio medieval portugu\u00eas, com muralhas, torre de menagem e vistas panor\u00e2micas sobre o territ\u00f3rio hist\u00f3rico da regi\u00e3o. Entrada gratuita.",
+        "category": "castelos",
+        "region": "centro",
+        "address": "Miradouro S. Gens, Castelo Branco",
+        "location": {
+          "lat": 39.8221,
+          "lng": -7.4941
+        },
+        "image_url": "https://images.unsplash.com/photo-1533154683836-84ea7a0bc310?w=800&q=80",
+        "tags": [
+          "Castelos",
+          "centro",
+          "Hist\u00f3ria & Patrim\u00f3nio"
+        ],
+        "created_at": "2026-03-27 20:47:19.748000",
+        "metadata": {
+          "period": "S\u00e9c. XIII",
+          "schedule": "Exterior livre",
+          "price": "Gratuito",
+          "website": "https://monumentos.gov.pt"
+        },
+        "iq_score": null
+      },
+      {
+        "id": "poi_castelo-de-monsanto_3dc9a0",
+        "name": "Castelo de Monsanto",
+        "description": "Fortaleza do s\u00e9culo XII em Centro. Testemunho da reconquista e do senhorio medieval portugu\u00eas, com muralhas, torre de menagem e vistas panor\u00e2micas sobre o territ\u00f3rio hist\u00f3rico da regi\u00e3o. Entrada gratuita.",
+        "category": "castelos",
+        "region": "centro",
+        "address": "Aldeia Hist\u00f3rica de Monsanto",
+        "location": {
+          "lat": 40.0371,
+          "lng": -7.1141
+        },
+        "image_url": "https://images.unsplash.com/photo-1533154683836-84ea7a0bc310?w=800&q=80",
+        "tags": [
+          "Castelos",
+          "centro",
+          "Hist\u00f3ria & Patrim\u00f3nio"
+        ],
+        "created_at": "2026-03-27 20:47:19.748000",
+        "metadata": {
+          "period": "S\u00e9c. XII",
+          "schedule": "Seg-Dom 24h",
+          "price": "Gratuito",
+          "website": "https://aldeias-historicas.pt"
+        },
+        "iq_score": null
+      },
+      {
+        "id": "poi_castelo-de-sao-jorge_ab60fc",
+        "name": "Castelo de S\u00e3o Jorge",
+        "description": "Fortaleza S\u00e9c. XI em Lisboa. Testemunho da reconquista e do senhorio medieval portugu\u00eas, com muralhas, torre de menagem e vistas panor\u00e2micas sobre o territ\u00f3rio hist\u00f3rico da regi\u00e3o. Entrada gratuita.",
+        "category": "castelos",
+        "region": "lisboa",
+        "address": "Rua de Santa Cruz do Castelo, Lisboa",
+        "location": {
+          "lat": 38.7139,
+          "lng": -9.1334
+        },
+        "image_url": "https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?w=800&q=80",
+        "tags": [
+          "Castelos",
+          "lisboa",
+          "Hist\u00f3ria & Patrim\u00f3nio"
+        ],
+        "created_at": "2026-03-27 20:47:19.748000",
+        "metadata": {
+          "period": "S\u00e9c. XI",
+          "schedule": "Mar-Out 9h-21h; Nov-Fev 9h-18h",
+          "price": "Adulto 15\u20ac; <10 Gr\u00e1tis",
+          "website": "https://monumentos.gov.pt"
+        },
+        "iq_score": null
+      },
+      {
+        "id": "poi_castelo-de-palmela_d5a1e1",
+        "name": "Castelo de Palmela",
+        "description": "Fortaleza do s\u00e9culo XII em Palmela. Testemunho da reconquista e do senhorio medieval portugu\u00eas, com muralhas, torre de menagem e vistas panor\u00e2micas sobre o territ\u00f3rio hist\u00f3rico da regi\u00e3o. Entrada gratuita.",
+        "category": "castelos",
+        "region": "lisboa",
+        "address": "Largo do Castelo, Palmela",
+        "location": {
+          "lat": 38.5688,
+          "lng": -8.8992
+        },
+        "image_url": "https://images.unsplash.com/photo-1560179707-f14e90ef3623?w=800&q=80",
+        "tags": [
+          "Castelos",
+          "lisboa",
+          "Hist\u00f3ria & Patrim\u00f3nio"
+        ],
+        "created_at": "2026-03-27 20:47:19.749000",
+        "metadata": {
+          "period": "S\u00e9c. XII",
+          "schedule": "Ter-Dom 10h-17h; Fechado 2\u00aa",
+          "price": "Adulto 3\u20ac; <12 Gr\u00e1tis",
+          "website": "https://cm-palmela.pt"
+        },
+        "iq_score": null
+      },
+      {
+        "id": "poi_castelo-de-sesimbra_67b654",
+        "name": "Castelo de Sesimbra",
+        "description": "Fortaleza do s\u00e9culo XII em Lisboa. Testemunho da reconquista e do senhorio medieval portugu\u00eas, com muralhas, torre de menagem e vistas panor\u00e2micas sobre o territ\u00f3rio hist\u00f3rico da regi\u00e3o. Entrada gratuita.",
+        "category": "castelos",
+        "region": "lisboa",
+        "address": "Castelo de Sesimbra",
+        "location": {
+          "lat": 38.4442,
+          "lng": -9.0962
+        },
+        "image_url": "https://images.unsplash.com/photo-1568393691622-c7ba131d63b4?w=800&q=80",
+        "tags": [
+          "Castelos",
+          "lisboa",
+          "Hist\u00f3ria & Patrim\u00f3nio"
+        ],
+        "created_at": "2026-03-27 20:47:19.749000",
+        "metadata": {
+          "period": "S\u00e9c. XII",
+          "schedule": "Seg-Dom 9h-18h",
+          "price": "Gratuito",
+          "website": "https://cm-sesimbra.pt"
+        },
+        "iq_score": null
+      },
+      {
+        "id": "poi_castelo-de-torres-vedras_1a2071",
+        "name": "Castelo de Torres Vedras",
+        "description": "Fortaleza do s\u00e9culo XIII em Torres Vedras. Testemunho da reconquista e do senhorio medieval portugu\u00eas, com muralhas, torre de menagem e vistas panor\u00e2micas sobre o territ\u00f3rio hist\u00f3rico da regi\u00e3o. Entrada gratuita.",
+        "category": "castelos",
+        "region": "lisboa",
+        "address": "Pra\u00e7a 25 de Abril, Torres Vedras",
+        "location": {
+          "lat": 39.0901,
+          "lng": -9.2591
+        },
+        "image_url": "https://images.unsplash.com/photo-1533154683836-84ea7a0bc310?w=800&q=80",
+        "tags": [
+          "Castelos",
+          "lisboa",
+          "Hist\u00f3ria & Patrim\u00f3nio"
+        ],
+        "created_at": "2026-03-27 20:47:19.749000",
+        "metadata": {
+          "period": "S\u00e9c. XIII",
+          "schedule": "Ter-Dom 9h-17h",
+          "price": "Gratuito",
+          "website": "https://monumentos.gov.pt"
+        },
+        "iq_score": null
+      },
+      {
+        "id": "poi_castelo-de-obidos_204e02",
+        "name": "Castelo de \u00d3bidos",
+        "description": "Fortaleza do s\u00e9culo XII em \u00d3bidos. Testemunho da reconquista e do senhorio medieval portugu\u00eas, com muralhas, torre de menagem e vistas panor\u00e2micas sobre o territ\u00f3rio hist\u00f3rico da regi\u00e3o. Entrada gratuita.",
+        "category": "castelos",
+        "region": "lisboa",
+        "address": "Rua da Cadeia, \u00d3bidos",
+        "location": {
+          "lat": 39.3621,
+          "lng": -9.1581
+        },
+        "image_url": "https://images.unsplash.com/photo-1518998053901-5348d3961a04?w=800&q=80",
+        "tags": [
+          "Castelos",
+          "lisboa",
+          "Hist\u00f3ria & Patrim\u00f3nio"
+        ],
+        "created_at": "2026-03-27 20:47:19.749000",
+        "metadata": {
+          "period": "S\u00e9c. XII",
+          "schedule": "Seg-Dom 9h-19h",
+          "price": "Gratuito (muralhas)\u2014Pousada acesso privado",
+          "website": "https://obidos.pt"
+        },
+        "iq_score": null
+      },
+      {
+        "id": "poi_castelo-de-sintra-mouros_de82e0",
+        "name": "Castelo de Sintra (Mouros)",
+        "description": "Fortaleza S\u00e9c. IX em Sintra. Testemunho da reconquista e do senhorio medieval portugu\u00eas, com muralhas, torre de menagem e vistas panor\u00e2micas sobre o territ\u00f3rio hist\u00f3rico da regi\u00e3o. Entrada gratuita.",
+        "category": "castelos",
+        "region": "lisboa",
+        "address": "Estrada da Pena, Sintra",
+        "location": {
+          "lat": 38.7924,
+          "lng": -9.3911
+        },
+        "image_url": "https://images.unsplash.com/photo-1568393691622-c7ba131d63b4?w=800&q=80",
+        "tags": [
+          "Castelos",
+          "lisboa",
+          "Hist\u00f3ria & Patrim\u00f3nio"
+        ],
+        "created_at": "2026-03-27 20:47:19.749000",
+        "metadata": {
+          "period": "S\u00e9c. IX",
+          "schedule": "Mar-Out 9h-20h; Nov-Fev 10h-18h",
+          "price": "Adulto 8\u20ac; <6 Gr\u00e1tis",
+          "website": "https://monumentos.gov.pt"
+        },
+        "iq_score": null
+      },
+      {
+        "id": "poi_castelo-de-alenquer_08b084",
+        "name": "Castelo de Alenquer",
+        "description": "Fortaleza do s\u00e9culo XIII em Alenquer. Testemunho da reconquista e do senhorio medieval portugu\u00eas, com muralhas, torre de menagem e vistas panor\u00e2micas sobre o territ\u00f3rio hist\u00f3rico da regi\u00e3o. Entrada gratuita.",
+        "category": "castelos",
+        "region": "lisboa",
+        "address": "Largo do Castelo, Alenquer",
+        "location": {
+          "lat": 39.0591,
+          "lng": -9.0101
+        },
+        "image_url": "https://images.unsplash.com/photo-1555881400-74d7acaacd8b?w=800&q=80",
+        "tags": [
+          "Castelos",
+          "lisboa",
+          "Hist\u00f3ria & Patrim\u00f3nio"
+        ],
+        "created_at": "2026-03-27 20:47:19.749000",
+        "metadata": {
+          "period": "S\u00e9c. XIII",
+          "schedule": "Exterior livre",
+          "price": "Gratuito",
+          "website": "https://monumentos.gov.pt"
+        },
+        "iq_score": null
+      },
+      {
+        "id": "poi_castelo-de-almada_5ab2f0",
+        "name": "Castelo de Almada",
+        "description": "Fortaleza do s\u00e9culo XV em Almada. Testemunho da reconquista e do senhorio medieval portugu\u00eas, com muralhas, torre de menagem e vistas panor\u00e2micas sobre o territ\u00f3rio hist\u00f3rico da regi\u00e3o. Entrada gratuita.",
+        "category": "castelos",
+        "region": "lisboa",
+        "address": "Jardim do Castelo, Almada",
+        "location": {
+          "lat": 38.6791,
+          "lng": -9.1581
+        },
+        "image_url": "https://images.unsplash.com/photo-1560179707-f14e90ef3623?w=800&q=80",
+        "tags": [
+          "Castelos",
+          "lisboa",
+          "Hist\u00f3ria & Patrim\u00f3nio"
+        ],
+        "created_at": "2026-03-27 20:47:19.749000",
+        "metadata": {
+          "period": "S\u00e9c. XV",
+          "schedule": "Exterior livre",
+          "price": "Gratuito",
+          "website": "https://monumentos.gov.pt"
+        },
+        "iq_score": null
+      },
+      {
+        "id": "poi_castelo-de-marvao_6c59bb",
+        "name": "Castelo de Marv\u00e3o",
+        "description": "Fortaleza do s\u00e9culo XIII em 7330-101 Marv\u00e3o. Testemunho da reconquista e do senhorio medieval portugu\u00eas, com muralhas, torre de menagem e vistas panor\u00e2micas sobre o territ\u00f3rio hist\u00f3rico da regi\u00e3o. Entrada gratuita.",
+        "category": "castelos",
+        "region": "alentejo",
+        "address": "R. do Castelo, 7330-101 Marv\u00e3o",
+        "location": {
+          "lat": 39.3949,
+          "lng": -7.3768
+        },
+        "image_url": "https://images.unsplash.com/photo-1518998053901-5348d3961a04?w=800&q=80",
+        "tags": [
+          "Castelos",
+          "alentejo",
+          "Hist\u00f3ria & Patrim\u00f3nio"
+        ],
+        "created_at": "2026-03-27 20:47:19.749000",
+        "metadata": {
+          "period": "S\u00e9c. XIII",
+          "schedule": "Ter-Dom 9h-17h30; Fechado 2\u00aa feira",
+          "price": "Adulto 4\u20ac; <12 Gr\u00e1tis; Dom manh\u00e3 Gr\u00e1tis",
+          "website": "https://cm-marvao.pt"
+        },
+        "iq_score": null
+      },
+      {
+        "id": "poi_castelo-de-elvas_ba92e7",
+        "name": "Castelo de Elvas",
+        "description": "Fortaleza do s\u00e9culo XIII em 7350-141 Elvas. Testemunho da reconquista e do senhorio medieval portugu\u00eas, com muralhas, torre de menagem e vistas panor\u00e2micas sobre o territ\u00f3rio hist\u00f3rico da regi\u00e3o. Entrada gratuita.",
+        "category": "castelos",
+        "region": "alentejo",
+        "address": "Parada do Castelo, 7350-141 Elvas",
+        "location": {
+          "lat": 38.8833,
+          "lng": -7.1643
+        },
+        "image_url": "https://images.unsplash.com/photo-1599946347371-68eb71b16afc?w=800&q=80",
+        "tags": [
+          "Castelos",
+          "alentejo",
+          "Hist\u00f3ria & Patrim\u00f3nio"
+        ],
+        "created_at": "2026-03-27 20:47:19.749000",
+        "metadata": {
+          "period": "S\u00e9c. XIII",
+          "schedule": "Ter-Dom 9h-17h30; Fechado 2\u00aa feira",
+          "price": "Adulto 4\u20ac; <12 Gr\u00e1tis; Dom manh\u00e3 Gr\u00e1tis",
+          "website": "https://cm-elvas.pt"
+        },
+        "iq_score": null
+      },
+      {
+        "id": "poi_castelo-de-arraiolos_d1a81e",
+        "name": "Castelo de Arraiolos",
+        "description": "Fortaleza P\u00f3s-S\u00e9c. XIII em 7040-058 Arraiolos. Testemunho da reconquista e do senhorio medieval portugu\u00eas, com muralhas, torre de menagem e vistas panor\u00e2micas sobre o territ\u00f3rio hist\u00f3rico da regi\u00e3o. Entrada gratuita.",
+        "category": "castelos",
+        "region": "alentejo",
+        "address": "Monte de S. Pedro, 7040-058 Arraiolos",
+        "location": {
+          "lat": 38.7255,
+          "lng": -7.9863
+        },
+        "image_url": "https://images.unsplash.com/photo-1533154683836-84ea7a0bc310?w=800&q=80",
+        "tags": [
+          "Castelos",
+          "alentejo",
+          "Hist\u00f3ria & Patrim\u00f3nio"
+        ],
+        "created_at": "2026-03-27 20:47:19.750000",
+        "metadata": {
+          "period": "P\u00f3s-S\u00e9c. XIII",
+          "schedule": "Ter-Dom 9h-17h30; Fechado 2\u00aa feira",
+          "price": "Adulto 4\u20ac; <12 Gr\u00e1tis; Dom manh\u00e3 Gr\u00e1tis",
+          "website": "https://cm-arraiolos.pt"
+        },
+        "iq_score": null
+      },
+      {
+        "id": "poi_castelo-de-beja_b0b683",
+        "name": "Castelo de Beja",
+        "description": "Fortaleza P\u00f3s-S\u00e9c. XIII em 7800-427 Beja. Testemunho da reconquista e do senhorio medieval portugu\u00eas, com muralhas, torre de menagem e vistas panor\u00e2micas sobre o territ\u00f3rio hist\u00f3rico da regi\u00e3o. Entrada gratuita.",
+        "category": "castelos",
+        "region": "alentejo",
+        "address": "Largo Dr. Lima de Carvalho, 7800-427 Beja",
+        "location": {
+          "lat": 38.0175,
+          "lng": -7.8647
+        },
+        "image_url": "https://images.unsplash.com/photo-1562616895-62ab12f81f2e?w=800&q=80",
+        "tags": [
+          "Castelos",
+          "alentejo",
+          "Hist\u00f3ria & Patrim\u00f3nio"
+        ],
+        "created_at": "2026-03-27 20:47:19.750000",
+        "metadata": {
+          "period": "P\u00f3s-S\u00e9c. XIII",
+          "schedule": "Ter-Dom 9h-17h30; Fechado 2\u00aa feira",
+          "price": "Adulto 4\u20ac; <12 Gr\u00e1tis; Dom manh\u00e3 Gr\u00e1tis",
+          "website": "https://monumentos.gov.pt"
+        },
+        "iq_score": null
+      },
+      {
+        "id": "poi_castelo-de-vila-vicosa_750a92",
+        "name": "Castelo de Vila Vi\u00e7osa",
+        "description": "Fortaleza P\u00f3s-S\u00e9c. XIII em 7160-214 Vila Vi\u00e7osa. Testemunho da reconquista e do senhorio medieval portugu\u00eas, com muralhas, torre de menagem e vistas panor\u00e2micas sobre o territ\u00f3rio hist\u00f3rico da regi\u00e3o. Entrada gratuita.",
+        "category": "castelos",
+        "region": "alentejo",
+        "address": "Terreiro do Pa\u00e7o, 7160-214 Vila Vi\u00e7osa",
+        "location": {
+          "lat": 38.7788,
+          "lng": -7.4147
+        },
+        "image_url": "https://images.unsplash.com/photo-1518998053901-5348d3961a04?w=800&q=80",
+        "tags": [
+          "Castelos",
+          "alentejo",
+          "Hist\u00f3ria & Patrim\u00f3nio"
+        ],
+        "created_at": "2026-03-27 20:47:19.750000",
+        "metadata": {
+          "period": "P\u00f3s-S\u00e9c. XIII",
+          "schedule": "Ter-Dom 9h-17h30; Fechado 2\u00aa feira",
+          "price": "Adulto 4\u20ac; <12 Gr\u00e1tis; Dom manh\u00e3 Gr\u00e1tis",
+          "website": "https://monumentos.gov.pt"
+        },
+        "iq_score": null
+      },
+      {
+        "id": "poi_castelo-de-sines_9e1173",
+        "name": "Castelo de Sines",
+        "description": "Fortaleza P\u00f3s-S\u00e9c. XIII em 7520-159 Sines. Testemunho da reconquista e do senhorio medieval portugu\u00eas, com muralhas, torre de menagem e vistas panor\u00e2micas sobre o territ\u00f3rio hist\u00f3rico da regi\u00e3o.",
+        "category": "castelos",
+        "region": "alentejo",
+        "address": "R. do Castelo, 7520-159 Sines",
+        "location": {
+          "lat": 37.9556,
+          "lng": -8.871
+        },
+        "image_url": "https://images.unsplash.com/photo-1537572263443-91a0e27d78e2?w=800&q=80",
+        "tags": [
+          "Castelos",
+          "alentejo",
+          "Hist\u00f3ria & Patrim\u00f3nio"
+        ],
+        "created_at": "2026-03-27 20:47:19.750000",
+        "metadata": {
+          "period": "P\u00f3s-S\u00e9c. XIII",
+          "website": "https://monumentos.gov.pt"
+        },
+        "iq_score": null
+      },
+      {
+        "id": "poi_castelo-de-estremoz_3c3863",
+        "name": "Castelo de Estremoz",
+        "description": "Fortaleza do s\u00e9culo XIII em Estremoz. Testemunho da reconquista e do senhorio medieval portugu\u00eas, com muralhas, torre de menagem e vistas panor\u00e2micas sobre o territ\u00f3rio hist\u00f3rico da regi\u00e3o. Entrada Adulto 2\u20ac.",
+        "category": "castelos",
+        "region": "alentejo",
+        "address": "Rossio Marqu\u00eas de Pombal, Estremoz",
+        "location": {
+          "lat": 38.8461,
+          "lng": -7.5891
+        },
+        "image_url": "https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?w=800&q=80",
+        "tags": [
+          "Castelos",
+          "alentejo",
+          "Hist\u00f3ria & Patrim\u00f3nio"
+        ],
+        "created_at": "2026-03-27 20:47:19.750000",
+        "metadata": {
+          "period": "S\u00e9c. XIII",
+          "schedule": "Ter-Dom 10h-12h30/14h-18h",
+          "price": "Adulto 2\u20ac",
+          "website": "https://monumentos.gov.pt"
+        },
+        "iq_score": null
+      },
+      {
+        "id": "poi_castelo-de-borba_f62b28",
+        "name": "Castelo de Borba",
+        "description": "Fortaleza do s\u00e9culo XIII em Alentejo. Testemunho da reconquista e do senhorio medieval portugu\u00eas, com muralhas, torre de menagem e vistas panor\u00e2micas sobre o territ\u00f3rio hist\u00f3rico da regi\u00e3o. Entrada gratuita.",
+        "category": "castelos",
+        "region": "alentejo",
+        "address": "Borba",
+        "location": {
+          "lat": 38.8021,
+          "lng": -7.4551
+        },
+        "image_url": "https://images.unsplash.com/photo-1562616895-62ab12f81f2e?w=800&q=80",
+        "tags": [
+          "Castelos",
+          "alentejo",
+          "Hist\u00f3ria & Patrim\u00f3nio"
+        ],
+        "created_at": "2026-03-27 20:47:19.750000",
+        "metadata": {
+          "period": "S\u00e9c. XIII",
+          "schedule": "Exterior livre",
+          "price": "Gratuito",
+          "website": "https://monumentos.gov.pt"
+        },
+        "iq_score": null
+      },
+      {
+        "id": "poi_castelo-de-vila-vicosa_a5ad6e",
+        "name": "Castelo de Vila Vi\u00e7osa",
+        "description": "Fortaleza do s\u00e9culo XIII em Vila Vi\u00e7osa. Testemunho da reconquista e do senhorio medieval portugu\u00eas, com muralhas, torre de menagem e vistas panor\u00e2micas sobre o territ\u00f3rio hist\u00f3rico da regi\u00e3o. Entrada Adulto 5\u20ac.",
+        "category": "castelos",
+        "region": "alentejo",
+        "address": "Terreira do Pa\u00e7o, Vila Vi\u00e7osa",
+        "location": {
+          "lat": 38.7791,
+          "lng": -7.4161
+        },
+        "image_url": "https://images.unsplash.com/photo-1518998053901-5348d3961a04?w=800&q=80",
+        "tags": [
+          "Castelos",
+          "alentejo",
+          "Hist\u00f3ria & Patrim\u00f3nio"
+        ],
+        "created_at": "2026-03-27 20:47:19.750000",
+        "metadata": {
+          "period": "S\u00e9c. XIII",
+          "schedule": "Ter-Dom 9h30-13h/14h-17h30",
+          "price": "Adulto 5\u20ac",
+          "website": "https://monumentos.gov.pt"
+        },
+        "iq_score": null
+      },
+      {
+        "id": "poi_castelo-de-alandroal_3515ca",
+        "name": "Castelo de Alandroal",
+        "description": "Fortaleza do s\u00e9culo XIV em Alentejo. Testemunho da reconquista e do senhorio medieval portugu\u00eas, com muralhas, torre de menagem e vistas panor\u00e2micas sobre o territ\u00f3rio hist\u00f3rico da regi\u00e3o. Entrada gratuita.",
+        "category": "castelos",
+        "region": "alentejo",
+        "address": "Alandroal",
+        "location": {
+          "lat": 38.7001,
+          "lng": -7.3981
+        },
+        "image_url": "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&q=80",
+        "tags": [
+          "Castelos",
+          "alentejo",
+          "Hist\u00f3ria & Patrim\u00f3nio"
+        ],
+        "created_at": "2026-03-27 20:47:19.750000",
+        "metadata": {
+          "period": "S\u00e9c. XIV",
+          "schedule": "Exterior livre",
+          "price": "Gratuito",
+          "website": "https://monumentos.gov.pt"
+        },
+        "iq_score": null
+      },
+      {
+        "id": "poi_castelo-de-juromenha_042870",
+        "name": "Castelo de Juromenha",
+        "description": "Fortaleza do s\u00e9culo XVII em Alandroal. Testemunho da reconquista e do senhorio medieval portugu\u00eas, com muralhas, torre de menagem e vistas panor\u00e2micas sobre o territ\u00f3rio hist\u00f3rico da regi\u00e3o. Entrada gratuita.",
+        "category": "castelos",
+        "region": "alentejo",
+        "address": "Juromenha, Alandroal",
+        "location": {
+          "lat": 38.7241,
+          "lng": -7.1521
+        },
+        "image_url": "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&q=80",
+        "tags": [
+          "Castelos",
+          "alentejo",
+          "Hist\u00f3ria & Patrim\u00f3nio"
+        ],
+        "created_at": "2026-03-27 20:47:19.750000",
+        "metadata": {
+          "period": "S\u00e9c. XVII",
+          "schedule": "Exterior livre",
+          "price": "Gratuito",
+          "website": "https://monumentos.gov.pt"
+        },
+        "iq_score": null
+      },
+      {
+        "id": "poi_castelo-de-mourao_f266ba",
+        "name": "Castelo de Mour\u00e3o",
+        "description": "Fortaleza do s\u00e9culo XIV em Alentejo. Testemunho da reconquista e do senhorio medieval portugu\u00eas, com muralhas, torre de menagem e vistas panor\u00e2micas sobre o territ\u00f3rio hist\u00f3rico da regi\u00e3o. Entrada gratuita.",
+        "category": "castelos",
+        "region": "alentejo",
+        "address": "Mour\u00e3o",
+        "location": {
+          "lat": 38.3641,
+          "lng": -7.3431
+        },
+        "image_url": "https://images.unsplash.com/photo-1599946347371-68eb71b16afc?w=800&q=80",
+        "tags": [
+          "Castelos",
+          "alentejo",
+          "Hist\u00f3ria & Patrim\u00f3nio"
+        ],
+        "created_at": "2026-03-27 20:47:19.750000",
+        "metadata": {
+          "period": "S\u00e9c. XIV",
+          "schedule": "Exterior livre",
+          "price": "Gratuito",
+          "website": "https://monumentos.gov.pt"
+        },
+        "iq_score": null
+      },
+      {
+        "id": "poi_castelo-de-moura_9bc412",
+        "name": "Castelo de Moura",
+        "description": "Fortaleza do s\u00e9culo XIII em Moura. Testemunho da reconquista e do senhorio medieval portugu\u00eas, com muralhas, torre de menagem e vistas panor\u00e2micas sobre o territ\u00f3rio hist\u00f3rico da regi\u00e3o. Entrada gratuita.",
+        "category": "castelos",
+        "region": "alentejo",
+        "address": "Largo do Castelo, Moura",
+        "location": {
+          "lat": 38.1381,
+          "lng": -7.4511
+        },
+        "image_url": "https://images.unsplash.com/photo-1568393691622-c7ba131d63b4?w=800&q=80",
+        "tags": [
+          "Castelos",
+          "alentejo",
+          "Hist\u00f3ria & Patrim\u00f3nio"
+        ],
+        "created_at": "2026-03-27 20:47:19.750000",
+        "metadata": {
+          "period": "S\u00e9c. XIII",
+          "schedule": "Ter-Dom 9h-12h30/14h-17h30",
+          "price": "Gratuito",
+          "website": "https://monumentos.gov.pt"
+        },
+        "iq_score": null
+      },
+      {
+        "id": "poi_castelo-de-serpa_9310ed",
+        "name": "Castelo de Serpa",
+        "description": "Fortaleza do s\u00e9culo XIII em Alentejo. Testemunho da reconquista e do senhorio medieval portugu\u00eas, com muralhas, torre de menagem e vistas panor\u00e2micas sobre o territ\u00f3rio hist\u00f3rico da regi\u00e3o. Entrada Adulto 2\u20ac.",
+        "category": "castelos",
+        "region": "alentejo",
+        "address": "Serpa",
+        "location": {
+          "lat": 37.9461,
+          "lng": -7.5991
+        },
+        "image_url": "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&q=80",
+        "tags": [
+          "Castelos",
+          "alentejo",
+          "Hist\u00f3ria & Patrim\u00f3nio"
+        ],
+        "created_at": "2026-03-27 20:47:19.750000",
+        "metadata": {
+          "period": "S\u00e9c. XIII",
+          "schedule": "Ter-Dom 9h-12h30/14h-17h30",
+          "price": "Adulto 2\u20ac",
+          "website": "https://monumentos.gov.pt"
+        },
+        "iq_score": null
+      },
+      {
+        "id": "poi_castelo-de-mertola_ef3db1",
+        "name": "Castelo de M\u00e9rtola",
+        "description": "Fortaleza do s\u00e9culo XII em M\u00e9rtola. Testemunho da reconquista e do senhorio medieval portugu\u00eas, com muralhas, torre de menagem e vistas panor\u00e2micas sobre o territ\u00f3rio hist\u00f3rico da regi\u00e3o. Entrada Adulto 2\u20ac.",
+        "category": "castelos",
+        "region": "alentejo",
+        "address": "Rua da Igreja, M\u00e9rtola",
+        "location": {
+          "lat": 37.6401,
+          "lng": -7.6601
+        },
+        "image_url": "https://images.unsplash.com/photo-1533154683836-84ea7a0bc310?w=800&q=80",
+        "tags": [
+          "Castelos",
+          "alentejo",
+          "Hist\u00f3ria & Patrim\u00f3nio"
+        ],
+        "created_at": "2026-03-27 20:47:19.750000",
+        "metadata": {
+          "period": "S\u00e9c. XII",
+          "schedule": "Ter-Dom 9h-12h30/14h-17h30",
+          "price": "Adulto 2\u20ac",
+          "website": "https://monumentos.gov.pt"
+        },
+        "iq_score": null
+      },
+      {
+        "id": "poi_castelo-de-alcacer-do-sal_431dc1",
+        "name": "Castelo de Alc\u00e1cer do Sal",
+        "description": "Fortaleza Romano / S\u00e9c. XII em Alc\u00e1cer. Testemunho da reconquista e do senhorio medieval portugu\u00eas, com muralhas, torre de menagem e vistas panor\u00e2micas sobre o territ\u00f3rio hist\u00f3rico da regi\u00e3o. Entrada gratuita.",
+        "category": "castelos",
+        "region": "alentejo",
+        "address": "Pousada Dom Afonso II, Alc\u00e1cer",
+        "location": {
+          "lat": 38.3721,
+          "lng": -8.5131
+        },
+        "image_url": "https://images.unsplash.com/photo-1599946347371-68eb71b16afc?w=800&q=80",
+        "tags": [
+          "Castelos",
+          "alentejo",
+          "Hist\u00f3ria & Patrim\u00f3nio"
+        ],
+        "created_at": "2026-03-27 20:47:19.750000",
+        "metadata": {
+          "period": "Romano / S\u00e9c. XII",
+          "schedule": "Pousada \u2014 visita exterior livre",
+          "price": "Gratuito (exterior)",
+          "website": "https://monumentos.gov.pt"
+        },
+        "iq_score": null
+      },
+      {
+        "id": "poi_castelo-de-santiago-do-cacem_76bf85",
+        "name": "Castelo de Santiago do Cac\u00e9m",
+        "description": "Fortaleza do s\u00e9culo XIII em Alentejo. Testemunho da reconquista e do senhorio medieval portugu\u00eas, com muralhas, torre de menagem e vistas panor\u00e2micas sobre o territ\u00f3rio hist\u00f3rico da regi\u00e3o. Entrada Adulto 1\u20ac.",
+        "category": "castelos",
+        "region": "alentejo",
+        "address": "Santiago do Cac\u00e9m",
+        "location": {
+          "lat": 38.0171,
+          "lng": -8.6991
+        },
+        "image_url": "https://images.unsplash.com/photo-1562616895-62ab12f81f2e?w=800&q=80",
+        "tags": [
+          "Castelos",
+          "alentejo",
+          "Hist\u00f3ria & Patrim\u00f3nio"
+        ],
+        "created_at": "2026-03-27 20:47:19.750000",
+        "metadata": {
+          "period": "S\u00e9c. XIII",
+          "schedule": "Ter-Dom 9h-17h",
+          "price": "Adulto 1\u20ac",
+          "website": "https://monumentos.gov.pt"
+        },
+        "iq_score": null
+      },
+      {
+        "id": "poi_castelo-de-sines_4a4269",
+        "name": "Castelo de Sines",
+        "description": "Fortaleza do s\u00e9culo XIV em Sines. Testemunho da reconquista e do senhorio medieval portugu\u00eas, com muralhas, torre de menagem e vistas panor\u00e2micas sobre o territ\u00f3rio hist\u00f3rico da regi\u00e3o. Entrada Adulto 2\u20ac.",
+        "category": "castelos",
+        "region": "alentejo",
+        "address": "Largo do Castelo, Sines",
+        "location": {
+          "lat": 37.9571,
+          "lng": -8.8721
+        },
+        "image_url": "https://images.unsplash.com/photo-1537572263443-91a0e27d78e2?w=800&q=80",
+        "tags": [
+          "Castelos",
+          "alentejo",
+          "Hist\u00f3ria & Patrim\u00f3nio"
+        ],
+        "created_at": "2026-03-27 20:47:19.750000",
+        "metadata": {
+          "period": "S\u00e9c. XIV",
+          "schedule": "Ter-Dom 9h-12h/14h-17h",
+          "price": "Adulto 2\u20ac",
+          "website": "https://monumentos.gov.pt"
+        },
+        "iq_score": null
+      },
+      {
+        "id": "poi_castelo-de-grandola-ruinas_e13583",
+        "name": "Castelo de Gr\u00e2ndola (Ru\u00ednas)",
+        "description": "Fortaleza do s\u00e9culo XII em Alentejo. Testemunho da reconquista e do senhorio medieval portugu\u00eas, com muralhas, torre de menagem e vistas panor\u00e2micas sobre o territ\u00f3rio hist\u00f3rico da regi\u00e3o. Entrada gratuita.",
+        "category": "castelos",
+        "region": "alentejo",
+        "address": "Gr\u00e2ndola",
+        "location": {
+          "lat": 38.1791,
+          "lng": -8.5701
+        },
+        "image_url": "https://images.unsplash.com/photo-1555881400-74d7acaacd8b?w=800&q=80",
+        "tags": [
+          "Castelos",
+          "alentejo",
+          "Hist\u00f3ria & Patrim\u00f3nio"
+        ],
+        "created_at": "2026-03-27 20:47:19.750000",
+        "metadata": {
+          "period": "S\u00e9c. XII",
+          "schedule": "Exterior livre",
+          "price": "Gratuito",
+          "website": "https://monumentos.gov.pt"
+        },
+        "iq_score": null
+      },
+      {
+        "id": "poi_castelo-de-ourique_3bf597",
+        "name": "Castelo de Ourique",
+        "description": "Fortaleza do s\u00e9culo XII em Alentejo. Testemunho da reconquista e do senhorio medieval portugu\u00eas, com muralhas, torre de menagem e vistas panor\u00e2micas sobre o territ\u00f3rio hist\u00f3rico da regi\u00e3o. Entrada gratuita.",
+        "category": "castelos",
+        "region": "alentejo",
+        "address": "Ourique",
+        "location": {
+          "lat": 37.6491,
+          "lng": -8.2231
+        },
+        "image_url": "https://images.unsplash.com/photo-1568393691622-c7ba131d63b4?w=800&q=80",
+        "tags": [
+          "Castelos",
+          "alentejo",
+          "Hist\u00f3ria & Patrim\u00f3nio"
+        ],
+        "created_at": "2026-03-27 20:47:19.750000",
+        "metadata": {
+          "period": "S\u00e9c. XII",
+          "schedule": "Exterior livre",
+          "price": "Gratuito",
+          "website": "https://monumentos.gov.pt"
+        },
+        "iq_score": null
+      },
+      {
+        "id": "poi_castelo-de-viana-do-alentejo_40e177",
+        "name": "Castelo de Viana do Alentejo",
+        "description": "Fortaleza do s\u00e9culo XIV em Alentejo. Testemunho da reconquista e do senhorio medieval portugu\u00eas, com muralhas, torre de menagem e vistas panor\u00e2micas sobre o territ\u00f3rio hist\u00f3rico da regi\u00e3o. Entrada Adulto 2\u20ac.",
+        "category": "castelos",
+        "region": "alentejo",
+        "address": "Viana do Alentejo",
+        "location": {
+          "lat": 38.3371,
+          "lng": -8.0011
+        },
+        "image_url": "https://images.unsplash.com/photo-1555881400-74d7acaacd8b?w=800&q=80",
+        "tags": [
+          "Castelos",
+          "alentejo",
+          "Hist\u00f3ria & Patrim\u00f3nio"
+        ],
+        "created_at": "2026-03-27 20:47:19.750000",
+        "metadata": {
+          "period": "S\u00e9c. XIV",
+          "schedule": "Ter-Dom 9h-12h30/14h-18h",
+          "price": "Adulto 2\u20ac",
+          "website": "https://cm-viana-alentejo.pt"
+        },
+        "iq_score": null
+      },
+      {
+        "id": "poi_castelo-de-redondo_660415",
+        "name": "Castelo de Redondo",
+        "description": "Fortaleza do s\u00e9culo XIV em Alentejo. Testemunho da reconquista e do senhorio medieval portugu\u00eas, com muralhas, torre de menagem e vistas panor\u00e2micas sobre o territ\u00f3rio hist\u00f3rico da regi\u00e3o. Entrada gratuita.",
+        "category": "castelos",
+        "region": "alentejo",
+        "address": "Redondo",
+        "location": {
+          "lat": 38.6471,
+          "lng": -7.5421
+        },
+        "image_url": "https://images.unsplash.com/photo-1518998053901-5348d3961a04?w=800&q=80",
+        "tags": [
+          "Castelos",
+          "alentejo",
+          "Hist\u00f3ria & Patrim\u00f3nio"
+        ],
+        "created_at": "2026-03-27 20:47:19.750000",
+        "metadata": {
+          "period": "S\u00e9c. XIV",
+          "schedule": "Exterior livre",
+          "price": "Gratuito",
+          "website": "https://monumentos.gov.pt"
+        },
+        "iq_score": null
+      },
+      {
+        "id": "poi_castelo-de-arraiolos_07b868",
+        "name": "Castelo de Arraiolos",
+        "description": "Fortaleza do s\u00e9culo XIV em Alentejo. Testemunho da reconquista e do senhorio medieval portugu\u00eas, com muralhas, torre de menagem e vistas panor\u00e2micas sobre o territ\u00f3rio hist\u00f3rico da regi\u00e3o. Entrada gratuita.",
+        "category": "castelos",
+        "region": "alentejo",
+        "address": "Arraiolos",
+        "location": {
+          "lat": 38.7201,
+          "lng": -7.9841
+        },
+        "image_url": "https://images.unsplash.com/photo-1533154683836-84ea7a0bc310?w=800&q=80",
+        "tags": [
+          "Castelos",
+          "alentejo",
+          "Hist\u00f3ria & Patrim\u00f3nio"
+        ],
+        "created_at": "2026-03-27 20:47:19.750000",
+        "metadata": {
+          "period": "S\u00e9c. XIV",
+          "schedule": "Exterior livre",
+          "price": "Gratuito",
+          "website": "https://cm-arraiolos.pt"
+        },
+        "iq_score": null
+      },
+      {
+        "id": "poi_castelo-de-monforte_736cdf",
+        "name": "Castelo de Monforte",
+        "description": "Fortaleza do s\u00e9culo XIII em Alentejo. Testemunho da reconquista e do senhorio medieval portugu\u00eas, com muralhas, torre de menagem e vistas panor\u00e2micas sobre o territ\u00f3rio hist\u00f3rico da regi\u00e3o. Entrada gratuita.",
+        "category": "castelos",
+        "region": "alentejo",
+        "address": "Monforte",
+        "location": {
+          "lat": 39.0541,
+          "lng": -7.4361
+        },
+        "image_url": "https://images.unsplash.com/photo-1533154683836-84ea7a0bc310?w=800&q=80",
+        "tags": [
+          "Castelos",
+          "alentejo",
+          "Hist\u00f3ria & Patrim\u00f3nio"
+        ],
+        "created_at": "2026-03-27 20:47:19.750000",
+        "metadata": {
+          "period": "S\u00e9c. XIII",
+          "schedule": "Exterior livre",
+          "price": "Gratuito",
+          "website": "https://monumentos.gov.pt"
+        },
+        "iq_score": null
+      },
+      {
+        "id": "poi_castelo-de-portalegre_6e5777",
+        "name": "Castelo de Portalegre",
+        "description": "Fortaleza do s\u00e9culo XIII em Alentejo. Testemunho da reconquista e do senhorio medieval portugu\u00eas, com muralhas, torre de menagem e vistas panor\u00e2micas sobre o territ\u00f3rio hist\u00f3rico da regi\u00e3o. Entrada gratuita.",
+        "category": "castelos",
+        "region": "alentejo",
+        "address": "Portalegre",
+        "location": {
+          "lat": 39.2941,
+          "lng": -7.4291
+        },
+        "image_url": "https://images.unsplash.com/photo-1599946347371-68eb71b16afc?w=800&q=80",
+        "tags": [
+          "Castelos",
+          "alentejo",
+          "Hist\u00f3ria & Patrim\u00f3nio"
+        ],
+        "created_at": "2026-03-27 20:47:19.750000",
+        "metadata": {
+          "period": "S\u00e9c. XIII",
+          "schedule": "Exterior livre",
+          "price": "Gratuito",
+          "website": "https://monumentos.gov.pt"
+        },
+        "iq_score": null
+      },
+      {
+        "id": "poi_castelo-de-campo-maior_89f18a",
+        "name": "Castelo de Campo Maior",
+        "description": "Fortaleza do s\u00e9culo XIV em Alentejo. Testemunho da reconquista e do senhorio medieval portugu\u00eas, com muralhas, torre de menagem e vistas panor\u00e2micas sobre o territ\u00f3rio hist\u00f3rico da regi\u00e3o. Entrada gratuita.",
+        "category": "castelos",
+        "region": "alentejo",
+        "address": "Campo Maior",
+        "location": {
+          "lat": 39.0191,
+          "lng": -7.0641
+        },
+        "image_url": "https://images.unsplash.com/photo-1560179707-f14e90ef3623?w=800&q=80",
+        "tags": [
+          "Castelos",
+          "alentejo",
+          "Hist\u00f3ria & Patrim\u00f3nio"
+        ],
+        "created_at": "2026-03-27 20:47:19.750000",
+        "metadata": {
+          "period": "S\u00e9c. XIV",
+          "schedule": "Ter-Dom 9h-12h/14h-17h",
+          "price": "Gratuito",
+          "website": "https://monumentos.gov.pt"
+        },
+        "iq_score": null
+      },
+      {
+        "id": "poi_castelo-de-ouguela_6a1d96",
+        "name": "Castelo de Ouguela",
+        "description": "Fortaleza do s\u00e9culo XIII em Campo Maior. Testemunho da reconquista e do senhorio medieval portugu\u00eas, com muralhas, torre de menagem e vistas panor\u00e2micas sobre o territ\u00f3rio hist\u00f3rico da regi\u00e3o. Entrada gratuita.",
+        "category": "castelos",
+        "region": "alentejo",
+        "address": "Ouguela, Campo Maior",
+        "location": {
+          "lat": 39.0561,
+          "lng": -7.0191
+        },
+        "image_url": "https://images.unsplash.com/photo-1518998053901-5348d3961a04?w=800&q=80",
+        "tags": [
+          "Castelos",
+          "alentejo",
+          "Hist\u00f3ria & Patrim\u00f3nio"
+        ],
+        "created_at": "2026-03-27 20:47:19.751000",
+        "metadata": {
+          "period": "S\u00e9c. XIII",
+          "schedule": "Exterior livre",
+          "price": "Gratuito",
+          "website": "https://monumentos.gov.pt"
+        },
+        "iq_score": null
+      },
+      {
+        "id": "poi_castelo-de-alter-do-chao_2c20a8",
+        "name": "Castelo de Alter do Ch\u00e3o",
+        "description": "Fortaleza do s\u00e9culo XIV em Alentejo. Testemunho da reconquista e do senhorio medieval portugu\u00eas, com muralhas, torre de menagem e vistas panor\u00e2micas sobre o territ\u00f3rio hist\u00f3rico da regi\u00e3o. Entrada Adulto 1,50\u20ac.",
+        "category": "castelos",
+        "region": "alentejo",
+        "address": "Alter do Ch\u00e3o",
+        "location": {
+          "lat": 39.2021,
+          "lng": -7.6601
+        },
+        "image_url": "https://images.unsplash.com/photo-1560179707-f14e90ef3623?w=800&q=80",
+        "tags": [
+          "Castelos",
+          "alentejo",
+          "Hist\u00f3ria & Patrim\u00f3nio"
+        ],
+        "created_at": "2026-03-27 20:47:19.751000",
+        "metadata": {
+          "period": "S\u00e9c. XIV",
+          "schedule": "Ter-Dom 10h-12h/14h-17h30",
+          "price": "Adulto 1,50\u20ac",
+          "website": "https://monumentos.gov.pt"
+        },
+        "iq_score": null
+      },
+      {
+        "id": "poi_castelo-de-crato_0553df",
+        "name": "Castelo de Crato",
+        "description": "Fortaleza do s\u00e9culo XIV em Alentejo. Testemunho da reconquista e do senhorio medieval portugu\u00eas, com muralhas, torre de menagem e vistas panor\u00e2micas sobre o territ\u00f3rio hist\u00f3rico da regi\u00e3o. Entrada gratuita.",
+        "category": "castelos",
+        "region": "alentejo",
+        "address": "Crato",
+        "location": {
+          "lat": 39.2801,
+          "lng": -7.6461
+        },
+        "image_url": "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&q=80",
+        "tags": [
+          "Castelos",
+          "alentejo",
+          "Hist\u00f3ria & Patrim\u00f3nio"
+        ],
+        "created_at": "2026-03-27 20:47:19.751000",
+        "metadata": {
+          "period": "S\u00e9c. XIV",
+          "schedule": "Exterior livre",
+          "price": "Gratuito",
+          "website": "https://monumentos.gov.pt"
+        },
+        "iq_score": null
+      },
+      {
+        "id": "poi_castelo-de-avis_4de7b0",
+        "name": "Castelo de Avis",
+        "description": "Fortaleza do s\u00e9culo XIV em Alentejo. Testemunho da reconquista e do senhorio medieval portugu\u00eas, com muralhas, torre de menagem e vistas panor\u00e2micas sobre o territ\u00f3rio hist\u00f3rico da regi\u00e3o. Entrada gratuita.",
+        "category": "castelos",
+        "region": "alentejo",
+        "address": "Avis",
+        "location": {
+          "lat": 39.0711,
+          "lng": -7.8901
+        },
+        "image_url": "https://images.unsplash.com/photo-1555881400-74d7acaacd8b?w=800&q=80",
+        "tags": [
+          "Castelos",
+          "alentejo",
+          "Hist\u00f3ria & Patrim\u00f3nio"
+        ],
+        "created_at": "2026-03-27 20:47:19.751000",
+        "metadata": {
+          "period": "S\u00e9c. XIV",
+          "schedule": "Exterior livre",
+          "price": "Gratuito",
+          "website": "https://monumentos.gov.pt"
+        },
+        "iq_score": null
+      },
+      {
+        "id": "poi_castelo-de-mora_aacc03",
+        "name": "Castelo de Mora",
+        "description": "Fortaleza do s\u00e9culo XIV em Alentejo. Testemunho da reconquista e do senhorio medieval portugu\u00eas, com muralhas, torre de menagem e vistas panor\u00e2micas sobre o territ\u00f3rio hist\u00f3rico da regi\u00e3o. Entrada gratuita.",
+        "category": "castelos",
+        "region": "alentejo",
+        "address": "Mora",
+        "location": {
+          "lat": 38.9381,
+          "lng": -8.1611
+        },
+        "image_url": "https://images.unsplash.com/photo-1537572263443-91a0e27d78e2?w=800&q=80",
+        "tags": [
+          "Castelos",
+          "alentejo",
+          "Hist\u00f3ria & Patrim\u00f3nio"
+        ],
+        "created_at": "2026-03-27 20:47:19.751000",
+        "metadata": {
+          "period": "S\u00e9c. XIV",
+          "schedule": "Exterior livre",
+          "price": "Gratuito",
+          "website": "https://monumentos.gov.pt"
+        },
+        "iq_score": null
+      },
+      {
+        "id": "poi_castelo-de-aljezur_d2211b",
+        "name": "Castelo de Aljezur",
+        "description": "Fortaleza dos s\u00e9culos XI-XII em 8670-000 Aljezur. Testemunho da reconquista e do senhorio medieval portugu\u00eas, com muralhas, torre de menagem e vistas panor\u00e2micas sobre o territ\u00f3rio hist\u00f3rico da regi\u00e3o. Entrada gratuita.",
+        "category": "castelos",
+        "region": "algarve",
+        "address": "Cerro do Castelo, 8670-000 Aljezur",
+        "location": {
+          "lat": 37.3195,
+          "lng": -8.8016
+        },
+        "image_url": "https://images.unsplash.com/photo-1560179707-f14e90ef3623?w=800&q=80",
+        "tags": [
+          "Castelos",
+          "algarve",
+          "Hist\u00f3ria & Patrim\u00f3nio"
+        ],
+        "created_at": "2026-03-27 20:47:19.751000",
+        "metadata": {
+          "period": "Pr\u00e9-S\u00e9c. XII",
+          "schedule": "Ter-Dom 9h-17h30; Fechado 2\u00aa feira",
+          "price": "Adulto 4\u20ac; <12 Gr\u00e1tis; Dom manh\u00e3 Gr\u00e1tis",
+          "website": "https://cm-aljezur.pt"
+        },
+        "iq_score": null
+      },
+      {
+        "id": "poi_castelo-de-alvor_034b84",
+        "name": "Castelo de Alvor",
+        "description": "Fortaleza dos s\u00e9culos XI-XII em Portim\u00e3o. Testemunho da reconquista e do senhorio medieval portugu\u00eas, com muralhas, torre de menagem e vistas panor\u00e2micas sobre o territ\u00f3rio hist\u00f3rico da regi\u00e3o. Entrada gratuita.",
+        "category": "castelos",
+        "region": "algarve",
+        "address": "R. do Castelo, 8500-013 Alvor, Portim\u00e3o",
+        "location": {
+          "lat": 37.1309,
+          "lng": -8.5941
+        },
+        "image_url": "https://images.unsplash.com/photo-1562616895-62ab12f81f2e?w=800&q=80",
+        "tags": [
+          "Castelos",
+          "algarve",
+          "Hist\u00f3ria & Patrim\u00f3nio"
+        ],
+        "created_at": "2026-03-27 20:47:19.751000",
+        "metadata": {
+          "period": "Pr\u00e9-S\u00e9c. XII",
+          "schedule": "Ter-Dom 9h-17h30; Fechado 2\u00aa feira",
+          "price": "Adulto 4\u20ac; <12 Gr\u00e1tis; Dom manh\u00e3 Gr\u00e1tis",
+          "website": "https://monumentos.gov.pt"
+        },
+        "iq_score": null
+      },
+      {
+        "id": "poi_castelo-de-silves_2c5f89",
+        "name": "Castelo de Silves",
+        "description": "Fortaleza dos s\u00e9culos XI-XII em 8300-135 Silves. Testemunho da reconquista e do senhorio medieval portugu\u00eas, com muralhas, torre de menagem e vistas panor\u00e2micas sobre o territ\u00f3rio hist\u00f3rico da regi\u00e3o. Entrada gratuita.",
+        "category": "castelos",
+        "region": "algarve",
+        "address": "R. do Castelo, 8300-135 Silves",
+        "location": {
+          "lat": 37.1906,
+          "lng": -8.4385
+        },
+        "image_url": "https://images.unsplash.com/photo-1568393691622-c7ba131d63b4?w=800&q=80",
+        "tags": [
+          "Castelos",
+          "algarve",
+          "Hist\u00f3ria & Patrim\u00f3nio"
+        ],
+        "created_at": "2026-03-27 20:47:19.751000",
+        "metadata": {
+          "period": "Pr\u00e9-S\u00e9c. XII",
+          "schedule": "Ter-Dom 9h-17h30; Fechado 2\u00aa feira",
+          "price": "Adulto 4\u20ac; <12 Gr\u00e1tis; Dom manh\u00e3 Gr\u00e1tis",
+          "website": "https://cm-silves.pt"
+        },
+        "iq_score": null
+      },
+      {
+        "id": "poi_castelo-de-silves_a3bb3e",
+        "name": "Castelo de Silves",
+        "description": "Fortaleza S\u00e9c. VIII em Silves. Testemunho da reconquista e do senhorio medieval portugu\u00eas, com muralhas, torre de menagem e vistas panor\u00e2micas sobre o territ\u00f3rio hist\u00f3rico da regi\u00e3o. Entrada gratuita.",
+        "category": "castelos",
+        "region": "algarve",
+        "address": "Rua do Castelo, Silves",
+        "location": {
+          "lat": 37.1901,
+          "lng": -8.4381
+        },
+        "image_url": "https://images.unsplash.com/photo-1568393691622-c7ba131d63b4?w=800&q=80",
+        "tags": [
+          "Castelos",
+          "algarve",
+          "Hist\u00f3ria & Patrim\u00f3nio"
+        ],
+        "created_at": "2026-03-27 20:47:19.751000",
+        "metadata": {
+          "period": "S\u00e9c. VIII",
+          "schedule": "Jan-Mai/Out-Dez 9h-17h30; Jun-Set 9h-19h",
+          "price": "Adulto 3,30\u20ac; <12 Gr\u00e1tis",
+          "website": "https://cm-silves.pt"
+        },
+        "iq_score": null
+      },
+      {
+        "id": "poi_castelo-de-tavira_574206",
+        "name": "Castelo de Tavira",
+        "description": "Fortaleza do s\u00e9culo XIII em Tavira. Testemunho da reconquista e do senhorio medieval portugu\u00eas, com muralhas, torre de menagem e vistas panor\u00e2micas sobre o territ\u00f3rio hist\u00f3rico da regi\u00e3o. Entrada gratuita.",
+        "category": "castelos",
+        "region": "algarve",
+        "address": "Cal\u00e7ada da Galeria, Tavira",
+        "location": {
+          "lat": 37.1251,
+          "lng": -7.6491
+        },
+        "image_url": "https://images.unsplash.com/photo-1562616895-62ab12f81f2e?w=800&q=80",
+        "tags": [
+          "Castelos",
+          "algarve",
+          "Hist\u00f3ria & Patrim\u00f3nio"
+        ],
+        "created_at": "2026-03-27 20:47:19.751000",
+        "metadata": {
+          "period": "S\u00e9c. XIII",
+          "schedule": "Seg-Sex 9h-17h; S\u00e1b-Dom 9h-17h",
+          "price": "Adulto 2\u20ac; Gr\u00e1tis dom",
+          "website": "https://cm-tavira.pt"
+        },
+        "iq_score": null
+      },
+      {
+        "id": "poi_castelo-de-castro-marim_ccf917",
+        "name": "Castelo de Castro Marim",
+        "description": "Fortaleza do s\u00e9culo XIII em Algarve. Testemunho da reconquista e do senhorio medieval portugu\u00eas, com muralhas, torre de menagem e vistas panor\u00e2micas sobre o territ\u00f3rio hist\u00f3rico da regi\u00e3o. Entrada Adulto 2\u20ac.",
+        "category": "castelos",
+        "region": "algarve",
+        "address": "Castelo de Castro Marim",
+        "location": {
+          "lat": 37.2191,
+          "lng": -7.4441
+        },
+        "image_url": "https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?w=800&q=80",
+        "tags": [
+          "Castelos",
+          "algarve",
+          "Hist\u00f3ria & Patrim\u00f3nio"
+        ],
+        "created_at": "2026-03-27 20:47:19.751000",
+        "metadata": {
+          "period": "S\u00e9c. XIII",
+          "schedule": "Seg-Dom 9h-17h",
+          "price": "Adulto 2\u20ac",
+          "website": "https://monumentos.gov.pt"
+        },
+        "iq_score": null
+      },
+      {
+        "id": "poi_fortaleza-de-sagres_31bc78",
+        "name": "Fortaleza de Sagres",
+        "description": "Fortaleza do s\u00e9culo XV em Algarve. Testemunho da reconquista e do senhorio medieval portugu\u00eas, com muralhas, torre de menagem e vistas panor\u00e2micas sobre o territ\u00f3rio hist\u00f3rico da regi\u00e3o. Entrada gratuita.",
+        "category": "castelos",
+        "region": "algarve",
+        "address": "Ponta de Sagres",
+        "location": {
+          "lat": 37.0041,
+          "lng": -8.9451
+        },
+        "image_url": "https://images.unsplash.com/photo-1599946347371-68eb71b16afc?w=800&q=80",
+        "tags": [
+          "Castelos",
+          "algarve",
+          "Hist\u00f3ria & Patrim\u00f3nio"
+        ],
+        "created_at": "2026-03-27 20:47:19.751000",
+        "metadata": {
+          "period": "S\u00e9c. XV",
+          "schedule": "Maio-Set 9h30-20h; Out-Abr 9h30-17h30",
+          "price": "Adulto 3\u20ac; <12 Gr\u00e1tis",
+          "website": "https://monumentos.gov.pt"
+        },
+        "iq_score": null
+      },
+      {
+        "id": "poi_fortaleza-de-alcoutim_54d535",
+        "name": "Fortaleza de Alcoutim",
+        "description": "Fortaleza do s\u00e9culo XIV em Algarve. Testemunho da reconquista e do senhorio medieval portugu\u00eas, com muralhas, torre de menagem e vistas panor\u00e2micas sobre o territ\u00f3rio hist\u00f3rico da regi\u00e3o. Entrada Adulto 2\u20ac.",
+        "category": "castelos",
+        "region": "algarve",
+        "address": "Alcoutim",
+        "location": {
+          "lat": 37.4731,
+          "lng": -7.4701
+        },
+        "image_url": "https://images.unsplash.com/photo-1568393691622-c7ba131d63b4?w=800&q=80",
+        "tags": [
+          "Castelos",
+          "algarve",
+          "Hist\u00f3ria & Patrim\u00f3nio"
+        ],
+        "created_at": "2026-03-27 20:47:19.751000",
+        "metadata": {
+          "period": "S\u00e9c. XIV",
+          "schedule": "Seg-Dom 9h-17h",
+          "price": "Adulto 2\u20ac",
+          "website": "https://monumentos.gov.pt"
+        },
+        "iq_score": null
+      },
+      {
+        "id": "poi_forte-de-beliche-sagres_9dd331",
+        "name": "Forte de Beliche \u2014 Sagres",
+        "description": "Fortaleza do s\u00e9culo XVI em Algarve. Testemunho da reconquista e do senhorio medieval portugu\u00eas, com muralhas, torre de menagem e vistas panor\u00e2micas sobre o territ\u00f3rio hist\u00f3rico da regi\u00e3o. Entrada gratuita.",
+        "category": "castelos",
+        "region": "algarve",
+        "address": "Estrada do Cabo de S\u00e3o Vicente",
+        "location": {
+          "lat": 37.0251,
+          "lng": -8.9921
+        },
+        "image_url": "https://images.unsplash.com/photo-1560179707-f14e90ef3623?w=800&q=80",
+        "tags": [
+          "Castelos",
+          "algarve",
+          "Hist\u00f3ria & Patrim\u00f3nio"
+        ],
+        "created_at": "2026-03-27 20:47:19.751000",
+        "metadata": {
+          "period": "S\u00e9c. XVI",
+          "schedule": "Exterior livre",
+          "price": "Gratuito",
+          "website": "https://monumentos.gov.pt"
+        },
+        "iq_score": null
+      },
+      {
+        "id": "poi_fortaleza-de-arrifana_5c62db",
+        "name": "Fortaleza de Arrifana",
+        "description": "Fortaleza do s\u00e9culo XVII em Aljezur. Testemunho da reconquista e do senhorio medieval portugu\u00eas, com muralhas, torre de menagem e vistas panor\u00e2micas sobre o territ\u00f3rio hist\u00f3rico da regi\u00e3o. Entrada gratuita.",
+        "category": "castelos",
+        "region": "algarve",
+        "address": "Praia da Arrifana, Aljezur",
+        "location": {
+          "lat": 37.2981,
+          "lng": -8.8701
+        },
+        "image_url": "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&q=80",
+        "tags": [
+          "Castelos",
+          "algarve",
+          "Hist\u00f3ria & Patrim\u00f3nio"
+        ],
+        "created_at": "2026-03-27 20:47:19.751000",
+        "metadata": {
+          "period": "S\u00e9c. XVII",
+          "schedule": "Exterior livre",
+          "price": "Gratuito",
+          "website": "https://monumentos.gov.pt"
+        },
+        "iq_score": null
+      },
+      {
+        "id": "poi_castelo-de-loule_c3ad69",
+        "name": "Castelo de Loul\u00e9",
+        "description": "Fortaleza do s\u00e9culo XIII em Loul\u00e9. Testemunho da reconquista e do senhorio medieval portugu\u00eas, com muralhas, torre de menagem e vistas panor\u00e2micas sobre o territ\u00f3rio hist\u00f3rico da regi\u00e3o. Entrada Adulto 3\u20ac.",
+        "category": "castelos",
+        "region": "algarve",
+        "address": "Rua Paio Peres Correia, Loul\u00e9",
+        "location": {
+          "lat": 37.1411,
+          "lng": -8.0241
+        },
+        "image_url": "https://images.unsplash.com/photo-1533154683836-84ea7a0bc310?w=800&q=80",
+        "tags": [
+          "Castelos",
+          "algarve",
+          "Hist\u00f3ria & Patrim\u00f3nio"
+        ],
+        "created_at": "2026-03-27 20:47:19.752000",
+        "metadata": {
+          "period": "S\u00e9c. XIII",
+          "schedule": "Seg-Sex 9h-17h30; S\u00e1b 9h-17h",
+          "price": "Adulto 3\u20ac",
+          "website": "https://monumentos.gov.pt"
+        },
+        "iq_score": null
+      },
+      {
+        "id": "poi_forte-de-sao-bras-ponta-delgada_0577c2",
+        "name": "Forte de S\u00e3o Br\u00e1s \u2014 Ponta Delgada",
+        "description": "Fortaleza do s\u00e9culo XVI em S\u00e3o Miguel. Testemunho da reconquista e do senhorio medieval portugu\u00eas, com muralhas, torre de menagem e vistas panor\u00e2micas sobre o territ\u00f3rio hist\u00f3rico da regi\u00e3o. Entrada Adulto 2\u20ac.",
+        "category": "castelos",
+        "region": "acores",
+        "address": "Ponta Delgada, S\u00e3o Miguel",
+        "location": {
+          "lat": 37.7381,
+          "lng": -25.6651
+        },
+        "image_url": "https://images.unsplash.com/photo-1533154683836-84ea7a0bc310?w=800&q=80",
+        "tags": [
+          "Castelos",
+          "acores",
+          "Hist\u00f3ria & Patrim\u00f3nio"
+        ],
+        "created_at": "2026-03-27 20:47:19.752000",
+        "metadata": {
+          "period": "S\u00e9c. XVI",
+          "schedule": "Seg-Sex 9h-17h; S\u00e1b 9h-13h",
+          "price": "Adulto 2\u20ac",
+          "website": "https://monumentos.gov.pt"
+        },
+        "iq_score": null
+      },
+      {
+        "id": "poi_castelo-de-angra-do-heroismo-monte-brasil_b5391b",
+        "name": "Castelo de Angra do Hero\u00edsmo \u2014 Monte Brasil",
+        "description": "Fortaleza do s\u00e9culo XVI em Terceira. Testemunho da reconquista e do senhorio medieval portugu\u00eas, com muralhas, torre de menagem e vistas panor\u00e2micas sobre o territ\u00f3rio hist\u00f3rico da regi\u00e3o. Entrada gratuita.",
+        "category": "castelos",
+        "region": "acores",
+        "address": "Monte Brasil, Terceira",
+        "location": {
+          "lat": 38.6521,
+          "lng": -27.2331
+        },
+        "image_url": "https://images.unsplash.com/photo-1599946347371-68eb71b16afc?w=800&q=80",
+        "tags": [
+          "Castelos",
+          "acores",
+          "Hist\u00f3ria & Patrim\u00f3nio"
+        ],
+        "created_at": "2026-03-27 20:47:19.752000",
+        "metadata": {
+          "period": "S\u00e9c. XVI",
+          "schedule": "Exterior livre",
+          "price": "Gratuito",
+          "website": "https://monumentos.gov.pt"
+        },
+        "iq_score": null
+      },
+      {
+        "id": "poi_forte-de-sao-sebastiao-terceira_6ae93f",
+        "name": "Forte de S\u00e3o Sebasti\u00e3o \u2014 Terceira",
+        "description": "Fortaleza do s\u00e9culo XVI em A\u00e7ores. Testemunho da reconquista e do senhorio medieval portugu\u00eas, com muralhas, torre de menagem e vistas panor\u00e2micas sobre o territ\u00f3rio hist\u00f3rico da regi\u00e3o. Entrada gratuita.",
+        "category": "castelos",
+        "region": "acores",
+        "address": "Angra do Hero\u00edsmo",
+        "location": {
+          "lat": 38.6571,
+          "lng": -27.2151
+        },
+        "image_url": "https://images.unsplash.com/photo-1560179707-f14e90ef3623?w=800&q=80",
+        "tags": [
+          "Castelos",
+          "acores",
+          "Hist\u00f3ria & Patrim\u00f3nio"
+        ],
+        "created_at": "2026-03-27 20:47:19.752000",
+        "metadata": {
+          "period": "S\u00e9c. XVI",
+          "schedule": "Exterior livre",
+          "price": "Gratuito (UNESCO)",
+          "website": "https://monumentos.gov.pt"
+        },
+        "iq_score": null
+      },
+      {
+        "id": "poi_forte-de-sao-tiago-funchal_92c19d",
+        "name": "Forte de S\u00e3o Tiago \u2014 Funchal",
+        "description": "Fortaleza do s\u00e9culo XVII em Funchal. Testemunho da reconquista e do senhorio medieval portugu\u00eas, com muralhas, torre de menagem e vistas panor\u00e2micas sobre o territ\u00f3rio hist\u00f3rico da regi\u00e3o. Entrada Adulto 2\u20ac.",
+        "category": "castelos",
+        "region": "madeira",
+        "address": "Rua do Port\u00e3o de S\u00e3o Tiago, Funchal",
+        "location": {
+          "lat": 32.6421,
+          "lng": -16.8991
+        },
+        "image_url": "https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?w=800&q=80",
+        "tags": [
+          "Castelos",
+          "madeira",
+          "Hist\u00f3ria & Patrim\u00f3nio"
+        ],
+        "created_at": "2026-03-27 20:47:19.752000",
+        "metadata": {
+          "period": "S\u00e9c. XVII",
+          "schedule": "Seg-Sex 9h30-12h30/14h-17h30",
+          "price": "Adulto 2\u20ac",
+          "website": "https://monumentos.gov.pt"
+        },
+        "iq_score": null
+      },
+      {
+        "id": "poi_fortaleza-do-pico-funchal_fd2d6c",
+        "name": "Fortaleza do Pico \u2014 Funchal",
+        "description": "Fortaleza do s\u00e9culo XVII em Funchal. Testemunho da reconquista e do senhorio medieval portugu\u00eas, com muralhas, torre de menagem e vistas panor\u00e2micas sobre o territ\u00f3rio hist\u00f3rico da regi\u00e3o. Entrada Adulto 2\u20ac.",
+        "category": "castelos",
+        "region": "madeira",
+        "address": "Caminho da Fortaleza, Funchal",
+        "location": {
+          "lat": 32.6531,
+          "lng": -16.9101
+        },
+        "image_url": "https://images.unsplash.com/photo-1568393691622-c7ba131d63b4?w=800&q=80",
+        "tags": [
+          "Castelos",
+          "madeira",
+          "Hist\u00f3ria & Patrim\u00f3nio"
+        ],
+        "created_at": "2026-03-27 20:47:19.752000",
+        "metadata": {
+          "period": "S\u00e9c. XVII",
+          "schedule": "Seg-Sex 9h-17h",
+          "price": "Adulto 2\u20ac",
+          "website": "https://monumentos.gov.pt"
+        },
+        "iq_score": null
+      },
+      {
+        "id": "poi_forte-de-sao-joao-baptista-porto-santo_0adc21",
+        "name": "Forte de S\u00e3o Jo\u00e3o Baptista \u2014 Porto Santo",
+        "description": "Fortaleza do s\u00e9culo XVII em Madeira. Testemunho da reconquista e do senhorio medieval portugu\u00eas, com muralhas, torre de menagem e vistas panor\u00e2micas sobre o territ\u00f3rio hist\u00f3rico da regi\u00e3o. Entrada gratuita.",
+        "category": "castelos",
+        "region": "madeira",
+        "address": "Porto Santo",
+        "location": {
+          "lat": 33.0601,
+          "lng": -16.3401
+        },
+        "image_url": "https://images.unsplash.com/photo-1518998053901-5348d3961a04?w=800&q=80",
+        "tags": [
+          "Castelos",
+          "madeira",
+          "Hist\u00f3ria & Patrim\u00f3nio"
+        ],
+        "created_at": "2026-03-27 20:47:19.752000",
+        "metadata": {
+          "period": "S\u00e9c. XVII",
+          "schedule": "Exterior livre",
+          "price": "Gratuito",
+          "website": "https://monumentos.gov.pt"
+        },
+        "iq_score": null
       }
     ],
     "data_type": "list",
-    "item_count": 5
-  },
-  {
-    "endpoint": "/nearby",
-    "method": "POST",
-    "url": "https://project-analyzer-131.preview.emergentagent.com/api/nearby",
-    "status_code": 200,
-    "expected_status": 200,
-    "success": true,
-    "description": "Find nearby POIs using coordinates",
-    "timestamp": "2026-03-27T20:52:55.775986",
-    "params": null,
-    "json_data": {
-      "latitude": 41.15,
-      "longitude": -8.61,
-      "radius_km": 50
-    },
-    "response_data": {
-      "user_location": {
-        "lat": 41.15,
-        "lng": -8.61
-      },
-      "pois": [],
-      "total_found": 0,
-      "style": "storytelling",
-      "language": "pt"
-    },
-    "data_type": "dict",
-    "response_keys": [
-      "user_location",
-      "pois",
-      "total_found",
-      "style",
-      "language"
-    ]
+    "item_count": 109
   }
 ]

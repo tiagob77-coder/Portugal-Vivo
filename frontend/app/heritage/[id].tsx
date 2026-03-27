@@ -602,8 +602,29 @@ export default function HeritageDetailScreen() {
 
   if (itemLoading) {
     return (
-      <View style={[styles.container, styles.centerContent]}>
-        <ActivityIndicator size="large" color="#C49A6C" />
+      <View style={[styles.container, { backgroundColor: '#FAF8F5' }]}>
+        {/* Hero image skeleton */}
+        <View style={{ width: '100%', height: 280, backgroundColor: '#E8E3DC' }}>
+          <View style={{ position: 'absolute', bottom: 20, left: 20, right: 20 }}>
+            <View style={{ width: 80, height: 24, borderRadius: 12, backgroundColor: '#D4CFC7', marginBottom: 8 }} />
+            <View style={{ width: '70%', height: 28, borderRadius: 8, backgroundColor: '#D4CFC7', marginBottom: 6 }} />
+            <View style={{ width: '50%', height: 16, borderRadius: 6, backgroundColor: '#D4CFC7' }} />
+          </View>
+        </View>
+        {/* Content skeleton */}
+        <View style={{ padding: 20 }}>
+          <View style={{ width: '100%', height: 16, borderRadius: 6, backgroundColor: '#E8E3DC', marginBottom: 10 }} />
+          <View style={{ width: '90%', height: 16, borderRadius: 6, backgroundColor: '#E8E3DC', marginBottom: 10 }} />
+          <View style={{ width: '75%', height: 16, borderRadius: 6, backgroundColor: '#E8E3DC', marginBottom: 24 }} />
+          {/* Action buttons skeleton */}
+          <View style={{ flexDirection: 'row', gap: 12, marginBottom: 24 }}>
+            {[1, 2, 3].map(i => (
+              <View key={i} style={{ width: 90, height: 70, borderRadius: 12, backgroundColor: '#E8E3DC' }} />
+            ))}
+          </View>
+          {/* Map skeleton */}
+          <View style={{ width: '100%', height: 200, borderRadius: 16, backgroundColor: '#E8E3DC' }} />
+        </View>
       </View>
     );
   }
