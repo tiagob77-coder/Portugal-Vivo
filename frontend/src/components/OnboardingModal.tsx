@@ -14,7 +14,7 @@ const STEPS = [
   {
     icon: 'explore',
     title: 'Descubra Portugal',
-    subtitle: 'Mais de 6.300 locais únicos espalhados por 7 regiões e 43 categorias. De cascatas escondidas a tascas centenárias.',
+    subtitle: 'Mais de 5.600 locais únicos espalhados por 7 regiões e 39 categorias. De cascatas escondidas a tascas centenárias.',
     color: palette.terracotta[500],
   },
   {

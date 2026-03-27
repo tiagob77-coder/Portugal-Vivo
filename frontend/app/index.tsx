@@ -221,7 +221,7 @@ export default function WelcomeScreen() {
             <View style={[s.statBox, { backgroundColor: '#E8F5E9' }]}>
               <MaterialIcons name="place" size={20} color={C.statGreen} />
               <Text style={[s.statVal, { color: C.statGreen }]}>
-                {stats?.total_items ? stats.total_items.toLocaleString('pt-PT') : '471'}
+                {stats?.total_items ? stats.total_items.toLocaleString('pt-PT') : '5.678'}
               </Text>
               <Text style={s.statLabel}>lugares</Text>
             </View>

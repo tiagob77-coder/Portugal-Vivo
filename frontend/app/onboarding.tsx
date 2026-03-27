@@ -295,11 +295,11 @@ function WelcomeContent() {
       <Text style={styles.slideLabel}>BEM-VINDO</Text>
       <Text style={styles.slideTitle}>{'Descobre o\nPatrimonio Vivo'}</Text>
       <Text style={styles.slideDesc}>
-        Mais de 2 000 lugares, sabores e histórias que fazem Portugal único. Em 3 passos personalizamos a tua experiência.
+        Mais de 5 600 lugares, sabores e histórias que fazem Portugal único. Em 3 passos personalizamos a tua experiência.
       </Text>
       <View style={styles.bullets}>
         {[
-          { icon: 'place' as const, text: '2 000+ lugares em Portugal' },
+          { icon: 'place' as const, text: '5 600+ lugares em Portugal' },
           { icon: 'auto-awesome' as const, text: 'Feed personalizado ao teu perfil' },
           { icon: 'wifi-off' as const, text: 'Acesso offline aos favoritos' },
         ].map((b) => (

@@ -89,9 +89,10 @@ async function loadMapLibre(): Promise<any> {
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 function toGeoJSON(items: MapItem[], getColor: (c: string) => string) {
+  const safeItems = items || [];
   return {
     type: 'FeatureCollection' as const,
-    features: items.map(item => ({
+    features: safeItems.filter(item => item?.location?.lat && item?.location?.lng).map(item => ({
       type: 'Feature' as const,
       geometry: { type: 'Point' as const, coordinates: [item.location.lng, item.location.lat] },
       properties: {
