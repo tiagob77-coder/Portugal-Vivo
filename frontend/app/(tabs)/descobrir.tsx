@@ -876,6 +876,111 @@ export default function DescobrerTab() {
           </ScrollView>
         </View>
 
+        {/* ─── Explorar em Profundidade ─── */}
+        <View style={styles.section}>
+          <View style={styles.sectionHeader}>
+            <View style={styles.sectionTitleRow}>
+              <MaterialIcons name="auto-awesome-mosaic" size={18} color={colors.accent} />
+              <Text style={[styles.sectionTitle, ds.textPrimary]}>Explorar em Profundidade</Text>
+            </View>
+          </View>
+          {[
+            {
+              title: 'Mar & Costa',
+              subtitle: 'Zonas costeiras, biodiversidade marinha e cultura do mar',
+              icon: 'sailing' as const,
+              color: '#0891B2',
+              modules: [
+                { name: 'Costa de Portugal', route: '/costa', icon: 'waves' as const, count: '10 zonas' },
+                { name: 'Biodiversidade Marinha', route: '/biodiversidade', icon: 'water' as const, count: '10 spots' },
+                { name: 'Cultura Marítima', route: '/cultura-maritima', icon: 'anchor' as const, count: '14 tradições' },
+              ],
+            },
+            {
+              title: 'Natureza Viva',
+              subtitle: 'Flora endémica, fauna e infraestruturas naturais',
+              icon: 'eco' as const,
+              color: '#059669',
+              modules: [
+                { name: 'Flora Endémica', route: '/flora', icon: 'local-florist' as const, count: '8 espécies' },
+                { name: 'Fauna & Habitats', route: '/fauna', icon: 'pets' as const, count: '8 espécies' },
+                { name: 'Infraestrutura Natural', route: '/infraestrutura', icon: 'terrain' as const, count: '14 locais' },
+              ],
+            },
+            {
+              title: 'Património & Cultura',
+              subtitle: 'Pré-história, astronomia e economia local',
+              icon: 'account-balance' as const,
+              color: '#B45309',
+              modules: [
+                { name: 'Pré-História & Astronomia', route: '/prehistoria', icon: 'public' as const, count: '12 sítios' },
+                { name: 'Economia Local', route: '/economia', icon: 'storefront' as const, count: '5 mercados' },
+                { name: 'Atlas Gastronómico', route: '/gastronomia', icon: 'restaurant' as const, count: '14 pratos' },
+              ],
+            },
+          ].map((group) => (
+            <View
+              key={group.title}
+              style={[{
+                marginHorizontal: 16,
+                marginBottom: 16,
+                borderRadius: 16,
+                backgroundColor: colors.surface,
+                borderWidth: 1,
+                borderColor: colors.borderLight,
+                overflow: 'hidden',
+              }]}
+            >
+              {/* Group header */}
+              <View style={{ flexDirection: 'row', alignItems: 'center', padding: 16, paddingBottom: 8 }}>
+                <View style={{
+                  width: 40, height: 40, borderRadius: 12,
+                  backgroundColor: group.color + '18',
+                  justifyContent: 'center', alignItems: 'center', marginRight: 12,
+                }}>
+                  <MaterialIcons name={group.icon} size={22} color={group.color} />
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text style={[{ fontSize: 16, fontWeight: '700', letterSpacing: -0.3 }, ds.textPrimary]}>
+                    {group.title}
+                  </Text>
+                  <Text style={[{ fontSize: 12, marginTop: 2 }, ds.textMuted]} numberOfLines={1}>
+                    {group.subtitle}
+                  </Text>
+                </View>
+              </View>
+              {/* Module cards */}
+              <View style={{ paddingHorizontal: 12, paddingBottom: 12 }}>
+                {group.modules.map((mod, mi) => (
+                  <TouchableOpacity
+                    key={mod.route}
+                    style={{
+                      flexDirection: 'row', alignItems: 'center',
+                      paddingVertical: 12, paddingHorizontal: 12,
+                      borderRadius: 12,
+                      backgroundColor: mi % 2 === 0 ? (isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.02)') : 'transparent',
+                    }}
+                    onPress={() => router.push(mod.route as any)}
+                  >
+                    <View style={{
+                      width: 36, height: 36, borderRadius: 10,
+                      backgroundColor: group.color + '12',
+                      justifyContent: 'center', alignItems: 'center', marginRight: 12,
+                    }}>
+                      <MaterialIcons name={mod.icon} size={18} color={group.color} />
+                    </View>
+                    <View style={{ flex: 1 }}>
+                      <Text style={[{ fontSize: 14, fontWeight: '600' }, ds.textPrimary]}>{mod.name}</Text>
+                      <Text style={[{ fontSize: 11, marginTop: 1 }, ds.textMuted]}>{mod.count}</Text>
+                    </View>
+                    <MaterialIcons name="chevron-right" size={18} color={colors.textMuted} />
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </View>
+          ))}
+        </View>
+
         {/* Toolkit IA — for cultural agents */}
         <TouchableOpacity
           style={[styles.toolkitBanner, { backgroundColor: colors.surface, borderColor: colors.borderLight }]}

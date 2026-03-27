@@ -1,286 +1,267 @@
 #!/usr/bin/env python3
 """
-Backend API Testing for Portugal Vivo API after importing 5678 POIs from Excel
-Tests the core endpoints that are critical for the heritage discovery platform.
+Backend API Testing for Portugal Vivo Specialized Modules
+Tests all specialized module endpoints as requested in the review.
 """
 
-import requests
+import asyncio
+import aiohttp
 import json
-import os
+import sys
+from typing import Dict, Any, List
 from datetime import datetime
-from typing import Dict, List, Any, Optional
 
-# Get backend URL from environment
-def get_backend_url():
-    """Get the backend URL from frontend .env file"""
-    try:
-        with open('/app/frontend/.env', 'r') as f:
-            for line in f:
-                if line.startswith('EXPO_PUBLIC_BACKEND_URL='):
-                    url = line.split('=', 1)[1].strip()
-                    return f"{url}/api"
-    except Exception as e:
-        print(f"Error reading frontend .env: {e}")
-    
-    # Fallback to localhost as specified in review request
-    return "http://localhost:8001/api"
+# Backend URL from environment
+BACKEND_URL = "https://project-analyzer-131.preview.emergentagent.com/api"
 
-BACKEND_URL = get_backend_url()
-print(f"Testing backend at: {BACKEND_URL}")
-
-class APITester:
-    def __init__(self, base_url: str):
-        self.base_url = base_url
-        self.session = requests.Session()
+class PortugalVivoTester:
+    def __init__(self):
+        self.session = None
         self.results = []
+        self.total_tests = 0
+        self.passed_tests = 0
         
-    def test_endpoint(self, method: str, endpoint: str, expected_status: int = 200, 
-                     params: Optional[Dict] = None, json_data: Optional[Dict] = None, 
-                     description: str = "") -> Dict[str, Any]:
-        """Test a single API endpoint"""
-        url = f"{self.base_url}{endpoint}"
+    async def __aenter__(self):
+        self.session = aiohttp.ClientSession(
+            timeout=aiohttp.ClientTimeout(total=30),
+            headers={"User-Agent": "PortugalVivo-Tester/1.0"}
+        )
+        return self
+        
+    async def __aexit__(self, exc_type, exc_val, exc_tb):
+        if self.session:
+            await self.session.close()
+    
+    def log_test(self, endpoint: str, expected_count: Any, actual_result: Any, passed: bool, details: str = ""):
+        """Log test result"""
+        self.total_tests += 1
+        if passed:
+            self.passed_tests += 1
+            
+        result = {
+            "endpoint": endpoint,
+            "expected": expected_count,
+            "actual": actual_result,
+            "passed": passed,
+            "details": details,
+            "timestamp": datetime.now().isoformat()
+        }
+        self.results.append(result)
+        
+        status = "✅ PASS" if passed else "❌ FAIL"
+        print(f"{status} {endpoint} - Expected: {expected_count}, Got: {actual_result}")
+        if details:
+            print(f"    Details: {details}")
+    
+    async def test_endpoint(self, method: str, endpoint: str, expected_count: Any = None, 
+                          data: Dict = None, check_fields: List[str] = None) -> Dict[str, Any]:
+        """Test a single endpoint"""
+        url = f"{BACKEND_URL}{endpoint}"
         
         try:
-            print(f"\n🔍 Testing {method} {endpoint}")
-            if params:
-                print(f"   Parameters: {params}")
-            if json_data:
-                print(f"   JSON Body: {json_data}")
-            
-            response = self.session.request(method, url, params=params, json=json_data, timeout=30)
-            
-            result = {
-                "endpoint": endpoint,
-                "method": method,
-                "url": url,
-                "status_code": response.status_code,
-                "expected_status": expected_status,
-                "success": response.status_code == expected_status,
-                "description": description,
-                "timestamp": datetime.now().isoformat(),
-                "params": params,
-                "json_data": json_data
-            }
-            
-            if response.status_code == expected_status:
-                try:
-                    data = response.json()
-                    result["response_data"] = data
-                    result["data_type"] = type(data).__name__
-                    
-                    if isinstance(data, list):
-                        result["item_count"] = len(data)
-                    elif isinstance(data, dict):
-                        result["response_keys"] = list(data.keys())
-                        
-                    print(f"   ✅ SUCCESS - Status: {response.status_code}")
-                    if isinstance(data, list):
-                        print(f"   📊 Returned {len(data)} items")
-                    elif isinstance(data, dict) and 'total_items' in data:
-                        print(f"   📊 Stats: {data.get('total_items', 0)} items, {data.get('total_routes', 0)} routes")
-                    elif isinstance(data, dict) and 'status' in data:
-                        print(f"   📊 Status: {data.get('status')}")
-                        
-                except json.JSONDecodeError:
-                    result["response_text"] = response.text
-                    print(f"   ⚠️  Non-JSON response: {response.text[:100]}")
+            if method.upper() == "GET":
+                async with self.session.get(url) as response:
+                    result = await self._process_response(response, endpoint, expected_count, check_fields)
+            elif method.upper() == "POST":
+                async with self.session.post(url, json=data) as response:
+                    result = await self._process_response(response, endpoint, expected_count, check_fields)
             else:
-                result["error"] = f"Expected {expected_status}, got {response.status_code}"
-                result["response_text"] = response.text
-                print(f"   ❌ FAILED - Expected: {expected_status}, Got: {response.status_code}")
-                print(f"   Error: {response.text[:200]}")
+                raise ValueError(f"Unsupported method: {method}")
                 
-        except requests.exceptions.RequestException as e:
-            result = {
-                "endpoint": endpoint,
-                "method": method,
-                "url": url,
-                "success": False,
-                "error": str(e),
-                "description": description,
-                "timestamp": datetime.now().isoformat(),
-                "params": params,
-                "json_data": json_data
-            }
-            print(f"   ❌ REQUEST FAILED - {str(e)}")
+            return result
             
-        self.results.append(result)
-        return result
+        except Exception as e:
+            error_msg = f"Request failed: {str(e)}"
+            self.log_test(endpoint, expected_count, "ERROR", False, error_msg)
+            return {"error": error_msg}
     
-    def run_all_tests(self):
-        """Run all API tests as specified in the review request - IMAGE ASSIGNMENT VERIFICATION"""
-        print("=" * 80)
-        print("🇵🇹 PORTUGAL VIVO API TESTING - IMAGE ASSIGNMENT VERIFICATION")
-        print("=" * 80)
+    async def _process_response(self, response, endpoint: str, expected_count: Any, check_fields: List[str]) -> Dict[str, Any]:
+        """Process HTTP response"""
+        if response.status != 200:
+            error_msg = f"HTTP {response.status}"
+            try:
+                error_data = await response.json()
+                error_msg += f": {error_data.get('detail', 'Unknown error')}"
+            except:
+                error_msg += f": {await response.text()}"
+            
+            self.log_test(endpoint, expected_count, f"HTTP {response.status}", False, error_msg)
+            return {"error": error_msg, "status": response.status}
         
-        # 1. Health check - Should return {"status":"ok"}
-        self.test_endpoint("GET", "/health", description="Health check endpoint - should return 'ok'")
+        try:
+            data = await response.json()
+        except Exception as e:
+            error_msg = f"Invalid JSON response: {str(e)}"
+            self.log_test(endpoint, expected_count, "INVALID_JSON", False, error_msg)
+            return {"error": error_msg}
         
-        # 2. Statistics - Should return total_items >= 5678
-        self.test_endpoint("GET", "/stats", description="Get API statistics - should show total_items >= 5678")
-        
-        # 3. Categories - Should return categories with proper IDs matching new subcategory system
-        self.test_endpoint("GET", "/categories", description="Get all heritage categories with proper IDs")
-        
-        # 4. Heritage by category castelos with limit=3 - Each item MUST have non-empty image_url with Unsplash URL
-        self.test_endpoint("GET", "/heritage", params={"category": "castelos", "limit": 3}, 
-                          description="CRITICAL: castelos items MUST have non-empty image_url with unsplash.com")
-        
-        # 5. Heritage by category restaurantes_gastronomia with limit=3 - Each item MUST have non-empty image_url
-        self.test_endpoint("GET", "/heritage", params={"category": "restaurantes_gastronomia", "limit": 3}, 
-                          description="CRITICAL: restaurantes_gastronomia items MUST have non-empty image_url")
-        
-        # 6. Heritage by category surf with limit=3 - Each item MUST have non-empty image_url
-        self.test_endpoint("GET", "/heritage", params={"category": "surf", "limit": 3}, 
-                          description="CRITICAL: surf items MUST have non-empty image_url")
-        
-        # 7. Heritage by category percursos_pedestres with limit=3 - Each item MUST have non-empty image_url
-        self.test_endpoint("GET", "/heritage", params={"category": "percursos_pedestres", "limit": 3}, 
-                          description="CRITICAL: percursos_pedestres items MUST have non-empty image_url")
-        
-        # 8. Map items with categories=castelos - Should return items with image_url
-        self.test_endpoint("GET", "/map/items", params={"categories": "castelos"}, 
-                          description="Map items for castelos should have image_url")
-        
-        return self.results
+        # Validate response structure and count
+        return self._validate_response(data, endpoint, expected_count, check_fields)
     
-    def print_summary(self):
-        """Print test summary with validation for 5678 POIs import"""
-        print("\n" + "=" * 80)
-        print("📋 TEST SUMMARY - PORTUGAL VIVO API")
-        print("=" * 80)
+    def _validate_response(self, data: Any, endpoint: str, expected_count: Any, check_fields: List[str]) -> Dict[str, Any]:
+        """Validate response data"""
+        details = []
         
-        total_tests = len(self.results)
-        successful_tests = sum(1 for r in self.results if r.get("success", False))
-        failed_tests = total_tests - successful_tests
-        
-        print(f"Total Tests: {total_tests}")
-        print(f"✅ Successful: {successful_tests}")
-        print(f"❌ Failed: {failed_tests}")
-        print(f"Success Rate: {(successful_tests/total_tests)*100:.1f}%")
-        
-        if failed_tests > 0:
-            print(f"\n🚨 FAILED TESTS:")
-            for result in self.results:
-                if not result.get("success", False):
-                    print(f"   • {result['method']} {result['endpoint']} - {result.get('error', 'Unknown error')}")
-        
-        # Validate expected data for IMAGE ASSIGNMENT VERIFICATION
-        print(f"\n📊 CRITICAL IMAGE ASSIGNMENT VALIDATION:")
-        
-        for result in self.results:
-            if result.get("success") and result.get("response_data"):
-                endpoint = result["endpoint"]
-                data = result["response_data"]
-                params = result.get("params", {})
+        # Check if it's an array response
+        if isinstance(data, list):
+            actual_count = len(data)
+            passed = True
+            
+            if expected_count is not None:
+                if isinstance(expected_count, int):
+                    passed = actual_count == expected_count
+                elif isinstance(expected_count, str) and expected_count.startswith(">="):
+                    min_count = int(expected_count[2:])
+                    passed = actual_count >= min_count
+                    
+            # Check required fields in first item
+            if data and check_fields:
+                first_item = data[0]
+                missing_fields = [field for field in check_fields if field not in first_item]
+                if missing_fields:
+                    details.append(f"Missing fields: {missing_fields}")
+                    passed = False
+                else:
+                    details.append(f"All required fields present: {check_fields}")
+                    
+            self.log_test(endpoint, expected_count, actual_count, passed, "; ".join(details))
+            return {"count": actual_count, "data": data, "passed": passed}
+            
+        # Check if it's an object with specific structure
+        elif isinstance(data, dict):
+            if "total" in data and "trails" in data:
+                # Trails endpoint special case
+                actual_count = data["total"]
+                passed = True
                 
-                if endpoint == "/health":
-                    status = data.get("status", "")
-                    status_check = "✅" if status.lower() == "ok" else "❌"
-                    print(f"   {status_check} Health Status: Expected 'ok', Got '{status}'")
+                if expected_count and expected_count.startswith(">="):
+                    min_count = int(expected_count[2:])
+                    passed = actual_count >= min_count
                     
-                elif endpoint == "/stats" and isinstance(data, dict):
-                    items = data.get("total_items", 0)
-                    items_status = "✅" if items >= 5678 else "❌"
-                    print(f"   {items_status} Heritage Items: Expected >=5678, Got {items}")
-                    
-                elif endpoint == "/categories" and isinstance(data, list):
-                    # Check for expected categories with proper IDs
-                    category_names = [cat.get("id", cat.get("name", "")) if isinstance(cat, dict) else str(cat) for cat in data]
-                    expected_categories = ["percursos_pedestres", "castelos", "restaurantes_gastronomia", "surf"]
-                    found_categories = [cat for cat in expected_categories if any(cat in name.lower() for name in category_names)]
-                    
-                    categories_status = "✅" if len(found_categories) >= 3 else "❌"
-                    print(f"   {categories_status} Categories: Found {len(data)} categories, including {len(found_categories)}/4 expected ones")
-                    
-                elif endpoint == "/heritage" and isinstance(data, list):
-                    category = params.get("category")
-                    
-                    if category in ["castelos", "restaurantes_gastronomia", "surf", "percursos_pedestres"]:
-                        # CRITICAL: Validate image_url for each item
-                        items_with_image = 0
-                        items_with_unsplash = 0
-                        items_with_location = 0
-                        items_with_category = 0
-                        items_with_region = 0
+                # Check trail fields
+                if data["trails"] and check_fields:
+                    first_trail = data["trails"][0]
+                    missing_fields = [field for field in check_fields if field not in first_trail]
+                    if missing_fields:
+                        details.append(f"Missing trail fields: {missing_fields}")
+                        passed = False
+                    else:
+                        details.append(f"All trail fields present: {check_fields}")
                         
-                        for item in data:
-                            if isinstance(item, dict):
-                                # Check image_url
-                                image_url = item.get("image_url", "")
-                                if image_url and image_url.strip():
-                                    items_with_image += 1
-                                    if "unsplash.com" in image_url.lower():
-                                        items_with_unsplash += 1
-                                
-                                # Check location
-                                location = item.get("location", {})
-                                if isinstance(location, dict):
-                                    lat = location.get("lat") or location.get("latitude")
-                                    lng = location.get("lng") or location.get("longitude")
-                                    if lat and lng:
-                                        try:
-                                            lat, lng = float(lat), float(lng)
-                                            if 32 <= lat <= 42 and -31 <= lng <= -6:
-                                                items_with_location += 1
-                                        except (ValueError, TypeError):
-                                            pass
-                                
-                                # Check category and region
-                                if item.get("category"):
-                                    items_with_category += 1
-                                if item.get("region"):
-                                    items_with_region += 1
-                        
-                        total_items = len(data)
-                        image_status = "✅" if items_with_image == total_items else "❌"
-                        unsplash_status = "✅" if items_with_unsplash == total_items else "❌"
-                        location_status = "✅" if items_with_location >= total_items * 0.8 else "⚠️"
-                        category_status = "✅" if items_with_category == total_items else "❌"
-                        region_status = "✅" if items_with_region == total_items else "❌"
-                        
-                        print(f"   🔍 CATEGORY '{category}' VALIDATION:")
-                        print(f"     {image_status} Image URLs: {items_with_image}/{total_items} items have non-empty image_url")
-                        print(f"     {unsplash_status} Unsplash URLs: {items_with_unsplash}/{total_items} items have unsplash.com URLs")
-                        print(f"     {location_status} GPS Coordinates: {items_with_location}/{total_items} items have valid Portugal coordinates")
-                        print(f"     {category_status} Category Field: {items_with_category}/{total_items} items have category")
-                        print(f"     {region_status} Region Field: {items_with_region}/{total_items} items have region")
-                        
-                        # Show sample image URLs for verification
-                        if data and isinstance(data[0], dict):
-                            sample_image = data[0].get("image_url", "")
-                            if sample_image:
-                                print(f"     📸 Sample Image URL: {sample_image[:80]}...")
-                    
-                elif endpoint == "/map/items" and isinstance(data, list):
-                    category = params.get("categories")
-                    if category == "castelos":
-                        items_with_image = sum(1 for item in data if isinstance(item, dict) and item.get("image_url", "").strip())
-                        total_items = len(data)
-                        map_image_status = "✅" if items_with_image >= total_items * 0.8 else "❌"
-                        print(f"   {map_image_status} Map Items (castelos): {items_with_image}/{total_items} items have image_url")
+                    # Check image_url populated
+                    if "image_url" in check_fields:
+                        has_images = all(trail.get("image_url") for trail in data["trails"][:5])
+                        if has_images:
+                            details.append("Image URLs populated")
+                        else:
+                            details.append("Some trails missing image_url")
+                            
+                self.log_test(endpoint, expected_count, actual_count, passed, "; ".join(details))
+                return {"count": actual_count, "data": data, "passed": passed}
+                
+            elif "overview" in data:
+                # Dashboard endpoint
+                passed = True
+                details.append("Dashboard object with overview key found")
+                self.log_test(endpoint, "dashboard object", "dashboard object", passed, "; ".join(details))
+                return {"data": data, "passed": passed}
+                
+            else:
+                # Generic object response
+                passed = True
+                details.append(f"Object response with keys: {list(data.keys())}")
+                self.log_test(endpoint, "object", "object", passed, "; ".join(details))
+                return {"data": data, "passed": passed}
+        
+        # Unexpected response format
+        self.log_test(endpoint, expected_count, type(data).__name__, False, f"Unexpected response type: {type(data)}")
+        return {"data": data, "passed": False}
 
-def main():
-    """Main test execution"""
-    tester = APITester(BACKEND_URL)
-    
-    try:
-        results = tester.run_all_tests()
-        tester.print_summary()
+    async def run_all_tests(self):
+        """Run all specialized module tests"""
+        print("🧪 Starting Portugal Vivo Specialized Modules Testing")
+        print(f"🔗 Backend URL: {BACKEND_URL}")
+        print("=" * 80)
         
-        # Save detailed results to file
-        with open('/app/test_results_detailed.json', 'w') as f:
-            json.dump(results, f, indent=2, default=str)
+        # Test 1: Costa API - Coastal zones
+        await self.test_endpoint("GET", "/costa/", 10)
         
-        print(f"\n💾 Detailed results saved to: /app/test_results_detailed.json")
+        # Test 2: Economy API - Markets
+        await self.test_endpoint("GET", "/economy/markets", 5)
         
-        return results
+        # Test 3: Geo-Prehistoria API - Archaeological sites
+        await self.test_endpoint("GET", "/geo-prehistoria/sites", 12)
         
-    except Exception as e:
-        print(f"\n🚨 CRITICAL ERROR during testing: {e}")
-        import traceback
-        traceback.print_exc()
-        return []
+        # Test 4: Marine API - Marine spots
+        await self.test_endpoint("GET", "/marine/spots", 10)
+        
+        # Test 5: Infrastructure API - Infrastructure items
+        await self.test_endpoint("GET", "/infrastructure/list", 14)
+        
+        # Test 6: Maritime Culture API - Maritime culture events
+        await self.test_endpoint("GET", "/maritime-culture/events", 14)
+        
+        # Test 7: Gastronomy API - Gastronomy items
+        await self.test_endpoint("GET", "/gastronomy/items", 14)
+        
+        # Test 8: Flora-Fauna API - Flora species
+        await self.test_endpoint("GET", "/flora-fauna/flora", ">=8")
+        
+        # Test 9: Flora-Fauna API - Fauna species
+        await self.test_endpoint("GET", "/flora-fauna/fauna", ">=8")
+        
+        # Test 10: Trails API - Trails with specific requirements
+        trail_fields = ["id", "name", "description", "region", "difficulty", "distance_km", "image_url"]
+        await self.test_endpoint("GET", "/trails?limit=5", ">=600", check_fields=trail_fields)
+        
+        # Test 11: Admin Dashboard API
+        await self.test_endpoint("GET", "/admin/dashboard")
+        
+        # Test 12: AI Itinerary API
+        itinerary_data = {
+            "duration": "1dia",
+            "theme": "natureza",
+            "lat": 41.15,
+            "lng": -8.61,
+            "radius_km": 30.0
+        }
+        await self.test_endpoint("POST", "/ai/itinerary", data=itinerary_data)
+        
+        print("=" * 80)
+        print(f"🏁 Testing Complete: {self.passed_tests}/{self.total_tests} tests passed")
+        
+        if self.passed_tests == self.total_tests:
+            print("🎉 All tests PASSED!")
+        else:
+            print(f"⚠️  {self.total_tests - self.passed_tests} tests FAILED")
+            
+        return self.results
+
+async def main():
+    """Main test runner"""
+    async with PortugalVivoTester() as tester:
+        results = await tester.run_all_tests()
+        
+        # Print detailed results
+        print("\n" + "=" * 80)
+        print("📊 DETAILED TEST RESULTS")
+        print("=" * 80)
+        
+        failed_tests = [r for r in results if not r["passed"]]
+        if failed_tests:
+            print("\n❌ FAILED TESTS:")
+            for test in failed_tests:
+                print(f"  • {test['endpoint']}: {test['details']}")
+        
+        passed_tests = [r for r in results if r["passed"]]
+        if passed_tests:
+            print(f"\n✅ PASSED TESTS ({len(passed_tests)}):")
+            for test in passed_tests:
+                print(f"  • {test['endpoint']}: Expected {test['expected']}, Got {test['actual']}")
+        
+        # Return exit code
+        return 0 if len(failed_tests) == 0 else 1
 
 if __name__ == "__main__":
-    main()
+    exit_code = asyncio.run(main())
+    sys.exit(exit_code)

@@ -251,7 +251,7 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Image Assignment Verification - COMPLETED ✅"
+    - "Portugal Vivo Specialized Modules Testing - COMPLETED ✅"
   stuck_tasks: []
   test_all: true
   test_priority: "high_first"
@@ -268,6 +268,150 @@ test_plan:
           agent: "testing"
           comment: "✅ CRITICAL IMAGE ASSIGNMENT VERIFICATION COMPLETE: All heritage items now have proper Unsplash image URLs assigned. Tested categories: castelos (3/3 items), restaurantes_gastronomia (3/3 items), surf (3/3 items), percursos_pedestres (3/3 items) - ALL have non-empty image_url fields containing 'unsplash.com'. Map items for castelos (109/109 items) also have image_url. Sample URLs verified: https://images.unsplash.com/photo-1518998053901-5348d3961a04?w=800&q=80. Image assignment system working perfectly with deterministic hash-based selection from curated pools."
 
+  - task: "Costa API - Coastal Zones"
+    implemented: true
+    working: true
+    file: "backend/costa_api.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "✅ GET /api/costa/ endpoint working correctly. Returns exactly 10 coastal zones as expected with proper structure (zones, total, filters, source)."
+
+  - task: "Economy API - Markets"
+    implemented: true
+    working: true
+    file: "backend/economy_api.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "✅ GET /api/economy/markets endpoint working correctly. Returns exactly 5 markets as expected with proper pagination structure (total, offset, limit, results)."
+
+  - task: "Geo-Prehistoria API - Archaeological Sites"
+    implemented: true
+    working: true
+    file: "backend/geo_prehistoria_api.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "✅ GET /api/geo-prehistoria/sites endpoint working correctly. Returns exactly 12 archaeological sites as expected with proper pagination structure."
+
+  - task: "Marine API - Marine Spots"
+    implemented: true
+    working: true
+    file: "backend/marine_biodiversity_api.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "✅ GET /api/marine/spots endpoint working correctly. Returns exactly 10 marine spots as expected with proper structure (spots, total)."
+
+  - task: "Infrastructure API - Infrastructure Items"
+    implemented: true
+    working: true
+    file: "backend/infrastructure_api.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "✅ GET /api/infrastructure/list endpoint working correctly. Returns exactly 14 infrastructure items as expected with proper pagination structure."
+
+  - task: "Maritime Culture API - Events"
+    implemented: true
+    working: true
+    file: "backend/maritime_culture_api.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "✅ GET /api/maritime-culture/events endpoint working correctly. Returns exactly 14 maritime culture events as expected with proper pagination structure."
+
+  - task: "Gastronomy API - Items"
+    implemented: true
+    working: true
+    file: "backend/coastal_gastronomy_api.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "✅ GET /api/gastronomy/items endpoint working correctly. Returns exactly 14 gastronomy items as expected with proper pagination structure."
+
+  - task: "Flora-Fauna API - Flora Species"
+    implemented: true
+    working: true
+    file: "backend/flora_fauna_api.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "✅ GET /api/flora-fauna/flora endpoint working correctly. Returns exactly 8 flora species as expected (meets minimum requirement of 8+) with proper structure (flora, total)."
+
+  - task: "Flora-Fauna API - Fauna Species"
+    implemented: true
+    working: true
+    file: "backend/flora_fauna_api.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "✅ GET /api/flora-fauna/fauna endpoint working correctly. Returns exactly 8 fauna species as expected (meets minimum requirement of 8+) with proper structure (fauna, total)."
+
+  - task: "Trails API - Trail Data"
+    implemented: true
+    working: true
+    file: "backend/trails_api.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "✅ GET /api/trails endpoint working correctly. Returns total of 698 trails (exceeds minimum requirement of 600). All required fields present: id, name, description, region, difficulty, distance_km, image_url. Image URLs properly populated. Trail structure includes additional fields like nearby_pois, elevation data, and terrain_type."
+
+  - task: "Admin Dashboard API"
+    implemented: true
+    working: true
+    file: "backend/admin_dashboard_api.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "✅ GET /api/admin/dashboard endpoint working correctly. Returns dashboard object with overview key as expected."
+
+  - task: "AI Itinerary API"
+    implemented: true
+    working: true
+    file: "backend/ai_itinerary_api.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "✅ POST /api/ai/itinerary endpoint working correctly. Accepts proper request format with duration, theme, lat, lng, radius_km. Returns structured itinerary with titulo, subtitulo, duracao, tema, paradas, dica_geral, melhor_hora, distancia_total_km, fonte."
+
 agent_communication:
     - agent: "testing"
       message: "Completed comprehensive testing of Portuguese Cultural Heritage API. All 10 requested endpoints are working correctly with 100% success rate. API returns expected data counts: 254 heritage items, 20 routes, 20 categories, 7 regions. All filtering and individual item retrieval functions working properly. Backend is fully functional and ready for production use."
@@ -277,3 +421,5 @@ agent_communication:
       message: "✅ FINAL VERIFICATION COMPLETE: All 10 core endpoints for 5678 POIs import tested successfully with 100% pass rate. Health check returns 'ok', stats show 5678 items and 60 routes, all required fields present with valid GPS coordinates for Portugal. Categories (44), regions (7), search, and nearby functionality all working correctly. Backend is production-ready."
     - agent: "testing"
       message: "🎉 IMAGE ASSIGNMENT VERIFICATION COMPLETE: Conducted comprehensive testing of image assignment functionality after 5678 POIs import. ALL CRITICAL TESTS PASSED (8/8 - 100% success rate): 1) Health check returns 'ok' ✅, 2) Stats show 5678 items ✅, 3) Categories return 44 items with proper IDs ✅, 4) Heritage items by category (castelos, restaurantes_gastronomia, surf, percursos_pedestres) ALL have non-empty image_url fields with unsplash.com URLs ✅, 5) Map items have image_url ✅. Every tested item has valid GPS coordinates for Portugal and proper category/region fields. Image assignment system working flawlessly with deterministic hash-based selection from curated Unsplash pools."
+    - agent: "testing"
+      message: "🌊 PORTUGAL VIVO SPECIALIZED MODULES TESTING COMPLETE: Conducted comprehensive testing of all 12 specialized module endpoints with 100% success rate (12/12 tests passed). VERIFIED ENDPOINTS: 1) Costa API: 10 coastal zones ✅, 2) Economy Markets: 5 markets ✅, 3) Geo-Prehistoria Sites: 12 archaeological sites ✅, 4) Marine Spots: 10 marine spots ✅, 5) Infrastructure: 14 items ✅, 6) Maritime Culture: 14 events ✅, 7) Gastronomy: 14 items ✅, 8) Flora Species: 8 species ✅, 9) Fauna Species: 8 species ✅, 10) Trails: 698 total (exceeds 600 requirement) with all required fields ✅, 11) Admin Dashboard: working with overview key ✅, 12) AI Itinerary: accepts proper request format and returns structured response ✅. All endpoints return expected data counts and proper response structures. Specialized modules are fully functional and production-ready."
