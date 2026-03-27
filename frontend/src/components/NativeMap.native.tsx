@@ -218,8 +218,10 @@ export function LeafletMapComponent({
 }: LeafletMapProps) {
   const webViewRef = useRef<any>(null);
 
+  const safeItems = items || [];
+
   const markersJSON = JSON.stringify(
-    items.map(item => ({
+    safeItems.filter(item => item?.location?.lat && item?.location?.lng).map(item => ({
       id: item.id, name: item.name, category: item.category, region: item.region,
       description: item.description ?? '', iq_score: item.iq_score ?? 0,
       lat: item.location.lat, lng: item.location.lng, color: getMarkerColor(item.category),

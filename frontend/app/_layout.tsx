@@ -66,9 +66,14 @@ function NotificationManager() {
     let removeResponse: (() => void) | null = null;
 
     const setup = async () => {
-      const token = await pushNotificationService.initialize();
-      if (token) {
-        await pushNotificationService.registerTokenWithBackend();
+      try {
+        const token = await pushNotificationService.initialize();
+        if (token) {
+          await pushNotificationService.registerTokenWithBackend();
+        }
+      } catch (e) {
+        // Gracefully handle notification init failure (Expo Go SDK 53+)
+        console.log('Push notifications unavailable:', e);
       }
 
       // Listen for notification taps → navigate to the relevant screen

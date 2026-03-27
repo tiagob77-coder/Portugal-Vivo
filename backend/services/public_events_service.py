@@ -492,7 +492,7 @@ class PublicEventsService:
 
     async def get_all_events(self, force_refresh: bool = False) -> List[Dict[str, Any]]:
         """Get all events from all sources, with caching."""
-        if self._db:
+        if self._db is not None:
             cached = await self._get_cached_events()
             if cached and not force_refresh:
                 return cached
@@ -527,7 +527,7 @@ class PublicEventsService:
                 unique.append(evt)
 
         # Cache in MongoDB
-        if self._db:
+        if self._db is not None:
             await self._cache_events(unique)
 
         return unique

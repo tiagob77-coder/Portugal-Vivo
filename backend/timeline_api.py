@@ -465,7 +465,7 @@ async def get_regional_timeline(
     poi_hints = [e.get("poi_hint") for e in all_events if e.get("poi_hint")]
     linked_pois: Dict[str, Dict] = {}
 
-    if poi_hints and db:
+    if poi_hints and db is not None:
         # Find POIs whose name approximately matches the hint
         for hint in poi_hints[:10]:
             hint_words = hint.split(",")[0].strip()
