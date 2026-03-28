@@ -333,6 +333,11 @@ from discover_feed_api import router as discover_feed_router, set_discover_feed_
 set_discover_feed_db(db)
 set_discover_recommendation_service(recommendation_service)
 
+# Smart Context Orchestrator
+from context_orchestrator_api import orchestrator_router, set_orchestrator_db
+set_orchestrator_db(db)
+api_router.include_router(orchestrator_router)
+
 # ========================
 # PREFERENCES (extracted to preferences_api.py)
 # ========================

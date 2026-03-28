@@ -18,6 +18,7 @@ import { initMonitoring, captureException } from '../src/utils/monitoring';
 import { pushNotificationService } from '../src/services/pushNotifications';
 import { offlineCache } from '../src/services/offlineCache';
 import { FavoritesProvider } from '../src/context/FavoritesContext';
+import { SmartContextProvider } from '../src/context/SmartContext';
 import {
   registerBackgroundTasks,
   startWebProximityPolling,
@@ -230,11 +231,13 @@ export default function RootLayout() {
               <QueryClientProvider client={queryClient}>
                 <AuthProvider>
                   <FavoritesProvider>
-                    <ThemedStack />
-                    <NotificationManager />
-                    <CacheWarmer />
-                    <OfflineBanner />
-                    {Platform.OS === 'web' && <InstallPrompt />}
+                    <SmartContextProvider>
+                      <ThemedStack />
+                      <NotificationManager />
+                      <CacheWarmer />
+                      <OfflineBanner />
+                      {Platform.OS === 'web' && <InstallPrompt />}
+                    </SmartContextProvider>
                   </FavoritesProvider>
                 </AuthProvider>
               </QueryClientProvider>
