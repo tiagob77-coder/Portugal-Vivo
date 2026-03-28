@@ -830,6 +830,15 @@ logger.info("🌿  Gastronomy+FloraFauna registered")
 
 logger.info("🌊  Costa+AI+Economy+GeoPrehistoria+MarineBio+Infrastructure+MaritimeCulture registered")
 
+# ========================
+# CULTURAL NARRATIVES — Upload, Curate, Publish
+# ========================
+from narratives_api import narratives_router, set_narratives_db, set_narratives_llm_key
+set_narratives_db(db)
+set_narratives_llm_key(EMERGENT_LLM_KEY)
+api_router.include_router(narratives_router)
+logger.info("📜  Cultural Narratives module registered")
+
 # Include the router in the main app
 app.include_router(api_router)
 
