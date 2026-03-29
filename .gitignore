@@ -18,6 +18,7 @@ node_modules/
 
 # Testing
 /coverage
+coverage.xml
 .coverage
 htmlcov/
 
