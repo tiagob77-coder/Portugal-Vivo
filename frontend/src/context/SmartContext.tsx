@@ -101,7 +101,7 @@ export function SmartContextProvider({ children }: { children: React.ReactNode }
     return {
       lat: location?.lat ?? null,
       lng: location?.lng ?? null,
-      user_id: user?.id ?? null,
+      user_id: user?.user_id ?? null,
       hour: now.getHours(),
       day_of_week: (now.getDay() + 6) % 7, // JS Sunday=0 → Python Monday=0
       month: now.getMonth() + 1,
@@ -115,7 +115,7 @@ export function SmartContextProvider({ children }: { children: React.ReactNode }
 
   // Query orchestrator
   const { data, isLoading, refetch } = useQuery<OrchestratorResponse>({
-    queryKey: ['smart-context', location?.lat, location?.lng, activeTab, user?.id],
+    queryKey: ['smart-context', location?.lat, location?.lng, activeTab, user?.user_id],
     queryFn: async () => {
       const ctx = buildContext();
       const resp = await fetch(`${API_BASE}/orchestrator/context`, {

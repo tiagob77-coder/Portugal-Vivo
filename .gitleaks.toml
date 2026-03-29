@@ -1,0 +1,22 @@
+# Gitleaks configuration — suppress false positives
+# Docs: https://github.com/gitleaks/gitleaks#configuration
+
+title = "Portugal Vivo Gitleaks Config"
+
+[allowlist]
+  description = "Allow example/placeholder values in config templates"
+  paths = [
+    '''\.env\.example$''',
+    '''pytest\.ini$''',
+    '''ci\.yml$''',
+    '''docker-compose.*\.yml$''',
+    '''ops/mongo-init\.js$''',
+  ]
+  regexTarget = "line"
+  regexes = [
+    '''change-me''',
+    '''ci-test-secret''',
+    '''ci-secret''',
+    '''not-for-production''',
+    '''placeholder''',
+  ]
