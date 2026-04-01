@@ -59,7 +59,7 @@ jobs:
 
       - name: Instalar dependências
         working-directory: backend
-        run: pip install -r requirements.txt pytest-cov
+        run: pip install -r requirements.txt pytest-cov || (sleep 5 && pip install -r requirements.txt pytest-cov)
 
       - name: Criar índices MongoDB
         working-directory: backend
@@ -107,7 +107,7 @@ jobs:
 
       - name: Instalar dependências
         working-directory: frontend
-        run: npm ci --legacy-peer-deps
+        run: npm ci --legacy-peer-deps || (sleep 5 && npm ci --legacy-peer-deps) || (sleep 10 && npm ci --legacy-peer-deps)
 
       - name: Type check
         working-directory: frontend
@@ -142,7 +142,7 @@ jobs:
 
       - name: Instalar dependências
         working-directory: frontend
-        run: npm ci --legacy-peer-deps
+        run: npm ci --legacy-peer-deps || (sleep 5 && npm ci --legacy-peer-deps) || (sleep 10 && npm ci --legacy-peer-deps)
 
       - name: Build web estático
         working-directory: frontend
