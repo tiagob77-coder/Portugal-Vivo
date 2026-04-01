@@ -1,71 +1,27 @@
 # Portugal Vivo
 
-**Descubra a alma de Portugal** — aplicação móvel e web para explorar o património, cultura, natureza e mobilidade de Portugal.
+**Descubra a alma de Portugal** — plataforma imersiva e inteligente de descoberta cultural, natureza, trilhos, praias, gastronomia e experiências em Portugal.
 
 ---
 
 ## Visão Geral
 
-O Portugal Vivo é uma plataforma completa de turismo cultural que combina:
+O Portugal Vivo é uma aplicação viva que guia o utilizador por Portugal através de:
 
-- Descoberta de POIs (pontos de interesse) com narrativas geradas por IA
-- IQ Engine com 19 módulos de enriquecimento semântico e scoring
-- Sistema de gamificação com conquistas, streaks e leaderboard
-- Modo offline com sincronização inteligente
-- Guias de áudio, previsão de surf/marés, câmeras de praia
-- Transportes públicos (CP, GTFS) e mobilidade em tempo real
-- Multi-tenant com suporte a múltiplas regiões
-- i18n em PT, EN, ES e FR
-
----
-
-## Estrutura do Projeto
-
-```
-Portugal-Vivo/
-├── backend/                  # FastAPI + MongoDB
-│   ├── server.py             # Ponto de entrada (67 routers, 260+ endpoints)
-│   ├── iq_engine_base.py     # IQ Engine — orquestrador dos 19 módulos
-│   ├── iq_module_m1_*.py     # M1-M19: semântico, cognitivo, imagem, slug,
-│   │   ...                   #   endereço, dedup, scoring, enriquecimento,
-│   │                         #   descrição, temático, routing e outros
-│   ├── models/               # Modelos Pydantic / MongoDB schemas
-│   ├── services/             # 20 serviços externos (IPMA, GBIF, CP, GTFS,
-│   │                         #   Cloudinary, Fogos.pt, ICNF, Overpass…)
-│   ├── tests/                # Suite de testes (44 ficheiros pytest)
-│   └── requirements.txt
-│
-├── frontend/                 # React Native + Expo SDK 54
-│   ├── app/                  # 51 ecrãs (Expo Router file-based)
-│   │   ├── (tabs)/           # Tabs principais: mapa, descobrir, experienciar,
-│   │   │                     #   transportes, planeador, eventos, coleções, praia
-│   │   ├── heritage/         # Detalhe de patrimônio
-│   │   ├── route/            # Detalhe de rota
-│   │   ├── category/[id]     # Categoria de POI
-│   │   ├── evento/[id]       # Detalhe de evento
-│   │   ├── encyclopedia/     # Enciclopédia cultural
-│   │   ├── settings/         # Idioma + modo offline
-│   │   └── ...
-│   ├── src/
-│   │   ├── components/       # 42+ componentes reutilizáveis
-│   │   ├── services/         # API, gamification, geofencing, offline,
-│   │   │                     #   audioGuide, pushNotifications, PWA
-│   │   ├── context/          # AuthContext, ThemeContext
-│   │   ├── i18n/             # Traduções PT, EN, ES, FR
-│   │   ├── theme/            # Design system (cores, tipografia)
-│   │   ├── config/           # Configuração da API
-│   │   ├── types/            # TypeScript types globais
-│   │   └── utils/            # Monitorização (Sentry), helpers
-│   └── package.json
-│
-├── e2e/                      # Testes end-to-end
-│   ├── playwright/           # Testes web (Playwright)
-│   └── maestro/              # Testes mobile (Maestro)
-│
-├── scripts/                  # Geocodificação em batch e utilitários
-├── tests/                    # Testes de integração adicionais
-└── docker-compose.yml
-```
+- **Descoberta geolocalizada** — POIs "perto de mim" com mapa interativo e clusters
+- **IQ Engine** — 19 módulos de enriquecimento semântico e scoring de conteúdo
+- **Narrativas por IA** — conteúdo em 4 profundidades (snackable, história, enciclopédico, crianças) com 6 perfis cognitivos
+- **9 módulos temáticos** — biodiversidade marinha, flora, fauna, gastronomia, cultura marítima, infraestrutura natural, economia local, pré-história e costa
+- **Rotas inteligentes** — planeamento com waypoints, sugestões por IQ score, integração com todos os módulos
+- **Gamificação** — pontos, badges, streaks, leaderboard regional
+- **Premium com Stripe** — 3 tiers (Explorador/Descobridor/Guardião), MB Way e Multibanco
+- **Enciclopédia cultural** — 6 universos temáticos com artigos enriquecidos
+- **+300 eventos 2026** — agenda viral com integração de fontes externas
+- **Beachcams** — câmeras de praia em tempo real com condições marinhas
+- **Modo offline** — cache inteligente com sincronização e fila de ações pendentes
+- **Audio guides** — TTS com 9 vozes e 6 idiomas (premium)
+- **i18n** — PT, EN, ES, FR
+- **Multi-tenant** — isolamento por município com JWT
 
 ---
 
@@ -74,12 +30,14 @@ Portugal-Vivo/
 ### Backend
 | Componente | Tecnologia |
 |---|---|
-| Framework | FastAPI 0.135.1 |
-| Base de dados | MongoDB 6.x (Motor async) |
-| Cache / Leaderboard | Redis (aioredis) |
-| Autenticação | JWT + Google OAuth2 + sessões |
-| IA / LLM | GPT-4o (narrativas culturais, IQ Engine) |
-| Imagens | Cloudinary |
+| Framework | FastAPI (Python async) |
+| Base de dados | MongoDB Atlas via Motor (async) |
+| Cache / Leaderboard | Redis |
+| Autenticação | JWT (python-jose) + Google OAuth2 |
+| IA / LLM | Emergent LLM — gpt-4o-mini via `emergentintegrations` |
+| Imagens | Cloudinary CDN |
+| Pagamentos | Stripe (Card, PayPal, MB Way, Multibanco) |
+| Rate Limiting | slowapi + middleware custom per-endpoint |
 | Monitorização | Sentry + structured logging |
 | Segurança | CSRF, rate limiting, security headers, CORS |
 | Infra | Docker multi-stage, multi-tenant por região |
@@ -88,17 +46,99 @@ Portugal-Vivo/
 | Componente | Tecnologia |
 |---|---|
 | Framework | React Native + Expo SDK 54.0.33 |
-| Navegação | Expo Router (file-based) |
-| Mapas | Leaflet (web) + react-native-maps (mobile) |
-| Estado | Zustand + React Query (TanStack) |
-| i18n | i18next + react-i18next (PT/EN/ES/FR) |
-| Offline | AsyncStorage + cache inteligente |
+| Navegação | Expo Router (file-based routing) |
+| Mapas (web) | MapLibre GL JS 4.7.1 + CARTO tiles (grátis, sem API key) |
+| Mapas (native) | Leaflet via WebView |
+| Terreno 3D | AWS Elevation Tiles (terrarium encoding) + hillshade |
+| Estado servidor | TanStack Query (useQuery, useMutation) |
+| i18n | i18next (PT/EN/ES/FR) |
+| Offline | AsyncStorage + cache 24h com fila de ações |
 | Notificações | expo-notifications |
-| Áudio | expo-av (guias de áudio) |
-| Ficheiros | expo-document-picker (upload GPX nativo) |
+| Áudio | expo-av + expo-speech |
 | Geofencing | expo-task-manager + expo-location |
-| PWA | Service Worker + Web App Manifest |
+| Imagens | expo-image com blurhash + cache memory-disk |
+| Ícones | @expo/vector-icons MaterialIcons |
+| Safe area | react-native-safe-area-context |
 | Monitorização | @sentry/react |
+
+---
+
+## Estrutura do Projeto
+
+```
+Portugal-Vivo/
+├── backend/                     # FastAPI + MongoDB Atlas
+│   ├── server.py                # Ponto de entrada (90 routers, 496 endpoints)
+│   ├── iq_engine_base.py        # IQ Engine — orquestrador dos 19 módulos
+│   ├── iq_module_m1_*.py        # M1–M19: semântico, cognitivo, imagem, slug,
+│   │   ...                      #   endereço, dedup, scoring, enriquecimento,
+│   │                            #   descrição, temático, routing
+│   ├── content_strategy_api.py  # Narrativas IA: 4 profundidades, 6 perfis cognitivos
+│   ├── narratives_api.py        # CRUD narrativas culturais com credibilidade
+│   ├── premium_api.py           # Stripe, tiers, feature gating
+│   ├── agenda_api.py            # +300 eventos 2026, agenda viral
+│   ├── beachcam_api.py          # Câmeras de praia em tempo real
+│   ├── rate_limiter.py          # Rate limiting per-user e per-endpoint
+│   ├── models/                  # Modelos Pydantic / MongoDB schemas
+│   ├── services/                # 24 serviços (IPMA, GBIF, CP, GTFS, Cloudinary,
+│   │                            #   Fogos.pt, ICNF, Overpass, TTS, tradução…)
+│   ├── tests/                   # 43 ficheiros pytest (176 testes)
+│   └── requirements.txt
+│
+├── frontend/                    # React Native + Expo SDK 54
+│   ├── app/                     # 78 ecrãs (Expo Router file-based)
+│   │   ├── (tabs)/              # Tabs: descobrir, mapa, experienciar, profile
+│   │   ├── heritage/[id]        # Detalhe de POI (imagens, narrativas, áudio, 360°)
+│   │   ├── route/[id]           # Detalhe de rota
+│   │   ├── itinerary/[id]       # Itinerário guardado (timeline, budget, equipa)
+│   │   ├── encyclopedia/        # Enciclopédia cultural (6 universos)
+│   │   ├── biodiversidade/      # Vida marinha portuguesa
+│   │   ├── flora/               # Flora endémica
+│   │   ├── fauna/               # Fauna e habitats
+│   │   ├── gastronomia/         # Atlas gastronómico costeiro
+│   │   ├── cultura-maritima/    # Cultura e tradições marítimas
+│   │   ├── infraestrutura/      # Infraestrutura natural
+│   │   ├── economia/            # Economia local e mercados
+│   │   ├── prehistoria/         # Pré-história e astronomia
+│   │   ├── costa/               # Litoral e zonas costeiras
+│   │   └── ...
+│   ├── src/
+│   │   ├── components/          # 110 componentes reutilizáveis
+│   │   ├── services/            # API, gamification, geofencing, offline,
+│   │   │                        #   audioGuide, pushNotifications
+│   │   ├── context/             # AuthContext, ThemeContext, SmartContext
+│   │   ├── i18n/                # Traduções PT, EN, ES, FR
+│   │   ├── theme/               # Design system centralizado (9 paletas temáticas)
+│   │   ├── config/              # Configuração da API
+│   │   ├── types/               # TypeScript types globais
+│   │   └── utils/               # Monitorização (Sentry), helpers
+│   └── package.json
+│
+├── e2e/                         # Testes end-to-end
+│   ├── playwright/              # Testes web (Playwright)
+│   └── maestro/                 # Testes mobile (Maestro)
+│
+├── scripts/                     # Geocodificação em batch e utilitários
+└── docker-compose.yml
+```
+
+---
+
+## Módulos Temáticos
+
+| Módulo | Frontend | Backend | Dados |
+|--------|----------|---------|-------|
+| Biodiversidade Marinha | `app/biodiversidade/` | `marine_biodiversity_api.py` | 12 espécies seed |
+| Flora Endémica | `app/flora/` | `flora_fauna_api.py` | Espécies + habitats |
+| Fauna & Habitats | `app/fauna/` | `flora_fauna_api.py` | Espécies + habitats |
+| Gastronomia Costeira | `app/gastronomia/` | `coastal_gastronomy_api.py` | Pratos regionais |
+| Cultura Marítima | `app/cultura-maritima/` | `maritime_culture_api.py` | Tradições + artes |
+| Infraestrutura Natural | `app/infraestrutura/` | `infrastructure_api.py` | Infraestruturas verdes |
+| Economia Local | `app/economia/` | `economy_api.py` | Mercados + produtores |
+| Pré-História + Astronomia | `app/prehistoria/` | `geo_prehistoria_api.py` | Sítios + observatórios |
+| Costa & Litoral | `app/costa/` | `costa_api.py` | Zonas costeiras |
+
+Todos os módulos usam o **design system centralizado** com paletas temáticas via `getModuleTheme()`.
 
 ---
 
@@ -106,12 +146,19 @@ Portugal-Vivo/
 
 ### Descoberta e Exploração
 - Feed de descoberta personalizado com scoring de relevância
-- Mapa interativo com 8 modos: Camadas, Heatmap, Trilhos, Épocas, Timeline, Proximidade, Noturno, Satélite
-- Upload de ficheiros GPX — web (`<input>`) e nativo iOS/Android (`expo-document-picker`)
-- Trilhos com polyline + marcadores de partida/chegada + perfil de elevação + stats (distância, desnível, tempo)
-- Modo "Explorador Noturno" e filtros de proximidade GPS
-- Enciclopédia cultural com universos temáticos
-- Câmeras de praia em tempo real
+- Mapa interativo com MapLibre: 7 modos (light, dark, terrain, satellite, premium, technical, 3D)
+- 39+ camadas de mapa (património, miradouros, praias, museus, trilhos, gastronomia, eventos…)
+- Geolocalização "perto de mim" com raio configurável (10/25/50/100 km)
+- Clusters nativos MapLibre com zoom interativo
+- Enciclopédia cultural com 6 universos temáticos
+- Pesquisa global com filtros por região, categoria e tipo
+
+### Narrativas por IA (Emergent LLM)
+- **4 profundidades**: snackable (30-60s), história (3-5min), enciclopédico (7-12min), crianças (1-2min)
+- **6 perfis cognitivos**: gourmet, família, arquitectura, natureza radical, história profunda, crianças
+- Micro-histórias contextuais (sazonais + trigger-based)
+- Cache dedicado em MongoDB (`narrative_cache`)
+- Camada de credibilidade (fonte, confiança, verificação, revisor)
 
 ### IQ Engine (19 módulos)
 - **M1** Enriquecimento semântico (embeddings + categorização)
@@ -124,51 +171,60 @@ Portugal-Vivo/
 - **M9** Enriquecimento de metadados
 - **M11** Geração de descrições com LLM
 - **M12** Agrupamento temático
-- **M13–M19** Routing inteligente e planeamento
+- **M13–M19** Routing inteligente (tempo, dificuldade, perfil, meteo, hora do dia, multi-dia, optimizador)
+
+### Rotas e Planeamento
+- Planeador inteligente com 4 modos: viagem rápida, fim-de-semana, road trip, temático
+- Geração de rotas por IQ Engine scores
+- Waypoints com sugestões de POIs
+- Itinerários guardados com timeline, budget e colaboração
+- Partilha de rotas (link, QR, WhatsApp, share nativo)
+- Narrativas walking-tour com trigger geo (50m)
+
+### Trilhos e GPX
+- Upload GPX (web + nativo iOS/Android)
+- Cálculo automático: distância, desnível, tempo estimado (Naismith)
+- Perfil de elevação
+- POIs próximos do trilho
+- Classificação de dificuldade automática
+
+### Praias, Mar e Costa
+- Beachcams em tempo real
+- Condições de surf e marés (IPMA)
+- Dados de praias (qualidade água, bandeira azul)
+- Módulo costa com zonas costeiras
+
+### Eventos e Agenda
+- +300 eventos para 2026
+- Agenda viral com agregação de fontes externas
+- Filtros por data, região, categoria
+- Detalhe de evento com localização e partilha
+
+### Pagamentos Premium (Stripe)
+- **Explorador** (grátis): 3 rotas/dia, funcionalidades base
+- **Descobridor** (4,99€/mês): IA ilimitada, áudio, offline, rotas ilimitadas
+- **Guardião** (39,99€/ano): tudo + early access, rotas custom, exportação
+- Checkout Stripe com trial 7 dias
+- MB Way + Multibanco (métodos portugueses)
+- Portal de gestão de subscrição
+- Feature gating em todos os endpoints premium
 
 ### Mobilidade
 - Horários CP (comboios) em tempo real
 - Transportes públicos (GTFS)
-- Planeador de rotas com múltiplos modos de transporte
-- Rotas inteligentes com sugestões adaptativas
-
-### Trilhos e GPX
-
-| Endpoint | Descrição |
-|---|---|
-| `POST /api/trails/upload` | Upload `.gpx` → calcula distância, desnível, tempo estimado |
-| `GET /api/trails` | Listar todos os trilhos (sem pontos, para performance) |
-| `GET /api/trails/{id}` | Detalhe com todos os pontos GPS |
-| `GET /api/trails/{id}/pois` | POIs próximos do trilho (raio configurável) |
-| `GET /api/trails/elevation/{id}` | Perfil de elevação para gráfico |
-
-O mapa entra no modo Trilhos, carrega a lista da API e auto-selecciona o primeiro trilho disponível. O utilizador pode alternar entre trilhos via chips ou fazer upload de um novo ficheiro GPX (suporta GPX 1.0 e 1.1).
-
-### Natureza e Mar
-- Previsão de surf e condições de onda (IPMA)
-- Previsão de marés e informação marinha
-- Trilhos e fauna (integração GBIF + ICNF)
-- Alertas de fogos (Fogos.pt)
-- Widget de clima
+- Planeador de rotas multi-modal
 
 ### Gamificação
 - Sistema de pontos, badges e conquistas
 - Streaks diários
 - Leaderboard regional com Redis
-- Prémios premium
+- Check-in em POIs
 
-### Conteúdo e Comunidade
-- Calendário de eventos
-- Reviews e avaliações
-- Partilha social (rotas, POIs)
-- Newsletter
-- Upload e moderação de imagens
-
-### Gestão (Admin)
-- Dashboard IQ com métricas de enriquecimento
-- Importador Excel v19 (POIs, eventos, rotas)
-- Painel multi-tenant por região
-- Analytics e monitorização
+### Offline e Performance
+- OfflineBanner animado com detecção NetInfo
+- Cache 24h com fila de ações pendentes
+- Imagens optimizadas com blurhash e cache memory-disk
+- Warm cache de favoritos no login
 
 ---
 
@@ -194,10 +250,10 @@ uvicorn server:app --reload --port 8001
 ```bash
 cd frontend
 npm install
-npx expo start            # web: pressionar W | iOS: I | Android: A
+npx expo start            # web: W | iOS: I | Android: A
 ```
 
-### Docker (recomendado)
+### Docker
 
 ```bash
 docker-compose up -d
@@ -219,22 +275,23 @@ JWT_SECRET_KEY=your-secret-key
 GOOGLE_CLIENT_ID=...
 GOOGLE_CLIENT_SECRET=...
 
-# IA
-OPENAI_API_KEY=...              # GPT-4o para narrativas e IQ Engine
+# IA / LLM (Emergent — motor principal)
+EMERGENT_LLM_KEY=...
 
 # Imagens
 CLOUDINARY_CLOUD_NAME=...
 CLOUDINARY_API_KEY=...
 CLOUDINARY_API_SECRET=...
 
+# Pagamentos
+STRIPE_SECRET_KEY=...
+STRIPE_WEBHOOK_SECRET=...
+
 # Cache / Leaderboard
 REDIS_URL=redis://localhost:6379
 
 # Monitorização
 SENTRY_DSN=...
-
-# CORS
-ALLOWED_ORIGINS=http://localhost:19006,http://localhost:8081
 ```
 
 ### Frontend (`frontend/.env`)
@@ -253,16 +310,16 @@ EXPO_PUBLIC_GOOGLE_MAPS_KEY=...
 
 ```bash
 cd backend
-pytest tests/ -v
+pytest tests/ -v --timeout=30
 ```
 
-Suite com 44 ficheiros cobrindo: auth, gamification, leaderboard, offline, surf, transportes, IQ Engine, upload, reviews, routes, map, encyclopedia, e2e críticos, e mais.
+43 ficheiros de teste, 176 testes cobrindo: auth, gamification, leaderboard, offline, surf, transportes, IQ Engine, upload, reviews, routes, map, encyclopedia, e2e.
 
 ### Frontend (Jest)
 
 ```bash
 cd frontend
-npm test
+npm test -- --passWithNoTests
 ```
 
 ### End-to-end
@@ -279,25 +336,36 @@ maestro test e2e/maestro/
 
 ## CI/CD
 
-O pipeline GitHub Actions executa automaticamente em cada push:
+Pipeline GitHub Actions em cada push:
 
-| Job | O que verifica |
+| Job | Verificação |
 |---|---|
-| `backend-tests` | pytest com MongoDB + Redis reais |
+| `backend-tests` | pytest + MongoDB + Redis |
 | `frontend-tests` | Jest + TypeScript type check |
-| `docker-build` | Build multi-stage com target `production` |
-| `secret-scan` | Gitleaks — nenhum segredo no repositório |
+| `docker-build` | Build multi-stage production |
+| `secret-scan` | Gitleaks — zero segredos no repo |
+
+Retry automático para ECONNRESET (3 tentativas com backoff).
 
 ---
 
-## IQ Engine — Admin
+## Números
 
-Aceda ao painel de administração em `/iq-dashboard` para:
-
-- Ver métricas de enriquecimento por módulo
-- Monitorizar qualidade dos POIs (IQ Score)
-- Executar importações em batch
-- Gerir multi-tenant por região
+| Métrica | Valor |
+|---|---|
+| Ecrãs frontend | 78 |
+| Componentes React Native | 110 |
+| Módulos backend (API) | 87 |
+| Routers registados | 90 |
+| Endpoints REST | 496 |
+| Serviços externos | 24 |
+| Ficheiros de teste | 43 |
+| Testes unitários | 176 |
+| Módulos IQ Engine | 19 |
+| Módulos temáticos | 9 |
+| Idiomas | 4 (PT, EN, ES, FR) |
+| Camadas de mapa | 39+ |
+| Modos de mapa | 7 |
 
 ---
 
