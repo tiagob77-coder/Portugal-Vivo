@@ -219,6 +219,120 @@ export const categoryColors: Record<string, string> = {
   cultural: '#EC4899',
 };
 
+// ============================================
+// MODULE THEMES - Identity palettes per thematic module
+// Each module gets bg, card, accent, text triplet from the central palette
+// ============================================
+
+export interface ModuleTheme {
+  bg: string;
+  card: string;
+  accent: string;
+  accentMuted: string;
+  textPrimary: string;
+  textSecondary: string;
+  textMuted: string;
+}
+
+export const moduleThemes: Record<string, ModuleTheme> = {
+  biodiversidade: {
+    bg: palette.ocean[900],        // deep ocean
+    card: palette.ocean[800],
+    accent: '#06B6D4',             // cyan
+    accentMuted: withOpacity('#06B6D4', 0.15),
+    textPrimary: '#E0F2FE',
+    textSecondary: '#7DD3FC',
+    textMuted: palette.ocean[400],
+  },
+  costa: {
+    bg: palette.gray[50],          // light / airy
+    card: palette.white,
+    accent: palette.ocean[500],
+    accentMuted: palette.ocean[50],
+    textPrimary: palette.gray[800],
+    textSecondary: palette.gray[600],
+    textMuted: palette.gray[400],
+  },
+  fauna: {
+    bg: '#120B00',                 // dark earth
+    card: '#1E1200',
+    accent: '#D97706',             // amber
+    accentMuted: withOpacity('#D97706', 0.15),
+    textPrimary: '#FEF3C7',
+    textSecondary: '#C4A87A',
+    textMuted: '#A07040',
+  },
+  flora: {
+    bg: '#021209',                 // deep green
+    card: '#041E0D',
+    accent: '#22C55E',
+    accentMuted: withOpacity('#22C55E', 0.15),
+    textPrimary: '#E8F5E9',
+    textSecondary: '#A7C4A9',
+    textMuted: '#6B9E73',
+  },
+  gastronomia: {
+    bg: '#1C0F00',                 // warm brown
+    card: '#2D1A00',
+    accent: '#D97706',
+    accentMuted: withOpacity('#D97706', 0.15),
+    textPrimary: '#FEF3C7',
+    textSecondary: '#D4A574',
+    textMuted: '#A07040',
+  },
+  'cultura-maritima': {
+    bg: '#020B18',                 // navy
+    card: '#041426',
+    accent: '#F59E0B',
+    accentMuted: withOpacity('#F59E0B', 0.15),
+    textPrimary: '#E0E7FF',
+    textSecondary: '#93A3D4',
+    textMuted: '#5B6B8A',
+  },
+  infraestrutura: {
+    bg: '#061209',                 // eco green
+    card: '#0B1E10',
+    accent: '#22C55E',
+    accentMuted: withOpacity('#22C55E', 0.15),
+    textPrimary: '#E8F5E9',
+    textSecondary: '#A7C4A9',
+    textMuted: '#6B9E73',
+  },
+  economia: {
+    bg: palette.gray[50],          // light / market feel
+    card: palette.white,
+    accent: '#D97706',
+    accentMuted: withOpacity('#D97706', 0.12),
+    textPrimary: palette.gray[800],
+    textSecondary: palette.gray[600],
+    textMuted: palette.gray[400],
+  },
+  prehistoria: {
+    bg: '#1A1208',                 // sepia / ancient
+    card: '#2C1F0E',
+    accent: '#D97706',
+    accentMuted: withOpacity('#D97706', 0.15),
+    textPrimary: '#F5ECD4',
+    textSecondary: '#C8B08A',
+    textMuted: '#9CA3AF',
+  },
+};
+
+/**
+ * Get module theme by slug, with fallback to light defaults.
+ */
+export function getModuleTheme(module: string): ModuleTheme {
+  return moduleThemes[module] || {
+    bg: palette.gray[50],
+    card: palette.white,
+    accent: palette.terracotta[500],
+    accentMuted: palette.terracotta[50],
+    textPrimary: palette.gray[800],
+    textSecondary: palette.gray[600],
+    textMuted: palette.gray[400],
+  };
+}
+
 // Widget state colors (tides, surf, status indicators)
 export const stateColors = {
   tide: {
