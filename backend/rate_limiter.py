@@ -24,24 +24,27 @@ ENDPOINT_LIMITS: Dict[str, Tuple[int, int]] = {
     # IQ Engine (heavy processing)
     "/api/iq/process-poi": (10, 60),
     "/api/iq/batch-process": (3, 60),
-    # LLM-powered endpoints (expensive — Claude/Emergent calls)
-    "/api/planner/generate": (5, 60),
+    # LLM-powered endpoints (expensive — Emergent gpt-4o-mini calls)
     "/api/content/depth": (10, 60),
     "/api/content/micro-stories": (10, 60),
-    "/api/narratives/enrich": (5, 60),
-    "/api/ai-itinerary/generate": (5, 60),
-    "/api/narrative/generate": (8, 60),
-    "/api/content-toolkit/enrich": (5, 60),
-    "/api/translation/translate": (15, 60),
+    "/api/planner/smart-itinerary": (5, 60),
+    "/api/planner/ai-itinerary": (5, 60),
+    "/api/ai/itinerary": (5, 60),
+    "/api/ai/enrich": (5, 60),
+    "/api/narrative/nearby-stories": (8, 60),
+    "/api/narrative/route/": (8, 60),
+    "/api/toolkit/enrich/": (5, 60),
+    "/api/translations/translate/": (15, 60),
     "/api/orchestrator/context": (20, 60),
     "/api/orchestrator/smart-discover": (10, 60),
+    "/api/narratives/": (10, 60),
     # Auth (brute-force protection)
     "/api/auth/login": (10, 60),
     "/api/auth/register": (5, 60),
     "/api/auth/forgot-password": (3, 60),
     # Image upload
-    "/api/upload/image": (10, 60),
-    "/api/cloudinary/upload": (10, 60),
+    "/api/uploads/": (10, 60),
+    "/api/cloudinary/": (10, 60),
 }
 
 # Per-user limit (authenticated): requests per minute
