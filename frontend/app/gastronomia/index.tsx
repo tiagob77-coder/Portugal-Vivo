@@ -9,14 +9,16 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import GastronomyDishCard, { CoastalDish } from '../../src/components/GastronomyDishCard';
+import { getModuleTheme, withOpacity } from '../../src/theme/colors';
 
-// ─── Colors ───────────────────────────────────────────────────────────────────
+// ─── Colors (from centralized theme) ─────────────────────────────────────────
 
+const MT = getModuleTheme('gastronomia');
 const C = {
-  bg: '#1C0F00',
-  card: '#2D1A00',
+  bg: MT.bg,
+  card: MT.card,
   cardBorder: '#3D2400',
-  amber: '#D97706',
+  amber: MT.accent,
   amberLight: '#FEF3C7',
   terracotta: '#C2410C',
   peixe: '#0369A1',
@@ -25,9 +27,9 @@ const C = {
   doce: '#DB2777',
   tradicional: '#B91C1C',
   misto: '#0F766E',
-  textDark: '#FEF3C7',
-  textMed: '#D6B896',
-  textLight: '#A87D52',
+  textDark: MT.textPrimary,
+  textMed: MT.textSecondary,
+  textLight: MT.textMuted,
   white: '#FFFFFF',
 };
 

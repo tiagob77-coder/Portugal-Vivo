@@ -9,19 +9,21 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import FaunaSpeciesCard, { FaunaSpecies } from '../../src/components/FaunaSpeciesCard';
+import { getModuleTheme, withOpacity } from '../../src/theme/colors';
 
-// ─── Colors ───────────────────────────────────────────────────────────────────
+// ─── Colors (from centralized theme) ─────────────────────────────────────────
 
+const MT = getModuleTheme('fauna');
 const C = {
-  bg:          '#120B00',
-  card:        '#1E1200',
-  accent:      '#D97706',
-  accentLight: '#D9770618',
-  textDark:    '#FEF3C7',
-  textMed:     '#C4A87A',
-  textLight:   '#A07040',
+  bg:          MT.bg,
+  card:        MT.card,
+  accent:      MT.accent,
+  accentLight: MT.accentMuted,
+  textDark:    MT.textPrimary,
+  textMed:     MT.textSecondary,
+  textLight:   MT.textMuted,
   border:      '#3A2400',
-  flagship:    '#D97706',
+  flagship:    MT.accent,
 };
 
 // ─── Static Data ──────────────────────────────────────────────────────────────

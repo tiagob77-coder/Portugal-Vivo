@@ -10,22 +10,24 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import MarineSpeciesCard, { MarineSpecies } from '../../src/components/MarineSpeciesCard';
+import { getModuleTheme, withOpacity } from '../../src/theme/colors';
 
-// ─── Colors ───────────────────────────────────────────────────────────────────
+// ─── Colors (from centralized theme) ─────────────────────────────────────────
 
+const MT = getModuleTheme('biodiversidade');
 const C = {
-  bg:           '#071828',
-  card:         '#0A2236',
-  accent:       '#06B6D4',
-  accentLight:  '#06B6D420',
+  bg:           MT.bg,
+  card:         MT.card,
+  accent:       MT.accent,
+  accentLight:  MT.accentMuted,
   amber:        '#D97706',
-  amberLight:   '#D9770622',
-  textDark:     '#E2E8F0',
-  textMed:      '#94A3B8',
-  textLight:    '#64748B',
+  amberLight:   withOpacity('#D97706', 0.08),
+  textDark:     MT.textPrimary,
+  textMed:      MT.textSecondary,
+  textLight:    MT.textMuted,
   border:       '#1E3A52',
-  headerGrad1:  '#0A2236',
-  headerGrad2:  '#071828',
+  headerGrad1:  MT.card,
+  headerGrad2:  MT.bg,
 };
 
 // ─── Static species data ──────────────────────────────────────────────────────

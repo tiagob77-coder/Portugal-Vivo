@@ -9,20 +9,22 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import PrehistoriaCard, { PrehistoriaSite } from '../../src/components/PrehistoriaCard';
+import { getModuleTheme } from '../../src/theme/colors';
 
-// ─── Colors ───────────────────────────────────────────────────────────────────
+// ─── Colors (from centralized theme) ─────────────────────────────────────────
 
+const MT = getModuleTheme('prehistoria');
 const C = {
-  bg:         '#1A1208',
-  card:       '#2C1F0E',
+  bg:         MT.bg,
+  card:       MT.card,
   border:     '#3D2B14',
-  accent:     '#D97706',
+  accent:     MT.accent,
   accentDark: '#B45309',
-  textLight:  '#F5ECD4',
-  textMed:    '#C8B08A',
-  textDim:    '#9CA3AF',
+  textLight:  MT.textPrimary,
+  textMed:    MT.textSecondary,
+  textDim:    MT.textMuted,
   textFaint:  '#6B7280',
-  amber:      '#D97706',
+  amber:      MT.accent,
   amberLight: '#FEF3C7',
 };
 
