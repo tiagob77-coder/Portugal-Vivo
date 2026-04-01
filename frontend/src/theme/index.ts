@@ -21,11 +21,13 @@ export {
   categoryColors,
   mapColors,
   stateColors,
+  moduleThemes,
   withOpacity,
   getCategoryColor,
   getCategoryBg,
+  getModuleTheme,
 } from './colors';
-export type { SemanticColors } from './colors';
+export type { SemanticColors, ModuleTheme } from './colors';
 
 // Re-export ThemeContext (runtime light/dark)
 export { useTheme, ThemeProvider } from '../context/ThemeContext';
