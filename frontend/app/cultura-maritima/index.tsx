@@ -9,23 +9,25 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import MaritimeCultureCard, { MaritimeEvent } from '../../src/components/MaritimeCultureCard';
+import { getModuleTheme, withOpacity } from '../../src/theme/colors';
 
-// ─── Colors ───────────────────────────────────────────────────────────────────
+// ─── Colors (from centralized theme) ─────────────────────────────────────────
 
+const MT = getModuleTheme('cultura-maritima');
 const C = {
-  bg: '#020B18',
-  card: '#041426',
-  accent: '#F59E0B',
-  accentLight: '#F59E0B20',
-  textDark: '#F1F5F9',
-  textMed: '#94A3B8',
-  textLight: '#64748B',
+  bg: MT.bg,
+  card: MT.card,
+  accent: MT.accent,
+  accentLight: MT.accentMuted,
+  textDark: MT.textPrimary,
+  textMed: MT.textSecondary,
+  textLight: MT.textMuted,
   border: '#1E3A5F',
-  headerFrom: '#020B18',
+  headerFrom: MT.bg,
   blue: '#1D4ED8',
-  blueLight: '#1D4ED820',
+  blueLight: withOpacity('#1D4ED8', 0.12),
   upcoming: '#16A34A',
-  upcomingLight: '#16A34A20',
+  upcomingLight: withOpacity('#16A34A', 0.12),
 };
 
 // ─── Static Events Data ────────────────────────────────────────────────────────

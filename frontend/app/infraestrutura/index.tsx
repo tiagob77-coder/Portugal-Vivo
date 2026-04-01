@@ -9,17 +9,19 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import InfrastructureCard, { Infrastructure } from '../../src/components/InfrastructureCard';
+import { getModuleTheme, withOpacity } from '../../src/theme/colors';
 
-// ─── Colors ───────────────────────────────────────────────────────────────────
+// ─── Colors (from centralized theme) ─────────────────────────────────────────
 
+const MT = getModuleTheme('infraestrutura');
 const C = {
-  bg:        '#061209',
-  card:      '#0B1E10',
-  accent:    '#22C55E',
+  bg:        MT.bg,
+  card:      MT.card,
+  accent:    MT.accent,
   accentDim: '#166534',
-  textDark:  '#F0FDF4',
-  textMed:   '#86EFAC',
-  textLight: '#4ADE80',
+  textDark:  MT.textPrimary,
+  textMed:   MT.textSecondary,
+  textLight: MT.textMuted,
   border:    '#14532D',
   chipBg:    '#0F2D18',
   amber:     '#D97706',

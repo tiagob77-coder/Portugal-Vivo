@@ -10,21 +10,23 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import CoastalDataCard from '../../src/components/CoastalDataCard';
+import { getModuleTheme } from '../../src/theme/colors';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
+const MT = getModuleTheme('costa');
 const C = {
-  bg: '#F0F7FA',
-  card: '#FFFFFF',
-  ocean: '#0E7490',
+  bg: MT.bg,
+  card: MT.card,
+  ocean: MT.accent,
   oceanLight: '#0891B2',
   sand: '#D97706',
   sandLight: '#FEF3C7',
   foam: '#E0F2FE',
   mint: '#D1FAE5',
-  textDark: '#0F172A',
-  textMed: '#334155',
-  textLight: '#64748B',
+  textDark: MT.textPrimary,
+  textMed: MT.textSecondary,
+  textLight: MT.textMuted,
   border: '#E2E8F0',
   accent: '#F97316',
   danger: '#DC2626',

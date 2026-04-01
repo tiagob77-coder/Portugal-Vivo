@@ -10,15 +10,17 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import EconomyMarketCard from '../../src/components/EconomyMarketCard';
+import { getModuleTheme } from '../../src/theme/colors';
 
 const { width: _SCREEN_WIDTH } = Dimensions.get('window');
 
-// ─── Colors ───────────────────────────────────────────────────────────────────
+// ─── Colors (from centralized theme) ─────────────────────────────────────────
 
+const MT = getModuleTheme('economia');
 const C = {
-  bg: '#FAFAF7',
-  card: '#FFFFFF',
-  market: '#D97706',
+  bg: MT.bg,
+  card: MT.card,
+  market: MT.accent,
   marketLight: '#FEF3C7',
   artisan: '#7C3AED',
   artisanLight: '#EDE9FE',
@@ -26,9 +28,9 @@ const C = {
   fishLight: '#E0F2FE',
   dop: '#059669',
   dopLight: '#D1FAE5',
-  textDark: '#1C1917',
-  textMed: '#57534E',
-  textLight: '#78716C',
+  textDark: MT.textPrimary,
+  textMed: MT.textSecondary,
+  textLight: MT.textMuted,
   border: '#E7E5E4',
   accent: '#C2410C',
 };

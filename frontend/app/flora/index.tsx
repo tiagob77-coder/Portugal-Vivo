@@ -9,17 +9,19 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import FloraSpeciesCard, { FloraSpecies } from '../../src/components/FloraSpeciesCard';
+import { getModuleTheme } from '../../src/theme/colors';
 
-// ─── Colors ───────────────────────────────────────────────────────────────────
+// ─── Colors (from centralized theme) ─────────────────────────────────────────
 
+const MT = getModuleTheme('flora');
 const C = {
-  bg:          '#021209',
-  card:        '#041E0D',
-  accent:      '#22C55E',
-  accentLight: '#22C55E18',
-  textDark:    '#E8F5E9',
-  textMed:     '#A7C4A9',
-  textLight:   '#6B9E73',
+  bg:          MT.bg,
+  card:        MT.card,
+  accent:      MT.accent,
+  accentLight: MT.accentMuted,
+  textDark:    MT.textPrimary,
+  textMed:     MT.textSecondary,
+  textLight:   MT.textMuted,
   border:      '#0D3B1A',
   gold:        '#D97706',
 };
