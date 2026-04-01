@@ -167,10 +167,8 @@ async def _check_duplicate(db, title: str, region: Optional[str]) -> Optional[Di
 
 
 async def _enrich_with_llm(narrative: Dict) -> Dict[str, Any]:
-    """Use LLM to auto-generate summary, keywords, related themes."""
-    import os
-    anthropic_key = os.environ.get("ANTHROPIC_API_KEY", "")
-    if not anthropic_key and not _llm_key:
+    """Use Emergent LLM (gpt-4o-mini) to auto-generate summary, keywords, related themes."""
+    if not _llm_key:
         return {}
 
     text = narrative.get("story_text", "")[:800]
@@ -181,35 +179,18 @@ async def _enrich_with_llm(narrative: Dict) -> Dict[str, Any]:
         "\"related_themes\": [\"temas\", \"relacionados\"], \"suggested_pois\": [\"nomes de locais mencionados\"]}"
     )
 
-    if anthropic_key:
-        try:
-            import litellm
-            resp = await litellm.acompletion(
-                model="claude-haiku-4-5-20251001",
-                messages=[
-                    {"role": "system", "content": "És um curador cultural português. Responde apenas em JSON válido."},
-                    {"role": "user", "content": prompt},
-                ],
-                temperature=0.3,
-                max_tokens=400,
-            )
-            import json
-            return json.loads(resp.choices[0].message.content.strip())
-        except Exception as e:
-            logger.warning(f"LLM enrichment failed: {e}")
-    elif _llm_key:
-        try:
-            from emergentintegrations.llm.chat import LlmChat, UserMessage as EmUserMessage
-            chat = LlmChat(
-                api_key=_llm_key,
-                session_id=f"enrich_{narrative.get('id', '')}",
-                system_message="És um curador cultural português. Responde apenas em JSON válido.",
-            ).with_model("openai", "gpt-4o-mini")
-            import json
-            raw = str(await chat.send_message(EmUserMessage(text=prompt))).strip()
-            return json.loads(raw)
-        except Exception as e:
-            logger.warning(f"Emergent enrichment failed: {e}")
+    try:
+        from emergentintegrations.llm.chat import LlmChat, UserMessage
+        import json
+        chat = LlmChat(
+            api_key=_llm_key,
+            session_id=f"enrich_{narrative.get('id', '')}",
+            system_message="És um curador cultural português. Responde apenas em JSON válido.",
+        ).with_model("openai", "gpt-4o-mini")
+        raw = str(await chat.send_message(UserMessage(text=prompt))).strip()
+        return json.loads(raw)
+    except Exception as e:
+        logger.warning(f"Emergent LLM enrichment failed: {e}")
 
     return {}
 

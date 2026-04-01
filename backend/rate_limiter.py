@@ -17,15 +17,31 @@ logger = logging.getLogger(__name__)
 
 # Endpoint-specific limits: (max_requests, window_seconds)
 ENDPOINT_LIMITS: Dict[str, Tuple[int, int]] = {
+    # Search
     "/api/search": (30, 60),
     "/api/search/global": (20, 60),
     "/api/search/suggestions": (60, 60),
+    # IQ Engine (heavy processing)
     "/api/iq/process-poi": (10, 60),
     "/api/iq/batch-process": (3, 60),
+    # LLM-powered endpoints (expensive — Claude/Emergent calls)
     "/api/planner/generate": (5, 60),
+    "/api/content/depth": (10, 60),
+    "/api/content/micro-stories": (10, 60),
+    "/api/narratives/enrich": (5, 60),
+    "/api/ai-itinerary/generate": (5, 60),
+    "/api/narrative/generate": (8, 60),
+    "/api/content-toolkit/enrich": (5, 60),
+    "/api/translation/translate": (15, 60),
+    "/api/orchestrator/context": (20, 60),
+    "/api/orchestrator/smart-discover": (10, 60),
+    # Auth (brute-force protection)
     "/api/auth/login": (10, 60),
     "/api/auth/register": (5, 60),
     "/api/auth/forgot-password": (3, 60),
+    # Image upload
+    "/api/upload/image": (10, 60),
+    "/api/cloudinary/upload": (10, 60),
 }
 
 # Per-user limit (authenticated): requests per minute

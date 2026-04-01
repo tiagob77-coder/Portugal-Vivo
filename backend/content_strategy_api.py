@@ -261,15 +261,8 @@ async def _generate_with_llm(
     profile: Optional[str],
     context_trigger: Optional[str] = None,
 ) -> Optional[str]:
-    """Call LLM via LiteLLM to generate depth-adapted, profile-aware content.
-
-    Uses Claude Haiku by default (fast + cheap). Falls back to Emergent if
-    ANTHROPIC_API_KEY is not set but EMERGENT_LLM_KEY is.
-    """
-    import os
-    anthropic_key = os.environ.get("ANTHROPIC_API_KEY", "")
-
-    if not anthropic_key and not _llm_key:
+    """Call Emergent LLM (gpt-4o-mini) to generate depth-adapted, profile-aware content."""
+    if not _llm_key:
         return None
 
     profile_cfg = COGNITIVE_PROFILES.get(profile or "") or {}
@@ -301,37 +294,18 @@ async def _generate_with_llm(
         f"Gera o conteúdo de nível '{depth}' para este POI:"
     )
 
-    # Primary: Claude Haiku via LiteLLM
-    if anthropic_key:
-        try:
-            import litellm
-            response = await litellm.acompletion(
-                model="claude-haiku-4-5-20251001",
-                messages=[
-                    {"role": "system", "content": system_msg},
-                    {"role": "user", "content": user_msg},
-                ],
-                temperature=0.7,
-                max_tokens=1200,
-            )
-            return response.choices[0].message.content.strip()
-        except Exception as e:
-            logger.warning(f"LiteLLM/Claude content generation failed: {e}")
-
-    # Fallback: Emergent LLM (legacy)
-    if _llm_key:
-        try:
-            from emergentintegrations.llm.chat import LlmChat, UserMessage as EmUserMessage
-            session_id = _cache_key(poi.get("id", "?"), depth, profile)
-            chat = LlmChat(
-                api_key=_llm_key,
-                session_id=session_id,
-                system_message=system_msg,
-            ).with_model("openai", "gpt-4o-mini")
-            response = await chat.send_message(EmUserMessage(text=user_msg))
-            return str(response).strip()
-        except Exception as e:
-            logger.warning(f"Emergent LLM content generation failed: {e}")
+    try:
+        from emergentintegrations.llm.chat import LlmChat, UserMessage
+        session_id = _cache_key(poi.get("id", "?"), depth, profile)
+        chat = LlmChat(
+            api_key=_llm_key,
+            session_id=session_id,
+            system_message=system_msg,
+        ).with_model("openai", "gpt-4o-mini")
+        response = await chat.send_message(UserMessage(text=user_msg))
+        return str(response).strip()
+    except Exception as e:
+        logger.warning(f"Emergent LLM content generation failed: {e}")
 
     return None
 
@@ -392,7 +366,6 @@ async def get_depth_content(request: ContentDepthRequest):
       historia     — 3-5min narrative
       enciclopedico — full scholarly text
     """
-    import os as _os
     db = _get_db()
     poi = await db.heritage_items.find_one({"id": request.poi_id}, {"_id": 0})
     if not poi:
@@ -491,8 +464,6 @@ async def get_micro_stories(request: MicroStoryRequest):
 
         # Try LLM micro-story (very short, so fast)
         llm_text = None
-        import os as _os
-        _anthropic_key = _os.environ.get("ANTHROPIC_API_KEY", "")
 
         mini_prompt = (
             f"POI: {poi.get('name')} | Região: {poi.get('region')} | "
@@ -505,30 +476,15 @@ async def get_micro_stories(request: MicroStoryRequest):
         )
         sys_msg = "És um guia cultural português conciso e fascinante."
 
-        if _anthropic_key:
+        if _llm_key:
             try:
-                import litellm
-                resp = await litellm.acompletion(
-                    model="claude-haiku-4-5-20251001",
-                    messages=[
-                        {"role": "system", "content": sys_msg},
-                        {"role": "user", "content": mini_prompt},
-                    ],
-                    temperature=0.7,
-                    max_tokens=200,
-                )
-                llm_text = resp.choices[0].message.content.strip()
-            except Exception:
-                pass
-        elif _llm_key:
-            try:
-                from emergentintegrations.llm.chat import LlmChat, UserMessage as EmUserMessage
+                from emergentintegrations.llm.chat import LlmChat, UserMessage
                 chat = LlmChat(
                     api_key=_llm_key,
                     session_id=f"micro_{poi_id}_{request.cognitive_profile}",
                     system_message=sys_msg,
                 ).with_model("openai", "gpt-4o-mini")
-                llm_text = str(await chat.send_message(EmUserMessage(text=mini_prompt))).strip()
+                llm_text = str(await chat.send_message(UserMessage(text=mini_prompt))).strip()
             except Exception:
                 pass
 

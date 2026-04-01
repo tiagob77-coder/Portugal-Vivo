@@ -1,5 +1,5 @@
 """
-Translation Service - AI-powered POI translation using LiteLLM.
+Translation Service - AI-powered POI translation via Emergent LLM.
 Handles translation of heritage item content to multiple languages.
 """
 import os
@@ -11,8 +11,6 @@ from datetime import datetime, timezone
 from typing import Optional, Dict, List, Any
 
 logger = logging.getLogger(__name__)
-
-TRANSLATION_MODEL = os.environ.get("TRANSLATION_MODEL", "gpt-4o-mini")
 
 SYSTEM_PROMPT = (
     "You are a professional translator specializing in Portuguese cultural heritage "
@@ -43,7 +41,7 @@ async def _check_rate_limit():
 
 
 class TranslationService:
-    """Service for translating POI content using LiteLLM with MongoDB caching."""
+    """Service for translating POI content via Emergent LLM (gpt-4o-mini) with MongoDB caching."""
 
     def __init__(self, db):
         self.db = db
@@ -51,54 +49,32 @@ class TranslationService:
         self.heritage_col = db.heritage_items
 
     async def translate_text(self, text: str, source_lang: str, target_lang: str) -> str:
-        """Translate a single text string using LiteLLM."""
+        """Translate a single text string using Emergent LLM."""
         if not text or not text.strip():
             return text
 
         await _check_rate_limit()
 
         try:
-            import litellm
-            response = await litellm.acompletion(
-                model=TRANSLATION_MODEL,
-                messages=[
-                    {"role": "system", "content": SYSTEM_PROMPT},
-                    {
-                        "role": "user",
-                        "content": (
-                            f"Translate the following text from {source_lang} to {target_lang}. "
-                            f"Return ONLY the translated text, no explanations.\n\n{text}"
-                        ),
-                    },
-                ],
-                temperature=0.2,
-                max_tokens=2000,
-            )
-            return response.choices[0].message.content.strip()
-        except Exception as e:
-            logger.error(f"LiteLLM translation failed: {e}")
-            # Fallback: try emergentintegrations
-            return await self._fallback_translate(text, source_lang, target_lang)
-
-    async def _fallback_translate(self, text: str, source_lang: str, target_lang: str) -> str:
-        """Fallback translation using emergentintegrations if available."""
-        try:
             from emergentintegrations.llm.chat import LlmChat, UserMessage
             llm_key = os.environ.get("EMERGENT_LLM_KEY", "")
             if not llm_key:
-                raise ValueError("No EMERGENT_LLM_KEY configured for fallback")
+                raise ValueError("EMERGENT_LLM_KEY not configured")
 
-            chat = LlmChat(api_key=llm_key)
+            chat = LlmChat(
+                api_key=llm_key,
+                system_message=SYSTEM_PROMPT,
+            ).with_model("openai", "gpt-4o-mini")
+
             prompt = (
-                f"{SYSTEM_PROMPT}\n\n"
                 f"Translate the following text from {source_lang} to {target_lang}. "
                 f"Return ONLY the translated text, no explanations.\n\n{text}"
             )
-            response = await chat.send_message_async(UserMessage(content=prompt))
-            return response.content.strip()
-        except Exception as fallback_err:
-            logger.error(f"Fallback translation also failed: {fallback_err}")
-            raise RuntimeError(f"All translation methods failed for text: {text[:50]}...")
+            response = await chat.send_message(UserMessage(text=prompt))
+            return str(response).strip()
+        except Exception as e:
+            logger.error(f"Emergent LLM translation failed: {e}")
+            raise RuntimeError(f"Translation failed for text: {text[:50]}...")
 
     async def _estimate_tokens(self, text: str) -> int:
         """Rough token estimation (4 chars per token approximation)."""
