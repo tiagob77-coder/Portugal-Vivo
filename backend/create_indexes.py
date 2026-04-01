@@ -199,6 +199,22 @@ async def create_all_indexes(db):
     await db.schema_versions.create_index("version", unique=True, name="idx_schema_version")
     logger.info("  schema_versions: 1 index created")
 
+    # --- narrative_cache (dedicated LLM narrative cache) ---
+    await db.narrative_cache.create_index("cache_key", unique=True)
+    await db.narrative_cache.create_index("poi_id")
+    await db.narrative_cache.create_index("generated_at")
+    logger.info("  narrative_cache: 3 indexes created")
+
+    # --- narratives (cultural narratives upload/curate/publish) ---
+    await db.narratives.create_index("id", unique=True)
+    await db.narratives.create_index("status")
+    await db.narratives.create_index("theme")
+    await db.narratives.create_index("region")
+    await db.narratives.create_index("poi_id")
+    await db.narratives.create_index("created_at")
+    await db.narratives.create_index([("title", "text"), ("summary", "text"), ("story_text", "text")])
+    logger.info("  narratives: 7 indexes created")
+
     # --- Total ---
     # heritage_items: 10, users: 2, user_sessions: 3, user_progress: 3,
     # visits: 7, gamification_profiles: 3, checkins: 3, contributions: 5,

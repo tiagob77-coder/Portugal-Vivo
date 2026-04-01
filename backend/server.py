@@ -333,6 +333,11 @@ from discover_feed_api import router as discover_feed_router, set_discover_feed_
 set_discover_feed_db(db)
 set_discover_recommendation_service(recommendation_service)
 
+# Smart Context Orchestrator
+from context_orchestrator_api import orchestrator_router, set_orchestrator_db
+set_orchestrator_db(db)
+api_router.include_router(orchestrator_router)
+
 # ========================
 # PREFERENCES (extracted to preferences_api.py)
 # ========================
@@ -824,6 +829,15 @@ api_router.include_router(flora_fauna_router)
 logger.info("🌿  Gastronomy+FloraFauna registered")
 
 logger.info("🌊  Costa+AI+Economy+GeoPrehistoria+MarineBio+Infrastructure+MaritimeCulture registered")
+
+# ========================
+# CULTURAL NARRATIVES — Upload, Curate, Publish
+# ========================
+from narratives_api import narratives_router, set_narratives_db, set_narratives_llm_key
+set_narratives_db(db)
+set_narratives_llm_key(EMERGENT_LLM_KEY)
+api_router.include_router(narratives_router)
+logger.info("📜  Cultural Narratives module registered")
 
 # Include the router in the main app
 app.include_router(api_router)

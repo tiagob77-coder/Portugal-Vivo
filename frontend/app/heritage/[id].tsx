@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, Platform, Dimensions, Image, ImageBackground, Linking, Share, Alert } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, Platform, Dimensions, ImageBackground, Linking, Share, Alert } from 'react-native';
+import OptimizedImage from '../../src/components/OptimizedImage';
 import { useLocalSearchParams, useRouter, Stack } from 'expo-router';
 import Head from 'expo-router/head';
 import { MaterialIcons } from '@expo/vector-icons';
@@ -1061,10 +1062,9 @@ export default function HeritageDetailScreen() {
                     }
                   }}
                 >
-                  <Image
-                    source={{ uri: photo.thumbnail_url || photo.url }}
+                  <OptimizedImage
+                    uri={photo.thumbnail_url || photo.url}
                     style={styles.communityPhoto}
-                    resizeMode="cover"
                   />
                 </TouchableOpacity>
               ))}

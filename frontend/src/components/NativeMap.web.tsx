@@ -22,7 +22,7 @@ const MAP_STYLES: Record<string, string> = {
   light:     'https://basemaps.cartocdn.com/gl/voyager-gl-style/style.json',
   voyager:   'https://basemaps.cartocdn.com/gl/voyager-gl-style/style.json',
   dark:      'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json',
-  satellite: 'https://basemaps.cartocdn.com/gl/positron-gl-style/style.json',
+  satellite: 'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json',
   terrain:   'https://basemaps.cartocdn.com/gl/voyager-gl-style/style.json',
   tecnico:   'https://basemaps.cartocdn.com/gl/voyager-gl-style/style.json',
   premium:   'https://basemaps.cartocdn.com/gl/positron-gl-style/style.json',
@@ -37,19 +37,32 @@ const PT_BOUNDS: [[number, number], [number, number]] = [[-31.5, 30], [0, 42.5]]
 
 let _mlgl: any = null;
 
+function isWebGLSupported(): boolean {
+  try {
+    const canvas = document.createElement('canvas');
+    return !!(canvas.getContext('webgl2') || canvas.getContext('webgl'));
+  } catch {
+    return false;
+  }
+}
+
 async function loadMapLibre(): Promise<any> {
   if (_mlgl) return _mlgl;
   if (typeof window === 'undefined') return null;
+  if (!isWebGLSupported()) {
+    console.warn('[MapLibre] WebGL not supported in this browser');
+    return null;
+  }
   try {
     const mod = await import('maplibre-gl');
     _mlgl = (mod as any).default || mod;
 
-    // Injectar CSS do MapLibre
+    // Injectar CSS do MapLibre (versão fixa para cache do browser)
     if (!document.getElementById('maplibre-gl-css')) {
       const link = document.createElement('link');
       link.id = 'maplibre-gl-css';
       link.rel = 'stylesheet';
-      link.href = 'https://unpkg.com/maplibre-gl@latest/dist/maplibre-gl.css';
+      link.href = 'https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css';
       document.head.appendChild(link);
     }
     return _mlgl;
@@ -98,6 +111,7 @@ export function LeafletMapComponent({
   const popupRef = useRef<any>(null);
   const [is3D, setIs3D] = useState(false);
   const [ready, setReady] = useState(false);
+  const [mapError, setMapError] = useState<string | null>(null);
   const [coords, setCoords] = useState<{lng: number; lat: number} | null>(null);
   const [isTecnico, setIsTecnico] = useState(false);
 
@@ -107,7 +121,11 @@ export function LeafletMapComponent({
 
     (async () => {
       const ml = await loadMapLibre();
-      if (!ml || !containerRef.current) return;
+      if (!ml) {
+        setMapError('Mapa indisponível — o browser não suporta WebGL.');
+        return;
+      }
+      if (!containerRef.current) return;
 
       map = new ml.Map({
         container: containerRef.current,
@@ -434,6 +452,13 @@ export function LeafletMapComponent({
         style={{ position: 'absolute', inset: 0, width: '100%', height: '100%' }}
       />
 
+      {/* Fallback quando WebGL não está disponível */}
+      {mapError && (
+        <View style={s.errorOverlay}>
+          <Text style={s.errorText}>{mapError}</Text>
+        </View>
+      )}
+
       {/* Botão 3D */}
       <TouchableOpacity
         style={[s.btn3d, is3D && s.btn3dActive]}
@@ -501,4 +526,9 @@ const s = StyleSheet.create({
     paddingHorizontal: 10, paddingVertical: 5,
   },
   coordText: { color: '#00FF88', fontSize: 11, fontFamily: 'monospace', fontWeight: '600' },
+  errorOverlay: {
+    position: 'absolute', inset: 0, justifyContent: 'center', alignItems: 'center',
+    backgroundColor: '#F2EDE4', zIndex: 20,
+  } as any,
+  errorText: { fontSize: 15, color: '#6B665C', textAlign: 'center', paddingHorizontal: 32 },
 });

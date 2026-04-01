@@ -132,6 +132,23 @@ COGNITIVE_PROFILES: Dict[str, Dict] = {
         "micro_story_hook": "O que aconteceu aqui há 500 anos?",
         "route_preference": "historico",
     },
+    "criancas": {
+        "label": "Exploradores Juniores",
+        "emoji": "🧒",
+        "priority_categories": [
+            "praias_fluviais", "ecovias_passadicos", "museus", "parques_naturais",
+            "aventura_natureza", "castelos",
+        ],
+        "narrative_tone": (
+            "Linguagem simples e divertida para crianças dos 6 aos 12 anos. "
+            "Usa perguntas, comparações com coisas do dia-a-dia e factos surpreendentes. "
+            "Transforma o lugar num cenário de aventura ou mistério. "
+            "Frases curtas. Sem palavras difíceis. Tom: amigo mais velho que conta segredos."
+        ),
+        "feed_boost": {"castelos": 2.0, "praias_fluviais": 1.8, "museus": 1.5, "parques_naturais": 1.7},
+        "micro_story_hook": "Sabias que aqui viveu um rei que tinha medo de trovões?",
+        "route_preference": "familia",
+    },
 }
 
 # Content depth system prompts — appended to the base narrative prompt
@@ -152,6 +169,14 @@ DEPTH_SYSTEM_ADDENDUM: Dict[str, str] = {
         "Secções: Origem e História | Arquitectura/Características | Contexto Cultural | "
         "Lendas e Curiosidades | Como Visitar | Ligações Temáticas. "
         "Inclui datas precisas, estilos, figuras históricas e referências cruzadas a eventos ou POIs relacionados."
+    ),
+    "criancas": (
+        "Gera um texto de 80-120 palavras para crianças dos 6 aos 12 anos. "
+        "Começa com uma pergunta divertida ou um facto surpreendente. "
+        "Usa comparações simples (ex: 'tão alto como 10 autocarros'). "
+        "Inclui uma mini-missão (ex: 'Consegues encontrar a pedra com forma de dragão?'). "
+        "Sem datas complexas — usa 'há muito muito tempo' ou 'quando os teus avós eram pequenos'. "
+        "Tom: entusiasta, curioso, como um amigo que conta um segredo."
     ),
 }
 
@@ -185,9 +210,18 @@ CONTEXTUAL_TRIGGERS: Dict[str, str] = {
 # MODELS
 # ──────────────────────────────────────────────────────────────────────────────
 
+class CredibilityInfo(BaseModel):
+    """Credibility layer — tracks origin and trust of narrative content."""
+    source_type: str = Field("editorial", pattern="^(facto_historico|tradicao_oral|interpretacao_curatorial|editorial|comunitario)$")
+    source_ref: Optional[str] = None  # bibliography, archive, oral source name
+    confidence_level: float = Field(0.7, ge=0.0, le=1.0)  # 0=unverified, 1=fully confirmed
+    last_verified: Optional[str] = None  # ISO date of last editorial verification
+    reviewer: Optional[str] = None  # curator / reviewer ID
+
+
 class ContentDepthRequest(BaseModel):
     poi_id: str
-    depth: str = Field("snackable", pattern="^(snackable|historia|enciclopedico)$")
+    depth: str = Field("snackable", pattern="^(snackable|historia|enciclopedico|criancas)$")
     cognitive_profile: Optional[str] = None  # one of COGNITIVE_PROFILES keys
     language: str = "pt"
     force_regenerate: bool = False
@@ -227,55 +261,79 @@ async def _generate_with_llm(
     profile: Optional[str],
     context_trigger: Optional[str] = None,
 ) -> Optional[str]:
-    """Call LLM to generate depth-adapted, profile-aware content."""
-    if not _llm_key:
+    """Call LLM via LiteLLM to generate depth-adapted, profile-aware content.
+
+    Uses Claude Haiku by default (fast + cheap). Falls back to Emergent if
+    ANTHROPIC_API_KEY is not set but EMERGENT_LLM_KEY is.
+    """
+    import os
+    anthropic_key = os.environ.get("ANTHROPIC_API_KEY", "")
+
+    if not anthropic_key and not _llm_key:
         return None
 
-    try:
-        from emergentintegrations.llm.chat import LlmChat, UserMessage
+    profile_cfg = COGNITIVE_PROFILES.get(profile or "") or {}
+    tone_addendum = profile_cfg.get("narrative_tone", "")
+    depth_addendum = DEPTH_SYSTEM_ADDENDUM.get(depth, "")
+    seasonal_hook = _get_seasonal_hook()
 
-        profile_cfg = COGNITIVE_PROFILES.get(profile or "") or {}
-        tone_addendum = profile_cfg.get("narrative_tone", "")
-        depth_addendum = DEPTH_SYSTEM_ADDENDUM.get(depth, "")
-        seasonal_hook = _get_seasonal_hook()
+    system_msg = (
+        "És um especialista em conteúdo cultural e turístico português. "
+        "Escreve sempre em português de Portugal — culto, fluido e autêntico. "
+        "Nunca uses frases genéricas como 'ponto de interesse' ou 'vale a pena visitar'. "
+        f"{tone_addendum} "
+        f"{depth_addendum}"
+    )
 
-        system_msg = (
-            "És um especialista em conteúdo cultural e turístico português. "
-            "Escreve sempre em português de Portugal — culto, fluido e autêntico. "
-            "Nunca uses frases genéricas como 'ponto de interesse' ou 'vale a pena visitar'. "
-            f"{tone_addendum} "
-            f"{depth_addendum}"
-        )
+    context_note = ""
+    if context_trigger and context_trigger in CONTEXTUAL_TRIGGERS:
+        context_note = f"\nContexto adicional: {CONTEXTUAL_TRIGGERS[context_trigger]}"
 
-        context_note = ""
-        if context_trigger and context_trigger in CONTEXTUAL_TRIGGERS:
-            context_note = f"\nContexto adicional: {CONTEXTUAL_TRIGGERS[context_trigger]}"
+    seasonal_note = f"\nContexto sazonal: {seasonal_hook}" if seasonal_hook else ""
 
-        seasonal_note = f"\nContexto sazonal: {seasonal_hook}" if seasonal_hook else ""
+    user_msg = (
+        f"POI: {poi.get('name', '')}\n"
+        f"Categoria: {poi.get('category', '')}\n"
+        f"Região: {poi.get('region', 'Portugal')}\n"
+        f"Descrição base: {(poi.get('description') or '')[:400]}\n"
+        f"Tags: {', '.join((poi.get('tags') or [])[:8])}\n"
+        f"{seasonal_note}{context_note}\n\n"
+        f"Gera o conteúdo de nível '{depth}' para este POI:"
+    )
 
-        user_msg = (
-            f"POI: {poi.get('name', '')}\n"
-            f"Categoria: {poi.get('category', '')}\n"
-            f"Região: {poi.get('region', 'Portugal')}\n"
-            f"Descrição base: {(poi.get('description') or '')[:400]}\n"
-            f"Tags: {', '.join((poi.get('tags') or [])[:8])}\n"
-            f"{seasonal_note}{context_note}\n\n"
-            f"Gera o conteúdo de nível '{depth}' para este POI:"
-        )
+    # Primary: Claude Haiku via LiteLLM
+    if anthropic_key:
+        try:
+            import litellm
+            response = await litellm.acompletion(
+                model="claude-haiku-4-5-20251001",
+                messages=[
+                    {"role": "system", "content": system_msg},
+                    {"role": "user", "content": user_msg},
+                ],
+                temperature=0.7,
+                max_tokens=1200,
+            )
+            return response.choices[0].message.content.strip()
+        except Exception as e:
+            logger.warning(f"LiteLLM/Claude content generation failed: {e}")
 
-        session_id = _cache_key(poi.get("id", "?"), depth, profile)
-        chat = LlmChat(
-            api_key=_llm_key,
-            session_id=session_id,
-            system_message=system_msg,
-        ).with_model("openai", "gpt-4o-mini")
+    # Fallback: Emergent LLM (legacy)
+    if _llm_key:
+        try:
+            from emergentintegrations.llm.chat import LlmChat, UserMessage as EmUserMessage
+            session_id = _cache_key(poi.get("id", "?"), depth, profile)
+            chat = LlmChat(
+                api_key=_llm_key,
+                session_id=session_id,
+                system_message=system_msg,
+            ).with_model("openai", "gpt-4o-mini")
+            response = await chat.send_message(EmUserMessage(text=user_msg))
+            return str(response).strip()
+        except Exception as e:
+            logger.warning(f"Emergent LLM content generation failed: {e}")
 
-        response = await chat.send_message(UserMessage(text=user_msg))
-        return str(response).strip()
-
-    except Exception as e:
-        logger.warning(f"LLM content generation failed: {e}")
-        return None
+    return None
 
 
 def _template_snackable(poi: Dict, profile: Optional[str]) -> str:
@@ -334,32 +392,35 @@ async def get_depth_content(request: ContentDepthRequest):
       historia     — 3-5min narrative
       enciclopedico — full scholarly text
     """
+    import os as _os
     db = _get_db()
     poi = await db.heritage_items.find_one({"id": request.poi_id}, {"_id": 0})
     if not poi:
         raise HTTPException(status_code=404, detail="POI não encontrado")
 
-    cache_field = _cache_key(request.poi_id, request.depth, request.cognitive_profile)
+    cache_key = _cache_key(request.poi_id, request.depth, request.cognitive_profile)
 
-    # Check existing cache
-    content_cache: Dict = poi.get("content_cache", {})
-    if not request.force_regenerate and cache_field in content_cache:
-        cached = content_cache[cache_field]
-        return {
-            "poi_id": request.poi_id,
-            "depth": request.depth,
-            "cognitive_profile": request.cognitive_profile,
-            "content": cached["text"],
-            "generated_at": cached.get("generated_at"),
-            "source": "cache",
-        }
+    # ── Check dedicated narrative_cache collection (MongoDB Atlas) ────
+    if not request.force_regenerate:
+        cached = await db.narrative_cache.find_one({"cache_key": cache_key}, {"_id": 0})
+        if cached:
+            return {
+                "poi_id": request.poi_id,
+                "depth": request.depth,
+                "cognitive_profile": request.cognitive_profile,
+                "content": cached["text"],
+                "generated_at": cached.get("generated_at"),
+                "source": "cache",
+                "credibility": cached.get("credibility"),
+            }
 
-    # Generate via LLM
+    # ── Generate via LLM ─────────────────────────────────────────────
     text = await _generate_with_llm(poi, request.depth, request.cognitive_profile)
+    source = "llm" if text else "template"
 
     # Fallback template
     if not text:
-        if request.depth == "snackable":
+        if request.depth in ("snackable", "criancas"):
             text = _template_snackable(poi, request.cognitive_profile)
         elif request.depth == "historia":
             desc = poi.get("description") or ""
@@ -367,11 +428,32 @@ async def get_depth_content(request: ContentDepthRequest):
         else:
             text = poi.get("description") or _template_snackable(poi, request.cognitive_profile)
 
-    # Persist to cache
+    # ── Build credibility info ────────────────────────────────────────
+    credibility = {
+        "source_type": "editorial" if source == "template" else "interpretacao_curatorial",
+        "source_ref": None,
+        "confidence_level": 0.5 if source == "llm" else 0.7,
+        "last_verified": None,
+        "reviewer": None,
+    }
+
+    # ── Persist to dedicated narrative_cache collection ────────────────
     now_iso = datetime.now(timezone.utc).isoformat()
-    await db.heritage_items.update_one(
-        {"id": request.poi_id},
-        {"$set": {f"content_cache.{cache_field}": {"text": text, "generated_at": now_iso}}}
+    cache_doc = {
+        "cache_key": cache_key,
+        "poi_id": request.poi_id,
+        "depth": request.depth,
+        "cognitive_profile": request.cognitive_profile,
+        "text": text,
+        "generated_at": now_iso,
+        "source": source,
+        "credibility": credibility,
+        "language": request.language,
+    }
+    await db.narrative_cache.update_one(
+        {"cache_key": cache_key},
+        {"$set": cache_doc},
+        upsert=True,
     )
 
     return {
@@ -380,7 +462,8 @@ async def get_depth_content(request: ContentDepthRequest):
         "cognitive_profile": request.cognitive_profile,
         "content": text,
         "generated_at": now_iso,
-        "source": "llm" if _llm_key else "template",
+        "source": source,
+        "credibility": credibility,
     }
 
 
@@ -408,28 +491,49 @@ async def get_micro_stories(request: MicroStoryRequest):
 
         # Try LLM micro-story (very short, so fast)
         llm_text = None
-        if _llm_key:
-            mini_prompt = (
-                f"POI: {poi.get('name')} | Região: {poi.get('region')} | "
-                f"Categoria: {poi.get('category')} | "
-                f"Descrição: {(poi.get('description') or '')[:150]}\n\n"
-                f"Gera uma micro-história de 2-3 frases (máx 160 caracteres) "
-                f"para ler entre dois locais numa rota. "
-                f"Começa com um facto surpreendente. "
-                f"Tom: {'entusiasta' if request.cognitive_profile == 'natureza_radical' else 'evocativo'}."
-            )
+        import os as _os
+        _anthropic_key = _os.environ.get("ANTHROPIC_API_KEY", "")
+
+        mini_prompt = (
+            f"POI: {poi.get('name')} | Região: {poi.get('region')} | "
+            f"Categoria: {poi.get('category')} | "
+            f"Descrição: {(poi.get('description') or '')[:150]}\n\n"
+            f"Gera uma micro-história de 2-3 frases (máx 160 caracteres) "
+            f"para ler entre dois locais numa rota. "
+            f"Começa com um facto surpreendente. "
+            f"Tom: {'entusiasta' if request.cognitive_profile == 'natureza_radical' else 'evocativo'}."
+        )
+        sys_msg = "És um guia cultural português conciso e fascinante."
+
+        if _anthropic_key:
             try:
-                from emergentintegrations.llm.chat import LlmChat, UserMessage
+                import litellm
+                resp = await litellm.acompletion(
+                    model="claude-haiku-4-5-20251001",
+                    messages=[
+                        {"role": "system", "content": sys_msg},
+                        {"role": "user", "content": mini_prompt},
+                    ],
+                    temperature=0.7,
+                    max_tokens=200,
+                )
+                llm_text = resp.choices[0].message.content.strip()
+            except Exception:
+                pass
+        elif _llm_key:
+            try:
+                from emergentintegrations.llm.chat import LlmChat, UserMessage as EmUserMessage
                 chat = LlmChat(
                     api_key=_llm_key,
                     session_id=f"micro_{poi_id}_{request.cognitive_profile}",
-                    system_message="És um guia cultural português conciso e fascinante.",
+                    system_message=sys_msg,
                 ).with_model("openai", "gpt-4o-mini")
-                llm_text = str(await chat.send_message(UserMessage(text=mini_prompt))).strip()
-                if len(llm_text) > 200:
-                    llm_text = llm_text[:197] + "…"
+                llm_text = str(await chat.send_message(EmUserMessage(text=mini_prompt))).strip()
             except Exception:
                 pass
+
+        if llm_text and len(llm_text) > 200:
+            llm_text = llm_text[:197] + "…"
 
         text = llm_text or _template_micro_story(poi, request.cognitive_profile, request.context_trigger)
 
@@ -624,6 +728,13 @@ async def get_depth_levels():
                 "icon": "library-books",
                 "read_time": "7-12 min",
                 "description": "Nível scholar — para os mais curiosos e investigadores",
+            },
+            {
+                "id": "criancas",
+                "label": "Exploradores Juniores",
+                "icon": "child-care",
+                "read_time": "1-2 min",
+                "description": "Para crianças dos 6 aos 12 — aventura e mistério!",
             },
         ]
     }

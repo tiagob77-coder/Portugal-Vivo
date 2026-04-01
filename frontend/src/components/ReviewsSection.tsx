@@ -3,7 +3,8 @@
  * Displays reviews and ratings for heritage items
  */
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, TextInput, ActivityIndicator, Alert, Image, ScrollView as HScrollView } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, TextInput, ActivityIndicator, Alert, ScrollView as HScrollView } from 'react-native';
+import OptimizedImage from './OptimizedImage';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
@@ -133,7 +134,7 @@ function ReviewCard({ review, onHelpful, token }: { review: Review; onHelpful: (
       {review.image_urls && review.image_urls.length > 0 && (
         <HScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.reviewImages}>
           {review.image_urls.map((url, idx) => (
-            <Image key={idx} source={{ uri: url }} style={styles.reviewImage} resizeMode="cover" />
+            <OptimizedImage key={idx} uri={url} style={styles.reviewImage} />
           ))}
         </HScrollView>
       )}

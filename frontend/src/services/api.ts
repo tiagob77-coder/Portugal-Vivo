@@ -1254,6 +1254,9 @@ export interface EncyclopediaUniverseDetail extends EncyclopediaUniverse {
 }
 
 export interface EncyclopediaArticleDetail extends EncyclopediaArticle {
+  body?: string;
+  universe_name?: string;
+  category_name?: string;
   related_articles_data: EncyclopediaArticle[];
   related_items_data: HeritageItem[];
   universe_info: EncyclopediaUniverse;

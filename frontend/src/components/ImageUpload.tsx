@@ -1,8 +1,9 @@
 import React, { useState, useRef } from 'react';
 import {
-  View, Text, StyleSheet, TouchableOpacity, Image, ActivityIndicator,
+  View, Text, StyleSheet, TouchableOpacity, ActivityIndicator,
   Platform, Alert,
 } from 'react-native';
+import OptimizedImage from './OptimizedImage';
 import { MaterialIcons } from '@expo/vector-icons';
 import { uploadImage } from '../services/api';
 import { palette, withOpacity } from '../theme/colors';
@@ -133,7 +134,7 @@ export default function ImageUpload({
             <Text style={styles.uploadingText}>A carregar...</Text>
           </View>
         ) : previewUrl ? (
-          <Image source={{ uri: previewUrl }} style={styles.preview} resizeMode="cover" />
+          <OptimizedImage uri={previewUrl} style={styles.preview} />
         ) : (
           <View style={styles.center}>
             <MaterialIcons name="add-a-photo" size={36} color={palette.terracotta[500]} />
