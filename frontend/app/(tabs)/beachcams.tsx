@@ -170,48 +170,27 @@ export default function BeachcamsScreen() {
                 {/* Expanded Webcam View */}
                 {isExpanded && (
                   <View style={styles.camIframeContainer}>
-                    {Platform.OS === 'web' ? (
-                      <View>
-                        <iframe
-                          src={cam.embed_url}
-                          style={{ width: '100%', height: 280, border: 'none', borderRadius: 12 }}
-                          allow="autoplay"
-                          title={cam.name}
-                          sandbox="allow-scripts allow-same-origin"
-                        />
-                        <TouchableOpacity
-                          style={styles.camDirectLink}
-                          onPress={() => Linking.openURL(cam.embed_url)}
-                        >
-                          <MaterialIcons name="videocam" size={16} color="#FFF" />
-                          <Text style={styles.camDirectLinkText}>
-                            Se a webcam não carregar, clique aqui para ver ao vivo
-                          </Text>
-                          <MaterialIcons name="open-in-new" size={14} color="#FFF" />
-                        </TouchableOpacity>
-                      </View>
-                    ) : (
-                      <View style={styles.webviewContainer}>
-                        <WebView
-                          source={{ uri: cam.embed_url }}
-                          style={styles.webview}
-                          javaScriptEnabled={true}
-                          domStorageEnabled={true}
-                          startInLoadingState={true}
-                          renderLoading={() => (
-                            <View style={styles.loadingContainer}>
-                              <ActivityIndicator size="large" color={colors.terracotta[500]} />
-                              <Text style={styles.loadingText}>A carregar webcam...</Text>
-                            </View>
-                          )}
-                          allowsInlineMediaPlayback={true}
-                          mediaPlaybackRequiresUserAction={false}
-                          onError={() => {
-                            Linking.openURL(cam.embed_url);
-                          }}
-                        />
-                      </View>
-                    )}
+                    <View style={[styles.webviewContainer, { alignItems: 'center', justifyContent: 'center', backgroundColor: '#1A2332' }]}>
+                      <MaterialIcons name="videocam" size={48} color={colors.terracotta[500]} />
+                      <Text style={{ color: '#FFF', fontSize: 16, fontWeight: '600', marginTop: 12, textAlign: 'center' }}>
+                        {cam.name}
+                      </Text>
+                      <Text style={{ color: '#AAA', fontSize: 13, marginTop: 4, textAlign: 'center' }}>
+                        Transmissão ao vivo via Beachcam
+                      </Text>
+                      <TouchableOpacity
+                        style={{
+                          flexDirection: 'row', alignItems: 'center', backgroundColor: colors.terracotta[500],
+                          paddingHorizontal: 24, paddingVertical: 14, borderRadius: 12, marginTop: 20, gap: 8,
+                        }}
+                        onPress={() => Linking.openURL(cam.embed_url)}
+                      >
+                        <MaterialIcons name="open-in-new" size={18} color="#FFF" />
+                        <Text style={{ color: '#FFF', fontSize: 15, fontWeight: '700' }}>
+                          Abrir Webcam ao Vivo
+                        </Text>
+                      </TouchableOpacity>
+                    </View>
                     <TouchableOpacity
                       style={styles.camExternalBtn}
                       onPress={() => Linking.openURL(cam.embed_url)}
