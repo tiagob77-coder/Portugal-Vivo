@@ -7,6 +7,7 @@ from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
 import os
 import logging
+import certifi
 from pathlib import Path
 from pydantic import BaseModel, Field
 from typing import List, Optional, Dict
@@ -30,7 +31,11 @@ limiter = Limiter(key_func=get_remote_address, default_limits=["200/minute"])
 # MongoDB connection
 mongo_url = os.environ['MONGO_URL']
 redis_url = os.environ.get('REDIS_URL', 'redis://localhost:6379')
-client = AsyncIOMotorClient(mongo_url)
+# Use certifi for Atlas SRV SSL connections
+_mongo_kwargs = {}
+if 'mongodb+srv' in mongo_url or 'mongodb.net' in mongo_url:
+    _mongo_kwargs['tlsCAFile'] = certifi.where()
+client = AsyncIOMotorClient(mongo_url, **_mongo_kwargs)
 db = client[os.environ['DB_NAME']]
 
 # Initialize the dependency injection database (new pattern)
