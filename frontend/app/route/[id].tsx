@@ -239,7 +239,7 @@ export default function RouteDetailScreen() {
             <ShareButton
               title={route.name}
               description={`Explora a rota ${route.name} com ${stops.length} paragens no Portugal Vivo! \u{1F5FA}\u{FE0F}`}
-              url={`https://project-analyzer-131.preview.emergentagent.com/route/${id}`}
+              url={`https://portugal-vivo-3.preview.emergentagent.com/route/${id}`}
             />
           </View>
           
