@@ -83,8 +83,20 @@ class AudioGuideService:
             return VOICE_PROFILES[content_type]
         return VOICE_PROFILES["default"]
 
-    def _prepare_text_for_tts(self, text: str, poi_name: str) -> str:
-        """Prepare text for TTS with natural pauses and structure"""
+    def _prepare_text_for_tts(self, text: str, poi_name: str, language: str = "pt") -> str:
+        """Prepare text for TTS with natural pauses and structure.
+
+        For Portuguese (pt), prepends a pronunciation hint so the TTS engine
+        uses European Portuguese (PT-PT) accent instead of Brazilian.
+        """
+        # Pronunciation hint for PT-PT — invisible to listener but guides the TTS model
+        pt_hint = ""
+        if language == "pt":
+            pt_hint = (
+                "[Lê em português europeu de Portugal, com sotaque de Lisboa. "
+                "Nunca uses pronúncia brasileira.] "
+            )
+
         # Add introduction
         intro = f"Bem-vindo a {poi_name}. "
 
@@ -95,10 +107,11 @@ class AudioGuideService:
         cleaned = cleaned.replace("...", ". ")
 
         # Limit to 4000 chars (API limit is 4096)
-        if len(intro + cleaned) > 4000:
-            cleaned = cleaned[:4000 - len(intro) - 50] + "... Continue a explorar para descobrir mais."
+        full = pt_hint + intro + cleaned
+        if len(full) > 4000:
+            cleaned = cleaned[:4000 - len(pt_hint) - len(intro) - 50] + "... Continue a explorar para descobrir mais."
 
-        return intro + cleaned
+        return pt_hint + intro + cleaned
 
     async def generate_audio_guide(
         self,
@@ -138,7 +151,7 @@ class AudioGuideService:
             speed_value = SPEED_PROFILES.get(speed, 1.0)
 
             # Prepare text
-            prepared_text = self._prepare_text_for_tts(text, poi_name)
+            prepared_text = self._prepare_text_for_tts(text, poi_name, language)
 
             # Check cache
             cache_key = self._get_cache_key(prepared_text, voice, speed_value)
