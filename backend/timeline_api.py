@@ -16,6 +16,7 @@ Example: Minho timeline connects Guimarães (fundação de Portugal 1128),
 from __future__ import annotations
 
 import logging
+import re
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 
@@ -469,8 +470,9 @@ async def get_regional_timeline(
         # Find POIs whose name approximately matches the hint
         for hint in poi_hints[:10]:
             hint_words = hint.split(",")[0].strip()
+            safe_hint = re.escape(hint_words[:20])
             poi = await db.heritage_items.find_one(
-                {"name": {"$regex": hint_words[:20], "$options": "i"}},
+                {"name": {"$regex": safe_hint, "$options": "i"}},
                 {"_id": 0, "id": 1, "name": 1, "category": 1, "image_url": 1, "region": 1}
             )
             if poi:

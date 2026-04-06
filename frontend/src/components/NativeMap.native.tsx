@@ -195,7 +195,7 @@ export default LeafletMapComponent;
 export const Marker: React.FC<any> = () => null;
 export const Callout: React.FC<any> = () => null;
 export const PROVIDER_GOOGLE = null;
-export const isMapAvailable = true;
+export const isMapAvailable = false;
 
 const s = StyleSheet.create({
   container: { flex: 1 },
