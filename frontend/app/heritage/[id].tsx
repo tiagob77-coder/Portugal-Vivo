@@ -6,7 +6,7 @@ import Head from 'expo-router/head';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { getHeritageItem, getCategories, generateNarrative, addFavorite, removeFavorite, getAudioGuideForItem, doCheckin, getPoiImages } from '../../src/services/api';
+import { getHeritageItem, getCategories, generateNarrative, addFavorite, removeFavorite, getAudioGuideForItem, doCheckin, getPoiImages, getDepthContent, ContentDepth, CognitiveProfile } from '../../src/services/api';
 import { useAuth } from '../../src/context/AuthContext';
 import { useFavorites } from '../../src/context/FavoritesContext';
 import { Category } from '../../src/types';
@@ -291,6 +291,8 @@ export default function HeritageDetailScreen() {
   const queryClient = useQueryClient();
   const { user, isAuthenticated, sessionToken, login, isPremium, refreshUser } = useAuth();
   const [narrativeStyle, setNarrativeStyle] = useState<'storytelling' | 'educational' | 'brief'>('storytelling');
+  const [depthLevel, setDepthLevel] = useState<ContentDepth>('snackable');
+  const [cognitiveProfile, setCognitiveProfile] = useState<CognitiveProfile | undefined>(undefined);
   const [showNarrative, setShowNarrative] = useState(false);
   const [showFreeResume, setShowFreeResume] = useState(false);
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
@@ -416,23 +418,38 @@ export default function HeritageDetailScreen() {
     enabled: showNarrative && isPremium,
   });
 
-  // Free brief resume — available to all users for short descriptions
+  // Free brief resume — available to all users via depth content API (snackable)
   const { data: freeResumeData, isLoading: freeResumeLoading } = useQuery({
-    queryKey: ['narrative', id, 'brief'],
+    queryKey: ['depth-content', id, 'snackable'],
     queryFn: async () => {
       try {
-        const data = await generateNarrative(id!, 'brief');
-        offlineCache.cacheNarrative(id!, 'brief', data.narrative).catch(() => {});
-        return data;
-      } catch (err) {
-        const cached = await offlineCache.getCachedNarrative(id!, 'brief');
-        if (cached) {
-          return { narrative: cached, item_name: item?.name || '', generated_at: 'cached' };
+        const data = await getDepthContent(id!, 'snackable');
+        return { narrative: data.content, item_name: '', generated_at: data.generated_at };
+      } catch {
+        // Fallback to legacy narrative API
+        try {
+          const data = await generateNarrative(id!, 'brief');
+          return data;
+        } catch (err2) {
+          const cached = await offlineCache.getCachedNarrative(id!, 'brief');
+          if (cached) {
+            return { narrative: cached, item_name: item?.name || '', generated_at: 'cached' };
+          }
+          throw err2;
         }
-        throw err;
       }
     },
     enabled: showFreeResume,
+  });
+
+  // Depth content — 4 levels for premium users
+  const { data: depthData, isLoading: depthLoading } = useQuery({
+    queryKey: ['depth-content', id, depthLevel, cognitiveProfile],
+    queryFn: async () => {
+      const data = await getDepthContent(id!, depthLevel, cognitiveProfile);
+      return data;
+    },
+    enabled: showNarrative && isPremium && depthLevel !== 'snackable',
   });
 
   // Community photo gallery
@@ -942,69 +959,115 @@ export default function HeritageDetailScreen() {
                 Gere uma narrativa personalizada sobre este elemento do património.
               </Text>
               
-              {/* Style Selection */}
+              {/* Depth Level Selection */}
               <View style={styles.styleSelector}>
                 {[
-                  { id: 'storytelling', label: 'Contador de Histórias', icon: 'auto-stories' },
-                  { id: 'educational', label: 'Educativo', icon: 'school' },
-                  { id: 'brief', label: 'Resumido', icon: 'short-text' },
-                ].map((style) => (
+                  { id: 'snackable', label: 'Resumo', icon: 'flash-on', time: '30-60s' },
+                  { id: 'historia', label: 'História', icon: 'menu-book', time: '3-5 min' },
+                  { id: 'enciclopedico', label: 'Enciclopédia', icon: 'library-books', time: '7-12 min' },
+                  { id: 'criancas', label: 'Crianças', icon: 'child-care', time: '1-2 min' },
+                ].map((level) => (
                   <TouchableOpacity
-                    key={style.id}
+                    key={level.id}
                     style={[
                       styles.styleOption,
-                      narrativeStyle === style.id && styles.styleOptionActive,
+                      depthLevel === level.id && styles.styleOptionActive,
                     ]}
-                    onPress={() => setNarrativeStyle(style.id as any)}
+                    onPress={() => setDepthLevel(level.id as ContentDepth)}
                   >
-                    <MaterialIcons 
-                      name={style.icon as any} 
-                      size={18} 
-                      color={narrativeStyle === style.id ? '#8B5CF6' : '#64748B'} 
+                    <MaterialIcons
+                      name={level.icon as any}
+                      size={18}
+                      color={depthLevel === level.id ? '#8B5CF6' : '#64748B'}
                     />
                     <Text style={[
                       styles.styleOptionText,
-                      narrativeStyle === style.id && styles.styleOptionTextActive,
+                      depthLevel === level.id && styles.styleOptionTextActive,
                     ]}>
-                      {style.label}
+                      {level.label}
                     </Text>
                   </TouchableOpacity>
                 ))}
               </View>
 
+              {/* Cognitive Profile Selection */}
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginTop: 8 }}>
+                <View style={{ flexDirection: 'row', gap: 6, paddingHorizontal: 4 }}>
+                  <TouchableOpacity
+                    style={[styles.styleOption, { paddingHorizontal: 10, paddingVertical: 6 }, !cognitiveProfile && styles.styleOptionActive]}
+                    onPress={() => setCognitiveProfile(undefined)}
+                  >
+                    <Text style={[styles.styleOptionText, { fontSize: 11 }, !cognitiveProfile && styles.styleOptionTextActive]}>Geral</Text>
+                  </TouchableOpacity>
+                  {([
+                    { id: 'gourmet', emoji: '\uD83C\uDF77', label: 'Gourmet' },
+                    { id: 'familia', emoji: '\uD83D\uDC68\u200D\uD83D\uDC69\u200D\uD83D\uDC67', label: 'Família' },
+                    { id: 'arquitetura', emoji: '\uD83C\uDFDB\uFE0F', label: 'Arquitetura' },
+                    { id: 'natureza_radical', emoji: '\uD83C\uDFD4\uFE0F', label: 'Aventura' },
+                    { id: 'historia_profunda', emoji: '\uD83D\uDCDC', label: 'História' },
+                    { id: 'criancas', emoji: '\uD83E\uDDD2', label: 'Juniores' },
+                  ] as const).map((profile) => (
+                    <TouchableOpacity
+                      key={profile.id}
+                      style={[styles.styleOption, { paddingHorizontal: 10, paddingVertical: 6 }, cognitiveProfile === profile.id && styles.styleOptionActive]}
+                      onPress={() => setCognitiveProfile(profile.id as CognitiveProfile)}
+                    >
+                      <Text style={{ fontSize: 12 }}>{profile.emoji}</Text>
+                      <Text style={[styles.styleOptionText, { fontSize: 11 }, cognitiveProfile === profile.id && styles.styleOptionTextActive]}>{profile.label}</Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              </ScrollView>
+
               <TouchableOpacity
-                style={[styles.generateButton, !isPremium && styles.generateButtonLocked]}
-                onPress={() => isPremium ? setShowNarrative(true) : router.push('/premium')}
+                style={[styles.generateButton, !isPremium && depthLevel !== 'snackable' && styles.generateButtonLocked]}
+                onPress={() => {
+                  if (depthLevel === 'snackable') {
+                    setShowNarrative(true);
+                  } else if (isPremium) {
+                    setShowNarrative(true);
+                  } else {
+                    router.push('/premium');
+                  }
+                }}
               >
                 <MaterialIcons
-                  name={isPremium ? 'auto-fix-high' : 'lock'}
+                  name={isPremium || depthLevel === 'snackable' ? 'auto-fix-high' : 'lock'}
                   size={20}
                   color="#2E5E4E"
                 />
                 <Text style={styles.generateButtonText}>
-                  {isPremium ? 'Gerar Narrativa' : 'Narrativa Premium'}
+                  {depthLevel === 'snackable' ? 'Gerar Resumo' : isPremium ? 'Gerar Narrativa' : 'Narrativa Premium'}
                 </Text>
               </TouchableOpacity>
             </View>
-          ) : narrativeLoading ? (
+          ) : (narrativeLoading || depthLoading) ? (
             <View style={styles.narrativeLoading}>
               <ActivityIndicator size="small" color="#8B5CF6" />
               <Text style={styles.narrativeLoadingText}>A gerar narrativa...</Text>
             </View>
-          ) : narrativeData ? (
+          ) : (depthData || narrativeData) ? (
             <View style={styles.narrativeContent}>
-              {narrativeData.generated_at === 'cached' && (
+              {(depthData?.source === 'cache' || narrativeData?.generated_at === 'cached') && (
                 <View style={styles.cachedBadge}>
                   <MaterialIcons name="offline-pin" size={12} color="#64748B" />
                   <Text style={styles.cachedBadgeText}>Guardado offline</Text>
                 </View>
               )}
-              <Text style={styles.narrativeText}>{narrativeData.narrative}</Text>
+              {depthData?.credibility && (
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginBottom: 8 }}>
+                  <MaterialIcons name="verified" size={12} color={depthData.credibility.confidence_level >= 0.7 ? '#22C55E' : '#F59E0B'} />
+                  <Text style={{ fontSize: 10, color: '#94A3B8' }}>
+                    {depthData.credibility.source_type} · confiança {Math.round(depthData.credibility.confidence_level * 100)}%
+                  </Text>
+                </View>
+              )}
+              <Text style={styles.narrativeText}>{depthData?.content || narrativeData?.narrative}</Text>
               <View style={styles.narrativeActions}>
                 {/* Ouvir narrativa — device TTS, free */}
                 <TouchableOpacity
                   style={[styles.narrativeSpeakButton, isSpeakingNarrative && styles.narrativeSpeakButtonActive]}
-                  onPress={() => handleSpeakNarrative(narrativeData.narrative)}
+                  onPress={() => handleSpeakNarrative(depthData?.content || narrativeData?.narrative || '')}
                   accessibilityLabel={isSpeakingNarrative ? 'Parar leitura' : 'Ouvir narrativa'}
                   accessibilityRole="button"
                 >

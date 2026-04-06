@@ -4,7 +4,7 @@ import { useLocalSearchParams, useRouter, Stack } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useQuery } from '@tanstack/react-query';
-import { getRoute, getRouteItems, getCategories } from '../../src/services/api';
+import { getRoute, getRouteItems, getCategories, getMicroStories } from '../../src/services/api';
 import HeritageCard from '../../src/components/HeritageCard';
 import * as Location from 'expo-location';
 import { ShareButton } from '../../src/components/ShareButton';
@@ -76,6 +76,20 @@ export default function RouteDetailScreen() {
     queryFn: () => getRouteItems(id!),
     enabled: !!id,
   });
+
+  // Micro-stories between POIs — contextual short narratives for the walk
+  const poiIds = items.map((item: any) => item.id).filter(Boolean);
+  const { data: microStoriesData } = useQuery({
+    queryKey: ['micro-stories', id, poiIds.join(',')],
+    queryFn: () => getMicroStories(poiIds),
+    enabled: poiIds.length >= 2,
+  });
+  const microStoryMap = new Map<string, string>();
+  if (microStoriesData?.stories) {
+    for (const story of microStoriesData.stories) {
+      microStoryMap.set(story.poi_id, story.text);
+    }
+  }
 
   // Inject SEO meta tags on web
   useEffect(() => {
@@ -571,6 +585,13 @@ initMap();
                   categories={categories}
                   onPress={() => router.push(`/heritage/${item.id}`)}
                 />
+                {/* Micro-story between POIs */}
+                {index < items.length - 1 && microStoryMap.get(item.id) && (
+                  <View style={styles.microStoryCard}>
+                    <MaterialIcons name="auto-stories" size={14} color={color} />
+                    <Text style={styles.microStoryText}>{microStoryMap.get(item.id)}</Text>
+                  </View>
+                )}
               </View>
             ))}
           </View>
@@ -1001,6 +1022,25 @@ const styles = StyleSheet.create({
     width: 2,
     height: 80,
     marginTop: 4,
+  },
+  microStoryCard: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 8,
+    marginVertical: 8,
+    marginLeft: 48,
+    padding: 12,
+    backgroundColor: '#F8F6F0',
+    borderRadius: 10,
+    borderLeftWidth: 3,
+    borderLeftColor: '#8B5CF6',
+  },
+  microStoryText: {
+    flex: 1,
+    fontSize: 13,
+    lineHeight: 19,
+    color: '#475569',
+    fontStyle: 'italic',
   },
   tagsContainer: {
     flexDirection: 'row',
