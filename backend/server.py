@@ -828,6 +828,14 @@ api_router.include_router(flora_fauna_router)
 
 logger.info("🌿  Gastronomy+FloraFauna registered")
 
+# ── Music API ─────────────────────────────────────────────────────────────────
+from music_api import music_router, set_music_db, set_music_llm_key
+set_music_db(db)
+set_music_llm_key(EMERGENT_LLM_KEY)
+api_router.include_router(music_router)
+
+logger.info("🎵  Music registered")
+
 logger.info("🌊  Costa+AI+Economy+GeoPrehistoria+MarineBio+Infrastructure+MaritimeCulture registered")
 
 # ========================

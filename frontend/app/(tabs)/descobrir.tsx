@@ -909,10 +909,11 @@ export default function DescobrerTab() {
             },
             {
               title: 'Património & Cultura',
-              subtitle: 'Pré-história, astronomia e economia local',
+              subtitle: 'Música, pré-história, astronomia e economia local',
               icon: 'account-balance' as const,
               color: '#B45309',
               modules: [
+                { name: 'Música Tradicional', route: '/musica', icon: 'music-note' as const, count: '14 tradições' },
                 { name: 'Pré-História & Astronomia', route: '/prehistoria', icon: 'public' as const, count: '12 sítios' },
                 { name: 'Economia Local', route: '/economia', icon: 'storefront' as const, count: '5 mercados' },
                 { name: 'Atlas Gastronómico', route: '/gastronomia', icon: 'restaurant' as const, count: '14 pratos' },
