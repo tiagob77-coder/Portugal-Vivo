@@ -328,14 +328,16 @@ export default function MapaTab() {
   });
 
   // Trails data
-  const { data: trailsList } = useQuery({
+  const { data: trailsData } = useQuery({
     queryKey: ['trails-list'],
     queryFn: async () => {
       const res = await api.get('/trails');
-      return res.data;
+      // API returns { trails: [...], total: N } — extract array
+      return Array.isArray(res.data) ? res.data : (res.data?.trails || []);
     },
     enabled: mapMode === 'trails',
   });
+  const trailsList = Array.isArray(trailsData) ? trailsData : [];
 
   // Auto-select first trail when entering trails mode (if none selected)
   useEffect(() => {

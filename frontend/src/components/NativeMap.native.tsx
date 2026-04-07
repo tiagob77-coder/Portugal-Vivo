@@ -56,8 +56,8 @@ function buildMapHTML(trailColor: string): string {
 <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"><\/script>
 <script>
 var map = L.map('map', { zoomControl: true }).setView([39.6945, -7.8491], 7);
-L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-  attribution: '&copy; OSM', maxZoom: 18
+L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+  attribution: '&copy; <a href="https://carto.com/">CARTO</a> &copy; <a href="https://osm.org/">OSM</a>', maxZoom: 19, subdomains: 'abcd'
 }).addTo(map);
 
 var markers = L.markerClusterGroup({ maxClusterRadius: 44, spiderfyOnMaxZoom: true, showCoverageOnHover: false });

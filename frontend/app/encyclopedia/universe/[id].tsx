@@ -116,7 +116,7 @@ export default function UniverseDetailPage() {
       const response = await api.get(`/encyclopedia/universe/${id}/items`, { params: itemsParams, timeout: 20000 });
       return response.data as { items: any[]; total: number; has_more: boolean };
     },
-    enabled: !!id && !!universe,
+    enabled: !!id,
     staleTime: 60000, // 1 min
     retry: 2,
   });

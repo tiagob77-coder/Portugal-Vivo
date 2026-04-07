@@ -277,6 +277,14 @@ export default function DescobrerTab() {
               colors={isDark ? ['rgba(28,31,28,0.8)', 'rgba(28,31,28,0.5)', 'transparent'] : ['rgba(46,94,78,0.75)', 'rgba(46,94,78,0.4)', 'transparent']}
               style={styles.heroGradient}
             >
+              {/* Login button top-right */}
+              <TouchableOpacity
+                style={{ position: 'absolute', top: 12, right: 16, flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(255,255,255,0.2)', paddingHorizontal: 14, paddingVertical: 8, borderRadius: 20, gap: 6 }}
+                onPress={() => router.push('/(tabs)/profile' as any)}
+              >
+                <MaterialIcons name={token ? 'account-circle' : 'login'} size={18} color="#FFFFFF" />
+                <Text style={{ color: '#FFFFFF', fontSize: 13, fontWeight: '600' }}>{token ? 'Perfil' : 'Entrar'}</Text>
+              </TouchableOpacity>
               <Text style={styles.greeting}>{greeting}</Text>
               <Text style={styles.headerTitle}>Descubra Portugal</Text>
               <Text style={styles.headerSubtitle}>O patrimonio vivo do nosso pais</Text>
@@ -1067,7 +1075,7 @@ const styles = StyleSheet.create({
   profileBannerSub: { fontSize: 11, marginTop: 1 },
 
   // Widgets - compact chips
-  widgetStrip: { flexDirection: 'row', paddingHorizontal: 16, marginTop: 14, gap: 8, flexWrap: 'wrap' },
+  widgetStrip: { flexDirection: 'row', paddingHorizontal: 16, marginTop: 14, gap: 8, flexWrap: 'wrap', alignItems: 'flex-start' },
   chipWidget: { borderRadius: 12, borderWidth: 1, overflow: 'hidden', minWidth: 100, flex: 1 },
   chipRow: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, paddingVertical: 10, gap: 6 },
   chipText: { fontSize: 13, fontWeight: '600', flex: 1 },
