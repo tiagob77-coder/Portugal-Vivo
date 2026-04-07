@@ -316,6 +316,15 @@ export const moduleThemes: Record<string, ModuleTheme> = {
     textSecondary: '#C8B08A',
     textMuted: '#9CA3AF',
   },
+  musica: {
+    bg: '#120818',                 // deep purple
+    card: '#1E0F2E',
+    accent: '#8B5CF6',
+    accentMuted: withOpacity('#8B5CF6', 0.15),
+    textPrimary: '#EDE9FE',
+    textSecondary: '#A78BFA',
+    textMuted: '#7C6BA0',
+  },
 };
 
 /**
