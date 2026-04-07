@@ -520,6 +520,18 @@ test_plan:
           agent: "testing"
           comment: "✅ POST /api/ai/itinerary endpoint working correctly. Accepts proper request format with duration, theme, lat, lng, radius_km. Returns structured itinerary with titulo, subtitulo, duracao, tema, paradas, dica_geral, melhor_hora, distancia_total_km, fonte."
 
+  - task: "Portugal Vivo Review Request - Core Endpoints"
+    implemented: true
+    working: true
+    file: "backend/server.py, backend/encyclopedia_api.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "✅ PORTUGAL VIVO REVIEW REQUEST TESTING COMPLETE: All 4 requested endpoints tested successfully with 100% pass rate (4/4). VERIFIED ENDPOINTS: 1) GET /api/health returns status 'ok' ✅, 2) GET /api/encyclopedia/universes returns exactly 6 universes including 'historia_patrimonio' ✅, 3) GET /api/encyclopedia/universe/historia_patrimonio/items returns proper structure {items: [], total: N} with 100 items and total of 1053 ✅, 4) GET /api/map/items returns 5554 POIs with valid GPS coordinates for Portugal (lat: 32-42, lng: -31 to -6) ✅. PERFORMANCE: All responses under 5s requirement (avg: 0.999s, max: 1.625s). GPS coordinates validation confirmed all tested items have valid Portugal coordinates. Data structure validation confirmed proper field presence (id, name, category, region, location). All requested endpoints are fully functional and production-ready."
+
 agent_communication:
     - agent: "testing"
       message: "Completed comprehensive testing of Portuguese Cultural Heritage API. All 10 requested endpoints are working correctly with 100% success rate. API returns expected data counts: 254 heritage items, 20 routes, 20 categories, 7 regions. All filtering and individual item retrieval functions working properly. Backend is fully functional and ready for production use."
@@ -533,3 +545,5 @@ agent_communication:
       message: "🌊 PORTUGAL VIVO SPECIALIZED MODULES TESTING COMPLETE: Conducted comprehensive testing of all 12 specialized module endpoints with 100% success rate (12/12 tests passed). VERIFIED ENDPOINTS: 1) Costa API: 10 coastal zones ✅, 2) Economy Markets: 5 markets ✅, 3) Geo-Prehistoria Sites: 12 archaeological sites ✅, 4) Marine Spots: 10 marine spots ✅, 5) Infrastructure: 14 items ✅, 6) Maritime Culture: 14 events ✅, 7) Gastronomy: 14 items ✅, 8) Flora Species: 8 species ✅, 9) Fauna Species: 8 species ✅, 10) Trails: 698 total (exceeds 600 requirement) with all required fields ✅, 11) Admin Dashboard: working with overview key ✅, 12) AI Itinerary: accepts proper request format and returns structured response ✅. All endpoints return expected data counts and proper response structures. Specialized modules are fully functional and production-ready."
     - agent: "testing"
       message: "🔍 PORTUGAL VIVO NEW FEATURES TESTING COMPLETE: Conducted comprehensive testing of the 3 new feature groups with 100% success rate (12/12 tests passed). SEARCH FEATURES: 1) POST /api/search with 'castelo' query returns 5 results with type='poi' ✅, 2) GET /api/search/global with 'praia' query returns 5 results ✅, 3) GET /api/search/suggestions with 'serra' query returns 5 suggestions ✅, 4) GET /api/search/popular returns popular searches array ✅, 5) POST /api/search with 'gerês' query - all results have image_url ✅. ENCYCLOPEDIA FEATURES: 6) GET /api/encyclopedia/articles - all 3 articles have non-empty body field ✅, 7) All articles have image_url ✅, 8) All articles have reading_time field ✅, 9) GET /api/encyclopedia/universes returns 6 universes with article counts ✅. GENERAL FEATURES: 10) GET /api/health returns status 'ok' ✅, 11) GET /api/stats returns total_items = 5678 (>= 5678) ✅, 12) GET /api/heritage - all items have non-empty image_url ✅. All new features are fully functional and production-ready."
+    - agent: "testing"
+      message: "🇵🇹 PORTUGAL VIVO REVIEW REQUEST TESTING COMPLETE: Conducted comprehensive testing of the 4 specific endpoints requested in the review with 100% success rate (4/4 tests passed). TESTED ENDPOINTS: 1) GET /api/health returns status 'ok' ✅, 2) GET /api/encyclopedia/universes returns exactly 6 universes including 'historia_patrimonio' ✅, 3) GET /api/encyclopedia/universe/historia_patrimonio/items returns proper structure {items: [], total: N} with 100 items and total of 1053 ✅, 4) GET /api/map/items returns 5554 POIs with valid GPS coordinates for Portugal (lat: 32-42, lng: -31 to -6) ✅. PERFORMANCE: All responses under 5s requirement (avg: 0.999s, max: 1.625s). GPS coordinates validation confirmed all tested items have valid Portugal coordinates. Data structure validation confirmed proper field presence (id, name, category, region, location). All requested endpoints are fully functional and production-ready."
