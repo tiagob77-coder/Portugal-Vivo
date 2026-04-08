@@ -1090,12 +1090,14 @@ export default function MapaTab() {
                 <Text style={styles.loadingText}>A carregar mapa...</Text>
               </View>
             )}
-            {(() => {
-              console.log('[Mapa JSX] Rendering LeafletMapComponent with items:', mapComponentItems?.length);
-              return null;
-            })()}
-            <GoogleMapComponent
+            <LeafletMapComponent
+              items={mapComponentItems}
               onItemPress={(item) => setSelectedItem(item)}
+              getMarkerColor={getMarkerColor}
+              getLayerIcon={getLayerIcon}
+              mapMode={['trails', 'epochs', 'timeline', 'proximity'].includes(mapMode) ? 'markers' : mapMode}
+              trailPoints={trailData?.points}
+              trailColor={trailData?.color || '#C49A6C'}
               style={{ flex: 1, minHeight: 480, borderRadius: 16 }}
             />
           </View>
