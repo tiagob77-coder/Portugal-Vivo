@@ -6,7 +6,7 @@
  * - Native (iOS/Android): Uses react-native-maps with Google Maps
  * - Web: Uses a list-based fallback interface
  */
-import React, { useState, useRef, useCallback, useEffect } from 'react';
+import React, { useState, useRef, useCallback, useEffect, useMemo } from 'react';
 import {
   View,
   Text,
@@ -327,6 +327,11 @@ export default function MapaTab() {
     enabled: (activeCategories.length > 0 || mapMode === 'trails') && !['epochs'].includes(mapMode),
   });
 
+  // Debug: log when mapItems changes
+  useEffect(() => {
+    console.log('[Mapa] mapItems updated:', mapItems?.length, 'items');
+  }, [mapItems]);
+
   // Trails data
   const { data: trailsData } = useQuery({
     queryKey: ['trails-list'],
@@ -449,6 +454,22 @@ export default function MapaTab() {
   const nightItems = mapMode === 'noturno'
     ? (nightData?.items || []).filter((i: any) => nightFilter === 'all' || i.night_type === nightFilter)
     : [];
+
+  // Create stable items reference for the map component
+  // DEBUG: Using direct calculation without useMemo to debug
+  let mapComponentItems: any[];
+  if (mapMode === 'noturno') {
+    mapComponentItems = nightItems;
+  } else if (mapMode === 'proximity') {
+    mapComponentItems = (proximityData?.pois?.map((p: any) => ({ ...p, location: p.location || { lat: 0, lng: 0 } })) || []);
+  } else if (mapMode === 'epochs') {
+    mapComponentItems = epochMapItems || [];
+  } else if (mapMode === 'timeline') {
+    mapComponentItems = timelineMapItems || [];
+  } else {
+    mapComponentItems = mapItems || [];
+  }
+  console.log('[Mapa] mapComponentItems calculated:', mapComponentItems?.length, 'items, mapMode:', mapMode);
 
   const toggleLayer = (layerId: string) => {
     const layerSubs = getLayerSubcategories(layerId);
@@ -1068,8 +1089,13 @@ export default function MapaTab() {
                 <Text style={styles.loadingText}>A carregar mapa...</Text>
               </View>
             )}
+            {(() => {
+              console.log('[Mapa JSX] Rendering LeafletMapComponent with items:', mapComponentItems?.length);
+              return null;
+            })()}
             <LeafletMapComponent
-              items={mapMode === 'noturno' ? nightItems : mapMode === 'proximity' ? (proximityData?.pois?.map((p: any) => ({ ...p, location: p.location || { lat: 0, lng: 0 } })) || []) : mapMode === 'epochs' ? (epochMapItems || []) : mapMode === 'timeline' ? (timelineMapItems || []) : (mapItems || [])}
+              key={`map-${mapComponentItems?.length || 0}`}
+              items={mapComponentItems}
               onItemPress={(item) => setSelectedItem(item)}
               getMarkerColor={mapMode === 'noturno' ? ((cat: string) => {
                 const item = nightItems.find((i: any) => i.category === cat);

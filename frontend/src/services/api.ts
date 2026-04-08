@@ -12,6 +12,31 @@ const api = axios.create({
   },
 });
 
+// Debug interceptor for mobile testing
+if (__DEV__) {
+  api.interceptors.request.use(
+    (config) => {
+      console.log(`[API Request] ${config.method?.toUpperCase()} ${config.baseURL}${config.url}`);
+      return config;
+    },
+    (error) => {
+      console.error('[API Request Error]', error);
+      return Promise.reject(error);
+    }
+  );
+
+  api.interceptors.response.use(
+    (response) => {
+      console.log(`[API Response] ${response.status} ${response.config.url} - ${JSON.stringify(response.data).slice(0, 100)}...`);
+      return response;
+    },
+    (error) => {
+      console.error(`[API Response Error] ${error.config?.url}:`, error.message);
+      return Promise.reject(error);
+    }
+  );
+}
+
 // Cache-first fallback: try API, if fails try local cache
 const CACHE_TTL = 24 * 60 * 60 * 1000; // 24h
 async function cachedGet<T>(cacheKey: string, fetcher: () => Promise<T>, ttl = CACHE_TTL): Promise<T> {

@@ -24,6 +24,20 @@ const { width: _width } = Dimensions.get('window');
 
 const _GOOGLE_MAPS_API_KEY = process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY || '';
 
+// Helper to remove markdown formatting from AI-generated text
+const cleanMarkdown = (text: string): string => {
+  if (!text) return '';
+  return text
+    .replace(/^#{1,6}\s*/gm, '') // Remove header markers
+    .replace(/\*\*([^*]+)\*\*/g, '$1') // Remove bold
+    .replace(/\*([^*]+)\*/g, '$1') // Remove italic
+    .replace(/`([^`]+)`/g, '$1') // Remove inline code
+    .replace(/^\s*[-*+]\s+/gm, '• ') // Convert list markers to bullet
+    .replace(/^\s*\d+\.\s+/gm, '') // Remove numbered list markers
+    .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1') // Remove links, keep text
+    .trim();
+};
+
 // Conditional import for WebView (only on native)
 let _WebView: any = null;
 if (Platform.OS !== 'web') {
@@ -784,7 +798,7 @@ export default function HeritageDetailScreen() {
               {freeResumeData && (
                 <View style={styles.freeResumeContent}>
                   <View style={styles.freeResumeDivider} />
-                  <Text style={styles.freeResumeText}>{freeResumeData.narrative}</Text>
+                  <Text style={styles.freeResumeText}>{cleanMarkdown(freeResumeData.narrative)}</Text>
                   <View style={styles.freeResumeFooter}>
                     <MaterialIcons name="auto-awesome" size={12} color="#C49A6C" />
                     <Text style={styles.freeResumeFooterText}>Resumo gerado por IA</Text>
