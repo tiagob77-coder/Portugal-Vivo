@@ -836,6 +836,18 @@ api_router.include_router(music_router)
 
 logger.info("🎵  Music registered")
 
+# ── Cultural Routes API ──────────────────────────────────────────────────────
+from cultural_routes_api import (
+    cultural_routes_router,
+    set_cultural_routes_db,
+    set_cultural_routes_llm_key,
+)
+set_cultural_routes_db(db)
+set_cultural_routes_llm_key(EMERGENT_LLM_KEY)
+api_router.include_router(cultural_routes_router)
+
+logger.info("🧭  Cultural Routes registered")
+
 logger.info("🌊  Costa+AI+Economy+GeoPrehistoria+MarineBio+Infrastructure+MaritimeCulture registered")
 
 # ========================

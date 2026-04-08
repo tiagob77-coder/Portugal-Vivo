@@ -325,6 +325,15 @@ export const moduleThemes: Record<string, ModuleTheme> = {
     textSecondary: '#A78BFA',
     textMuted: '#7C6BA0',
   },
+  'rotas-culturais': {
+    bg: '#0F0720',                 // deep royal purple
+    card: '#1A0E30',
+    accent: '#A855F7',
+    accentMuted: withOpacity('#A855F7', 0.15),
+    textPrimary: '#F3E8FF',
+    textSecondary: '#C4B5D4',
+    textMuted: '#7C6D8F',
+  },
 };
 
 /**
