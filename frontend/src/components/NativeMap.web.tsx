@@ -12,6 +12,9 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { View, StyleSheet, TouchableOpacity, Text } from 'react-native';
 import type { MapItem, LeafletMapProps } from './NativeMap.types';
+import { API_BASE } from '../config/api';
+
+console.log('[NativeMap.web.tsx] Module loaded');
 
 // Re-export types for backwards compatibility
 export type { MapItem, LeafletMapProps };
@@ -76,9 +79,17 @@ async function loadMapLibre(): Promise<any> {
 
 function toGeoJSON(items: MapItem[], getColor: (c: string) => string) {
   const safeItems = items || [];
+  const validItems = safeItems.filter(item => {
+    const hasCoords = item?.location?.lat != null && item?.location?.lng != null;
+    if (!hasCoords && safeItems.length < 20) {
+      console.log('[toGeoJSON] Invalid item:', item?.id, item?.location);
+    }
+    return hasCoords;
+  });
+  console.log('[toGeoJSON] Valid items:', validItems.length, 'of', safeItems.length);
   return {
     type: 'FeatureCollection' as const,
-    features: safeItems.filter(item => item?.location?.lat && item?.location?.lng).map(item => ({
+    features: validItems.map(item => ({
       type: 'Feature' as const,
       geometry: { type: 'Point' as const, coordinates: [item.location.lng, item.location.lat] },
       properties: {
@@ -96,16 +107,24 @@ function toGeoJSON(items: MapItem[], getColor: (c: string) => string) {
 
 // ─── Componente principal ─────────────────────────────────────────────────────
 
-export function LeafletMapComponent({
-  items,
-  onItemPress,
-  getMarkerColor,
-  mapMode = 'light',
-  trailPoints,
-  trailColor = '#22C55E',
-  style,
-  onMapReady,
-}: LeafletMapProps) {
+export function LeafletMapComponent(props: LeafletMapProps) {
+  // Debug: Log ALL props as object
+  console.log('[NativeMap] ALL PROPS:', JSON.stringify(Object.keys(props)));
+  console.log('[NativeMap] props.items:', props.items?.length);
+  console.log('[NativeMap] props.mapMode:', props.mapMode);
+  
+  const {
+    items,
+    onItemPress,
+    getMarkerColor,
+    mapMode = 'light',
+    trailPoints,
+    trailColor = '#22C55E',
+    style,
+    onMapReady,
+  } = props;
+  
+  console.log('[NativeMap] DESTRUCTURED - items:', items?.length, 'mapMode:', mapMode);
   const containerRef = useRef<any>(null);
   const mapRef = useRef<any>(null);
   const popupRef = useRef<any>(null);
@@ -116,6 +135,12 @@ export function LeafletMapComponent({
   const [mapError, setMapError] = useState<string | null>(null);
   const [coords, setCoords] = useState<{lng: number; lat: number} | null>(null);
   const [isTecnico, setIsTecnico] = useState(false);
+  
+  // Store items in ref to access in effects
+  const itemsRef = useRef(items);
+  const getMarkerColorRef = useRef(getMarkerColor);
+  itemsRef.current = items;
+  getMarkerColorRef.current = getMarkerColor;
 
   // Keep items ref in sync
   useEffect(() => { itemsRef.current = items; }, [items]);
@@ -160,10 +185,12 @@ export function LeafletMapComponent({
       }
 
       map.on('load', () => {
+        console.log('[NativeMap] Map loaded, adding layers...');
         _addTerrainSource(map);
         _addPOIsLayer(map);
         _addTrailLayers(map);
         _applySolarLight(map);
+        console.log('[NativeMap] Layers added, setting ready=true');
         setReady(true);
         onMapReady?.();
         map.on('mousemove', (e: any) => {
@@ -345,18 +372,41 @@ export function LeafletMapComponent({
     });
     map.addLayer({
       id: 'trail-line', type: 'line', source: 'trail',
+      layout: {
+        'line-cap': 'round',
+        'line-join': 'round',
+      },
       paint: {
         'line-color': trailColor, 'line-width': 4, 'line-opacity': 0.88,
-        'line-cap': 'round', 'line-join': 'round',
       },
     });
   }
 
-  // ── Actualizar marcadores ──────────────────────────────────────────────────
+  // Update markers when items change or map becomes ready
   useEffect(() => {
-    if (!mapRef.current || !ready) return;
-    mapRef.current.getSource('pois')?.setData(toGeoJSON(items, getMarkerColor));
-  }, [items, ready, getMarkerColor]);
+    console.log('[NativeMap] Items effect triggered - ready:', ready, 'items:', items?.length);
+    if (!ready || !mapRef.current) {
+      console.log('[NativeMap] Skipping - not ready or no mapRef');
+      return;
+    }
+    
+    const source = mapRef.current.getSource('pois');
+    if (!source) {
+      console.warn('[NativeMap] POIs source not found');
+      return;
+    }
+    
+    const safeItems = Array.isArray(items) ? items : [];
+    const currentColor = getMarkerColorRef.current || ((cat: string) => '#C49A6C');
+    const geoJSON = toGeoJSON(safeItems, currentColor);
+    console.log('[NativeMap] Updating map with', geoJSON.features.length, 'features');
+    console.log('[NativeMap] Source type:', typeof source.setData);
+    source.setData(geoJSON);
+    
+    // Force map to re-render
+    mapRef.current?.triggerRepaint?.();
+    console.log('[NativeMap] Data set successfully, first feature coords:', geoJSON.features[0]?.geometry?.coordinates);
+  }, [items, ready]);
 
   // ── Actualizar trilho ──────────────────────────────────────────────────────
   useEffect(() => {
@@ -527,7 +577,9 @@ export default LeafletMapComponent;
 export const Marker: React.FC<any> = () => null;
 export const Callout: React.FC<any> = () => null;
 export const PROVIDER_GOOGLE = null;
-export const isMapAvailable = true;
+// On web, MapView is not actually available (we use LeafletMapComponent instead)
+// So we set isMapAvailable to false to use the web fallback rendering path
+export const isMapAvailable = false;
 
 // ─── Estilos ──────────────────────────────────────────────────────────────────
 

@@ -6,7 +6,7 @@
  * - Native (iOS/Android): Uses react-native-maps with Google Maps
  * - Web: Uses a list-based fallback interface
  */
-import React, { useState, useRef, useCallback, useEffect } from 'react';
+import React, { useState, useRef, useCallback, useEffect, useMemo } from 'react';
 import {
   View,
   Text,
@@ -29,6 +29,7 @@ import { colors, typography, spacing, borders, shadows } from '../../src/theme';
 // import { categoryColors } from '../../src/context/ThemeContext';
 import AccessibilityFilters from '../../src/components/AccessibilityFilters';
 import MapView, { Marker, Callout, PROVIDER_GOOGLE, isMapAvailable, LeafletMapComponent } from '../../src/components/NativeMap';
+import { GoogleMapComponent } from '../../src/components/GoogleMapComponent';
 import {
   MapLayerSelector,
   MapModeSelector,
@@ -327,15 +328,22 @@ export default function MapaTab() {
     enabled: (activeCategories.length > 0 || mapMode === 'trails') && !['epochs'].includes(mapMode),
   });
 
+  // Debug: log when mapItems changes
+  useEffect(() => {
+    console.log('[Mapa] mapItems updated:', mapItems?.length, 'items');
+  }, [mapItems]);
+
   // Trails data
-  const { data: trailsList } = useQuery({
+  const { data: trailsData } = useQuery({
     queryKey: ['trails-list'],
     queryFn: async () => {
       const res = await api.get('/trails');
-      return res.data;
+      // API returns { trails: [...], total: N } — extract array
+      return Array.isArray(res.data) ? res.data : (res.data?.trails || []);
     },
     enabled: mapMode === 'trails',
   });
+  const trailsList = Array.isArray(trailsData) ? trailsData : [];
 
   // Auto-select first trail when entering trails mode (if none selected)
   useEffect(() => {
@@ -447,6 +455,22 @@ export default function MapaTab() {
   const nightItems = mapMode === 'noturno'
     ? (nightData?.items || []).filter((i: any) => nightFilter === 'all' || i.night_type === nightFilter)
     : [];
+
+  // Create stable items reference for the map component
+  // DEBUG: Using direct calculation without useMemo to debug
+  let mapComponentItems: any[];
+  if (mapMode === 'noturno') {
+    mapComponentItems = nightItems;
+  } else if (mapMode === 'proximity') {
+    mapComponentItems = (proximityData?.pois?.map((p: any) => ({ ...p, location: p.location || { lat: 0, lng: 0 } })) || []);
+  } else if (mapMode === 'epochs') {
+    mapComponentItems = epochMapItems || [];
+  } else if (mapMode === 'timeline') {
+    mapComponentItems = timelineMapItems || [];
+  } else {
+    mapComponentItems = mapItems || [];
+  }
+  console.log('[Mapa] mapComponentItems calculated:', mapComponentItems?.length, 'items, mapMode:', mapMode);
 
   const toggleLayer = (layerId: string) => {
     const layerSubs = getLayerSubcategories(layerId);
@@ -1067,15 +1091,9 @@ export default function MapaTab() {
               </View>
             )}
             <LeafletMapComponent
-              items={mapMode === 'noturno' ? nightItems : mapMode === 'proximity' ? (proximityData?.pois?.map((p: any) => ({ ...p, location: p.location || { lat: 0, lng: 0 } })) || []) : mapMode === 'epochs' ? (epochMapItems || []) : mapMode === 'timeline' ? (timelineMapItems || []) : (mapItems || [])}
+              items={mapComponentItems}
               onItemPress={(item) => setSelectedItem(item)}
-              getMarkerColor={mapMode === 'noturno' ? ((cat: string) => {
-                const item = nightItems.find((i: any) => i.category === cat);
-                const nf = NIGHT_FILTERS.find(f => f.id === (item?.night_type || ''));
-                return nf?.color || '#A78BFA';
-              }) : mapMode === 'epochs' || mapMode === 'timeline' ? ((_cat: string) => {
-                return timelineEpoch?.color || '#C49A6C';
-              }) : getMarkerColor}
+              getMarkerColor={getMarkerColor}
               getLayerIcon={getLayerIcon}
               mapMode={['trails', 'epochs', 'timeline', 'proximity'].includes(mapMode) ? 'markers' : mapMode}
               trailPoints={trailData?.points}

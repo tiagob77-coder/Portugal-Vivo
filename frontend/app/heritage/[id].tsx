@@ -24,6 +24,20 @@ const { width: _width } = Dimensions.get('window');
 
 const _GOOGLE_MAPS_API_KEY = process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY || '';
 
+// Helper to remove markdown formatting from AI-generated text
+const cleanMarkdown = (text: string): string => {
+  if (!text) return '';
+  return text
+    .replace(/^#{1,6}\s*/gm, '') // Remove header markers
+    .replace(/\*\*([^*]+)\*\*/g, '$1') // Remove bold
+    .replace(/\*([^*]+)\*/g, '$1') // Remove italic
+    .replace(/`([^`]+)`/g, '$1') // Remove inline code
+    .replace(/^\s*[-*+]\s+/gm, '• ') // Convert list markers to bullet
+    .replace(/^\s*\d+\.\s+/gm, '') // Remove numbered list markers
+    .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1') // Remove links, keep text
+    .trim();
+};
+
 // Conditional import for WebView (only on native)
 let _WebView: any = null;
 if (Platform.OS !== 'web') {
@@ -683,7 +697,7 @@ export default function HeritageDetailScreen() {
               <ShareButton
                 title={item.name}
                 description={`Descobre ${item.name} no Portugal Vivo! \u{1F1F5}\u{1F1F9}`}
-                url={`https://project-analyzer-131.preview.emergentagent.com/heritage/${id}`}
+                url={`https://portugal-vivo-3.preview.emergentagent.com/heritage/${id}`}
               />
               <TouchableOpacity 
                 style={[styles.favoriteButton, isFavorite && styles.favoriteButtonActive]} 
@@ -784,7 +798,7 @@ export default function HeritageDetailScreen() {
               {freeResumeData && (
                 <View style={styles.freeResumeContent}>
                   <View style={styles.freeResumeDivider} />
-                  <Text style={styles.freeResumeText}>{freeResumeData.narrative}</Text>
+                  <Text style={styles.freeResumeText}>{cleanMarkdown(freeResumeData.narrative)}</Text>
                   <View style={styles.freeResumeFooter}>
                     <MaterialIcons name="auto-awesome" size={12} color="#C49A6C" />
                     <Text style={styles.freeResumeFooterText}>Resumo gerado por IA</Text>
@@ -897,29 +911,19 @@ export default function HeritageDetailScreen() {
                   loading="lazy"
                 />
               </View>
-            ) : MapView ? (
-              /* Native: react-native-maps interactive MapView */
+            ) : _WebView ? (
+              /* Native: Leaflet mini-map via WebView */
               <View style={[styles.miniMapContainer, { borderRadius: 12, overflow: 'hidden' }]}>
-                <MapView
+                <_WebView
                   style={{ flex: 1 }}
-                  initialRegion={{
-                    latitude: item.location?.lat || 39.5,
-                    longitude: item.location?.lng || -8.0,
-                    latitudeDelta: 0.02,
-                    longitudeDelta: 0.02,
-                  }}
+                  source={{ html: `<!DOCTYPE html><html><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/><link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/><style>*{margin:0;padding:0}html,body,#map{width:100%;height:100%}</style></head><body><div id="map"></div><script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"><\/script><script>var map=L.map('map',{zoomControl:false,attributionControl:false}).setView([${item.location?.lat||39.5},${item.location?.lng||-8.0}],15);L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',{maxZoom:19,subdomains:'abcd'}).addTo(map);L.circleMarker([${item.location?.lat||39.5},${item.location?.lng||-8.0}],{radius:8,fillColor:'#C49A6C',color:'#fff',weight:3,fillOpacity:1}).addTo(map);<\/script></body></html>` }}
+                  javaScriptEnabled
+                  domStorageEnabled
                   scrollEnabled={false}
-                  zoomEnabled={false}
-                  rotateEnabled={false}
-                >
-                  <Marker
-                    coordinate={{
-                      latitude: item.location?.lat || 39.5,
-                      longitude: item.location?.lng || -8.0,
-                    }}
-                    title={item.name}
-                  />
-                </MapView>
+                  bounces={false}
+                  originWhitelist={['*']}
+                  mixedContentMode="always"
+                />
                 <View style={styles.mapTapOverlay} pointerEvents="none">
                   <View style={styles.mapTapHintBottom}>
                     <MaterialIcons name="touch-app" size={14} color="#FFFFFF" />

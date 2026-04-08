@@ -13,6 +13,7 @@ Usage in a router:
 """
 from typing import Optional
 from motor.motor_asyncio import AsyncIOMotorClient, AsyncIOMotorDatabase
+import certifi
 import logging
 
 logger = logging.getLogger(__name__)
@@ -25,6 +26,10 @@ _db: Optional[AsyncIOMotorDatabase] = None
 def init_database(mongo_url: str, db_name: str) -> AsyncIOMotorDatabase:
     """Initialize the database connection with optimized pooling. Called once at startup."""
     global _client, _db
+    # Support Atlas SRV connections with proper SSL
+    extra_kwargs = {}
+    if 'mongodb+srv' in mongo_url or 'mongodb.net' in mongo_url:
+        extra_kwargs['tlsCAFile'] = certifi.where()
     _client = AsyncIOMotorClient(
         mongo_url,
         maxPoolSize=50,
@@ -36,6 +41,7 @@ def init_database(mongo_url: str, db_name: str) -> AsyncIOMotorDatabase:
         retryWrites=True,
         retryReads=True,
         w="majority",
+        **extra_kwargs,
     )
     _db = _client[db_name]
     logger.info("Database initialized: %s (pool: 5-50, timeouts: connect=10s, socket=30s)", db_name)

@@ -174,7 +174,19 @@ async def get_map_items(
     limit: int = 10000,
 ):
     """Get heritage items for map display (only items with GPS coordinates)"""
-    query = {"location.lat": {"$exists": True, "$ne": None}}
+    # Filter for items within Portugal (continental + islands) with valid coordinates
+    query = {
+        "location.lat": {"$exists": True, "$ne": None, "$ne": 0},
+        "location.lng": {"$exists": True, "$ne": None, "$ne": 0},
+        "$or": [
+            # Continental Portugal
+            {"location.lat": {"$gte": 36.8, "$lte": 42.2}, "location.lng": {"$gte": -9.6, "$lte": -6.1}},
+            # Madeira
+            {"location.lat": {"$gte": 32.0, "$lte": 33.2}, "location.lng": {"$gte": -17.5, "$lte": -16.2}},
+            # Açores
+            {"location.lat": {"$gte": 36.9, "$lte": 39.8}, "location.lng": {"$gte": -31.5, "$lte": -24.9}},
+        ]
+    }
 
     if categories:
         cat_list = resolve_categories(categories.split(","))

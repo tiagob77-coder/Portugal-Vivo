@@ -136,7 +136,7 @@ async def _generate_actions(ctx: UserContext, active: List[str]) -> List[SmartAc
     month = ctx.month if ctx.month is not None else datetime.now(timezone.utc).month
 
     # ── Proximity-based actions ──
-    if ctx.lat and ctx.lng and _db:
+    if ctx.lat and ctx.lng and _db is not None:
         nearby = await _db.heritage_items.find({
             "location": {
                 "$nearSphere": {
@@ -240,7 +240,7 @@ async def _generate_actions(ctx: UserContext, active: List[str]) -> List[SmartAc
         ))
 
     # ── Safety alerts (always check) ──
-    if _db:
+    if _db is not None:
         fires = await _db.safety_alerts.find({
             "type": "fire",
             "active": True,
@@ -258,7 +258,7 @@ async def _generate_actions(ctx: UserContext, active: List[str]) -> List[SmartAc
             ))
 
     # ── Events today ──
-    if _db:
+    if _db is not None:
         today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
         events = await _db.calendar_events.find({
             "date": {"$regex": f"^{today}"}
@@ -284,7 +284,7 @@ async def _generate_actions(ctx: UserContext, active: List[str]) -> List[SmartAc
 async def _preload_data(ctx: UserContext, active: List[str]) -> Dict[str, Any]:
     """Pré-carrega dados dos módulos activos para evitar waterfalls no frontend."""
     preloaded: Dict[str, Any] = {}
-    if not _db:
+    if _db is None:
         return preloaded
 
     # Weather if available
@@ -387,7 +387,7 @@ async def smart_discover(
     Pesquisa em TODAS as colecções geo-localizadas e retorna resultados
     ordenados por relevância (proximidade + IQ score + perfil).
     """
-    if not _db or not ctx.lat or not ctx.lng:
+    if _db is None or not ctx.lat or not ctx.lng:
         raise HTTPException(400, "Location required for smart discover")
 
     active = _get_active_modules(ctx)

@@ -71,9 +71,6 @@ export default function UniverseDetailPage() {
   const [selectedRegion, setSelectedRegion] = useState('todas');
   const [selectedSubcategory, setSelectedSubcategory] = useState('todas');
   const [subcatSearch, setSubcatSearch] = useState('');
-  const [items, setItems] = useState<any[]>([]);
-  const [totalItems, setTotalItems] = useState(0);
-  const [loadingItems, setLoadingItems] = useState(false);
 
   const { data: universe, isLoading, error } = useQuery({
     queryKey: ['encyclopedia-universe', id],
@@ -105,37 +102,29 @@ export default function UniverseDetailPage() {
     });
   }, [universe?.categories, subcatSearch]);
 
-  // Load items when id, region or subcategory changes
-  useEffect(() => {
-    if (!id) return;
-    
-    const loadItems = async () => {
-      setLoadingItems(true);
-      try {
-        const params: any = { skip: 0, limit: 100 };
-        if (selectedRegion && selectedRegion !== 'todas') {
-          params.region = selectedRegion;
-        }
-        if (selectedSubcategory && selectedSubcategory !== 'todas') {
-          params.category = selectedSubcategory;
-        }
-        const response = await api.get(`/encyclopedia/universe/${id}/items`, { params });
-        setItems(response.data?.items || []);
-        setTotalItems(response.data?.total || 0);
-      } catch (err) {
-        console.error('Encyclopedia: Error loading items:', err);
-        setItems([]);
-        setTotalItems(0);
-      } finally {
-        setLoadingItems(false);
-      }
-    };
-    
-    loadItems();
-  }, [id, selectedRegion, selectedSubcategory]);
+  // Load items with useQuery for reliability (retries, caching)
+  const itemsParams = useMemo(() => {
+    const params: any = { skip: 0, limit: 50 };
+    if (selectedRegion && selectedRegion !== 'todas') params.region = selectedRegion;
+    if (selectedSubcategory && selectedSubcategory !== 'todas') params.category = selectedSubcategory;
+    return params;
+  }, [selectedRegion, selectedSubcategory]);
+
+  const { data: itemsData, isLoading: loadingItems, error: itemsError } = useQuery({
+    queryKey: ['encyclopedia-items', id, selectedRegion, selectedSubcategory],
+    queryFn: async () => {
+      const response = await api.get(`/encyclopedia/universe/${id}/items`, { params: itemsParams, timeout: 20000 });
+      return response.data as { items: any[]; total: number; has_more: boolean };
+    },
+    enabled: !!id,
+    staleTime: 60000, // 1 min
+    retry: 2,
+  });
+
+  const items = itemsData?.items || [];
+  const totalItems = itemsData?.total || 0;
 
   const allItems = items;
-  const _itemsLoading = loadingItems;
 
   const _renderArticleCard = (article: EncyclopediaArticle) => (
     <TouchableOpacity

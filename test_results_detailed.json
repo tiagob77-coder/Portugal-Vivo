@@ -2,7 +2,7 @@
   {
     "endpoint": "/health",
     "method": "GET",
-    "url": "https://project-analyzer-131.preview.emergentagent.com/api/health",
+    "url": "https://portugal-vivo-3.preview.emergentagent.com/api/health",
     "status_code": 200,
     "expected_status": 200,
     "success": true,
@@ -21,7 +21,7 @@
   {
     "endpoint": "/stats",
     "method": "GET",
-    "url": "https://project-analyzer-131.preview.emergentagent.com/api/stats",
+    "url": "https://portugal-vivo-3.preview.emergentagent.com/api/stats",
     "status_code": 200,
     "expected_status": 200,
     "success": true,
@@ -305,7 +305,7 @@
   {
     "endpoint": "/categories",
     "method": "GET",
-    "url": "https://project-analyzer-131.preview.emergentagent.com/api/categories",
+    "url": "https://portugal-vivo-3.preview.emergentagent.com/api/categories",
     "status_code": 200,
     "expected_status": 200,
     "success": true,
@@ -588,7 +588,7 @@
   {
     "endpoint": "/heritage",
     "method": "GET",
-    "url": "https://project-analyzer-131.preview.emergentagent.com/api/heritage",
+    "url": "https://portugal-vivo-3.preview.emergentagent.com/api/heritage",
     "status_code": 200,
     "expected_status": 200,
     "success": true,
@@ -703,7 +703,7 @@
   {
     "endpoint": "/heritage",
     "method": "GET",
-    "url": "https://project-analyzer-131.preview.emergentagent.com/api/heritage",
+    "url": "https://portugal-vivo-3.preview.emergentagent.com/api/heritage",
     "status_code": 200,
     "expected_status": 200,
     "success": true,
@@ -818,7 +818,7 @@
   {
     "endpoint": "/heritage",
     "method": "GET",
-    "url": "https://project-analyzer-131.preview.emergentagent.com/api/heritage",
+    "url": "https://portugal-vivo-3.preview.emergentagent.com/api/heritage",
     "status_code": 200,
     "expected_status": 200,
     "success": true,
@@ -930,7 +930,7 @@
   {
     "endpoint": "/heritage",
     "method": "GET",
-    "url": "https://project-analyzer-131.preview.emergentagent.com/api/heritage",
+    "url": "https://portugal-vivo-3.preview.emergentagent.com/api/heritage",
     "status_code": 200,
     "expected_status": 200,
     "success": true,
@@ -1051,7 +1051,7 @@
   {
     "endpoint": "/map/items",
     "method": "GET",
-    "url": "https://project-analyzer-131.preview.emergentagent.com/api/map/items",
+    "url": "https://portugal-vivo-3.preview.emergentagent.com/api/map/items",
     "status_code": 200,
     "expected_status": 200,
     "success": true,

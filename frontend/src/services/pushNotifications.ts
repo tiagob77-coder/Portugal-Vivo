@@ -67,14 +67,25 @@ class PushNotificationService {
   private async initializeNative(): Promise<string | null> {
     try {
       // SDK 53+: expo-notifications remote push was removed from Expo Go
-      // Wrap in try/catch to gracefully handle unavailability
+      // Detect Expo Go and skip completely to avoid console errors
+      let Constants: any;
+      try {
+        Constants = require('expo-constants'); // eslint-disable-line @typescript-eslint/no-require-imports
+      } catch { /* ignore */ }
+      const execEnv = Constants?.default?.executionEnvironment || Constants?.executionEnvironment;
+      if (execEnv === 'storeClient') {
+        // Running in Expo Go — push notifications not supported since SDK 53
+        console.log('Push notifications: Skipped (Expo Go detected)');
+        return null;
+      }
+
       let Notifications: any;
       let Device: any;
       try {
         Notifications = require('expo-notifications'); // eslint-disable-line @typescript-eslint/no-require-imports
         Device = require('expo-device'); // eslint-disable-line @typescript-eslint/no-require-imports
       } catch (importError) {
-        console.log('Push notifications module not available (Expo Go SDK 53+)');
+        console.log('Push notifications module not available');
         return null;
       }
 

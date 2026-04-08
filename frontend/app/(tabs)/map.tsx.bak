@@ -11,6 +11,7 @@ import { LeafletMapComponent } from '../../src/components/NativeMap';
 const ALL_REGION: Region = { id: 'all', name: 'Todas', color: '', icon: 'public' };
 
 export default function MapScreen() {
+  console.log('[MapScreen - map.tsx] Component rendering');
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
