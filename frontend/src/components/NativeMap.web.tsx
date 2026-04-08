@@ -109,11 +109,16 @@ export function LeafletMapComponent({
   const containerRef = useRef<any>(null);
   const mapRef = useRef<any>(null);
   const popupRef = useRef<any>(null);
+  const initialStyleRef = useRef(true);  // skip first setStyle call
+  const itemsRef = useRef(items);        // latest items for re-add after style change
   const [is3D, setIs3D] = useState(false);
   const [ready, setReady] = useState(false);
   const [mapError, setMapError] = useState<string | null>(null);
   const [coords, setCoords] = useState<{lng: number; lat: number} | null>(null);
   const [isTecnico, setIsTecnico] = useState(false);
+
+  // Keep items ref in sync
+  useEffect(() => { itemsRef.current = items; }, [items]);
 
   // ── Inicializar mapa ──────────────────────────────────────────────────────
   useEffect(() => {
@@ -381,19 +386,44 @@ export function LeafletMapComponent({
   }, [trailPoints, ready]);
 
   // ── Mudar estilo de mapa ───────────────────────────────────────────────────
+  // CRITICAL: setStyle() destroys ALL sources and layers — must re-add them after.
+  // Skip on initial render (layers already added in map.on('load')).
   useEffect(() => {
     if (!mapRef.current || !ready) return;
+
+    // Skip the first trigger (when ready becomes true) — map already has the right style
+    if (initialStyleRef.current) {
+      initialStyleRef.current = false;
+      return;
+    }
+
     const map = mapRef.current;
-    if (mapMode === 'premium') {
-      map.setStyle(MAP_STYLES.premium);
-      setTimeout(() => {
+    const newStyle = mapMode === 'premium'
+      ? MAP_STYLES.premium
+      : (MAP_STYLES[mapMode] || MAP_STYLES.light);
+
+    map.setStyle(newStyle);
+
+    // After style loads, re-add all sources/layers and re-populate data
+    map.once('style.load', () => {
+      _addTerrainSource(map);
+      _addPOIsLayer(map);
+      _addTrailLayers(map);
+      _applySolarLight(map);
+
+      // Re-populate POI data
+      const src = map.getSource('pois');
+      if (src && itemsRef.current) {
+        src.setData(toGeoJSON(itemsRef.current, getMarkerColor));
+      }
+
+      // Premium background tint
+      if (mapMode === 'premium') {
         try {
           map.setPaintProperty('background', 'background-color', '#F5F0E8');
         } catch (_) {}
-      }, 500);
-      return;
-    }
-    map.setStyle(MAP_STYLES[mapMode] || MAP_STYLES.light);
+      }
+    });
   }, [mapMode, ready]);
 
   // ── Toggle terrain 3D ─────────────────────────────────────────────────────
