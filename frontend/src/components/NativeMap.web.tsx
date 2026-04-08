@@ -12,6 +12,7 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { View, StyleSheet, TouchableOpacity, Text } from 'react-native';
 import type { MapItem, LeafletMapProps } from './NativeMap.types';
+import { API_BASE } from '../config/api';
 
 console.log('[NativeMap.web.tsx] Module loaded');
 
@@ -78,9 +79,17 @@ async function loadMapLibre(): Promise<any> {
 
 function toGeoJSON(items: MapItem[], getColor: (c: string) => string) {
   const safeItems = items || [];
+  const validItems = safeItems.filter(item => {
+    const hasCoords = item?.location?.lat != null && item?.location?.lng != null;
+    if (!hasCoords && safeItems.length < 20) {
+      console.log('[toGeoJSON] Invalid item:', item?.id, item?.location);
+    }
+    return hasCoords;
+  });
+  console.log('[toGeoJSON] Valid items:', validItems.length, 'of', safeItems.length);
   return {
     type: 'FeatureCollection' as const,
-    features: safeItems.filter(item => item?.location?.lat && item?.location?.lng).map(item => ({
+    features: validItems.map(item => ({
       type: 'Feature' as const,
       geometry: { type: 'Point' as const, coordinates: [item.location.lng, item.location.lat] },
       properties: {
@@ -116,6 +125,12 @@ export function LeafletMapComponent({
   const [mapError, setMapError] = useState<string | null>(null);
   const [coords, setCoords] = useState<{lng: number; lat: number} | null>(null);
   const [isTecnico, setIsTecnico] = useState(false);
+  
+  // Store items in ref to access in effects
+  const itemsRef = useRef(items);
+  const getMarkerColorRef = useRef(getMarkerColor);
+  itemsRef.current = items;
+  getMarkerColorRef.current = getMarkerColor;
 
   // ── Inicializar mapa ──────────────────────────────────────────────────────
   useEffect(() => {
@@ -157,9 +172,9 @@ export function LeafletMapComponent({
       }
 
       map.on('load', () => {
-        console.log('[NativeMap] Map loaded, adding layers with items:', items?.length);
+        console.log('[NativeMap] Map loaded, adding layers...');
         _addTerrainSource(map);
-        _addPOIsLayer(map, items, getMarkerColor);
+        _addPOIsLayer(map);
         _addTrailLayers(map);
         _applySolarLight(map);
         console.log('[NativeMap] Layers added, setting ready=true');
@@ -219,15 +234,10 @@ export function LeafletMapComponent({
     } catch (_) {}
   }
 
-  function _addPOIsLayer(map: any, initialItems?: MapItem[], initialGetMarkerColor?: (c: string) => string) {
-    const initialData = initialItems && initialGetMarkerColor 
-      ? toGeoJSON(initialItems, initialGetMarkerColor)
-      : { type: 'FeatureCollection', features: [] };
-    console.log('[NativeMap] _addPOIsLayer called with', initialData.features?.length || 0, 'initial features');
-    
+  function _addPOIsLayer(map: any) {
     map.addSource('pois', {
       type: 'geojson',
-      data: initialData,
+      data: { type: 'FeatureCollection', features: [] },
       cluster: true,
       clusterMaxZoom: 13,
       clusterRadius: 44,
@@ -359,41 +369,72 @@ export function LeafletMapComponent({
     });
   }
 
-  // ── Actualizar marcadores ──────────────────────────────────────────────────
-  useEffect(() => {
-    console.log('[NativeMap] useEffect triggered - ready:', ready, 'items length:', items?.length);
-    if (!mapRef.current || !ready) {
-      console.log('[NativeMap] Skipping update - map not ready');
-      return;
-    }
-    const source = mapRef.current.getSource('pois');
-    if (!source) {
-      console.warn('[NativeMap] POIs source not found');
-      return;
-    }
-    // Ensure items is an array
-    const safeItems = Array.isArray(items) ? items : [];
-    const geoJSON = toGeoJSON(safeItems, getMarkerColor);
-    console.log('[NativeMap] Updating markers:', geoJSON.features.length, 'features');
-    source.setData(geoJSON);
-  }, [items, ready, getMarkerColor]);
-  
-  // Retry updating markers after initial load - handles race condition
+  // Polling interval to update markers from latest items ref
   useEffect(() => {
     if (!ready) return;
-    const timeoutId = setTimeout(() => {
-      if (mapRef.current && items && items.length > 0) {
-        const source = mapRef.current.getSource('pois');
-        if (source) {
-          const safeItems = Array.isArray(items) ? items : [];
-          const geoJSON = toGeoJSON(safeItems, getMarkerColor);
-          console.log('[NativeMap] Delayed update - setting', geoJSON.features.length, 'markers');
-          source.setData(geoJSON);
+    
+    // Fetch items directly from API if props are empty
+    const fetchAndUpdateMarkers = async () => {
+      if (!mapRef.current) return;
+      const source = mapRef.current.getSource('pois');
+      if (!source) return;
+      
+      // Check if we have items from props
+      let currentItems = itemsRef.current;
+      if (!currentItems || !Array.isArray(currentItems) || currentItems.length === 0) {
+        // Fetch items directly from API
+        try {
+          console.log('[NativeMap] Fetching items from API...');
+          const response = await fetch(`${API_BASE}/map/items`);
+          if (response.ok) {
+            currentItems = await response.json();
+            console.log('[NativeMap] Fetched', currentItems?.length, 'items from API');
+          }
+        } catch (error) {
+          console.error('[NativeMap] Error fetching items:', error);
         }
       }
-    }, 100);
-    return () => clearTimeout(timeoutId);
-  }, [ready, items, getMarkerColor]);
+      
+      const safeItems = Array.isArray(currentItems) ? currentItems : [];
+      console.log('[NativeMap] About to call toGeoJSON with', safeItems.length, 'items');
+      const currentColor = getMarkerColorRef.current || ((cat: string) => '#C49A6C');
+      const geoJSON = toGeoJSON(safeItems, currentColor);
+      console.log('[NativeMap] Updating map with', geoJSON.features.length, 'features');
+      console.log('[NativeMap] First feature:', JSON.stringify(geoJSON.features[0]?.geometry));
+      source.setData(geoJSON);
+      
+      // Force repaint
+      mapRef.current?.triggerRepaint();
+      
+      // After setting data, verify the source
+      setTimeout(() => {
+        const source2 = mapRef.current?.getSource('pois');
+        console.log('[NativeMap] Source verification - type:', source2?.type, 'cluster:', source2?.cluster);
+        
+        // Check if clusters layer is visible
+        const visibility = mapRef.current?.getLayoutProperty('clusters', 'visibility');
+        console.log('[NativeMap] Clusters visibility:', visibility);
+      }, 1000);
+    };
+    
+    // Initial fetch and update
+    fetchAndUpdateMarkers();
+    
+  }, [ready]);
+
+  // Direct update when items change (this effect runs when items prop changes)
+  useEffect(() => {
+    console.log('[NativeMap] Items effect - ready:', ready, 'items:', items?.length);
+    if (!ready || !mapRef.current) return;
+    
+    const source = mapRef.current.getSource('pois');
+    if (!source) return;
+    
+    const safeItems = Array.isArray(items) ? items : [];
+    const geoJSON = toGeoJSON(safeItems, getMarkerColor);
+    console.log('[NativeMap] Items changed update:', geoJSON.features.length, 'features');
+    source.setData(geoJSON);
+  }, [items, getMarkerColor, ready]);
 
   // ── Actualizar trilho ──────────────────────────────────────────────────────
   useEffect(() => {

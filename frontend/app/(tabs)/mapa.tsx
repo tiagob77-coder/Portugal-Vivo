@@ -29,6 +29,7 @@ import { colors, typography, spacing, borders, shadows } from '../../src/theme';
 // import { categoryColors } from '../../src/context/ThemeContext';
 import AccessibilityFilters from '../../src/components/AccessibilityFilters';
 import MapView, { Marker, Callout, PROVIDER_GOOGLE, isMapAvailable, LeafletMapComponent } from '../../src/components/NativeMap';
+import { GoogleMapComponent } from '../../src/components/GoogleMapComponent';
 import {
   MapLayerSelector,
   MapModeSelector,
@@ -1093,21 +1094,8 @@ export default function MapaTab() {
               console.log('[Mapa JSX] Rendering LeafletMapComponent with items:', mapComponentItems?.length);
               return null;
             })()}
-            <LeafletMapComponent
-              key={`map-${mapComponentItems?.length || 0}`}
-              items={mapComponentItems}
+            <GoogleMapComponent
               onItemPress={(item) => setSelectedItem(item)}
-              getMarkerColor={mapMode === 'noturno' ? ((cat: string) => {
-                const item = nightItems.find((i: any) => i.category === cat);
-                const nf = NIGHT_FILTERS.find(f => f.id === (item?.night_type || ''));
-                return nf?.color || '#A78BFA';
-              }) : mapMode === 'epochs' || mapMode === 'timeline' ? ((_cat: string) => {
-                return timelineEpoch?.color || '#C49A6C';
-              }) : getMarkerColor}
-              getLayerIcon={getLayerIcon}
-              mapMode={['trails', 'epochs', 'timeline', 'proximity'].includes(mapMode) ? 'markers' : mapMode}
-              trailPoints={trailData?.points}
-              trailColor={trailData?.color || '#C49A6C'}
               style={{ flex: 1, minHeight: 480, borderRadius: 16 }}
             />
           </View>
