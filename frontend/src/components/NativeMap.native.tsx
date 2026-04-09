@@ -9,8 +9,6 @@ import { StyleSheet, View, Text, Platform } from 'react-native';
 import MapView, { Marker, Callout, PROVIDER_GOOGLE, PROVIDER_DEFAULT } from 'react-native-maps';
 import type { MapItem, LeafletMapProps } from './NativeMap.types';
 
-console.log('[NativeMap.native.tsx] NATIVE MODULE LOADED - should NOT appear on web!');
-
 // Re-export types for backwards compatibility
 export type { MapItem, LeafletMapProps };
 
