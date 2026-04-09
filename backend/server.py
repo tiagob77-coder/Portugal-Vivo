@@ -460,9 +460,10 @@ from beaches_realtime_api import beaches_router
 api_router.include_router(beaches_router)
 
 # Agenda Viral
-from agenda_api import agenda_router, set_agenda_db, seed_grande_expedicao
+from agenda_api import agenda_router, set_agenda_db, seed_grande_expedicao, calendar_compat_router
 set_agenda_db(db)
 api_router.include_router(agenda_router)
+api_router.include_router(calendar_compat_router)
 
 # Smart Travel Planner
 from planner_api import planner_router, set_planner_db
