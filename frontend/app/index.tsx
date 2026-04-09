@@ -50,11 +50,11 @@ const HERO_IMAGE = 'https://upload.wikimedia.org/wikipedia/commons/thumb/8/87/Ri
 
 const REGIONS = [
   { id: 'norte', name: 'Norte', desc: 'Do Minho ao Douro, granito e vinho verde', items: 714 },
-  { id: 'centro', name: 'Centro', desc: 'Serras, aldeias historicas e tradicoes vivas', items: 704 },
+  { id: 'centro', name: 'Centro', desc: 'Serras, aldeias históricas e tradições vivas', items: 704 },
   { id: 'lisboa', name: 'Lisboa', desc: 'Capital de luz, fado e azulejos', items: 310 },
-  { id: 'alentejo', name: 'Alentejo', desc: 'Planicies douradas, cortica e silencio', items: 280 },
-  { id: 'algarve', name: 'Algarve', desc: 'Falesias, mar turquesa e cataplanas', items: 123 },
-  { id: 'acores', name: 'Acores', desc: 'Vulcoes, lagoas e verde infinito', items: 95 },
+  { id: 'alentejo', name: 'Alentejo', desc: 'Planícies douradas, cortiça e silêncio', items: 280 },
+  { id: 'algarve', name: 'Algarve', desc: 'Falésias, mar turquesa e cataplanas', items: 123 },
+  { id: 'acores', name: 'Açores', desc: 'Vulcões, lagoas e verde infinito', items: 95 },
   { id: 'madeira', name: 'Madeira', desc: 'Laurissilva, levadas e flores', items: 85 },
 ];
 
@@ -62,7 +62,7 @@ const ACTION_CARDS = [
   {
     id: 'nearby',
     title: 'Perto de Mim',
-    desc: 'Descobre o que esta a tua volta',
+    desc: 'Descobre o que está à tua volta',
     icon: 'place',
     image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/5/5a/Pena_Palace_in_Sintra_-_panorama_%28cropped%29.jpg/640px-Pena_Palace_in_Sintra_-_panorama_%28cropped%29.jpg',
     route: '/(tabs)/mapa',
@@ -80,7 +80,7 @@ const ACTION_CARDS = [
   {
     id: 'gastro',
     title: 'Gastronomia',
-    desc: 'Sabores autenticos de cada regiao',
+    desc: 'Sabores autênticos de cada região',
     icon: 'restaurant',
     image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/3/3f/Douro_Vinhateiro2.jpg/640px-Douro_Vinhateiro2.jpg',
     route: '/(tabs)/descobrir',
@@ -97,9 +97,9 @@ const ACTION_CARDS = [
   },
 ];
 
-const NEWSLETTER_INTERESTS = ['Natureza', 'Patrimonio', 'Gastronomia', 'Praias', 'Trilhos', 'Eventos', 'Termas', 'Surf'];
+const NEWSLETTER_INTERESTS = ['Natureza', 'Património', 'Gastronomia', 'Praias', 'Trilhos', 'Eventos', 'Termas', 'Surf'];
 
-const NAV_ITEMS = ['Mapa', 'Regioes', 'Categorias', 'Tesouros', 'Newsletter'];
+const NAV_ITEMS = ['Mapa', 'Regiões', 'Categorias', 'Tesouros', 'Newsletter'];
 
 function getGreeting(): string {
   const h = new Date().getHours();
@@ -196,8 +196,8 @@ export default function WelcomeScreen() {
             >
               <Animated.View style={[s.heroContent, { opacity: fadeAnim, transform: [{ translateY: slideAnim }] }]}>
                 <Text style={s.greeting} data-testid="greeting">{greeting}, explorador</Text>
-                <Text style={s.heroTitle} data-testid="hero-title">Bem-vindo a tua{'\n'}jornada portuguesa</Text>
-                <Text style={s.heroSub}>Descobre historias antigas, sabores unicos e{'\n'}caminhos onde o tempo parou</Text>
+                <Text style={s.heroTitle} data-testid="hero-title">Bem-vindo à tua{'\n'}jornada portuguesa</Text>
+                <Text style={s.heroSub}>Descobre histórias antigas, sabores únicos e{'\n'}caminhos onde o tempo parou</Text>
               </Animated.View>
             </LinearGradient>
           </ImageBackground>
@@ -237,15 +237,15 @@ export default function WelcomeScreen() {
               <Text style={[s.statVal, { color: C.statBlue }]}>
                 {stats?.regions?.length || '7'}
               </Text>
-              <Text style={s.statLabel}>regioes</Text>
+              <Text style={s.statLabel}>regiões</Text>
             </View>
           </View>
         </View>
 
         {/* === COMECA A TUA AVENTURA === */}
         <View style={s.section} data-testid="aventura-section">
-          <Text style={s.sectionTitle}>Comeca a tua aventura</Text>
-          <Text style={s.sectionSub}>Escolhe o que o coracao te pedir</Text>
+          <Text style={s.sectionTitle}>Começa a tua aventura</Text>
+          <Text style={s.sectionSub}>Escolhe o que o coração te pedir</Text>
 
           <View style={s.actionGrid}>
             {ACTION_CARDS.map((card) => (
@@ -282,8 +282,8 @@ export default function WelcomeScreen() {
         <View style={s.section} data-testid="regioes-section">
           <View style={s.sectionHeader}>
             <View>
-              <Text style={s.sectionLabel}>REGIOES</Text>
-              <Text style={s.sectionTitle}>Cada Regiao, uma Historia</Text>
+              <Text style={s.sectionLabel}>REGIÕES</Text>
+              <Text style={s.sectionTitle}>Cada Região, uma História</Text>
             </View>
             <TouchableOpacity style={s.seeAllBtn} onPress={() => router.push('/(tabs)/mapa')}>
               <Text style={s.seeAllText}>Ver todas</Text>
@@ -314,7 +314,7 @@ export default function WelcomeScreen() {
                     <Text style={s.regionDesc} numberOfLines={1}>{region.desc}</Text>
                     <View style={s.regionStats}>
                       <MaterialIcons name="place" size={12} color={C.mint} />
-                      <Text style={s.regionStatText}>{region.items} experiencias</Text>
+                      <Text style={s.regionStatText}>{region.items} experiências</Text>
                     </View>
                   </LinearGradient>
                 </ImageBackground>

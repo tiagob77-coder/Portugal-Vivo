@@ -163,15 +163,19 @@ export interface StoryItem {
 
 export const getTopScoredItems = async (): Promise<TopScoredItem[]> => {
   return cachedGet('cache_top_scored', async () => {
-    const response = await api.get('/heritage/top-scored');
-    return response.data;
+    try {
+      const response = await api.get('/heritage/top-scored');
+      return response.data;
+    } catch { return []; }
   }, 60 * 60 * 1000); // 1h cache
 };
 
 export const getStories = async (): Promise<StoryItem[]> => {
   return cachedGet('cache_stories', async () => {
-    const response = await api.get('/heritage/stories');
-    return response.data;
+    try {
+      const response = await api.get('/heritage/stories');
+      return response.data;
+    } catch { return []; }
   }, 60 * 60 * 1000);
 };
 

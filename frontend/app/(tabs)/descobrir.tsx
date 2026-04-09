@@ -287,7 +287,7 @@ export default function DescobrerTab() {
               </TouchableOpacity>
               <Text style={styles.greeting}>{greeting}</Text>
               <Text style={styles.headerTitle}>Descubra Portugal</Text>
-              <Text style={styles.headerSubtitle}>O patrimonio vivo do nosso pais</Text>
+              <Text style={styles.headerSubtitle}>O património vivo do nosso país</Text>
             </LinearGradient>
           </ImageBackground>
         </View>
@@ -350,14 +350,14 @@ export default function DescobrerTab() {
             {/* Informacoes Essenciais */}
             <View style={[styles.guiaSectionHeader, { borderTopColor: colors.borderLight }]}>
               <MaterialIcons name="info" size={14} color={colors.accent} />
-              <Text style={[styles.guiaSectionTitle, { color: colors.accent }]}>Informacoes Essenciais</Text>
+              <Text style={[styles.guiaSectionTitle, { color: colors.accent }]}>Informações Essenciais</Text>
             </View>
             {[
-              { icon: 'language', label: 'Idioma Oficial', value: 'Portugues' },
+              { icon: 'language', label: 'Idioma Oficial', value: 'Português' },
               { icon: 'payments', label: 'Moeda', value: 'Euro (EUR)' },
-              { icon: 'schedule', label: 'Fuso Horario', value: 'WET (UTC+0) / WEST (UTC+1 verao)' },
+              { icon: 'schedule', label: 'Fuso Horário', value: 'WET (UTC+0) / WEST (UTC+1 verão)' },
               { icon: 'electrical-services', label: 'Tomadas', value: 'Tipo F, 230V 50Hz' },
-              { icon: 'local-drink', label: 'Agua da torneira', value: 'Segura para beber em todo o pais' },
+              { icon: 'local-drink', label: 'Água da torneira', value: 'Segura para beber em todo o país' },
               { icon: 'directions-car', label: 'Conduzir', value: 'Lado direito. Carta EU aceite.' },
             ].map((item, i) => (
               <View key={i} style={[styles.guiaRow, { borderTopColor: colors.borderLight }]}>

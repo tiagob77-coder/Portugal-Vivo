@@ -587,7 +587,7 @@ export default function MapaTab() {
             customMapStyle={darkMapStyle}
             mapPadding={{ top: 0, right: 0, bottom: 180, left: 0 }}
           >
-            {mapItems?.map((item) => (
+            {mapComponentItems?.map((item) => (
               <Marker
                 key={item.id}
                 coordinate={{
@@ -620,7 +620,7 @@ export default function MapaTab() {
             <Text style={styles.headerTitle}>Mapa Inteligente</Text>
             <View style={styles.headerStats}>
               <MaterialIcons name="place" size={14} color="#C49A6C" />
-              <Text style={styles.headerStatsText}>{mapItems?.length || 0} locais</Text>
+              <Text style={styles.headerStatsText}>{mapComponentItems?.length || 0} locais</Text>
             </View>
           </View>
 
@@ -818,7 +818,7 @@ export default function MapaTab() {
             <Text style={styles.webHeaderTitle}>Mapa Inteligente</Text>
             <View style={styles.headerStats}>
               <MaterialIcons name="place" size={16} color="#C49A6C" />
-              <Text style={styles.headerStatsText}>{mapItems?.length || 0} locais</Text>
+              <Text style={styles.headerStatsText}>{mapComponentItems?.length || 0} locais</Text>
             </View>
           </View>
 
@@ -1162,7 +1162,7 @@ export default function MapaTab() {
           <View style={styles.mapStatsRow}>
             <View style={styles.mapStatChip}>
               <MaterialIcons name="place" size={14} color="#C49A6C" />
-              <Text style={styles.mapStatText}>{mapItems?.length || 0} locais no mapa</Text>
+              <Text style={styles.mapStatText}>{mapComponentItems?.length || 0} locais no mapa</Text>
             </View>
             <View style={styles.mapStatChip}>
               <MaterialIcons name="layers" size={14} color="#8B5CF6" />
