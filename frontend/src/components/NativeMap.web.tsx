@@ -12,9 +12,6 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { View, StyleSheet, TouchableOpacity, Text } from 'react-native';
 import type { MapItem, LeafletMapProps } from './NativeMap.types';
-import { API_BASE } from '../config/api';
-
-console.log('[NativeMap.web.tsx] Module loaded');
 
 // Re-export types for backwards compatibility
 export type { MapItem, LeafletMapProps };
@@ -81,12 +78,8 @@ function toGeoJSON(items: MapItem[], getColor: (c: string) => string) {
   const safeItems = items || [];
   const validItems = safeItems.filter(item => {
     const hasCoords = item?.location?.lat != null && item?.location?.lng != null;
-    if (!hasCoords && safeItems.length < 20) {
-      console.log('[toGeoJSON] Invalid item:', item?.id, item?.location);
-    }
     return hasCoords;
   });
-  console.log('[toGeoJSON] Valid items:', validItems.length, 'of', safeItems.length);
   return {
     type: 'FeatureCollection' as const,
     features: validItems.map(item => ({
@@ -108,11 +101,6 @@ function toGeoJSON(items: MapItem[], getColor: (c: string) => string) {
 // ─── Componente principal ─────────────────────────────────────────────────────
 
 export function LeafletMapComponent(props: LeafletMapProps) {
-  // Debug: Log ALL props as object
-  console.log('[NativeMap] ALL PROPS:', JSON.stringify(Object.keys(props)));
-  console.log('[NativeMap] props.items:', props.items?.length);
-  console.log('[NativeMap] props.mapMode:', props.mapMode);
-  
   const {
     items,
     onItemPress,
@@ -123,27 +111,22 @@ export function LeafletMapComponent(props: LeafletMapProps) {
     style,
     onMapReady,
   } = props;
-  
-  console.log('[NativeMap] DESTRUCTURED - items:', items?.length, 'mapMode:', mapMode);
+
   const containerRef = useRef<any>(null);
   const mapRef = useRef<any>(null);
   const popupRef = useRef<any>(null);
   const initialStyleRef = useRef(true);  // skip first setStyle call
   const itemsRef = useRef(items);        // latest items for re-add after style change
+  const getMarkerColorRef = useRef(getMarkerColor);
   const [is3D, setIs3D] = useState(false);
   const [ready, setReady] = useState(false);
   const [mapError, setMapError] = useState<string | null>(null);
   const [coords, setCoords] = useState<{lng: number; lat: number} | null>(null);
   const [isTecnico, setIsTecnico] = useState(false);
-  
-  // Store items in ref to access in effects
-  const itemsRef = useRef(items);
-  const getMarkerColorRef = useRef(getMarkerColor);
+
+  // Keep refs in sync
   itemsRef.current = items;
   getMarkerColorRef.current = getMarkerColor;
-
-  // Keep items ref in sync
-  useEffect(() => { itemsRef.current = items; }, [items]);
 
   // ── Inicializar mapa ──────────────────────────────────────────────────────
   useEffect(() => {
@@ -185,12 +168,10 @@ export function LeafletMapComponent(props: LeafletMapProps) {
       }
 
       map.on('load', () => {
-        console.log('[NativeMap] Map loaded, adding layers...');
         _addTerrainSource(map);
         _addPOIsLayer(map);
         _addTrailLayers(map);
         _applySolarLight(map);
-        console.log('[NativeMap] Layers added, setting ready=true');
         setReady(true);
         onMapReady?.();
         map.on('mousemove', (e: any) => {
@@ -384,28 +365,14 @@ export function LeafletMapComponent(props: LeafletMapProps) {
 
   // Update markers when items change or map becomes ready
   useEffect(() => {
-    console.log('[NativeMap] Items effect triggered - ready:', ready, 'items:', items?.length);
-    if (!ready || !mapRef.current) {
-      console.log('[NativeMap] Skipping - not ready or no mapRef');
-      return;
-    }
-    
+    if (!ready || !mapRef.current) return;
     const source = mapRef.current.getSource('pois');
-    if (!source) {
-      console.warn('[NativeMap] POIs source not found');
-      return;
-    }
-    
+    if (!source) return;
+
     const safeItems = Array.isArray(items) ? items : [];
     const currentColor = getMarkerColorRef.current || ((cat: string) => '#C49A6C');
     const geoJSON = toGeoJSON(safeItems, currentColor);
-    console.log('[NativeMap] Updating map with', geoJSON.features.length, 'features');
-    console.log('[NativeMap] Source type:', typeof source.setData);
     source.setData(geoJSON);
-    
-    // Force map to re-render
-    mapRef.current?.triggerRepaint?.();
-    console.log('[NativeMap] Data set successfully, first feature coords:', geoJSON.features[0]?.geometry?.coordinates);
   }, [items, ready]);
 
   // ── Actualizar trilho ──────────────────────────────────────────────────────
@@ -571,7 +538,12 @@ export function LeafletMapComponent(props: LeafletMapProps) {
   );
 }
 
-export default LeafletMapComponent;
+// Default export as permissive stub — on web isMapAvailable=false so MapView
+// is never rendered; only LeafletMapComponent is used. The default export
+// satisfies the react-native-maps MapView import shape in mapa.tsx.
+const MapViewStub = React.forwardRef<any, any>((_props, _ref) => null);
+MapViewStub.displayName = 'MapViewStub';
+export default MapViewStub;
 
 // Stubs de compatibilidade
 export const Marker: React.FC<any> = () => null;

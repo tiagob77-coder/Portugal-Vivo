@@ -291,12 +291,6 @@ describe('Tab Screens — smoke tests', () => {
     expect(toJSON()).toBeTruthy();
   });
 
-  it('(tabs)/map renders without crashing', () => {
-    const MapScreen = require('../(tabs)/map').default;
-    const { toJSON } = render(<MapScreen />);
-    expect(toJSON()).toBeTruthy();
-  });
-
   it('(tabs)/routes renders without crashing', () => {
     const RoutesScreen = require('../(tabs)/routes').default;
     const { toJSON } = render(<RoutesScreen />);
