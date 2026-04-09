@@ -31,7 +31,7 @@ export default function NearbyScreen() {
   const [locationError, setLocationError] = useState<string | null>(null);
   const [isLoadingLocation, setIsLoadingLocation] = useState(true);
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
-  const [radius, setRadius] = useState(25); // Default 25km radius
+  const [radius, setRadius] = useState(50); // Default 50km radius
   const [refreshing, setRefreshing] = useState(false);
 
   const { data: categories = [] } = useQuery({

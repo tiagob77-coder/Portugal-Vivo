@@ -552,9 +552,12 @@ export default function HeritageDetailScreen() {
       setIsPlayingAudio(true);
       
     } catch (error: any) {
-      console.error('Audio guide error:', error);
+      const status = error?.response?.status;
+      if (status === 401 || status === 403) {
+        router.push('/premium');
+        return;
+      }
       setAudioError(error.message || 'Erro ao reproduzir áudio');
-      Alert.alert('Erro', 'Não foi possível reproduzir o áudio guia: ' + (error.message || 'Erro desconhecido'));
     } finally {
       setIsLoadingAudio(false);
     }

@@ -175,7 +175,7 @@ export default function ColeccoesScreen() {
           <TouchableOpacity onPress={() => router.back()} style={styles.mainBackBtn}>
             <MaterialIcons name="arrow-back" size={24} color="#FFF" />
           </TouchableOpacity>
-          <Text style={styles.mainTitle}>Enciclopedia Viva</Text>
+          <Text style={styles.mainTitle}>Enciclopédia Viva</Text>
           <Text style={styles.mainSubtitle}>Conhecimento profundo sobre Portugal</Text>
         </View>
 
@@ -238,7 +238,7 @@ export default function ColeccoesScreen() {
                 <TouchableOpacity
                   key={universe.id}
                   style={[styles.universeCard, { backgroundColor: universe.color }]}
-                  onPress={() => setSelectedUniverse(universe)}
+                  onPress={() => router.push(`/encyclopedia/universe/${universe.id}` as any)}
                   activeOpacity={0.85}
                   data-testid={`universe-${universe.id}`}
                 >

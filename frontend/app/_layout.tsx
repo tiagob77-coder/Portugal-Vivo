@@ -184,6 +184,18 @@ function ThemedStack() {
           name="content-toolkit"
           options={{ presentation: 'card', animation: 'slide_from_bottom' }}
         />
+        <Stack.Screen
+          name="encyclopedia/index"
+          options={{ headerShown: false, animation: 'slide_from_right' }}
+        />
+        <Stack.Screen
+          name="encyclopedia/universe/[id]"
+          options={{ headerShown: false, animation: 'slide_from_right' }}
+        />
+        <Stack.Screen
+          name="encyclopedia/article/[slug]"
+          options={{ headerShown: false, animation: 'slide_from_right' }}
+        />
       </Stack>
     </>
   );
