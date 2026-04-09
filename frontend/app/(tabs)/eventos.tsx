@@ -207,7 +207,7 @@ export default function EventosTab() {
 
   const { data: upcomingData } = useQuery({
     queryKey: ['upcoming-events', selectedCategory, selectedRegion],
-    queryFn: () => getUpcomingEvents(10, selectedCategory, selectedRegion),
+    queryFn: () => getUpcomingEvents(100, selectedCategory, selectedRegion),
   });
 
   const liveSources = liveData?.sources || { database: 0, viralagenda: 0 };
