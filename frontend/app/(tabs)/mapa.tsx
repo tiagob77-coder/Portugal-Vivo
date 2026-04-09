@@ -29,7 +29,6 @@ import { colors, typography, spacing, borders, shadows } from '../../src/theme';
 // import { categoryColors } from '../../src/context/ThemeContext';
 import AccessibilityFilters from '../../src/components/AccessibilityFilters';
 import MapView, { Marker, Callout, PROVIDER_GOOGLE, isMapAvailable, LeafletMapComponent } from '../../src/components/NativeMap';
-import { GoogleMapComponent } from '../../src/components/GoogleMapComponent';
 import {
   MapLayerSelector,
   MapModeSelector,

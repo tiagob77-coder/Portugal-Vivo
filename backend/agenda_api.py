@@ -393,6 +393,42 @@ async def get_viralagenda_events(
     }
 
 
+@agenda_router.get("/upcoming")
+async def get_upcoming_events(
+    limit: int = Query(5, ge=1, le=50),
+    region: Optional[str] = Query(None),
+    type: Optional[str] = Query(None),
+):
+    """Get upcoming events from current date forward, sorted chronologically."""
+    today = datetime.now(timezone.utc)
+    current_month = today.month
+    current_day = today.day
+
+    query: dict = {}
+    if type:
+        query["type"] = type
+    if region:
+        query["region"] = {"$regex": sanitize_regex(region), "$options": "i"}
+
+    all_events = await _db_holder.db.events.find(query, {"_id": 0}).to_list(5000)
+    all_events = [_enrich_with_ticket(e) for e in all_events]
+
+    upcoming = []
+    for evt in all_events:
+        m = evt.get("month", 0)
+        d = evt.get("day_start", 1)
+        d_end = evt.get("day_end", d)
+        # Event is upcoming if it starts in the future or is still ongoing
+        if m > current_month or (m == current_month and d_end >= current_day):
+            upcoming.append(evt)
+        # Wrap around: near end-of-year, include January events
+        elif current_month >= 11 and m == 1:
+            upcoming.append(evt)
+
+    upcoming.sort(key=lambda e: (e.get("month", 13), e.get("day_start", 0)))
+    return upcoming[:limit]
+
+
 async def _get_last_sync_time() -> Optional[str]:
     """Get timestamp of last event sync."""
     try:

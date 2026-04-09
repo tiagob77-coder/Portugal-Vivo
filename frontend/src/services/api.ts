@@ -311,8 +311,21 @@ export interface NearbyPOIResponse {
 }
 
 export const getNearbyPOIs = async (request: NearbyPOIRequest): Promise<NearbyPOIResponse> => {
-  const response = await api.post('/nearby', request);
-  return response.data;
+  const response = await api.get('/proximity/nearby', {
+    params: {
+      lat: request.latitude,
+      lng: request.longitude,
+      radius_km: request.radius_km ?? 5,
+      category: request.categories?.[0],
+      limit: request.limit ?? 20,
+    },
+  });
+  const data = response.data;
+  return {
+    user_location: data.center || { lat: request.latitude, lng: request.longitude },
+    pois: data.pois || [],
+    total_found: data.total || 0,
+  };
 };
 
 export const getNearbyCategoryCounts = async (
@@ -325,10 +338,16 @@ export const getNearbyCategoryCounts = async (
   total_pois: number;
   categories: { category: string; count: number }[];
 }> => {
-  const response = await api.get('/nearby/categories', {
-    params: { latitude, longitude, radius_km },
+  const response = await api.get('/proximity/heatzone', {
+    params: { lat: latitude, lng: longitude, radius_km },
   });
-  return response.data;
+  const data = response.data;
+  return {
+    location: data.center || { lat: latitude, lng: longitude },
+    radius_km: data.radius_km || radius_km,
+    total_pois: data.total_pois || 0,
+    categories: data.categories?.map((c: any) => ({ category: c.category, count: c.count })) || [],
+  };
 };
 
 // Google Directions API
@@ -670,18 +689,28 @@ export interface CalendarEvent {
 }
 
 export const getCalendarEvents = async (month?: number): Promise<CalendarEvent[]> => {
-  const response = await api.get('/calendar', { params: { month } });
-  return response.data;
+  const response = await api.get('/agenda/events', { params: { month, limit: 200 } });
+  return (response.data?.events || []).map((e: any) => ({
+    id: e.id, name: e.name, date_start: e.month ? `${String(e.month).padStart(2,'0')}-${String(e.day_start||1).padStart(2,'0')}` : '',
+    date_end: e.month ? `${String(e.month).padStart(2,'0')}-${String(e.day_end||e.day_start||1).padStart(2,'0')}` : '',
+    category: e.type || 'festas', region: e.region || '', description: e.description || '',
+    source: e.source || 'curated', has_tickets: e.has_tickets || false, ticket_url: e.ticket_url,
+  }));
 };
 
 export const getUpcomingEvents = async (limit?: number): Promise<CalendarEvent[]> => {
-  const response = await api.get('/calendar/upcoming', { params: { limit } });
-  return response.data;
+  const response = await api.get('/agenda/upcoming', { params: { limit } });
+  const events = Array.isArray(response.data) ? response.data : response.data?.events || [];
+  return events.map((e: any) => ({
+    id: e.id, name: e.name, date_start: e.month ? `${String(e.month).padStart(2,'0')}-${String(e.day_start||1).padStart(2,'0')}` : '',
+    date_end: e.month ? `${String(e.month).padStart(2,'0')}-${String(e.day_end||e.day_start||1).padStart(2,'0')}` : '',
+    category: e.type || 'festas', region: e.region || '', description: e.description || '',
+    source: e.source || 'curated', has_tickets: e.has_tickets || false, ticket_url: e.ticket_url,
+  }));
 };
 
 export const getEventsByMonth = async (month: number): Promise<CalendarEvent[]> => {
-  const response = await api.get(`/calendar/month/${month}`);
-  return response.data;
+  return getCalendarEvents(month);
 };
 
 // Agenda Viral API
