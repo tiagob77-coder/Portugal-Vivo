@@ -436,9 +436,10 @@ set_epochs_db(db)
 api_router.include_router(epochs_router)
 
 # Include Proximity router
-from proximity_api import proximity_router, set_proximity_db
+from proximity_api import proximity_router, set_proximity_db, nearby_compat_router
 set_proximity_db(db)
 api_router.include_router(proximity_router)
+api_router.include_router(nearby_compat_router)
 
 # Include Leaderboard router (Redis-powered)
 from leaderboard_api import leaderboard_router, set_db as set_leaderboard_db
