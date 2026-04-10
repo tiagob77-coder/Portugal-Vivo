@@ -6,6 +6,7 @@ import {
   View, Text, StyleSheet, TouchableOpacity,
 } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
+import { useTheme } from '../context/ThemeContext';
 
 // ─── Interfaces ───────────────────────────────────────────────────────────────
 
@@ -103,6 +104,7 @@ const TIME_ICON: Record<NonNullable<FaunaSpecies['best_time_of_day']>, React.Com
 // ─── Component ────────────────────────────────────────────────────────────────
 
 export default function FaunaSpeciesCard({ species, expanded = false, onPress }: FaunaSpeciesCardProps) {
+  const { colors } = useTheme();
   const accentColor  = CLASS_COLOR[species.class];
   const classIcon    = CLASS_ICON[species.class];
   const rarityColor  = RARITY_COLOR[species.rarity_level];
@@ -111,7 +113,7 @@ export default function FaunaSpeciesCard({ species, expanded = false, onPress }:
 
   return (
     <TouchableOpacity
-      style={[styles.card, { borderLeftColor: accentColor }]}
+      style={[styles.card, { borderLeftColor: accentColor, backgroundColor: colors.card }]}
       onPress={onPress}
       activeOpacity={0.85}
     >
@@ -124,8 +126,8 @@ export default function FaunaSpeciesCard({ species, expanded = false, onPress }:
 
         {/* Names */}
         <View style={styles.namesBlock}>
-          <Text style={styles.commonName} numberOfLines={1}>{species.common_name}</Text>
-          <Text style={styles.scientificName} numberOfLines={1}>{species.scientific_name}</Text>
+          <Text style={[styles.commonName, { color: colors.textPrimary }]} numberOfLines={1}>{species.common_name}</Text>
+          <Text style={[styles.scientificName, { color: colors.textMuted }]} numberOfLines={1}>{species.scientific_name}</Text>
         </View>
 
         {/* IQ / rarity score top-right */}
@@ -189,7 +191,7 @@ export default function FaunaSpeciesCard({ species, expanded = false, onPress }:
       </View>
 
       {/* ── Description short ───────────────────────────────────────────────── */}
-      <Text style={styles.descShort} numberOfLines={expanded ? undefined : 2}>
+      <Text style={[styles.descShort, { color: colors.textSecondary }]} numberOfLines={expanded ? undefined : 2}>
         {species.description_short}
       </Text>
 
@@ -230,7 +232,7 @@ export default function FaunaSpeciesCard({ species, expanded = false, onPress }:
       {expanded && (
         <View style={styles.expandedBlock}>
           {species.description_long ? (
-            <Text style={styles.descLong}>{species.description_long}</Text>
+            <Text style={[styles.descLong, { color: colors.textSecondary }]}>{species.description_long}</Text>
           ) : null}
 
           {species.observation_tips ? (

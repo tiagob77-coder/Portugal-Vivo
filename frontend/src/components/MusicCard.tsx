@@ -4,6 +4,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
+import { useTheme } from '../context/ThemeContext';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -62,10 +63,11 @@ export default function MusicCard({
   const cfg = TYPE_CONFIG[item.type];
   const visibleInstruments = item.instruments?.slice(0, 3) ?? [];
   const extraInstruments = (item.instruments?.length ?? 0) - visibleInstruments.length;
+  const { colors } = useTheme();
 
   return (
     <TouchableOpacity
-      style={[styles.card, { borderLeftColor: cfg.color }]}
+      style={[styles.card, { borderLeftColor: cfg.color, backgroundColor: colors.card }]}
       onPress={onPress}
       activeOpacity={0.85}
     >
@@ -76,7 +78,7 @@ export default function MusicCard({
         </View>
 
         <View style={styles.headerText}>
-          <Text style={styles.itemName} numberOfLines={2}>{item.name}</Text>
+          <Text style={[styles.itemName, { color: colors.textPrimary }]} numberOfLines={2}>{item.name}</Text>
           <View style={styles.badgeRow}>
             <View style={[styles.typeBadge, { backgroundColor: cfg.bg }]}>
               <Text style={[styles.typeBadgeText, { color: cfg.color }]}>{cfg.label}</Text>
@@ -99,7 +101,7 @@ export default function MusicCard({
       {/* ── Location Row ────────────────────────────────────────────────── */}
       <View style={styles.row}>
         <MaterialIcons name="place" size={13} color="#64748B" />
-        <Text style={styles.rowText}>{item.municipality}, {item.region}</Text>
+        <Text style={[styles.rowText, { color: colors.textMuted }]}>{item.municipality}, {item.region}</Text>
         {item.distance_km !== undefined && (
           <View style={styles.distBadge}>
             <Text style={styles.distText}>{item.distance_km.toFixed(1)} km</Text>
@@ -111,12 +113,12 @@ export default function MusicCard({
       {item.period && (
         <View style={styles.row}>
           <MaterialIcons name="history" size={13} color="#64748B" />
-          <Text style={styles.rowText}>{item.period}</Text>
+          <Text style={[styles.rowText, { color: colors.textMuted }]}>{item.period}</Text>
         </View>
       )}
 
       {/* ── Description short ───────────────────────────────────────────── */}
-      <Text style={styles.descShort}>{item.description_short}</Text>
+      <Text style={[styles.descShort, { color: colors.textSecondary }]}>{item.description_short}</Text>
 
       {/* ── Instruments Chips ───────────────────────────────────────────── */}
       {visibleInstruments.length > 0 && (
@@ -146,7 +148,7 @@ export default function MusicCard({
 
       {/* ── Expanded: long description ──────────────────────────────────── */}
       {expanded && item.description_long && (
-        <Text style={styles.descLong}>{item.description_long}</Text>
+        <Text style={[styles.descLong, { color: colors.textSecondary, borderTopColor: colors.border }]}>{item.description_long}</Text>
       )}
     </TouchableOpacity>
   );

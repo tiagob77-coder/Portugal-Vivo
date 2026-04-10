@@ -4,6 +4,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
+import { useTheme } from '../context/ThemeContext';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -78,6 +79,7 @@ export default function CulturalRouteCard({
   expanded = false,
   onPress,
 }: CulturalRouteCardProps) {
+  const { colors } = useTheme();
   const cfg = FAMILY_CONFIG[route.family];
   const bestMonthsStr = route.best_months.map((m) => MONTH_NAMES[m - 1]).join(' · ');
   const visibleInstruments = route.instruments?.slice(0, 3) ?? [];
@@ -86,7 +88,7 @@ export default function CulturalRouteCard({
 
   return (
     <TouchableOpacity
-      style={[styles.card, { borderLeftColor: cfg.color }]}
+      style={[styles.card, { borderLeftColor: cfg.color, backgroundColor: colors.card }]}
       onPress={onPress}
       activeOpacity={0.85}
     >
@@ -97,7 +99,7 @@ export default function CulturalRouteCard({
         </View>
 
         <View style={styles.headerText}>
-          <Text style={styles.routeName} numberOfLines={2}>{route.name}</Text>
+          <Text style={[styles.routeName, { color: colors.textPrimary }]} numberOfLines={2}>{route.name}</Text>
           <View style={styles.badgeRow}>
             <View style={[styles.familyBadge, { backgroundColor: cfg.bg }]}>
               <Text style={[styles.familyBadgeText, { color: cfg.color }]}>{cfg.label}</Text>
@@ -151,7 +153,7 @@ export default function CulturalRouteCard({
       )}
 
       {/* ── Description ─────────────────────────────────────────────────── */}
-      <Text style={styles.descShort}>{route.description_short}</Text>
+      <Text style={[styles.descShort, { color: colors.textSecondary }]}>{route.description_short}</Text>
 
       {/* ── Instruments chips ───────────────────────────────────────────── */}
       {visibleInstruments.length > 0 && (
@@ -210,7 +212,7 @@ export default function CulturalRouteCard({
 
       {/* ── Expanded: long description ──────────────────────────────────── */}
       {expanded && route.description_long && (
-        <Text style={styles.descLong}>{route.description_long}</Text>
+        <Text style={[styles.descLong, { color: colors.textSecondary, borderTopColor: colors.border }]}>{route.description_long}</Text>
       )}
 
       {/* ── UNESCO label ────────────────────────────────────────────────── */}

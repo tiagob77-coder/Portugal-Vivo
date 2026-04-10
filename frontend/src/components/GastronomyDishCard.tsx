@@ -4,6 +4,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
+import { useTheme } from '../context/ThemeContext';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -116,6 +117,7 @@ function isInSeason(seasonality: CoastalDish['seasonality'], month: number): boo
 // ─── Component ────────────────────────────────────────────────────────────────
 
 export default function GastronomyDishCard({ dish, expanded = false, onPress }: GastronomyDishCardProps) {
+  const { colors } = useTheme();
   const currentMonth = new Date().getMonth() + 1;
   const typeColor = TYPE_COLOR[dish.type];
   const typeIcon  = TYPE_ICON[dish.type];
@@ -127,7 +129,7 @@ export default function GastronomyDishCard({ dish, expanded = false, onPress }: 
 
   return (
     <TouchableOpacity
-      style={[styles.card, { borderLeftColor: typeColor }]}
+      style={[styles.card, { borderLeftColor: typeColor, backgroundColor: colors.card, borderColor: colors.border }]}
       onPress={onPress}
       activeOpacity={0.85}
     >
@@ -145,7 +147,7 @@ export default function GastronomyDishCard({ dish, expanded = false, onPress }: 
           <MaterialIcons name={typeIcon} size={20} color={typeColor} />
         </View>
         <View style={styles.headerText}>
-          <Text style={styles.dishName} numberOfLines={2}>{dish.name}</Text>
+          <Text style={[styles.dishName, { color: colors.textPrimary }]} numberOfLines={2}>{dish.name}</Text>
           <View style={styles.regionRow}>
             <MaterialIcons name="place" size={11} color={C.textLight} />
             <Text style={styles.regionText}>{dish.region}</Text>
@@ -233,7 +235,7 @@ export default function GastronomyDishCard({ dish, expanded = false, onPress }: 
       )}
 
       {/* ── Story Short ──────────────────────────────────────────────────── */}
-      <Text style={styles.storyShort} numberOfLines={expanded ? undefined : 2}>
+      <Text style={[styles.storyShort, { color: colors.textSecondary }]} numberOfLines={expanded ? undefined : 2}>
         {dish.story_short}
       </Text>
 
@@ -252,7 +254,7 @@ export default function GastronomyDishCard({ dish, expanded = false, onPress }: 
       {expanded && (
         <View style={styles.expandedSection}>
           {dish.story_long && (
-            <Text style={styles.storyLong}>{dish.story_long}</Text>
+            <Text style={[styles.storyLong, { color: colors.textSecondary }]}>{dish.story_long}</Text>
           )}
 
           {dish.best_restaurants && dish.best_restaurants.length > 0 && (

@@ -6,6 +6,7 @@ import {
   View, Text, StyleSheet, TouchableOpacity,
 } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
+import { useTheme } from '../context/ThemeContext';
 
 // ─── Interfaces ───────────────────────────────────────────────────────────────
 
@@ -74,6 +75,7 @@ const MONTH_SHORT = ['J','F','M','A','M','J','J','A','S','O','N','D'];
 
 export default function FloraSpeciesCard({ species, expanded = false, onPress }: FloraSpeciesCardProps) {
   const accentColor = STATUS_COLOR[species.status];
+  const { colors } = useTheme();
   const statusIcon  = STATUS_ICON[species.status];
 
   const currentMonth = new Date().getMonth() + 1; // 1-12
@@ -95,7 +97,7 @@ export default function FloraSpeciesCard({ species, expanded = false, onPress }:
 
   return (
     <TouchableOpacity
-      style={[styles.card, { borderLeftColor: accentColor }]}
+      style={[styles.card, { borderLeftColor: accentColor, backgroundColor: colors.card }]}
       onPress={onPress}
       activeOpacity={0.85}
     >
@@ -109,14 +111,14 @@ export default function FloraSpeciesCard({ species, expanded = false, onPress }:
         {/* Names */}
         <View style={styles.namesBlock}>
           <View style={styles.nameRow}>
-            <Text style={styles.commonName} numberOfLines={1}>{species.common_name}</Text>
+            <Text style={[styles.commonName, { color: colors.textPrimary }]} numberOfLines={1}>{species.common_name}</Text>
             {species.status === 'endemica' && (
               <View style={styles.goldBadge}>
                 <Text style={styles.goldBadgeText}>Endémica</Text>
               </View>
             )}
           </View>
-          <Text style={styles.scientificName} numberOfLines={1}>{species.scientific_name}</Text>
+          <Text style={[styles.scientificName, { color: colors.textMuted }]} numberOfLines={1}>{species.scientific_name}</Text>
         </View>
 
         {/* Rarity score badge */}
@@ -141,7 +143,7 @@ export default function FloraSpeciesCard({ species, expanded = false, onPress }:
         {/* Region */}
         <View style={styles.regionChip}>
           <MaterialIcons name="place" size={10} color="#6B7280" />
-          <Text style={styles.regionText} numberOfLines={1}>{species.region_main}</Text>
+          <Text style={[styles.regionText, { color: colors.textMuted }]} numberOfLines={1}>{species.region_main}</Text>
         </View>
 
         {/* Distance badge */}
@@ -153,13 +155,13 @@ export default function FloraSpeciesCard({ species, expanded = false, onPress }:
       </View>
 
       {/* ── Description short ───────────────────────────────────────────────── */}
-      <Text style={styles.descShort} numberOfLines={expanded ? undefined : 2}>
+      <Text style={[styles.descShort, { color: colors.textSecondary }]} numberOfLines={expanded ? undefined : 2}>
         {species.description_short}
       </Text>
 
       {/* ── Flowering bar ───────────────────────────────────────────────────── */}
       <View style={styles.floweringSection}>
-        <Text style={styles.floweringLabel}>Floração</Text>
+        <Text style={[styles.floweringLabel, { color: colors.textMuted }]}>Floração</Text>
         <View style={styles.floweringBar}>
           {MONTH_SHORT.map((m, idx) => {
             const month = idx + 1;
