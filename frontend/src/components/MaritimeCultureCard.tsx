@@ -191,7 +191,7 @@ export default function MaritimeCultureCard({
 const styles = StyleSheet.create({
   card: {
     backgroundColor: '#041426',
-    borderRadius: 12,
+    borderRadius: 14,
     padding: 16,
     borderLeftWidth: 4,
     gap: 8,

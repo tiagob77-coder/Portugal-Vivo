@@ -159,7 +159,7 @@ export default function MusicCard({
 const styles = StyleSheet.create({
   card: {
     backgroundColor: '#120818',
-    borderRadius: 12,
+    borderRadius: 14,
     padding: 16,
     borderLeftWidth: 4,
     gap: 8,

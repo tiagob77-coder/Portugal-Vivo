@@ -11,13 +11,14 @@ O Portugal Vivo é uma aplicação viva que guia o utilizador por Portugal atrav
 - **Descoberta geolocalizada** — POIs "perto de mim" com mapa interativo e clusters
 - **IQ Engine** — 19 módulos de enriquecimento semântico e scoring de conteúdo
 - **Narrativas por IA** — conteúdo em 4 profundidades (snackable, história, enciclopédico, crianças) com 6 perfis cognitivos
-- **9 módulos temáticos** — biodiversidade marinha, flora, fauna, gastronomia, cultura marítima, infraestrutura natural, economia local, pré-história e costa
+- **11 módulos temáticos** — biodiversidade marinha, flora, fauna, gastronomia, cultura marítima, infraestrutura natural, economia local, pré-história, costa, música tradicional e rotas culturais
 - **Rotas inteligentes** — planeamento com waypoints, sugestões por IQ score, integração com todos os módulos
 - **Gamificação** — pontos, badges, streaks, leaderboard regional
 - **Premium com Stripe** — 3 tiers (Explorador/Descobridor/Guardião), MB Way e Multibanco
 - **Enciclopédia cultural** — 6 universos temáticos com artigos enriquecidos
 - **+300 eventos 2026** — agenda viral com integração de fontes externas
 - **Beachcams** — câmeras de praia em tempo real com condições marinhas
+- **Dark mode completo** — suporte light/dark/system com tokens semânticos, daltonismo (3 modos) e accents regionais
 - **Modo offline** — cache inteligente com sincronização e fila de ações pendentes
 - **Audio guides** — TTS com 9 vozes e 6 idiomas (premium)
 - **i18n** — PT, EN, ES, FR
@@ -108,7 +109,7 @@ Portugal-Vivo/
 │   │   │                        #   audioGuide, pushNotifications
 │   │   ├── context/             # AuthContext, ThemeContext, SmartContext
 │   │   ├── i18n/                # Traduções PT, EN, ES, FR
-│   │   ├── theme/               # Design system centralizado (9 paletas temáticas)
+│   │   ├── theme/               # Design system centralizado (11 paletas temáticas)
 │   │   ├── config/              # Configuração da API
 │   │   ├── types/               # TypeScript types globais
 │   │   └── utils/               # Monitorização (Sentry), helpers
@@ -137,8 +138,48 @@ Portugal-Vivo/
 | Economia Local | `app/economia/` | `economy_api.py` | Mercados + produtores |
 | Pré-História + Astronomia | `app/prehistoria/` | `geo_prehistoria_api.py` | Sítios + observatórios |
 | Costa & Litoral | `app/costa/` | `costa_api.py` | Zonas costeiras |
+| Música Tradicional | `app/musica/` | `music_api.py` | Fado, folclore, instrumentos |
+| Rotas Culturais | `app/rotas-culturais/` | `cultural_routes_api.py` | Rotas musicais, dança, festas |
 
 Todos os módulos usam o **design system centralizado** com paletas temáticas via `getModuleTheme()`.
+
+---
+
+## Design System
+
+### Paleta de Cores (inspirada na paisagem portuguesa)
+
+| Escala | Uso principal |
+|--------|---------------|
+| `forest` | Cor primária — verde floresta do Norte |
+| `mint` | Natureza, trilhos, sucesso |
+| `terracotta` | Accent — tons quentes do Alentejo |
+| `ocean` | Cor secundária — azul atlântico |
+| `rust` | Alertas, CTAs fortes |
+| `gray` | Texto, fundos, superfícies |
+
+### Tokens Semânticos
+
+O ThemeContext fornece `colors` com tokens light/dark:
+
+- **Core**: `primary`, `secondary`, `accent`
+- **Surfaces**: `background`, `surface`, `surfaceAlt`, `card`
+- **Text**: `textPrimary`, `textSecondary`, `textMuted`, `textOnPrimary`
+- **Borders**: `border`, `borderLight`
+- **Status**: `success`, `warning`, `error`, `info`
+
+### Acessibilidade
+
+- **Daltonismo**: 3 modos (deuteranopia, protanopia, tritanopia) com override automático de cores problemáticas
+- **Accents regionais**: 7 regiões (Norte, Centro, Lisboa, Alentejo, Algarve, Açores, Madeira) com cor de accent personalizada
+- **Contraste**: tokens diferenciados entre surfaces, borders e cards para visibilidade em dark mode
+
+### Padrões de Componentes
+
+- **borderRadius**: 14px standard em todos os cards
+- **Shadows**: `shadows.sm/md/lg/xl` do theme
+- **Spacing**: grid de 4px (`spacing[1]=4, spacing[2]=8, spacing[4]=16`)
+- **Typography**: 10 tamanhos (xs:10 → 5xl:40), 4 pesos (normal → bold)
 
 ---
 
@@ -362,7 +403,7 @@ Retry automático para ECONNRESET (3 tentativas com backoff).
 | Ficheiros de teste | 43 |
 | Testes unitários | 176 |
 | Módulos IQ Engine | 19 |
-| Módulos temáticos | 9 |
+| Módulos temáticos | 11 |
 | Idiomas | 4 (PT, EN, ES, FR) |
 | Camadas de mapa | 39+ |
 | Modos de mapa | 7 |

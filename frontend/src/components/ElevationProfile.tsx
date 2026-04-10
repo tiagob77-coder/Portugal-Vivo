@@ -62,6 +62,7 @@ function buildLine(data: ElevationPoint[], w: number, s: ReturnType<typeof stats
 }
 
 export default function ElevationProfile({ data, color = '#22C55E', trailName }: Props) {
+  const { colors } = useTheme();
   const [width, setWidth] = useState(320);
   const onLayout = (e: LayoutChangeEvent) => setWidth(e.nativeEvent.layout.width);
   const s = stats(data);
@@ -69,28 +70,28 @@ export default function ElevationProfile({ data, color = '#22C55E', trailName }:
   // ─── Native: simplified stats ────────────────────────────────────────────────
   if (Platform.OS !== 'web') {
     return (
-      <View style={st.container} onLayout={onLayout}>
-        {trailName && <Text style={st.label}>Perfil de Elevação</Text>}
+      <View style={[st.container, { backgroundColor: colors.surface }]} onLayout={onLayout}>
+        {trailName && <Text style={[st.label, { color: colors.textPrimary }]}>Perfil de Elevação</Text>}
         <View style={st.statsRow}>
           <View style={st.stat}>
             <MaterialIcons name="arrow-upward" size={16} color="#22C55E" />
-            <Text style={st.statVal}>+{s.gain}m</Text>
-            <Text style={st.statLbl}>Subida</Text>
+            <Text style={[st.statVal, { color: colors.textPrimary }]}>+{s.gain}m</Text>
+            <Text style={[st.statLbl, { color: colors.textMuted }]}>Subida</Text>
           </View>
           <View style={st.stat}>
             <MaterialIcons name="arrow-downward" size={16} color="#EF4444" />
-            <Text style={st.statVal}>-{s.loss}m</Text>
-            <Text style={st.statLbl}>Descida</Text>
+            <Text style={[st.statVal, { color: colors.textPrimary }]}>-{s.loss}m</Text>
+            <Text style={[st.statLbl, { color: colors.textMuted }]}>Descida</Text>
           </View>
           <View style={st.stat}>
             <MaterialIcons name="terrain" size={16} color="#C49A6C" />
-            <Text style={st.statVal}>{s.maxE}m</Text>
-            <Text style={st.statLbl}>Máx.</Text>
+            <Text style={[st.statVal, { color: colors.textPrimary }]}>{s.maxE}m</Text>
+            <Text style={[st.statLbl, { color: colors.textMuted }]}>Máx.</Text>
           </View>
           <View style={st.stat}>
             <MaterialIcons name="height" size={16} color="#6366F1" />
-            <Text style={st.statVal}>{s.minE}m</Text>
-            <Text style={st.statLbl}>Mín.</Text>
+            <Text style={[st.statVal, { color: colors.textPrimary }]}>{s.minE}m</Text>
+            <Text style={[st.statLbl, { color: colors.textMuted }]}>Mín.</Text>
           </View>
         </View>
       </View>
@@ -152,7 +153,7 @@ export default function ElevationProfile({ data, color = '#22C55E', trailName }:
   };
 
   return (
-    <View style={st.container} onLayout={onLayout}>
+    <View style={[st.container, { backgroundColor: colors.surface }]} onLayout={onLayout}>
       {/* Gain/loss badges */}
       <View style={st.badgesRow}>
         <View style={st.badge}>
@@ -177,7 +178,7 @@ export default function ElevationProfile({ data, color = '#22C55E', trailName }:
 }
 
 const st = StyleSheet.create({
-  container: { backgroundColor: '#F9FAFB', borderRadius: 12, padding: 10, marginTop: 4 },
+  container: { backgroundColor: '#F9FAFB', borderRadius: 14, padding: 10, marginTop: 4 },
   label: { fontSize: 12, fontWeight: '700', color: '#374151', marginBottom: 8 },
   badgesRow: { flexDirection: 'row', gap: 6, marginBottom: 6 },
   badge: { flexDirection: 'row', alignItems: 'center', gap: 3, backgroundColor: '#F0FDF4', paddingHorizontal: 7, paddingVertical: 3, borderRadius: 8 },

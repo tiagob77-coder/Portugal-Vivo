@@ -174,7 +174,7 @@ const styles = StyleSheet.create({
     marginVertical: 6,
   },
   card: {
-    borderRadius: 12,
+    borderRadius: 14,
     borderLeftWidth: 4,
     padding: 14,
     shadowColor: '#000',

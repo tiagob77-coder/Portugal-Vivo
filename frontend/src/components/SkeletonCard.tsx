@@ -96,7 +96,7 @@ export default function SkeletonCard({ variant = 'heritage', count = 3 }: Skelet
 const sk = StyleSheet.create({
   heritageCard: {
     flexDirection: 'row',
-    borderRadius: 16,
+    borderRadius: 14,
     marginBottom: 12,
     borderWidth: 1,
     overflow: 'hidden',

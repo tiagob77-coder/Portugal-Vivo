@@ -231,7 +231,7 @@ export default function CulturalRouteCard({
 const styles = StyleSheet.create({
   card: {
     backgroundColor: '#1A0E30',
-    borderRadius: 12,
+    borderRadius: 14,
     padding: 16,
     borderLeftWidth: 4,
     gap: 8,
