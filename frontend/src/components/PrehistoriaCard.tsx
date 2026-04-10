@@ -6,6 +6,7 @@ import {
   View, Text, StyleSheet, TouchableOpacity, ScrollView,
 } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
+import { useTheme } from '../context/ThemeContext';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -102,12 +103,13 @@ export default function PrehistoriaCard({ site, expanded = false, onPress }: Pre
   const categoryLabel = CATEGORY_LABELS[site.category];
   const periodColor = PERIOD_COLORS[site.period];
   const periodLabel = PERIOD_LABELS[site.period];
+  const { colors } = useTheme();
 
   const visibleMotifs = site.motifs_findings ? site.motifs_findings.slice(0, 4) : [];
 
   return (
     <TouchableOpacity
-      style={styles.card}
+      style={[styles.card, { backgroundColor: colors.card, borderColor: colors.border }]}
       onPress={onPress}
       activeOpacity={0.85}
     >
@@ -124,7 +126,7 @@ export default function PrehistoriaCard({ site, expanded = false, onPress }: Pre
           </View>
 
           <View style={styles.headerMeta}>
-            <Text style={styles.siteName} numberOfLines={2}>{site.name}</Text>
+            <Text style={[styles.siteName, { color: colors.textPrimary }]} numberOfLines={2}>{site.name}</Text>
             <View style={styles.headerBadges}>
               {/* Category label */}
               <View style={[styles.categoryBadge, { backgroundColor: accentColor + '22', borderColor: accentColor + '55' }]}>
@@ -140,8 +142,8 @@ export default function PrehistoriaCard({ site, expanded = false, onPress }: Pre
           {/* IQ Score */}
           {site.iq_score !== undefined && (
             <View style={styles.iqBadge}>
-              <Text style={styles.iqScore}>{site.iq_score}</Text>
-              <Text style={styles.iqLabel}>IQ</Text>
+              <Text style={[styles.iqScore, { color: colors.textMuted }]}>{site.iq_score}</Text>
+              <Text style={[styles.iqLabel, { color: colors.textMuted }]}>IQ</Text>
             </View>
           )}
         </View>
@@ -149,18 +151,18 @@ export default function PrehistoriaCard({ site, expanded = false, onPress }: Pre
         {/* ── Region / Age / Distance Row ──────────────────────────────────── */}
         <View style={styles.metaRow}>
           <MaterialIcons name="place" size={12} color="#9CA3AF" />
-          <Text style={styles.metaText}>{site.region}</Text>
+          <Text style={[styles.metaText, { color: colors.textMuted }]}>{site.region}</Text>
           {site.municipality ? (
             <>
               <Text style={styles.metaSep}>·</Text>
-              <Text style={styles.metaText}>{site.municipality}</Text>
+              <Text style={[styles.metaText, { color: colors.textMuted }]}>{site.municipality}</Text>
             </>
           ) : null}
           {site.age_years !== undefined ? (
             <>
               <Text style={styles.metaSep}>·</Text>
               <MaterialIcons name="history" size={12} color="#9CA3AF" />
-              <Text style={styles.metaText}>{formatAge(site.age_years)}</Text>
+              <Text style={[styles.metaText, { color: colors.textMuted }]}>{formatAge(site.age_years)}</Text>
             </>
           ) : null}
           {site.distance_km !== undefined ? (
@@ -171,7 +173,7 @@ export default function PrehistoriaCard({ site, expanded = false, onPress }: Pre
         </View>
 
         {/* ── Description Short ────────────────────────────────────────────── */}
-        <Text style={styles.descShort} numberOfLines={expanded ? undefined : 2}>
+        <Text style={[styles.descShort, { color: colors.textSecondary }]} numberOfLines={expanded ? undefined : 2}>
           {site.description_short}
         </Text>
 
@@ -199,7 +201,7 @@ export default function PrehistoriaCard({ site, expanded = false, onPress }: Pre
           >
             {visibleMotifs.map((motif) => (
               <View key={motif} style={styles.motifChip}>
-                <Text style={styles.motifChipText}>{motif}</Text>
+                <Text style={[styles.motifChipText, { color: colors.textSecondary }]}>{motif}</Text>
               </View>
             ))}
             {site.motifs_findings && site.motifs_findings.length > 4 ? (
@@ -212,9 +214,9 @@ export default function PrehistoriaCard({ site, expanded = false, onPress }: Pre
 
         {/* ── Expanded Section ─────────────────────────────────────────────── */}
         {expanded ? (
-          <View style={styles.expandedSection}>
+          <View style={[styles.expandedSection, { borderTopColor: colors.border }]}>
             {site.description_long ? (
-              <Text style={styles.descLong}>{site.description_long}</Text>
+              <Text style={[styles.descLong, { color: colors.textSecondary }]}>{site.description_long}</Text>
             ) : null}
 
             {site.celestial_event ? (

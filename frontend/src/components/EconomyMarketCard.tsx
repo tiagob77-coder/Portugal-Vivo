@@ -4,6 +4,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
+import { useTheme } from '../context/ThemeContext';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -80,6 +81,7 @@ const MONTH_ABBR = ['J', 'F', 'M', 'A', 'M', 'J', 'J', 'A', 'S', 'O', 'N', 'D'];
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
 function StarRating({ rating }: { rating: number }) {
+  const { colors } = useTheme();
   const full  = Math.floor(rating);
   const hasHalf = rating - full >= 0.5;
   return (
@@ -92,17 +94,18 @@ function StarRating({ rating }: { rating: number }) {
           color="#F59E0B"
         />
       ))}
-      <Text style={subStyles.ratingText}>{rating.toFixed(1)}</Text>
+      <Text style={[subStyles.ratingText, { color: colors.textSecondary }]}>{rating.toFixed(1)}</Text>
     </View>
   );
 }
 
 function TagsRow({ tags }: { tags: string[] }) {
+  const { colors } = useTheme();
   return (
     <View style={subStyles.tagsRow}>
       {tags.map((tag) => (
-        <View key={tag} style={subStyles.tagChip}>
-          <Text style={subStyles.tagText}>{tag}</Text>
+        <View key={tag} style={[subStyles.tagChip, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+          <Text style={[subStyles.tagText, { color: colors.textMuted }]}>{tag}</Text>
         </View>
       ))}
     </View>
@@ -144,6 +147,7 @@ function SeasonDots({ season }: { season: number[] }) {
 // ─── Variant Renderers ────────────────────────────────────────────────────────
 
 function MarketContent({ item, expanded }: { item: EconomyMarketCardProps['item']; expanded: boolean }) {
+  const { colors } = useTheme();
   const typeConf = item.type ? TYPE_BADGE[item.type] : null;
   const topProducts = (item.products ?? []).slice(0, 3);
 
@@ -152,10 +156,10 @@ function MarketContent({ item, expanded }: { item: EconomyMarketCardProps['item'
       {/* Header row */}
       <View style={styles.headerRow}>
         <View style={styles.titleBlock}>
-          <Text style={styles.itemName}>{item.name}</Text>
+          <Text style={[styles.itemName, { color: colors.textPrimary }]}>{item.name}</Text>
           <View style={styles.locationRow}>
             <MaterialIcons name="place" size={12} color={C.textLight} />
-            <Text style={styles.locationText}>
+            <Text style={[styles.locationText, { color: colors.textMuted }]}>
               {[item.city, item.region].filter(Boolean).join(', ')}
             </Text>
           </View>
@@ -173,7 +177,7 @@ function MarketContent({ item, expanded }: { item: EconomyMarketCardProps['item'
       {item.schedule && (
         <View style={styles.scheduleRow}>
           <MaterialIcons name="schedule" size={13} color={C.market} />
-          <Text style={styles.scheduleText}>{item.schedule}</Text>
+          <Text style={[styles.scheduleText, { color: colors.textSecondary }]}>{item.schedule}</Text>
         </View>
       )}
 
@@ -193,7 +197,7 @@ function MarketContent({ item, expanded }: { item: EconomyMarketCardProps['item'
 
       {/* Description */}
       {item.description && (
-        <Text style={styles.description} numberOfLines={expanded ? undefined : 2}>
+        <Text style={[styles.description, { color: colors.textSecondary }]} numberOfLines={expanded ? undefined : 2}>
           {item.description}
         </Text>
       )}
@@ -205,16 +209,17 @@ function MarketContent({ item, expanded }: { item: EconomyMarketCardProps['item'
 }
 
 function ArtisanContent({ item, expanded }: { item: EconomyMarketCardProps['item']; expanded: boolean }) {
+  const { colors } = useTheme();
   return (
     <>
       {/* Header */}
       <View style={styles.headerRow}>
         <View style={styles.titleBlock}>
-          <Text style={styles.itemName}>{item.name}</Text>
+          <Text style={[styles.itemName, { color: colors.textPrimary }]}>{item.name}</Text>
           {item.city && (
             <View style={styles.locationRow}>
               <MaterialIcons name="place" size={12} color={C.textLight} />
-              <Text style={styles.locationText}>
+              <Text style={[styles.locationText, { color: colors.textMuted }]}>
                 {[item.city, item.region].filter(Boolean).join(', ')}
               </Text>
             </View>
@@ -240,7 +245,7 @@ function ArtisanContent({ item, expanded }: { item: EconomyMarketCardProps['item
 
       {/* Story */}
       {item.story && (
-        <Text style={styles.description} numberOfLines={expanded ? undefined : 2}>
+        <Text style={[styles.description, { color: colors.textSecondary }]} numberOfLines={expanded ? undefined : 2}>
           {item.story}
         </Text>
       )}
@@ -252,6 +257,7 @@ function ArtisanContent({ item, expanded }: { item: EconomyMarketCardProps['item
 }
 
 function ProductContent({ item, expanded }: { item: EconomyMarketCardProps['item']; expanded: boolean }) {
+  const { colors } = useTheme();
   const iconName: MaterialIconName = item.category
     ? (CATEGORY_ICON[item.category] ?? 'local-grocery-store')
     : 'local-grocery-store';
@@ -264,11 +270,11 @@ function ProductContent({ item, expanded }: { item: EconomyMarketCardProps['item
           <MaterialIcons name={iconName} size={20} color={C.dop} />
         </View>
         <View style={styles.titleBlock}>
-          <Text style={styles.itemName}>{item.name}</Text>
+          <Text style={[styles.itemName, { color: colors.textPrimary }]}>{item.name}</Text>
           {item.origin && (
             <View style={styles.locationRow}>
               <MaterialIcons name="location-on" size={12} color={C.textLight} />
-              <Text style={styles.locationText}>{item.origin}</Text>
+              <Text style={[styles.locationText, { color: colors.textMuted }]}>{item.origin}</Text>
             </View>
           )}
         </View>
@@ -284,7 +290,7 @@ function ProductContent({ item, expanded }: { item: EconomyMarketCardProps['item
 
       {/* Story */}
       {item.story && (
-        <Text style={styles.description} numberOfLines={expanded ? undefined : 2}>
+        <Text style={[styles.description, { color: colors.textSecondary }]} numberOfLines={expanded ? undefined : 2}>
           {item.story}
         </Text>
       )}
@@ -300,13 +306,14 @@ export default function EconomyMarketCard({
   expanded = false,
   onPress,
 }: EconomyMarketCardProps) {
+  const { colors } = useTheme();
   const accentColor =
     variant === 'market'  ? C.market  :
     variant === 'artisan' ? C.artisan :
     C.dop;
 
   return (
-    <View style={[styles.card, { shadowColor: accentColor }]}>
+    <View style={[styles.card, { shadowColor: accentColor, backgroundColor: colors.card, borderColor: colors.border }]}>
       <TouchableOpacity
         onPress={onPress}
         activeOpacity={0.85}

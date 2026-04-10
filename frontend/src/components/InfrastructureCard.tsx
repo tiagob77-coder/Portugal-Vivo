@@ -4,6 +4,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
+import { useTheme } from '../context/ThemeContext';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -95,11 +96,12 @@ export default function InfrastructureCard({
   expanded = false,
   onPress,
 }: InfrastructureCardProps) {
+  const { colors } = useTheme();
   const typeConf   = TYPE_CONFIG[item.type];
   const accessConf = ACCESS_CONFIG[item.access_type];
 
   return (
-    <View style={[styles.card, { shadowColor: typeConf.color }]}>
+    <View style={[styles.card, { shadowColor: typeConf.color, backgroundColor: colors.card, borderColor: colors.border }]}>
       <TouchableOpacity onPress={onPress} activeOpacity={0.85} style={styles.inner}>
         {/* Left accent bar */}
         <View style={[styles.accentBar, { backgroundColor: typeConf.color }]} />
@@ -114,10 +116,10 @@ export default function InfrastructureCard({
 
             {/* Name + location */}
             <View style={styles.titleBlock}>
-              <Text style={styles.itemName}>{item.name}</Text>
+              <Text style={[styles.itemName, { color: colors.textPrimary }]}>{item.name}</Text>
               <View style={styles.locationRow}>
-                <MaterialIcons name="place" size={12} color={C.textLight} />
-                <Text style={styles.locationText}>
+                <MaterialIcons name="place" size={12} color={colors.textMuted} />
+                <Text style={[styles.locationText, { color: colors.textMuted }]}>
                   {[item.municipality, item.region].filter(Boolean).join(', ')}
                 </Text>
               </View>
@@ -202,7 +204,7 @@ export default function InfrastructureCard({
           )}
 
           {/* ── Description short ────────────────────────────────────── */}
-          <Text style={styles.descShort} numberOfLines={expanded ? undefined : 2}>
+          <Text style={[styles.descShort, { color: colors.textSecondary }]} numberOfLines={expanded ? undefined : 2}>
             {item.description_short}
           </Text>
 
@@ -228,7 +230,7 @@ export default function InfrastructureCard({
 
           {/* ── Expanded: description_long + opening_hours ───────────── */}
           {expanded && item.description_long && (
-            <Text style={styles.descLong}>{item.description_long}</Text>
+            <Text style={[styles.descLong, { color: colors.textSecondary }]}>{item.description_long}</Text>
           )}
           {expanded && item.opening_hours && (
             <View style={styles.hoursRow}>
