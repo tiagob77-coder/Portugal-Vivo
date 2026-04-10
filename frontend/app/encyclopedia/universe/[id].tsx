@@ -104,7 +104,7 @@ export default function UniverseDetailPage() {
 
   // Load items with useQuery for reliability (retries, caching)
   const itemsParams = useMemo(() => {
-    const params: any = { skip: 0, limit: 50 };
+    const params: any = { skip: 0, limit: 500 };
     if (selectedRegion && selectedRegion !== 'todas') params.region = selectedRegion;
     if (selectedSubcategory && selectedSubcategory !== 'todas') params.category = selectedSubcategory;
     return params;

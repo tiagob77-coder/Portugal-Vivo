@@ -198,11 +198,11 @@ export default function MapaTab() {
   const { region: regionParam, t: navTimestamp } = useLocalSearchParams<{ region?: string; t?: string }>();
   const insets = useSafeAreaInsets();
   const mapRef = useRef<any>(null);
-  const [activeLayers, setActiveLayers] = useState<string[]>(['historia_patrimonio']);
+  const [activeLayers, setActiveLayers] = useState<string[]>(MAP_LAYERS.map(l => l.id));
   const [activeSubcategories, setActiveSubcategories] = useState<string[]>(
-    (SUBCATEGORIES['historia_patrimonio'] || []).map(s => s.id)
+    MAP_LAYERS.flatMap(l => getLayerSubcategories(l.id))
   );
-  const [expandedLayer, setExpandedLayer] = useState<string | null>('historia_patrimonio');
+  const [expandedLayer, setExpandedLayer] = useState<string | null>(null);
   const [regionFilter, setRegionFilter] = useState<string | null>(null);
   const [selectedItem, setSelectedItem] = useState<MapItem | null>(null);
   const [_mapReady, setMapReady] = useState(false);

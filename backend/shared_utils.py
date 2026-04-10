@@ -39,7 +39,7 @@ def haversine_meters(lat1: float, lon1: float, lat2: float, lon2: float) -> floa
     return haversine_km(lat1, lon1, lat2, lon2) * 1000
 
 
-def clamp_pagination(skip: int, limit: int, max_limit: int = 500) -> tuple:
+def clamp_pagination(skip: int, limit: int, max_limit: int = 2000) -> tuple:
     """Clamp skip and limit to safe ranges to prevent abuse.
     Returns (safe_skip, safe_limit).
     """
