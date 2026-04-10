@@ -5,7 +5,7 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
-import { useTheme } from '../../context/ThemeContext';
+import { useTheme } from '../context/ThemeContext';
 
 export type TrailDifficulty = 'facil' | 'moderado' | 'dificil' | 'muito_dificil';
 export type TrailType = 'linear' | 'circular' | 'ida_volta';
