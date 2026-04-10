@@ -7,6 +7,7 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, Platform, LayoutChangeEvent } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
+import { useTheme } from '../../context/ThemeContext';
 
 export interface ElevationPoint {
   distance_km: number;

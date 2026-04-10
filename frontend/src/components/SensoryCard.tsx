@@ -6,6 +6,7 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Platform } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import * as Speech from 'expo-speech';
+import { useTheme } from '../../context/ThemeContext';
 
 export interface SensoryData {
   sound_url?: string;       // URL de áudio ambiente
@@ -20,6 +21,7 @@ interface Props {
 }
 
 export default function SensoryCard({ data }: Props) {
+  const { colors } = useTheme();
   const [playingDesc, setPlayingDesc] = useState(false);
 
   const hasAny = data.aroma_note || data.flavor_note || data.photo_angle_tip || data.sound_label;
@@ -37,21 +39,21 @@ export default function SensoryCard({ data }: Props) {
   };
 
   return (
-    <View style={s.container}>
-      <View style={s.titleRow}>
+    <View style={[s.container, { backgroundColor: colors.card, borderColor: colors.border }]}>
+      <View style={[s.titleRow, { borderBottomColor: colors.border }]}>
         <MaterialIcons name="sensors" size={16} color="#C49A6C" />
-        <Text style={s.title}>Experiência Sensorial</Text>
+        <Text style={[s.title, { color: colors.accent }]}>Experiência Sensorial</Text>
       </View>
 
       {/* Sound */}
       {data.sound_label && (
-        <TouchableOpacity style={s.row} onPress={speakSoundLabel} activeOpacity={0.75}>
+        <TouchableOpacity style={[s.row, { borderBottomColor: colors.borderLight }]} onPress={speakSoundLabel} activeOpacity={0.75}>
           <View style={[s.iconBox, { backgroundColor: '#EFF6FF' }]}>
             <MaterialIcons name={playingDesc ? 'stop' : 'hearing'} size={18} color="#3B82F6" />
           </View>
           <View style={s.textCol}>
-            <Text style={s.label}>Som Ambiente</Text>
-            <Text style={s.value}>{data.sound_label}</Text>
+            <Text style={[s.label, { color: colors.textMuted }]}>Som Ambiente</Text>
+            <Text style={[s.value, { color: colors.textPrimary }]}>{data.sound_label}</Text>
           </View>
           {data.sound_url && Platform.OS !== 'web' && (
             <MaterialIcons name="play-circle" size={20} color="#3B82F6" />
@@ -61,39 +63,39 @@ export default function SensoryCard({ data }: Props) {
 
       {/* Aroma */}
       {data.aroma_note && (
-        <View style={s.row}>
+        <View style={[s.row, { borderBottomColor: colors.borderLight }]}>
           <View style={[s.iconBox, { backgroundColor: '#F0FDF4' }]}>
             <MaterialIcons name="spa" size={18} color="#22C55E" />
           </View>
           <View style={s.textCol}>
-            <Text style={s.label}>Aroma</Text>
-            <Text style={s.value}>{data.aroma_note}</Text>
+            <Text style={[s.label, { color: colors.textMuted }]}>Aroma</Text>
+            <Text style={[s.value, { color: colors.textPrimary }]}>{data.aroma_note}</Text>
           </View>
         </View>
       )}
 
       {/* Flavor */}
       {data.flavor_note && (
-        <View style={s.row}>
+        <View style={[s.row, { borderBottomColor: colors.borderLight }]}>
           <View style={[s.iconBox, { backgroundColor: '#FEF2F2' }]}>
             <MaterialIcons name="restaurant" size={18} color="#EF4444" />
           </View>
           <View style={s.textCol}>
-            <Text style={s.label}>Sabor Local</Text>
-            <Text style={s.value}>{data.flavor_note}</Text>
+            <Text style={[s.label, { color: colors.textMuted }]}>Sabor Local</Text>
+            <Text style={[s.value, { color: colors.textPrimary }]}>{data.flavor_note}</Text>
           </View>
         </View>
       )}
 
       {/* Photo angle */}
       {data.photo_angle_tip && (
-        <View style={s.row}>
+        <View style={[s.row, { borderBottomColor: colors.borderLight }]}>
           <View style={[s.iconBox, { backgroundColor: '#FFFBEB' }]}>
             <MaterialIcons name="photo-camera" size={18} color="#F59E0B" />
           </View>
           <View style={s.textCol}>
-            <Text style={s.label}>Melhor Ângulo</Text>
-            <Text style={s.value}>{data.photo_angle_tip}</Text>
+            <Text style={[s.label, { color: colors.textMuted }]}>Melhor Ângulo</Text>
+            <Text style={[s.value, { color: colors.textPrimary }]}>{data.photo_angle_tip}</Text>
           </View>
         </View>
       )}

@@ -4,6 +4,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
+import { useTheme } from '../../context/ThemeContext';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -65,13 +66,14 @@ export default function MaritimeCultureCard({
   expanded = false,
   onPress,
 }: MaritimeCultureCardProps) {
+  const { colors } = useTheme();
   const cfg = TYPE_CONFIG[event.type];
   const visibleActivities = event.activities?.slice(0, 3) ?? [];
   const extraActivities = (event.activities?.length ?? 0) - visibleActivities.length;
 
   return (
     <TouchableOpacity
-      style={[styles.card, { borderLeftColor: cfg.color }]}
+      style={[styles.card, { backgroundColor: colors.card, borderLeftColor: cfg.color }]}
       onPress={onPress}
       activeOpacity={0.85}
     >
@@ -82,7 +84,7 @@ export default function MaritimeCultureCard({
         </View>
 
         <View style={styles.headerText}>
-          <Text style={styles.eventName} numberOfLines={2}>{event.name}</Text>
+          <Text style={[styles.eventName, { color: colors.textPrimary }]} numberOfLines={2}>{event.name}</Text>
           <View style={styles.badgeRow}>
             <View style={[styles.typeBadge, { backgroundColor: cfg.bg }]}>
               <Text style={[styles.typeBadgeText, { color: cfg.color }]}>{cfg.label}</Text>
@@ -104,8 +106,8 @@ export default function MaritimeCultureCard({
 
       {/* ── Date Row ────────────────────────────────────────────────────── */}
       <View style={styles.row}>
-        <MaterialIcons name="calendar-today" size={13} color="#64748B" />
-        <Text style={styles.rowText}>
+        <MaterialIcons name="calendar-today" size={13} color={colors.textMuted} />
+        <Text style={[styles.rowText, { color: colors.textSecondary }]}>
           {event.date_start}
           {event.date_end ? ` – ${event.date_end}` : ''}
         </Text>
@@ -118,8 +120,8 @@ export default function MaritimeCultureCard({
 
       {/* ── Location Row ────────────────────────────────────────────────── */}
       <View style={styles.row}>
-        <MaterialIcons name="place" size={13} color="#64748B" />
-        <Text style={styles.rowText}>{event.municipality}, {event.region}</Text>
+        <MaterialIcons name="place" size={13} color={colors.textMuted} />
+        <Text style={[styles.rowText, { color: colors.textSecondary }]}>{event.municipality}, {event.region}</Text>
         {event.distance_km !== undefined && (
           <View style={styles.distBadge}>
             <Text style={styles.distText}>{event.distance_km.toFixed(1)} km</Text>
@@ -131,26 +133,26 @@ export default function MaritimeCultureCard({
       {event.saint_or_symbol && (
         <View style={styles.row}>
           <MaterialIcons name="star" size={13} color="#F59E0B" />
-          <Text style={styles.rowText}>{event.saint_or_symbol}</Text>
+          <Text style={[styles.rowText, { color: colors.textSecondary }]}>{event.saint_or_symbol}</Text>
         </View>
       )}
 
       {/* ── Boats Row ───────────────────────────────────────────────────── */}
       {event.boats_involved !== undefined && (
         <View style={styles.row}>
-          <MaterialIcons name="directions-boat" size={13} color="#64748B" />
-          <Text style={styles.rowText}>{event.boats_involved} barcos</Text>
+          <MaterialIcons name="directions-boat" size={13} color={colors.textMuted} />
+          <Text style={[styles.rowText, { color: colors.textSecondary }]}>{event.boats_involved} barcos</Text>
         </View>
       )}
 
       {/* ── Description short ───────────────────────────────────────────── */}
-      <Text style={styles.descShort}>{event.description_short}</Text>
+      <Text style={[styles.descShort, { color: colors.textSecondary }]}>{event.description_short}</Text>
 
       {/* ── Activities Chips ────────────────────────────────────────────── */}
       {visibleActivities.length > 0 && (
         <View style={styles.chipsRow}>
           {visibleActivities.map((act) => (
-            <View key={act} style={styles.chip}>
+            <View key={act} style={[styles.chip, { backgroundColor: colors.surface, borderColor: colors.border }]}>
               <Text style={styles.chipText}>{act}</Text>
             </View>
           ))}
@@ -178,7 +180,7 @@ export default function MaritimeCultureCard({
 
       {/* ── Expanded: long description ──────────────────────────────────── */}
       {expanded && event.description_long && (
-        <Text style={styles.descLong}>{event.description_long}</Text>
+        <Text style={[styles.descLong, { color: colors.textPrimary, borderTopColor: colors.border }]}>{event.description_long}</Text>
       )}
     </TouchableOpacity>
   );

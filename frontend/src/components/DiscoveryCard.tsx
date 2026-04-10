@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator
 import { MaterialIcons } from '@expo/vector-icons';
 import { enrichEvent, getEventToNatureItinerary } from '../services/api';
 import { palette, stateColors } from '../theme';
+import { useTheme } from '../../context/ThemeContext';
 
 interface DiscoveryCardProps {
   eventName: string;
