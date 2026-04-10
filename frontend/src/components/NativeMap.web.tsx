@@ -110,6 +110,7 @@ export function LeafletMapComponent(props: LeafletMapProps) {
     trailColor = '#22C55E',
     style,
     onMapReady,
+    navigateToRegion,
   } = props;
 
   const containerRef = useRef<any>(null);
@@ -442,6 +443,32 @@ export function LeafletMapComponent(props: LeafletMapProps) {
       }
     });
   }, [mapMode, ready]);
+
+  // ── Navigate to region (prop-driven) ────────────────────────────────────
+  const prevRegionRef = useRef<typeof navigateToRegion>(undefined);
+  useEffect(() => {
+    if (!mapRef.current || !ready) return;
+    // Skip initial render — map already opens at PT_CENTER
+    if (prevRegionRef.current === undefined) {
+      prevRegionRef.current = navigateToRegion ?? null;
+      return;
+    }
+    prevRegionRef.current = navigateToRegion ?? null;
+    if (navigateToRegion) {
+      mapRef.current.flyTo({
+        center: navigateToRegion.center,
+        zoom: navigateToRegion.zoom,
+        duration: 1200,
+      });
+    } else {
+      // Reset to full Portugal view
+      mapRef.current.flyTo({
+        center: PT_CENTER,
+        zoom: PT_ZOOM,
+        duration: 1200,
+      });
+    }
+  }, [navigateToRegion, ready]);
 
   // ── Toggle terrain 3D ─────────────────────────────────────────────────────
   const toggle3D = useCallback(() => {

@@ -28,5 +28,6 @@ export interface LeafletMapProps {
   initialRegion?: any;
   onMapReady?: () => void;
   showsUserLocation?: boolean;
+  navigateToRegion?: { center: [number, number]; zoom: number } | null;
   [key: string]: any;
 }
