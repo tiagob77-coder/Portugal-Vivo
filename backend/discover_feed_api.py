@@ -132,14 +132,13 @@ async def get_trending_items(limit: int = 10):
 @router.get("/discover/seasonal")
 async def get_seasonal_content():
     """Get seasonal/temporal content"""
-    from calendar_api import _get_calendar_events
     db = _db_holder.db
     now = datetime.now(timezone.utc)
     current_month = now.month
 
-    # Get current season events
-    all_events = await _get_calendar_events()
-    season_events = [e for e in all_events if e["date_start"].startswith(f"{current_month:02d}")]
+    # Get current season events directly from events collection
+    all_events = await db.events.find({"month": current_month}, {"_id": 0}).to_list(200)
+    season_events = all_events
 
     # Get items related to current season
     season_categories = {

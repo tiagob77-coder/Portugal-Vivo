@@ -240,7 +240,7 @@ api_router = APIRouter(prefix="/api")
 # ========================
 from models.api_models import (
     User, Location, HeritageItem, Route, NarrativeRequest, RoutePlanRequest, RoutePlanResponse,
-    NearbyPOIRequest, NearbyPOIResponse, NarrativeResponse,
+    NarrativeResponse,
 )
 
 # Import shared constants from single source of truth
@@ -268,10 +268,8 @@ set_routes_inline_db(db)
 set_routes_google_key(GOOGLE_MAPS_API_KEY)
 
 # ========================
-# NEARBY POIs (extracted to map_nearby_api.py)
+# NEARBY POIs (consolidated — proximity_api + explore_nearby_api)
 # ========================
-from map_nearby_api import map_nearby_router, set_map_nearby_db
-set_map_nearby_db(db)
 
 # ========================
 # FAVORITES (extracted to favorites_api.py)
@@ -310,10 +308,8 @@ from gamification_progress_api import gamification_progress_router, set_gamifica
 set_gamification_progress_db(db)
 
 # ========================
-# CALENDAR (extracted to calendar_api.py)
+# CALENDAR (consolidated into agenda_api.py)
 # ========================
-from calendar_api import calendar_router, set_calendar_db, _get_calendar_events
-set_calendar_db(db)
 
 # ========================
 # DASHBOARD (extracted to dashboard_inline_api.py)
@@ -440,9 +436,10 @@ set_epochs_db(db)
 api_router.include_router(epochs_router)
 
 # Include Proximity router
-from proximity_api import proximity_router, set_proximity_db
+from proximity_api import proximity_router, set_proximity_db, nearby_compat_router
 set_proximity_db(db)
 api_router.include_router(proximity_router)
+api_router.include_router(nearby_compat_router)
 
 # Include Leaderboard router (Redis-powered)
 from leaderboard_api import leaderboard_router, set_db as set_leaderboard_db
@@ -464,9 +461,10 @@ from beaches_realtime_api import beaches_router
 api_router.include_router(beaches_router)
 
 # Agenda Viral
-from agenda_api import agenda_router, set_agenda_db, seed_grande_expedicao
+from agenda_api import agenda_router, set_agenda_db, seed_grande_expedicao, calendar_compat_router
 set_agenda_db(db)
 api_router.include_router(agenda_router)
+api_router.include_router(calendar_compat_router)
 
 # Smart Travel Planner
 from planner_api import planner_router, set_planner_db
@@ -584,9 +582,6 @@ api_router.include_router(offline_router)
 # Routes inline (extracted from server.py)
 api_router.include_router(routes_inline_router)
 
-# Map Nearby (extracted from server.py)
-api_router.include_router(map_nearby_router)
-
 # Favorites (extracted from server.py)
 api_router.include_router(favorites_router)
 
@@ -595,9 +590,6 @@ api_router.include_router(narrative_router)
 
 # Community contributions (extracted from server.py)
 api_router.include_router(community_router)
-
-# Calendar events (extracted from server.py)
-api_router.include_router(calendar_router)
 
 # Admin Dashboard + Gallery + Share + Stats (extracted from server.py)
 api_router.include_router(admin_dashboard_router)

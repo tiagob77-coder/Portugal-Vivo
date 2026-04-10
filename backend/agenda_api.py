@@ -393,6 +393,42 @@ async def get_viralagenda_events(
     }
 
 
+@agenda_router.get("/upcoming")
+async def get_upcoming_events(
+    limit: int = Query(5, ge=1, le=50),
+    region: Optional[str] = Query(None),
+    type: Optional[str] = Query(None),
+):
+    """Get upcoming events from current date forward, sorted chronologically."""
+    today = datetime.now(timezone.utc)
+    current_month = today.month
+    current_day = today.day
+
+    query: dict = {}
+    if type:
+        query["type"] = type
+    if region:
+        query["region"] = {"$regex": sanitize_regex(region), "$options": "i"}
+
+    all_events = await _db_holder.db.events.find(query, {"_id": 0}).to_list(5000)
+    all_events = [_enrich_with_ticket(e) for e in all_events]
+
+    upcoming = []
+    for evt in all_events:
+        m = evt.get("month", 0)
+        d = evt.get("day_start", 1)
+        d_end = evt.get("day_end", d)
+        # Event is upcoming if it starts in the future or is still ongoing
+        if m > current_month or (m == current_month and d_end >= current_day):
+            upcoming.append(evt)
+        # Wrap around: near end-of-year, include January events
+        elif current_month >= 11 and m == 1:
+            upcoming.append(evt)
+
+    upcoming.sort(key=lambda e: (e.get("month", 13), e.get("day_start", 0)))
+    return upcoming[:limit]
+
+
 async def _get_last_sync_time() -> Optional[str]:
     """Get timestamp of last event sync."""
     try:
@@ -402,3 +438,85 @@ async def _get_last_sync_time() -> Optional[str]:
     except Exception:
         pass
     return None
+
+
+# ============================================================
+# BACKWARD-COMPATIBLE /calendar ALIASES
+# These keep old tests and any external integrations working.
+# ============================================================
+import unicodedata
+
+calendar_compat_router = APIRouter(tags=["Calendar"])
+
+
+def _normalize_region(region: str) -> str:
+    return unicodedata.normalize('NFD', region.lower()).encode('ascii', 'ignore').decode('ascii')
+
+
+def _to_calendar_format(evt: dict) -> dict:
+    m = evt.get("month")
+    ds = evt.get("day_start", 1)
+    de = evt.get("day_end", ds)
+    return {
+        "id": evt.get("id", ""),
+        "name": evt.get("name", ""),
+        "date_start": f"{m:02d}-{ds:02d}" if m else "",
+        "date_end": f"{m:02d}-{de:02d}" if m else "",
+        "category": evt.get("type", "festas"),
+        "region": evt.get("region", ""),
+        "description": evt.get("description", ""),
+        "source": evt.get("source", "curated"),
+        "has_tickets": evt.get("has_tickets", False),
+        "ticket_url": evt.get("ticket_url"),
+    }
+
+
+@calendar_compat_router.get("/calendar")
+async def compat_calendar_events(
+    month: Optional[int] = None,
+    category: Optional[str] = None,
+    region: Optional[str] = None,
+):
+    query: dict = {}
+    if month:
+        query["month"] = month
+    if category:
+        query["type"] = category
+    events = await _db_holder.db.events.find(query, {"_id": 0}).to_list(5000)
+    result = [_to_calendar_format(_enrich_with_ticket(e)) for e in events]
+    if region:
+        rn = _normalize_region(region)
+        result = [e for e in result if _normalize_region(e.get("region", "")) == rn]
+    return result
+
+
+@calendar_compat_router.get("/calendar/upcoming")
+async def compat_upcoming_events(
+    limit: int = 5,
+    category: Optional[str] = None,
+    region: Optional[str] = None,
+):
+    from datetime import datetime, timezone
+    today = datetime.now(timezone.utc)
+    cm, cd = today.month, today.day
+
+    query: dict = {}
+    if category:
+        query["type"] = category
+    events = await _db_holder.db.events.find(query, {"_id": 0}).to_list(5000)
+    events = [_to_calendar_format(_enrich_with_ticket(e)) for e in events]
+
+    if region:
+        rn = _normalize_region(region)
+        events = [e for e in events if _normalize_region(e.get("region", "")) == rn]
+
+    upcoming = [e for e in events if e["date_start"] >= f"{cm:02d}-{cd:02d}" or (cm >= 11 and e["date_start"].startswith("01"))]
+    upcoming.sort(key=lambda x: x.get("date_start", ""))
+    return upcoming[:limit]
+
+
+@calendar_compat_router.get("/calendar/month/{month}")
+async def compat_events_by_month(month: int, category: Optional[str] = None, region: Optional[str] = None):
+    if month < 1 or month > 12:
+        raise HTTPException(status_code=400, detail="Month must be between 1 and 12")
+    return await compat_calendar_events(month=month, category=category, region=region)

@@ -5,6 +5,7 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
+import { useTheme } from '../context/ThemeContext';
 
 export type TrailDifficulty = 'facil' | 'moderado' | 'dificil' | 'muito_dificil';
 export type TrailType = 'linear' | 'circular' | 'ida_volta';
@@ -48,6 +49,7 @@ function fmtDuration(h?: number): string {
 }
 
 export default function TrailTechnicalCard({ data }: Props) {
+  const { colors } = useTheme();
   const diff = DIFFICULTY_CONFIG[data.difficulty || 'moderado'];
   const type = TYPE_CONFIG[data.trail_type || 'linear'];
 
@@ -59,34 +61,34 @@ export default function TrailTechnicalCard({ data }: Props) {
   ] as const;
 
   return (
-    <View style={tc.container}>
+    <View style={[tc.container, { backgroundColor: colors.card }]}>
       {/* Stats grid */}
       <View style={tc.grid}>
         {stats.map(s => (
           <View key={s.label} style={tc.statCell}>
             <MaterialIcons name={s.icon as any} size={18} color={s.color} />
-            <Text style={tc.statVal}>{s.value}</Text>
-            <Text style={tc.statLbl}>{s.label}</Text>
+            <Text style={[tc.statVal, { color: colors.textPrimary }]}>{s.value}</Text>
+            <Text style={[tc.statLbl, { color: colors.textMuted }]}>{s.label}</Text>
           </View>
         ))}
       </View>
 
       {/* Divider */}
-      <View style={tc.divider} />
+      <View style={[tc.divider, { backgroundColor: colors.border }]} />
 
       {/* Difficulty + type + terrain */}
       <View style={tc.metaRow}>
         <View style={[tc.diffBadge, { backgroundColor: diff.bg }]}>
           <Text style={[tc.diffTxt, { color: diff.color }]}>{diff.label}</Text>
         </View>
-        <View style={tc.typePill}>
-          <MaterialIcons name={type.icon as any} size={13} color="#6B7280" />
-          <Text style={tc.typeTxt}>{type.label}</Text>
+        <View style={[tc.typePill, { backgroundColor: colors.surface }]}>
+          <MaterialIcons name={type.icon as any} size={13} color={colors.textSecondary} />
+          <Text style={[tc.typeTxt, { color: colors.textSecondary }]}>{type.label}</Text>
         </View>
         {data.terrain_type && (
-          <View style={tc.terrainPill}>
-            <MaterialIcons name="nature" size={13} color="#6B7280" />
-            <Text style={tc.typeTxt}>{data.terrain_type}</Text>
+          <View style={[tc.terrainPill, { backgroundColor: colors.surface }]}>
+            <MaterialIcons name="nature" size={13} color={colors.textSecondary} />
+            <Text style={[tc.typeTxt, { color: colors.textSecondary }]}>{data.terrain_type}</Text>
           </View>
         )}
       </View>

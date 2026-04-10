@@ -2,6 +2,7 @@
 Proximity & Nearby POIs API - Geofencing and discovery
 """
 from fastapi import APIRouter, Query
+from pydantic import BaseModel, Field
 from typing import Optional
 from math import radians, cos
 from shared_utils import haversine_km, DatabaseHolder
@@ -180,3 +181,30 @@ async def get_heatzone(
             for r in results
         ],
     }
+
+
+# ---------------------------------------------------------------------------
+# Backward-compatible POST /nearby alias (legacy map_nearby_api)
+# ---------------------------------------------------------------------------
+
+nearby_compat_router = APIRouter(tags=["Nearby-Compat"])
+
+
+class NearbyRequest(BaseModel):
+    latitude: float
+    longitude: float
+    radius_km: float = Field(5.0, ge=0.1, le=100)
+    categories: Optional[list] = None
+    limit: int = Field(20, ge=1, le=100)
+
+
+@nearby_compat_router.post("/nearby")
+async def nearby_compat(req: NearbyRequest):
+    """Legacy POST /nearby — delegates to proximity GET /nearby."""
+    return await get_nearby_pois(
+        lat=req.latitude,
+        lng=req.longitude,
+        radius_km=req.radius_km,
+        category=req.categories[0] if req.categories else None,
+        limit=req.limit,
+    )

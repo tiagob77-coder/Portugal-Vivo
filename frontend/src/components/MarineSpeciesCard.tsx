@@ -7,6 +7,7 @@ import {
   View, Text, StyleSheet, TouchableOpacity,
 } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
+import { useTheme } from '../context/ThemeContext';
 
 // ─── Interfaces ───────────────────────────────────────────────────────────────
 
@@ -107,6 +108,7 @@ const CATEGORY_LABEL: Record<MarineSpecies['category'], string> = {
 // ─── Component ────────────────────────────────────────────────────────────────
 
 export default function MarineSpeciesCard({ species, expanded = false, onPress }: MarineSpeciesCardProps) {
+  const { colors } = useTheme();
   const catColor = CATEGORY_COLOR[species.category];
   const currentMonth = new Date().getMonth() + 1;
 
@@ -114,12 +116,12 @@ export default function MarineSpeciesCard({ species, expanded = false, onPress }
     <TouchableOpacity
       activeOpacity={0.85}
       onPress={onPress}
-      style={[styles.card, { borderLeftColor: catColor }]}
+      style={[styles.card, { borderLeftColor: catColor, backgroundColor: colors.card }]}
     >
       {/* IQ score top-right */}
       {species.iq_score !== undefined && (
-        <View style={styles.iqBadge}>
-          <Text style={styles.iqText}>{species.iq_score}</Text>
+        <View style={[styles.iqBadge, { backgroundColor: colors.surface }]}>
+          <Text style={[styles.iqText, { color: colors.textMuted }]}>{species.iq_score}</Text>
         </View>
       )}
 
@@ -129,8 +131,8 @@ export default function MarineSpeciesCard({ species, expanded = false, onPress }
           <MaterialIcons name={CATEGORY_ICON[species.category]} size={20} color={catColor} />
         </View>
         <View style={styles.nameBlock}>
-          <Text style={styles.commonName}>{species.common_name_pt}</Text>
-          <Text style={styles.scientificName}>{species.scientific_name}</Text>
+          <Text style={[styles.commonName, { color: colors.textPrimary }]}>{species.common_name_pt}</Text>
+          <Text style={[styles.scientificName, { color: colors.textMuted }]}>{species.scientific_name}</Text>
           <Text style={[styles.categoryLabel, { color: catColor }]}>
             {CATEGORY_LABEL[species.category]}
           </Text>
@@ -174,13 +176,14 @@ export default function MarineSpeciesCard({ species, expanded = false, onPress }
               key={month}
               style={[
                 styles.monthSquare,
+                { backgroundColor: colors.surface },
                 isActive && { backgroundColor: catColor },
                 isCurrent && styles.monthSquareCurrent,
                 isCurrent && isActive && { borderColor: '#FFFFFF' },
                 isCurrent && !isActive && { borderColor: catColor },
               ]}
             >
-              <Text style={[styles.monthLabel, isActive && styles.monthLabelActive]}>
+              <Text style={[styles.monthLabel, { color: colors.textMuted }, isActive && styles.monthLabelActive]}>
                 {abbr}
               </Text>
             </View>
@@ -193,12 +196,12 @@ export default function MarineSpeciesCard({ species, expanded = false, onPress }
         <View style={styles.expandedSection}>
           <View style={[styles.divider, { backgroundColor: catColor + '30' }]} />
 
-          <Text style={styles.descriptionText}>{species.description_short}</Text>
+          <Text style={[styles.descriptionText, { color: colors.textSecondary }]}>{species.description_short}</Text>
 
           {species.curiosity !== undefined && (
-            <View style={[styles.curiosityBox, { borderLeftColor: catColor }]}>
+            <View style={[styles.curiosityBox, { borderLeftColor: catColor, backgroundColor: colors.surface }]}>
               <MaterialIcons name="lightbulb" size={13} color={catColor} />
-              <Text style={styles.curiosityText}>{species.curiosity}</Text>
+              <Text style={[styles.curiosityText, { color: colors.textSecondary }]}>{species.curiosity}</Text>
             </View>
           )}
 
@@ -206,16 +209,16 @@ export default function MarineSpeciesCard({ species, expanded = false, onPress }
             <View style={styles.metaGrid}>
               {species.habitat !== undefined && (
                 <View style={styles.metaItem}>
-                  <MaterialIcons name="terrain" size={13} color="#64748B" />
-                  <Text style={styles.metaLabel}>Habitat</Text>
-                  <Text style={styles.metaValue}>{species.habitat}</Text>
+                  <MaterialIcons name="terrain" size={13} color={colors.textMuted} />
+                  <Text style={[styles.metaLabel, { color: colors.textMuted }]}>Habitat</Text>
+                  <Text style={[styles.metaValue, { color: colors.textSecondary }]}>{species.habitat}</Text>
                 </View>
               )}
               {species.depth_range !== undefined && (
                 <View style={styles.metaItem}>
-                  <MaterialIcons name="water" size={13} color="#64748B" />
-                  <Text style={styles.metaLabel}>Profundidade</Text>
-                  <Text style={styles.metaValue}>{species.depth_range}</Text>
+                  <MaterialIcons name="water" size={13} color={colors.textMuted} />
+                  <Text style={[styles.metaLabel, { color: colors.textMuted }]}>Profundidade</Text>
+                  <Text style={[styles.metaValue, { color: colors.textSecondary }]}>{species.depth_range}</Text>
                 </View>
               )}
             </View>
@@ -223,7 +226,7 @@ export default function MarineSpeciesCard({ species, expanded = false, onPress }
 
           {species.best_spots !== undefined && species.best_spots.length > 0 && (
             <View style={styles.spotsSection}>
-              <Text style={styles.spotsLabel}>Melhores locais</Text>
+              <Text style={[styles.spotsLabel, { color: colors.textMuted }]}>Melhores locais</Text>
               <View style={styles.spotsChips}>
                 {species.best_spots.map((spot) => (
                   <View key={spot} style={[styles.spotChip, { borderColor: catColor + '50' }]}>

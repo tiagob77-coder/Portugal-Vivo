@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
+import { useTheme } from '../context/ThemeContext';
 
 interface CoastalDataCardProps {
   zone: {
@@ -55,50 +56,51 @@ function getSegurancaDisplay(seguranca: string): { label: string; color: string;
 }
 
 const CoastalDataCard: React.FC<CoastalDataCardProps> = ({ zone, compact = false }) => {
+  const { colors } = useTheme();
   const { condicoes } = zone;
   const tide = getSimulatedTideHeight();
   const windSpeed = getSimulatedWindSpeed(condicoes.vento_predominante);
   const seg = getSegurancaDisplay(condicoes.seguranca);
 
   return (
-    <View style={[styles.card, compact && styles.cardCompact]}>
+    <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.border }, compact && styles.cardCompact]}>
       <View style={styles.grid}>
 
         {/* Marés */}
-        <View style={[styles.cell, styles.cellBorderRight, styles.cellBorderBottom]}>
+        <View style={[styles.cell, styles.cellBorderRight, styles.cellBorderBottom, { borderRightColor: colors.border, borderBottomColor: colors.border }]}>
           <View style={styles.cellHeader}>
             <MaterialIcons name="water" size={20} color="#0E7490" />
-            <Text style={styles.cellLabel}>Marés</Text>
+            <Text style={[styles.cellLabel, { color: colors.textMuted }]}>Marés</Text>
           </View>
-          <Text style={styles.cellValue}>{tide.phase}</Text>
-          <Text style={styles.cellSub}>{tide.height} m</Text>
+          <Text style={[styles.cellValue, { color: colors.textPrimary }]}>{tide.phase}</Text>
+          <Text style={[styles.cellSub, { color: colors.textSecondary }]}>{tide.height} m</Text>
         </View>
 
         {/* Ondas */}
-        <View style={[styles.cell, styles.cellBorderBottom]}>
+        <View style={[styles.cell, styles.cellBorderBottom, { borderBottomColor: colors.border }]}>
           <View style={styles.cellHeader}>
             <MaterialIcons name="waves" size={20} color="#0E7490" />
-            <Text style={styles.cellLabel}>Ondas</Text>
+            <Text style={[styles.cellLabel, { color: colors.textMuted }]}>Ondas</Text>
           </View>
-          <Text style={styles.cellValue}>{condicoes.ondas_media_m} m</Text>
-          <Text style={styles.cellSub}>~12s · NW</Text>
+          <Text style={[styles.cellValue, { color: colors.textPrimary }]}>{condicoes.ondas_media_m} m</Text>
+          <Text style={[styles.cellSub, { color: colors.textSecondary }]}>~12s · NW</Text>
         </View>
 
         {/* Vento */}
-        <View style={[styles.cell, styles.cellBorderRight]}>
+        <View style={[styles.cell, styles.cellBorderRight, { borderRightColor: colors.border }]}>
           <View style={styles.cellHeader}>
             <MaterialIcons name="air" size={20} color="#0E7490" />
-            <Text style={styles.cellLabel}>Vento</Text>
+            <Text style={[styles.cellLabel, { color: colors.textMuted }]}>Vento</Text>
           </View>
-          <Text style={styles.cellValue}>{windSpeed} km/h</Text>
-          <Text style={styles.cellSub}>{condicoes.vento_predominante}</Text>
+          <Text style={[styles.cellValue, { color: colors.textPrimary }]}>{windSpeed} km/h</Text>
+          <Text style={[styles.cellSub, { color: colors.textSecondary }]}>{condicoes.vento_predominante}</Text>
         </View>
 
         {/* Segurança */}
         <View style={styles.cell}>
           <View style={styles.cellHeader}>
             <MaterialIcons name="shield" size={20} color="#0E7490" />
-            <Text style={styles.cellLabel}>Segurança</Text>
+            <Text style={[styles.cellLabel, { color: colors.textMuted }]}>Segurança</Text>
           </View>
           <View style={[styles.segurancaBadge, { backgroundColor: seg.bg }]}>
             <Text style={[styles.segurancaText, { color: seg.color }]}>
@@ -110,9 +112,9 @@ const CoastalDataCard: React.FC<CoastalDataCardProps> = ({ zone, compact = false
       </View>
 
       {/* Melhor época */}
-      <View style={styles.epocaRow}>
+      <View style={[styles.epocaRow, { borderTopColor: colors.border, backgroundColor: colors.surface }]}>
         <MaterialIcons name="wb-sunny" size={14} color="#D97706" />
-        <Text style={styles.epocaLabel}>Melhor época:</Text>
+        <Text style={[styles.epocaLabel, { color: colors.textSecondary }]}>Melhor época:</Text>
         <View style={styles.epocaChip}>
           <Text style={styles.epocaChipText}>{condicoes.melhor_epoca}</Text>
         </View>
