@@ -22,6 +22,7 @@ const DiscoveryCard: React.FC<DiscoveryCardProps> = ({
   onNaturePress,
   showItinerary = false,
 }) => {
+  const { colors } = useTheme();
   const [enrichment, setEnrichment] = useState<any>(null);
   const [itinerary, setItinerary] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -59,9 +60,9 @@ const DiscoveryCard: React.FC<DiscoveryCardProps> = ({
     <ScrollView style={styles.container}>
       {/* Geo Context */}
       {enrichment.geo_context && (
-        <View style={styles.geoBar}>
-          <MaterialIcons name="place" size={14} color={palette.gray[500]} />
-          <Text style={styles.geoText}>
+        <View style={[styles.geoBar, { backgroundColor: colors.backgroundAlt }]}>
+          <MaterialIcons name="place" size={14} color={colors.textMuted} />
+          <Text style={[styles.geoText, { color: colors.textSecondary }]}>
             {enrichment.geo_context.freguesia}, {enrichment.geo_context.concelho}, {enrichment.geo_context.distrito}
           </Text>
         </View>
@@ -70,15 +71,15 @@ const DiscoveryCard: React.FC<DiscoveryCardProps> = ({
       {/* Protected Area */}
       {enrichment.protected_area && (
         <TouchableOpacity
-          style={styles.section}
+          style={[styles.section, { backgroundColor: colors.card, borderColor: colors.borderLight }]}
           onPress={() => onNaturePress?.(enrichment.protected_area)}
         >
           <View style={styles.sectionHeader}>
             <MaterialIcons name="park" size={18} color={stateColors.surf.excellent} />
-            <Text style={styles.sectionTitle}>Área Protegida Próxima</Text>
+            <Text style={[styles.sectionTitle, { color: colors.textPrimary }]}>Área Protegida Próxima</Text>
           </View>
-          <Text style={styles.areaName}>{enrichment.protected_area.area.name}</Text>
-          <Text style={styles.areaDesignation}>{enrichment.protected_area.area.designation}</Text>
+          <Text style={[styles.areaName, { color: colors.textPrimary }]}>{enrichment.protected_area.area.name}</Text>
+          <Text style={[styles.areaDesignation, { color: colors.textMuted }]}>{enrichment.protected_area.area.designation}</Text>
           <Text style={styles.distance}>{enrichment.protected_area.distance_km} km</Text>
         </TouchableOpacity>
       )}
@@ -86,14 +87,14 @@ const DiscoveryCard: React.FC<DiscoveryCardProps> = ({
       {/* Biodiversity Station */}
       {enrichment.biodiversity_station && (
         <TouchableOpacity
-          style={styles.section}
+          style={[styles.section, { backgroundColor: colors.card, borderColor: colors.borderLight }]}
           onPress={() => onNaturePress?.(enrichment.biodiversity_station)}
         >
           <View style={styles.sectionHeader}>
             <MaterialIcons name="biotech" size={18} color={stateColors.tide.rising} />
-            <Text style={styles.sectionTitle}>Estação de Biodiversidade</Text>
+            <Text style={[styles.sectionTitle, { color: colors.textPrimary }]}>Estação de Biodiversidade</Text>
           </View>
-          <Text style={styles.areaName}>{enrichment.biodiversity_station.station.name}</Text>
+          <Text style={[styles.areaName, { color: colors.textPrimary }]}>{enrichment.biodiversity_station.station.name}</Text>
           <View style={styles.highlightsRow}>
             {(enrichment.biodiversity_station.station.highlights || []).slice(0, 3).map((h: string, i: number) => (
               <View key={i} style={styles.chip}>
@@ -107,25 +108,25 @@ const DiscoveryCard: React.FC<DiscoveryCardProps> = ({
 
       {/* Transport */}
       {enrichment.transport && enrichment.transport.length > 0 && (
-        <View style={styles.section}>
+        <View style={[styles.section, { backgroundColor: colors.card }]}>
           <View style={styles.sectionHeader}>
             <MaterialIcons name="directions-transit" size={18} color="#F59E0B" />
-            <Text style={styles.sectionTitle}>Transportes Próximos</Text>
+            <Text style={[styles.sectionTitle, { color: colors.textPrimary }]}>Transportes Próximos</Text>
           </View>
           {enrichment.transport.slice(0, 3).map((stop: any, i: number) => (
             <TouchableOpacity
               key={stop.id || i}
-              style={styles.transportItem}
+              style={[styles.transportItem, { borderBottomColor: colors.borderLight }]}
               onPress={() => onTransportPress?.(stop)}
             >
               <MaterialIcons
                 name={stop.transport_type === 'metro' ? 'subway' : 'train'}
                 size={16}
-                color={palette.gray[500]}
+                color={colors.textMuted}
               />
               <View style={styles.transportInfo}>
-                <Text style={styles.transportName}>{stop.name}</Text>
-                <Text style={styles.transportOperator}>{stop.operator}</Text>
+                <Text style={[styles.transportName, { color: colors.textPrimary }]}>{stop.name}</Text>
+                <Text style={[styles.transportOperator, { color: colors.textMuted }]}>{stop.operator}</Text>
               </View>
               <Text style={styles.transportDistance}>{stop.distance_m}m</Text>
             </TouchableOpacity>
@@ -135,19 +136,19 @@ const DiscoveryCard: React.FC<DiscoveryCardProps> = ({
 
       {/* Nature Suggestions */}
       {enrichment.nature_suggestions && enrichment.nature_suggestions.length > 0 && (
-        <View style={styles.section}>
+        <View style={[styles.section, { backgroundColor: colors.card }]}>
           <View style={styles.sectionHeader}>
             <MaterialIcons name="eco" size={18} color={stateColors.surf.excellent} />
-            <Text style={styles.sectionTitle}>Sugestões de Natureza</Text>
+            <Text style={[styles.sectionTitle, { color: colors.textPrimary }]}>Sugestões de Natureza</Text>
           </View>
           {enrichment.nature_suggestions.map((sug: any, i: number) => (
             <TouchableOpacity
               key={i}
-              style={styles.suggestionCard}
+              style={[styles.suggestionCard, { backgroundColor: colors.surface, borderColor: colors.borderLight }]}
               onPress={() => onNaturePress?.(sug)}
             >
-              <Text style={styles.suggestionTitle}>{sug.title}</Text>
-              <Text style={styles.suggestionDesc} numberOfLines={2}>{sug.description}</Text>
+              <Text style={[styles.suggestionTitle, { color: colors.textPrimary }]}>{sug.title}</Text>
+              <Text style={[styles.suggestionDesc, { color: colors.textSecondary }]} numberOfLines={2}>{sug.description}</Text>
               {sug.highlights && sug.highlights.length > 0 && (
                 <View style={styles.highlightsRow}>
                   {sug.highlights.slice(0, 3).map((h: string, j: number) => (
@@ -164,15 +165,15 @@ const DiscoveryCard: React.FC<DiscoveryCardProps> = ({
 
       {/* 2-Day Itinerary */}
       {itinerary && itinerary.day_2_morning && (
-        <View style={styles.itinerarySection}>
+        <View style={[styles.itinerarySection, { backgroundColor: colors.surfaceAlt, borderColor: colors.border }]}>
           <View style={styles.sectionHeader}>
             <MaterialIcons name="event-note" size={18} color={stateColors.rarity.raro} />
-            <Text style={styles.sectionTitle}>Itinerário Sustentável (2 dias)</Text>
+            <Text style={[styles.sectionTitle, { color: colors.textPrimary }]}>Itinerário Sustentável (2 dias)</Text>
           </View>
 
-          <View style={styles.dayCard}>
+          <View style={[styles.dayCard, { backgroundColor: colors.card }]}>
             <Text style={styles.dayLabel}>Dia 1 - Noite</Text>
-            <Text style={styles.dayActivity}>{itinerary.day_1_evening.activity}</Text>
+            <Text style={[styles.dayActivity, { color: colors.textPrimary }]}>{itinerary.day_1_evening.activity}</Text>
           </View>
 
           {itinerary.transport_between && (
@@ -184,9 +185,9 @@ const DiscoveryCard: React.FC<DiscoveryCardProps> = ({
             </View>
           )}
 
-          <View style={styles.dayCard}>
+          <View style={[styles.dayCard, { backgroundColor: colors.card }]}>
             <Text style={styles.dayLabel}>Dia 2 - Manhã</Text>
-            <Text style={styles.dayActivity}>{itinerary.day_2_morning.activity}</Text>
+            <Text style={[styles.dayActivity, { color: colors.textPrimary }]}>{itinerary.day_2_morning.activity}</Text>
             {itinerary.day_2_morning.notable_species && (
               <View style={styles.highlightsRow}>
                 {itinerary.day_2_morning.notable_species.slice(0, 3).map((sp: any, i: number) => (
@@ -199,11 +200,11 @@ const DiscoveryCard: React.FC<DiscoveryCardProps> = ({
           </View>
 
           {itinerary.sustainability_tips && (
-            <View style={styles.tipsBox}>
+            <View style={[styles.tipsBox, { backgroundColor: colors.surface }]}>
               <MaterialIcons name="lightbulb" size={16} color={stateColors.surf.excellent} />
-              <Text style={styles.tipsTitle}>Dicas de Sustentabilidade</Text>
+              <Text style={[styles.tipsTitle, { color: colors.textPrimary }]}>Dicas de Sustentabilidade</Text>
               {itinerary.sustainability_tips.slice(0, 3).map((tip: string, i: number) => (
-                <Text key={i} style={styles.tipText}>- {tip}</Text>
+                <Text key={i} style={[styles.tipText, { color: colors.textSecondary }]}>- {tip}</Text>
               ))}
             </View>
           )}
@@ -222,7 +223,7 @@ const styles = StyleSheet.create({
   },
   geoText: { fontSize: 12, color: palette.gray[500] },
   section: {
-    backgroundColor: palette.white, marginHorizontal: 12, marginTop: 10, borderRadius: 12,
+    backgroundColor: palette.white, marginHorizontal: 12, marginTop: 10, borderRadius: 14,
     padding: 14, shadowColor: '#000', shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.06, shadowRadius: 3, elevation: 1,
   },
@@ -258,7 +259,7 @@ const styles = StyleSheet.create({
   suggestionDesc: { fontSize: 12, color: palette.gray[500], marginTop: 4, lineHeight: 17 },
   itinerarySection: {
     // Purple-tinted background/border for itinerary section - no exact palette token
-    backgroundColor: '#FAF5FF', marginHorizontal: 12, marginTop: 10, borderRadius: 12,
+    backgroundColor: '#FAF5FF', marginHorizontal: 12, marginTop: 10, borderRadius: 14,
     padding: 14, borderWidth: 1, borderColor: '#E9D5FF',
   },
   dayCard: {

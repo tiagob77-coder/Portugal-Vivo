@@ -44,7 +44,7 @@ export default function ColeccoesScreen() {
     queryKey: ['collection-browse-items', selectedUniverse?.id, selectedRegion],
     queryFn: async () => {
       const cats = selectedUniverse.categories.join(',');
-      let url = `/map/items?categories=${cats}&limit=100`;
+      let url = `/map/items?categories=${cats}&limit=2000`;
       if (selectedRegion) url += `&region=${selectedRegion}`;
       const res = await api.get(url);
       return res.data;

@@ -144,7 +144,7 @@ export default function ExploreScreen() {
       category: selectedCategory || undefined,
       region: selectedRegion !== 'all' ? selectedRegion : undefined,
       search: searchQuery || undefined,
-      limit: 50,
+      limit: 2000,
     }),
     enabled: viewMode === 'items' || !!searchQuery,
   });

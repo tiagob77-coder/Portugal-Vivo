@@ -17,6 +17,7 @@ import { registerServiceWorker } from '../src/services/pwaRegistration';
 import { initMonitoring, captureException } from '../src/utils/monitoring';
 import { pushNotificationService } from '../src/services/pushNotifications';
 import { offlineCache } from '../src/services/offlineCache';
+import { getMapItems, getCategories, getStats } from '../src/services/api';
 import { FavoritesProvider } from '../src/context/FavoritesContext';
 import { SmartContextProvider } from '../src/context/SmartContext';
 import {
@@ -33,6 +34,27 @@ const queryClient = new QueryClient({
     },
   },
 });
+
+/**
+ * Prefetches all 6000+ POIs + categories + stats on app startup.
+ * Data is cached in TanStack Query (5 min stale) so every tab that
+ * needs POIs (map, explorar, enciclopédia, discover) finds them
+ * already in cache.
+ */
+function POIPrefetcher() {
+  useEffect(() => {
+    // Prefetch all map items (no category/region filter = all POIs)
+    queryClient.prefetchQuery({
+      queryKey: ['map-items-all'],
+      queryFn: () => getMapItems(),
+      staleTime: 1000 * 60 * 15, // 15 min
+    });
+    // Prefetch categories and stats for the explorar tab
+    queryClient.prefetchQuery({ queryKey: ['categories'], queryFn: getCategories });
+    queryClient.prefetchQuery({ queryKey: ['stats'], queryFn: getStats });
+  }, []);
+  return null;
+}
 
 /**
  * Silently warms the offline cache after login.
@@ -247,6 +269,7 @@ export default function RootLayout() {
                       <ThemedStack />
                       <NotificationManager />
                       <CacheWarmer />
+                      <POIPrefetcher />
                       <OfflineBanner />
                       {Platform.OS === 'web' && <InstallPrompt />}
                     </SmartContextProvider>

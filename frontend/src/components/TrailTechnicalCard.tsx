@@ -99,7 +99,7 @@ export default function TrailTechnicalCard({ data }: Props) {
 const tc = StyleSheet.create({
   container: {
     backgroundColor: '#FFFFFF',
-    borderRadius: 16,
+    borderRadius: 14,
     padding: 16,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },

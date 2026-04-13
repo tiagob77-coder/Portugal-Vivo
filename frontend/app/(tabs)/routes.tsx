@@ -7,6 +7,7 @@ import { useQuery } from '@tanstack/react-query';
 import { getRoutes } from '../../src/services/api';
 import RouteCard from '../../src/components/RouteCard';
 import { Route } from '../../src/types';
+import { useTheme } from '../../src/context/ThemeContext';
 
 const ROUTE_CATEGORIES = [
   { id: 'all', name: 'Todas', icon: 'route' },
@@ -23,6 +24,7 @@ const ROUTE_CATEGORIES = [
 ];
 
 export default function RoutesScreen() {
+  const { colors } = useTheme();
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const [selectedCategory, setSelectedCategory] = useState('all');
@@ -39,17 +41,17 @@ export default function RoutesScreen() {
   };
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top }]}>
+    <View style={[styles.container, { paddingTop: insets.top, backgroundColor: colors.background }]}>
       {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Rotas Temáticas</Text>
-        <Text style={styles.headerSubtitle}>Percursos para descobrir Portugal</Text>
+        <Text style={[styles.headerTitle, { color: colors.textPrimary }]}>Rotas Temáticas</Text>
+        <Text style={[styles.headerSubtitle, { color: colors.textSecondary }]}>Percursos para descobrir Portugal</Text>
       </View>
 
       {/* Category Filter */}
-      <ScrollView 
-        horizontal 
-        showsHorizontalScrollIndicator={false} 
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
         style={styles.filtersScroll}
         contentContainerStyle={styles.filtersContent}
       >
@@ -58,18 +60,20 @@ export default function RoutesScreen() {
             key={category.id}
             style={[
               styles.filterChip,
+              { backgroundColor: colors.surface, borderColor: colors.border },
               selectedCategory === category.id && styles.filterChipActive,
             ]}
             onPress={() => setSelectedCategory(category.id)}
           >
-            <MaterialIcons 
-              name={category.icon as any} 
-              size={16} 
-              color={selectedCategory === category.id ? '#F59E0B' : '#94A3B8'} 
+            <MaterialIcons
+              name={category.icon as any}
+              size={16}
+              color={selectedCategory === category.id ? colors.accent : colors.textMuted}
             />
             <Text style={[
               styles.filterChipText,
-              selectedCategory === category.id && styles.filterChipTextActive,
+              { color: colors.textMuted },
+              selectedCategory === category.id && { color: colors.accent },
             ]}>
               {category.name}
             </Text>
@@ -91,11 +95,11 @@ export default function RoutesScreen() {
         showsVerticalScrollIndicator={false}
         ListEmptyComponent={
           isLoading ? (
-            <ActivityIndicator size="large" color="#F59E0B" style={styles.loader} />
+            <ActivityIndicator size="large" color={colors.accent} style={styles.loader} />
           ) : (
             <View style={styles.emptyState}>
-              <MaterialIcons name="route" size={48} color="#64748B" />
-              <Text style={styles.emptyText}>Nenhuma rota encontrada</Text>
+              <MaterialIcons name="route" size={48} color={colors.textMuted} />
+              <Text style={[styles.emptyText, { color: colors.textMuted }]}>Nenhuma rota encontrada</Text>
             </View>
           )
         }

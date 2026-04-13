@@ -258,7 +258,7 @@ export default function InfrastructureCard({
 const styles = StyleSheet.create({
   card: {
     backgroundColor: C.card,
-    borderRadius: 18,
+    borderRadius: 14,
     borderWidth: 1,
     borderColor: C.border,
     overflow: 'hidden',

@@ -121,6 +121,17 @@ const MAP_REGIONS = [
   { id: 'madeira', name: 'Madeira', color: '#EC4899' },
 ];
 
+// Bounding boxes for each region — used to navigate the map on region selection
+const REGION_BOUNDS: Record<string, { latitude: number; longitude: number; latitudeDelta: number; longitudeDelta: number }> = {
+  norte:    { latitude: 41.45, longitude: -8.15, latitudeDelta: 1.5,  longitudeDelta: 1.5 },
+  centro:   { latitude: 40.15, longitude: -8.2,  latitudeDelta: 1.5,  longitudeDelta: 1.8 },
+  lisboa:   { latitude: 38.75, longitude: -9.15, latitudeDelta: 0.8,  longitudeDelta: 0.8 },
+  alentejo: { latitude: 38.3,  longitude: -7.8,  latitudeDelta: 2.0,  longitudeDelta: 2.0 },
+  algarve:  { latitude: 37.1,  longitude: -8.0,  latitudeDelta: 0.6,  longitudeDelta: 1.8 },
+  acores:   { latitude: 38.6,  longitude: -28.0, latitudeDelta: 4.0,  longitudeDelta: 6.0 },
+  madeira:  { latitude: 32.75, longitude: -16.95, latitudeDelta: 0.8, longitudeDelta: 1.2 },
+};
+
 // Layer color map for subcategories
 const getLayerColor = (categoryId: string): string => {
   for (const layer of MAP_LAYERS) {
@@ -187,11 +198,11 @@ export default function MapaTab() {
   const { region: regionParam, t: navTimestamp } = useLocalSearchParams<{ region?: string; t?: string }>();
   const insets = useSafeAreaInsets();
   const mapRef = useRef<any>(null);
-  const [activeLayers, setActiveLayers] = useState<string[]>(['historia_patrimonio']);
+  const [activeLayers, setActiveLayers] = useState<string[]>(MAP_LAYERS.map(l => l.id));
   const [activeSubcategories, setActiveSubcategories] = useState<string[]>(
-    (SUBCATEGORIES['historia_patrimonio'] || []).map(s => s.id)
+    MAP_LAYERS.flatMap(l => getLayerSubcategories(l.id))
   );
-  const [expandedLayer, setExpandedLayer] = useState<string | null>('historia_patrimonio');
+  const [expandedLayer, setExpandedLayer] = useState<string | null>(null);
   const [regionFilter, setRegionFilter] = useState<string | null>(null);
   const [selectedItem, setSelectedItem] = useState<MapItem | null>(null);
   const [_mapReady, setMapReady] = useState(false);
@@ -227,6 +238,24 @@ export default function MapaTab() {
       setActiveSubcategories(allSubs);
     }
   }, [regionParam, navTimestamp]);
+
+  // Navigate map to region when regionFilter changes (native maps)
+  useEffect(() => {
+    if (!mapRef.current?.animateToRegion) return;
+    if (regionFilter && REGION_BOUNDS[regionFilter]) {
+      mapRef.current.animateToRegion(REGION_BOUNDS[regionFilter], 600);
+    } else if (!regionFilter) {
+      mapRef.current.animateToRegion(PORTUGAL_REGION, 600);
+    }
+  }, [regionFilter]);
+
+  // Web map (LeafletMapComponent) region navigation via prop
+  const webNavigateToRegion = useMemo(() => {
+    if (!regionFilter || !REGION_BOUNDS[regionFilter]) return null;
+    const b = REGION_BOUNDS[regionFilter];
+    const zoom = b.latitudeDelta > 3 ? 6 : b.latitudeDelta > 1.5 ? 7.5 : b.latitudeDelta > 0.8 ? 9 : 10;
+    return { center: [b.longitude, b.latitude] as [number, number], zoom };
+  }, [regionFilter]);
 
   // Timeline animation effect
   useEffect(() => {
@@ -1097,6 +1126,7 @@ export default function MapaTab() {
               mapMode={['trails', 'epochs', 'timeline', 'proximity'].includes(mapMode) ? 'markers' : mapMode}
               trailPoints={trailData?.points}
               trailColor={trailData?.color || '#C49A6C'}
+              navigateToRegion={webNavigateToRegion}
               style={{ flex: 1, minHeight: 480, borderRadius: 16 }}
             />
           </View>
