@@ -441,6 +441,11 @@ set_proximity_db(db)
 api_router.include_router(proximity_router)
 api_router.include_router(nearby_compat_router)
 
+# CAOP geo-validator (point-in-polygon against Carta Administrativa Oficial)
+from geo_validator_api import router as geo_validator_router, set_geo_validator_db
+set_geo_validator_db(db)
+api_router.include_router(geo_validator_router)
+
 # Include Leaderboard router (Redis-powered)
 from leaderboard_api import leaderboard_router, set_db as set_leaderboard_db
 set_leaderboard_db(db)
@@ -1057,6 +1062,37 @@ async def sync_public_events():
         logger.info("Synced %d public events to agenda", count)
     except Exception as e:
         logger.warning("Public events sync (non-critical): %s", e)
+
+@app.on_event("startup")
+async def load_caop_lookup():
+    """Load CAOP administrative polygons into in-memory STRtree (lazy on first use)."""
+    try:
+        from services.caop_lookup import lookup as _caop_lookup
+        # Best-effort: only load if the collection has data
+        n = await db["caop_freguesias"].estimated_document_count()
+        if n > 0:
+            await _caop_lookup.load(db)
+            logger.info("✅ CAOP lookup loaded: %d parishes", _caop_lookup.stats()["parishes"])
+        else:
+            logger.info("ℹ️  CAOP data not ingested yet — run scripts/ingest_caop.py")
+    except Exception as e:
+        logger.warning("CAOP lookup init (non-critical): %s", e)
+
+
+@app.on_event("startup")
+async def load_protected_areas_lookup():
+    """Load Rede Natura / RNAP polygons for POI enrichment."""
+    try:
+        from services.protected_areas import protected_areas as _pa
+        n = await db["protected_areas"].estimated_document_count()
+        if n > 0:
+            await _pa.load(db)
+            logger.info("✅ Protected areas loaded: %s", _pa.stats())
+        else:
+            logger.info("ℹ️  Protected areas data not ingested yet")
+    except Exception as e:
+        logger.warning("Protected areas init (non-critical): %s", e)
+
 
 @app.on_event("shutdown")
 async def shutdown_db_client():
