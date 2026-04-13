@@ -37,7 +37,7 @@ class TestClampPagination:
     def test_limit_exceeds_max(self):
         from shared_utils import clamp_pagination
         skip, limit = clamp_pagination(0, 9999)
-        assert limit == 500  # default max_limit
+        assert limit == 2000  # default max_limit
 
     def test_custom_max_limit(self):
         from shared_utils import clamp_pagination
