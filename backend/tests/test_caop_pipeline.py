@@ -240,3 +240,99 @@ class TestShapelyStack:
         tree = STRtree(polys)
         hits = tree.query(Point(0.5, 0.5), predicate="intersects")
         assert len(hits) == 1
+
+
+# ──────────────────────────────────────────────────────────────────────────────
+# Island CAOP ingestion regressions
+# ──────────────────────────────────────────────────────────────────────────────
+
+
+class TestIslandCAOPIngest:
+    """Regressions for CAOP 2025 island GPKGs (EPSG:5014/5015/5016, dtmn/dt)."""
+
+    def test_ptra08_crs_reprojection(self):
+        from scripts.ingest_caop import reproject_to_wgs84
+        from shapely.geometry import Point
+        # A point in PTRA08 / UTM 28N (Madeira) — should land inside Madeira
+        pt = Point(298000, 3630000)
+        wgs = reproject_to_wgs84(pt, "EPSG:5016")
+        assert 32.4 < wgs.y < 33.2, f"expected Madeira lat, got {wgs.y}"
+        assert -17.5 < wgs.x < -16.2, f"expected Madeira lng, got {wgs.x}"
+
+    def test_azores_western_reprojection(self):
+        from scripts.ingest_caop import reproject_to_wgs84
+        from shapely.geometry import Point
+        # Point in PTRA08 / UTM 25N should land somewhere in the North Atlantic
+        # inside the PT bounding envelope (Flores/Corvo area is the target).
+        pt = Point(328000, 4398000)
+        wgs = reproject_to_wgs84(pt, "EPSG:5014")
+        # Reasonable latitude band for the Azores western group
+        assert 38.0 < wgs.y < 41.0
+        # Must be west of mainland and east of the date line
+        assert -35.5 < wgs.x < -30.0
+
+    def test_normalize_nuts_code_prepends_pt(self):
+        from scripts.ingest_caop import _normalize_nuts_code
+        assert _normalize_nuts_code("300") == "PT300"
+        assert _normalize_nuts_code("200") == "PT200"
+        assert _normalize_nuts_code("PT112") == "PT112"
+        assert _normalize_nuts_code(None) is None
+        assert _normalize_nuts_code("") is None
+
+    def test_parish_doc_from_island_attrs(self):
+        from scripts.ingest_caop import _build_parish_doc
+        # Minimal MultiPolygon in WGS84 around Prazeres, Madeira
+        poly = Polygon([
+            (-17.25, 32.75), (-17.24, 32.75),
+            (-17.24, 32.76), (-17.25, 32.76),
+        ])
+        attrs = {
+            "dtmnfr": "310108",
+            "freguesia": "Prazeres",
+            "municipio": "Calheta",
+            "distrito_ilha": "Ilha da Madeira",
+            "nuts3_cod": "300",
+            "nuts3": "Região Autónoma da Madeira",
+        }
+        doc = _build_parish_doc(attrs, poly)
+        assert doc["code"] == "310108"
+        assert doc["municipality_code"] == "3101"
+        assert doc["district_code"] == "31"
+        assert doc["nuts3_code"] == "PT300"
+        assert doc["nuts2_code"] == "PT30"
+        assert doc["nuts1_code"] == "PT3"
+        assert doc["name"] == "Prazeres"
+
+    def test_municipality_doc_uses_dtmn(self):
+        from scripts.ingest_caop import _build_municipality_doc
+        poly = Polygon([
+            (-17.20, 32.70), (-17.10, 32.70),
+            (-17.10, 32.80), (-17.20, 32.80),
+        ])
+        attrs = {
+            "dtmn": "3101",
+            "municipio": "Calheta",
+            "nuts3_cod": "300",
+        }
+        doc = _build_municipality_doc(attrs, poly)
+        assert doc["code"] == "3101"
+        assert doc["district_code"] == "31"
+        assert doc["nuts3_code"] == "PT300"
+        assert doc["name"] == "Calheta"
+
+    def test_district_doc_uses_dt(self):
+        from scripts.ingest_caop import _build_district_doc
+        poly = Polygon([
+            (-17.30, 32.60), (-16.70, 32.60),
+            (-16.70, 32.90), (-17.30, 32.90),
+        ])
+        attrs = {
+            "dt": "31",
+            "distrito": "Ilha da Madeira",
+            "nuts1_cod": "3",
+        }
+        doc = _build_district_doc(attrs, poly)
+        assert doc["code"] == "31"
+        assert doc["name"] == "Ilha da Madeira"
+        # nuts1_cod=3 → PT3 via _normalize_nuts_code
+        assert doc["nuts1_code"] == "PT3"
