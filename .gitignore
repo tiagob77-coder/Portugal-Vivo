@@ -4,6 +4,15 @@
 .idea/
 .vscode/
 
+# CAOP / geo source files — large binaries, do not commit
+backend/data/caop/*.gpkg
+backend/data/caop/*.zip
+backend/data/protected_areas/*.gpkg
+backend/data/protected_areas/*.zip
+backend/data/exports/*.geojson
+backend/data/exports/*.topojson
+backend/data/exports/*.mbtiles
+
 # Dependencies
 node_modules/
 /node_modules

@@ -52,38 +52,75 @@ log = logging.getLogger("caop_ingest")
 
 # ─── Geometry helpers ────────────────────────────────────────────────────────
 
-_TRANSFORMER_3763_TO_4326 = Transformer.from_crs(
-    "EPSG:3763", "EPSG:4326", always_xy=True
-)
-_TRANSFORMER_4326_TO_3763 = Transformer.from_crs(
-    "EPSG:4326", "EPSG:3763", always_xy=True
-)
+# Supported source CRSs: PT-TM06 (continent), UTM zones for Madeira / Azores.
+# PTRA08 UTM zones: 5014 (Grupo Ocidental Açores), 5015 (Grupo Central/Oriental
+# Açores), 5016 (Madeira). 3857 is Web Mercator (rarely used).
+_SUPPORTED_CRS = ("3763", "3857", "5013", "5014", "5015", "5016")
+
+_TO_WGS84_CACHE: dict[str, Transformer] = {}
+_FROM_WGS84_CACHE: dict[str, Transformer] = {}
+
+
+def _normalize_crs(source_crs: str | None) -> str | None:
+    if not source_crs:
+        return None
+    s = str(source_crs).upper().replace("EPSG:", "").strip()
+    if s in ("4326", "WGS84", "WGS 84"):
+        return "4326"
+    if s in _SUPPORTED_CRS:
+        return s
+    return None
+
+
+def _to_wgs84(code: str) -> Transformer:
+    if code not in _TO_WGS84_CACHE:
+        _TO_WGS84_CACHE[code] = Transformer.from_crs(
+            f"EPSG:{code}", "EPSG:4326", always_xy=True
+        )
+    return _TO_WGS84_CACHE[code]
+
+
+def _from_wgs84(code: str) -> Transformer:
+    if code not in _FROM_WGS84_CACHE:
+        _FROM_WGS84_CACHE[code] = Transformer.from_crs(
+            "EPSG:4326", f"EPSG:{code}", always_xy=True
+        )
+    return _FROM_WGS84_CACHE[code]
+
+
+# Keep the legacy names used elsewhere / in tests.
+_TRANSFORMER_3763_TO_4326 = _to_wgs84("3763")
+_TRANSFORMER_4326_TO_3763 = _from_wgs84("3763")
 
 
 def reproject_to_wgs84(geom, source_crs: str | None):
     """Reproject to EPSG:4326. If source is already WGS84, return unchanged."""
-    if not source_crs:
+    code = _normalize_crs(source_crs)
+    if code is None:
+        log.warning("Unsupported source CRS %s — assuming WGS84", source_crs)
         return geom
-    s = source_crs.upper().replace("EPSG:", "")
-    if s in ("4326", "WGS84", "WGS 84"):
+    if code == "4326":
         return geom
-    if s in ("3763", "3857"):  # PT-TM06 or Web Mercator
-        # pyproj's Transformer with always_xy handles lon/lat order for output
-        return shp_transform(
-            lambda x, y, z=None: _TRANSFORMER_3763_TO_4326.transform(x, y),
-            geom,
-        )
-    log.warning("Unsupported source CRS %s — assuming WGS84", source_crs)
-    return geom
+    t = _to_wgs84(code)
+    return shp_transform(lambda x, y, z=None: t.transform(x, y), geom)
 
 
 def compute_area_km2(geom_wgs84) -> float:
-    """Area in km² (via projection back to PT-TM06 meters, then divide 1e6)."""
+    """Area in km². Uses PT-TM06 for continent and nearest UTM band for islands."""
     try:
-        projected = shp_transform(
-            lambda x, y, z=None: _TRANSFORMER_4326_TO_3763.transform(x, y),
-            geom_wgs84,
-        )
+        minx, miny, maxx, maxy = geom_wgs84.bounds
+        cx = (minx + maxx) / 2.0
+        # pick appropriate equal-area-ish projection per region
+        if cx < -26:         # Flores / Corvo (Western Azores)
+            code = "5014"
+        elif cx < -21:       # Central / Eastern Azores
+            code = "5015"
+        elif cx < -14:       # Madeira
+            code = "5016"
+        else:                # Continent
+            code = "3763"
+        t = _from_wgs84(code)
+        projected = shp_transform(lambda x, y, z=None: t.transform(x, y), geom_wgs84)
         return round(projected.area / 1_000_000.0, 4)
     except Exception:
         return 0.0
@@ -142,13 +179,29 @@ def _read_layer(gpkg_path: Path, layer: str):
 
 _ATTR_ALIASES = {
     "dtmnfr": ["DTMNFR", "DICOFRE", "COD_FREG", "COD_DTMNFR", "CODIGO"],
-    "name_freg": ["NOME_FREG", "FREGUESIA", "NOME", "DESIG"],
+    "dtmn": ["DTMN", "COD_MUN", "COD_CONC", "MUN_COD", "DICOFRE_MUN"],
+    "dt": ["DT", "COD_DIST", "DIST"],
+    "name_freg": ["NOME_FREG", "FREGUESIA", "DESIGNACAO_SIMPLIFICADA", "NOME", "DESIG"],
     "name_conc": ["NOME_CONC", "CONCELHO", "MUNICIPIO", "MUN_NAME"],
-    "name_dist": ["NOME_DIST", "DISTRITO", "ILHA", "NOME_ILHA", "ARH"],
-    "nuts3": ["NUTSIII", "NUTS_III", "NUTS3", "NUTS_3", "COD_NUT3"],
-    "nuts2": ["NUTSII", "NUTS_II", "NUTS2", "COD_NUT2"],
-    "municipality_code": ["COD_MUN", "COD_CONC", "MUN_COD", "DICOFRE_MUN"],
+    "name_dist": ["NOME_DIST", "DISTRITO", "DISTRITO_ILHA", "ILHA", "NOME_ILHA", "ARH"],
+    "nuts3": ["NUTS3_COD", "NUTSIII", "NUTS_III", "NUTS3", "NUTS_3", "COD_NUT3"],
+    "nuts2": ["NUTS2_COD", "NUTSII", "NUTS_II", "NUTS2", "COD_NUT2"],
+    "nuts1": ["NUTS1_COD", "NUTSI", "NUTS_I", "NUTS1", "NUTS_1", "COD_NUT1"],
 }
+
+
+def _normalize_nuts_code(value: Any) -> str | None:
+    """CAOP 2025 stores NUTS3 as integer-like ('300', '112'). Prepend 'PT'."""
+    if value in (None, "", "NULL"):
+        return None
+    s = str(value).strip().upper()
+    if not s:
+        return None
+    if s.startswith("PT"):
+        return s
+    if s.isdigit():
+        return "PT" + s
+    return s
 
 
 def _pick(attrs: dict, key: str) -> Any:
@@ -166,8 +219,8 @@ def _build_parish_doc(attrs: dict, geom_wgs) -> dict[str, Any]:
     dtmnfr = _pick(attrs, "dtmnfr")
     district_code, mun_code, parish_code = parse_dtmnfr(dtmnfr)
     raw_name = _pick(attrs, "name_freg") or ""
-    nuts3 = _pick(attrs, "nuts3") or ""
-    nuts_info = resolve_nuts(str(nuts3)) if nuts3 else {}
+    nuts3 = _normalize_nuts_code(_pick(attrs, "nuts3")) or ""
+    nuts_info = resolve_nuts(nuts3) if nuts3 else {}
     return {
         "parish_id": f"parish_{parish_code}" if parish_code else None,
         "code": parish_code,
@@ -189,15 +242,21 @@ def _build_parish_doc(attrs: dict, geom_wgs) -> dict[str, Any]:
 
 
 def _build_municipality_doc(attrs: dict, geom_wgs) -> dict[str, Any]:
-    dtmnfr = _pick(attrs, "dtmnfr")
-    district_code, mun_code, _parish = parse_dtmnfr(dtmnfr)
-    # Municipality layer may carry its own code
-    if _pick(attrs, "municipality_code"):
-        mun_code = str(_pick(attrs, "municipality_code")).zfill(4)
+    # Prefer explicit DTMN (municipality), then fall back to DTMNFR (parish)
+    mun_code_raw = _pick(attrs, "dtmn") or _pick(attrs, "dtmnfr")
+    if mun_code_raw:
+        s = str(mun_code_raw).strip()
+        # 4-digit municipality code
+        if len(s) <= 4:
+            mun_code = s.zfill(4)
+        else:
+            mun_code = s.zfill(6)[:4]
         district_code = mun_code[:2]
+    else:
+        district_code, mun_code = "", ""
     raw_name = _pick(attrs, "name_conc") or ""
-    nuts3 = _pick(attrs, "nuts3") or ""
-    nuts_info = resolve_nuts(str(nuts3)) if nuts3 else {}
+    nuts3 = _normalize_nuts_code(_pick(attrs, "nuts3")) or ""
+    nuts_info = resolve_nuts(nuts3) if nuts3 else {}
     return {
         "municipality_id": f"mun_{mun_code}" if mun_code else None,
         "code": mun_code,
@@ -218,14 +277,20 @@ def _build_municipality_doc(attrs: dict, geom_wgs) -> dict[str, Any]:
 
 
 def _build_district_doc(attrs: dict, geom_wgs) -> dict[str, Any]:
-    dtmnfr = _pick(attrs, "dtmnfr")
-    district_code, _m, _p = parse_dtmnfr(dtmnfr)
+    dt_raw = _pick(attrs, "dt") or _pick(attrs, "dtmn") or _pick(attrs, "dtmnfr")
+    if dt_raw:
+        s = str(dt_raw).strip()
+        district_code = s.zfill(2)[:2] if len(s) <= 2 else s.zfill(6)[:2]
+    else:
+        district_code = ""
     raw_name = _pick(attrs, "name_dist") or ""
-    nuts2 = _pick(attrs, "nuts2") or DISTRICT_TO_NUTS2.get(district_code)
+    nuts2 = _normalize_nuts_code(_pick(attrs, "nuts2")) or DISTRICT_TO_NUTS2.get(district_code)
+    nuts1_raw = _normalize_nuts_code(_pick(attrs, "nuts1"))
     n2_info = None
     if nuts2:
         from services.nuts_mapping import NUTS2 as _N2
         n2_info = _N2.get(nuts2)
+    nuts1_code = nuts1_raw or (n2_info[1] if n2_info else None)
     return {
         "district_id": f"dist_{district_code}" if district_code else None,
         "code": district_code,
@@ -233,7 +298,7 @@ def _build_district_doc(attrs: dict, geom_wgs) -> dict[str, Any]:
         "name_raw": raw_name,
         "name_clean": clean_name(raw_name),
         "nuts2_code": nuts2,
-        "nuts1_code": n2_info[1] if n2_info else None,
+        "nuts1_code": nuts1_code,
         "geometry": mapping(geom_wgs),
         "centroid": compute_centroid(geom_wgs),
         "bbox": compute_bbox(geom_wgs),
