@@ -147,3 +147,9 @@ websockets==15.0.1
 wrapt==2.1.2
 yarl==1.22.0
 zipp==3.23.0
+
+# Geospatial (CAOP pipeline)
+shapely>=2.0,<3.0
+pyproj>=3.6,<4.0
+fiona>=1.9,<2.0
+pyogrio>=0.7,<1.0

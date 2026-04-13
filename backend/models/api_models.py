@@ -67,6 +67,17 @@ class HeritageItem(BaseModel):
     freguesia: Optional[str] = None   # e.g. "Oliveira, São Paio e São Sebastião"
     nuts_iii: Optional[str] = None    # e.g. "Ave"
     codigo_postal: Optional[str] = None
+    # CAOP stable codes (set by geo_validator after point-in-polygon check)
+    freguesia_code: Optional[str] = None   # DTMNFR — 6-digit INE parish code
+    concelho_code: Optional[str] = None    # 4-digit INE municipality code
+    distrito_code: Optional[str] = None    # 2-digit INE district code
+    nuts3_code: Optional[str] = None       # e.g. "PT112"
+    nuts2_code: Optional[str] = None       # e.g. "PT11"
+    nuts1_code: Optional[str] = None       # "PT1" | "PT2" | "PT3"
+    caop_validated: bool = False
+    caop_validated_at: Optional[datetime] = None
+    protected_area: List[str] = []         # e.g. ["Rede Natura 2000", "PNPG"]
+    habitat_type: List[str] = []
     location: Optional[Location] = None
     address: Optional[str] = None
     image_url: Optional[str] = None
