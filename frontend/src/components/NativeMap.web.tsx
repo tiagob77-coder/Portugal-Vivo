@@ -293,21 +293,36 @@ export function LeafletMapComponent(props: LeafletMapProps) {
       popupRef.current?.remove();
 
       if (_mlgl) {
+        // Category-based fallback image (Wikimedia, no API key)
+        const catFallback: Record<string, string> = {
+          museus: 'https://upload.wikimedia.org/wikipedia/commons/thumb/3/30/Museu_Nacional_do_Azulejo_%28Lisbon%29.jpg/400px-Museu_Nacional_do_Azulejo_%28Lisbon%29.jpg',
+          castelos: 'https://upload.wikimedia.org/wikipedia/commons/thumb/c/c4/Castelo_de_Guimar%C3%A3es%2C_Portugal.jpg/400px-Castelo_de_Guimar%C3%A3es%2C_Portugal.jpg',
+          igrejas: 'https://upload.wikimedia.org/wikipedia/commons/thumb/2/2e/Mosteiro_dos_Jer%C3%B3nimos_-_Lisboa.jpg/400px-Mosteiro_dos_Jer%C3%B3nimos_-_Lisboa.jpg',
+          miradouros: 'https://upload.wikimedia.org/wikipedia/commons/thumb/8/8a/Miradouro_da_Senhora_do_Monte.jpg/400px-Miradouro_da_Senhora_do_Monte.jpg',
+          praias_bandeira_azul: 'https://upload.wikimedia.org/wikipedia/commons/thumb/9/9d/Praia_da_Marinha_-_Algarve.jpg/400px-Praia_da_Marinha_-_Algarve.jpg',
+          praias_fluviais: 'https://upload.wikimedia.org/wikipedia/commons/thumb/2/24/Praia_fluvial_da_Lous%C3%A3.jpg/400px-Praia_fluvial_da_Lous%C3%A3.jpg',
+          gastronomia: 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/0e/Pastel_de_nata_%282%29.jpg/400px-Pastel_de_nata_%282%29.jpg',
+          trilhos: 'https://upload.wikimedia.org/wikipedia/commons/thumb/4/4c/Passadi%C3%A7os_do_Paiva.jpg/400px-Passadi%C3%A7os_do_Paiva.jpg',
+          cascatas_pocos: 'https://upload.wikimedia.org/wikipedia/commons/thumb/8/87/Cascata_da_Fervenza.jpg/400px-Cascata_da_Fervenza.jpg',
+        };
+        const fallback = catFallback[p.category] || 'https://upload.wikimedia.org/wikipedia/commons/thumb/9/9b/Vista_de_Lisboa%2C_Portugal_%28cropped%29.jpg/400px-Vista_de_Lisboa%2C_Portugal_%28cropped%29.jpg';
+        const heroImg = p.image_url || fallback;
+
         popupRef.current = new _mlgl.Popup({ closeButton: true, offset: 16, maxWidth: '260px', className: 'pv-popup' })
           .setLngLat(coords)
           .setHTML(`
-            <div style="font-family:system-ui,-apple-system,sans-serif;min-width:200px;max-width:240px">
-              <div style="position:relative;overflow:hidden;border-radius:8px 8px 0 0;height:80px;background:#E5E7EB">
-                ${p.image_url ? `<img src="${p.image_url}" style="width:100%;height:100%;object-fit:cover;display:block" loading="lazy" onerror="this.style.display='none'"/>` : ''}
-                <div style="position:absolute;inset:0;background:linear-gradient(to bottom,transparent 40%,rgba(0,0,0,0.5))"></div>
-                <span style="position:absolute;bottom:6px;left:8px;font-size:10px;font-weight:700;color:#fff;background:rgba(0,0,0,0.35);padding:2px 6px;border-radius:4px;text-transform:capitalize">${p.category.replace(/_/g,' ')}</span>
+            <div data-pid="${p.id}" style="font-family:system-ui,-apple-system,sans-serif;min-width:200px;max-width:240px;cursor:pointer">
+              <div style="position:relative;overflow:hidden;border-radius:8px 8px 0 0;height:110px;background:#E5E7EB">
+                <img src="${heroImg}" style="width:100%;height:100%;object-fit:cover;display:block" loading="lazy" onerror="this.src='${fallback}'"/>
+                <div style="position:absolute;inset:0;background:linear-gradient(to bottom,transparent 40%,rgba(0,0,0,0.55))"></div>
+                <span style="position:absolute;bottom:6px;left:8px;font-size:10px;font-weight:700;color:#fff;background:rgba(0,0,0,0.4);padding:2px 6px;border-radius:4px;text-transform:capitalize">${p.category.replace(/_/g,' ')}</span>
               </div>
               <div style="padding:10px 12px 12px">
                 <p style="font-weight:700;font-size:13px;margin:0 0 2px;color:#111827;line-height:1.3">${p.name}</p>
                 <p style="font-size:11px;color:#6B7280;margin:0 0 8px">${p.region}</p>
                 <div style="display:flex;align-items:center;justify-content:space-between">
                   ${p.iq_score > 0 ? `<span style="font-size:10px;background:#F0FDF4;border-radius:6px;padding:2px 7px;color:#15803D;font-weight:700">IQ ${p.iq_score}</span>` : '<span></span>'}
-                  <a href="#" data-pid="${p.id}" style="font-size:11px;font-weight:700;color:#2E5E4E;text-decoration:none;background:#F0FDF4;padding:4px 10px;border-radius:6px;display:inline-block">Ver →</a>
+                  <span style="font-size:11px;font-weight:700;color:#2E5E4E;background:#F0FDF4;padding:4px 10px;border-radius:6px;display:inline-block">Ver detalhe →</span>
                 </div>
               </div>
             </div>
@@ -315,12 +330,14 @@ export function LeafletMapComponent(props: LeafletMapProps) {
           .addTo(map);
 
         setTimeout(() => {
-          document.querySelector(`[data-pid="${p.id}"]`)?.addEventListener('click', ev => {
+          const root = document.querySelector(`[data-pid="${p.id}"]`);
+          root?.addEventListener('click', ev => {
             ev.preventDefault();
             onItemPress?.({
               id: p.id, name: p.name, category: p.category, region: p.region,
               location: { lat: coords[1], lng: coords[0] },
               description: p.description, iq_score: p.iq_score,
+              image_url: p.image_url || fallback,
             });
             popupRef.current?.remove();
           });

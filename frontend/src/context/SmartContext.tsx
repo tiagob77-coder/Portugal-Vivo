@@ -12,6 +12,8 @@ import { Platform } from 'react-native';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { API_BASE } from '../config/api';
 import { useAuth } from './AuthContext';
+import { getUserPreferences } from '../services/api';
+import { eventBus } from '../services/eventBus';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -95,6 +97,23 @@ export function SmartContextProvider({ children }: { children: React.ReactNode }
   const locationRef = useRef(location);
   locationRef.current = location;
 
+  // Load user preferences (only when authenticated). Cached 10min.
+  const { data: preferences } = useQuery({
+    queryKey: ['user-preferences', sessionToken],
+    queryFn: () => (sessionToken ? getUserPreferences(sessionToken) : Promise.resolve(null)),
+    enabled: !!sessionToken,
+    staleTime: 1000 * 60 * 10,
+    retry: 1,
+  });
+
+  // Pick the highest-weighted traveler profile from preferences.
+  // traveler_profiles is Record<string, number> — e.g. { aventureiro: 0.8, gastronomo: 0.4 }
+  const travelerProfile: string | null = (() => {
+    const profiles = preferences?.traveler_profiles;
+    if (!profiles || Object.keys(profiles).length === 0) return null;
+    return Object.entries(profiles).sort(([, a], [, b]) => b - a)[0][0];
+  })();
+
   // Build context payload
   const buildContext = useCallback(() => {
     const now = new Date();
@@ -106,12 +125,12 @@ export function SmartContextProvider({ children }: { children: React.ReactNode }
       day_of_week: (now.getDay() + 6) % 7, // JS Sunday=0 → Python Monday=0
       month: now.getMonth() + 1,
       is_premium: isPremium ?? false,
-      traveler_profile: null, // Loaded from preferences
+      traveler_profile: travelerProfile, // From user preferences (highest-weighted)
       active_tab: activeTab,
-      last_categories_viewed: [],
+      last_categories_viewed: preferences?.interests?.slice(0, 5) ?? [],
       connectivity: 'online',
     };
-  }, [location, user, isPremium, activeTab]);
+  }, [location, user, isPremium, activeTab, travelerProfile, preferences]);
 
   // Query orchestrator
   const { data, isLoading, refetch } = useQuery<OrchestratorResponse>({
@@ -160,11 +179,37 @@ export function SmartContextProvider({ children }: { children: React.ReactNode }
 
   const updateLocation = useCallback((lat: number, lng: number) => {
     setLocation({ lat, lng });
+    eventBus.emit('location.changed', { lat, lng });
   }, []);
 
   const updateTab = useCallback((tab: string) => {
     setActiveTab(tab);
+    eventBus.emit('tab.changed', { tab });
   }, []);
+
+  // Event-driven invalidation — replaces blind 2min polling.
+  // The orchestrator refetches immediately when meaningful events occur.
+  useEffect(() => {
+    const offs = [
+      eventBus.on('context.invalidate', () => refetch()),
+      eventBus.on('preferences.updated', () => {
+        queryClient.invalidateQueries({ queryKey: ['user-preferences'] });
+        refetch();
+      }),
+      eventBus.on('user.login', () => {
+        queryClient.invalidateQueries({ queryKey: ['user-preferences'] });
+        refetch();
+      }),
+      eventBus.on('user.logout', () => {
+        queryClient.invalidateQueries({ queryKey: ['user-preferences'] });
+        refetch();
+      }),
+      eventBus.on('visit.recorded', () => refetch()),
+      eventBus.on('favorite.toggled', () => refetch()),
+      eventBus.on('route.completed', () => refetch()),
+    ];
+    return () => offs.forEach((off) => off());
+  }, [refetch, queryClient]);
 
   return (
     <SmartContextCtx.Provider

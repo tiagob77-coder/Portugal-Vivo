@@ -626,7 +626,7 @@ export default function HeritageDetailScreen() {
     return (
       <View style={[styles.container, { backgroundColor: '#FAF8F5' }]}>
         {/* Hero image skeleton */}
-        <View style={{ width: '100%', height: 280, backgroundColor: '#E8E3DC' }}>
+        <View style={{ width: '100%', height: 260, backgroundColor: '#E8E3DC' }}>
           <View style={{ position: 'absolute', bottom: 20, left: 20, right: 20 }}>
             <View style={{ width: 80, height: 24, borderRadius: 12, backgroundColor: '#D4CFC7', marginBottom: 8 }} />
             <View style={{ width: '70%', height: 28, borderRadius: 8, backgroundColor: '#D4CFC7', marginBottom: 6 }} />
@@ -1204,7 +1204,7 @@ export default function HeritageDetailScreen() {
           accessibilityLabel="Viajar no Tempo — ver como este local era no passado"
           accessibilityRole="button"
         >
-          <MaterialIcons name="camera" size={22} color="#FAF8F3" />
+          <MaterialIcons name="camera" size={20} color="#C49A6C" />
           <Text style={styles.arButtonText}>Time-Travel</Text>
         </TouchableOpacity>
 
@@ -1227,7 +1227,7 @@ export default function HeritageDetailScreen() {
             }
           }}
         >
-          <MaterialIcons name="place" size={22} color="#FAF8F3" />
+          <MaterialIcons name="place" size={20} color="#FAF8F3" />
           <Text style={styles.actionButtonText}>Localização</Text>
         </TouchableOpacity>
 
@@ -1235,7 +1235,7 @@ export default function HeritageDetailScreen() {
           style={[styles.actionButton, styles.actionButtonPrimary]}
           onPress={() => isPremium ? setShowNarrative(true) : router.push('/premium')}
         >
-          <MaterialIcons name={isPremium ? 'auto-stories' : 'lock'} size={22} color="#2E5E4E" />
+          <MaterialIcons name={isPremium ? 'auto-stories' : 'lock'} size={20} color="#1B3D39" />
           <Text style={styles.actionButtonTextPrimary}>{isPremium ? 'Narrativa IA' : 'Narrativa Premium'}</Text>
         </TouchableOpacity>
 
@@ -1249,7 +1249,7 @@ export default function HeritageDetailScreen() {
           ) : (
             <MaterialIcons
               name={!isPremium ? 'lock' : isPlayingAudio ? 'stop' : 'volume-up'}
-              size={22}
+              size={20}
               color={isPlayingAudio ? '#C49A6C' : '#FAF8F3'}
             />
           )}
@@ -1274,7 +1274,7 @@ export default function HeritageDetailScreen() {
           {checkinMutation.isPending ? (
             <ActivityIndicator size="small" color="#FFF" />
           ) : (
-            <MaterialIcons name="check-circle" size={22} color="#FFF" />
+            <MaterialIcons name="check-circle" size={20} color="#FFF" />
           )}
           <Text style={styles.checkinButtonText}>
             {checkinMutation.isPending ? 'A registar...' : 'Check-in'}
@@ -1318,8 +1318,8 @@ export default function HeritageDetailScreen() {
           }}
           data-testid="bottom-share-button"
         >
-          <MaterialIcons name={shareCopied ? 'check' : 'share'} size={22} color={shareCopied ? '#22C55E' : '#FAF8F3'} />
-          <Text style={[styles.actionButtonText, shareCopied && { color: '#22C55E' }]}>{shareCopied ? 'Copiado!' : 'Partilhar'}</Text>
+          <MaterialIcons name={shareCopied ? 'check' : 'share'} size={20} color={shareCopied ? '#3FA66B' : '#FAF8F3'} />
+          <Text style={[styles.actionButtonText, shareCopied && { color: '#3FA66B' }]}>{shareCopied ? 'Copiado!' : 'Partilhar'}</Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -1342,7 +1342,7 @@ const styles = StyleSheet.create({
   },
   heroImage: {
     width: '100%',
-    height: 380,
+    height: 260,
   },
   heroImageStyle: {
     resizeMode: 'cover',
@@ -1832,64 +1832,79 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-around',
     alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingTop: 12,
+    paddingHorizontal: 12,
+    paddingTop: 10,
     backgroundColor: '#2E5E4E',
     borderTopWidth: 1,
     borderTopColor: '#264E41',
   },
+  // Default tile — uniform dark-forest base for all secondary actions.
   actionButton: {
     flex: 1,
     flexDirection: 'column',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 10,
-    paddingHorizontal: 8,
-    marginHorizontal: 4,
-    borderRadius: 12,
+    paddingVertical: 9,
+    paddingHorizontal: 6,
+    marginHorizontal: 3,
+    borderRadius: 10,
     backgroundColor: '#264E41',
-    minHeight: 64,
+    borderWidth: 1,
+    borderColor: 'rgba(196,154,108,0.18)',
+    minHeight: 60,
   },
+  // Primary tile — single brand accent (terracotta) for the AI/Premium CTA.
   actionButtonPrimary: {
     backgroundColor: '#C49A6C',
+    borderColor: '#C49A6C',
   },
+  // Hover/active state — tinted but still inside the brand palette.
   actionButtonActive: {
-    backgroundColor: '#1E3A5F',
-    borderWidth: 1,
+    backgroundColor: '#1F3F35',
     borderColor: '#C49A6C',
   },
   actionButtonText: {
-    fontSize: 11,
+    fontSize: 10.5,
     color: '#FAF8F3',
     fontWeight: '600',
     marginTop: 4,
+    textAlign: 'center',
   },
   actionButtonTextActive: {
     color: '#C49A6C',
   },
   actionButtonTextPrimary: {
-    fontSize: 11,
-    color: '#2E5E4E',
+    fontSize: 10.5,
+    color: '#1B3D39',
     fontWeight: '700',
     marginTop: 4,
+    textAlign: 'center',
   },
+  // Check-in keeps the brand mint accent (success), not a raw bright green.
   checkinButton: {
-    backgroundColor: '#22C55E',
+    backgroundColor: '#3FA66B',
+    borderColor: '#3FA66B',
   },
   checkinButtonText: {
-    fontSize: 11,
+    fontSize: 10.5,
     color: '#FFFFFF',
     fontWeight: '700',
     marginTop: 4,
+    textAlign: 'center',
   },
+  // AR Time-Travel — same dark base, but a thin terracotta border to mark
+  // it as a feature CTA without breaking the colour story (no more purple).
   arButton: {
-    backgroundColor: '#7C3AED',
+    backgroundColor: '#264E41',
+    borderColor: '#C49A6C',
+    borderWidth: 1.5,
   },
   arButtonText: {
-    fontSize: 11,
+    fontSize: 10.5,
     color: '#FAF8F3',
     fontWeight: '700',
     marginTop: 4,
+    textAlign: 'center',
   },
   // Community Photo Gallery
   photoBadge: {

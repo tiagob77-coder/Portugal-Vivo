@@ -160,15 +160,35 @@ async def plan_route(request: RoutePlanRequest):
         query["category"] = {"$in": request.categories}
     query["location"] = {"$exists": True, "$ne": None}
 
-    # Get all items with location
-    all_items = await _db_holder.db.heritage_items.find(query, {"_id": 0}).to_list(500)
+    # Get all items with location — large cap because we filter geometrically below
+    all_items = await _db_holder.db.heritage_items.find(query, {"_id": 0}).to_list(5000)
+
+    def _coords_from_item(item):
+        """Accept both {lat,lng} and GeoJSON {coordinates:[lng,lat]} formats."""
+        loc = item.get("location")
+        if not isinstance(loc, dict):
+            return None
+        if "lat" in loc and "lng" in loc:
+            try:
+                return float(loc["lat"]), float(loc["lng"])
+            except (TypeError, ValueError):
+                return None
+        coords = loc.get("coordinates")
+        if isinstance(coords, (list, tuple)) and len(coords) >= 2:
+            try:
+                return float(coords[1]), float(coords[0])
+            except (TypeError, ValueError):
+                return None
+        return None
 
     # Filter items within max_detour_km of the route line
     items_on_route = []
     for item in all_items:
-        if item.get("location"):
-            item_lat = item["location"]["lat"]
-            item_lng = item["location"]["lng"]
+        coords = _coords_from_item(item)
+        if coords:
+            item_lat, item_lng = coords
+            # Normalise location for downstream consumers (HeritageItem expects lat/lng)
+            item["location"] = {"lat": item_lat, "lng": item_lng}
 
             # Calculate distance from route line
             distance_to_route = point_to_line_distance(

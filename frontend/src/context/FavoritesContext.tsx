@@ -5,6 +5,7 @@
 
 import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { eventBus } from '../services/eventBus';
 
 const STORAGE_KEY = '@portugal_vivo_favorites';
 
@@ -70,10 +71,10 @@ export function FavoritesProvider({ children }: { children: ReactNode }) {
 
   const toggleFavorite = useCallback((id: string) => {
     setFavorites(prev => {
-      const next = prev.includes(id)
-        ? prev.filter(f => f !== id)
-        : [...prev, id];
+      const isAdding = !prev.includes(id);
+      const next = isAdding ? [...prev, id] : prev.filter(f => f !== id);
       persist(next);
+      eventBus.emit('favorite.toggled', { id, added: isAdding });
       return next;
     });
   }, [persist]);

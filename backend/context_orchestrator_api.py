@@ -14,6 +14,18 @@ from datetime import datetime, timezone
 import math
 import logging
 
+from module_registry import (
+    MODULE_REGISTRY,
+    evaluate_modules,
+    resolve_dependencies,
+    public_catalog as modules_catalog,
+)
+from workflow_chains import (
+    select_chain,
+    expand_chain_to_actions,
+    public_catalog as chains_catalog,
+)
+
 orchestrator_router = APIRouter(prefix="/orchestrator", tags=["Smart Orchestrator"])
 _db = None
 logger = logging.getLogger("orchestrator")
@@ -96,36 +108,15 @@ def _classify_context(ctx: UserContext) -> str:
     return "_".join(parts)
 
 
-# ─── Module Activation Rules ──────────────────────────────────────────────────
-
-MODULE_RULES = {
-    "safety": lambda ctx, h, m: True,  # Always active
-    "weather": lambda ctx, h, m: True,
-    "heritage": lambda ctx, h, m: True,
-    "map": lambda ctx, h, m: True,
-    "gastronomy": lambda ctx, h, m: h >= 11 or ctx.traveler_profile == "gastronomo",
-    "beaches": lambda ctx, h, m: m in (5, 6, 7, 8, 9) or (ctx.lat and ctx.lat < 39),
-    "surf": lambda ctx, h, m: m in (4, 5, 6, 7, 8, 9, 10),
-    "trails": lambda ctx, h, m: h < 16 or ctx.traveler_profile == "aventureiro",
-    "flora_fauna": lambda ctx, h, m: h >= 6 and h <= 19,
-    "marine_bio": lambda ctx, h, m: ctx.lat is not None and ctx.lat < 39.5,
-    "events": lambda ctx, h, m: True,
-    "nightlife": lambda ctx, h, m: h >= 18 or h <= 2,
-    "transport": lambda ctx, h, m: True,
-    "gamification": lambda ctx, h, m: ctx.user_id is not None,
-    "premium": lambda ctx, h, m: ctx.is_premium,
-    "encyclopedia": lambda ctx, h, m: ctx.traveler_profile in ("cultural", None),
-    "economy": lambda ctx, h, m: ctx.traveler_profile == "cultural",
-}
-
+# ─── Module Activation ────────────────────────────────────────────────────────
+# Rules now live in module_registry.MODULE_REGISTRY (single source of truth).
 
 def _get_active_modules(ctx: UserContext) -> List[str]:
     hour = ctx.hour if ctx.hour is not None else datetime.now(timezone.utc).hour
     month = ctx.month if ctx.month is not None else datetime.now(timezone.utc).month
-    return [
-        name for name, rule in MODULE_RULES.items()
-        if rule(ctx, hour, month)
-    ]
+    active = evaluate_modules(ctx, hour, month)
+    # Auto-include dependencies so downstream code never asks for a missing one.
+    return resolve_dependencies(active)
 
 
 # ─── Smart Actions Generator ──────────────────────────────────────────────────
@@ -274,9 +265,27 @@ async def _generate_actions(ctx: UserContext, active: List[str]) -> List[SmartAc
                 module="events",
             ))
 
+    # ── Workflow chain expansion ──
+    # If the current context label matches a registered chain, append its
+    # ordered steps so the frontend can run them sequentially.
+    label = _classify_context(ctx)
+    chain = select_chain(label, active)
+    if chain:
+        for step in expand_chain_to_actions(chain):
+            actions.append(SmartAction(
+                type=step["type"],
+                priority=step["priority"],
+                title=step["title"],
+                subtitle=step.get("subtitle"),
+                icon=step.get("icon"),
+                route=step.get("route"),
+                data=step.get("data"),
+                module=step["module"],
+            ))
+
     # Sort by priority (highest first)
     actions.sort(key=lambda a: a.priority, reverse=True)
-    return actions[:8]  # Max 8 actions
+    return actions[:12]  # Max 12 actions (raised from 8 to fit chains)
 
 
 # ─── Preload Data ──────────────────────────────────────────────────────────────
@@ -481,11 +490,19 @@ async def smart_discover(
 
 @orchestrator_router.get("/modules")
 async def list_available_modules():
-    """Lista todos os módulos disponíveis e suas regras de activação."""
+    """Lista todos os módulos disponíveis com metadata completa do registry."""
+    catalog = modules_catalog()
     return {
-        "modules": [
-            {"id": name, "rule": "always" if name in ("safety", "weather", "heritage", "map", "events", "transport") else "contextual"}
-            for name in MODULE_RULES
-        ],
-        "total": len(MODULE_RULES),
+        "modules": catalog,
+        "total": len(catalog),
+    }
+
+
+@orchestrator_router.get("/chains")
+async def list_available_chains():
+    """Lista todos os workflow chains registados."""
+    catalog = chains_catalog()
+    return {
+        "chains": catalog,
+        "total": len(catalog),
     }
