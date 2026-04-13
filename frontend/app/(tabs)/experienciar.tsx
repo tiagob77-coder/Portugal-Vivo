@@ -69,6 +69,7 @@ export default function ExperienciarTab() {
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [selectedDay, setSelectedDay] = useState<number | null>(null);
   const [refreshing, setRefreshing] = useState(false);
+  const [visitsExpanded, setVisitsExpanded] = useState(false);
 
   useEffect(() => {
     AsyncStorage.getItem('userToken').then(setToken);
@@ -88,7 +89,7 @@ export default function ExperienciarTab() {
 
   const { data: historyData } = useQuery({
     queryKey: ['visit-history', token],
-    queryFn: () => (token ? getVisitHistory(token, 10) : Promise.resolve([])),
+    queryFn: () => (token ? getVisitHistory(token, 20) : Promise.resolve([])),
     enabled: !!token,
   });
 
@@ -510,7 +511,25 @@ export default function ExperienciarTab() {
               <Text style={[styles.sectionTitle, { color: colors.text }]}>Histórico de Visitas</Text>
             </View>
             {historyData && historyData.length > 0 ? (
-              <View style={styles.visitsList}>{historyData.slice(0, 5).map(renderVisitCard)}</View>
+              <View style={styles.visitsList}>
+                {historyData.slice(0, visitsExpanded ? 20 : 5).map(renderVisitCard)}
+                {historyData.length > 5 && (
+                  <TouchableOpacity
+                    style={[styles.expandButton, { borderColor: colors.border }]}
+                    onPress={() => setVisitsExpanded((v) => !v)}
+                    activeOpacity={0.7}
+                  >
+                    <MaterialIcons
+                      name={visitsExpanded ? 'expand-less' : 'expand-more'}
+                      size={20}
+                      color={colors.textMuted}
+                    />
+                    <Text style={[styles.expandButtonText, { color: colors.textMuted }]}>
+                      {visitsExpanded ? 'Ver menos' : `Ver mais (${historyData.length - 5})`}
+                    </Text>
+                  </TouchableOpacity>
+                )}
+              </View>
             ) : (
               <View style={[styles.emptySection, { backgroundColor: colors.card, borderColor: colors.border }]}>
                 <MaterialIcons name="explore" size={32} color={colors.textMuted} />
@@ -710,6 +729,16 @@ const styles = StyleSheet.create({
   visitDate: { fontSize: 12, marginTop: 2 },
   visitPoints: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12 },
   visitPointsText: { fontSize: 12, fontWeight: '700' },
+  expandButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 10,
+    borderRadius: 10,
+    borderWidth: StyleSheet.hairlineWidth,
+    gap: 4,
+  },
+  expandButtonText: { fontSize: 13, fontWeight: '500' },
 
   // Empty state
   emptySection: {

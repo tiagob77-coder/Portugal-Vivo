@@ -89,13 +89,20 @@ export const getHeritageByRegion = async (region: string): Promise<HeritageItem[
   });
 };
 
-export const getMapItems = async (categories?: string[], region?: string): Promise<HeritageItem[]> => {
+export const getMapItems = async (
+  categories?: string[],
+  region?: string,
+  limit?: number,
+): Promise<HeritageItem[]> => {
   const params: any = {};
   if (categories && categories.length > 0) {
     params.categories = categories.join(',');
   }
   if (region) {
     params.region = region;
+  }
+  if (limit) {
+    params.limit = limit;
   }
   const response = await api.get('/map/items', { params });
   return response.data;

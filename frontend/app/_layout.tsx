@@ -36,22 +36,41 @@ const queryClient = new QueryClient({
 });
 
 /**
- * Prefetches all 6000+ POIs + categories + stats on app startup.
- * Data is cached in TanStack Query (5 min stale) so every tab that
- * needs POIs (map, explorar, enciclopédia, discover) finds them
- * already in cache.
+ * Progressive POI prefetcher:
+ *   1) Immediately fetch first 500 POIs (fast TTI on slow connections)
+ *   2) After a short idle delay, fetch the full 6000+ set in background
+ *      (overrides the cache key so consumers naturally upgrade)
+ *
+ * Also prefetches categories and stats. Failure is silent — every consumer
+ * already has its own retry/error handling via TanStack Query.
  */
 function POIPrefetcher() {
   useEffect(() => {
-    // Prefetch all map items (no category/region filter = all POIs)
-    queryClient.prefetchQuery({
-      queryKey: ['map-items-all'],
-      queryFn: () => getMapItems(),
-      staleTime: 1000 * 60 * 15, // 15 min
-    });
-    // Prefetch categories and stats for the explorar tab
-    queryClient.prefetchQuery({ queryKey: ['categories'], queryFn: getCategories });
-    queryClient.prefetchQuery({ queryKey: ['stats'], queryFn: getStats });
+    // Stage 1 — first 500 POIs immediately for fast first paint
+    queryClient
+      .prefetchQuery({
+        queryKey: ['map-items-all'],
+        queryFn: () => getMapItems(undefined, undefined, 500),
+        staleTime: 1000 * 60 * 15,
+      })
+      .catch(() => {});
+
+    // Stage 2 — full set after 1.5s idle (avoids competing with first render)
+    const t = setTimeout(() => {
+      queryClient
+        .fetchQuery({
+          queryKey: ['map-items-all'],
+          queryFn: () => getMapItems(),
+          staleTime: 1000 * 60 * 15,
+        })
+        .catch(() => {});
+    }, 1500);
+
+    // Categories and stats — small payloads, fire immediately
+    queryClient.prefetchQuery({ queryKey: ['categories'], queryFn: getCategories }).catch(() => {});
+    queryClient.prefetchQuery({ queryKey: ['stats'], queryFn: getStats }).catch(() => {});
+
+    return () => clearTimeout(t);
   }, []);
   return null;
 }

@@ -5,6 +5,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Platform } from 'react-native';
 import { exchangeSession, getCurrentUser, logout as apiLogout, getSubscriptionStatus } from '../services/api';
 import { User } from '../types';
+import { eventBus } from '../services/eventBus';
 
 interface AuthContextType {
   user: User | null;
@@ -46,13 +47,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setIsLoading(true);
         const userData = await exchangeSession(sessionId);
         setUser(userData);
-        
+
         // Store token
         const token = (userData as any).session_token || sessionId;
         setSessionToken(token);
         await AsyncStorage.setItem('session_token', token);
         const uid = (userData as any).id || (userData as any).user_id;
         if (uid) await AsyncStorage.setItem('user_id', uid);
+        eventBus.emit('user.login', { userId: uid });
       }
     } catch (error) {
       console.error('Error processing session:', error);
@@ -154,6 +156,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setSessionToken(null);
     await AsyncStorage.removeItem('session_token');
     await AsyncStorage.removeItem('user_id');
+    eventBus.emit('user.logout');
   };
 
   const refreshSubscription = async () => {

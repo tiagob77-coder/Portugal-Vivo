@@ -184,11 +184,14 @@ class TestPremiumGatesApplied:
         assert route is not None, "list_epochs route not found"
         assert len(route.dependencies) > 0
 
-    def test_route_generator_gated(self):
+    def test_route_generator_open(self):
+        # Basic route generation is free for all users (premium tiers may
+        # unlock richer features at higher levels — gating is enforced
+        # in those add-on endpoints, not on the generator itself).
         from route_generator_api import route_gen_router
         route = self._find_route(route_gen_router, "/generate")
         assert route is not None, "Route /generate not found"
-        assert len(route.dependencies) > 0
+        assert len(route.dependencies) == 0
 
     def test_narrative_gated(self):
         from narrative_api import narrative_router

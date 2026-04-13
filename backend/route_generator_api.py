@@ -218,7 +218,64 @@ async def get_available_themes():
 COMING_SOON_CATEGORIES = {"alojamentos_rurais", "agentes_turisticos", "entidades_operadores"}
 
 
-@route_gen_router.get("/generate", dependencies=[Depends(require_feature("custom_routes"))])
+# Fallback mapping used when IQ thematic_routing data is missing.
+# Lets the theme filter still match POIs by their category alone.
+CATEGORY_THEME_MAP: Dict[str, List[str]] = {
+    "igrejas": ["religioso", "historico", "arquitetura"],
+    "mosteiros": ["religioso", "historico", "arquitetura"],
+    "festas_romarias": ["religioso", "cultural"],
+    "crencas": ["religioso", "cultural"],
+    "gastronomia": ["gastronomico"],
+    "restaurantes_gastronomia": ["gastronomico"],
+    "tabernas_historicas": ["gastronomico", "historico"],
+    "produtores_dop": ["gastronomico"],
+    "agroturismo_enoturismo": ["gastronomico", "natureza"],
+    "mercados_feiras": ["gastronomico", "cultural"],
+    "florestas": ["natureza"],
+    "fauna": ["natureza"],
+    "rios": ["natureza"],
+    "miradouros": ["natureza", "romantico"],
+    "cascatas_pocos": ["natureza", "aventura"],
+    "praias_fluviais": ["natureza"],
+    "praias_bandeira_azul": ["natureza", "romantico"],
+    "natureza_especializada": ["natureza"],
+    "fauna_autoctone": ["natureza"],
+    "flora_autoctone": ["natureza"],
+    "flora_botanica": ["natureza", "cultural"],
+    "barragens_albufeiras": ["natureza"],
+    "castelos": ["historico", "arquitetura"],
+    "palacios_solares": ["historico", "arquitetura", "romantico"],
+    "arqueologia": ["historico"],
+    "arqueologia_geologia": ["historico", "natureza"],
+    "patrimonio_ferroviario": ["historico", "arquitetura"],
+    "rotas_tematicas": ["historico", "cultural"],
+    "moinhos_azenhas": ["historico", "cultural"],
+    "museus": ["cultural", "historico"],
+    "arte_urbana": ["cultural"],
+    "oficios_artesanato": ["cultural"],
+    "musica_tradicional": ["cultural"],
+    "festivais_musica": ["cultural"],
+    "festas": ["cultural"],
+    "ecovias_passadicos": ["aventura", "natureza"],
+    "percursos_pedestres": ["aventura", "natureza"],
+    "aventura_natureza": ["aventura", "natureza"],
+    "surf": ["aventura"],
+    "termas": ["romantico"],
+    "termas_banhos": ["romantico"],
+    "parques_campismo": ["aventura", "natureza"],
+}
+
+
+def _themes_for_poi(poi: Dict) -> List[str]:
+    """Return primary themes from IQ data, with category fallback."""
+    theme_data = _get_iq_module_data(poi, "thematic_routing")
+    primary = theme_data.get("primary_themes", [])
+    if primary:
+        return primary
+    return CATEGORY_THEME_MAP.get(poi.get("category", ""), [])
+
+
+@route_gen_router.get("/generate")
 async def generate_route(
     theme: Optional[str] = Query(None, description="Theme filter: religioso, gastronomico, natureza, historico, cultural, aventura"),
     region: Optional[str] = Query(None, description="Region filter: norte, centro, sul, etc."),
@@ -242,21 +299,27 @@ async def generate_route(
 
     has_corridor = all(v is not None for v in [origin_lat, origin_lng, dest_lat, dest_lng])
 
-    # Build MongoDB query
-    query: Dict[str, Any] = {"iq_status": "completed"}
-    # Exclude coming-soon partnership categories
-    query["category"] = {"$nin": list(COMING_SOON_CATEGORIES)}
-
+    # Build MongoDB query — prefer IQ-completed POIs, fall back to all if none.
+    base_query: Dict[str, Any] = {
+        "category": {"$nin": list(COMING_SOON_CATEGORIES)},
+    }
     if region:
-        query["region"] = {"$regex": sanitize_regex(region), "$options": "i"}
+        base_query["region"] = {"$regex": sanitize_regex(region), "$options": "i"}
 
-    # Fetch candidates
-    candidates = await db.heritage_items.find(
-        query,
-        {"id": 1, "name": 1, "description": 1, "category": 1, "region": 1,
-         "location": 1, "address": 1, "iq_score": 1, "iq_results": 1,
-         "image_url": 1, "tags": 1}
-    ).to_list(length=2000)
+    projection = {
+        "id": 1, "name": 1, "description": 1, "category": 1, "region": 1,
+        "location": 1, "address": 1, "iq_score": 1, "iq_results": 1,
+        "image_url": 1, "tags": 1,
+    }
+
+    # First pass: only POIs already enriched by the IQ engine.
+    iq_query = {**base_query, "iq_status": "completed"}
+    candidates = await db.heritage_items.find(iq_query, projection).to_list(length=2000)
+
+    # Fallback: relax IQ requirement so we never return an empty route just
+    # because the enrichment pipeline hasn't reached this region yet.
+    if not candidates:
+        candidates = await db.heritage_items.find(base_query, projection).to_list(length=2000)
 
     if not candidates:
         raise HTTPException(404, "Nenhum POI encontrado com os filtros aplicados")
@@ -288,7 +351,7 @@ async def generate_route(
         # Theme filter (M12) - weight 30
         if theme:
             theme_data = _get_iq_module_data(poi, "thematic_routing")
-            primary_themes = theme_data.get("primary_themes", [])
+            primary_themes = theme_data.get("primary_themes", []) or _themes_for_poi(poi)
             secondary_themes = theme_data.get("secondary_themes", [])
             if theme in primary_themes:
                 route_score += 30

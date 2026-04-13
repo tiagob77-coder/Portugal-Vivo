@@ -167,13 +167,18 @@ async def get_heritage_by_region(region: str, limit: int = 100):
 
 @heritage_router.get("/map/items")
 async def get_map_items(
+    response: Response,
     categories: Optional[str] = None,
     region: Optional[str] = None,
     distrito: Optional[str] = None,
     concelho: Optional[str] = None,
     limit: int = 10000,
 ):
-    """Get heritage items for map display (only items with GPS coordinates)"""
+    """Get heritage items for map display (only items with GPS coordinates).
+    Returns Cache-Control: public, max-age=300, stale-while-revalidate=900
+    so CDN/proxies serve cached results for 5min, then refresh in background up to 15min.
+    """
+    response.headers["Cache-Control"] = "public, max-age=300, stale-while-revalidate=900"
     # Filter for items within Portugal (continental + islands) with valid coordinates
     query = {
         "location.lat": {"$exists": True, "$ne": None, "$ne": 0},
