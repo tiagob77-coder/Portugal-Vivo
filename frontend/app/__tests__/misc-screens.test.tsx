@@ -1,7 +1,7 @@
 // @ts-nocheck
 /**
  * Smoke tests for miscellaneous screens:
- * auth, comboios, beachcams (standalone), route-planner, categories,
+ * auth, comboios, route-planner, categories,
  * encyclopedia/index, encyclopedia/universe/[id], timeline/[region],
  * settings/language, settings/offline
  */
@@ -175,12 +175,6 @@ describe('Misc Screens — smoke tests', () => {
   it('comboios renders without crashing', () => {
     const ComboiosScreen = require('../comboios').default;
     const { toJSON } = render(<ComboiosScreen />);
-    expect(toJSON()).toBeTruthy();
-  });
-
-  it('beachcams (standalone) renders without crashing', () => {
-    const BeachcamsScreen = require('../beachcams').default;
-    const { toJSON } = render(<BeachcamsScreen />);
     expect(toJSON()).toBeTruthy();
   });
 

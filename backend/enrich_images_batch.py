@@ -1,6 +1,13 @@
 """
 Smart batch enrichment: Search Wikimedia once per category, distribute images across POIs.
 Much faster than individual searches per POI.
+
+Run before deploy:
+    cd backend
+    python enrich_images_batch.py
+
+Requires MONGO_URL and DB_NAME in .env. Idempotent — only updates POIs that have
+no image_url set, so safe to re-run after new POIs are added.
 """
 import asyncio
 import httpx
@@ -15,14 +22,53 @@ logger = logging.getLogger(__name__)
 
 load_dotenv()
 
+# Covers both legacy and 44-subcategory taxonomies.
 CATEGORY_SEARCH = {
-    "piscinas": ["praia fluvial portugal", "piscina natural rio portugal", "river beach portugal swimming"],
-    "termas": ["termas portugal", "thermal springs portugal", "balneário termal portugal"],
-    "crencas": ["romaria portugal", "procissão tradição portugal", "festas populares portugal tradição"],
-    "florestas": ["floresta portugal natureza", "mata laurissilva portugal", "bosque carvalhos portugal"],
-    "fauna": ["fauna portugal ibérica", "aves portugal natureza", "wildlife portugal nature"],
-    "rios": ["rio portugal paisagem vale", "river valley portugal landscape", "rios portugal natureza"],
-    "arqueologia": ["ruínas romanas portugal", "castro arqueologia portugal", "megalítico portugal pedra"],
+    # Legacy
+    "piscinas": ["praia fluvial portugal", "piscina natural rio portugal"],
+    "termas": ["termas portugal", "balneário termal portugal"],
+    "crencas": ["romaria portugal", "procissão tradição portugal"],
+    "florestas": ["floresta portugal natureza", "mata laurissilva portugal"],
+    "fauna": ["fauna portugal ibérica", "aves portugal natureza"],
+    "rios": ["rio portugal paisagem vale", "rios portugal natureza"],
+    "arqueologia": ["ruínas romanas portugal", "castro arqueologia portugal"],
+    # 44-subcategory taxonomy
+    "castelos": ["castelo medieval portugal", "fortaleza portugal"],
+    "museus": ["museu portugal arte", "museum lisbon portugal"],
+    "palacios_solares": ["palácio portugal barroco", "solar portugal"],
+    "igrejas": ["igreja portugal manuelina", "mosteiro portugal"],
+    "miradouros": ["miradouro portugal panorâmica", "viewpoint portugal landscape"],
+    "cascatas_pocos": ["cascata portugal queda água", "waterfall portugal"],
+    "praias_fluviais": ["praia fluvial portugal", "river beach portugal"],
+    "praias_bandeira_azul": ["praia bandeira azul portugal", "atlantic beach portugal"],
+    "surf": ["surf portugal nazaré", "surfing portugal waves"],
+    "termas_banhos": ["termas portugal", "thermal spa portugal"],
+    "ecovias_passadicos": ["passadiço portugal", "boardwalk portugal"],
+    "percursos_pedestres": ["trilho portugal caminhada", "hiking trail portugal"],
+    "natureza_especializada": ["parque natural portugal", "nature reserve portugal"],
+    "fauna_autoctone": ["fauna ibérica portugal", "wildlife portugal"],
+    "flora_autoctone": ["floresta portugal árvores", "sobreiro portugal"],
+    "flora_botanica": ["jardim botânico portugal"],
+    "barragens_albufeiras": ["barragem portugal alqueva", "albufeira portugal"],
+    "arqueologia_geologia": ["arqueologia portugal", "ruínas romanas portugal"],
+    "rotas_tematicas": ["aldeia histórica portugal", "monsanto portugal"],
+    "moinhos_azenhas": ["moinho portugal pico açores"],
+    "aventura_natureza": ["aventura portugal trilho"],
+    "gastronomia": ["gastronomia portuguesa", "pastel nata portugal"],
+    "restaurantes_gastronomia": ["bacalhau portugal", "comida portuguesa"],
+    "tabernas_historicas": ["tasca portugal", "taberna lisboa"],
+    "produtores_dop": ["queijo portugal serra", "vinho porto"],
+    "agroturismo_enoturismo": ["adega douro portugal", "vinha alentejo"],
+    "mercados_feiras": ["mercado bolhão porto", "mercado portugal"],
+    "festas": ["festa popular portugal", "marchas lisboa"],
+    "festas_romarias": ["romaria portugal procissão"],
+    "musica_tradicional": ["fado lisboa portugal"],
+    "festivais_musica": ["festival música portugal"],
+    "arte_urbana": ["azulejo portugal lisboa", "street art portugal"],
+    "oficios_artesanato": ["artesanato portugal", "olaria portugal"],
+    "patrimonio_ferroviario": ["estação são bento porto", "comboio portugal"],
+    "alojamentos_rurais": ["turismo rural portugal", "casa rural alentejo"],
+    "parques_campismo": ["camping portugal natureza"],
 }
 
 USER_AGENT = "PatrimonioVivo/2.0 (heritage-app; contact@patrimoniovivo.pt)"
