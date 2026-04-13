@@ -111,7 +111,8 @@ export function SmartContextProvider({ children }: { children: React.ReactNode }
   const travelerProfile: string | null = (() => {
     const profiles = preferences?.traveler_profiles;
     if (!profiles || Object.keys(profiles).length === 0) return null;
-    return Object.entries(profiles).sort(([, a], [, b]) => b - a)[0][0];
+    const entries = Object.entries(profiles) as Array<[string, number]>;
+    return entries.sort((a, b) => b[1] - a[1])[0][0];
   })();
 
   // Build context payload
