@@ -116,8 +116,12 @@ async def search_wikimedia_batch(query: str, count: int = 15) -> list:
 
 
 async def run():
-    client = AsyncIOMotorClient(os.environ['MONGO_URL'])
-    db = client[os.environ['DB_NAME']]
+    # .strip() guards against trailing whitespace/newlines in the secret value
+    # (writes fail with UnknownReplWriteConcern if ?w=majority picks up a \n)
+    mongo_url = os.environ['MONGO_URL'].strip()
+    db_name = os.environ['DB_NAME'].strip()
+    client = AsyncIOMotorClient(mongo_url)
+    db = client[db_name]
 
     total_enriched = 0
     total_failed = 0
