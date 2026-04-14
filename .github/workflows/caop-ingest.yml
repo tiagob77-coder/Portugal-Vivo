@@ -6,9 +6,9 @@ on:
   workflow_dispatch:
     inputs:
       release_tag:
-        description: 'GitHub Release tag holding CAOP GPKG assets (default: caop-2025-data)'
+        description: 'GitHub Release tag holding CAOP GPKG assets (default: CAOP-2025-DATA)'
         required: false
-        default: 'caop-2025-data'
+        default: 'CAOP-2025-DATA'
       wipe:
         description: 'Drop caop_* collections before re-ingesting'
         required: false
@@ -77,22 +77,48 @@ jobs:
             "geopandas>=0.14,<1.1" \
             "numpy>=2.0,<3.0"
 
-      # ── 5. Download the CAOP GPKG assets from the GitHub Release ───────────
-      #      Expects a Release tagged `caop-2025-data` (configurable) with:
-      #        - Continente_CAOP2025.gpkg
-      #        - ArqMadeira_CAOP2025.gpkg
-      #        - ArqAcores_GCentral_GOriental_CAOP2025.gpkg
-      #        - ArqAcores_GOcidental_CAOP2025.gpkg
-      - name: Download CAOP GPKGs from Release
+      # ── 5. Download the CAOP assets from the GitHub Release ────────────────
+      #      Accepts both `.gpkg` (direct) and `.zip` (will be extracted).
+      #      If the exact tag is not found, falls back to the latest release.
+      - name: Download CAOP assets from Release
         run: |
           mkdir -p backend/data/caop
           cd backend/data/caop
-          echo "Downloading assets from release ${RELEASE_TAG}..."
-          gh release download "${RELEASE_TAG}" \
+
+          echo "=== Available releases in ${GITHUB_REPOSITORY} ==="
+          gh release list --repo "${GITHUB_REPOSITORY}" --limit 20 || true
+          echo "=================================================="
+
+          TARGET_TAG="${RELEASE_TAG}"
+          if ! gh release view "${TARGET_TAG}" --repo "${GITHUB_REPOSITORY}" >/dev/null 2>&1; then
+            echo "::warning::Tag '${TARGET_TAG}' not found. Falling back to latest release."
+            TARGET_TAG="$(gh release list --repo "${GITHUB_REPOSITORY}" --limit 1 --json tagName --jq '.[0].tagName')"
+            if [ -z "${TARGET_TAG}" ]; then
+              echo "::error::No releases found in ${GITHUB_REPOSITORY}."
+              exit 1
+            fi
+            echo "Using latest release tag: ${TARGET_TAG}"
+          fi
+
+          echo "Downloading all .gpkg and .zip assets from ${TARGET_TAG}..."
+          gh release download "${TARGET_TAG}" \
             --repo "${GITHUB_REPOSITORY}" \
             --pattern '*.gpkg' \
+            --pattern '*.zip' \
             --clobber
-          echo "---"
+
+          echo "--- downloaded files ---"
+          ls -lah
+
+          # Extract any zip archive and promote the inner GPKG to this directory
+          for z in *.zip; do
+            [ -e "$z" ] || continue
+            echo "Extracting $z ..."
+            unzip -o -j "$z" '*.gpkg' -d .
+            rm -f "$z"
+          done
+
+          echo "--- final GPKGs ---"
           ls -lah *.gpkg
           echo "Total size:"
           du -sh .
