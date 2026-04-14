@@ -79,21 +79,34 @@ jobs:
 
       # ── 5. Download the CAOP assets from the GitHub Release ────────────────
       #      Accepts both `.gpkg` (direct) and `.zip` (will be extracted).
-      #      Expected assets on the Release (tag: CAOP-2025-DATA):
-      #        - CAOP_Continente_2025-gpkg.zip  (contains Continente_CAOP2025.gpkg)
-      #        - ArqMadeira_CAOP2025.gpkg       (or a zip containing it)
-      #        - ArqAcores_GCentral_GOriental_CAOP2025.gpkg
-      #        - ArqAcores_GOcidental_CAOP2025.gpkg
+      #      If the exact tag is not found, falls back to the latest release.
       - name: Download CAOP assets from Release
         run: |
           mkdir -p backend/data/caop
           cd backend/data/caop
-          echo "Downloading all assets from release ${RELEASE_TAG}..."
-          gh release download "${RELEASE_TAG}" \
+
+          echo "=== Available releases in ${GITHUB_REPOSITORY} ==="
+          gh release list --repo "${GITHUB_REPOSITORY}" --limit 20 || true
+          echo "=================================================="
+
+          TARGET_TAG="${RELEASE_TAG}"
+          if ! gh release view "${TARGET_TAG}" --repo "${GITHUB_REPOSITORY}" >/dev/null 2>&1; then
+            echo "::warning::Tag '${TARGET_TAG}' not found. Falling back to latest release."
+            TARGET_TAG="$(gh release list --repo "${GITHUB_REPOSITORY}" --limit 1 --json tagName --jq '.[0].tagName')"
+            if [ -z "${TARGET_TAG}" ]; then
+              echo "::error::No releases found in ${GITHUB_REPOSITORY}."
+              exit 1
+            fi
+            echo "Using latest release tag: ${TARGET_TAG}"
+          fi
+
+          echo "Downloading all .gpkg and .zip assets from ${TARGET_TAG}..."
+          gh release download "${TARGET_TAG}" \
             --repo "${GITHUB_REPOSITORY}" \
             --pattern '*.gpkg' \
             --pattern '*.zip' \
             --clobber
+
           echo "--- downloaded files ---"
           ls -lah
 
