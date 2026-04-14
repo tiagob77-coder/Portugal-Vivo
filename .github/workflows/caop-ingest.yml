@@ -6,9 +6,9 @@ on:
   workflow_dispatch:
     inputs:
       release_tag:
-        description: 'GitHub Release tag holding CAOP GPKG assets (default: caop-2025-data)'
+        description: 'GitHub Release tag holding CAOP GPKG assets (default: CAOP-2025-DATA)'
         required: false
-        default: 'caop-2025-data'
+        default: 'CAOP-2025-DATA'
       wipe:
         description: 'Drop caop_* collections before re-ingesting'
         required: false
@@ -77,22 +77,35 @@ jobs:
             "geopandas>=0.14,<1.1" \
             "numpy>=2.0,<3.0"
 
-      # ── 5. Download the CAOP GPKG assets from the GitHub Release ───────────
-      #      Expects a Release tagged `caop-2025-data` (configurable) with:
-      #        - Continente_CAOP2025.gpkg
-      #        - ArqMadeira_CAOP2025.gpkg
+      # ── 5. Download the CAOP assets from the GitHub Release ────────────────
+      #      Accepts both `.gpkg` (direct) and `.zip` (will be extracted).
+      #      Expected assets on the Release (tag: CAOP-2025-DATA):
+      #        - CAOP_Continente_2025-gpkg.zip  (contains Continente_CAOP2025.gpkg)
+      #        - ArqMadeira_CAOP2025.gpkg       (or a zip containing it)
       #        - ArqAcores_GCentral_GOriental_CAOP2025.gpkg
       #        - ArqAcores_GOcidental_CAOP2025.gpkg
-      - name: Download CAOP GPKGs from Release
+      - name: Download CAOP assets from Release
         run: |
           mkdir -p backend/data/caop
           cd backend/data/caop
-          echo "Downloading assets from release ${RELEASE_TAG}..."
+          echo "Downloading all assets from release ${RELEASE_TAG}..."
           gh release download "${RELEASE_TAG}" \
             --repo "${GITHUB_REPOSITORY}" \
             --pattern '*.gpkg' \
+            --pattern '*.zip' \
             --clobber
-          echo "---"
+          echo "--- downloaded files ---"
+          ls -lah
+
+          # Extract any zip archive and promote the inner GPKG to this directory
+          for z in *.zip; do
+            [ -e "$z" ] || continue
+            echo "Extracting $z ..."
+            unzip -o -j "$z" '*.gpkg' -d .
+            rm -f "$z"
+          done
+
+          echo "--- final GPKGs ---"
           ls -lah *.gpkg
           echo "Total size:"
           du -sh .
