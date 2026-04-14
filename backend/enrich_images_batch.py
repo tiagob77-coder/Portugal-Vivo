@@ -116,11 +116,14 @@ async def search_wikimedia_batch(query: str, count: int = 15) -> list:
 
 
 async def run():
-    # .strip() guards against trailing whitespace/newlines in the secret value
-    # (writes fail with UnknownReplWriteConcern if ?w=majority picks up a \n)
-    mongo_url = os.environ['MONGO_URL'].strip()
-    db_name = os.environ['DB_NAME'].strip()
-    client = AsyncIOMotorClient(mongo_url)
+    # Strip ALL whitespace from the URI (a Mongo URI never contains raw
+    # whitespace; %20 is used for spaces). This guards against newlines
+    # anywhere in the secret value, not just trailing ones.
+    mongo_url = "".join(os.environ["MONGO_URL"].split())
+    db_name = os.environ["DB_NAME"].strip()
+    # Force w='majority' explicitly — overrides whatever junk may remain
+    # in the URI's query string.
+    client = AsyncIOMotorClient(mongo_url, w="majority")
     db = client[db_name]
 
     total_enriched = 0
