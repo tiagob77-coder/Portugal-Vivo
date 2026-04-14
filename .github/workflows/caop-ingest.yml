@@ -1,0 +1,134 @@
+name: CAOP Ingest
+
+# Manual-only trigger — prevents accidental re-ingestion on push.
+# Trigger via GitHub UI: Actions → "CAOP Ingest" → "Run workflow".
+on:
+  workflow_dispatch:
+    inputs:
+      release_tag:
+        description: 'GitHub Release tag holding CAOP GPKG assets (default: caop-2025-data)'
+        required: false
+        default: 'caop-2025-data'
+      wipe:
+        description: 'Drop caop_* collections before re-ingesting'
+        required: false
+        default: 'true'
+        type: choice
+        options:
+          - 'true'
+          - 'false'
+      only_file:
+        description: 'Optional single GPKG filename to process (leave empty for all)'
+        required: false
+        default: ''
+
+concurrency:
+  group: caop-ingest
+  cancel-in-progress: false   # never cancel a running ingest midway
+
+jobs:
+  ingest:
+    name: Ingest CAOP into MongoDB Atlas
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+
+    env:
+      MONGO_URL: ${{ secrets.MONGO_URL }}
+      DB_NAME:  ${{ secrets.DB_NAME || 'portugal_vivo' }}
+      RELEASE_TAG: ${{ inputs.release_tag }}
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    steps:
+      # ── 1. Checkout the exact branch from which we were triggered ──────────
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # ── 2. Fail fast if the secret is missing ──────────────────────────────
+      - name: Verify MONGO_URL secret is set
+        run: |
+          if [ -z "${MONGO_URL}" ]; then
+            echo "::error::MONGO_URL secret is not configured. Settings → Secrets and variables → Actions."
+            exit 1
+          fi
+          echo "MONGO_URL secret present ($(echo -n "${MONGO_URL}" | wc -c) chars)."
+          echo "DB_NAME=${DB_NAME}"
+
+      # ── 3. Install Python 3.11 (matches backend runtime) ───────────────────
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      # ── 4. Install the geo + Mongo slice (avoid full requirements.txt —
+      #      too heavy and pulls irrelevant LLM deps) ─────────────────────────
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install \
+            "motor==3.3.1" \
+            "pymongo[srv]==4.5.0" \
+            "dnspython==2.8.0" \
+            "python-dotenv==1.2.1" \
+            "shapely>=2.0,<3.0" \
+            "pyproj>=3.6,<4.0" \
+            "pyogrio>=0.7,<1.0" \
+            "fiona>=1.9,<2.0" \
+            "geopandas>=0.14,<1.1" \
+            "numpy>=2.0,<3.0"
+
+      # ── 5. Download the CAOP GPKG assets from the GitHub Release ───────────
+      #      Expects a Release tagged `caop-2025-data` (configurable) with:
+      #        - Continente_CAOP2025.gpkg
+      #        - ArqMadeira_CAOP2025.gpkg
+      #        - ArqAcores_GCentral_GOriental_CAOP2025.gpkg
+      #        - ArqAcores_GOcidental_CAOP2025.gpkg
+      - name: Download CAOP GPKGs from Release
+        run: |
+          mkdir -p backend/data/caop
+          cd backend/data/caop
+          echo "Downloading assets from release ${RELEASE_TAG}..."
+          gh release download "${RELEASE_TAG}" \
+            --repo "${GITHUB_REPOSITORY}" \
+            --pattern '*.gpkg' \
+            --clobber
+          echo "---"
+          ls -lah *.gpkg
+          echo "Total size:"
+          du -sh .
+
+      # ── 6. Sanity check: list the files the ingest script will read ────────
+      - name: Preview file list
+        run: |
+          echo "CAOP files available:"
+          ls -lah backend/data/caop/*.gpkg || true
+
+      # ── 7. Run the ingest (with --wipe by default). This connects to Atlas
+      #      via the srv URL using the GitHub-runner public egress IP. ───────
+      - name: Run CAOP ingest
+        working-directory: backend
+        run: |
+          ARGS=""
+          if [ "${{ inputs.wipe }}" = "true" ]; then
+            ARGS="$ARGS --wipe"
+          fi
+          if [ -n "${{ inputs.only_file }}" ]; then
+            ARGS="$ARGS --file data/caop/${{ inputs.only_file }}"
+          fi
+          echo "Running: python3 scripts/ingest_caop.py $ARGS"
+          python3 scripts/ingest_caop.py $ARGS
+
+      # ── 8. Post-ingest verification: count documents in each collection ────
+      - name: Verify ingested counts
+        working-directory: backend
+        run: |
+          python3 - <<'PY'
+          import os
+          from pymongo import MongoClient
+          c = MongoClient(os.environ["MONGO_URL"], serverSelectionTimeoutMS=20000)
+          db = c[os.environ["DB_NAME"]]
+          for coll in ("caop_distritos", "caop_concelhos", "caop_freguesias"):
+              n = db[coll].count_documents({})
+              print(f"  {coll:20s} {n:>7d} docs")
+          c.close()
+          PY

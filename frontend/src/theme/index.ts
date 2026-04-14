@@ -111,7 +111,7 @@ export const borders = {
     sm: 4,
     md: 8,
     lg: 12,
-    xl: 16,
+    xl: 14,
     '2xl': 20,
     '3xl': 24,
     full: 9999,
