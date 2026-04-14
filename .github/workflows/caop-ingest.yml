@@ -151,8 +151,10 @@ jobs:
           python3 - <<'PY'
           import os
           from pymongo import MongoClient
-          c = MongoClient(os.environ["MONGO_URL"], serverSelectionTimeoutMS=20000)
-          db = c[os.environ["DB_NAME"]]
+          mongo_url = os.environ["MONGO_URL"].strip()
+          db_name = os.environ["DB_NAME"].strip()
+          c = MongoClient(mongo_url, serverSelectionTimeoutMS=20000)
+          db = c[db_name]
           for coll in ("caop_distritos", "caop_concelhos", "caop_freguesias"):
               n = db[coll].count_documents({})
               print(f"  {coll:20s} {n:>7d} docs")
