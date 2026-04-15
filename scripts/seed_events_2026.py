@@ -19,17 +19,48 @@ Env vars:
 Usage:
   python scripts/seed_events_2026.py
   MONGO_URL=... DB_NAME=... python scripts/seed_events_2026.py
+
+Note:
+  The backend's `services/__init__.py` pulls heavy deps (pydantic, FastAPI
+  transitives) that this seed script shouldn't need. To avoid that, we load
+  `public_events_service.py` directly via importlib, bypassing the package
+  __init__.
 """
 import asyncio
+import importlib.util
 import os
 import sys
 from pathlib import Path
 
-# Allow running from repo root: add backend/ to sys.path
 REPO_ROOT = Path(__file__).resolve().parent.parent
-sys.path.insert(0, str(REPO_ROOT / "backend"))
+BACKEND_DIR = REPO_ROOT / "backend"
+
+# Ensure backend/ is on sys.path so `import excel_events_data` inside the
+# service module resolves against the real file in backend/.
+sys.path.insert(0, str(BACKEND_DIR))
 
 from motor.motor_asyncio import AsyncIOMotorClient  # noqa: E402
+
+
+def _load_service_module():
+    """
+    Load backend/services/public_events_service.py directly from file so the
+    `services/__init__.py` (which imports pydantic-based modules) is never
+    executed.
+    """
+    service_path = BACKEND_DIR / "services" / "public_events_service.py"
+    if not service_path.exists():
+        raise ImportError(f"Service file not found: {service_path}")
+
+    spec = importlib.util.spec_from_file_location(
+        "public_events_service_isolated", service_path
+    )
+    if spec is None or spec.loader is None:
+        raise ImportError("Could not build importlib spec for service file")
+
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
 
 
 async def main() -> int:
@@ -47,11 +78,11 @@ async def main() -> int:
                                 serverSelectionTimeoutMS=20000)
     db = client[db_name]
 
-    # Lazy import so we get a clear error if the service is missing
     try:
-        from services.public_events_service import public_events_service
-    except ImportError as exc:
-        print(f"ERROR importing public_events_service: {exc}", file=sys.stderr)
+        svc_module = _load_service_module()
+        public_events_service = svc_module.public_events_service
+    except Exception as exc:  # ImportError, SyntaxError, etc.
+        print(f"ERROR loading public_events_service: {exc}", file=sys.stderr)
         return 3
 
     public_events_service.set_db(db)
