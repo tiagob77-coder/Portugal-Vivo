@@ -55,6 +55,42 @@ jobs:
           python -m pip install --upgrade pip
           pip install 'motor>=3.3' 'pymongo[srv]>=4.6' dnspython httpx
 
+      # Safe diagnostics: show user+host+params (password redacted) so we
+      # can confirm the secret points to the right cluster/username.
+      - name: Parse MONGO_URL (redacted)
+        run: |
+          python - <<'PY'
+          import os, urllib.parse as up
+          raw = os.environ.get("MONGO_URL", "")
+          clean = "".join(raw.split())
+          if not clean:
+              raise SystemExit("MONGO_URL is empty")
+          p = up.urlparse(clean)
+          user = p.username or "(none)"
+          host = p.hostname or "(none)"
+          port = p.port
+          scheme = p.scheme
+          query = p.query
+          db_path = p.path.lstrip("/") or "(none)"
+          # Length of the password component only — no value shown
+          pwd_len = len(p.password or "")
+          print(f"  scheme:   {scheme}")
+          print(f"  user:     {user!r}")
+          print(f"  pwd len:  {pwd_len} chars (value redacted)")
+          print(f"  host:     {host}")
+          if port:
+              print(f"  port:     {port}")
+          print(f"  db_path:  {db_path}")
+          print(f"  query:    {query}")
+          # Sanity flags
+          if scheme not in ("mongodb", "mongodb+srv"):
+              print(f"::warning::Unexpected scheme: {scheme}")
+          if pwd_len == 0:
+              print("::error::Password is empty in URI")
+          if "%" in (p.password or ""):
+              print("  note: password contains URL-encoded chars (%)")
+          PY
+
       - name: Seed events
         run: |
           python scripts/seed_events_2026.py
