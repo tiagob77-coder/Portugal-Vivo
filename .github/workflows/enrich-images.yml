@@ -1,0 +1,78 @@
+name: Enrich POI Images (Wikimedia)
+
+# Manual-only trigger — batch image enrichment against Wikimedia Commons.
+# Idempotent: only updates heritage_items with no image_url set.
+on:
+  workflow_dispatch:
+
+concurrency:
+  group: enrich-images
+  cancel-in-progress: false
+
+jobs:
+  enrich:
+    name: Enrich POI images
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    env:
+      MONGO_URL: ${{ secrets.MONGO_URL }}
+      DB_NAME:  ${{ secrets.DB_NAME || 'portugal_vivo' }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Verify MONGO_URL secret is set
+        run: |
+          if [ -z "${MONGO_URL}" ]; then
+            echo "::error::MONGO_URL secret is not configured."
+            exit 1
+          fi
+          RAW_LEN=$(echo -n "${MONGO_URL}" | wc -c)
+          CLEAN_LEN=$(printf '%s' "${MONGO_URL}" | tr -d '[:space:]' | wc -c)
+          echo "MONGO_URL raw length:   ${RAW_LEN} chars"
+          echo "MONGO_URL clean length: ${CLEAN_LEN} chars (after removing whitespace)"
+          if [ "${RAW_LEN}" != "${CLEAN_LEN}" ]; then
+            DIFF=$((RAW_LEN - CLEAN_LEN))
+            echo "::warning::Secret contains ${DIFF} whitespace char(s). The Python code strips them, but you should clean the GitHub secret to avoid surprises."
+          fi
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install minimal dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install \
+            "motor==3.3.1" \
+            "pymongo[srv]==4.5.0" \
+            "dnspython==2.8.0" \
+            "python-dotenv==1.2.1" \
+            "httpx==0.28.1"
+
+      - name: Run image enrichment batch
+        working-directory: backend
+        run: python3 enrich_images_batch.py
+
+      - name: Final coverage report
+        working-directory: backend
+        run: |
+          python3 - <<'PY'
+          import os
+          from pymongo import MongoClient
+          mongo_url = "".join(os.environ["MONGO_URL"].split())
+          db_name = os.environ["DB_NAME"].strip()
+          c = MongoClient(mongo_url, serverSelectionTimeoutMS=20000, w="majority")
+          db = c[db_name]
+          total = db.heritage_items.count_documents({})
+          with_img = db.heritage_items.count_documents({
+              "image_url": {"$exists": True, "$ne": None, "$ne": ""}
+          })
+          pct = round(with_img / total * 100, 1) if total else 0.0
+          print(f"Coverage: {with_img}/{total} ({pct}%)")
+          c.close()
+          PY
