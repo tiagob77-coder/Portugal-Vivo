@@ -1,0 +1,36 @@
+name: Smoke Test
+
+# Manual trigger, or run after CD deploy completes.
+on:
+  workflow_dispatch:
+    inputs:
+      base_url:
+        description: 'Base URL to smoke-test (default: https://api.portugalvivo.pt)'
+        required: false
+        default: 'https://api.portugalvivo.pt'
+  workflow_run:
+    workflows: ["CD — Deploy para Produção"]
+    types: [completed]
+
+concurrency:
+  group: smoke-${{ github.event.inputs.base_url || 'prod' }}
+  cancel-in-progress: false
+
+jobs:
+  smoke:
+    name: Smoke test
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    # Only run if the deploy succeeded (or if manually dispatched)
+    if: |
+      github.event_name == 'workflow_dispatch' ||
+      github.event.workflow_run.conclusion == 'success'
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Run smoke test
+        env:
+          BASE_URL: ${{ github.event.inputs.base_url || 'https://api.portugalvivo.pt' }}
+        run: bash scripts/smoke-test.sh
