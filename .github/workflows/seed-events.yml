@@ -54,6 +54,29 @@ jobs:
           python -m pip install --upgrade pip
           pip install 'motor>=3.3' 'pymongo[srv]>=4.6' dnspython httpx
 
+      # Normalise MONGO_URL in-place: strip whitespace + RFC 3986-encode
+      # credentials. This runs BEFORE the script so even an old checkout
+      # of seed_events_2026.py receives a valid URI.
+      - name: Normalise MONGO_URL (RFC 3986)
+        run: |
+          ENCODED=$(python3 - <<'PY'
+          import os, urllib.parse as up, sys
+          raw = "".join(os.environ.get("MONGO_URL", "").split())
+          if not raw:
+              sys.exit("MONGO_URL is empty")
+          p = up.urlparse(raw)
+          if p.username is not None:
+              user = up.quote_plus(p.username)
+              pwd  = up.quote_plus(p.password or "")
+              host = p.hostname or ""
+              if p.port:
+                  host = f"{host}:{p.port}"
+              raw = up.urlunparse(p._replace(netloc=f"{user}:{pwd}@{host}"))
+          print(raw, end="")
+          PY
+          )
+          echo "MONGO_URL=$ENCODED" >> "$GITHUB_ENV"
+
       # Safe diagnostics: show user+host+params (password redacted) so we
       # can confirm the secret points to the right cluster/username.
       - name: Parse MONGO_URL (redacted)
