@@ -1,0 +1,76 @@
+name: Seed Events 2026
+
+# Manual trigger — syncs curated + Excel + dados.gov.pt events
+# into the `events` collection on MongoDB Atlas.
+on:
+  workflow_dispatch:
+    inputs:
+      min_expected:
+        description: 'Minimum event count expected after sync (fail job otherwise)'
+        required: false
+        default: '200'
+
+concurrency:
+  group: seed-events
+  cancel-in-progress: false
+
+jobs:
+  seed:
+    name: Seed events into MongoDB Atlas
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    env:
+      MONGO_URL: ${{ secrets.MONGO_URL }}
+      DB_NAME:   ${{ secrets.DB_NAME || 'portugal_vivo' }}
+      MIN_EXPECTED: ${{ inputs.min_expected }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Verify MONGO_URL secret is set
+        run: |
+          RAW_LEN=$(echo -n "${MONGO_URL}" | wc -c)
+          CLEAN_LEN=$(printf '%s' "${MONGO_URL}" | tr -d '[:space:]' | wc -c)
+          echo "MONGO_URL raw length:   ${RAW_LEN} chars"
+          echo "MONGO_URL clean length: ${CLEAN_LEN} chars"
+          if [ -z "${MONGO_URL}" ]; then
+            echo "::error::MONGO_URL secret is not configured."
+            exit 1
+          fi
+          if [ "${RAW_LEN}" != "${CLEAN_LEN}" ]; then
+            DIFF=$((RAW_LEN - CLEAN_LEN))
+            echo "::warning::Secret contains ${DIFF} whitespace char(s); seed script will strip them."
+          fi
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install 'motor>=3.3' 'pymongo[srv]>=4.6' dnspython httpx
+
+      - name: Seed events
+        run: |
+          python scripts/seed_events_2026.py
+
+      - name: Verify event count (gate)
+        run: |
+          python - <<'PY'
+          import os
+          from pymongo import MongoClient
+          url = "".join(os.environ["MONGO_URL"].split())
+          db = MongoClient(url, serverSelectionTimeoutMS=15000,
+                           w="majority")[os.environ["DB_NAME"].strip()]
+          n = db.events.count_documents({})
+          min_n = int(os.environ["MIN_EXPECTED"])
+          print(f"events in DB: {n} (minimum expected: {min_n})")
+          if n < min_n:
+              raise SystemExit(f"FAIL: only {n} events in DB, expected ≥ {min_n}")
+          print("OK — events collection passes the minimum gate.")
+          PY
