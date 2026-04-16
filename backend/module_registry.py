@@ -244,6 +244,24 @@ MODULE_REGISTRY: Dict[str, ModuleMeta] = {
         "permissions": [],
         "rule": lambda ctx, h, m: ctx.traveler_profile == "cultural",
     },
+    "cultural_routes": {
+        "id": "cultural_routes",
+        "name": "Rotas Culturais",
+        "icon": "explore",
+        "route": "/rotas-culturais",
+        "state": "contextual",
+        "priority": 8,   # High — flagship module
+        "dependencies": ["heritage", "map"],
+        "triggers": ["location.changed", "preferences.updated", "month.changed"],
+        "permissions": [],
+        # Active whenever: cultural/aventureiro profile, near a UNESCO stop (heuristic:
+        # always shown as it's a top-level discovery module), or visiting via deep-link.
+        "rule": lambda ctx, h, m: (
+            ctx.traveler_profile in ("cultural", "aventureiro", None)
+            or ctx.active_tab in ("descobrir", "experienciar")
+            or m in (3, 4, 5, 6, 9, 10)   # Spring + Autumn peak season
+        ),
+    },
 }
 
 
