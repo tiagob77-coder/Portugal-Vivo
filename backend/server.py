@@ -850,6 +850,13 @@ api_router.include_router(cultural_routes_router)
 
 logger.info("🧭  Cultural Routes registered")
 
+# ── Knowledge Graph Universal ─────────────────────────────────────────────────
+from knowledge_graph_api import graph_router, set_graph_db
+
+set_graph_db(db)
+api_router.include_router(graph_router)
+logger.info("🕸️   Knowledge Graph registered")
+
 # ── Cultural Routes Hub ───────────────────────────────────────────────────────
 from cultural_routes_hub import bootstrap_enrichment as _bootstrap_cultural_hub
 
