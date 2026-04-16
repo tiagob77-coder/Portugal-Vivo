@@ -1018,3 +1018,87 @@ async def cultural_calendar(
 
     results.sort(key=lambda x: x.get("iq_score", 0), reverse=True)
     return {"month": target_month, "total": len(results), "results": results}
+
+
+# ─── Hub endpoints (Entrega 1) ───────────────────────────────────────────────
+# Imports are deferred inside the functions to avoid module-level circular
+# import between cultural_routes_api ↔ cultural_routes_hub.
+
+@cultural_routes_router.get("/hub", summary="Hub dashboard — spotlight + season + family stats")
+async def cultural_routes_hub(
+    month: Optional[int] = Query(None, ge=1, le=12, description="Target month (default: current)"),
+    lat: Optional[float] = Query(None, description="Latitude for nearby routes"),
+    lng: Optional[float] = Query(None, description="Longitude for nearby routes"),
+):
+    """
+    Full Cultural Routes Hub dashboard.
+    Returns spotlight (route of the day), season picks, nearby routes,
+    family breakdown and UNESCO-certified routes.
+    """
+    from cultural_routes_hub import get_hub_dashboard  # noqa: PLC0415
+    return await get_hub_dashboard(_db, SEED_ROUTES, month=month, lat=lat, lng=lng)
+
+
+@cultural_routes_router.get("/spotlight", summary="Route of the day — deterministic daily rotation")
+async def cultural_routes_spotlight():
+    """
+    Returns the featured cultural route for today.
+    Rotation is deterministic (day-of-year % premium pool) — the same
+    route is returned for all requests on the same calendar day.
+    Includes enrichment summary (POI count, upcoming events, trails).
+    """
+    from cultural_routes_hub import get_spotlight  # noqa: PLC0415
+    result = await get_spotlight(_db, SEED_ROUTES)
+    if result is None:
+        raise HTTPException(status_code=503, detail="Sem rotas disponíveis")
+    return result
+
+
+@cultural_routes_router.get("/discover", summary="Personalised route recommendations")
+async def discover_routes(
+    mood: Optional[str] = Query(
+        None,
+        description="aventureiro | gastronomo | cultural | familia | romaria | musica | danca | historia | natureza | patrimonio",
+    ),
+    lat: Optional[float] = Query(None),
+    lng: Optional[float] = Query(None),
+    month: Optional[int] = Query(None, ge=1, le=12),
+    limit: int = Query(10, le=50),
+):
+    """
+    Scores and ranks routes by mood preference, geo proximity, season
+    and UNESCO/premium status.  No authentication required.
+    """
+    from cultural_routes_hub import score_and_discover  # noqa: PLC0415
+    results = await score_and_discover(
+        _db, SEED_ROUTES,
+        mood=mood, lat=lat, lng=lng, month=month, limit=limit,
+    )
+    return {
+        "mood": mood or "cultural",
+        "month": month or datetime.now(timezone.utc).month,
+        "total": len(results),
+        "results": results,
+    }
+
+
+@cultural_routes_router.get(
+    "/routes/{route_id}/enriched",
+    summary="Enriched route — cross-module data (POIs, events, trails)",
+)
+async def get_enriched_route(route_id: str):
+    """
+    Returns a cultural route enriched with:
+      - pois_nearby     → heritage_items within 15 km of each stop
+      - events_upcoming → events matching route region / festival names
+      - trails_nearby   → walking trails near the route
+      - dynamic_iq_score → recalculated with connection density bonus
+
+    Reads from `cultural_routes_enriched` cache (TTL 7 days).
+    Computes live on cache miss.
+    """
+    from cultural_routes_hub import get_enriched  # noqa: PLC0415
+    result = await get_enriched(_db, route_id, SEED_ROUTES)
+    if result is None:
+        raise HTTPException(status_code=404, detail="Rota cultural não encontrada")
+    return result

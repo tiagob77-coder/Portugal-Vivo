@@ -850,6 +850,9 @@ api_router.include_router(cultural_routes_router)
 
 logger.info("🧭  Cultural Routes registered")
 
+# ── Cultural Routes Hub ───────────────────────────────────────────────────────
+from cultural_routes_hub import bootstrap_enrichment as _bootstrap_cultural_hub
+
 logger.info("🌊  Costa+AI+Economy+GeoPrehistoria+MarineBio+Infrastructure+MaritimeCulture registered")
 
 # ========================
@@ -1092,6 +1095,24 @@ async def load_protected_areas_lookup():
             logger.info("ℹ️  Protected areas data not ingested yet")
     except Exception as e:
         logger.warning("Protected areas init (non-critical): %s", e)
+
+
+@app.on_event("startup")
+async def enrich_cultural_routes():
+    """
+    Bootstrap Cultural Routes Hub — enriches all routes with cross-module
+    data (POIs, events, trails) and caches in cultural_routes_enriched.
+    Non-critical: runs in background, errors are swallowed.
+    """
+    async def _run():
+        try:
+            n = await _bootstrap_cultural_hub(db)
+            logger.info("🧭  Cultural Routes Hub: enriched %d routes", n)
+        except Exception as e:
+            logger.warning("Cultural Routes Hub bootstrap (non-critical): %s", e)
+
+    import asyncio as _asyncio
+    _asyncio.create_task(_run())
 
 
 @app.on_event("shutdown")
