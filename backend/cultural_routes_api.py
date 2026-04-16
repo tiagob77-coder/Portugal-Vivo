@@ -1018,3 +1018,328 @@ async def cultural_calendar(
 
     results.sort(key=lambda x: x.get("iq_score", 0), reverse=True)
     return {"month": target_month, "total": len(results), "results": results}
+
+
+# ─── Hub endpoints (Entrega 1) ───────────────────────────────────────────────
+# Imports are deferred inside the functions to avoid module-level circular
+# import between cultural_routes_api ↔ cultural_routes_hub.
+
+@cultural_routes_router.get("/hub", summary="Hub dashboard — spotlight + season + family stats")
+async def cultural_routes_hub(
+    month: Optional[int] = Query(None, ge=1, le=12, description="Target month (default: current)"),
+    lat: Optional[float] = Query(None, description="Latitude for nearby routes"),
+    lng: Optional[float] = Query(None, description="Longitude for nearby routes"),
+):
+    """
+    Full Cultural Routes Hub dashboard.
+    Returns spotlight (route of the day), season picks, nearby routes,
+    family breakdown and UNESCO-certified routes.
+    """
+    from cultural_routes_hub import get_hub_dashboard  # noqa: PLC0415
+    return await get_hub_dashboard(_db, SEED_ROUTES, month=month, lat=lat, lng=lng)
+
+
+@cultural_routes_router.get("/spotlight", summary="Route of the day — deterministic daily rotation")
+async def cultural_routes_spotlight():
+    """
+    Returns the featured cultural route for today.
+    Rotation is deterministic (day-of-year % premium pool) — the same
+    route is returned for all requests on the same calendar day.
+    Includes enrichment summary (POI count, upcoming events, trails).
+    """
+    from cultural_routes_hub import get_spotlight  # noqa: PLC0415
+    result = await get_spotlight(_db, SEED_ROUTES)
+    if result is None:
+        raise HTTPException(status_code=503, detail="Sem rotas disponíveis")
+    return result
+
+
+@cultural_routes_router.get("/discover", summary="Personalised route recommendations")
+async def discover_routes(
+    mood: Optional[str] = Query(
+        None,
+        description="aventureiro | gastronomo | cultural | familia | romaria | musica | danca | historia | natureza | patrimonio",
+    ),
+    lat: Optional[float] = Query(None),
+    lng: Optional[float] = Query(None),
+    month: Optional[int] = Query(None, ge=1, le=12),
+    limit: int = Query(10, le=50),
+):
+    """
+    Scores and ranks routes by mood preference, geo proximity, season
+    and UNESCO/premium status.  No authentication required.
+    """
+    from cultural_routes_hub import score_and_discover  # noqa: PLC0415
+    results = await score_and_discover(
+        _db, SEED_ROUTES,
+        mood=mood, lat=lat, lng=lng, month=month, limit=limit,
+    )
+    return {
+        "mood": mood or "cultural",
+        "month": month or datetime.now(timezone.utc).month,
+        "total": len(results),
+        "results": results,
+    }
+
+
+@cultural_routes_router.get(
+    "/routes/{route_id}/enriched",
+    summary="Enriched route — cross-module data (POIs, events, trails)",
+)
+async def get_enriched_route(route_id: str):
+    """
+    Returns a cultural route enriched with:
+      - pois_nearby     → heritage_items within 15 km of each stop
+      - events_upcoming → events matching route region / festival names
+      - trails_nearby   → walking trails near the route
+      - dynamic_iq_score → recalculated with connection density bonus
+
+    Reads from `cultural_routes_enriched` cache (TTL 7 days).
+    Computes live on cache miss.
+    """
+    from cultural_routes_hub import get_enriched  # noqa: PLC0415
+    result = await get_enriched(_db, route_id, SEED_ROUTES)
+    if result is None:
+        raise HTTPException(status_code=404, detail="Rota cultural não encontrada")
+    return result
+
+
+@cultural_routes_router.get(
+    "/routes/{route_id}/live-calendar",
+    summary="Live calendar — upcoming real events for this route (next 90 days)",
+)
+async def route_live_calendar(route_id: str, limit: int = Query(12, le=50)):
+    """
+    Returns upcoming events from the `events` collection that match
+    this route's region and festival names.  Ordered by relevance score.
+    """
+    items = await _col_or_seed("cultural_routes", SEED_ROUTES)
+    route = next(
+        (i for i in items if str(i.get("_id", i.get("id", ""))) == route_id),
+        None,
+    )
+    if route is None:
+        raise HTTPException(status_code=404, detail="Rota cultural não encontrada")
+
+    from cultural_routes_hub import _events_for_route  # noqa: PLC0415
+    events = await _events_for_route(_db, route, limit=limit)
+    return {
+        "route_id": route_id,
+        "route_name": route.get("name"),
+        "region": route.get("region"),
+        "festivals_in_route": route.get("festivals", []),
+        "total": len(events),
+        "events": events,
+    }
+
+
+@cultural_routes_router.get(
+    "/connections-graph",
+    summary="Connections graph — shared attributes between routes",
+)
+async def connections_graph(
+    family: Optional[str] = Query(None, description="Filter by family"),
+    limit: int = Query(30, le=100),
+):
+    """
+    Returns a graph of route connections based on shared:
+    instruments, dances, gastronomy items, municipalities, UNESCO status.
+    Useful for frontend visualisation (react-native-svg / D3 / vis.js).
+
+    Response: { nodes: [...], edges: [...] }
+    """
+    items = await _col_or_seed("cultural_routes", SEED_ROUTES)
+    if family:
+        items = [i for i in items if i.get("family") == family]
+    items = items[:limit]
+
+    # Build nodes
+    nodes = []
+    for r in items:
+        rid = str(r.get("_id", r.get("id", "")))
+        nodes.append({
+            "id": rid,
+            "label": r.get("name", rid),
+            "family": r.get("family"),
+            "region": r.get("region"),
+            "iq_score": r.get("iq_score", 0),
+            "unesco": r.get("unesco", False),
+            "group": r.get("family", "integradas"),
+        })
+
+    # Build edges (shared attributes create connections)
+    edges = []
+    seen_edges: set = set()
+
+    def _add_edge(src: str, tgt: str, attr: str, weight: int):
+        key = tuple(sorted([src, tgt])) + (attr,)
+        if key not in seen_edges and src != tgt:
+            seen_edges.add(key)
+            edges.append({"source": src, "target": tgt, "attribute": attr, "weight": weight})
+
+    for i, r1 in enumerate(items):
+        id1 = str(r1.get("_id", r1.get("id", "")))
+        for r2 in items[i + 1:]:
+            id2 = str(r2.get("_id", r2.get("id", "")))
+            # Shared instruments (weight 3)
+            shared_inst = set(r1.get("instruments", [])) & set(r2.get("instruments", []))
+            for inst in shared_inst:
+                _add_edge(id1, id2, f"instrumento:{inst}", 3)
+            # Shared dances (weight 3)
+            shared_dance = set(r1.get("dances", [])) & set(r2.get("dances", []))
+            for d in shared_dance:
+                _add_edge(id1, id2, f"danca:{d}", 3)
+            # Shared municipalities (weight 2)
+            shared_mun = set(r1.get("municipalities", [])) & set(r2.get("municipalities", []))
+            for m in shared_mun:
+                _add_edge(id1, id2, f"municipio:{m}", 2)
+            # Shared UNESCO (weight 2)
+            if r1.get("unesco") and r2.get("unesco"):
+                _add_edge(id1, id2, "unesco", 2)
+            # Shared region (weight 1)
+            if r1.get("region") and r1.get("region") == r2.get("region"):
+                _add_edge(id1, id2, f"regiao:{r1.get('region')}", 1)
+
+    return {
+        "nodes": nodes,
+        "edges": sorted(edges, key=lambda e: e["weight"], reverse=True),
+        "total_nodes": len(nodes),
+        "total_edges": len(edges),
+    }
+
+
+class PersonalizeRequest(BaseModel):
+    route_id: str
+    traveler_profile: str = Field(
+        default="cultural",
+        description="aventureiro | gastronomo | cultural | familia | romaria | musica",
+    )
+    duration_days: Optional[int] = Field(None, ge=1, le=14)
+    mobility: str = Field(default="normal", description="normal | reduced | cycling | walking")
+    language: str = Field(default="pt", description="pt | en | es | fr")
+
+
+@cultural_routes_router.post(
+    "/personalize",
+    summary="AI-personalised route variant (LLM)",
+)
+async def personalize_route(body: PersonalizeRequest):
+    """
+    Generates a personalised variant of a cultural route using the
+    Emergent LLM (gpt-4o-mini).  Adapts stops, duration, gastronomy and
+    activities to the traveler profile and mobility constraints.
+    Falls back to structured data if LLM unavailable.
+    """
+    items = await _col_or_seed("cultural_routes", SEED_ROUTES)
+    route = next(
+        (i for i in items if str(i.get("_id", i.get("id", ""))) == body.route_id),
+        None,
+    )
+    if route is None:
+        raise HTTPException(status_code=404, detail="Rota cultural não encontrada")
+
+    days = body.duration_days or route.get("duration_days", 2)
+    lang_map = {"pt": "português europeu de Portugal", "en": "English", "es": "español", "fr": "français"}
+    lang = lang_map.get(body.language, "português europeu de Portugal")
+
+    profile_desc = {
+        "aventureiro": "viajante aventureiro que prefere actividades ao ar livre e experiências intensas",
+        "gastronomo":  "entusiasta gastronómico focado em pratos típicos, vinhos e mercados locais",
+        "cultural":    "amante de cultura, história, museus e tradições imateriais",
+        "familia":     "família com crianças que prefere experiências acessíveis e educativas",
+        "romaria":     "peregrino/romeiro interessado em festividades religiosas e tradições populares",
+        "musica":      "melómano focado em concertos, casas de fado, cante e música ao vivo",
+    }.get(body.traveler_profile, "viajante cultural")
+
+    mobility_note = {
+        "normal":  "",
+        "reduced": "com mobilidade reduzida (evitar escadas, percursos longos, terreno irregular)",
+        "cycling": "de bicicleta (preferir ciclovias e percursos planos ou moderados)",
+        "walking": "a pé (incluir percursos pedestres e trilhos próximos dos stops)",
+    }.get(body.mobility, "")
+
+    stops_text = "\n".join(
+        f"  - {s['name']} ({s.get('municipality','')}, {s.get('type','')})"
+        for s in route.get("stops", [])
+    )
+
+    prompt = f"""Adapta a seguinte rota cultural portuguesa para um {profile_desc} {mobility_note}.
+
+Rota: {route['name']}
+Região: {route.get('region','')}
+Municípios: {', '.join(route.get('municipalities',[]))}
+Duração original: {route.get('duration_days','?')} dias → adaptar para {days} dias
+Stops disponíveis:
+{stops_text}
+Gastronomia: {', '.join(route.get('gastronomy',[]))}
+Festivais: {', '.join(route.get('festivals',[]))}
+
+Responde APENAS em JSON válido em {lang}:
+{{
+  "title": "título da variante personalizada",
+  "tagline": "frase curta evocativa (máx 12 palavras)",
+  "itinerary": [
+    {{"day": 1, "stops": ["stop1","stop2"], "activities": ["act1"], "gastronomy": ["prato"], "tip": "dica do dia"}}
+  ],
+  "why_for_you": "porquê esta rota é perfeita para este perfil (2 frases)",
+  "must_do": ["experiência obrigatória 1","experiência obrigatória 2","experiência obrigatória 3"],
+  "avoid": ["o que evitar nesta rota para este perfil"],
+  "best_time": "melhor época detalhada"
+}}"""
+
+    fallback = {
+        "title": f"{route['name']} — versão {body.traveler_profile}",
+        "tagline": route.get("description_short", ""),
+        "itinerary": [{"day": d + 1, "stops": [s["name"] for s in route.get("stops", [])][d::days], "activities": [], "gastronomy": route.get("gastronomy", [])[:2], "tip": ""} for d in range(days)],
+        "why_for_you": f"Esta rota é ideal para um perfil {body.traveler_profile}.",
+        "must_do": route.get("festivals", [])[:3],
+        "avoid": [],
+        "best_time": f"Meses ideais: {route.get('best_months',[])}",
+        "source": "fallback",
+    }
+
+    if not _llm_key:
+        return fallback
+
+    try:
+        import json as _json
+        async with httpx.AsyncClient(timeout=20.0) as client:
+            resp = await client.post(
+                "https://llm.lil.re.emergentmethods.ai/v1/chat/completions",
+                headers={"Authorization": f"Bearer {_llm_key}", "Content-Type": "application/json"},
+                json={
+                    "model": "gpt-4o-mini",
+                    "messages": [{"role": "user", "content": prompt}],
+                    "temperature": 0.7,
+                    "response_format": {"type": "json_object"},
+                },
+            )
+        content = resp.json()["choices"][0]["message"]["content"]
+        return _json.loads(content)
+    except Exception:
+        return fallback
+
+
+@cultural_routes_router.post(
+    "/enrich/run",
+    summary="[Admin] Trigger manual enrichment of all cultural routes",
+)
+async def trigger_enrichment(background_tasks=None):
+    """
+    Manually triggers the full enrichment pipeline.
+    Useful for post-seed re-enrichment or admin maintenance.
+    Non-blocking — returns immediately; enrichment runs in background.
+    """
+    import asyncio as _asyncio
+
+    from cultural_routes_hub import bootstrap_enrichment  # noqa: PLC0415
+
+    async def _run():
+        return await bootstrap_enrichment(_db)
+
+    _asyncio.create_task(_run())
+    return {
+        "status": "accepted",
+        "message": "Enrichment pipeline triggered in background. Check logs for progress.",
+        "enriched_collection": "cultural_routes_enriched",
+    }

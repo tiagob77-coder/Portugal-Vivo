@@ -230,6 +230,32 @@ async def _generate_actions(ctx: UserContext, active: List[str]) -> List[SmartAc
             module="encyclopedia",
         ))
 
+    # ── Cultural Routes Hub ──
+    if "cultural_routes" in active:
+        month = ctx.month if ctx.month is not None else datetime.now(timezone.utc).month
+        actions.append(SmartAction(
+            type="highlight",
+            priority=8,
+            title="Rotas Culturais",
+            subtitle="Fado, Cante, Pauliteiros e muito mais",
+            icon="explore",
+            route="/rotas-culturais",
+            module="cultural_routes",
+            data={"month": month},
+        ))
+        # If geo available, push spotlight directly
+        if ctx.lat and ctx.lng:
+            actions.append(SmartAction(
+                type="suggest",
+                priority=7,
+                title="Rota do dia",
+                subtitle="Descubra a rota cultural em destaque hoje",
+                icon="star",
+                route="/rotas-culturais/spotlight",
+                module="cultural_routes",
+                data={"lat": ctx.lat, "lng": ctx.lng},
+            ))
+
     # ── Safety alerts (always check) ──
     if _db is not None:
         fires = await _db.safety_alerts.find({
@@ -331,6 +357,27 @@ async def _preload_data(ctx: UserContext, active: List[str]) -> Dict[str, Any]:
             }
         })
         preloaded["nearby_count"] = nearby_count
+
+    # Cultural Routes — preload spotlight for instant first paint
+    if "cultural_routes" in active:
+        try:
+            from cultural_routes_hub import get_spotlight  # noqa: PLC0415
+            from cultural_routes_api import SEED_ROUTES   # noqa: PLC0415
+            spotlight = await get_spotlight(_db, SEED_ROUTES)
+            if spotlight:
+                preloaded["cultural_routes_spotlight"] = {
+                    "id": spotlight.get("id"),
+                    "name": spotlight.get("name"),
+                    "family": spotlight.get("family"),
+                    "region": spotlight.get("region"),
+                    "description_short": spotlight.get("description_short"),
+                    "pois_nearby_count": spotlight.get("pois_nearby_count", 0),
+                    "events_upcoming_count": spotlight.get("events_upcoming_count", 0),
+                    "dynamic_iq_score": spotlight.get("dynamic_iq_score"),
+                    "spotlight_date": spotlight.get("spotlight_date"),
+                }
+        except Exception:
+            pass
 
     return preloaded
 
