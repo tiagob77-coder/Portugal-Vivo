@@ -807,7 +807,7 @@ async def list_routes(
     unesco: Optional[bool] = Query(None, description="Only UNESCO routes"),
     search: Optional[str] = Query(None, description="Search by name, tags, description"),
     premium_only: Optional[bool] = Query(None),
-    limit: int = Query(50, le=200),
+    limit: int = Query(50, ge=1, le=200),
     offset: int = Query(0, ge=0),
 ):
     """List cultural routes with filtering."""
@@ -838,7 +838,7 @@ async def routes_nearby(
     lng: float = Query(...),
     radius_km: float = Query(100.0, le=500.0),
     family: Optional[str] = Query(None),
-    limit: int = Query(20, le=100),
+    limit: int = Query(20, ge=1, le=100),
 ):
     """Find cultural routes near a location."""
     items = await _col_or_seed("cultural_routes", SEED_ROUTES)
@@ -1063,7 +1063,7 @@ async def discover_routes(
     lat: Optional[float] = Query(None),
     lng: Optional[float] = Query(None),
     month: Optional[int] = Query(None, ge=1, le=12),
-    limit: int = Query(10, le=50),
+    limit: int = Query(10, ge=1, le=50),
 ):
     """
     Scores and ranks routes by mood preference, geo proximity, season
@@ -1108,7 +1108,7 @@ async def get_enriched_route(route_id: str):
     "/routes/{route_id}/live-calendar",
     summary="Live calendar — upcoming real events for this route (next 90 days)",
 )
-async def route_live_calendar(route_id: str, limit: int = Query(12, le=50)):
+async def route_live_calendar(route_id: str, limit: int = Query(12, ge=1, le=50)):
     """
     Returns upcoming events from the `events` collection that match
     this route's region and festival names.  Ordered by relevance score.
@@ -1139,7 +1139,7 @@ async def route_live_calendar(route_id: str, limit: int = Query(12, le=50)):
 )
 async def connections_graph(
     family: Optional[str] = Query(None, description="Filter by family"),
-    limit: int = Query(30, le=100),
+    limit: int = Query(30, ge=1, le=100),
 ):
     """
     Returns a graph of route connections based on shared:
