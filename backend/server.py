@@ -850,6 +850,20 @@ api_router.include_router(cultural_routes_router)
 
 logger.info("🧭  Cultural Routes registered")
 
+# ── Knowledge Graph Universal ─────────────────────────────────────────────────
+from knowledge_graph_api import graph_router, set_graph_db
+
+set_graph_db(db)
+api_router.include_router(graph_router)
+logger.info("🕸️   Knowledge Graph registered")
+
+# ── Temporal Context Orchestrator ─────────────────────────────────────────────
+from temporal_context_api import temporal_router, set_temporal_db
+
+set_temporal_db(db)
+api_router.include_router(temporal_router)
+logger.info("⏱️   Temporal Context Orchestrator registered")
+
 # ── Cultural Routes Hub ───────────────────────────────────────────────────────
 from cultural_routes_hub import bootstrap_enrichment as _bootstrap_cultural_hub
 
