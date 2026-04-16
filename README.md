@@ -390,21 +390,59 @@ Retry automático para ECONNRESET (3 tentativas com backoff).
 
 ---
 
+## Módulos Estratégicos (Motor Inteligente)
+
+| Módulo | Ficheiro | Endpoints |
+|--------|----------|-----------|
+| Knowledge Graph Universal | `knowledge_graph_api.py` | `/graph/traverse`, `/graph/search`, `/graph/summary` |
+| Temporal Context Orchestrator | `temporal_context_api.py` | `/temporal/context`, `/temporal/enrich`, `/temporal/calendar`, `/temporal/best-time` |
+| Narrative Layer Global | `narrative_layer_api.py` | `/narrative-layer/generate`, `/narrative-layer/get`, `/narrative-layer/invalidate`, `/narrative-layer/stats`, `/narrative-layer/personas` |
+
+### Knowledge Graph Universal
+- 10 tipos de nó: rotas culturais, património, gastronomia, flora, fauna, pré-história, cultura marítima, biodiversidade marinha, trilhos, eventos
+- Ligações por: tags partilhadas, município, região, estatuto UNESCO, proximidade geo (Haversine)
+- BFS limitado: max 60 nós, 3 hops de profundidade
+
+### Temporal Context Orchestrator
+- Contexto sazonal automático (inverno/primavera/verão/outono)
+- Fase lunar calculada matematicamente (sem API externa)
+- Enriquecimento temporal de entidades de qualquer módulo
+- Calendário mensal de eventos e janelas de fauna/flora
+
+### Narrative Layer Global
+- Narrativas LLM (gpt-4o-mini) para qualquer entidade de qualquer módulo
+- 7 personas (família, estudante, viajante, fotógrafo, gastrónomo, académico)
+- 7 moods, 5 línguas (PT, EN, ES, FR, DE)
+- Cache Mongo com TTL 30 dias + fallback determinístico
+
+---
+
+## Rotas Culturais Hub (Entrega 3)
+
+Ecrã hub completo em `app/rotas-culturais/index.tsx`:
+- **Mapa interativo** com 6 camadas toggleáveis (rotas, património, eventos, trilhos, UNESCO, gastronomia)
+- **Calendário Cultural** — strip mensal com densidade de actividade por mês
+- **Playlists Temáticas** — colecções curadas (Rota UNESCO, Norte Profundo, Fim de Semana, Músicas de Portugal, Grande Viagem)
+- **Filtros** por família (6 categorias) e região
+
+---
+
 ## Números
 
 | Métrica | Valor |
 |---|---|
 | Ecrãs frontend | 78 |
-| Componentes React Native | 110 |
-| Módulos backend (API) | 87 |
-| Routers registados | 90 |
-| Endpoints REST | 496 |
+| Componentes React Native | 113 |
+| Módulos backend (API) | 90 |
+| Routers registados | 93 |
+| Endpoints REST | 512 |
 | Serviços externos | 24 |
 | Ficheiros de teste | 43 |
 | Testes unitários | 176 |
 | Módulos IQ Engine | 19 |
 | Módulos temáticos | 11 |
-| Idiomas | 4 (PT, EN, ES, FR) |
+| Módulos motor inteligente | 3 |
+| Idiomas | 5 (PT, EN, ES, FR, DE) |
 | Camadas de mapa | 39+ |
 | Modos de mapa | 7 |
 

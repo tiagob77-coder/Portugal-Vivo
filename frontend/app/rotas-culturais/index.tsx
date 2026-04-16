@@ -11,6 +11,9 @@ import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import CulturalRouteCard, { CulturalRoute } from '../../src/components/CulturalRouteCard';
 import { getModuleTheme, withOpacity } from '../../src/theme/colors';
+import CulturalHubMap, { HubMapLayer, HubStop } from '../../src/components/CulturalHubMap';
+import CulturalHubTimeline, { buildTimelineMonths } from '../../src/components/CulturalHubTimeline';
+import CulturalHubPlaylists, { DEFAULT_PLAYLISTS, Playlist } from '../../src/components/CulturalHubPlaylists';
 
 const MT = getModuleTheme('rotas-culturais');
 const C = {
@@ -227,6 +230,37 @@ export default function RotasCulturais() {
   const [regionFilter, setRegionFilter] = useState<string>('Todas');
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
+  const [mapLayers, setMapLayers] = useState<HubMapLayer[]>([
+    { id: 'routes',    label: 'Rotas',     icon: 'route',          color: '#A855F7', active: true  },
+    { id: 'heritage',  label: 'Património', icon: 'account-balance', color: '#F59E0B', active: false },
+    { id: 'events',    label: 'Eventos',    icon: 'event',           color: '#EC4899', active: false },
+    { id: 'trails',    label: 'Trilhos',    icon: 'terrain',         color: '#22C55E', active: false },
+    { id: 'unesco',    label: 'UNESCO',     icon: 'verified',        color: '#06B6D4', active: true  },
+    { id: 'gastronomy',label: 'Gastronomia',icon: 'restaurant',      color: '#EF4444', active: false },
+  ]);
+
+  const mapStops: HubStop[] = ROUTES_DATA.flatMap((r) =>
+    r.stops.map((s) => ({
+      name: s.name,
+      lat: s.lat,
+      lng: s.lng,
+      municipality: s.municipality,
+      type: s.type,
+      family: r.family,
+      color: FAMILY_TABS.find((t) => t.key === r.family)?.color,
+    }))
+  );
+
+  const timelineMonths = buildTimelineMonths(ROUTES_DATA.map((r) => r.best_months));
+
+  const handleLayerToggle = (id: string) =>
+    setMapLayers((prev) => prev.map((l) => l.id === id ? { ...l, active: !l.active } : l));
+
+  const handlePlaylistSelect = (_pl: Playlist) => {
+    setFamilyFilter('todos');
+    setRegionFilter('Todas');
+  };
+
   const unescoCount = ROUTES_DATA.filter((r) => r.unesco).length;
 
   const filtered = ROUTES_DATA.filter((r) => {
@@ -277,6 +311,21 @@ export default function RotasCulturais() {
             {ROUTES_DATA.length} rotas premium &middot; {unescoCount} UNESCO &middot; 6 fam&iacute;lias culturais
           </Text>
         </View>
+
+        {/* Hub Map */}
+        <View style={styles.hubMapWrap}>
+          <CulturalHubMap
+            stops={mapStops}
+            layers={mapLayers}
+            onLayerToggle={handleLayerToggle}
+          />
+        </View>
+
+        {/* Cultural Timeline */}
+        <CulturalHubTimeline months={timelineMonths} accentColor={C.accent} />
+
+        {/* Playlists */}
+        <CulturalHubPlaylists playlists={DEFAULT_PLAYLISTS} onSelect={handlePlaylistSelect} />
 
         {/* Family Tabs */}
         <ScrollView
@@ -407,6 +456,7 @@ const styles = StyleSheet.create({
   },
   premiumBannerText: { fontSize: 13, fontWeight: '600', color: '#FCD34D', flex: 1 },
 
+  hubMapWrap: { marginHorizontal: 16, marginBottom: 16 },
   tabsScroll: { marginBottom: 4 },
   tabsContent: { paddingHorizontal: 20, gap: 8 },
   tabChip: {
