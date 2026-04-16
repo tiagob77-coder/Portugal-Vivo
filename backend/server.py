@@ -864,6 +864,17 @@ set_temporal_db(db)
 api_router.include_router(temporal_router)
 logger.info("⏱️   Temporal Context Orchestrator registered")
 
+# ── Narrative Layer Global ───────────────────────────────────────────────────
+from narrative_layer_api import (
+    narrative_layer_router,
+    set_narrative_layer_db,
+    set_narrative_layer_llm_key,
+)
+set_narrative_layer_db(db)
+set_narrative_layer_llm_key(EMERGENT_LLM_KEY)
+api_router.include_router(narrative_layer_router)
+logger.info("📖  Narrative Layer Global registered")
+
 # ── Cultural Routes Hub ───────────────────────────────────────────────────────
 from cultural_routes_hub import bootstrap_enrichment as _bootstrap_cultural_hub
 
