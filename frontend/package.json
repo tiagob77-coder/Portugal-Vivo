@@ -48,8 +48,6 @@
     "expo-task-manager": "~14.0.9",
     "expo-web-browser": "~15.0.10",
     "i18next": "^25.8.0",
-    "leaflet": "^1.9.4",
-    "leaflet.markercluster": "^1.5.3",
     "lodash": "^4.17.23",
     "maplibre-gl": "^4.7.1",
     "react": "19.1.0",

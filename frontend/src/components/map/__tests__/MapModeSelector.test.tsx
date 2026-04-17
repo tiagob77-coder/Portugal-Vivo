@@ -26,14 +26,14 @@ describe('MapModeSelector', () => {
     render(<MapModeSelector activeMode="markers" onModeChange={onModeChange} />);
     expect(screen.getByText('Camadas')).toBeTruthy();
     expect(screen.getByText('Explorador')).toBeTruthy();
-    expect(screen.getByText('Heatmap')).toBeTruthy();
+    expect(screen.getByText('Densidade')).toBeTruthy();
     expect(screen.getByText('Trilhos')).toBeTruthy();
-    expect(screen.getByText('Épocas')).toBeTruthy();
-    expect(screen.getByText('Timeline')).toBeTruthy();
+    expect(screen.getByText('Épocas históricas')).toBeTruthy();
+    expect(screen.getByText('Linha do tempo')).toBeTruthy();
     expect(screen.getByText('Proximidade')).toBeTruthy();
-    expect(screen.getByText('Noturno')).toBeTruthy();
+    expect(screen.getByText('Modo noturno')).toBeTruthy();
     expect(screen.getByText('Satélite')).toBeTruthy();
-    expect(screen.getByText('Técnico')).toBeTruthy();
+    expect(screen.getByText('Vista técnica')).toBeTruthy();
     expect(screen.getByText('Premium')).toBeTruthy();
   });
 
@@ -43,9 +43,9 @@ describe('MapModeSelector', () => {
     expect(onModeChange).toHaveBeenCalledWith('explorador');
   });
 
-  it('calls onModeChange with "heatmap" when Heatmap is pressed', () => {
+  it('calls onModeChange with "heatmap" when Densidade is pressed', () => {
     render(<MapModeSelector activeMode="markers" onModeChange={onModeChange} />);
-    fireEvent.press(screen.getByText('Heatmap'));
+    fireEvent.press(screen.getByText('Densidade'));
     expect(onModeChange).toHaveBeenCalledWith('heatmap');
   });
 
@@ -55,9 +55,9 @@ describe('MapModeSelector', () => {
     expect(onModeChange).toHaveBeenCalledWith('trails');
   });
 
-  it('calls onModeChange with "epochs" when Épocas is pressed', () => {
+  it('calls onModeChange with "epochs" when Épocas históricas is pressed', () => {
     render(<MapModeSelector activeMode="markers" onModeChange={onModeChange} />);
-    fireEvent.press(screen.getByText('Épocas'));
+    fireEvent.press(screen.getByText('Épocas históricas'));
     expect(onModeChange).toHaveBeenCalledWith('epochs');
   });
 
@@ -67,9 +67,9 @@ describe('MapModeSelector', () => {
     expect(onModeChange).toHaveBeenCalledWith('proximity');
   });
 
-  it('calls onModeChange with "noturno" when Noturno is pressed', () => {
+  it('calls onModeChange with "noturno" when Modo noturno is pressed', () => {
     render(<MapModeSelector activeMode="markers" onModeChange={onModeChange} />);
-    fireEvent.press(screen.getByText('Noturno'));
+    fireEvent.press(screen.getByText('Modo noturno'));
     expect(onModeChange).toHaveBeenCalledWith('noturno');
   });
 
@@ -102,9 +102,9 @@ describe('MapModeSelector', () => {
     expect(buttons.length).toBe(11);
   });
 
-  it('calls onModeChange with "tecnico" when Técnico is pressed', () => {
+  it('calls onModeChange with "tecnico" when Vista técnica is pressed', () => {
     render(<MapModeSelector activeMode="markers" onModeChange={onModeChange} />);
-    fireEvent.press(screen.getByText('Técnico'));
+    fireEvent.press(screen.getByText('Vista técnica'));
     expect(onModeChange).toHaveBeenCalledWith('tecnico');
   });
 

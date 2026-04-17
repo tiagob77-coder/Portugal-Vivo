@@ -10,14 +10,14 @@ import { palette, withOpacity } from '../../theme';
 const MAP_MODES = [
   { id: 'markers', icon: 'place', label: 'Camadas' },
   { id: 'explorador', icon: 'explore', label: 'Explorador' },
-  { id: 'heatmap', icon: 'whatshot', label: 'Heatmap' },
+  { id: 'heatmap', icon: 'whatshot', label: 'Densidade' },
   { id: 'trails', icon: 'hiking', label: 'Trilhos' },
-  { id: 'epochs', icon: 'history', label: 'Épocas' },
-  { id: 'timeline', icon: 'slow-motion-video', label: 'Timeline' },
+  { id: 'epochs', icon: 'history', label: 'Épocas históricas' },
+  { id: 'timeline', icon: 'slow-motion-video', label: 'Linha do tempo' },
   { id: 'proximity', icon: 'near-me', label: 'Proximidade' },
-  { id: 'noturno', icon: 'nightlight-round', label: 'Noturno' },
+  { id: 'noturno', icon: 'nightlight-round', label: 'Modo noturno' },
   { id: 'satellite', icon: 'satellite', label: 'Satélite' },
-  { id: 'tecnico', icon: 'my-location', label: 'Técnico' },
+  { id: 'tecnico', icon: 'my-location', label: 'Vista técnica' },
   { id: 'premium', icon: 'auto-awesome', label: 'Premium' },
 ] as const;
 

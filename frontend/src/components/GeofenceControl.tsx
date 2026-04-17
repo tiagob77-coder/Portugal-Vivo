@@ -1,8 +1,8 @@
 /**
  * GeofenceControl - Simplified proximity monitoring toggle
  */
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, Switch, Platform } from 'react-native';
+import React, { useEffect, useRef, useState } from 'react';
+import { View, Text, StyleSheet, Switch, Animated } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { geofenceService } from '../services/geofencing';
 import { palette } from '../theme';
@@ -13,6 +13,17 @@ interface GeofenceControlProps {
 
 export function GeofenceControl({ onPOIsLoad }: GeofenceControlProps) {
   const [isEnabled, setIsEnabled] = useState(false);
+  const [toast, setToast] = useState<string | null>(null);
+  const opacity = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    if (!toast) return;
+    Animated.sequence([
+      Animated.timing(opacity, { toValue: 1, duration: 180, useNativeDriver: true }),
+      Animated.delay(3200),
+      Animated.timing(opacity, { toValue: 0, duration: 220, useNativeDriver: true }),
+    ]).start(() => setToast(null));
+  }, [toast, opacity]);
 
   const toggle = async () => {
     if (isEnabled) {
@@ -21,9 +32,8 @@ export function GeofenceControl({ onPOIsLoad }: GeofenceControlProps) {
     } else {
       await geofenceService.start({
         onAlert: (alerts: any) => {
-          if (Platform.OS === 'web' && alerts.length > 0) {
-            const msg = alerts.map((a: any) => a.message).join('\n');
-            window.alert(msg);
+          if (alerts.length > 0) {
+            setToast(alerts.map((a: any) => a.message).join(' • '));
           }
         },
         onNearby: () => { onPOIsLoad?.(); },
@@ -47,6 +57,12 @@ export function GeofenceControl({ onPOIsLoad }: GeofenceControlProps) {
           thumbColor={isEnabled ? '#22C55E' : '#C8C3B8'}
         />
       </View>
+      {toast && (
+        <Animated.View style={[styles.toast, { opacity }]} accessibilityLiveRegion="polite">
+          <MaterialIcons name="notifications-active" size={16} color={palette.white} />
+          <Text style={styles.toastText} numberOfLines={3}>{toast}</Text>
+        </Animated.View>
+      )}
     </View>
   );
 }
@@ -76,5 +92,21 @@ const styles = StyleSheet.create({
     fontSize: 11,
     color: '#64748B',
     marginTop: 2,
+  },
+  toast: {
+    marginTop: 10,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    backgroundColor: palette.forest[500],
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+  },
+  toastText: {
+    flex: 1,
+    color: palette.white,
+    fontSize: 12,
+    fontWeight: '500',
   },
 });

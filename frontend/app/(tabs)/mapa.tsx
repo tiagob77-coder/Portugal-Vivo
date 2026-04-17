@@ -327,12 +327,10 @@ export default function MapaTab() {
       });
       if (res.data?.id) {
         setSelectedTrail(res.data.id);
-        const msg = `Trilho "${res.data.name}" carregado! ${res.data.distance_km}km`;
-        Platform.OS === 'web' ? window.alert(msg) : Alert.alert('Trilho carregado', msg);
+        Alert.alert('Trilho carregado', `Trilho "${res.data.name}" carregado! ${res.data.distance_km}km`);
       }
     } catch (_err) {
-      const msg = 'Erro ao carregar ficheiro GPX. Verifique o formato.';
-      Platform.OS === 'web' ? window.alert(msg) : Alert.alert('Erro', msg);
+      Alert.alert('Erro', 'Erro ao carregar ficheiro GPX. Verifique o formato.');
     } finally {
       setGpxUploading(false);
     }
@@ -355,11 +353,6 @@ export default function MapaTab() {
     },
     enabled: (activeCategories.length > 0 || mapMode === 'trails') && !['epochs'].includes(mapMode),
   });
-
-  // Debug: log when mapItems changes
-  useEffect(() => {
-    console.log('[Mapa] mapItems updated:', mapItems?.length, 'items');
-  }, [mapItems]);
 
   // Trails data
   const { data: trailsData } = useQuery({
@@ -498,7 +491,6 @@ export default function MapaTab() {
   } else {
     mapComponentItems = mapItems || [];
   }
-  console.log('[Mapa] mapComponentItems calculated:', mapComponentItems?.length, 'items, mapMode:', mapMode);
 
   const toggleLayer = (layerId: string) => {
     const layerSubs = getLayerSubcategories(layerId);
@@ -575,14 +567,6 @@ export default function MapaTab() {
       });
     }
   };
-
-  // Group items by region for web fallback
-  const itemsByRegion = mapItems?.reduce((acc: Record<string, MapItem[]>, item) => {
-    const region = item.region || 'outros';
-    if (!acc[region]) acc[region] = [];
-    acc[region].push(item);
-    return acc;
-  }, {}) || {};
 
   // Count items per layer
   const _layerCounts = MAP_LAYERS.reduce((acc, layer) => {
@@ -1187,93 +1171,7 @@ export default function MapaTab() {
             </View>
           )}
 
-          {/* Map Stats */}
-          <View style={styles.mapStatsRow}>
-            <View style={styles.mapStatChip}>
-              <MaterialIcons name="place" size={14} color="#C49A6C" />
-              <Text style={styles.mapStatText}>{mapComponentItems?.length || 0} locais no mapa</Text>
-            </View>
-            <View style={styles.mapStatChip}>
-              <MaterialIcons name="layers" size={14} color="#8B5CF6" />
-              <Text style={styles.mapStatText}>{activeLayers.length} camadas ativas</Text>
-            </View>
-          </View>
-
-          {/* Items by Region */}
-          {Object.entries(itemsByRegion).map(([region, items]) => (
-            <View key={region} style={styles.regionSection}>
-              <View style={styles.regionHeader}>
-                <Text style={styles.regionTitle}>{region}</Text>
-                <Text style={styles.regionCount}>{items.length} locais</Text>
-              </View>
-              <ScrollView
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                contentContainerStyle={styles.itemsRow}
-              >
-                {items.slice(0, 10).map((item) => (
-                  <TouchableOpacity
-                    key={item.id}
-                    style={styles.itemCard}
-                    onPress={() => router.push(`/heritage/${item.id}`)}
-                    activeOpacity={0.8}
-                  >
-                    <View style={[
-                      styles.itemIcon,
-                      { backgroundColor: getMarkerColor(item.category) + '20' }
-                    ]}>
-                      <MaterialIcons
-                        name={getLayerIcon(item.category) as any}
-                        size={20}
-                        color={getMarkerColor(item.category)}
-                      />
-                    </View>
-                    <Text style={styles.itemName} numberOfLines={2}>{item.name}</Text>
-                    <Text style={styles.itemCategory}>{item.category}</Text>
-                  </TouchableOpacity>
-                ))}
-              </ScrollView>
-            </View>
-          ))}
-
-          {/* Quick Actions */}
-          <View style={styles.webQuickActions}>
-            <TouchableOpacity
-              style={styles.actionButton}
-              onPress={() => router.push('/nearby')}
-            >
-              <LinearGradient
-                colors={['#C49A6C', '#B08556']}
-                style={styles.actionGradient}
-              >
-                <MaterialIcons name="near-me" size={20} color="#000" />
-                <Text style={styles.actionText}>Perto de Mim</Text>
-              </LinearGradient>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.actionButton}
-              onPress={() => router.push('/route-planner')}
-            >
-              <LinearGradient
-                colors={['#3FA66B', '#2E8A55']}
-                style={styles.actionGradient}
-              >
-                <MaterialIcons name="directions" size={20} color="#FFF" />
-                <Text style={[styles.actionText, { color: '#FFF' }]}>Planear Rota</Text>
-              </LinearGradient>
-            </TouchableOpacity>
-          </View>
-
-          {/* Search Card */}
-          <TouchableOpacity
-            style={styles.searchCard}
-            onPress={() => router.push('/search')}
-          >
-            <MaterialIcons name="search" size={24} color="#C8C3B8" />
-            <Text style={styles.searchText}>Pesquisar locais...</Text>
-          </TouchableOpacity>
-
-          <View style={{ height: 120 }} />
+          <View style={{ height: 40 }} />
         </ScrollView>
       )}
     </View>
@@ -1520,37 +1418,6 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '600',
     color: colors.gray[800],
-  },
-  mapModeSwitcherScroll: {
-    marginTop: 16,
-    paddingHorizontal: 16,
-  },
-  mapModeSwitcher: {
-    flexDirection: 'row',
-    backgroundColor: '#F1F5F9',
-    borderRadius: 12,
-    padding: 4,
-    gap: 4,
-  },
-  mapModeBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    borderRadius: 10,
-    gap: 5,
-  },
-  mapModeBtnActive: {
-    backgroundColor: '#C49A6C',
-  },
-  mapModeBtnText: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: '#64748B',
-  },
-  mapModeBtnTextActive: {
-    color: '#FFFFFF',
   },
   trailSelector: {
     paddingHorizontal: 16,
@@ -1801,7 +1668,7 @@ const styles = StyleSheet.create({
     marginTop: 12,
     borderRadius: 16,
     overflow: 'hidden' as any,
-    height: 480,
+    height: Math.round(Dimensions.get('window').height * 0.58),
     backgroundColor: '#2E5E4E',
     position: 'relative' as any,
   },
@@ -1818,108 +1685,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: 8,
   },
-  mapStatsRow: {
-    flexDirection: 'row',
-    paddingHorizontal: 20,
-    marginTop: 12,
-    gap: 10,
-  },
-  mapStatChip: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: 'rgba(30, 41, 59, 0.8)',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 20,
-    gap: 6,
-  },
-  mapStatText: {
-    fontSize: 12,
-    color: '#C8C3B8',
-    fontWeight: '500',
-  },
-  loadingContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: 20,
-    gap: 8,
-  },
   loadingText: {
     color: colors.gray[500],
     fontSize: 14,
-  },
-  regionSection: {
-    marginTop: 24,
-  },
-  regionHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 20,
-    marginBottom: 12,
-  },
-  regionTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: colors.gray[800],
-    textTransform: 'capitalize',
-  },
-  regionCount: {
-    fontSize: 12,
-    color: colors.gray[500],
-  },
-  itemsRow: {
-    paddingHorizontal: 16,
-    gap: 8,
-  },
-  itemCard: {
-    width: 140,
-    backgroundColor: colors.background.secondary,
-    borderRadius: 12,
-    padding: 12,
-    marginRight: 8,
-    ...shadows.sm,
-  },
-  itemIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: 10,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-  itemName: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: colors.gray[800],
-    marginBottom: 4,
-  },
-  itemCategory: {
-    fontSize: 11,
-    color: colors.gray[500],
-    textTransform: 'capitalize',
-  },
-  webQuickActions: {
-    flexDirection: 'row',
-    paddingHorizontal: 20,
-    marginTop: 24,
-    gap: 12,
-  },
-  searchCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#264E41',
-    marginHorizontal: 20,
-    marginTop: 16,
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    borderRadius: 12,
-    gap: 12,
-  },
-  searchText: {
-    fontSize: 15,
-    color: '#64748B',
   },
   regionFilterBar: {
     flexDirection: 'row',

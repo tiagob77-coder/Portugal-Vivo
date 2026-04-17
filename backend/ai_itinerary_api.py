@@ -7,29 +7,23 @@ GET  /ai/themes     — lista temas disponíveis com ícones e descrições
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
 from typing import Optional, List
-import os
 import math
 import logging
-import httpx
 import datetime
 import json
+
+from llm_utils import llm_chat
 
 logger = logging.getLogger(__name__)
 
 ai_itinerary_router = APIRouter(prefix="/ai", tags=["AI Itinerary"])
 
 _db = None
-_LLM_URL = "https://llm.lil.re.emergentmethods.ai/v1/chat/completions"
-_LLM_MODEL = "gpt-4o-mini"
 
 
 def set_ai_itinerary_db(database):
     global _db
     _db = database
-
-
-def _get_llm_key() -> str:
-    return os.environ.get("EMERGENT_LLM_KEY", "")
 
 
 # ─── Temas disponíveis ────────────────────────────────────────────────────────
@@ -107,31 +101,8 @@ def _haversine_km(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
 
 
 async def _call_llm(messages: list, max_tokens: int = 800) -> Optional[str]:
-    """Call the Emergent LLM API. Returns text content or None on failure."""
-    key = _get_llm_key()
-    if not key:
-        logger.warning("[AI] EMERGENT_LLM_KEY not set — skipping LLM call")
-        return None
-    try:
-        async with httpx.AsyncClient(timeout=25.0) as client:
-            resp = await client.post(
-                _LLM_URL,
-                headers={
-                    "Authorization": f"Bearer {key}",
-                    "Content-Type": "application/json",
-                },
-                json={
-                    "model": _LLM_MODEL,
-                    "messages": messages,
-                    "max_tokens": max_tokens,
-                    "temperature": 0.7,
-                },
-            )
-            resp.raise_for_status()
-            return resp.json()["choices"][0]["message"]["content"].strip()
-    except Exception as e:
-        logger.warning(f"[AI] LLM call failed: {e}")
-        return None
+    """Thin shim kept for backwards compat — delegates to llm_utils.llm_chat."""
+    return await llm_chat(messages, max_tokens=max_tokens)
 
 
 def _build_fallback_itinerary(pois: list, theme: str, duration: str) -> dict:
