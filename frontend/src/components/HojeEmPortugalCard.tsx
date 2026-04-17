@@ -62,24 +62,33 @@ export default function HojeEmPortugalCard({ data, loading, accentColor = '#10B9
 
   if (!data) return null;
 
+  const season = data.season ?? { id: '', label: '', emoji: '' };
+  const flora = data.flora_active ?? [];
+  const fauna = data.fauna_active ?? [];
+  const events = data.events_nearby ?? [];
+  const trails = data.trails_nearby ?? [];
+  const surf = data.surf ?? { note: '', emoji: '' };
+
   const chips: { emoji?: string; label: string; sub?: string; color: string }[] = [];
 
   // Season + date
-  chips.push({ emoji: data.season.emoji, label: data.season.label, sub: data.month_pt, color: accentColor });
+  if (season.label) {
+    chips.push({ emoji: season.emoji, label: season.label, sub: data.month_pt, color: accentColor });
+  }
 
   // Flora
-  data.flora_active.slice(0, 2).forEach((f) =>
+  flora.slice(0, 2).forEach((f) =>
     chips.push({ emoji: f.emoji, label: f.label, sub: f.region, color: '#22C55E' })
   );
 
   // Fauna
-  data.fauna_active.slice(0, 2).forEach((f) =>
+  fauna.slice(0, 2).forEach((f) =>
     chips.push({ emoji: f.emoji, label: f.label, sub: f.region, color: '#06B6D4' })
   );
 
   // Events nearby
-  if (data.events_nearby.length > 0) {
-    const ev = data.events_nearby[0];
+  if (events.length > 0) {
+    const ev = events[0];
     chips.push({
       emoji: '🎉',
       label: ev.name || ev.title || 'Evento próximo',
@@ -89,8 +98,8 @@ export default function HojeEmPortugalCard({ data, loading, accentColor = '#10B9
   }
 
   // Trails nearby
-  if (data.trails_nearby.length > 0) {
-    const tr = data.trails_nearby[0];
+  if (trails.length > 0) {
+    const tr = trails[0];
     chips.push({
       emoji: '🥾',
       label: tr.name,
@@ -100,8 +109,8 @@ export default function HojeEmPortugalCard({ data, loading, accentColor = '#10B9
   }
 
   // Surf
-  if (data.surf.note) {
-    chips.push({ emoji: data.surf.emoji, label: 'Mar & Surf', sub: data.surf.note.split('—')[0].trim(), color: '#3B82F6' });
+  if (surf.note) {
+    chips.push({ emoji: surf.emoji, label: 'Mar & Surf', sub: surf.note.split('—')[0].trim(), color: '#3B82F6' });
   }
 
   return (
@@ -135,11 +144,11 @@ export default function HojeEmPortugalCard({ data, loading, accentColor = '#10B9
       </ScrollView>
 
       {/* Event count footer */}
-      {data.events_nearby.length > 1 && (
+      {events.length > 1 && (
         <TouchableOpacity style={styles.footer} onPress={() => router.push('/(tabs)/eventos' as any)} activeOpacity={0.7}>
           <MaterialIcons name="event" size={12} color="#6B7280" />
           <Text style={styles.footerText}>
-            {data.events_nearby.length} eventos em {data.month_pt} · toque para ver
+            {events.length} eventos em {data.month_pt} · toque para ver
           </Text>
           <MaterialIcons name="chevron-right" size={14} color="#6B7280" />
         </TouchableOpacity>
