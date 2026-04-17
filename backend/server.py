@@ -453,8 +453,9 @@ set_gamification_db(db)
 api_router.include_router(gamification_router)
 
 # Include Trails router
-from trails_api import trails_router, set_db as set_trails_db
+from trails_api import trails_router, set_db as set_trails_db, set_trails_auth
 set_trails_db(db)
+set_trails_auth(require_auth)
 api_router.include_router(trails_router)
 
 # Include Epochs router
