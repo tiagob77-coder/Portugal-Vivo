@@ -11,13 +11,16 @@ from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 
 import httpx
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, HTTPException, Query, Depends, Request
 from pydantic import BaseModel, Field
+
+from models.api_models import User
 
 cultural_routes_router = APIRouter(prefix="/cultural-routes", tags=["Cultural Routes"])
 
 _db = None
 _llm_key: str = ""
+_require_admin = None
 
 
 def set_cultural_routes_db(database) -> None:
@@ -28,6 +31,15 @@ def set_cultural_routes_db(database) -> None:
 def set_cultural_routes_llm_key(key: str) -> None:
     global _llm_key
     _llm_key = key
+
+
+def set_cultural_routes_admin(admin_fn) -> None:
+    global _require_admin
+    _require_admin = admin_fn
+
+
+async def _admin_dep(request: Request) -> User:
+    return await _require_admin(request)
 
 
 # ─── Route Family enum ────────────────────────────────────────────────────────
@@ -1324,9 +1336,12 @@ Responde APENAS em JSON válido em {lang}:
     "/enrich/run",
     summary="[Admin] Trigger manual enrichment of all cultural routes",
 )
-async def trigger_enrichment(background_tasks=None):
+async def trigger_enrichment(
+    background_tasks=None,
+    admin: User = Depends(_admin_dep),
+):
     """
-    Manually triggers the full enrichment pipeline.
+    Manually triggers the full enrichment pipeline (admin only).
     Useful for post-seed re-enrichment or admin maintenance.
     Non-blocking — returns immediately; enrichment runs in background.
     """

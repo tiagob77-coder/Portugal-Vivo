@@ -479,8 +479,9 @@ set_geo_validator_db(db)
 api_router.include_router(geo_validator_router)
 
 # Include Leaderboard router (Redis-powered)
-from leaderboard_api import leaderboard_router, set_db as set_leaderboard_db
+from leaderboard_api import leaderboard_router, set_db as set_leaderboard_db, set_leaderboard_admin
 set_leaderboard_db(db)
+set_leaderboard_admin(require_admin)
 api_router.include_router(leaderboard_router)
 from services.redis_leaderboard import redis_lb
 set_dashboard_redis_lb(redis_lb)
@@ -498,8 +499,9 @@ from beaches_realtime_api import beaches_router
 api_router.include_router(beaches_router)
 
 # Agenda Viral
-from agenda_api import agenda_router, set_agenda_db, seed_grande_expedicao, calendar_compat_router
+from agenda_api import agenda_router, set_agenda_db, set_agenda_admin, seed_grande_expedicao, calendar_compat_router
 set_agenda_db(db)
+set_agenda_admin(require_admin)
 api_router.include_router(agenda_router)
 api_router.include_router(calendar_compat_router)
 
@@ -687,8 +689,9 @@ from cp_api import cp_router
 api_router.include_router(cp_router)
 
 # Geo Administrative — CAOP (Carta Administrativa Oficial de Portugal)
-from geo_administrative_api import geo_router, set_geo_db
+from geo_administrative_api import geo_router, set_geo_db, set_geo_admin
 set_geo_db(db)
+set_geo_admin(require_admin)
 api_router.include_router(geo_router)
 
 # Ambassador Program
@@ -885,9 +888,11 @@ from cultural_routes_api import (
     cultural_routes_router,
     set_cultural_routes_db,
     set_cultural_routes_llm_key,
+    set_cultural_routes_admin,
 )
 set_cultural_routes_db(db)
 set_cultural_routes_llm_key(EMERGENT_LLM_KEY)
+set_cultural_routes_admin(require_admin)
 api_router.include_router(cultural_routes_router)
 
 logger.info("🧭  Cultural Routes registered")

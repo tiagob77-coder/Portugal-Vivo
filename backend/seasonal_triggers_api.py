@@ -39,8 +39,10 @@ import uuid
 from datetime import datetime, timezone, timedelta
 from typing import Any, Dict, List, Optional
 
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from pydantic import BaseModel
+
+from models.api_models import User
 
 logger = logging.getLogger(__name__)
 
@@ -70,6 +72,10 @@ def set_seasonal_auth(require_auth, require_admin) -> None:
 def set_seasonal_llm_key(key: str) -> None:
     global _llm_key
     _llm_key = key
+
+
+async def _admin_dep(request: Request) -> User:
+    return await _require_admin(request)
 
 
 # ─── LLM helper ──────────────────────────────────────────────────────────────
@@ -260,7 +266,10 @@ async def _run_matching(horizon_days: int = 30) -> Dict[str, int]:
 # ─── Endpoints ───────────────────────────────────────────────────────────────
 
 @seasonal_router.post("/run-daily")
-async def run_daily(horizon_days: int = Query(30, ge=7, le=60)):
+async def run_daily(
+    horizon_days: int = Query(30, ge=7, le=60),
+    admin: User = Depends(_admin_dep),
+):
     """
     Trigger diário do matching eventos↔POIs.
     Chamar via cron às 06:00 UTC ou manualmente pelo admin.
@@ -328,7 +337,10 @@ async def get_poi_flags(poi_id: str):
 
 
 @seasonal_router.post("/flags/{flag_id}/enrich")
-async def enrich_flag(flag_id: str):
+async def enrich_flag(
+    flag_id: str,
+    admin: User = Depends(_admin_dep),
+):
     """
     Gera um draft sazonal para o POI via LLM e cria-o na collection content_drafts.
     O draft fica com status 'draft' pronto para entrar no pipeline toolkit.
@@ -414,7 +426,10 @@ async def enrich_flag(flag_id: str):
 
 
 @seasonal_router.post("/flags/{flag_id}/resolve")
-async def resolve_flag(flag_id: str):
+async def resolve_flag(
+    flag_id: str,
+    admin: User = Depends(_admin_dep),
+):
     """Marcar flag como resolvido (draft publicado manualmente)."""
     if _db is None:
         raise HTTPException(503, "DB não disponível")
@@ -429,7 +444,10 @@ async def resolve_flag(flag_id: str):
 
 
 @seasonal_router.post("/flags/{flag_id}/skip")
-async def skip_flag(flag_id: str):
+async def skip_flag(
+    flag_id: str,
+    admin: User = Depends(_admin_dep),
+):
     """Saltar este flag — POI não é relevante para este evento."""
     if _db is None:
         raise HTTPException(503, "DB não disponível")

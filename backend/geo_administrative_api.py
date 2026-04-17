@@ -20,11 +20,12 @@ import logging
 from datetime import datetime, timezone
 from typing import Optional, List, Dict, Any
 
-from fastapi import APIRouter, BackgroundTasks, HTTPException, Query, Path
+from fastapi import APIRouter, BackgroundTasks, HTTPException, Query, Path, Depends, Request
 from pydantic import BaseModel
 
 from services.geoapi_service import GeoAPIService
 from shared_utils import DatabaseHolder
+from models.api_models import User
 
 logger = logging.getLogger(__name__)
 
@@ -32,6 +33,18 @@ geo_router = APIRouter(prefix="/geo", tags=["GeoAdministrative"])
 
 _db_holder = DatabaseHolder("geo_administrative")
 set_geo_db = _db_holder.set
+
+_require_admin = None
+
+
+def set_geo_admin(admin_fn) -> None:
+    global _require_admin
+    _require_admin = admin_fn
+
+
+async def _admin_dep(request: Request) -> User:
+    return await _require_admin(request)
+
 
 _geoapi = GeoAPIService()
 
@@ -278,7 +291,10 @@ async def get_hierarchy(
     response_model=EnrichResult,
     summary="Enriquecer um POI com dados administrativos CAOP",
 )
-async def enrich_poi(poi_id: str = Path(..., description="ID do POI a enriquecer")):
+async def enrich_poi(
+    poi_id: str = Path(..., description="ID do POI a enriquecer"),
+    admin: User = Depends(_admin_dep),
+):
     """
     Consulta a hierarquia administrativa (CAOP/GeoAPI.pt) para um POI
     e persiste os campos `concelho`, `freguesia`, `distrito`, `nuts_iii`
@@ -478,6 +494,7 @@ async def start_batch_enrichment(
     background_tasks: BackgroundTasks,
     only_missing: bool = Query(True, description="Processar apenas POIs sem concelho (recomendado)"),
     delay: float = Query(1.1, description="Intervalo entre pedidos à GeoAPI.pt (seg)"),
+    admin: User = Depends(_admin_dep),
 ):
     """
     Lança o enriquecimento administrativo CAOP em background para todos os POIs.
@@ -518,8 +535,8 @@ async def get_enrich_status():
     "/enrich-cancel",
     summary="Cancelar job de enriquecimento em curso",
 )
-async def cancel_batch_enrichment():
-    """Para o job de enriquecimento em background (define status='idle')."""
+async def cancel_batch_enrichment(admin: User = Depends(_admin_dep)):
+    """Para o job de enriquecimento em background (define status='idle') (admin only)."""
     if _job["status"] != "running":
         raise HTTPException(status_code=409, detail="Nenhum job em execução.")
     _job["status"] = "idle"
