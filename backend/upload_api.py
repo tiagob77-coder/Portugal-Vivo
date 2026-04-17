@@ -61,6 +61,23 @@ else:
 # Limits
 MAX_FILE_SIZE = 5 * 1024 * 1024  # 5 MB
 ALLOWED_TYPES = {"image/jpeg", "image/png", "image/webp"}
+_CHUNK_SIZE = 64 * 1024  # 64 KB
+
+
+async def _read_with_limit(file: UploadFile, limit: int) -> bytes:
+    """Read an UploadFile in chunks and abort as soon as the limit is exceeded.
+
+    Prevents a client from pinning arbitrary memory by sending a massive body.
+    """
+    buf = bytearray()
+    while True:
+        chunk = await file.read(_CHUNK_SIZE)
+        if not chunk:
+            break
+        buf.extend(chunk)
+        if len(buf) > limit:
+            raise HTTPException(status_code=413, detail="Ficheiro demasiado grande (máx. 5 MB)")
+    return bytes(buf)
 
 
 async def _upload_to_cloudinary(file_bytes: bytes, folder: str, public_id: str) -> str:
@@ -114,10 +131,8 @@ async def upload_image(
             detail="Tipo de ficheiro não suportado. Use: JPEG, PNG ou WebP",
         )
 
-    # Read and validate size
-    file_bytes = await file.read()
-    if len(file_bytes) > MAX_FILE_SIZE:
-        raise HTTPException(status_code=400, detail="Ficheiro demasiado grande (máx. 5 MB)")
+    # Streaming read with size limit (prevents memory DoS)
+    file_bytes = await _read_with_limit(file, MAX_FILE_SIZE)
     if len(file_bytes) == 0:
         raise HTTPException(status_code=400, detail="Ficheiro vazio")
 

@@ -242,11 +242,46 @@ async def get_trail_pois(trail_id: str, radius_km: float = 2.0):
     return {"trail_id": trail_id, "pois": nearby_pois[:50], "total": len(nearby_pois)}
 
 
+GPX_MAX_SIZE = 5 * 1024 * 1024  # 5 MB — plenty for a detailed multi-day trail
+GPX_ALLOWED_TYPES = {
+    "application/gpx+xml",
+    "application/xml",
+    "text/xml",
+    "application/octet-stream",  # some browsers send this for .gpx
+    "",  # some clients omit Content-Type
+}
+_GPX_CHUNK = 64 * 1024
+
+
+async def _read_gpx_with_limit(file: UploadFile) -> bytes:
+    buf = bytearray()
+    while True:
+        chunk = await file.read(_GPX_CHUNK)
+        if not chunk:
+            break
+        buf.extend(chunk)
+        if len(buf) > GPX_MAX_SIZE:
+            raise HTTPException(status_code=413, detail="Ficheiro GPX demasiado grande (máx. 5 MB)")
+    return bytes(buf)
+
+
 @trails_router.post("/upload")
 async def upload_gpx(file: UploadFile = File(...)):
     """Upload a GPX file and create a trail."""
-    content = await file.read()
-    gpx_data = parse_gpx(content.decode("utf-8"))
+    filename = (file.filename or "").lower()
+    if not filename.endswith(".gpx"):
+        raise HTTPException(status_code=400, detail="Ficheiro tem de ter extensão .gpx")
+    content_type = (file.content_type or "").lower()
+    if content_type and content_type not in GPX_ALLOWED_TYPES:
+        raise HTTPException(status_code=400, detail="Tipo de ficheiro não suportado. Use GPX.")
+
+    content = await _read_gpx_with_limit(file)
+    if not content:
+        raise HTTPException(status_code=400, detail="Ficheiro vazio")
+    try:
+        gpx_data = parse_gpx(content.decode("utf-8"))
+    except (UnicodeDecodeError, ET.ParseError):
+        raise HTTPException(status_code=400, detail="Ficheiro GPX inválido ou corrompido")
 
     trail_id = str(uuid.uuid4())[:8]
     trail = {

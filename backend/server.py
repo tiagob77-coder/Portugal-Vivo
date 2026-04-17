@@ -111,10 +111,28 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
 # Global exception handler for unhandled errors - standardized JSON format
 @app.exception_handler(Exception)
 async def global_exception_handler(request: Request, exc: Exception):
-    logger.error("Unhandled error on %s %s: %s", request.method, request.url.path, exc, exc_info=True)
+    request_id = getattr(request.state, "request_id", None)
+    logger.error(
+        "Unhandled error on %s %s: %s",
+        request.method,
+        request.url.path,
+        exc,
+        exc_info=True,
+        extra={
+            "request_id": request_id,
+            "method": request.method,
+            "path": str(request.url.path),
+            "tenant_id": getattr(request.state, "municipality_id", None),
+        },
+    )
     return JSONResponse(
         status_code=500,
-        content={"detail": "Erro interno do servidor", "type": "internal_error"},
+        content={
+            "detail": "Erro interno do servidor",
+            "type": "internal_error",
+            "request_id": request_id,
+        },
+        headers={"X-Request-ID": request_id} if request_id else None,
     )
 
 # Add rate limiter to app
@@ -211,9 +229,16 @@ async def limit_request_body(request: Request, call_next):
 
 @app.middleware("http")
 async def request_logging_middleware(request: Request, call_next):
+    # Generate a correlation ID per request (accept inbound one if supplied).
+    # Exposed on the response so clients/CDNs can reference it in bug reports.
+    request_id = request.headers.get("X-Request-ID") or _secrets.token_urlsafe(12)
+    request.state.request_id = request_id
+
     start = _time.monotonic()
     response = await call_next(request)
     duration_ms = round((_time.monotonic() - start) * 1000, 1)
+    response.headers["X-Request-ID"] = request_id
+
     if request.url.path.startswith("/api/"):
         logger.info(
             "%s %s %s %.1fms",
@@ -222,11 +247,13 @@ async def request_logging_middleware(request: Request, call_next):
             response.status_code,
             duration_ms,
             extra={
+                "request_id": request_id,
                 "method": request.method,
                 "path": str(request.url.path),
                 "status_code": response.status_code,
                 "duration_ms": duration_ms,
                 "ip": request.client.host if request.client else None,
+                "tenant_id": getattr(request.state, "municipality_id", None),
             },
         )
     return response
