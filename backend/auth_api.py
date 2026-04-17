@@ -7,6 +7,7 @@ from fastapi import APIRouter, HTTPException, Depends, Request, Response
 from pydantic import BaseModel, field_validator
 from typing import Optional
 from datetime import datetime, timezone, timedelta
+import time
 import uuid
 import hashlib
 import secrets
@@ -20,6 +21,38 @@ from models.api_models import User
 from shared_utils import DatabaseHolder
 
 logger = logging.getLogger(__name__)
+
+# In-process TTL cache for get_current_user. Cuts two Mongo round-trips from
+# every authenticated request. Short TTL keeps the blast radius of a revoked
+# session small (logout still deletes the session row — we just tolerate up
+# to `_SESSION_CACHE_TTL` seconds of staleness).
+_SESSION_CACHE_TTL = 60  # seconds
+_SESSION_CACHE_MAX = 2048
+_session_cache: dict[str, tuple[float, Optional[User]]] = {}
+
+
+def _cache_get(token: str) -> Optional[tuple[float, Optional[User]]]:
+    entry = _session_cache.get(token)
+    if not entry:
+        return None
+    expires_at, _ = entry
+    if expires_at < time.monotonic():
+        _session_cache.pop(token, None)
+        return None
+    return entry
+
+
+def _cache_put(token: str, user: Optional[User]) -> None:
+    # Cheap eviction: when full, drop ~10% of entries (oldest by expiry first)
+    if len(_session_cache) >= _SESSION_CACHE_MAX:
+        victims = sorted(_session_cache.items(), key=lambda kv: kv[1][0])[: _SESSION_CACHE_MAX // 10]
+        for k, _ in victims:
+            _session_cache.pop(k, None)
+    _session_cache[token] = (time.monotonic() + _SESSION_CACHE_TTL, user)
+
+
+def _cache_invalidate(token: str) -> None:
+    _session_cache.pop(token, None)
 
 AUTH_BACKEND_URL = os.environ.get("AUTH_BACKEND_URL", "https://demobackend.emergentagent.com")
 ADMIN_SECRET = os.environ.get("ADMIN_SECRET", "")
@@ -35,7 +68,7 @@ set_auth_db = _db_holder.set
 # ========================
 
 async def get_current_user(request: Request) -> Optional[User]:
-    """Get current user from session token"""
+    """Get current user from session token (with short TTL cache)."""
     session_token = request.cookies.get("session_token")
     if not session_token:
         auth_header = request.headers.get("Authorization")
@@ -45,12 +78,17 @@ async def get_current_user(request: Request) -> Optional[User]:
     if not session_token:
         return None
 
+    cached = _cache_get(session_token)
+    if cached is not None:
+        return cached[1]
+
     session = await _db_holder.db.user_sessions.find_one(
         {"session_token": session_token},
         {"_id": 0}
     )
 
     if not session:
+        _cache_put(session_token, None)
         return None
 
     expires_at = session["expires_at"]
@@ -58,6 +96,7 @@ async def get_current_user(request: Request) -> Optional[User]:
         expires_at = expires_at.replace(tzinfo=timezone.utc)
 
     if expires_at < datetime.now(timezone.utc):
+        _cache_put(session_token, None)
         return None
 
     user_doc = await _db_holder.db.users.find_one(
@@ -66,7 +105,10 @@ async def get_current_user(request: Request) -> Optional[User]:
     )
 
     if user_doc:
-        return User(**user_doc)
+        user = User(**user_doc)
+        _cache_put(session_token, user)
+        return user
+    _cache_put(session_token, None)
     return None
 
 
@@ -427,6 +469,7 @@ async def logout(request: Request, response: Response):
     """Logout user"""
     session_token = request.cookies.get("session_token")
     if session_token:
+        _cache_invalidate(session_token)
         await _db_holder.db.user_sessions.delete_many({"session_token": session_token})
 
     response.delete_cookie(key="session_token", path="/")

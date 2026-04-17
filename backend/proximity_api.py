@@ -1,7 +1,7 @@
 """
 Proximity & Nearby POIs API - Geofencing and discovery
 """
-from fastapi import APIRouter, Query
+from fastapi import APIRouter, Query, Request
 from pydantic import BaseModel, Field
 from typing import Optional
 from math import radians, cos
@@ -14,14 +14,27 @@ set_proximity_db = _db_holder.set
 _get_db = _db_holder.get
 
 
+def _tenant_filter(request: Request, explicit: Optional[str]) -> Optional[str]:
+    """Resolve the effective municipality filter.
+
+    Priority: explicit query param → X-Municipality-Id header (via TenantMiddleware) → None.
+    Returning None means no filter (public discovery across tenants).
+    """
+    if explicit:
+        return explicit
+    return getattr(request.state, "municipality_id", None)
+
+
 @proximity_router.get("/nearby")
 async def get_nearby_pois(
+    request: Request,
     lat: float = Query(..., ge=-90, le=90),
     lng: float = Query(..., ge=-180, le=180),
     radius_km: float = Query(5.0, ge=0.1, le=100),
     min_iq: float = Query(0, ge=0),
     limit: int = Query(20, ge=1, le=100),
     category: Optional[str] = None,
+    municipality_id: Optional[str] = Query(None, description="Restrict to a specific municipality"),
 ):
     """Get POIs near a GPS position, sorted by distance."""
     projection = {
@@ -31,6 +44,7 @@ async def get_nearby_pois(
 
     db = _get_db()
     nearby = []
+    muni = _tenant_filter(request, municipality_id)
 
     # Fast path: use 2dsphere $near when geo_location is indexed
     try:
@@ -46,6 +60,8 @@ async def get_nearby_pois(
             query["category"] = category
         if min_iq > 0:
             query["iq_score"] = {"$gte": min_iq}
+        if muni:
+            query["municipality_id"] = muni
 
         candidates = await db.heritage_items.find(query, projection).limit(limit).to_list(limit)
         for poi in candidates:
@@ -67,6 +83,8 @@ async def get_nearby_pois(
         }
         if category:
             query["category"] = category
+        if muni:
+            query["municipality_id"] = muni
 
         candidates = await db.heritage_items.find(query, projection).limit(500).to_list(500)
         for poi in candidates:
@@ -91,8 +109,10 @@ async def get_nearby_pois(
 
 @proximity_router.get("/alerts")
 async def get_proximity_alerts(
+    request: Request,
     lat: float = Query(..., ge=-90, le=90),
     lng: float = Query(..., ge=-180, le=180),
+    municipality_id: Optional[str] = Query(None),
 ):
     """Get special alerts for nearby rare/high-IQ POIs (within 500m)."""
     projection = {
@@ -102,6 +122,7 @@ async def get_proximity_alerts(
 
     db = _get_db()
     candidates = []
+    muni = _tenant_filter(request, municipality_id)
 
     try:
         query = {
@@ -113,6 +134,8 @@ async def get_proximity_alerts(
             },
             "iq_score": {"$gte": 55},
         }
+        if muni:
+            query["municipality_id"] = muni
         candidates = await db.heritage_items.find(query, projection).limit(50).to_list(50)
     except Exception:
         lat_delta = 0.5 / 111.0
@@ -122,6 +145,8 @@ async def get_proximity_alerts(
             "location.lng": {"$gte": lng - lng_delta, "$lte": lng + lng_delta},
             "iq_score": {"$gte": 55},
         }
+        if muni:
+            query["municipality_id"] = muni
         candidates = await db.heritage_items.find(query, projection).limit(50).to_list(50)
 
     alerts = []
@@ -147,19 +172,26 @@ async def get_proximity_alerts(
 
 @proximity_router.get("/heatzone")
 async def get_heatzone(
+    request: Request,
     lat: float = Query(..., ge=-90, le=90),
     lng: float = Query(..., ge=-180, le=180),
     radius_km: float = Query(10, ge=0.1, le=100),
+    municipality_id: Optional[str] = Query(None),
 ):
     """Get POI density summary for an area."""
     lat_delta = radius_km / 111.0
     lng_delta = radius_km / (111.0 * cos(radians(lat)))
 
+    match: dict = {
+        "location.lat": {"$gte": lat - lat_delta, "$lte": lat + lat_delta},
+        "location.lng": {"$gte": lng - lng_delta, "$lte": lng + lng_delta},
+    }
+    muni = _tenant_filter(request, municipality_id)
+    if muni:
+        match["municipality_id"] = muni
+
     pipeline = [
-        {"$match": {
-            "location.lat": {"$gte": lat - lat_delta, "$lte": lat + lat_delta},
-            "location.lng": {"$gte": lng - lng_delta, "$lte": lng + lng_delta},
-        }},
+        {"$match": match},
         {"$group": {
             "_id": "$category",
             "count": {"$sum": 1},
@@ -199,9 +231,10 @@ class NearbyRequest(BaseModel):
 
 
 @nearby_compat_router.post("/nearby")
-async def nearby_compat(req: NearbyRequest):
+async def nearby_compat(req: NearbyRequest, request: Request):
     """Legacy POST /nearby — delegates to proximity GET /nearby."""
     return await get_nearby_pois(
+        request=request,
         lat=req.latitude,
         lng=req.longitude,
         radius_km=req.radius_km,
