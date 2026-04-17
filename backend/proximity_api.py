@@ -238,6 +238,8 @@ async def nearby_compat(req: NearbyRequest, request: Request):
         lat=req.latitude,
         lng=req.longitude,
         radius_km=req.radius_km,
+        min_iq=0.0,
         category=req.categories[0] if req.categories else None,
         limit=req.limit,
+        municipality_id=None,
     )
