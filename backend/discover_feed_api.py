@@ -2,11 +2,15 @@
 Discover Feed API - Discovery feed, trending, and seasonal content endpoints.
 Extracted from server.py.
 """
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter, HTTPException, Depends, Query
 from pydantic import BaseModel, Field
 from typing import List, Optional, Dict
 from datetime import datetime, timezone, timedelta
+import hashlib
 import logging
+import math
+
+import httpx
 
 from models.api_models import User
 from auth_api import get_current_user, require_auth
@@ -18,6 +22,12 @@ router = APIRouter()
 
 _db_holder = DatabaseHolder("discover_feed")
 set_discover_feed_db = _db_holder.set
+
+_llm_key: Optional[str] = None
+
+def set_discover_feed_llm_key(key: str) -> None:
+    global _llm_key
+    _llm_key = key
 
 _recommendation_service = None
 
@@ -203,3 +213,222 @@ async def get_surprise_poi(
         "message": "Descobriste um lugar escondido!",
         "surprise": True,
     }
+
+
+# ─── Hoje em Portugal ─────────────────────────────────────────────────────────
+
+def _haversine_hoje(lat1: float, lng1: float, lat2: float, lng2: float) -> float:
+    R = 6371.0
+    p1, p2 = math.radians(lat1), math.radians(lat2)
+    dp, dl = math.radians(lat2 - lat1), math.radians(lng2 - lng1)
+    a = math.sin(dp / 2) ** 2 + math.cos(p1) * math.cos(p2) * math.sin(dl / 2) ** 2
+    return R * 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
+
+
+def _hoje_cache_key(lat: Optional[float], lng: Optional[float], day_str: str) -> str:
+    cell_lat = round((lat or 39.5) / 0.5) * 0.5
+    cell_lng = round((lng or -8.0) / 0.5) * 0.5
+    return hashlib.sha256(f"{cell_lat:.1f}|{cell_lng:.1f}|{day_str}".encode()).hexdigest()[:20]
+
+
+async def _llm_hoje_summary(items_text: str, season: str, month_pt: str) -> str:
+    """Ask LLM for a short contextual summary. Returns empty string on failure."""
+    if not _llm_key:
+        return ""
+    prompt = (
+        f"Estamos em {month_pt} ({season}). "
+        f"Resume em 1-2 frases curtas e evocativas o que torna hoje especial para descobrir Portugal, "
+        f"com base nestes elementos: {items_text}. "
+        f"Tom: entusiasta, poético, conciso. Responde APENAS com as frases, sem formatação."
+    )
+    try:
+        async with httpx.AsyncClient(timeout=4.0) as client:
+            r = await client.post(
+                "https://llm.lil.re.emergentmethods.ai/v1/chat/completions",
+                headers={"Authorization": f"Bearer {_llm_key}", "Content-Type": "application/json"},
+                json={
+                    "model": "gpt-4o-mini",
+                    "messages": [{"role": "user", "content": prompt}],
+                    "max_tokens": 120,
+                    "temperature": 0.8,
+                },
+            )
+            return r.json()["choices"][0]["message"]["content"].strip()
+    except Exception:
+        return ""
+
+
+MONTHS_PT = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho",
+             "Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"]
+
+SEASONS_HOJE = {
+    **{m: {"id": "inverno",   "label": "Inverno",   "emoji": "❄️"} for m in [12, 1, 2]},
+    **{m: {"id": "primavera", "label": "Primavera", "emoji": "🌸"} for m in [3, 4, 5]},
+    **{m: {"id": "verao",     "label": "Verão",     "emoji": "☀️"} for m in [6, 7, 8]},
+    **{m: {"id": "outono",    "label": "Outono",    "emoji": "🍂"} for m in [9, 10, 11]},
+}
+
+FLORA_HOJE = {
+    "amendoeira":   {"months": [1,2,3],       "region": "Algarve",           "label": "Amendoeiras em flor",           "emoji": "🌸"},
+    "lavanda":      {"months": [5,6,7],        "region": "Alentejo",          "label": "Lavanda em flor",               "emoji": "💜"},
+    "sobreiro":     {"months": [4,5,6],        "region": "Alentejo",          "label": "Descortiçamento do sobreiro",   "emoji": "🌳"},
+    "vinha_madura": {"months": [8,9,10],       "region": "Douro",             "label": "Vindima no Douro",              "emoji": "🍇"},
+    "mimosa":       {"months": [1,2,3],        "region": "Minho",             "label": "Mimosas em flor",               "emoji": "🌼"},
+    "heather":      {"months": [7,8,9],        "region": "Serra da Estrela",  "label": "Urze em flor",                  "emoji": "🌿"},
+    "lirio_de_agua":{"months": [5,6,7],        "region": "Alentejo",          "label": "Lírios-de-água",                "emoji": "💧"},
+}
+
+FAUNA_HOJE = {
+    "cegonha_branca":  {"months": [3,4,5,6,7,8],    "label": "Cegonha-branca",         "region": "Alentejo", "emoji": "🦢"},
+    "golfinhos":       {"months": [4,5,6,7,8,9],    "label": "Golfinhos costeiros",    "region": "Algarve",  "emoji": "🐬"},
+    "lince_iberico":   {"months": [1,2,3,10,11,12], "label": "Lince-ibérico activo",   "region": "Alentejo", "emoji": "🐆"},
+    "borboletas":      {"months": [5,6,7,8],         "label": "Borboletas migratórias", "region": "Algarve",  "emoji": "🦋"},
+    "aves_invernantes":{"months": [10,11,12,1,2],    "label": "Aves invernantes",       "region": "Tejo",     "emoji": "🦆"},
+    "baleia_fin":      {"months": [3,4,5],            "label": "Baleia-comum",           "region": "Açores",   "emoji": "🐋"},
+    "tartaruga_verde": {"months": [6,7,8,9],          "label": "Tartaruga-verde",        "region": "Algarve",  "emoji": "🐢"},
+}
+
+SURF_HOJE = {
+    "inverno":   {"note": "Ondas grandes 2–4 m — Nazaré, Peniche.", "emoji": "🌊"},
+    "primavera": {"note": "Ondas moderadas 1–2 m — Algarve e Cascais.", "emoji": "🏄"},
+    "verao":     {"note": "Mar calmo — snorkeling, SUP, mergulho.", "emoji": "🤿"},
+    "outono":    {"note": "Surf activo 1.5–3 m em todo o litoral.", "emoji": "🌊"},
+}
+
+
+@router.get("/discover/hoje", summary="Feed inteligente contextual — o que ver hoje em Portugal")
+async def get_hoje_feed(
+    lat:    Optional[float] = Query(None, description="Latitude do utilizador"),
+    lng:    Optional[float] = Query(None, description="Longitude do utilizador"),
+    date:   Optional[str]   = Query(None, description="Data alvo YYYY-MM-DD (omitir = hoje)"),
+    region: Optional[str]   = Query(None, description="Região (override de geo)"),
+):
+    """
+    Dado GPS + data, cruza eventos próximos (50 km) + flora em flor + fauna visível
+    + marés/surf + temporada → feed ranked com sumário LLM.
+    Cache por célula de região (~50 km) × dia, TTL 6h em `hoje_cache`.
+    """
+    db = _db_holder.db
+
+    try:
+        target_dt = datetime.strptime(date, "%Y-%m-%d").replace(tzinfo=timezone.utc) if date else datetime.now(timezone.utc)
+    except Exception:
+        target_dt = datetime.now(timezone.utc)
+
+    month    = target_dt.month
+    day_str  = target_dt.strftime("%Y-%m-%d")
+    month_pt = MONTHS_PT[month - 1]
+    season   = SEASONS_HOJE[month]
+
+    cache_key = _hoje_cache_key(lat, lng, day_str)
+
+    # Cache hit
+    if db:
+        try:
+            cached = await db.hoje_cache.find_one({"key": cache_key})
+            if cached:
+                cached.pop("_id", None)
+                return {**cached, "cached": True}
+        except Exception:
+            pass
+
+    # Flora activa
+    flora_active = [
+        {"species": k, "label": v["label"], "region": v["region"], "emoji": v["emoji"]}
+        for k, v in FLORA_HOJE.items() if month in v["months"]
+    ]
+
+    # Fauna activa
+    fauna_active = [
+        {"species": k, "label": v["label"], "region": v["region"], "emoji": v["emoji"]}
+        for k, v in FAUNA_HOJE.items() if month in v["months"]
+    ]
+
+    # Surf / mar
+    surf = SURF_HOJE.get(season["id"], {"note": "", "emoji": "🌊"})
+
+    # Events nearby
+    events_nearby: list[dict] = []
+    if db:
+        try:
+            all_events = await db.events.find({"month": month}, {"_id": 0}).limit(200).to_list(200)
+            if lat is not None and lng is not None:
+                for e in all_events:
+                    elat = e.get("lat") or e.get("latitude")
+                    elng = e.get("lng") or e.get("longitude")
+                    if elat and elng:
+                        try:
+                            dist = _haversine_hoje(lat, lng, float(elat), float(elng))
+                            if dist <= 50:
+                                e["distance_km"] = round(dist, 1)
+                                events_nearby.append(e)
+                        except Exception:
+                            pass
+                events_nearby.sort(key=lambda x: x.get("distance_km", 999))
+            else:
+                events_nearby = all_events[:8]
+        except Exception:
+            pass
+
+    # Trails nearby
+    trails_nearby: list[dict] = []
+    if db and lat is not None and lng is not None:
+        try:
+            all_trails = await db.trails.find({}, {"_id": 0, "name": 1, "region": 1, "difficulty": 1, "distance_km": 1, "lat": 1, "lng": 1}).limit(200).to_list(200)
+            for t in all_trails:
+                tlat = t.get("lat")
+                tlng = t.get("lng")
+                if tlat and tlng:
+                    try:
+                        dist = _haversine_hoje(lat, lng, float(tlat), float(tlng))
+                        if dist <= 30:
+                            t["distance_km"] = round(dist, 1)
+                            trails_nearby.append(t)
+                    except Exception:
+                        pass
+            trails_nearby.sort(key=lambda x: x.get("distance_km", 999))
+        except Exception:
+            pass
+
+    # LLM summary
+    items_text_parts = []
+    if flora_active:
+        items_text_parts.append(", ".join(f["label"] for f in flora_active[:2]))
+    if fauna_active:
+        items_text_parts.append(", ".join(f["label"] for f in fauna_active[:2]))
+    if events_nearby:
+        items_text_parts.append(f"{len(events_nearby)} eventos próximos")
+    items_text_parts.append(surf["note"])
+
+    llm_summary = await _llm_hoje_summary("; ".join(items_text_parts), season["label"], month_pt)
+
+    result = {
+        "key":            cache_key,
+        "date":           day_str,
+        "month":          month,
+        "month_pt":       month_pt,
+        "season":         season,
+        "flora_active":   flora_active[:4],
+        "fauna_active":   fauna_active[:4],
+        "surf":           surf,
+        "events_nearby":  events_nearby[:6],
+        "trails_nearby":  trails_nearby[:4],
+        "llm_summary":    llm_summary,
+        "has_location":   lat is not None and lng is not None,
+        "generated_at":   datetime.now(timezone.utc).isoformat(),
+    }
+
+    # Cache 6 h
+    if db:
+        try:
+            expires = datetime.now(timezone.utc) + timedelta(hours=6)
+            await db.hoje_cache.replace_one(
+                {"key": cache_key},
+                {**result, "expires_at": expires},
+                upsert=True,
+            )
+            await db.hoje_cache.create_index("expires_at", expireAfterSeconds=0)
+        except Exception:
+            pass
+
+    return {**result, "cached": False}

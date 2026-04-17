@@ -974,6 +974,15 @@ export const getDiscoveryFeed = async (
   return response.data;
 };
 
+export const getHojeFeed = async (lat?: number, lng?: number, date?: string) => {
+  const params: Record<string, any> = {};
+  if (lat != null) params.lat = lat;
+  if (lng != null) params.lng = lng;
+  if (date) params.date = date;
+  const response = await api.get('/discover/hoje', { params });
+  return response.data;
+};
+
 export const getSurprisePOI = async (traveler_profile?: string, region?: string) => {
   const params: any = {};
   if (traveler_profile) params.traveler_profile = traveler_profile;

@@ -330,9 +330,10 @@ recommendation_service = create_recommendation_service(db)
 # ========================
 # DISCOVER FEED (extracted to discover_feed_api.py)
 # ========================
-from discover_feed_api import router as discover_feed_router, set_discover_feed_db, set_discover_recommendation_service
+from discover_feed_api import router as discover_feed_router, set_discover_feed_db, set_discover_recommendation_service, set_discover_feed_llm_key
 set_discover_feed_db(db)
 set_discover_recommendation_service(recommendation_service)
+set_discover_feed_llm_key(EMERGENT_LLM_KEY)
 
 # Smart Context Orchestrator
 from context_orchestrator_api import orchestrator_router, set_orchestrator_db
