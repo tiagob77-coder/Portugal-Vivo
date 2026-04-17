@@ -10,13 +10,16 @@ from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 
 import httpx
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, HTTPException, Query, Depends, Request
 from pydantic import BaseModel, Field
+
+from models.api_models import User
 
 music_router = APIRouter(prefix="/music", tags=["Music"])
 
 _db = None
 _llm_key: str = ""
+_require_auth = None
 
 
 def set_music_db(database) -> None:
@@ -27,6 +30,15 @@ def set_music_db(database) -> None:
 def set_music_llm_key(key: str) -> None:
     global _llm_key
     _llm_key = key
+
+
+def set_music_auth(auth_fn) -> None:
+    global _require_auth
+    _require_auth = auth_fn
+
+
+async def _auth_dep(request: Request) -> User:
+    return await _require_auth(request)
 
 
 # --- Seed data ---
@@ -408,7 +420,10 @@ class NarrativeRequest(BaseModel):
 
 
 @music_router.post("/narrative")
-async def generate_narrative(body: NarrativeRequest):
+async def generate_narrative(
+    body: NarrativeRequest,
+    current_user: User = Depends(_auth_dep),
+):
     items = await _col_or_seed("music_items", SEED_ITEMS)
     item = next((i for i in items if str(i.get("_id", i.get("id", ""))) == body.item_id), None)
     if not item:

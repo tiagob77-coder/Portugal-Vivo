@@ -21,6 +21,7 @@ cultural_routes_router = APIRouter(prefix="/cultural-routes", tags=["Cultural Ro
 _db = None
 _llm_key: str = ""
 _require_admin = None
+_require_auth = None
 
 
 def set_cultural_routes_db(database) -> None:
@@ -38,8 +39,17 @@ def set_cultural_routes_admin(admin_fn) -> None:
     _require_admin = admin_fn
 
 
+def set_cultural_routes_auth(auth_fn) -> None:
+    global _require_auth
+    _require_auth = auth_fn
+
+
 async def _admin_dep(request: Request) -> User:
     return await _require_admin(request)
+
+
+async def _auth_dep(request: Request) -> User:
+    return await _require_auth(request)
 
 
 # ─── Route Family enum ────────────────────────────────────────────────────────
@@ -927,7 +937,10 @@ class CulturalNarrativeRequest(BaseModel):
 
 
 @cultural_routes_router.post("/narrative")
-async def generate_cultural_narrative(body: CulturalNarrativeRequest):
+async def generate_cultural_narrative(
+    body: CulturalNarrativeRequest,
+    current_user: User = Depends(_auth_dep),
+):
     """Generate AI narrative for a cultural route (Emergent LLM)."""
     items = await _col_or_seed("cultural_routes", SEED_ROUTES)
     route = next((i for i in items if str(i.get("_id", i.get("id", ""))) == body.route_id), None)
@@ -1235,7 +1248,10 @@ class PersonalizeRequest(BaseModel):
     "/personalize",
     summary="AI-personalised route variant (LLM)",
 )
-async def personalize_route(body: PersonalizeRequest):
+async def personalize_route(
+    body: PersonalizeRequest,
+    current_user: User = Depends(_auth_dep),
+):
     """
     Generates a personalised variant of a cultural route using the
     Emergent LLM (gpt-4o-mini).  Adapts stops, duration, gastronomy and

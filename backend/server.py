@@ -814,8 +814,9 @@ set_costa_db(db)
 api_router.include_router(costa_router)
 
 # ── AI Itinerary API ──────────────────────────────────────────────────────────
-from ai_itinerary_api import ai_itinerary_router, set_ai_itinerary_db
+from ai_itinerary_api import ai_itinerary_router, set_ai_itinerary_db, set_ai_itinerary_auth
 set_ai_itinerary_db(db)
+set_ai_itinerary_auth(require_auth)
 api_router.include_router(ai_itinerary_router)
 
 # ── Economy API ───────────────────────────────────────────────────────────────
@@ -849,9 +850,11 @@ from maritime_culture_api import (
     maritime_culture_router,
     set_maritime_culture_db,
     set_maritime_culture_llm_key,
+    set_maritime_culture_auth,
 )
 set_maritime_culture_db(db)
 set_maritime_culture_llm_key(EMERGENT_LLM_KEY)
+set_maritime_culture_auth(require_auth)
 api_router.include_router(maritime_culture_router)
 
 # ── Coastal Gastronomy API ────────────────────────────────────────────────────
@@ -877,9 +880,10 @@ api_router.include_router(flora_fauna_router)
 logger.info("🌿  Gastronomy+FloraFauna registered")
 
 # ── Music API ─────────────────────────────────────────────────────────────────
-from music_api import music_router, set_music_db, set_music_llm_key
+from music_api import music_router, set_music_db, set_music_llm_key, set_music_auth
 set_music_db(db)
 set_music_llm_key(EMERGENT_LLM_KEY)
+set_music_auth(require_auth)
 api_router.include_router(music_router)
 
 logger.info("🎵  Music registered")
@@ -890,10 +894,12 @@ from cultural_routes_api import (
     set_cultural_routes_db,
     set_cultural_routes_llm_key,
     set_cultural_routes_admin,
+    set_cultural_routes_auth,
 )
 set_cultural_routes_db(db)
 set_cultural_routes_llm_key(EMERGENT_LLM_KEY)
 set_cultural_routes_admin(require_admin)
+set_cultural_routes_auth(require_auth)
 api_router.include_router(cultural_routes_router)
 
 logger.info("🧭  Cultural Routes registered")

@@ -4,7 +4,7 @@ POST /ai/itinerary  — gera itinerário temático com POIs próximos via LLM
 POST /ai/enrich     — enriquece um POI com história/lenda/curiosidade/dica_fotografo via LLM
 GET  /ai/themes     — lista temas disponíveis com ícones e descrições
 """
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends, Request
 from pydantic import BaseModel, Field
 from typing import Optional, List
 import math
@@ -13,17 +13,28 @@ import datetime
 import json
 
 from llm_utils import llm_chat
+from models.api_models import User
 
 logger = logging.getLogger(__name__)
 
 ai_itinerary_router = APIRouter(prefix="/ai", tags=["AI Itinerary"])
 
 _db = None
+_require_auth = None
 
 
 def set_ai_itinerary_db(database):
     global _db
     _db = database
+
+
+def set_ai_itinerary_auth(auth_fn):
+    global _require_auth
+    _require_auth = auth_fn
+
+
+async def _auth_dep(request: Request) -> User:
+    return await _require_auth(request)
 
 
 # ─── Temas disponíveis ────────────────────────────────────────────────────────
@@ -196,7 +207,10 @@ async def list_themes():
 
 
 @ai_itinerary_router.post("/itinerary")
-async def generate_itinerary(body: ItineraryRequest):
+async def generate_itinerary(
+    body: ItineraryRequest,
+    current_user: User = Depends(_auth_dep),
+):
     """
     Gera um micro-itinerário personalizado com POIs próximos.
     Usa o LLM para criar uma narrativa coerente; fallback automático se o LLM falhar.
@@ -307,7 +321,10 @@ Responde com este JSON exato (sem campos extra):
 
 
 @ai_itinerary_router.post("/enrich")
-async def enrich_poi(body: EnrichRequest):
+async def enrich_poi(
+    body: EnrichRequest,
+    current_user: User = Depends(_auth_dep),
+):
     """
     Enriquece um POI com conteúdo cultural gerado por IA.
     Tipos: historia | lenda | curiosidade | dica_fotografo
@@ -406,7 +423,10 @@ class RecommendationsRequest(BaseModel):
 
 
 @ai_itinerary_router.post("/recommendations")
-async def get_recommendations(body: RecommendationsRequest):
+async def get_recommendations(
+    body: RecommendationsRequest,
+    current_user: User = Depends(_auth_dep),
+):
     """
     Recomendações personalizadas por localização + interesses.
     Combina proximidade geográfica, categorias de interesse e IQ score.
