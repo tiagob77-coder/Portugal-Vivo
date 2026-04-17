@@ -43,7 +43,6 @@ PORTUGAL_REGIONS = [
 class CheckNearbyRequest(BaseModel):
     lat: float = Field(..., ge=-90, le=90)
     lng: float = Field(..., ge=-180, le=180)
-    user_id: Optional[str] = None
     radius_km: float = Field(2.0, ge=0.1, le=50)
 
 
@@ -118,9 +117,14 @@ def _notification_body(poi: dict) -> str:
 # ── Endpoints ─────────────────────────────────────────────────────────────────
 
 @smart_notifications_router.post("/check-nearby")
-async def check_nearby(req: CheckNearbyRequest):
+async def check_nearby(
+    req: CheckNearbyRequest,
+    current_user: User = Depends(_auth_dep),
+):
     """Check for interesting POIs near the user and return notification suggestions."""
     db = _get_db()
+
+    user_id = current_user.user_id
 
     lat_delta = req.radius_km / 111.0
     lng_delta = req.radius_km / (111.0 * cos(radians(req.lat)))
@@ -149,7 +153,7 @@ async def check_nearby(req: CheckNearbyRequest):
         poi_id = poi.get("id", "")
 
         # Skip recently notified POIs
-        if await _recently_notified(db, req.user_id, poi_id):
+        if await _recently_notified(db, user_id, poi_id):
             continue
 
         # Score: higher IQ and rarer POIs rank higher, closer is also better
@@ -174,7 +178,7 @@ async def check_nearby(req: CheckNearbyRequest):
 
     # Log sent notifications for deduplication
     for n in results:
-        await _log_notification(db, req.user_id, n["poi_id"], "proximity")
+        await _log_notification(db, user_id, n["poi_id"], "proximity")
         del n["_score"]
 
     return {
@@ -185,7 +189,10 @@ async def check_nearby(req: CheckNearbyRequest):
 
 
 @smart_notifications_router.post("/check-events")
-async def check_events(req: CheckEventsRequest):
+async def check_events(
+    req: CheckEventsRequest,
+    current_user: User = Depends(_auth_dep),
+):
     """Check for upcoming events near the user's location or in their region."""
     db = _get_db()
 

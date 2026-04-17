@@ -10,13 +10,16 @@ from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 
 import httpx
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, HTTPException, Query, Depends, Request
 from pydantic import BaseModel, Field
+
+from models.api_models import User
 
 maritime_culture_router = APIRouter(prefix="/maritime-culture", tags=["Maritime Culture"])
 
 _db = None
 _llm_key: str = ""
+_require_auth = None
 
 
 def set_maritime_culture_db(database) -> None:
@@ -27,6 +30,15 @@ def set_maritime_culture_db(database) -> None:
 def set_maritime_culture_llm_key(key: str) -> None:
     global _llm_key
     _llm_key = key
+
+
+def set_maritime_culture_auth(auth_fn) -> None:
+    global _require_auth
+    _require_auth = auth_fn
+
+
+async def _auth_dep(request: Request) -> User:
+    return await _require_auth(request)
 
 
 # ─── Seed data ───────────────────────────────────────────────────────────────
@@ -441,7 +453,10 @@ class NarrativeRequest(BaseModel):
 
 
 @maritime_culture_router.post("/narrative")
-async def generate_narrative(body: NarrativeRequest):
+async def generate_narrative(
+    body: NarrativeRequest,
+    current_user: User = Depends(_auth_dep),
+):
     items = await _col_or_seed("maritime_events", SEED_EVENTS)
     event = next((i for i in items if str(i.get("_id", i.get("id", ""))) == body.event_id), None)
     if not event:
