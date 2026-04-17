@@ -111,10 +111,28 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
 # Global exception handler for unhandled errors - standardized JSON format
 @app.exception_handler(Exception)
 async def global_exception_handler(request: Request, exc: Exception):
-    logger.error("Unhandled error on %s %s: %s", request.method, request.url.path, exc, exc_info=True)
+    request_id = getattr(request.state, "request_id", None)
+    logger.error(
+        "Unhandled error on %s %s: %s",
+        request.method,
+        request.url.path,
+        exc,
+        exc_info=True,
+        extra={
+            "request_id": request_id,
+            "method": request.method,
+            "path": str(request.url.path),
+            "tenant_id": getattr(request.state, "municipality_id", None),
+        },
+    )
     return JSONResponse(
         status_code=500,
-        content={"detail": "Erro interno do servidor", "type": "internal_error"},
+        content={
+            "detail": "Erro interno do servidor",
+            "type": "internal_error",
+            "request_id": request_id,
+        },
+        headers={"X-Request-ID": request_id} if request_id else None,
     )
 
 # Add rate limiter to app
@@ -211,9 +229,16 @@ async def limit_request_body(request: Request, call_next):
 
 @app.middleware("http")
 async def request_logging_middleware(request: Request, call_next):
+    # Generate a correlation ID per request (accept inbound one if supplied).
+    # Exposed on the response so clients/CDNs can reference it in bug reports.
+    request_id = request.headers.get("X-Request-ID") or _secrets.token_urlsafe(12)
+    request.state.request_id = request_id
+
     start = _time.monotonic()
     response = await call_next(request)
     duration_ms = round((_time.monotonic() - start) * 1000, 1)
+    response.headers["X-Request-ID"] = request_id
+
     if request.url.path.startswith("/api/"):
         logger.info(
             "%s %s %s %.1fms",
@@ -222,11 +247,13 @@ async def request_logging_middleware(request: Request, call_next):
             response.status_code,
             duration_ms,
             extra={
+                "request_id": request_id,
                 "method": request.method,
                 "path": str(request.url.path),
                 "status_code": response.status_code,
                 "duration_ms": duration_ms,
                 "ip": request.client.host if request.client else None,
+                "tenant_id": getattr(request.state, "municipality_id", None),
             },
         )
     return response
@@ -255,8 +282,9 @@ set_auth_db(db)
 # ========================
 # HERITAGE ENDPOINTS (extracted to heritage_api.py)
 # ========================
-from heritage_api import heritage_router, set_heritage_db
+from heritage_api import heritage_router, set_heritage_db, set_heritage_admin
 set_heritage_db(db)
+set_heritage_admin(require_admin)
 
 
 
@@ -295,8 +323,9 @@ set_community_auth(require_auth)
 # ========================
 # ADMIN DASHBOARD + GALLERY + SHARE + STATS (extracted to admin_dashboard_api.py)
 # ========================
-from admin_dashboard_api import router as admin_dashboard_router, set_admin_dashboard_db
+from admin_dashboard_api import router as admin_dashboard_router, set_admin_dashboard_db, set_admin_dashboard_admin
 set_admin_dashboard_db(db)
+set_admin_dashboard_admin(require_admin)
 
 
 
@@ -397,8 +426,9 @@ async def health():
     }
 
 # Include Excel Importer router
-from excel_importer_api import importer_router, set_importer_db
+from excel_importer_api import importer_router, set_importer_db, set_importer_admin
 set_importer_db(db)
+set_importer_admin(require_admin)
 api_router.include_router(importer_router)
 
 # Include Smart Route Generator router
@@ -422,13 +452,15 @@ set_poi_dia_db(db)
 api_router.include_router(poi_dia_router)
 
 # Include Gamification router
-from gamification_api import gamification_router, set_gamification_db
+from gamification_api import gamification_router, set_gamification_db, set_gamification_auth
 set_gamification_db(db)
+set_gamification_auth(require_auth)
 api_router.include_router(gamification_router)
 
 # Include Trails router
-from trails_api import trails_router, set_db as set_trails_db
+from trails_api import trails_router, set_db as set_trails_db, set_trails_auth
 set_trails_db(db)
+set_trails_auth(require_auth)
 api_router.include_router(trails_router)
 
 # Include Epochs router
@@ -448,8 +480,9 @@ set_geo_validator_db(db)
 api_router.include_router(geo_validator_router)
 
 # Include Leaderboard router (Redis-powered)
-from leaderboard_api import leaderboard_router, set_db as set_leaderboard_db
+from leaderboard_api import leaderboard_router, set_db as set_leaderboard_db, set_leaderboard_admin
 set_leaderboard_db(db)
+set_leaderboard_admin(require_admin)
 api_router.include_router(leaderboard_router)
 from services.redis_leaderboard import redis_lb
 set_dashboard_redis_lb(redis_lb)
@@ -467,8 +500,9 @@ from beaches_realtime_api import beaches_router
 api_router.include_router(beaches_router)
 
 # Agenda Viral
-from agenda_api import agenda_router, set_agenda_db, seed_grande_expedicao, calendar_compat_router
+from agenda_api import agenda_router, set_agenda_db, set_agenda_admin, seed_grande_expedicao, calendar_compat_router
 set_agenda_db(db)
+set_agenda_admin(require_admin)
 api_router.include_router(agenda_router)
 api_router.include_router(calendar_compat_router)
 
@@ -523,12 +557,13 @@ api_router.include_router(search_router)
 # Notifications (extracted from server.py)
 from notifications_api import notifications_router, set_notifications_db, set_notifications_auth
 set_notifications_db(db)
-set_notifications_auth(require_auth)
+set_notifications_auth(require_auth, require_admin)
 api_router.include_router(notifications_router)
 
 # Encyclopedia (extracted from server.py)
-from encyclopedia_api import encyclopedia_router, set_encyclopedia_db, seed_encyclopedia_if_empty
+from encyclopedia_api import encyclopedia_router, set_encyclopedia_db, seed_encyclopedia_if_empty, set_encyclopedia_admin
 set_encyclopedia_db(db)
+set_encyclopedia_admin(require_admin)
 api_router.include_router(encyclopedia_router)
 
 # Mobility - expanded (extracted from server.py)
@@ -541,8 +576,9 @@ set_image_auth(require_auth, require_admin)
 api_router.include_router(image_router)
 
 # Image Optimization Pipeline (WebP variants, compression, real image apply)
-from image_optimization_api import optimization_router, set_optimization_db
+from image_optimization_api import optimization_router, set_optimization_db, set_optimization_admin
 set_optimization_db(db)
+set_optimization_admin(require_admin)
 api_router.include_router(optimization_router)
 
 # Newsletter Backend (P3 - replaces MOCKED frontend-only)
@@ -561,8 +597,9 @@ set_seo_db(db)
 api_router.include_router(seo_router)
 
 # Streaks & Active Gamification (P4)
-from streaks_api import streaks_router, set_streaks_db
+from streaks_api import streaks_router, set_streaks_db, set_streaks_auth
 set_streaks_db(db)
+set_streaks_auth(require_auth)
 api_router.include_router(streaks_router)
 
 # Explore Nearby - Proximity-based POI discovery (P4)
@@ -571,13 +608,15 @@ set_explore_nearby_db(db)
 api_router.include_router(explore_nearby_router)
 
 # Route Sharing - Shareable route links (P4)
-from route_sharing_api import route_sharing_router, set_route_sharing_db
+from route_sharing_api import route_sharing_router, set_route_sharing_db, set_route_sharing_auth
 set_route_sharing_db(db)
+set_route_sharing_auth(require_auth)
 api_router.include_router(route_sharing_router)
 
 # Smart Notifications - Proximity + Events (P4)
-from smart_notifications_api import smart_notifications_router, set_smart_notifications_db
+from smart_notifications_api import smart_notifications_router, set_smart_notifications_db, set_smart_notifications_auth
 set_smart_notifications_db(db)
+set_smart_notifications_auth(require_auth)
 api_router.include_router(smart_notifications_router)
 
 # Offline Region Packages (P4)
@@ -622,8 +661,9 @@ api_router.include_router(audio_guide_router)
 api_router.include_router(marine_surf_router)
 
 # Translation - Multi-language POI translations
-from translation_api import translation_router, set_translation_db
+from translation_api import translation_router, set_translation_db, set_translation_admin
 set_translation_db(db)
+set_translation_admin(require_admin)
 api_router.include_router(translation_router)
 
 # Analytics Dashboard
@@ -650,8 +690,9 @@ from cp_api import cp_router
 api_router.include_router(cp_router)
 
 # Geo Administrative — CAOP (Carta Administrativa Oficial de Portugal)
-from geo_administrative_api import geo_router, set_geo_db
+from geo_administrative_api import geo_router, set_geo_db, set_geo_admin
 set_geo_db(db)
+set_geo_admin(require_admin)
 api_router.include_router(geo_router)
 
 # Ambassador Program
@@ -680,8 +721,9 @@ set_content_strategy_llm_key(EMERGENT_LLM_KEY)
 api_router.include_router(content_strategy_router)
 
 # Regional Historical Timeline
-from timeline_api import timeline_router, set_timeline_db
+from timeline_api import timeline_router, set_timeline_db, set_timeline_admin
 set_timeline_db(db)
+set_timeline_admin(require_admin)
 api_router.include_router(timeline_router)
 
 # AI Toolkit for Cultural Agents (draft → enrich → review → publish)
@@ -739,8 +781,9 @@ api_router.include_router(missions_router)
 logger.info("🌱 Editorial systems registered: health, partner, seasonal, contributions, missions")
 
 # ── Community Encounters (artesãos, músicos, pescadores, …) ──────────────────
-from community_encounters_api import router as encounters_router, set_encounters_db
+from community_encounters_api import router as encounters_router, set_encounters_db, set_encounters_auth
 set_encounters_db(db)
+set_encounters_auth(require_auth, require_admin)
 api_router.include_router(encounters_router)
 
 # ── Map Layers — Dynamic layer configuration ──────────────────────────────────
@@ -789,9 +832,11 @@ from marine_biodiversity_api import (
     marine_biodiversity_router,
     set_marine_biodiversity_db,
     set_marine_biodiversity_llm_key,
+    set_marine_biodiversity_auth,
 )
 set_marine_biodiversity_db(db)
 set_marine_biodiversity_llm_key(EMERGENT_LLM_KEY)
+set_marine_biodiversity_auth(require_auth)
 api_router.include_router(marine_biodiversity_router)
 
 # ── Infrastructure API ────────────────────────────────────────────────────────
@@ -844,9 +889,11 @@ from cultural_routes_api import (
     cultural_routes_router,
     set_cultural_routes_db,
     set_cultural_routes_llm_key,
+    set_cultural_routes_admin,
 )
 set_cultural_routes_db(db)
 set_cultural_routes_llm_key(EMERGENT_LLM_KEY)
+set_cultural_routes_admin(require_admin)
 api_router.include_router(cultural_routes_router)
 
 logger.info("🧭  Cultural Routes registered")
@@ -870,9 +917,11 @@ from narrative_layer_api import (
     narrative_layer_router,
     set_narrative_layer_db,
     set_narrative_layer_llm_key,
+    set_narrative_layer_admin,
 )
 set_narrative_layer_db(db)
 set_narrative_layer_llm_key(EMERGENT_LLM_KEY)
+set_narrative_layer_admin(require_admin)
 api_router.include_router(narrative_layer_router)
 logger.info("📖  Narrative Layer Global registered")
 
@@ -937,7 +986,8 @@ logger.info("🏗️ Multi-tenant middleware and admin routes registered")
 # IQ ENGINE SETUP
 # ========================
 
-from iq_engine_api import iq_router
+from iq_engine_api import iq_router, set_iq_engine_admin
+set_iq_engine_admin(require_admin)
 from iq_engine_base import get_iq_engine
 from iq_module_m1_semantic import SemanticValidationModule
 from iq_module_m2_cognitive import CognitiveInferenceModule

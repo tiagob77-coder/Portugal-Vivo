@@ -2,7 +2,7 @@
 IQ Engine API Endpoints
 APIs para processar POIs através do IQ Engine
 """
-from fastapi import APIRouter, HTTPException, status, BackgroundTasks, Request
+from fastapi import APIRouter, HTTPException, status, BackgroundTasks, Request, Depends
 from pydantic import BaseModel
 from typing import List, Optional, Dict, Any
 from datetime import datetime, timezone
@@ -18,6 +18,18 @@ from iq_engine_base import (
 )
 from tenant_context import get_current_tenant
 from tenant_manager import get_tenant_manager
+from models.api_models import User
+
+_require_admin = None
+
+
+def set_iq_engine_admin(admin_fn):
+    global _require_admin
+    _require_admin = admin_fn
+
+
+async def _admin_dep(request: Request) -> User:
+    return await _require_admin(request)
 
 logger = logging.getLogger(__name__)
 
@@ -79,7 +91,7 @@ async def iq_engine_health():
         )
 
 @iq_router.post("/process-poi/{poi_id}", response_model=ProcessPOIResponse)
-async def process_poi(poi_id: str, request: Request):
+async def process_poi(poi_id: str, request: Request, admin: User = Depends(_admin_dep)):
     """
     Process a single POI through IQ Engine
     
@@ -235,7 +247,12 @@ async def process_poi(poi_id: str, request: Request):
         )
 
 @iq_router.post("/queue-poi/{poi_id}")
-async def queue_poi_processing(poi_id: str, request: Request, background_tasks: BackgroundTasks):
+async def queue_poi_processing(
+    poi_id: str,
+    request: Request,
+    background_tasks: BackgroundTasks,
+    admin: User = Depends(_admin_dep),
+):
     """
     Queue a single POI for async background processing.
     Returns immediately with a job ID for status polling.
@@ -316,7 +333,11 @@ async def get_job_status(job_id: str):
         )
 
 @iq_router.post("/batch-process")
-async def batch_process_pois(request: BatchProcessRequest, background_tasks: BackgroundTasks):
+async def batch_process_pois(
+    request: BatchProcessRequest,
+    background_tasks: BackgroundTasks,
+    admin: User = Depends(_admin_dep),
+):
     """
     Process multiple POIs in batch
     Returns immediately and processes in background

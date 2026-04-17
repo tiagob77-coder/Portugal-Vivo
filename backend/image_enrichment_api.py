@@ -2,7 +2,7 @@
 Image Enrichment Service for Portugal Vivo.
 Strategy: 1) Wikimedia Commons (free, no key) → 2) Unsplash (if key configured) → 3) AI generation (OpenAI).
 """
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends, Request
 from pydantic import BaseModel, Field
 from typing import Optional, List
 from datetime import datetime, timezone
@@ -16,12 +16,17 @@ import asyncio
 logger = logging.getLogger(__name__)
 
 from shared_utils import DatabaseHolder
+from models.api_models import User
 
 image_router = APIRouter()
 
 _db_holder = DatabaseHolder("image_enrichment")
 _require_auth = None
 _require_admin = None
+
+
+async def _admin_dep(request: Request) -> User:
+    return await _require_admin(request)
 
 UNSPLASH_ACCESS_KEY = os.environ.get("UNSPLASH_ACCESS_KEY", "")
 EMERGENT_LLM_KEY = os.environ.get("EMERGENT_LLM_KEY", "")
@@ -246,8 +251,11 @@ async def search_images(query: str, count: int = 5):
 
 
 @image_router.post("/images/enrich")
-async def enrich_poi_image(request: EnrichRequest):
-    """Enrich a single POI with an image (Wikimedia → Unsplash → AI)"""
+async def enrich_poi_image(
+    request: EnrichRequest,
+    admin: User = Depends(_admin_dep),
+):
+    """Enrich a single POI with an image (admin only)."""
     item = await _db_holder.db.heritage_items.find_one({"id": request.item_id}, {"_id": 0})
     if not item:
         raise HTTPException(status_code=404, detail="Item not found")
@@ -320,8 +328,11 @@ async def serve_ai_image(item_id: str):
 
 
 @image_router.post("/images/batch-enrich")
-async def batch_enrich_images(request: BatchEnrichRequest):
-    """Batch enrich POIs without images. Wikimedia first → AI fallback."""
+async def batch_enrich_images(
+    request: BatchEnrichRequest,
+    admin: User = Depends(_admin_dep),
+):
+    """Batch enrich POIs without images (admin only). Wikimedia first → AI fallback."""
     query = {"$or": [{"image_url": {"$exists": False}}, {"image_url": None}, {"image_url": ""}]}
     if request.category:
         query["category"] = request.category

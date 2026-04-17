@@ -1,4 +1,5 @@
 import axios from 'axios';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { HeritageItem, Route, Category, MainCategory, Subcategory, Region, User, Stats } from '../types';
 import offlineCache from './offlineCache';
 
@@ -10,6 +11,23 @@ const api = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
+});
+
+// Auto-attach Authorization header on every request (unless one is already set).
+// Without this, authenticated endpoints would 401 unless each callsite passed
+// the Bearer token manually — easy to forget (e.g. the GPX upload in mapa.tsx).
+api.interceptors.request.use(async (config) => {
+  const headers = config.headers as any;
+  if (!headers?.Authorization && !headers?.authorization) {
+    try {
+      const token = await AsyncStorage.getItem('session_token');
+      if (token && headers) headers.Authorization = `Bearer ${token}`;
+    } catch {
+      // AsyncStorage read failure — send the request unauthenticated and let
+      // the server decide. Public endpoints will still work.
+    }
+  }
+  return config;
 });
 
 // Debug interceptor for mobile testing

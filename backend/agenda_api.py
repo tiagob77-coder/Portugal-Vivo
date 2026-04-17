@@ -2,10 +2,11 @@
 Agenda Viral API - Cultural events, festivals, and expedition data for Portugal.
 Now with dynamic public data sources and ticket links (Ticketline integration).
 """
-from fastapi import APIRouter, Query, HTTPException
+from fastapi import APIRouter, Query, HTTPException, Depends, Request
 from typing import Optional
 from shared_constants import sanitize_regex
 from shared_utils import DatabaseHolder
+from models.api_models import User
 from datetime import datetime, timezone
 import logging
 
@@ -15,6 +16,17 @@ agenda_router = APIRouter(prefix="/agenda", tags=["Agenda Viral"])
 
 _db_holder = DatabaseHolder("agenda")
 set_agenda_db = _db_holder.set
+
+_require_admin = None
+
+
+def set_agenda_admin(admin_fn) -> None:
+    global _require_admin
+    _require_admin = admin_fn
+
+
+async def _admin_dep(request: Request) -> User:
+    return await _require_admin(request)
 
 # Ticketline base URL for ticket purchases
 TICKETLINE_SEARCH_URL = "https://ticketline.sapo.pt/pesquisa?q="
@@ -306,8 +318,8 @@ async def get_grande_expedicao():
 
 
 @agenda_router.post("/sync")
-async def sync_public_events():
-    """Manually trigger sync of public events from external sources."""
+async def sync_public_events(admin: User = Depends(_admin_dep)):
+    """Manually trigger sync of public events from external sources (admin only)."""
     from services.public_events_service import public_events_service
     public_events_service.set_db(_db_holder.db)
     count = await public_events_service.sync_to_events_collection()

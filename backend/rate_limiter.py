@@ -45,6 +45,14 @@ ENDPOINT_LIMITS: Dict[str, Tuple[int, int]] = {
     # Image upload
     "/api/uploads/": (10, 60),
     "/api/cloudinary/": (10, 60),
+    # GPX trail upload — expensive parsing + DB write
+    "/api/trails/upload": (5, 60),
+    # Map & proximity — large geo queries, protect from abuse
+    "/api/map/items": (60, 60),
+    "/api/proximity/nearby": (60, 60),
+    "/api/proximity/alerts": (30, 60),
+    "/api/proximity/heatzone": (30, 60),
+    "/api/nearby": (60, 60),  # legacy compat POST alias
 }
 
 # Per-user limit (authenticated): requests per minute

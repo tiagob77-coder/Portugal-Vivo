@@ -1,7 +1,7 @@
 """
 Leaderboard API - Redis-powered rankings with period filters and region breakdowns.
 """
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends, Request
 from datetime import datetime, timezone
 from services.redis_leaderboard import redis_lb
 import logging
@@ -9,10 +9,22 @@ import logging
 logger = logging.getLogger("leaderboard_api")
 
 from shared_utils import DatabaseHolder
+from models.api_models import User
 
 leaderboard_router = APIRouter(prefix="/leaderboard", tags=["Leaderboard"])
 _db_holder = DatabaseHolder("leaderboard")
 set_db = _db_holder.set
+
+_require_admin = None
+
+
+def set_leaderboard_admin(admin_fn) -> None:
+    global _require_admin
+    _require_admin = admin_fn
+
+
+async def _admin_dep(request: Request) -> User:
+    return await _require_admin(request)
 
 
 @leaderboard_router.get("/top")
@@ -168,8 +180,8 @@ async def get_leaderboard_stats():
 
 
 @leaderboard_router.post("/sync")
-async def sync_leaderboard():
-    """Manually trigger a full sync from MongoDB to Redis."""
+async def sync_leaderboard(admin: User = Depends(_admin_dep)):
+    """Manually trigger a full sync from MongoDB to Redis (admin only)."""
     count = await redis_lb.sync_from_mongo()
     return {"synced": count, "timestamp": datetime.now(timezone.utc).isoformat()}
 

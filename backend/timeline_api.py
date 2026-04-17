@@ -20,10 +20,11 @@ import re
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, HTTPException, Query, Depends, Request
 from pydantic import BaseModel, Field
 
 from shared_utils import DatabaseHolder
+from models.api_models import User
 
 logger = logging.getLogger(__name__)
 
@@ -34,6 +35,16 @@ set_timeline_db = _db_holder.set
 _get_db = _db_holder.get
 
 _llm_key: str = ""
+_require_admin = None
+
+
+def set_timeline_admin(admin_fn):
+    global _require_admin
+    _require_admin = admin_fn
+
+
+async def _admin_dep(request: Request) -> User:
+    return await _require_admin(request)
 
 
 def set_timeline_llm_key(key: str) -> None:
@@ -523,9 +534,10 @@ async def list_timelines():
 @timeline_router.post("/events")
 async def create_timeline_event(
     event: Dict,
+    admin: User = Depends(_admin_dep),
 ):
     """
-    Create a custom timeline event (used by AI content toolkit).
+    Create a custom timeline event (admin / AI content toolkit only).
     Fields: region, year, era, event, event_type, figure, poi_hint, emoji
     """
     db = _get_db()

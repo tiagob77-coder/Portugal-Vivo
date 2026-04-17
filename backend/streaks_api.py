@@ -3,12 +3,13 @@ Streaks & Active Gamification API
 Manages daily streaks, weekly challenges, and active gamification features.
 """
 from datetime import datetime, timezone, timedelta
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends, Request
 from pydantic import BaseModel
 from typing import Optional
 import logging
 
 from shared_utils import DatabaseHolder
+from models.api_models import User
 
 logger = logging.getLogger(__name__)
 
@@ -17,6 +18,17 @@ streaks_router = APIRouter(prefix="/gamification/streaks", tags=["Gamificação"
 _db_holder = DatabaseHolder("streaks")
 set_streaks_db = _db_holder.set
 _get_db = _db_holder.get
+
+_require_auth = None
+
+
+def set_streaks_auth(auth_fn):
+    global _require_auth
+    _require_auth = auth_fn
+
+
+async def _auth_dep(request: Request) -> User:
+    return await _require_auth(request)
 
 
 class StreakResponse(BaseModel):
@@ -137,8 +149,13 @@ async def get_streak_info(user_id: str):
 
 
 @streaks_router.post("/{user_id}/record")
-async def record_daily_activity(user_id: str):
-    """Record daily activity for streak tracking. Called automatically on check-in."""
+async def record_daily_activity(user_id: str, current_user: User = Depends(_auth_dep)):
+    """Record daily activity for streak tracking. Called automatically on check-in.
+
+    Only the authenticated user can record their own activity.
+    """
+    if user_id != current_user.user_id:
+        raise HTTPException(status_code=403, detail="Não pode registar atividade de outro utilizador")
     db = _get_db()
 
     now = datetime.now(timezone.utc)

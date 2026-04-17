@@ -22,6 +22,7 @@ from auth_api import require_auth
 from pydantic import BaseModel
 from typing import Optional
 from shared_utils import DatabaseHolder
+from models.api_models import User
 
 logger = logging.getLogger(__name__)
 
@@ -126,17 +127,10 @@ PREMIUM_FEATURE_IDS = {"ai_itinerary", "audio_guides", "offline", "epochs", "col
 # =============================================================================
 
 class CheckoutRequest(BaseModel):
-    user_id: str
-    user_email: str
     tier: str  # "premium" or "annual"
 
 
-class PortalRequest(BaseModel):
-    user_id: str
-
-
 class SubscriptionRequest(BaseModel):
-    user_id: str
     tier: str  # "premium" or "annual"
     payment_method: Optional[str] = None
 
@@ -259,8 +253,11 @@ async def get_subscription_status(user_id: str):
 # =============================================================================
 
 @premium_router.post("/create-checkout")
-async def create_checkout_session(request: CheckoutRequest):
-    """Create a Stripe Checkout session for subscription."""
+async def create_checkout_session(
+    request: CheckoutRequest,
+    current_user: User = Depends(require_auth),
+):
+    """Create a Stripe Checkout session for subscription (authenticated)."""
     if not STRIPE_ENABLED:
         raise HTTPException(status_code=503, detail="Pagamentos não configurados. Contacte o administrador.")
 
@@ -271,7 +268,7 @@ async def create_checkout_session(request: CheckoutRequest):
     if not price_id:
         raise HTTPException(status_code=500, detail=f"Stripe Price ID não configurado para tier '{request.tier}'")
 
-    customer_id = await _get_or_create_stripe_customer(request.user_id, request.user_email)
+    customer_id = await _get_or_create_stripe_customer(current_user.user_id, current_user.email)
 
     # Portuguese payment methods: Card, PayPal, MB Way, Multibanco
     # Note: MB Way and Multibanco require one-time payments (not recurring subscriptions)
@@ -286,13 +283,13 @@ async def create_checkout_session(request: CheckoutRequest):
         success_url=f"{FRONTEND_URL}/premium?success=true&session_id={{CHECKOUT_SESSION_ID}}",
         cancel_url=f"{FRONTEND_URL}/premium?cancelled=true",
         metadata={
-            "user_id": request.user_id,
+            "user_id": current_user.user_id,
             "tier": request.tier,
         },
         subscription_data={
             "trial_period_days": 7,
             "metadata": {
-                "user_id": request.user_id,
+                "user_id": current_user.user_id,
                 "tier": request.tier,
             },
         },
@@ -307,14 +304,14 @@ async def create_checkout_session(request: CheckoutRequest):
 
 
 @premium_router.post("/create-portal")
-async def create_customer_portal(request: PortalRequest):
+async def create_customer_portal(current_user: User = Depends(require_auth)):
     """Create a Stripe Customer Portal session to manage subscription."""
     if not STRIPE_ENABLED:
         raise HTTPException(status_code=503, detail="Pagamentos não configurados")
 
     db = _db_holder.db
     sub = await db.subscriptions.find_one(
-        {"user_id": request.user_id, "stripe_customer_id": {"$exists": True}},
+        {"user_id": current_user.user_id, "stripe_customer_id": {"$exists": True}},
         {"stripe_customer_id": 1}
     )
 
@@ -334,7 +331,10 @@ async def create_customer_portal(request: PortalRequest):
 # =============================================================================
 
 @premium_router.post("/create-checkout-mbway")
-async def create_checkout_mbway(request: CheckoutRequest):
+async def create_checkout_mbway(
+    request: CheckoutRequest,
+    current_user: User = Depends(require_auth),
+):
     """Create Stripe Checkout with MB Way payment (popular in Portugal).
     MB Way doesn't support recurring - uses one-time payment + manual renewal.
     """
@@ -347,7 +347,7 @@ async def create_checkout_mbway(request: CheckoutRequest):
     tier_data = TIERS.get(request.tier, TIERS["premium"])
     amount_cents = int(tier_data["price"] * 100)
 
-    customer_id = await _get_or_create_stripe_customer(request.user_id, request.user_email)
+    customer_id = await _get_or_create_stripe_customer(current_user.user_id, current_user.email)
 
     session = stripe.checkout.Session.create(
         customer=customer_id,
@@ -367,7 +367,7 @@ async def create_checkout_mbway(request: CheckoutRequest):
         success_url=f"{FRONTEND_URL}/premium?success=true&session_id={{CHECKOUT_SESSION_ID}}",
         cancel_url=f"{FRONTEND_URL}/premium?cancelled=true",
         metadata={
-            "user_id": request.user_id,
+            "user_id": current_user.user_id,
             "tier": request.tier,
             "payment_type": "mbway",
         },
@@ -382,7 +382,10 @@ async def create_checkout_mbway(request: CheckoutRequest):
 
 
 @premium_router.post("/create-checkout-multibanco")
-async def create_checkout_multibanco(request: CheckoutRequest):
+async def create_checkout_multibanco(
+    request: CheckoutRequest,
+    current_user: User = Depends(require_auth),
+):
     """Create Stripe Checkout with Multibanco reference payment (Portugal).
     Generates a Multibanco reference that user pays at ATM or homebanking.
     """
@@ -395,7 +398,7 @@ async def create_checkout_multibanco(request: CheckoutRequest):
     tier_data = TIERS.get(request.tier, TIERS["premium"])
     amount_cents = int(tier_data["price"] * 100)
 
-    customer_id = await _get_or_create_stripe_customer(request.user_id, request.user_email)
+    customer_id = await _get_or_create_stripe_customer(current_user.user_id, current_user.email)
 
     session = stripe.checkout.Session.create(
         customer=customer_id,
@@ -415,7 +418,7 @@ async def create_checkout_multibanco(request: CheckoutRequest):
         success_url=f"{FRONTEND_URL}/premium?success=true&session_id={{CHECKOUT_SESSION_ID}}",
         cancel_url=f"{FRONTEND_URL}/premium?cancelled=true",
         metadata={
-            "user_id": request.user_id,
+            "user_id": current_user.user_id,
             "tier": request.tier,
             "payment_type": "multibanco",
         },
@@ -501,7 +504,10 @@ async def stripe_webhook(request: Request):
 # =============================================================================
 
 @premium_router.post("/subscribe")
-async def subscribe(request: SubscriptionRequest):
+async def subscribe(
+    request: SubscriptionRequest,
+    current_user: User = Depends(require_auth),
+):
     """Create or upgrade a subscription (demo mode when Stripe not configured)."""
     if request.tier not in ("premium", "annual"):
         raise HTTPException(status_code=400, detail="Tier inválido")
@@ -512,7 +518,7 @@ async def subscribe(request: SubscriptionRequest):
             detail="Use /premium/create-checkout para subscrições com pagamento"
         )
 
-    await _activate_subscription(request.user_id, request.tier)
+    await _activate_subscription(current_user.user_id, request.tier)
 
     tier = TIERS[request.tier]
     return {

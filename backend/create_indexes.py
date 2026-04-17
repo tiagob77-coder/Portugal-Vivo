@@ -46,7 +46,27 @@ async def create_all_indexes(db):
         sparse=True,
         name="idx_heritage_geo_2dsphere"
     )
-    logger.info("  heritage_items: 10 indexes created")
+    # Multi-tenant hot paths — tenant-scoped browsing and proximity
+    await db.heritage_items.create_index(
+        "municipality_id", sparse=True, name="idx_heritage_muni"
+    )
+    await db.heritage_items.create_index(
+        [("municipality_id", 1), ("category", 1)],
+        sparse=True,
+        name="idx_heritage_muni_cat",
+    )
+    await db.heritage_items.create_index(
+        [("municipality_id", 1), ("iq_score", -1)],
+        sparse=True,
+        name="idx_heritage_muni_iq",
+    )
+    # 2dsphere compound — $near + municipality filter (proximity_api.nearby)
+    await db.heritage_items.create_index(
+        [("geo_location", "2dsphere"), ("municipality_id", 1)],
+        sparse=True,
+        name="idx_heritage_geo_muni",
+    )
+    logger.info("  heritage_items: 14 indexes created")
 
     # users
     await db.users.create_index("user_id", unique=True, name="idx_users_userid")
@@ -216,15 +236,16 @@ async def create_all_indexes(db):
     logger.info("  narratives: 7 indexes created")
 
     # --- Total ---
-    # heritage_items: 10, users: 2, user_sessions: 3, user_progress: 3,
+    # heritage_items: 14, users: 2, user_sessions: 3, user_progress: 3,
     # visits: 7, gamification_profiles: 3, checkins: 3, contributions: 5,
     # routes: 4, user_preferences: 1, user_badges: 2, favorite_spots: 1,
     # password_resets: 2, encyclopedia_articles: 3, notifications: 3,
     # notification_history: 2, push_tokens: 1, notification_prefs: 1,
     # reviews: 6, poi_translations: 3, iq_processing_queue: 2,
-    # iq_processing_results: 2, schema_versions: 1
-    total = 10 + 2 + 3 + 3 + 7 + 3 + 3 + 5 + 4 + 1 + 2 + 1 + 2 + 3 + 3 + 2 + 1 + 1 + 6 + 3 + 2 + 2 + 1
-    logger.info(f"\nTotal: {total} indexes across 23 collections")
+    # iq_processing_results: 2, schema_versions: 1,
+    # narrative_cache: 3, narratives: 7
+    total = 14 + 2 + 3 + 3 + 7 + 3 + 3 + 5 + 4 + 1 + 2 + 1 + 2 + 3 + 3 + 2 + 1 + 1 + 6 + 3 + 2 + 2 + 1 + 3 + 7
+    logger.info(f"\nTotal: {total} indexes across 25 collections")
 
 
 async def create_indexes():

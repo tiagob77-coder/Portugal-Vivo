@@ -1,7 +1,7 @@
 """
 Trilhos GPX API - Trail routes management and visualization
 """
-from fastapi import APIRouter, UploadFile, File, HTTPException, Response
+from fastapi import APIRouter, UploadFile, File, HTTPException, Response, Depends, Request
 from pydantic import BaseModel
 from typing import List, Optional
 import math
@@ -9,10 +9,22 @@ import uuid
 import xml.etree.ElementTree as ET
 from datetime import datetime, timezone
 from shared_utils import haversine_km as _haversine_km, DatabaseHolder
+from models.api_models import User
 
 trails_router = APIRouter(prefix="/trails", tags=["trails"])
 _db_holder = DatabaseHolder("trails")
 set_db = _db_holder.set
+
+_require_auth = None
+
+
+def set_trails_auth(auth_fn):
+    global _require_auth
+    _require_auth = auth_fn
+
+
+async def _auth_dep(request: Request) -> User:
+    return await _require_auth(request)
 
 
 class TrailPoint(BaseModel):
@@ -242,11 +254,49 @@ async def get_trail_pois(trail_id: str, radius_km: float = 2.0):
     return {"trail_id": trail_id, "pois": nearby_pois[:50], "total": len(nearby_pois)}
 
 
+GPX_MAX_SIZE = 5 * 1024 * 1024  # 5 MB — plenty for a detailed multi-day trail
+GPX_ALLOWED_TYPES = {
+    "application/gpx+xml",
+    "application/xml",
+    "text/xml",
+    "application/octet-stream",  # some browsers send this for .gpx
+    "",  # some clients omit Content-Type
+}
+_GPX_CHUNK = 64 * 1024
+
+
+async def _read_gpx_with_limit(file: UploadFile) -> bytes:
+    buf = bytearray()
+    while True:
+        chunk = await file.read(_GPX_CHUNK)
+        if not chunk:
+            break
+        buf.extend(chunk)
+        if len(buf) > GPX_MAX_SIZE:
+            raise HTTPException(status_code=413, detail="Ficheiro GPX demasiado grande (máx. 5 MB)")
+    return bytes(buf)
+
+
 @trails_router.post("/upload")
-async def upload_gpx(file: UploadFile = File(...)):
-    """Upload a GPX file and create a trail."""
-    content = await file.read()
-    gpx_data = parse_gpx(content.decode("utf-8"))
+async def upload_gpx(
+    file: UploadFile = File(...),
+    current_user: User = Depends(_auth_dep),
+):
+    """Upload a GPX file and create a trail. Authenticated users only."""
+    filename = (file.filename or "").lower()
+    if not filename.endswith(".gpx"):
+        raise HTTPException(status_code=400, detail="Ficheiro tem de ter extensão .gpx")
+    content_type = (file.content_type or "").lower()
+    if content_type and content_type not in GPX_ALLOWED_TYPES:
+        raise HTTPException(status_code=400, detail="Tipo de ficheiro não suportado. Use GPX.")
+
+    content = await _read_gpx_with_limit(file)
+    if not content:
+        raise HTTPException(status_code=400, detail="Ficheiro vazio")
+    try:
+        gpx_data = parse_gpx(content.decode("utf-8"))
+    except (UnicodeDecodeError, ET.ParseError):
+        raise HTTPException(status_code=400, detail="Ficheiro GPX inválido ou corrompido")
 
     trail_id = str(uuid.uuid4())[:8]
     trail = {
@@ -259,6 +309,7 @@ async def upload_gpx(file: UploadFile = File(...)):
         "elevation_loss": gpx_data["elevation_loss"],
         "min_elevation": gpx_data["min_elevation"],
         "max_elevation": gpx_data["max_elevation"],
+        "uploaded_by": current_user.user_id,
         "estimated_hours": round(
             gpx_data["distance_km"] / 4.0 + gpx_data["elevation_gain"] / 600.0, 1
         ),
@@ -447,11 +498,14 @@ class TrackPoint(BaseModel):
 
 class TrackUpload(BaseModel):
     points: List[TrackPoint]
-    user_id: Optional[str] = None
     device: Optional[str] = None
 
 @trails_router.post("/{trail_id}/track")
-async def upload_trail_track(trail_id: str, body: TrackUpload):
+async def upload_trail_track(
+    trail_id: str,
+    body: TrackUpload,
+    current_user: User = Depends(_auth_dep),
+):
     """Upload a user GPS track for a trail session (analytics + SOS detection)."""
     trail = await _db_holder.db.trails.find_one({"id": trail_id}, {"_id": 0, "id": 1, "name": 1})
     if not trail:
@@ -469,7 +523,7 @@ async def upload_trail_track(trail_id: str, body: TrackUpload):
     track_doc = {
         "id": str(uuid.uuid4())[:8],
         "trail_id": trail_id,
-        "user_id": body.user_id or "anonymous",
+        "user_id": current_user.user_id,
         "device": body.device,
         "points": [p.model_dump() for p in body.points],
         "total_distance_km": round(total_dist, 2),

@@ -11,13 +11,16 @@ from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 
 import httpx
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, HTTPException, Query, Depends, Request
 from pydantic import BaseModel, Field
+
+from models.api_models import User
 
 marine_biodiversity_router = APIRouter(prefix="/biodiversity", tags=["Biodiversity"])
 
 _db = None
 _llm_key: str = ""
+_require_auth = None
 
 
 def set_marine_biodiversity_db(database) -> None:
@@ -28,6 +31,15 @@ def set_marine_biodiversity_db(database) -> None:
 def set_marine_biodiversity_llm_key(key: str) -> None:
     global _llm_key
     _llm_key = key
+
+
+def set_marine_biodiversity_auth(auth_fn) -> None:
+    global _require_auth
+    _require_auth = auth_fn
+
+
+async def _auth_dep(request: Request) -> User:
+    return await _require_auth(request)
 
 
 # ─── Seed data ───────────────────────────────────────────────────────────────
@@ -568,10 +580,14 @@ async def sightings_nearby(
 
 
 @marine_biodiversity_router.post("/sightings", status_code=201)
-async def submit_sighting(body: SightingIn):
+async def submit_sighting(
+    body: SightingIn,
+    current_user: User = Depends(_auth_dep),
+):
     doc = body.model_dump()
     doc["timestamp"] = datetime.now(timezone.utc).isoformat()
     doc["source"] = "app"
+    doc["user_id"] = current_user.user_id
     if _db is not None:
         result = await _db["sightings"].insert_one(doc)
         doc["id"] = str(result.inserted_id)

@@ -3,7 +3,7 @@ Image Optimization API for Portugal Vivo.
 Generates optimized image variants (WebP + JPEG fallback) in multiple sizes,
 tracks compression stats, and can apply real photos to POIs.
 """
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends, Request
 from fastapi.responses import Response
 from pydantic import BaseModel, Field
 from typing import Optional, List
@@ -14,6 +14,7 @@ import base64
 
 from shared_utils import DatabaseHolder
 from services.image_processor import ImageProcessor, ImageProcessingError
+from models.api_models import User
 
 logger = logging.getLogger(__name__)
 
@@ -23,6 +24,8 @@ _db_holder = DatabaseHolder("image_optimization")
 
 processor = ImageProcessor(default_quality=85)
 
+_require_admin = None
+
 
 # ------------------------------------------------------------------
 # DB setter (called from server.py)
@@ -30,6 +33,15 @@ processor = ImageProcessor(default_quality=85)
 
 def set_optimization_db(database):
     _db_holder.set(database)
+
+
+def set_optimization_admin(admin_fn):
+    global _require_admin
+    _require_admin = admin_fn
+
+
+async def _admin_dep(request: Request) -> User:
+    return await _require_admin(request)
 
 
 # ------------------------------------------------------------------
@@ -164,8 +176,8 @@ async def _store_variants(item_id: str, variants: dict, original_size: int):
 # ------------------------------------------------------------------
 
 @optimization_router.post("/images/optimize/{item_id}")
-async def optimize_single(item_id: str):
-    """Optimize the image for a single POI (download → resize → WebP + JPEG)."""
+async def optimize_single(item_id: str, admin: User = Depends(_admin_dep)):
+    """Optimize the image for a single POI (admin only)."""
     item = await _db_holder.db.heritage_items.find_one({"id": item_id}, {"_id": 0})
     if not item:
         raise HTTPException(status_code=404, detail="Item not found")
@@ -194,8 +206,11 @@ async def optimize_single(item_id: str):
 
 
 @optimization_router.post("/images/optimize-batch")
-async def optimize_batch(request: BatchOptimizeRequest):
-    """Batch optimize POI images. Skips items already optimized."""
+async def optimize_batch(
+    request: BatchOptimizeRequest,
+    admin: User = Depends(_admin_dep),
+):
+    """Batch optimize POI images (admin only). Skips items already optimized."""
     # Find items with images that haven't been optimized yet
     already_optimized = await _db_holder.db.optimized_images.distinct("item_id")
 
@@ -312,8 +327,8 @@ async def optimization_stats():
 # ------------------------------------------------------------------
 
 @optimization_router.post("/images/apply-real/{item_id}")
-async def apply_real_image(item_id: str):
-    """Search for a real photo of this POI (Wikimedia/Unsplash), apply it, then optimize."""
+async def apply_real_image(item_id: str, admin: User = Depends(_admin_dep)):
+    """Search for a real photo of this POI (admin only)."""
     item = await _db_holder.db.heritage_items.find_one({"id": item_id}, {"_id": 0})
     if not item:
         raise HTTPException(status_code=404, detail="Item not found")
@@ -369,8 +384,11 @@ async def apply_real_image(item_id: str):
 
 
 @optimization_router.post("/images/apply-real-batch")
-async def apply_real_batch(request: ApplyRealBatchRequest):
-    """Batch apply real images to POIs that currently use AI-generated or missing photos."""
+async def apply_real_batch(
+    request: ApplyRealBatchRequest,
+    admin: User = Depends(_admin_dep),
+):
+    """Batch apply real images (admin only)."""
     query = {
         "$or": [
             {"image_source": "ai_generated"},
