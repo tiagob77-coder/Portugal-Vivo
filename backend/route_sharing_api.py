@@ -2,7 +2,7 @@
 Route Sharing API - Generate shareable links for smart routes.
 Allows users to save, share, clone, and discover popular routes.
 """
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, HTTPException, Query, Depends, Request
 from pydantic import BaseModel, Field
 from typing import List, Optional, Dict, Any
 from datetime import datetime, timezone
@@ -11,6 +11,7 @@ import uuid
 import logging
 
 from shared_utils import DatabaseHolder
+from models.api_models import User
 
 logger = logging.getLogger(__name__)
 
@@ -19,6 +20,17 @@ route_sharing_router = APIRouter(prefix="/routes-shared", tags=["Route Sharing"]
 _db_holder = DatabaseHolder("route_sharing")
 set_route_sharing_db = _db_holder.set
 _get_db = _db_holder.get
+
+_require_auth = None
+
+
+def set_route_sharing_auth(auth_fn):
+    global _require_auth
+    _require_auth = auth_fn
+
+
+async def _auth_dep(request: Request) -> User:
+    return await _require_auth(request)
 
 
 # Models
@@ -41,11 +53,6 @@ class RouteSaveRequest(BaseModel):
     pois: List[POIItem]
     filters: Optional[Dict[str, Any]] = None
     metrics: Optional[RouteMetrics] = None
-    creator_user_id: Optional[str] = None
-
-
-class RouteCloneRequest(BaseModel):
-    user_id: str
 
 
 def _generate_share_code() -> str:
@@ -54,7 +61,10 @@ def _generate_share_code() -> str:
 
 
 @route_sharing_router.post("/save")
-async def save_shared_route(body: RouteSaveRequest):
+async def save_shared_route(
+    body: RouteSaveRequest,
+    current_user: User = Depends(_auth_dep),
+):
     """Save a generated route for sharing and return a unique share code."""
     share_code = _generate_share_code()
 
@@ -76,7 +86,7 @@ async def save_shared_route(body: RouteSaveRequest):
         },
         "created_at": now,
         "views_count": 0,
-        "creator_user_id": body.creator_user_id,
+        "creator_user_id": current_user.user_id,
     }
 
     try:
@@ -165,8 +175,11 @@ async def get_shared_route_preview(share_code: str):
 
 
 @route_sharing_router.post("/{share_code}/clone")
-async def clone_shared_route(share_code: str, body: RouteCloneRequest):
-    """Clone a shared route into a user's personal saved routes collection."""
+async def clone_shared_route(
+    share_code: str,
+    current_user: User = Depends(_auth_dep),
+):
+    """Clone a shared route into the authenticated user's saved routes."""
     route = await _db_holder.db.shared_routes.find_one(
         {"share_code": share_code}, {"_id": 0}
     )
@@ -178,7 +191,7 @@ async def clone_shared_route(share_code: str, body: RouteCloneRequest):
 
     saved_doc = {
         "id": saved_route_id,
-        "user_id": body.user_id,
+        "user_id": current_user.user_id,
         "route_data": route["route_data"],
         "cloned_from": share_code,
         "created_at": now,

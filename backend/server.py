@@ -282,8 +282,9 @@ set_auth_db(db)
 # ========================
 # HERITAGE ENDPOINTS (extracted to heritage_api.py)
 # ========================
-from heritage_api import heritage_router, set_heritage_db
+from heritage_api import heritage_router, set_heritage_db, set_heritage_admin
 set_heritage_db(db)
+set_heritage_admin(require_admin)
 
 
 
@@ -322,8 +323,9 @@ set_community_auth(require_auth)
 # ========================
 # ADMIN DASHBOARD + GALLERY + SHARE + STATS (extracted to admin_dashboard_api.py)
 # ========================
-from admin_dashboard_api import router as admin_dashboard_router, set_admin_dashboard_db
+from admin_dashboard_api import router as admin_dashboard_router, set_admin_dashboard_db, set_admin_dashboard_admin
 set_admin_dashboard_db(db)
+set_admin_dashboard_admin(require_admin)
 
 
 
@@ -423,8 +425,9 @@ async def health():
     }
 
 # Include Excel Importer router
-from excel_importer_api import importer_router, set_importer_db
+from excel_importer_api import importer_router, set_importer_db, set_importer_admin
 set_importer_db(db)
+set_importer_admin(require_admin)
 api_router.include_router(importer_router)
 
 # Include Smart Route Generator router
@@ -448,8 +451,9 @@ set_poi_dia_db(db)
 api_router.include_router(poi_dia_router)
 
 # Include Gamification router
-from gamification_api import gamification_router, set_gamification_db
+from gamification_api import gamification_router, set_gamification_db, set_gamification_auth
 set_gamification_db(db)
+set_gamification_auth(require_auth)
 api_router.include_router(gamification_router)
 
 # Include Trails router
@@ -554,8 +558,9 @@ set_notifications_auth(require_auth)
 api_router.include_router(notifications_router)
 
 # Encyclopedia (extracted from server.py)
-from encyclopedia_api import encyclopedia_router, set_encyclopedia_db, seed_encyclopedia_if_empty
+from encyclopedia_api import encyclopedia_router, set_encyclopedia_db, seed_encyclopedia_if_empty, set_encyclopedia_admin
 set_encyclopedia_db(db)
+set_encyclopedia_admin(require_admin)
 api_router.include_router(encyclopedia_router)
 
 # Mobility - expanded (extracted from server.py)
@@ -588,8 +593,9 @@ set_seo_db(db)
 api_router.include_router(seo_router)
 
 # Streaks & Active Gamification (P4)
-from streaks_api import streaks_router, set_streaks_db
+from streaks_api import streaks_router, set_streaks_db, set_streaks_auth
 set_streaks_db(db)
+set_streaks_auth(require_auth)
 api_router.include_router(streaks_router)
 
 # Explore Nearby - Proximity-based POI discovery (P4)
@@ -598,13 +604,15 @@ set_explore_nearby_db(db)
 api_router.include_router(explore_nearby_router)
 
 # Route Sharing - Shareable route links (P4)
-from route_sharing_api import route_sharing_router, set_route_sharing_db
+from route_sharing_api import route_sharing_router, set_route_sharing_db, set_route_sharing_auth
 set_route_sharing_db(db)
+set_route_sharing_auth(require_auth)
 api_router.include_router(route_sharing_router)
 
 # Smart Notifications - Proximity + Events (P4)
-from smart_notifications_api import smart_notifications_router, set_smart_notifications_db
+from smart_notifications_api import smart_notifications_router, set_smart_notifications_db, set_smart_notifications_auth
 set_smart_notifications_db(db)
+set_smart_notifications_auth(require_auth)
 api_router.include_router(smart_notifications_router)
 
 # Offline Region Packages (P4)
@@ -707,8 +715,9 @@ set_content_strategy_llm_key(EMERGENT_LLM_KEY)
 api_router.include_router(content_strategy_router)
 
 # Regional Historical Timeline
-from timeline_api import timeline_router, set_timeline_db
+from timeline_api import timeline_router, set_timeline_db, set_timeline_admin
 set_timeline_db(db)
+set_timeline_admin(require_admin)
 api_router.include_router(timeline_router)
 
 # AI Toolkit for Cultural Agents (draft → enrich → review → publish)
@@ -766,8 +775,9 @@ api_router.include_router(missions_router)
 logger.info("🌱 Editorial systems registered: health, partner, seasonal, contributions, missions")
 
 # ── Community Encounters (artesãos, músicos, pescadores, …) ──────────────────
-from community_encounters_api import router as encounters_router, set_encounters_db
+from community_encounters_api import router as encounters_router, set_encounters_db, set_encounters_auth
 set_encounters_db(db)
+set_encounters_auth(require_auth, require_admin)
 api_router.include_router(encounters_router)
 
 # ── Map Layers — Dynamic layer configuration ──────────────────────────────────
@@ -816,9 +826,11 @@ from marine_biodiversity_api import (
     marine_biodiversity_router,
     set_marine_biodiversity_db,
     set_marine_biodiversity_llm_key,
+    set_marine_biodiversity_auth,
 )
 set_marine_biodiversity_db(db)
 set_marine_biodiversity_llm_key(EMERGENT_LLM_KEY)
+set_marine_biodiversity_auth(require_auth)
 api_router.include_router(marine_biodiversity_router)
 
 # ── Infrastructure API ────────────────────────────────────────────────────────
@@ -964,7 +976,8 @@ logger.info("🏗️ Multi-tenant middleware and admin routes registered")
 # IQ ENGINE SETUP
 # ========================
 
-from iq_engine_api import iq_router
+from iq_engine_api import iq_router, set_iq_engine_admin
+set_iq_engine_admin(require_admin)
 from iq_engine_base import get_iq_engine
 from iq_module_m1_semantic import SemanticValidationModule
 from iq_module_m2_cognitive import CognitiveInferenceModule

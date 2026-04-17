@@ -1,13 +1,13 @@
 """
 Encyclopedia API - Encyclopedia Viva endpoints extracted from server.py.
 """
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends, Request
 from typing import Optional
 from datetime import datetime, timezone
 import uuid
 
 import logging
-from models.api_models import EncyclopediaArticleCreate
+from models.api_models import EncyclopediaArticleCreate, User
 from shared_constants import ENCYCLOPEDIA_UNIVERSES, SUBCATEGORIES_BY_MAIN, sanitize_regex
 from shared_utils import DatabaseHolder, clamp_pagination
 
@@ -17,6 +17,17 @@ encyclopedia_router = APIRouter()
 
 _db_holder = DatabaseHolder("encyclopedia")
 set_encyclopedia_db = _db_holder.set
+
+_require_admin = None
+
+
+def set_encyclopedia_admin(admin_fn):
+    global _require_admin
+    _require_admin = admin_fn
+
+
+async def _admin_dep(request: Request) -> User:
+    return await _require_admin(request)
 
 
 async def seed_encyclopedia_if_empty(database):
@@ -230,8 +241,11 @@ async def get_encyclopedia_article(article_id: str):
 
 
 @encyclopedia_router.post("/encyclopedia/articles")
-async def create_encyclopedia_article(article: EncyclopediaArticleCreate):
-    """Create a new encyclopedia article (admin only for now)"""
+async def create_encyclopedia_article(
+    article: EncyclopediaArticleCreate,
+    admin: User = Depends(_admin_dep),
+):
+    """Create a new encyclopedia article (admin only)."""
     if article.universe not in [u["id"] for u in ENCYCLOPEDIA_UNIVERSES]:
         raise HTTPException(status_code=400, detail="Invalid universe")
 

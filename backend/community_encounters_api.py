@@ -2,7 +2,7 @@
 Community Encounters API
 Artesãos, músicos, pescadores, agricultores — experiências de contacto real com comunidades locais.
 """
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, HTTPException, Query, Depends, Request
 from pydantic import BaseModel, Field
 from typing import Optional, List
 from datetime import datetime, timezone
@@ -10,6 +10,7 @@ import uuid
 import logging
 
 from shared_utils import DatabaseHolder
+from models.api_models import User
 
 logger = logging.getLogger(__name__)
 
@@ -17,6 +18,23 @@ router = APIRouter(prefix="/encounters", tags=["Community Encounters"])
 
 _db_holder = DatabaseHolder("encounters")
 set_encounters_db = _db_holder.set
+
+_require_auth = None
+_require_admin = None
+
+
+def set_encounters_auth(auth_fn, admin_fn):
+    global _require_auth, _require_admin
+    _require_auth = auth_fn
+    _require_admin = admin_fn
+
+
+async def _auth_dep(request: Request) -> User:
+    return await _require_auth(request)
+
+
+async def _admin_dep(request: Request) -> User:
+    return await _require_admin(request)
 
 ENCOUNTER_TYPES = [
     "artesao", "musico", "pescador", "agricultor",
@@ -107,7 +125,10 @@ async def get_encounter(encounter_id: str):
 
 
 @router.post("", summary="Registar novo encontro (pendente aprovação)")
-async def create_encounter(data: EncounterCreate):
+async def create_encounter(
+    data: EncounterCreate,
+    current_user: User = Depends(_auth_dep),
+):
     db = _db_holder.db
     if data.encounter_type not in ENCOUNTER_TYPES:
         raise HTTPException(status_code=400, detail=f"Tipo inválido. Opções: {ENCOUNTER_TYPES}")
@@ -115,6 +136,7 @@ async def create_encounter(data: EncounterCreate):
         "id": str(uuid.uuid4()),
         **data.dict(),
         "approved": False,
+        "submitted_by": current_user.user_id,
         "type_label": TYPE_LABELS.get(data.encounter_type, data.encounter_type),
         "type_icon": TYPE_ICONS.get(data.encounter_type, "person"),
         "created_at": datetime.now(timezone.utc).isoformat(),
@@ -125,11 +147,18 @@ async def create_encounter(data: EncounterCreate):
 
 
 @router.patch("/{encounter_id}/approve", summary="Aprovar encontro (admin)")
-async def approve_encounter(encounter_id: str):
+async def approve_encounter(
+    encounter_id: str,
+    admin: User = Depends(_admin_dep),
+):
     db = _db_holder.db
     result = await db.community_encounters.update_one(
         {"id": encounter_id},
-        {"$set": {"approved": True, "approved_at": datetime.now(timezone.utc).isoformat()}}
+        {"$set": {
+            "approved": True,
+            "approved_at": datetime.now(timezone.utc).isoformat(),
+            "approved_by": admin.user_id,
+        }}
     )
     if result.matched_count == 0:
         raise HTTPException(status_code=404, detail="Encontro não encontrado")

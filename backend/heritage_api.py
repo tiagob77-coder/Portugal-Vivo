@@ -1,11 +1,11 @@
 """
 Heritage API - Heritage CRUD and map endpoints extracted from server.py.
 """
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends, Request
 from fastapi import Response
 from typing import List, Optional
 
-from models.api_models import HeritageItem, AccessibilityInfo
+from models.api_models import HeritageItem, AccessibilityInfo, User
 from shared_constants import CATEGORIES, REGIONS, MAIN_CATEGORIES, SUBCATEGORIES, SUBCATEGORIES_BY_MAIN, SUBCATEGORY_MAP, MAIN_CATEGORY_MAP, sanitize_regex
 from shared_utils import DatabaseHolder, clamp_pagination
 
@@ -13,6 +13,17 @@ heritage_router = APIRouter()
 
 _db_holder = DatabaseHolder("heritage")
 set_heritage_db = _db_holder.set
+
+_require_admin = None
+
+
+def set_heritage_admin(admin_fn):
+    global _require_admin
+    _require_admin = admin_fn
+
+
+async def _admin_dep(request: Request) -> User:
+    return await _require_admin(request)
 
 # Backward compatibility: old category IDs -> new v19 category IDs
 CATEGORY_ALIASES = {
@@ -469,8 +480,9 @@ async def get_accessible_heritage(
 async def update_item_accessibility(
     item_id: str,
     accessibility: AccessibilityInfo,
+    admin: User = Depends(_admin_dep),
 ):
-    """Update accessibility information for an item"""
+    """Update accessibility information for an item (admin only)."""
     result = await _db_holder.db["heritage_items"].update_one(
         {"id": item_id},
         {"$set": {"accessibility": accessibility.dict()}}

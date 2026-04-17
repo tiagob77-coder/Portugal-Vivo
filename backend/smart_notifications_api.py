@@ -2,7 +2,7 @@
 Smart Notifications API - Contextual notifications based on proximity and regional events.
 Sends proximity alerts, event reminders, and personalized weekly digests.
 """
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends, Request
 from pydantic import BaseModel, Field
 from typing import Optional, List
 from datetime import datetime, timezone, timedelta
@@ -10,12 +10,24 @@ from math import radians, cos
 import logging
 
 from shared_utils import DatabaseHolder, haversine_km
+from models.api_models import User
 
 logger = logging.getLogger(__name__)
 
 _db_holder = DatabaseHolder("smart_notifications")
 set_smart_notifications_db = _db_holder.set
 _get_db = _db_holder.get
+
+_require_auth = None
+
+
+def set_smart_notifications_auth(auth_fn):
+    global _require_auth
+    _require_auth = auth_fn
+
+
+async def _auth_dep(request: Request) -> User:
+    return await _require_auth(request)
 
 smart_notifications_router = APIRouter(
     prefix="/notifications/smart", tags=["Notificações"]
@@ -42,7 +54,6 @@ class CheckEventsRequest(BaseModel):
 
 
 class NotificationPreferencesBody(BaseModel):
-    user_id: str
     proximity_enabled: bool = True
     events_enabled: bool = True
     digest_enabled: bool = True
@@ -311,8 +322,11 @@ async def get_weekly_digest(user_id: str):
 
 
 @smart_notifications_router.post("/preferences")
-async def set_preferences(body: NotificationPreferencesBody):
-    """Set notification preferences for a user."""
+async def set_preferences(
+    body: NotificationPreferencesBody,
+    current_user: User = Depends(_auth_dep),
+):
+    """Set notification preferences for the authenticated user."""
     db = _get_db()
 
     # Validate regions
@@ -325,7 +339,7 @@ async def set_preferences(body: NotificationPreferencesBody):
         )
 
     doc = {
-        "user_id": body.user_id,
+        "user_id": current_user.user_id,
         "proximity_enabled": body.proximity_enabled,
         "events_enabled": body.events_enabled,
         "digest_enabled": body.digest_enabled,
@@ -336,7 +350,7 @@ async def set_preferences(body: NotificationPreferencesBody):
     }
 
     await db.notification_preferences.update_one(
-        {"user_id": body.user_id},
+        {"user_id": current_user.user_id},
         {"$set": doc},
         upsert=True,
     )

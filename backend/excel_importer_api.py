@@ -10,7 +10,7 @@ from typing import Optional, List, Dict, Any
 from io import BytesIO
 
 import pandas as pd
-from fastapi import APIRouter, HTTPException, UploadFile, File, Form, BackgroundTasks, Query
+from fastapi import APIRouter, HTTPException, UploadFile, File, Form, BackgroundTasks, Query, Depends, Request
 from pydantic import BaseModel
 
 logger = logging.getLogger("excel_importer")
@@ -18,10 +18,22 @@ logger = logging.getLogger("excel_importer")
 importer_router = APIRouter(prefix="/importer", tags=["Excel Importer"])
 
 from shared_utils import DatabaseHolder
+from models.api_models import User
 
 _db_holder = DatabaseHolder("excel_importer")
 set_importer_db = _db_holder.set
 _get_db = _db_holder.get
+
+_require_admin = None
+
+
+def set_importer_admin(admin_fn):
+    global _require_admin
+    _require_admin = admin_fn
+
+
+async def _admin_dep(request: Request) -> User:
+    return await _require_admin(request)
 
 # ============================================
 # Column mapping presets for common Excel formats
@@ -141,6 +153,7 @@ _import_progress: Dict[str, Dict] = {}
 async def preview_excel(
     file: UploadFile = File(...),
     sheet_name: Optional[str] = Form(None),
+    admin: User = Depends(_admin_dep),
 ):
     """
     Preview an Excel/CSV file before importing.
@@ -195,6 +208,7 @@ async def upload_and_import(
     sheet_name: Optional[str] = Form(None),
     skip_duplicates: bool = Form(True),
     background_tasks: BackgroundTasks = None,
+    admin: User = Depends(_admin_dep),
 ):
     """
     Upload and import an Excel/CSV file into the database.
@@ -376,6 +390,7 @@ async def batch_iq_process(
     import_id: str,
     background_tasks: BackgroundTasks,
     limit: int = Query(default=50, le=500),
+    admin: User = Depends(_admin_dep),
 ):
     """
     Run IQ Engine batch processing on recently imported POIs.
@@ -509,6 +524,7 @@ async def get_import_progress(import_id: str):
 async def batch_iq_all(
     background_tasks: BackgroundTasks,
     limit: int = Query(default=100, le=500),
+    admin: User = Depends(_admin_dep),
 ):
     """
     Process ALL pending POIs through IQ Engine (those without iq_status=completed).
@@ -588,8 +604,8 @@ async def get_import_stats():
 
 
 @importer_router.post("/generate-sample")
-async def generate_sample_csv():
-    """Generate a sample CSV template for import"""
+async def generate_sample_csv(admin: User = Depends(_admin_dep)):
+    """Generate a sample CSV template for import (admin only)."""
     import csv
     from io import StringIO
     from fastapi.responses import StreamingResponse

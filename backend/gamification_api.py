@@ -4,17 +4,29 @@ Sistema de check-in por proximidade GPS com badges e progressão.
 """
 import uuid
 from datetime import datetime, timezone
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, HTTPException, Query, Depends, Request
 from pydantic import BaseModel, Field
 from typing import Optional
 from shared_constants import GAMIFICATION_BADGES
 from shared_utils import haversine_meters, DatabaseHolder
+from models.api_models import User
 
 gamification_router = APIRouter(prefix="/gamification", tags=["Gamificação"])
 
 _db_holder = DatabaseHolder("gamification")
 set_gamification_db = _db_holder.set
 _get_db = _db_holder.get
+
+_require_auth = None
+
+
+def set_gamification_auth(auth_fn):
+    global _require_auth
+    _require_auth = auth_fn
+
+
+async def _auth_dep(request: Request) -> User:
+    return await _require_auth(request)
 
 
 
@@ -26,7 +38,6 @@ class CheckInRequest(BaseModel):
     user_lat: float = Field(..., ge=-90, le=90)
     user_lng: float = Field(..., ge=-180, le=180)
     poi_id: str = Field(..., min_length=1, max_length=100)
-    user_id: Optional[str] = Field(None, max_length=100)
 
 
 @gamification_router.get("/badges")
@@ -108,8 +119,8 @@ async def get_gamification_profile(user_id: str):
 
 
 @gamification_router.post("/checkin")
-async def do_checkin(req: CheckInRequest):
-    """Check in to a POI by proximity (within 500m)"""
+async def do_checkin(req: CheckInRequest, current_user: User = Depends(_auth_dep)):
+    """Check in to a POI by proximity (within 500m). Authenticated users only."""
     db = _get_db()
 
     # Get POI
@@ -134,7 +145,7 @@ async def do_checkin(req: CheckInRequest):
             "required_m": CHECK_IN_RADIUS_METERS,
         }
 
-    user_id = req.user_id or f"anon_{uuid.uuid4().hex[:8]}"
+    user_id = current_user.user_id
 
     # Check for duplicate check-in today
     today_start = datetime.now(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0)

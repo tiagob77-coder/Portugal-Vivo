@@ -1,18 +1,29 @@
-from fastapi import APIRouter, Response, HTTPException, Body, Query
+from fastapi import APIRouter, Response, HTTPException, Body, Query, Depends, Request
 from datetime import datetime, timezone, timedelta
 from typing import Optional, List
 import math
 
 from shared_constants import CATEGORIES, REGIONS
+from models.api_models import User
 
 router = APIRouter()
 
 _db = None
+_require_admin = None
 
 
 def set_admin_dashboard_db(database):
     global _db
     _db = database
+
+
+def set_admin_dashboard_admin(admin_fn):
+    global _require_admin
+    _require_admin = admin_fn
+
+
+async def _admin_dep(request: Request) -> User:
+    return await _require_admin(request)
 
 
 @router.get("/gallery/{category}")
@@ -222,8 +233,9 @@ async def admin_list_uploads(
 async def moderate_upload(
     image_id: str,
     body: dict = Body(...),
+    admin: User = Depends(_admin_dep),
 ):
-    """Approve, reject, or delete a user-uploaded image."""
+    """Approve, reject, or delete a user-uploaded image (admin only)."""
     action = body.get("action")
     if action not in ("approve", "reject", "delete"):
         raise HTTPException(status_code=400, detail="Ação inválida. Use: approve, reject, delete")
