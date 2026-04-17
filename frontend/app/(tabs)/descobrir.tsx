@@ -17,8 +17,9 @@ import {
   getDiscoveryFeed, getTrendingItems, getEncyclopediaUniverses,
   getPOIDoDia, DiscoveryFeedItem, TrendingItem, EncyclopediaUniverse,
   getWeatherForecast, getWeatherAlerts, getSafetyCheck, getActiveFires, getAllSpotsConditions,
-  getSurprisePOI,
+  getSurprisePOI, getHojeFeed,
 } from '../../src/services/api';
+import HojeEmPortugalCard, { HojeData } from '../../src/components/HojeEmPortugalCard';
 import { API_BASE } from '../../src/config/api';
 import { typography, shadows, regionImages } from '../../src/theme';
 import { useTheme } from '../../src/context/ThemeContext';
@@ -138,6 +139,11 @@ export default function DescobrerTab() {
   const { data: safetyData } = useQuery({ queryKey: ['safety-check', 38.7223, -9.1393], queryFn: () => getSafetyCheck(38.7223, -9.1393), staleTime: 10 * 60 * 1000 });
   const { data: firesData } = useQuery({ queryKey: ['active-fires'], queryFn: () => getActiveFires(), staleTime: 5 * 60 * 1000 });
   const { data: surfData } = useQuery({ queryKey: ['surf-all'], queryFn: getAllSpotsConditions, staleTime: 5 * 60 * 1000 });
+  const { data: hojeData, isLoading: hojeLoading } = useQuery<HojeData>({
+    queryKey: ['hoje-feed'],
+    queryFn: () => getHojeFeed(),
+    staleTime: 6 * 60 * 60 * 1000,
+  });
 
   const [surprisePOI, setSurprisePOI] = useState<any>(null);
   const [surpriseLoading, setSurpriseLoading] = useState(false);
@@ -578,6 +584,13 @@ export default function DescobrerTab() {
             )}
           </TouchableOpacity>
         </View>
+
+        {/* Hoje em Portugal */}
+        <HojeEmPortugalCard
+          data={hojeData}
+          loading={hojeLoading}
+          accentColor={colors.primary}
+        />
 
         {/* POI do Dia */}
         {poiDoDia?.has_poi && (
