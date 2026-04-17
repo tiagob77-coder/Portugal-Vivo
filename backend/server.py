@@ -554,7 +554,7 @@ api_router.include_router(search_router)
 # Notifications (extracted from server.py)
 from notifications_api import notifications_router, set_notifications_db, set_notifications_auth
 set_notifications_db(db)
-set_notifications_auth(require_auth)
+set_notifications_auth(require_auth, require_admin)
 api_router.include_router(notifications_router)
 
 # Encyclopedia (extracted from server.py)
@@ -573,8 +573,9 @@ set_image_auth(require_auth, require_admin)
 api_router.include_router(image_router)
 
 # Image Optimization Pipeline (WebP variants, compression, real image apply)
-from image_optimization_api import optimization_router, set_optimization_db
+from image_optimization_api import optimization_router, set_optimization_db, set_optimization_admin
 set_optimization_db(db)
+set_optimization_admin(require_admin)
 api_router.include_router(optimization_router)
 
 # Newsletter Backend (P3 - replaces MOCKED frontend-only)
@@ -657,8 +658,9 @@ api_router.include_router(audio_guide_router)
 api_router.include_router(marine_surf_router)
 
 # Translation - Multi-language POI translations
-from translation_api import translation_router, set_translation_db
+from translation_api import translation_router, set_translation_db, set_translation_admin
 set_translation_db(db)
+set_translation_admin(require_admin)
 api_router.include_router(translation_router)
 
 # Analytics Dashboard
@@ -909,9 +911,11 @@ from narrative_layer_api import (
     narrative_layer_router,
     set_narrative_layer_db,
     set_narrative_layer_llm_key,
+    set_narrative_layer_admin,
 )
 set_narrative_layer_db(db)
 set_narrative_layer_llm_key(EMERGENT_LLM_KEY)
+set_narrative_layer_admin(require_admin)
 api_router.include_router(narrative_layer_router)
 logger.info("📖  Narrative Layer Global registered")
 

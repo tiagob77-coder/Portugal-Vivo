@@ -22,12 +22,15 @@ from datetime import datetime, timezone, timedelta
 from typing import Any, Optional
 
 import httpx
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, HTTPException, Query, Depends, Request
 from pydantic import BaseModel, Field
+
+from models.api_models import User
 
 narrative_layer_router = APIRouter(prefix="/narrative-layer", tags=["Narrative Layer"])
 _db = None
 _llm_key: Optional[str] = None
+_require_admin = None
 
 LLM_URL = "https://llm.lil.re.emergentmethods.ai/v1/chat/completions"
 MODEL = "gpt-4o-mini"
@@ -43,6 +46,15 @@ def set_narrative_layer_db(database) -> None:
 def set_narrative_layer_llm_key(key: Optional[str]) -> None:
     global _llm_key
     _llm_key = key
+
+
+def set_narrative_layer_admin(admin_fn) -> None:
+    global _require_admin
+    _require_admin = admin_fn
+
+
+async def _admin_dep(request: Request) -> User:
+    return await _require_admin(request)
 
 
 # ─── Personas + tones ─────────────────────────────────────────────────────────
@@ -366,8 +378,11 @@ async def get_narrative(
 
 
 @narrative_layer_router.post("/invalidate", summary="Force regeneration on next request")
-async def invalidate_narrative(req: NarrativeRequest):
-    """Deletes cached narrative; next /generate call will hit the LLM."""
+async def invalidate_narrative(
+    req: NarrativeRequest,
+    admin: User = Depends(_admin_dep),
+):
+    """Deletes cached narrative (admin only); next /generate call will hit the LLM."""
     if _db is None:
         return {"deleted": 0}
     key = _cache_key(req)

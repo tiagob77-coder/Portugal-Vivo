@@ -18,15 +18,22 @@ notifications_router = APIRouter()
 _db_holder = DatabaseHolder("notifications")
 set_notifications_db = _db_holder.set
 _require_auth = None
+_require_admin = None
 
 
-def set_notifications_auth(require_auth_func):
-    global _require_auth
+def set_notifications_auth(require_auth_func, require_admin_func=None):
+    global _require_auth, _require_admin
     _require_auth = require_auth_func
+    if require_admin_func is not None:
+        _require_admin = require_admin_func
 
 
 async def _auth_dep(request: Request):
     return await _require_auth(request)
+
+
+async def _admin_dep(request: Request):
+    return await _require_admin(request)
 
 
 class PushTokenRegister(BaseModel):
@@ -142,8 +149,8 @@ async def send_push_notification(token: str, title: str, body: str, data: dict =
 
 
 @notifications_router.post("/notifications/send-poi-do-dia")
-async def trigger_poi_do_dia_notification():
-    """Trigger POI do Dia push notification to all active tokens"""
+async def trigger_poi_do_dia_notification(admin: User = Depends(_admin_dep)):
+    """Trigger POI do Dia push notification to all active tokens (admin only)."""
     poi = await _db_holder.db.heritage_items.find_one(
         {}, {"_id": 0, "id": 1, "name": 1, "category": 1, "region": 1},
         sort=[("iq_score", -1)]
@@ -175,8 +182,13 @@ async def trigger_poi_do_dia_notification():
 
 
 @notifications_router.post("/notifications/send-safety-alert")
-async def trigger_safety_alert(region: str, alert_type: str = "fire", message: str = ""):
-    """Send safety alert to users in a specific region"""
+async def trigger_safety_alert(
+    region: str,
+    alert_type: str = "fire",
+    message: str = "",
+    admin: User = Depends(_admin_dep),
+):
+    """Send safety alert to users in a specific region (admin only)."""
     prefs = await _db_holder.db.user_preferences.find(
         {"favorite_regions": region}, {"_id": 0, "user_id": 1}
     ).to_list(500)

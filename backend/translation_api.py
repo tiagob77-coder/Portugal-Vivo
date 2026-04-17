@@ -1,18 +1,30 @@
 """
 Translation API - Multi-language POI translation endpoints.
 """
-from fastapi import APIRouter, HTTPException, Request
+from fastapi import APIRouter, HTTPException, Request, Depends
 from typing import List, Optional
 from datetime import datetime, timezone
 from pydantic import BaseModel, Field
 
 from shared_utils import DatabaseHolder, clamp_pagination
 from services.translation_service import TranslationService, SUPPORTED_LANGUAGES
+from models.api_models import User
 
 translation_router = APIRouter()
 
 _db_holder = DatabaseHolder("translation")
 set_translation_db = _db_holder.set
+
+_require_admin = None
+
+
+def set_translation_admin(admin_fn):
+    global _require_admin
+    _require_admin = admin_fn
+
+
+async def _admin_dep(request: Request) -> User:
+    return await _require_admin(request)
 
 
 def _get_service() -> TranslationService:
@@ -67,8 +79,12 @@ async def get_translation(item_id: str, language: str):
 
 
 @translation_router.post("/translations/translate/{item_id}")
-async def translate_poi(item_id: str, body: TranslateRequest):
-    """Translate a POI to specified languages."""
+async def translate_poi(
+    item_id: str,
+    body: TranslateRequest,
+    admin: User = Depends(_admin_dep),
+):
+    """Translate a POI to specified languages (admin only)."""
     # Validate languages
     invalid = [lang for lang in body.languages if lang not in SUPPORTED_LANGUAGES]
     if invalid:
@@ -83,8 +99,11 @@ async def translate_poi(item_id: str, body: TranslateRequest):
 
 
 @translation_router.post("/translations/batch-translate")
-async def batch_translate(body: BatchTranslateRequest):
-    """Batch translate multiple POIs."""
+async def batch_translate(
+    body: BatchTranslateRequest,
+    admin: User = Depends(_admin_dep),
+):
+    """Batch translate multiple POIs (admin only)."""
     invalid = [lang for lang in body.languages if lang not in SUPPORTED_LANGUAGES]
     if invalid:
         raise HTTPException(400, f"Unsupported languages: {', '.join(invalid)}. Supported: {', '.join(SUPPORTED_LANGUAGES)}")
@@ -284,8 +303,13 @@ async def get_localized_heritage(item_id: str, request: Request, lang: Optional[
 
 
 @translation_router.patch("/translations/{item_id}/{language}")
-async def update_translation(item_id: str, language: str, body: ManualTranslationUpdate):
-    """Manually update/override a translation (for quality corrections)."""
+async def update_translation(
+    item_id: str,
+    language: str,
+    body: ManualTranslationUpdate,
+    admin: User = Depends(_admin_dep),
+):
+    """Manually update/override a translation (admin only)."""
     if language not in SUPPORTED_LANGUAGES:
         raise HTTPException(400, f"Unsupported language: {language}. Supported: {', '.join(SUPPORTED_LANGUAGES)}")
 
