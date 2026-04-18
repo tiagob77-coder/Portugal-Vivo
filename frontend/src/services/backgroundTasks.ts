@@ -39,20 +39,21 @@ async function runWebProximityCheck(): Promise<void> {
   navigator.geolocation.getCurrentPosition(async (pos) => {
     const { latitude, longitude } = pos.coords;
     const sessionToken = await AsyncStorage.getItem('session_token');
-    const userId = await AsyncStorage.getItem('user_id');
+
+    // Proximity check now requires auth — skip when user is not logged in.
+    if (!sessionToken) return;
 
     try {
       const response = await fetch(`${API_BASE}/notifications/smart/check-nearby`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          ...(sessionToken ? { Authorization: `Bearer ${sessionToken}` } : {}),
+          Authorization: `Bearer ${sessionToken}`,
         },
         body: JSON.stringify({
           lat: latitude,
           lng: longitude,
           radius_km: PROXIMITY_RADIUS_KM,
-          user_id: userId,
         }),
       });
 

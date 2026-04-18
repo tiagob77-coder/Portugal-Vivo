@@ -414,9 +414,9 @@ async def get_item_detail(item_id: str):
 # --- AI Narrative ---
 
 class NarrativeRequest(BaseModel):
-    item_id: str
-    style: str = Field(default="cultural", description="cultural | children | academic | tourism")
-    language: str = Field(default="pt", description="pt | en | es | fr")
+    item_id: str = Field(..., min_length=1, max_length=128)
+    style: str = Field(default="cultural", min_length=1, max_length=32, description="cultural | children | academic | tourism")
+    language: str = Field(default="pt", min_length=2, max_length=8, description="pt | en | es | fr")
 
 
 @music_router.post("/narrative")

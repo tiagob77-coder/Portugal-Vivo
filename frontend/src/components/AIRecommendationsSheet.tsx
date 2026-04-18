@@ -11,6 +11,7 @@ import OptimizedImage from './OptimizedImage';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useQuery } from '@tanstack/react-query';
 import api from '../services/api';
+import { useAuth } from '../context/AuthContext';
 
 // ========================
 // TYPES
@@ -174,6 +175,7 @@ export default function AIRecommendationsSheet({
 }: AIRecommendationsSheetProps) {
   const [activeInterests, setActiveInterests] = useState<InterestId[]>([]);
   const [radiusExtra, setRadiusExtra] = useState(0);
+  const { isAuthenticated } = useAuth();
 
   const radius = BASE_RADIUS + radiusExtra;
 
@@ -189,7 +191,7 @@ export default function AIRecommendationsSheet({
           limit: 10,
         })
         .then((r) => r.data),
-    enabled: visible && !!lat && !!lng,
+    enabled: visible && !!lat && !!lng && isAuthenticated,
   });
 
   if (!visible) return null;
@@ -259,7 +261,15 @@ export default function AIRecommendationsSheet({
         contentContainerStyle={styles.listContent}
         showsVerticalScrollIndicator={false}
       >
-        {isLoading ? (
+        {!isAuthenticated ? (
+          <View style={styles.emptyState}>
+            <MaterialIcons name="lock-outline" size={36} color={C.textMuted} />
+            <Text style={styles.emptyTitle}>Inicia sessão</Text>
+            <Text style={styles.emptyText}>
+              As recomendações IA requerem conta para personalizar o teu perfil.
+            </Text>
+          </View>
+        ) : isLoading ? (
           <LoadingSkeleton />
         ) : recommendations.length === 0 ? (
           <View style={styles.emptyState}>

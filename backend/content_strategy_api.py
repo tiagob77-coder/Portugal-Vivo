@@ -28,6 +28,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, Field
 
 from auth_api import get_current_user, require_auth
+from shared_constants import sanitize_regex
 from shared_utils import DatabaseHolder
 
 logger = logging.getLogger(__name__)
@@ -633,7 +634,7 @@ async def get_seasonal_content(
     cats = MONTH_BOOSTS.get(month, ["museus", "percursos_pedestres"])
     query: Dict = {"category": {"$in": cats}}
     if region:
-        query["region"] = {"$regex": region, "$options": "i"}
+        query["region"] = {"$regex": sanitize_regex(region[:64]), "$options": "i"}
 
     pois = await db.heritage_items.find(
         query,
