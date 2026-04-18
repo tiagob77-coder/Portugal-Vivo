@@ -235,6 +235,66 @@ async def create_all_indexes(db):
     await db.narratives.create_index([("title", "text"), ("summary", "text"), ("story_text", "text")])
     logger.info("  narratives: 7 indexes created")
 
+    # --- events (agenda / discover / smart notifications) ---
+    await db.events.create_index("id", unique=True, sparse=True, name="idx_events_id")
+    await db.events.create_index("region", sparse=True, name="idx_events_region")
+    await db.events.create_index("month", sparse=True, name="idx_events_month")
+    await db.events.create_index(
+        [("month", 1), ("region", 1)], sparse=True, name="idx_events_month_region"
+    )
+    await db.events.create_index("date_start", sparse=True, name="idx_events_date_start")
+    await db.events.create_index("type", sparse=True, name="idx_events_type")
+    await db.events.create_index(
+        "municipality_id", sparse=True, name="idx_events_muni"
+    )
+    await db.events.create_index(
+        [("location.lat", 1), ("location.lng", 1)],
+        sparse=True,
+        name="idx_events_location",
+    )
+    logger.info("  events: 8 indexes created")
+
+    # --- maritime_events (maritime culture narratives) ---
+    await db.maritime_events.create_index("id", unique=True, sparse=True, name="idx_maritime_id")
+    await db.maritime_events.create_index("region", sparse=True, name="idx_maritime_region")
+    await db.maritime_events.create_index(
+        [("location.lat", 1), ("location.lng", 1)],
+        sparse=True,
+        name="idx_maritime_location",
+    )
+    logger.info("  maritime_events: 3 indexes created")
+
+    # --- cultural_routes (cultural routes hub) ---
+    await db.cultural_routes.create_index("id", unique=True, sparse=True, name="idx_cultural_routes_id")
+    await db.cultural_routes.create_index("region", sparse=True, name="idx_cultural_routes_region")
+    await db.cultural_routes.create_index("family", sparse=True, name="idx_cultural_routes_family")
+    await db.cultural_routes.create_index(
+        [("family", 1), ("region", 1)],
+        sparse=True,
+        name="idx_cultural_routes_family_region",
+    )
+    logger.info("  cultural_routes: 4 indexes created")
+
+    # --- streaks (gamification daily streak) ---
+    await db.streaks.create_index("user_id", unique=True, name="idx_streaks_user")
+    logger.info("  streaks: 1 index created")
+
+    # --- notification_log (dedup for proximity pushes, TTL 30d) ---
+    await db.notification_log.create_index(
+        [("user_id", 1), ("poi_id", 1), ("sent_at", -1)],
+        name="idx_notif_log_user_poi_date",
+    )
+    await db.notification_log.create_index(
+        "sent_at", expireAfterSeconds=2592000, name="idx_notif_log_ttl"
+    )
+    logger.info("  notification_log: 2 indexes created (with TTL 30d)")
+
+    # --- notification_preferences (smart notifications prefs, distinct from notification_prefs) ---
+    await db.notification_preferences.create_index(
+        "user_id", unique=True, name="idx_notif_prefs_smart_user"
+    )
+    logger.info("  notification_preferences: 1 index created")
+
     # --- Total ---
     # heritage_items: 14, users: 2, user_sessions: 3, user_progress: 3,
     # visits: 7, gamification_profiles: 3, checkins: 3, contributions: 5,
@@ -243,9 +303,15 @@ async def create_all_indexes(db):
     # notification_history: 2, push_tokens: 1, notification_prefs: 1,
     # reviews: 6, poi_translations: 3, iq_processing_queue: 2,
     # iq_processing_results: 2, schema_versions: 1,
-    # narrative_cache: 3, narratives: 7
-    total = 14 + 2 + 3 + 3 + 7 + 3 + 3 + 5 + 4 + 1 + 2 + 1 + 2 + 3 + 3 + 2 + 1 + 1 + 6 + 3 + 2 + 2 + 1 + 3 + 7
-    logger.info(f"\nTotal: {total} indexes across 25 collections")
+    # narrative_cache: 3, narratives: 7,
+    # events: 8, maritime_events: 3, cultural_routes: 4, streaks: 1,
+    # notification_log: 2, notification_preferences: 1
+    total = (
+        14 + 2 + 3 + 3 + 7 + 3 + 3 + 5 + 4 + 1 + 2 + 1 + 2 + 3 + 3 + 2
+        + 1 + 1 + 6 + 3 + 2 + 2 + 1 + 3 + 7
+        + 8 + 3 + 4 + 1 + 2 + 1
+    )
+    logger.info(f"\nTotal: {total} indexes across 31 collections")
 
 
 async def create_indexes():
