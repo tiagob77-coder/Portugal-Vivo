@@ -38,6 +38,14 @@ ENDPOINT_LIMITS: Dict[str, Tuple[int, int]] = {
     "/api/orchestrator/context": (20, 60),
     "/api/orchestrator/smart-discover": (10, 60),
     "/api/narratives/": (10, 60),
+    # Music / Cultural / Maritime narratives (LLM)
+    "/api/music/narrative": (8, 60),
+    "/api/maritime-culture/narrative": (8, 60),
+    "/api/cultural-routes/narrative": (8, 60),
+    "/api/cultural-routes/personalize": (5, 60),
+    # Smart notifications (DB-heavy proximity scans)
+    "/api/notifications/smart/check-nearby": (20, 60),
+    "/api/notifications/smart/check-events": (20, 60),
     # Auth (brute-force protection)
     "/api/auth/login": (10, 60),
     "/api/auth/register": (5, 60),
