@@ -931,9 +931,9 @@ async def cultural_routes_stats():
 # ─── AI Narrative ────────────────────────────────────────────────────────────
 
 class CulturalNarrativeRequest(BaseModel):
-    route_id: str
-    style: str = Field(default="cultural", description="cultural | children | academic | tourism | storytelling")
-    language: str = Field(default="pt", description="pt | en | es | fr")
+    route_id: str = Field(..., min_length=1, max_length=128)
+    style: str = Field(default="cultural", min_length=1, max_length=32, description="cultural | children | academic | tourism | storytelling")
+    language: str = Field(default="pt", min_length=2, max_length=8, description="pt | en | es | fr")
 
 
 @cultural_routes_router.post("/narrative")
@@ -1234,14 +1234,16 @@ async def connections_graph(
 
 
 class PersonalizeRequest(BaseModel):
-    route_id: str
+    route_id: str = Field(..., min_length=1, max_length=128)
     traveler_profile: str = Field(
         default="cultural",
+        min_length=1,
+        max_length=32,
         description="aventureiro | gastronomo | cultural | familia | romaria | musica",
     )
     duration_days: Optional[int] = Field(None, ge=1, le=14)
-    mobility: str = Field(default="normal", description="normal | reduced | cycling | walking")
-    language: str = Field(default="pt", description="pt | en | es | fr")
+    mobility: str = Field(default="normal", min_length=1, max_length=32, description="normal | reduced | cycling | walking")
+    language: str = Field(default="pt", min_length=2, max_length=8, description="pt | en | es | fr")
 
 
 @cultural_routes_router.post(

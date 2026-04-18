@@ -178,16 +178,16 @@ def _clean_llm_json(raw: str) -> Optional[dict]:
 # ─── Pydantic models ──────────────────────────────────────────────────────────
 
 class ItineraryRequest(BaseModel):
-    duration: str = Field(..., description="1h | 3h | 1dia | 2dias")
-    theme: str = Field(..., description="familia | foto | natureza | historia | surf | gastronomia")
-    lat: float = Field(..., description="Latitude do centro do itinerário")
-    lng: float = Field(..., description="Longitude do centro do itinerário")
+    duration: str = Field(..., min_length=1, max_length=16, description="1h | 3h | 1dia | 2dias")
+    theme: str = Field(..., min_length=1, max_length=32, description="familia | foto | natureza | historia | surf | gastronomia")
+    lat: float = Field(..., ge=-90, le=90, description="Latitude do centro do itinerário")
+    lng: float = Field(..., ge=-180, le=180, description="Longitude do centro do itinerário")
     radius_km: float = Field(30.0, ge=1.0, le=150.0, description="Raio de busca em km")
 
 
 class EnrichRequest(BaseModel):
-    poi_id: str = Field(..., description="ID do POI na coleção heritage_items")
-    tipo: str = Field("historia", description="historia | lenda | curiosidade | dica_fotografo")
+    poi_id: str = Field(..., min_length=1, max_length=128, description="ID do POI na coleção heritage_items")
+    tipo: str = Field("historia", min_length=1, max_length=32, description="historia | lenda | curiosidade | dica_fotografo")
 
 
 # ─── Endpoints ────────────────────────────────────────────────────────────────
@@ -414,12 +414,12 @@ async def enrich_poi(
 
 
 class RecommendationsRequest(BaseModel):
-    lat: float
-    lng: float
-    interests: List[str] = Field(default_factory=list, description="ex: ['natureza','historia','surf']")
+    lat: float = Field(..., ge=-90, le=90)
+    lng: float = Field(..., ge=-180, le=180)
+    interests: List[str] = Field(default_factory=list, max_length=20, description="ex: ['natureza','historia','surf']")
     radius_km: float = Field(25.0, ge=1, le=100)
     limit: int = Field(10, ge=1, le=30)
-    exclude_ids: List[str] = Field(default_factory=list, description="IDs já vistos")
+    exclude_ids: List[str] = Field(default_factory=list, max_length=200, description="IDs já vistos")
 
 
 @ai_itinerary_router.post("/recommendations")
