@@ -636,7 +636,10 @@ class IdentifyRequest(BaseModel):
 
 
 @marine_biodiversity_router.post("/identify")
-async def identify_species(body: IdentifyRequest):
+async def identify_species(
+    body: IdentifyRequest,
+    current_user: User = Depends(_auth_dep),
+):
     """
     AI species identification from text description.
     Uses Emergent LLM (gpt-4o-mini) with structured fallback.

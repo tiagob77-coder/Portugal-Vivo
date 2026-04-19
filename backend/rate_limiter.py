@@ -43,6 +43,12 @@ ENDPOINT_LIMITS: Dict[str, Tuple[int, int]] = {
     "/api/maritime-culture/narrative": (8, 60),
     "/api/cultural-routes/narrative": (8, 60),
     "/api/cultural-routes/personalize": (5, 60),
+    # LLM-backed identification & pairing (Emergent gpt-4o-mini)
+    "/api/gastronomy/pairing/": (8, 60),
+    "/api/flora-fauna/identify": (8, 60),
+    "/api/marine-biodiversity/identify": (8, 60),
+    "/api/narrative-layer/generate": (10, 60),
+    "/api/discover/hoje": (15, 60),
     # Smart notifications (DB-heavy proximity scans)
     "/api/notifications/smart/check-nearby": (20, 60),
     "/api/notifications/smart/check-events": (20, 60),

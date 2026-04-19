@@ -12,7 +12,7 @@ GET  /flora-fauna/nearby           → fauna/flora próximas de coordenada
 POST /flora-fauna/identify         → identificação por LLM (foto URL + descrição)
 GET  /flora-fauna/stats            → estatísticas do módulo
 """
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from pydantic import BaseModel
 from typing import Optional, List
 import math
@@ -20,10 +20,13 @@ import datetime
 import os
 import httpx
 
+from models.api_models import User
+
 flora_fauna_router = APIRouter(prefix="/flora-fauna", tags=["Flora Fauna"])
 
 _db = None
 _llm_key = ""
+_require_auth = None
 
 def set_flora_fauna_db(database) -> None:
     global _db
@@ -32,6 +35,13 @@ def set_flora_fauna_db(database) -> None:
 def set_flora_fauna_llm_key(key: str) -> None:
     global _llm_key
     _llm_key = key
+
+def set_flora_fauna_auth(auth_fn) -> None:
+    global _require_auth
+    _require_auth = auth_fn
+
+async def _auth_dep(request: Request) -> User:
+    return await _require_auth(request)
 
 
 # ─── Seed Data ─────────────────────────────────────────────────────────────────
@@ -654,7 +664,10 @@ class IdentifyRequest(BaseModel):
 
 
 @flora_fauna_router.post("/identify")
-async def identify_species(req: IdentifyRequest):
+async def identify_species(
+    req: IdentifyRequest,
+    current_user: User = Depends(_auth_dep),
+):
     if not _llm_key:
         return {"error": "LLM key not configured", "identified": None}
 
