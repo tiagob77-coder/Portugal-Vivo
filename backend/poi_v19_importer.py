@@ -19,6 +19,7 @@ logger = logging.getLogger("poi_v19_importer")
 poi_v19_router = APIRouter(prefix="/importer-v19", tags=["POI v19 Importer"])
 
 from shared_utils import DatabaseHolder
+from poi_dedup import find_duplicate, normalise_name
 
 _db_holder = DatabaseHolder("poi_v19")
 set_poi_v19_db = _db_holder.set
@@ -224,21 +225,9 @@ async def upload_v19(
     db = _get_db()
     collection = db.heritage_items
 
-    # Get existing names for dedup
-    existing_names = set()
-    existing_ids = set()
-    if skip_duplicates:
-        existing = await collection.find({}, {"name": 1, "poi_source_id": 1, "_id": 0}).to_list(length=50000)
-        existing_names = {d["name"].lower().strip() for d in existing if d.get("name")}
-        existing_ids = {d["poi_source_id"] for d in existing if d.get("poi_source_id")}
-
-    imported = 0
-    skipped = 0
-    duplicates = 0
-    errors = 0
-    geocoded = 0
-    error_details = []
-    sample = []
+    imported, skipped, duplicates, errors, geocoded = 0, 0, 0, 0, 0
+    error_details: List[str] = []
+    sample: List[Dict[str, Any]] = []
 
     for idx, row in df.iterrows():
         try:
@@ -247,16 +236,7 @@ async def upload_v19(
                 skipped += 1
                 continue
 
-            # Check duplicates by name or source ID
             poi_source_id = _clean(row.get(col_map.get('poi_id', ''), ''))
-            if skip_duplicates:
-                if name.lower().strip() in existing_names:
-                    duplicates += 1
-                    continue
-                if poi_source_id and poi_source_id in existing_ids:
-                    duplicates += 1
-                    continue
-
             category_raw = _clean(row.get(col_map.get('category', ''), '')) or "outros"
             subcategory_raw = _clean(row.get(col_map.get('subcategory', ''), ''))
             region_raw = _clean(row.get(col_map.get('region', ''), '')) or "portugal"
@@ -280,6 +260,18 @@ async def upload_v19(
                 if location:
                     geocoded += 1
 
+            if skip_duplicates:
+                existing = await find_duplicate(
+                    collection,
+                    name=name,
+                    region=region,
+                    poi_source_id=poi_source_id,
+                    location=location,
+                )
+                if existing:
+                    duplicates += 1
+                    continue
+
             # Build tags
             tags = [category]
             if subcategory_raw:
@@ -297,7 +289,6 @@ async def upload_v19(
             if rarity:
                 metadata["rarity"] = rarity
                 metadata["rarity_score"] = RARITY_SCORES.get(rarity.lower().strip(), 0)
-            # prompt_ia removed — not used in frontend
             if gps_text:
                 metadata["gps_label"] = gps_text
 
@@ -305,6 +296,7 @@ async def upload_v19(
                 "id": str(uuid.uuid4()),
                 "poi_source_id": poi_source_id,
                 "name": name,
+                "name_normalised": normalise_name(name),
                 "description": description,
                 "category": category,
                 "subcategory": subcategory_raw,
@@ -323,9 +315,6 @@ async def upload_v19(
 
             await collection.insert_one(poi_doc)
             imported += 1
-            existing_names.add(name.lower().strip())
-            if poi_source_id:
-                existing_ids.add(poi_source_id)
 
             if len(sample) < 5:
                 sample.append({
@@ -415,20 +404,9 @@ async def upload_v19_text(
     db = _get_db()
     collection = db.heritage_items
 
-    existing_names = set()
-    existing_ids = set()
-    if skip_duplicates:
-        existing = await collection.find({}, {"name": 1, "poi_source_id": 1, "_id": 0}).to_list(length=50000)
-        existing_names = {d["name"].lower().strip() for d in existing if d.get("name")}
-        existing_ids = {d["poi_source_id"] for d in existing if d.get("poi_source_id")}
-
-    imported = 0
-    skipped = 0
-    duplicates = 0
-    errors = 0
-    geocoded = 0
-    error_details = []
-    sample = []
+    imported, skipped, duplicates, errors, geocoded = 0, 0, 0, 0, 0
+    error_details: List[str] = []
+    sample: List[Dict[str, Any]] = []
 
     for idx, row in df.iterrows():
         try:
@@ -438,14 +416,6 @@ async def upload_v19_text(
                 continue
 
             poi_source_id = _clean(row.get(col_map.get('poi_id', ''), ''))
-            if skip_duplicates:
-                if name.lower().strip() in existing_names:
-                    duplicates += 1
-                    continue
-                if poi_source_id and poi_source_id in existing_ids:
-                    duplicates += 1
-                    continue
-
             category_raw = _clean(row.get(col_map.get('category', ''), '')) or "outros"
             subcategory_raw = _clean(row.get(col_map.get('subcategory', ''), ''))
             region_raw = _clean(row.get(col_map.get('region', ''), '')) or "portugal"
@@ -467,6 +437,18 @@ async def upload_v19_text(
                 if location:
                     geocoded += 1
 
+            if skip_duplicates:
+                existing = await find_duplicate(
+                    collection,
+                    name=name,
+                    region=region,
+                    poi_source_id=poi_source_id,
+                    location=location,
+                )
+                if existing:
+                    duplicates += 1
+                    continue
+
             tags = list(set(filter(None, [category, subcategory_raw and subcategory_raw.lower(), region, rarity and rarity.lower() if rarity and rarity.lower() not in ("n/a",) else None])))
 
             metadata = {}
@@ -483,6 +465,7 @@ async def upload_v19_text(
                 "id": str(uuid.uuid4()),
                 "poi_source_id": poi_source_id,
                 "name": name,
+                "name_normalised": normalise_name(name),
                 "description": description,
                 "category": category,
                 "subcategory": subcategory_raw,
@@ -501,9 +484,6 @@ async def upload_v19_text(
 
             await collection.insert_one(poi_doc)
             imported += 1
-            existing_names.add(name.lower().strip())
-            if poi_source_id:
-                existing_ids.add(poi_source_id)
 
             if len(sample) < 5:
                 sample.append({
