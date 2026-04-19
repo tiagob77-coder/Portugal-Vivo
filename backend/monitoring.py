@@ -97,6 +97,13 @@ if _PROMETHEUS_AVAILABLE:
         "Total HTTP 5xx errors",
         ["method", "endpoint"],
     )
+    # Dedicated counters for the three status classes we alert on.
+    # Using a single counter labelled by class keeps cardinality bounded.
+    _http_status_alerts_total = Counter(
+        "http_status_alerts_total",
+        "Count of responses with 401/429/500 — useful for auth/rate/server alerts",
+        ["status_code", "method", "endpoint"],
+    )
 
 
 class _MetricsMiddleware(BaseHTTPMiddleware):
@@ -117,6 +124,8 @@ class _MetricsMiddleware(BaseHTTPMiddleware):
             _http_request_duration.labels(method, path).observe(duration)
             if status >= 500:
                 _http_5xx_total.labels(method, path).inc()
+            if status in (401, 429) or status >= 500:
+                _http_status_alerts_total.labels(str(status), method, path).inc()
 
         # Sentry: explicit capture for 5xx so it appears as an issue even
         # when the exception was caught internally (e.g. HTTPException 500).
@@ -140,11 +149,10 @@ class _MetricsMiddleware(BaseHTTPMiddleware):
 # ---------------------------------------------------------------------------
 
 health_router = APIRouter(prefix="/api/health", tags=["Stats"])
+metrics_router = APIRouter(prefix="/api", tags=["Stats"])
 
 
-@health_router.get("/metrics", tags=["Stats"], include_in_schema=False)
-async def prometheus_metrics():
-    """Prometheus scrape endpoint — exposes all registered metrics."""
+async def _prometheus_response() -> Response:
     if not _PROMETHEUS_AVAILABLE:
         return Response(
             content="# prometheus_client not installed\n",
@@ -157,10 +165,115 @@ async def prometheus_metrics():
     )
 
 
+@health_router.get("/metrics", tags=["Stats"], include_in_schema=False)
+async def prometheus_metrics_legacy():
+    """Legacy path kept for existing Prometheus scrapers."""
+    return await _prometheus_response()
+
+
+@metrics_router.get("/metrics", tags=["Stats"], include_in_schema=False)
+async def prometheus_metrics():
+    """Prometheus scrape endpoint — exposes all registered metrics."""
+    return await _prometheus_response()
+
+
 @health_router.get("", summary="Simple health check (UptimeRobot-compatible)")
 async def simple_health():
     """Returns 200 OK with minimal JSON — compatible with UptimeRobot and similar monitors."""
     return {"status": "ok"}
+
+
+async def _probe_llm(timeout: float = 3.0) -> dict:
+    """Best-effort LLM reachability probe. Uses a tiny `max_tokens=1` prompt."""
+    import httpx
+    key = os.environ.get("EMERGENT_LLM_KEY", "")
+    if not key:
+        return {"status": "not_configured"}
+    try:
+        t0 = time.monotonic()
+        async with httpx.AsyncClient(timeout=timeout) as client:
+            resp = await client.post(
+                "https://llm.lil.re.emergentmethods.ai/v1/chat/completions",
+                headers={
+                    "Authorization": f"Bearer {key}",
+                    "Content-Type": "application/json",
+                },
+                json={
+                    "model": "gpt-4o-mini",
+                    "messages": [{"role": "user", "content": "ping"}],
+                    "max_tokens": 1,
+                    "temperature": 0,
+                },
+            )
+        llm_ms = round((time.monotonic() - t0) * 1000, 1)
+        if resp.status_code < 400:
+            return {"status": "reachable", "response_ms": llm_ms}
+        return {"status": "unhealthy", "http_status": resp.status_code, "response_ms": llm_ms}
+    except Exception as exc:
+        return {"status": "unreachable", "error": str(exc)[:120]}
+
+
+@health_router.get("/deep", summary="Deep health check with LLM probe")
+async def deep_health():
+    """Full dependency probe: MongoDB, Redis, and LLM provider.
+
+    Heavier than `/detailed` (issues a real LLM call with `max_tokens=1`),
+    so call from readiness checks at low frequency (≤ 1/min).
+    """
+    import redis.asyncio as aioredis
+
+    checks: dict = {}
+    overall = "healthy"
+
+    # --- MongoDB ---
+    try:
+        mongo_url = os.environ.get("MONGO_URL", "")
+        db_name = os.environ.get("DB_NAME", "")
+        if mongo_url and db_name:
+            t0 = time.monotonic()
+            motor_client = AsyncIOMotorClient(mongo_url, serverSelectionTimeoutMS=3000)
+            await motor_client[db_name].command("ping")
+            checks["mongodb"] = {
+                "status": "connected",
+                "response_ms": round((time.monotonic() - t0) * 1000, 1),
+            }
+            motor_client.close()
+        else:
+            checks["mongodb"] = {"status": "not_configured"}
+            overall = "degraded"
+    except Exception as exc:
+        checks["mongodb"] = {"status": "unreachable", "error": str(exc)[:120]}
+        overall = "degraded"
+
+    # --- Redis ---
+    try:
+        redis_url = os.environ.get("REDIS_URL", "")
+        if redis_url:
+            t0 = time.monotonic()
+            r = aioredis.from_url(redis_url, socket_connect_timeout=3)
+            await r.ping()
+            checks["redis"] = {
+                "status": "connected",
+                "response_ms": round((time.monotonic() - t0) * 1000, 1),
+            }
+            await r.close()
+        else:
+            checks["redis"] = {"status": "not_configured"}
+    except Exception as exc:
+        checks["redis"] = {"status": "unreachable", "error": str(exc)[:120]}
+        overall = "degraded"
+
+    # --- LLM (Emergent) ---
+    checks["llm"] = await _probe_llm()
+    if checks["llm"]["status"] in ("unreachable", "unhealthy"):
+        overall = "degraded"
+
+    return {
+        "status": overall,
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "uptime_seconds": round(time.monotonic() - _start_time, 1),
+        "checks": checks,
+    }
 
 
 @health_router.get("/detailed", summary="Detailed health check")
@@ -253,6 +366,7 @@ def init_monitoring(app: FastAPI) -> None:
     init_sentry()
     app.add_middleware(_MetricsMiddleware)
     app.include_router(health_router)
+    app.include_router(metrics_router)
     if _PROMETHEUS_AVAILABLE:
-        logger.info("Prometheus metrics available at /api/health/metrics")
+        logger.info("Prometheus metrics available at /api/metrics (alias: /api/health/metrics)")
     logger.info("Monitoring and health check routes registered")
