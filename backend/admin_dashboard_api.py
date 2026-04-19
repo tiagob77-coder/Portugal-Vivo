@@ -447,3 +447,17 @@ async def get_trail_alerts(
         "checked_at": now.isoformat(),
         "next_check": (now + timedelta(hours=1)).isoformat(),
     }
+
+
+@router.get("/admin/data-quality", tags=["Admin"])
+async def admin_data_quality(
+    sample_limit: int = Query(default=50, ge=1, le=500),
+    admin: User = Depends(_admin_dep),
+):
+    """Data-quality sweep: duplicate POI clusters, missing required fields,
+    coordinates outside Portugal. Backed by scripts.data_quality_check.
+    Admin-only because it scans the entire heritage_items collection.
+    """
+    from scripts.data_quality_check import run_data_quality_check
+
+    return await run_data_quality_check(_db, sample_limit=sample_limit)

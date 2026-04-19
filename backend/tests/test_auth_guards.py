@@ -44,6 +44,7 @@ ADMIN_AUTH_ENDPOINTS = [
     ("POST", "/api/leaderboard/sync", {}),
     ("POST", "/api/geo-administrative/enrich-all", {}),
     ("POST", "/api/cultural-routes/enrich/run", {}),
+    ("GET",  "/api/admin/data-quality", None),
 ]
 
 
