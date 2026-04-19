@@ -231,11 +231,16 @@ async def limit_request_body(request: Request, call_next):
 async def request_logging_middleware(request: Request, call_next):
     # Generate a correlation ID per request (accept inbound one if supplied).
     # Exposed on the response so clients/CDNs can reference it in bug reports.
+    from structured_logging import request_id_ctx
     request_id = request.headers.get("X-Request-ID") or _secrets.token_urlsafe(12)
     request.state.request_id = request_id
+    rid_token = request_id_ctx.set(request_id)
 
     start = _time.monotonic()
-    response = await call_next(request)
+    try:
+        response = await call_next(request)
+    finally:
+        request_id_ctx.reset(rid_token)
     duration_ms = round((_time.monotonic() - start) * 1000, 1)
     response.headers["X-Request-ID"] = request_id
 
