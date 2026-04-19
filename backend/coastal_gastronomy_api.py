@@ -7,18 +7,28 @@ import math, re
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 import httpx
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from pydantic import BaseModel, Field
+
+from models.api_models import User
 
 gastronomy_router = APIRouter(prefix="/gastronomy", tags=["Gastronomy"])
 _db = None
 _llm_key: str = ""
+_require_auth = None
 
 def set_gastronomy_db(database) -> None:
     global _db; _db = database
 
 def set_gastronomy_llm_key(key: str) -> None:
     global _llm_key; _llm_key = key
+
+def set_gastronomy_auth(auth_fn) -> None:
+    global _require_auth
+    _require_auth = auth_fn
+
+async def _auth_dep(request: Request) -> User:
+    return await _require_auth(request)
 
 # ─── Seed: Gastronomy Items ──────────────────────────────────────────────────
 
@@ -308,7 +318,10 @@ async def list_routes(
 # ─── Pairing (AI or static) ──────────────────────────────────────────────────
 
 @gastronomy_router.get("/pairing/{item_id}")
-async def get_pairing(item_id: str):
+async def get_pairing(
+    item_id: str,
+    current_user: User = Depends(_auth_dep),
+):
     static = SEED_PAIRINGS.get(item_id)
     if static:
         return {"item_id": item_id, **static, "source": "curated"}
