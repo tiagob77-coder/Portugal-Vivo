@@ -30,7 +30,18 @@ const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       staleTime: 1000 * 60 * 5,
-      retry: 2,
+      gcTime: 1000 * 60 * 30,
+      retry: (failureCount, error: any) => {
+        // Don't retry on 4xx — they won't get better; only on 5xx / network.
+        const status = error?.response?.status ?? error?.status;
+        if (typeof status === 'number' && status >= 400 && status < 500) return false;
+        return failureCount < 2;
+      },
+      retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 8000),
+      refetchOnWindowFocus: false,
+    },
+    mutations: {
+      retry: 0,
     },
   },
 });

@@ -12,6 +12,7 @@ import { useQuery } from '@tanstack/react-query';
 import { LinearGradient } from 'expo-linear-gradient';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import SkeletonCard from '../../src/components/SkeletonCard';
+import ErrorState from '../../src/components/ui/ErrorState';
 import MicroStoryCard, { MicroStory } from '../../src/components/MicroStoryCard';
 import {
   getDiscoveryFeed, getTrendingItems, getEncyclopediaUniverses,
@@ -159,7 +160,7 @@ export default function DescobrerTab() {
     }
   };
 
-  const { data: feedData, isLoading: feedLoading, refetch: refetchFeed } = useQuery({
+  const { data: feedData, isLoading: feedLoading, isError: feedError, refetch: refetchFeed } = useQuery({
     queryKey: ['discovery-feed', token, activePerfil, activeCategory],
     queryFn: () => getDiscoveryFeed(
       undefined, undefined, 30,
@@ -235,6 +236,17 @@ export default function DescobrerTab() {
           <SkeletonCard variant="discovery" count={3} />
           <View style={{ marginTop: 16 }}><SkeletonCard variant="heritage" count={4} /></View>
         </View>
+      </View>
+    );
+  }
+
+  if (feedError && !feedData) {
+    return (
+      <View style={[styles.container, { backgroundColor: colors.background, paddingTop: insets.top }]}>
+        <ErrorState
+          message="Não foi possível carregar a sua descoberta. Verifique a ligação."
+          onRetry={() => refetchFeed()}
+        />
       </View>
     );
   }
