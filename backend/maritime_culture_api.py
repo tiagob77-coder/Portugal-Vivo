@@ -13,6 +13,7 @@ import httpx
 from fastapi import APIRouter, HTTPException, Query, Depends, Request
 from pydantic import BaseModel, Field
 
+from llm_cache import build_cache_key, cache_get, cache_set
 from models.api_models import User
 
 maritime_culture_router = APIRouter(prefix="/maritime-culture", tags=["Maritime Culture"])
@@ -501,6 +502,18 @@ Responde em JSON com:
     if not _llm_key:
         return fallback
 
+    import json as _json
+
+    cache_key = build_cache_key("maritime", body.event_id, body.style, body.language)
+    cached = await cache_get("maritime", cache_key)
+    if cached:
+        try:
+            payload = _json.loads(cached)
+            payload["source"] = "cache"
+            return payload
+        except Exception:
+            pass
+
     try:
         async with httpx.AsyncClient(timeout=15.0) as client:
             resp = await client.post(
@@ -513,9 +526,10 @@ Responde em JSON com:
                     "response_format": {"type": "json_object"},
                 },
             )
-        import json as _json
         content = resp.json()["choices"][0]["message"]["content"]
-        return _json.loads(content)
+        parsed = _json.loads(content)
+        await cache_set("maritime", cache_key, _json.dumps(parsed, ensure_ascii=False), ttl_seconds=60 * 60 * 24)
+        return parsed
     except Exception:
         return fallback
 

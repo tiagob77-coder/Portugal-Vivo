@@ -456,42 +456,44 @@ async def get_metrics_dashboard(
     db = _get_db()
     since = _now() - timedelta(days=days)
 
-    # Total events in period
-    total_events = await db.content_events.count_documents({"ts": {"$gte": since}})
-
-    # Event type breakdown
-    type_pipeline = [
+    # Single $facet pipeline — lets MongoDB scan the "ts >= since" window once
+    # and compute all five breakdowns in one roundtrip instead of five.
+    facet_pipeline = [
         {"$match": {"ts": {"$gte": since}}},
-        {"$group": {"_id": "$event_type", "count": {"$sum": 1}}},
-        {"$sort": {"count": -1}},
+        {"$facet": {
+            "total": [{"$count": "count"}],
+            "by_type": [
+                {"$group": {"_id": "$event_type", "count": {"$sum": 1}}},
+                {"$sort": {"count": -1}},
+                {"$limit": 50},
+            ],
+            "depth_usage": [
+                {"$match": {"event_type": "depth_view", "depth_level": {"$ne": None}}},
+                {"$group": {"_id": "$depth_level", "count": {"$sum": 1}}},
+                {"$limit": 10},
+            ],
+            "profile_usage": [
+                {"$match": {"cognitive_profile": {"$ne": None}}},
+                {"$group": {"_id": "$cognitive_profile", "count": {"$sum": 1}}},
+                {"$sort": {"count": -1}},
+                {"$limit": 10},
+            ],
+            "platform_usage": [
+                {"$match": {"platform": {"$ne": None}}},
+                {"$group": {"_id": "$platform", "count": {"$sum": 1}}},
+                {"$sort": {"count": -1}},
+                {"$limit": 5},
+            ],
+        }},
     ]
-    type_results = await db.content_events.aggregate(type_pipeline).to_list(length=50)
-    by_type = {r["_id"]: r["count"] for r in type_results}
+    facet_docs = await db.content_events.aggregate(facet_pipeline).to_list(length=1)
+    facets = facet_docs[0] if facet_docs else {}
 
-    # Depth level usage
-    depth_pipeline = [
-        {"$match": {"ts": {"$gte": since}, "event_type": "depth_view", "depth_level": {"$ne": None}}},
-        {"$group": {"_id": "$depth_level", "count": {"$sum": 1}}},
-    ]
-    depth_results = await db.content_events.aggregate(depth_pipeline).to_list(length=10)
-    depth_usage = {r["_id"]: r["count"] for r in depth_results}
-
-    # Cognitive profile usage
-    profile_pipeline = [
-        {"$match": {"ts": {"$gte": since}, "cognitive_profile": {"$ne": None}}},
-        {"$group": {"_id": "$cognitive_profile", "count": {"$sum": 1}}},
-        {"$sort": {"count": -1}},
-    ]
-    profile_results = await db.content_events.aggregate(profile_pipeline).to_list(length=10)
-    profile_usage = [{"profile": r["_id"], "events": r["count"]} for r in profile_results]
-
-    # Platform breakdown
-    platform_pipeline = [
-        {"$match": {"ts": {"$gte": since}, "platform": {"$ne": None}}},
-        {"$group": {"_id": "$platform", "count": {"$sum": 1}}},
-        {"$sort": {"count": -1}},
-    ]
-    platform_results = await db.content_events.aggregate(platform_pipeline).to_list(length=5)
+    total_events = (facets.get("total") or [{}])[0].get("count", 0)
+    by_type = {r["_id"]: r["count"] for r in facets.get("by_type", [])}
+    depth_usage = {r["_id"]: r["count"] for r in facets.get("depth_usage", [])}
+    profile_usage = [{"profile": r["_id"], "events": r["count"]} for r in facets.get("profile_usage", [])]
+    platform_results = facets.get("platform_usage", [])
 
     # Overall quality health
     total_views = by_type.get("depth_view", 0)

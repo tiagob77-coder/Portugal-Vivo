@@ -14,6 +14,7 @@ import httpx
 from fastapi import APIRouter, HTTPException, Query, Depends, Request
 from pydantic import BaseModel, Field
 
+from llm_cache import build_cache_key, cache_get, cache_set
 from models.api_models import User
 
 cultural_routes_router = APIRouter(prefix="/cultural-routes", tags=["Cultural Routes"])
@@ -996,6 +997,18 @@ Responde APENAS em JSON válido:
     if not _llm_key:
         return fallback
 
+    import json as _json
+
+    cache_key = build_cache_key("cultural-route-narrative", body.route_id, body.style, body.language)
+    cached = await cache_get("cultural-route-narrative", cache_key)
+    if cached:
+        try:
+            payload = _json.loads(cached)
+            payload["source"] = "cache"
+            return payload
+        except Exception:
+            pass
+
     try:
         async with httpx.AsyncClient(timeout=15.0) as client:
             resp = await client.post(
@@ -1008,9 +1021,10 @@ Responde APENAS em JSON válido:
                     "response_format": {"type": "json_object"},
                 },
             )
-        import json as _json
         content = resp.json()["choices"][0]["message"]["content"]
-        return _json.loads(content)
+        parsed = _json.loads(content)
+        await cache_set("cultural-route-narrative", cache_key, _json.dumps(parsed, ensure_ascii=False), ttl_seconds=60 * 60 * 24)
+        return parsed
     except Exception:
         return fallback
 
