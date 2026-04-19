@@ -8,6 +8,7 @@ import { useQuery } from '@tanstack/react-query';
 import { getCategories, getHeritageItems, getStats, getRegions } from '../../src/services/api';
 import CategoryCard from '../../src/components/CategoryCard';
 import HeritageCard from '../../src/components/HeritageCard';
+import ErrorState from '../../src/components/ui/ErrorState';
 import { Category, HeritageItem, Region } from '../../src/types';
 import { useTheme, palette, withOpacity } from '../../src/theme';
 
@@ -121,7 +122,12 @@ export default function ExploreScreen() {
   const [selectedSuper, setSelectedSuper] = useState('all');
   const [viewMode, setViewMode] = useState<'categories' | 'items'>('categories');
 
-  const { data: categories = [], isLoading: categoriesLoading } = useQuery({
+  const {
+    data: categories = [],
+    isLoading: categoriesLoading,
+    isError: categoriesError,
+    refetch: refetchCategories,
+  } = useQuery({
     queryKey: ['categories'],
     queryFn: getCategories,
   });
@@ -138,7 +144,12 @@ export default function ExploreScreen() {
     queryFn: getStats,
   });
 
-  const { data: items = [], isLoading: itemsLoading, refetch } = useQuery({
+  const {
+    data: items = [],
+    isLoading: itemsLoading,
+    isError: itemsError,
+    refetch,
+  } = useQuery({
     queryKey: ['heritage', selectedCategory, selectedRegion, searchQuery],
     queryFn: () => getHeritageItems({
       category: selectedCategory || undefined,
@@ -353,6 +364,11 @@ export default function ExploreScreen() {
         >
           {categoriesLoading ? (
             <ActivityIndicator size="large" color={colors.accent} style={styles.loader} />
+          ) : categoriesError ? (
+            <ErrorState
+              message="Não foi possível carregar as categorias."
+              onRetry={() => refetchCategories()}
+            />
           ) : (
             <View style={styles.gridContainer}>
               {visibleCategories.map((category) => (
@@ -389,6 +405,11 @@ export default function ExploreScreen() {
           ListEmptyComponent={
             itemsLoading ? (
               <ActivityIndicator size="large" color={colors.accent} style={styles.loader} />
+            ) : itemsError ? (
+              <ErrorState
+                message="Não foi possível carregar os locais."
+                onRetry={() => refetch()}
+              />
             ) : (
               <View style={styles.emptyState}>
                 <MaterialIcons name="search-off" size={48} color={colors.textMuted} />
