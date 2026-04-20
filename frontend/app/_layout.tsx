@@ -25,6 +25,7 @@ import {
   startWebProximityPolling,
   stopWebProximityPolling,
 } from '../src/services/backgroundTasks';
+import { Analytics } from '@vercel/analytics/react';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -302,6 +303,7 @@ export default function RootLayout() {
                       <POIPrefetcher />
                       <OfflineBanner />
                       {Platform.OS === 'web' && <InstallPrompt />}
+                      {Platform.OS === 'web' && <Analytics />}
                     </SmartContextProvider>
                   </FavoritesProvider>
                 </AuthProvider>
