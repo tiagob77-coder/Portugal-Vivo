@@ -1,0 +1,75 @@
+name: Hoje em Portugal — Daily Cache Warmup
+
+on:
+  schedule:
+    # Run at 05:00 UTC every day (before most Portuguese wake up)
+    - cron: '0 5 * * *'
+  workflow_dispatch:
+    inputs:
+      date:
+        description: 'Date override (YYYY-MM-DD). Leave empty for today.'
+        required: false
+        default: ''
+
+jobs:
+  warmup:
+    name: Prime hoje_cache for all major regions
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    env:
+      API_BASE: ${{ secrets.BACKEND_URL }}
+      DATE_PARAM: ${{ github.event.inputs.date }}
+
+    steps:
+      - name: Check API is up
+        run: |
+          curl -sf "${API_BASE}/health" || (echo "API unreachable, skipping" && exit 0)
+
+      - name: Warmup — Lisboa
+        run: |
+          curl -sf "${API_BASE}/api/discover/hoje?lat=38.7223&lng=-9.1393${DATE_PARAM:+&date=$DATE_PARAM}" \
+            -o /dev/null -w "Lisboa: %{http_code} (%{time_total}s)\n" || true
+
+      - name: Warmup — Porto
+        run: |
+          curl -sf "${API_BASE}/api/discover/hoje?lat=41.1579&lng=-8.6291${DATE_PARAM:+&date=$DATE_PARAM}" \
+            -o /dev/null -w "Porto: %{http_code} (%{time_total}s)\n" || true
+
+      - name: Warmup — Faro / Algarve
+        run: |
+          curl -sf "${API_BASE}/api/discover/hoje?lat=37.0194&lng=-7.9322${DATE_PARAM:+&date=$DATE_PARAM}" \
+            -o /dev/null -w "Faro: %{http_code} (%{time_total}s)\n" || true
+
+      - name: Warmup — Évora / Alentejo
+        run: |
+          curl -sf "${API_BASE}/api/discover/hoje?lat=38.5710&lng=-7.9093${DATE_PARAM:+&date=$DATE_PARAM}" \
+            -o /dev/null -w "Évora: %{http_code} (%{time_total}s)\n" || true
+
+      - name: Warmup — Braga / Minho
+        run: |
+          curl -sf "${API_BASE}/api/discover/hoje?lat=41.5500&lng=-8.4200${DATE_PARAM:+&date=$DATE_PARAM}" \
+            -o /dev/null -w "Braga: %{http_code} (%{time_total}s)\n" || true
+
+      - name: Warmup — Coimbra / Centro
+        run: |
+          curl -sf "${API_BASE}/api/discover/hoje?lat=40.2033&lng=-8.4103${DATE_PARAM:+&date=$DATE_PARAM}" \
+            -o /dev/null -w "Coimbra: %{http_code} (%{time_total}s)\n" || true
+
+      - name: Warmup — Viseu / Interior Norte
+        run: |
+          curl -sf "${API_BASE}/api/discover/hoje?lat=40.6566&lng=-7.9122${DATE_PARAM:+&date=$DATE_PARAM}" \
+            -o /dev/null -w "Viseu: %{http_code} (%{time_total}s)\n" || true
+
+      - name: Warmup — Funchal / Madeira
+        run: |
+          curl -sf "${API_BASE}/api/discover/hoje?lat=32.6500&lng=-16.9083${DATE_PARAM:+&date=$DATE_PARAM}" \
+            -o /dev/null -w "Funchal: %{http_code} (%{time_total}s)\n" || true
+
+      - name: Warmup — Ponta Delgada / Açores
+        run: |
+          curl -sf "${API_BASE}/api/discover/hoje?lat=37.7500&lng=-25.6667${DATE_PARAM:+&date=$DATE_PARAM}" \
+            -o /dev/null -w "Ponta Delgada: %{http_code} (%{time_total}s)\n" || true
+
+      - name: Summary
+        run: echo "✅ Hoje cache warmup complete for $(date +%Y-%m-%d)"

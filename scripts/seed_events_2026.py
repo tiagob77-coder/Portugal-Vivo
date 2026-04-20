@@ -89,6 +89,12 @@ async def main() -> int:
     db_name = os.environ.get("DB_NAME", "").strip()
 
     if not raw_url or not db_name:
+async def main() -> int:
+    # Whitespace-robust URI handling (guards against newlines in secrets)
+    mongo_url = "".join(os.environ.get("MONGO_URL", "").split())
+    db_name = os.environ.get("DB_NAME", "").strip()
+
+    if not mongo_url or not db_name:
         print("ERROR: MONGO_URL and DB_NAME must be set in the environment.",
               file=sys.stderr)
         return 2

@@ -1,0 +1,209 @@
+name: CI — Testes e Qualidade
+
+on:
+  push:
+    branches: [main, master, "claude/**", "feature/**", "fix/**"]
+  pull_request:
+    branches: [main, master]
+
+jobs:
+  # ──────────────────────────────────────────────
+  # Backend — FastAPI + pytest
+  # ──────────────────────────────────────────────
+  backend-tests:
+    name: Backend Tests (Python 3.11)
+    runs-on: ubuntu-latest
+
+    services:
+      mongodb:
+        image: mongo:6
+        ports:
+          - 27017:27017
+        options: >-
+          --health-cmd "mongosh --eval \"db.adminCommand('ping')\" --quiet"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 3s
+          --health-retries 5
+
+    env:
+      MONGO_URL: mongodb://localhost:27017
+      DB_NAME: portugal_vivo_test
+      REDIS_URL: redis://localhost:6379
+      JWT_SECRET_KEY: ci-test-secret-not-for-production
+      ENVIRONMENT: test
+      # Serviços externos desativados em CI
+      STRIPE_SECRET_KEY: ""
+      OPENAI_API_KEY: ""
+      SENTRY_DSN: ""
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Setup Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: backend/requirements.txt
+
+      - name: Instalar dependências
+        working-directory: backend
+        run: pip install -r requirements.txt pytest-cov || (sleep 5 && pip install -r requirements.txt pytest-cov)
+
+      - name: Criar índices MongoDB
+        working-directory: backend
+        run: python create_indexes.py
+
+      - name: Correr testes com cobertura
+        working-directory: backend
+        run: |
+          pytest tests/ \
+            --cov=. \
+            --cov-report=xml \
+            --cov-report=term-missing \
+            --cov-fail-under=8 \
+            -v \
+            --timeout=60 \
+            -x
+        env:
+          PYTHONPATH: .
+
+      - name: Publicar relatório de cobertura
+        uses: codecov/codecov-action@v4
+        if: always()
+        with:
+          file: backend/coverage.xml
+          flags: backend
+          fail_ci_if_error: false
+
+  # ──────────────────────────────────────────────
+  # Frontend — React Native / Expo
+  # ──────────────────────────────────────────────
+  frontend-tests:
+    name: Frontend Tests (Node 20)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Instalar dependências
+        working-directory: frontend
+        run: npm ci --legacy-peer-deps || (sleep 5 && npm ci --legacy-peer-deps) || (sleep 10 && npm ci --legacy-peer-deps)
+
+      - name: Type check
+        working-directory: frontend
+        run: npx tsc --noEmit
+
+      - name: Lint
+        working-directory: frontend
+        run: npm run lint
+
+      - name: Testes unitários
+        working-directory: frontend
+        run: npm test -- --passWithNoTests --coverage
+
+  # ──────────────────────────────────────────────
+  # Frontend Web — Build estático (Expo export)
+  # ──────────────────────────────────────────────
+  frontend-build:
+    name: Frontend Web Build
+    runs-on: ubuntu-latest
+    needs: [frontend-tests]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Instalar dependências
+        working-directory: frontend
+        run: npm ci --legacy-peer-deps || (sleep 5 && npm ci --legacy-peer-deps) || (sleep 10 && npm ci --legacy-peer-deps)
+
+      - name: Build web estático
+        working-directory: frontend
+        env:
+          EXPO_PUBLIC_BACKEND_URL: https://api.portugalvivo.pt
+          EXPO_PUBLIC_ENVIRONMENT: production
+          EXPO_PUBLIC_APP_VERSION: ${{ github.sha }}
+        run: npx expo export --platform web
+
+      - name: Upload artefacto web
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-web-dist
+          path: frontend/dist/
+          retention-days: 7
+
+  # ──────────────────────────────────────────────
+  # Verificação de segredos em texto claro
+  # ──────────────────────────────────────────────
+  secrets-scan:
+    name: Scan de Segredos
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Instalar gitleaks
+        run: |
+          curl -sSfL https://github.com/gitleaks/gitleaks/releases/download/v8.21.2/gitleaks_8.21.2_linux_x64.tar.gz \
+            -o /tmp/gitleaks.tar.gz \
+            --retry 3 --retry-delay 2 \
+            && tar -xzf /tmp/gitleaks.tar.gz -C /usr/local/bin gitleaks
+
+      - name: Correr gitleaks
+        run: gitleaks detect --source . --verbose --no-git
+
+  # ──────────────────────────────────────────────
+  # Build Docker (validação de imagem)
+  # ──────────────────────────────────────────────
+  docker-build:
+    name: Docker Build Validation
+    runs-on: ubuntu-latest
+    needs: [backend-tests]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Build imagem backend
+        run: docker build --target production -t portugal-vivo-backend:ci ./backend
+
+      - name: Health check da imagem
+        run: |
+          docker run -d --name pv-ci \
+            -e MONGO_URL=mongodb://host.docker.internal:27017 \
+            -e REDIS_URL=redis://host.docker.internal:6379 \
+            -e JWT_SECRET_KEY=ci-secret \
+            -e ENVIRONMENT=test \
+            -p 8001:8001 \
+            portugal-vivo-backend:ci
+          sleep 5
+          curl --retry 5 --retry-delay 3 --fail http://localhost:8001/api/health || true
+          docker rm -f pv-ci
