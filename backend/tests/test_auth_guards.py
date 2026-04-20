@@ -26,6 +26,15 @@ USER_AUTH_ENDPOINTS = [
     ("POST", "/api/cultural-routes/narrative", {"route_id": "x"}),
     ("POST", "/api/cultural-routes/personalize",
      {"route_id": "x", "profile": {"interests": []}}),
+    # LLM-backed identification / pairing / narrative endpoints
+    ("GET",  "/api/gastronomy/pairing/g_001", None),
+    ("POST", "/api/flora-fauna/identify",
+     {"description": "flor amarela pequena", "tipo": "flora"}),
+    ("POST", "/api/marine-biodiversity/identify",
+     {"description": "peixe prateado comprido observado ao largo"}),
+    ("POST", "/api/narrative-layer/generate",
+     {"entity_type": "trail", "entity_id": "x"}),
+    ("GET",  "/api/discover/hoje", None),
 ]
 
 # (method, path, json_body) for endpoints that should require admin auth.
@@ -35,6 +44,7 @@ ADMIN_AUTH_ENDPOINTS = [
     ("POST", "/api/leaderboard/sync", {}),
     ("POST", "/api/geo-administrative/enrich-all", {}),
     ("POST", "/api/cultural-routes/enrich/run", {}),
+    ("GET",  "/api/admin/data-quality", None),
 ]
 
 

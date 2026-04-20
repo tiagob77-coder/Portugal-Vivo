@@ -6,7 +6,31 @@ import logging
 import json
 import sys
 import os
+from contextvars import ContextVar
 from datetime import datetime, timezone
+from typing import Optional
+
+
+# Propagates the correlation id set by the request middleware to every logger
+# in the request's async chain without each module having to forward it
+# explicitly via `extra=`.
+request_id_ctx: ContextVar[Optional[str]] = ContextVar("request_id", default=None)
+
+
+class RequestIdFilter(logging.Filter):
+    """Injects the request-scoped correlation id into every LogRecord.
+
+    Explicit `extra={"request_id": ...}` always wins; this only fills in the
+    blank so that module-level loggers that don't know about the request
+    still emit the correlation id.
+    """
+
+    def filter(self, record: logging.LogRecord) -> bool:
+        if not hasattr(record, "request_id"):
+            rid = request_id_ctx.get()
+            if rid is not None:
+                record.request_id = rid
+        return True
 
 
 class JSONFormatter(logging.Formatter):
@@ -61,7 +85,9 @@ class DevFormatter(logging.Formatter):
         color = self.COLORS.get(record.levelname, "")
         ts = datetime.now().strftime("%H:%M:%S")
         msg = record.getMessage()
-        base = f"{color}{ts} [{record.levelname:7s}]{self.RESET} {record.name}: {msg}"
+        rid = getattr(record, "request_id", None)
+        rid_part = f" [{rid}]" if rid else ""
+        base = f"{color}{ts} [{record.levelname:7s}]{self.RESET}{rid_part} {record.name}: {msg}"
 
         if record.exc_info and record.exc_info[1]:
             base += f"\n{self.formatException(record.exc_info)}"
@@ -89,6 +115,7 @@ def setup_logging(log_level: str = "INFO"):
         handler.setFormatter(JSONFormatter())
     else:
         handler.setFormatter(DevFormatter())
+    handler.addFilter(RequestIdFilter())
 
     root.addHandler(handler)
 

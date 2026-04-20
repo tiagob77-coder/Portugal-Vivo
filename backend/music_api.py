@@ -13,6 +13,7 @@ import httpx
 from fastapi import APIRouter, HTTPException, Query, Depends, Request
 from pydantic import BaseModel, Field
 
+from llm_cache import build_cache_key, cache_get, cache_set
 from models.api_models import User
 
 music_router = APIRouter(prefix="/music", tags=["Music"])
@@ -473,6 +474,18 @@ Responde em JSON com:
     if not _llm_key:
         return fallback
 
+    import json as _json
+
+    cache_key = build_cache_key("music", body.item_id, body.style, body.language)
+    cached = await cache_get("music", cache_key)
+    if cached:
+        try:
+            payload = _json.loads(cached)
+            payload["source"] = "cache"
+            return payload
+        except Exception:
+            pass  # fall through and re-generate
+
     try:
         async with httpx.AsyncClient(timeout=15.0) as client:
             resp = await client.post(
@@ -485,9 +498,10 @@ Responde em JSON com:
                     "response_format": {"type": "json_object"},
                 },
             )
-        import json as _json
         content = resp.json()["choices"][0]["message"]["content"]
-        return _json.loads(content)
+        parsed = _json.loads(content)
+        await cache_set("music", cache_key, _json.dumps(parsed, ensure_ascii=False), ttl_seconds=60 * 60 * 24)
+        return parsed
     except Exception:
         return fallback
 

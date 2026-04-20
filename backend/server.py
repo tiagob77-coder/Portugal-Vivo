@@ -231,11 +231,16 @@ async def limit_request_body(request: Request, call_next):
 async def request_logging_middleware(request: Request, call_next):
     # Generate a correlation ID per request (accept inbound one if supplied).
     # Exposed on the response so clients/CDNs can reference it in bug reports.
+    from structured_logging import request_id_ctx
     request_id = request.headers.get("X-Request-ID") or _secrets.token_urlsafe(12)
     request.state.request_id = request_id
+    rid_token = request_id_ctx.set(request_id)
 
     start = _time.monotonic()
-    response = await call_next(request)
+    try:
+        response = await call_next(request)
+    finally:
+        request_id_ctx.reset(rid_token)
     duration_ms = round((_time.monotonic() - start) * 1000, 1)
     response.headers["X-Request-ID"] = request_id
 
@@ -862,9 +867,11 @@ from coastal_gastronomy_api import (
     gastronomy_router,
     set_gastronomy_db,
     set_gastronomy_llm_key,
+    set_gastronomy_auth,
 )
 set_gastronomy_db(db)
 set_gastronomy_llm_key(EMERGENT_LLM_KEY)
+set_gastronomy_auth(require_auth)
 api_router.include_router(gastronomy_router)
 
 # ── Flora, Fauna & Habitats API ───────────────────────────────────────────────
@@ -872,9 +879,11 @@ from flora_fauna_api import (
     flora_fauna_router,
     set_flora_fauna_db,
     set_flora_fauna_llm_key,
+    set_flora_fauna_auth,
 )
 set_flora_fauna_db(db)
 set_flora_fauna_llm_key(EMERGENT_LLM_KEY)
+set_flora_fauna_auth(require_auth)
 api_router.include_router(flora_fauna_router)
 
 logger.info("🌿  Gastronomy+FloraFauna registered")
@@ -924,10 +933,12 @@ from narrative_layer_api import (
     set_narrative_layer_db,
     set_narrative_layer_llm_key,
     set_narrative_layer_admin,
+    set_narrative_layer_auth,
 )
 set_narrative_layer_db(db)
 set_narrative_layer_llm_key(EMERGENT_LLM_KEY)
 set_narrative_layer_admin(require_admin)
+set_narrative_layer_auth(require_auth)
 api_router.include_router(narrative_layer_router)
 logger.info("📖  Narrative Layer Global registered")
 

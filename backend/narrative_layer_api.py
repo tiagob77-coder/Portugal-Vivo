@@ -31,6 +31,7 @@ narrative_layer_router = APIRouter(prefix="/narrative-layer", tags=["Narrative L
 _db = None
 _llm_key: Optional[str] = None
 _require_admin = None
+_require_auth = None
 
 LLM_URL = "https://llm.lil.re.emergentmethods.ai/v1/chat/completions"
 MODEL = "gpt-4o-mini"
@@ -53,8 +54,17 @@ def set_narrative_layer_admin(admin_fn) -> None:
     _require_admin = admin_fn
 
 
+def set_narrative_layer_auth(auth_fn) -> None:
+    global _require_auth
+    _require_auth = auth_fn
+
+
 async def _admin_dep(request: Request) -> User:
     return await _require_admin(request)
+
+
+async def _auth_dep(request: Request) -> User:
+    return await _require_auth(request)
 
 
 # ─── Personas + tones ─────────────────────────────────────────────────────────
@@ -287,7 +297,10 @@ def _fallback_narrative(entity: dict, req: NarrativeRequest) -> dict:
 # ─── Endpoints ────────────────────────────────────────────────────────────────
 
 @narrative_layer_router.post("/generate", summary="Generate or fetch cached narrative for any entity")
-async def generate_narrative(req: NarrativeRequest):
+async def generate_narrative(
+    req: NarrativeRequest,
+    current_user: User = Depends(_auth_dep),
+):
     """
     Returns a persona-tailored narrative for the entity, using LLM with
     aggressive Mongo cache (TTL 30 days). If `force=true`, bypasses cache.

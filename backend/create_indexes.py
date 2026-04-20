@@ -66,7 +66,28 @@ async def create_all_indexes(db):
         sparse=True,
         name="idx_heritage_geo_muni",
     )
-    logger.info("  heritage_items: 14 indexes created")
+    # Dedup hot path — importers look up by external source id
+    await db.heritage_items.create_index(
+        "poi_source_id",
+        sparse=True,
+        name="idx_heritage_source_id",
+    )
+    # Soft natural-key — name lookup during dedup; case-insensitive collation
+    # would force a separate index, so we rely on the regex+candidate scan
+    # but at least make the name-bucket cheap.
+    await db.heritage_items.create_index(
+        "name",
+        name="idx_heritage_name",
+    )
+    # Normalised name (accent/case stripped) — primary dedup lookup field.
+    # Sparse: legacy docs without this field are skipped by the index but
+    # still findable via the regex fallback in poi_dedup.find_duplicate.
+    await db.heritage_items.create_index(
+        "name_normalised",
+        sparse=True,
+        name="idx_heritage_name_normalised",
+    )
+    logger.info("  heritage_items: 17 indexes created")
 
     # users
     await db.users.create_index("user_id", unique=True, name="idx_users_userid")
@@ -296,7 +317,7 @@ async def create_all_indexes(db):
     logger.info("  notification_preferences: 1 index created")
 
     # --- Total ---
-    # heritage_items: 14, users: 2, user_sessions: 3, user_progress: 3,
+    # heritage_items: 17, users: 2, user_sessions: 3, user_progress: 3,
     # visits: 7, gamification_profiles: 3, checkins: 3, contributions: 5,
     # routes: 4, user_preferences: 1, user_badges: 2, favorite_spots: 1,
     # password_resets: 2, encyclopedia_articles: 3, notifications: 3,
@@ -307,7 +328,7 @@ async def create_all_indexes(db):
     # events: 8, maritime_events: 3, cultural_routes: 4, streaks: 1,
     # notification_log: 2, notification_preferences: 1
     total = (
-        14 + 2 + 3 + 3 + 7 + 3 + 3 + 5 + 4 + 1 + 2 + 1 + 2 + 3 + 3 + 2
+        17 + 2 + 3 + 3 + 7 + 3 + 3 + 5 + 4 + 1 + 2 + 1 + 2 + 3 + 3 + 2
         + 1 + 1 + 6 + 3 + 2 + 2 + 1 + 3 + 7
         + 8 + 3 + 4 + 1 + 2 + 1
     )
