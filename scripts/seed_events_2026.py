@@ -31,6 +31,7 @@ import importlib.util
 import os
 import sys
 from pathlib import Path
+from urllib.parse import urlparse, quote_plus, urlunparse
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 BACKEND_DIR = REPO_ROOT / "backend"
@@ -63,6 +64,31 @@ def _load_service_module():
     return module
 
 
+def _normalize_mongo_url(raw: str) -> str:
+    """
+    Strip whitespace and re-encode credentials so special chars
+    (e.g. @, :, #, !, %) in the password don't break URI parsing.
+    urllib.parse.urlparse decodes percent-encoded values, so
+    quote_plus re-encodes them safely regardless of prior state.
+    """
+    url = "".join(raw.split())  # remove all whitespace / newlines
+    parsed = urlparse(url)
+    if parsed.username is not None:
+        user = quote_plus(parsed.username)
+        pwd  = quote_plus(parsed.password or "")
+        host = parsed.hostname or ""
+        if parsed.port:
+            host = f"{host}:{parsed.port}"
+        new_netloc = f"{user}:{pwd}@{host}"
+        url = urlunparse(parsed._replace(netloc=new_netloc))
+    return url
+
+
+async def main() -> int:
+    raw_url = os.environ.get("MONGO_URL", "")
+    db_name = os.environ.get("DB_NAME", "").strip()
+
+    if not raw_url or not db_name:
 async def main() -> int:
     # Whitespace-robust URI handling (guards against newlines in secrets)
     mongo_url = "".join(os.environ.get("MONGO_URL", "").split())
@@ -72,6 +98,8 @@ async def main() -> int:
         print("ERROR: MONGO_URL and DB_NAME must be set in the environment.",
               file=sys.stderr)
         return 2
+
+    mongo_url = _normalize_mongo_url(raw_url)
 
     print(f"→ Connecting to MongoDB (db={db_name}) …")
     client = AsyncIOMotorClient(mongo_url, w="majority",
