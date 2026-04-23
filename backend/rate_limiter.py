@@ -5,7 +5,18 @@ Provides tiered rate limiting beyond the global 200/min IP-based limiter:
   - Per-user limits keyed by session token
   - Per-endpoint limits for expensive operations (search, IQ processing)
   - Sliding window counters stored in Redis (falls back to in-memory)
+
+Redis backend uses sorted-set-per-key (ZSET) with Unix timestamps as both
+score and member. `is_allowed` runs in a single pipeline:
+    ZREMRANGEBYSCORE key -inf cutoff   # prune
+    ZCARD           key                 # read current count
+    ZADD            key now now         # provisional add
+    EXPIRE          key window          # keep TTL refreshed
+If the post-add count would exceed the limit we undo with ZREM. The
+in-memory `_SlidingWindowStore` remains available as an automatic
+fallback when Redis is unreachable.
 """
+import os
 import time
 import logging
 from typing import Dict, Optional, Tuple
@@ -96,6 +107,109 @@ class _SlidingWindowStore:
 _store = _SlidingWindowStore()
 
 
+# ── Redis-backed sliding window (distributed) ──────────────────────────────
+
+_REDIS_KEY_PREFIX = "ratelimit"
+_redis = None
+_redis_tried = False
+
+
+async def _get_redis():
+    """Lazily connect to Redis, memoising success/failure.
+
+    Mirrors the ``llm_cache`` fail-open pattern: one attempt per process,
+    remembered for the lifetime of the process. If Redis is unreachable
+    the middleware transparently falls back to the in-memory store.
+    """
+    global _redis, _redis_tried
+    if _redis is not None:
+        return _redis
+    if _redis_tried:
+        return None
+    _redis_tried = True
+
+    url = os.environ.get("REDIS_URL", "").strip()
+    if not url:
+        logger.info("REDIS_URL not set — rate limiter using in-memory store")
+        return None
+
+    try:
+        import redis.asyncio as aioredis  # type: ignore
+
+        client = aioredis.from_url(url, decode_responses=True, socket_connect_timeout=3)
+        await client.ping()
+        _redis = client
+        logger.info("Rate limiter connected to Redis")
+        return _redis
+    except Exception as exc:
+        logger.warning("Rate limiter: Redis unreachable (%s) — using in-memory store", exc)
+        return None
+
+
+async def _reset_for_tests() -> None:
+    """Drop the memoised client so tests can swap backends between cases."""
+    global _redis, _redis_tried
+    if _redis is not None:
+        try:
+            await _redis.close()
+        except Exception:
+            pass
+    _redis = None
+    _redis_tried = False
+
+
+async def _redis_is_allowed(
+    client, key: str, max_requests: int, window: int
+) -> Tuple[bool, int]:
+    """Check a sliding window via Redis. Returns (allowed, remaining).
+
+    Uses a ZSET where each request is a (timestamp, timestamp) pair. The
+    four operations run in a single pipeline to minimise latency and keep
+    the state change close to atomic.
+    """
+    now = time.time()
+    cutoff = now - window
+    redis_key = f"{_REDIS_KEY_PREFIX}:{key}"
+    try:
+        pipe = client.pipeline(transaction=False)
+        pipe.zremrangebyscore(redis_key, "-inf", cutoff)
+        pipe.zcard(redis_key)
+        pipe.zadd(redis_key, {str(now): now})
+        pipe.expire(redis_key, window + 1)
+        _, current, _, _ = await pipe.execute()
+    except Exception as exc:
+        # Single-call failure: degrade silently and let the in-memory path
+        # pick up the request. We don't flip ``_redis_tried`` here — this
+        # might just be a transient blip.
+        logger.warning("Rate limiter Redis op failed (%s): %s", redis_key, exc)
+        raise
+    # current is the count BEFORE our add. After the add count = current+1.
+    if current >= max_requests:
+        try:
+            await client.zrem(redis_key, str(now))
+        except Exception:
+            # Harmless leftover; expire will reap it.
+            pass
+        return False, 0
+    return True, max_requests - (current + 1)
+
+
+async def _is_allowed(key: str, max_requests: int, window: int) -> Tuple[bool, int]:
+    """Check rate limit using Redis if available, else in-memory.
+
+    Fail-open: any Redis error falls back to the local sliding window so
+    the request is still rate-limited (per-worker) rather than letting it
+    through unbounded.
+    """
+    client = await _get_redis()
+    if client is not None:
+        try:
+            return await _redis_is_allowed(client, key, max_requests, window)
+        except Exception:
+            pass
+    return _store.is_allowed(key, max_requests, window)
+
+
 def _client_key(request: Request) -> str:
     """Extract a unique client identifier (user token or IP)."""
     token = request.headers.get("authorization", "").removeprefix("Bearer ").strip()
@@ -118,7 +232,7 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
         for endpoint_prefix, (max_req, window) in ENDPOINT_LIMITS.items():
             if path.startswith(endpoint_prefix):
                 key = f"endpoint:{client}:{endpoint_prefix}"
-                allowed, remaining = _store.is_allowed(key, max_req, window)
+                allowed, remaining = await _is_allowed(key, max_req, window)
                 if not allowed:
                     logger.warning("Rate limit hit: %s on %s", client, endpoint_prefix)
                     return Response(
@@ -136,7 +250,7 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
         # 2. Check per-user global limit (only for API paths)
         if path.startswith("/api/"):
             key = f"global:{client}"
-            allowed, remaining = _store.is_allowed(key, USER_RATE_LIMIT, USER_RATE_WINDOW)
+            allowed, remaining = await _is_allowed(key, USER_RATE_LIMIT, USER_RATE_WINDOW)
             if not allowed:
                 logger.warning("Global user rate limit hit: %s", client)
                 return Response(
