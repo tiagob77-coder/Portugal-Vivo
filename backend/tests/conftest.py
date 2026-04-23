@@ -29,11 +29,20 @@ import httpx
 
 # Try to import the rate limiter store so we can reset it between tests
 try:
+    import rate_limiter as _rate_limiter_module
     from rate_limiter import _store as _rate_limit_store
     _RATE_LIMITER_AVAILABLE = True
+    # Force the middleware to use the in-memory store for the whole test run:
+    # the CI job exposes a real Redis on localhost and the sliding-window
+    # ZSETs would otherwise accumulate across parametrised tests, causing
+    # spurious 429s in suites like test_auth_guards that hit the same
+    # endpoint many times in a row.
+    _rate_limiter_module._redis = None
+    _rate_limiter_module._redis_tried = True
 except Exception:
     _RATE_LIMITER_AVAILABLE = False
     _rate_limit_store = None
+    _rate_limiter_module = None
 
 # Try to import the app
 try:
@@ -92,9 +101,14 @@ def pytest_collection_modifyitems(config, items):
 @pytest.fixture(autouse=True)
 def reset_rate_limiter():
     """Reset the in-memory rate limiter store before each test to prevent
-    accumulated request counts from triggering 429 responses in the test suite."""
+    accumulated request counts from triggering 429 responses in the test suite.
+    Also re-asserts the Redis short-circuit in case a previous test cleared it
+    (e.g. a test that explicitly exercises _reset_for_tests)."""
     if _RATE_LIMITER_AVAILABLE and _rate_limit_store is not None:
         _rate_limit_store._store.clear()
+    if _rate_limiter_module is not None:
+        _rate_limiter_module._redis = None
+        _rate_limiter_module._redis_tried = True
 
 
 @pytest.fixture(scope="session")
