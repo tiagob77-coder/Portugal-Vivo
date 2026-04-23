@@ -11,6 +11,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from pydantic import BaseModel, Field
 
 from models.api_models import User
+from llm_cache import build_cache_key, cache_get, cache_set
 
 gastronomy_router = APIRouter(prefix="/gastronomy", tags=["Gastronomy"])
 _db = None
@@ -331,6 +332,17 @@ async def get_pairing(
         raise HTTPException(404, "Item não encontrado")
     if not _llm_key:
         return {"item_id": item_id, "wine": "Vinho branco fresco", "olive_oil": "Azeite virgem extra", "notes": "Harmonização genérica", "source": "fallback"}
+
+    import json as _j
+    cache_key = build_cache_key("gastronomy-pairing", item_id, item.get("name", ""))
+    cached = await cache_get("gastronomy-pairing", cache_key)
+    if cached:
+        try:
+            payload = _j.loads(cached)
+            return {**payload, "item_id": item_id, "source": "cache"}
+        except Exception:
+            pass
+
     prompt = f"""Sugere harmonização de vinho e azeite para o prato português: "{item['name']}" ({item.get('description','')}).
 Responde em JSON: {{"wine": "nome do vinho/região", "olive_oil": "azeite ou null", "notes": "explicação breve"}}"""
     try:
@@ -341,8 +353,9 @@ Responde em JSON: {{"wine": "nome do vinho/região", "olive_oil": "azeite ou nul
                 json={"model":"gpt-4o-mini","messages":[{"role":"user","content":prompt}],
                       "temperature":0.4,"response_format":{"type":"json_object"}},
             )
-        import json as _j
-        return {**_j.loads(resp.json()["choices"][0]["message"]["content"]), "item_id": item_id, "source": "ai"}
+        parsed = _j.loads(resp.json()["choices"][0]["message"]["content"])
+        await cache_set("gastronomy-pairing", cache_key, _j.dumps(parsed, ensure_ascii=False), ttl_seconds=60 * 60 * 24 * 7)
+        return {**parsed, "item_id": item_id, "source": "ai"}
     except Exception:
         return {"item_id": item_id, "wine": "Vinho branco fresco", "olive_oil": "Azeite virgem extra", "notes": "Harmonização genérica", "source": "fallback"}
 
