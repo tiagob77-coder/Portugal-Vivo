@@ -15,6 +15,7 @@ from fastapi import APIRouter, HTTPException, Query, Depends, Request
 from pydantic import BaseModel, Field
 
 from models.api_models import User
+from llm_cache import build_cache_key, cache_get, cache_set
 
 marine_biodiversity_router = APIRouter(prefix="/biodiversity", tags=["Biodiversity"])
 
@@ -679,6 +680,18 @@ Responde em JSON com esta estrutura exacta:
     if not _llm_key:
         return fallback
 
+    import json as _json
+
+    cache_key = build_cache_key(
+        "marine-identify", (body.description or "").strip().lower()
+    )
+    cached = await cache_get("marine-identify", cache_key)
+    if cached:
+        try:
+            return {**_json.loads(cached), "source": "cache"}
+        except Exception:
+            pass
+
     try:
         async with httpx.AsyncClient(timeout=15.0) as client:
             resp = await client.post(
@@ -692,9 +705,15 @@ Responde em JSON com esta estrutura exacta:
                 },
             )
         data = resp.json()
-        import json as _json
         content = data["choices"][0]["message"]["content"]
-        return _json.loads(content)
+        parsed = _json.loads(content)
+        await cache_set(
+            "marine-identify",
+            cache_key,
+            _json.dumps(parsed, ensure_ascii=False),
+            ttl_seconds=60 * 60 * 24 * 7,
+        )
+        return {**parsed, "source": "llm"}
     except Exception:
         return fallback
 

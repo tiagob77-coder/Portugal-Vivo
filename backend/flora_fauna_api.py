@@ -21,6 +21,7 @@ import os
 import httpx
 
 from models.api_models import User
+from llm_cache import build_cache_key, cache_get, cache_set
 
 flora_fauna_router = APIRouter(prefix="/flora-fauna", tags=["Flora Fauna"])
 
@@ -671,6 +672,20 @@ async def identify_species(
     if not _llm_key:
         return {"error": "LLM key not configured", "identified": None}
 
+    import json as _json
+    # Cache on normalised description+tipo — repeated identical queries hit
+    # the cache; coordinates intentionally excluded (same species at a
+    # different spot should reuse the ID).
+    cache_key = build_cache_key(
+        "species-identify", req.tipo, (req.description or "").strip().lower()
+    )
+    cached = await cache_get("species-identify", cache_key)
+    if cached:
+        try:
+            return {"identified": _json.loads(cached), "source": "cache"}
+        except Exception:
+            pass
+
     prompt = (
         f"És um especialista em biodiversidade portuguesa. "
         f"Identifica a espécie de {req.tipo} com base na seguinte descrição: '{req.description}'. "
@@ -691,9 +706,14 @@ async def identify_species(
                 },
             )
             data = r.json()
-            import json as _json
             content = data["choices"][0]["message"]["content"]
-            return {"identified": _json.loads(content), "source": "llm"}
+            parsed = _json.loads(content)
+            await cache_set(
+                "species-identify", cache_key,
+                _json.dumps(parsed, ensure_ascii=False),
+                ttl_seconds=60 * 60 * 24 * 7,
+            )
+            return {"identified": parsed, "source": "llm"}
     except Exception:
         return {
             "identified": {
