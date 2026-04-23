@@ -9,19 +9,8 @@ limiter uses: ``zremrangebyscore``, ``zcard``, ``zadd``, ``zrem``,
 import time
 
 import pytest
-import pytest_asyncio
 
 import rate_limiter
-
-
-@pytest_asyncio.fixture(autouse=True)
-async def _reset_state():
-    """Clean slate between tests: drop both Redis memo and in-memory store."""
-    await rate_limiter._reset_for_tests()
-    rate_limiter._store._store.clear()
-    yield
-    await rate_limiter._reset_for_tests()
-    rate_limiter._store._store.clear()
 
 
 # ── Fake Redis ────────────────────────────────────────────────────────────
@@ -29,7 +18,7 @@ async def _reset_state():
 class _FakePipeline:
     def __init__(self, redis):
         self.redis = redis
-        self.ops: list[tuple] = []
+        self.ops: list = []
 
     def zremrangebyscore(self, key, lo, hi):
         self.ops.append(("zrem_range", key, lo, hi))
@@ -80,8 +69,8 @@ class _FakePipeline:
 
 class _FakeRedis:
     def __init__(self):
-        self.zsets: dict[str, dict[str, float]] = {}
-        self.expires: dict[str, int] = {}
+        self.zsets: dict = {}
+        self.expires: dict = {}
 
     def pipeline(self, transaction: bool = False):
         return _FakePipeline(self)
@@ -92,17 +81,22 @@ class _FakeRedis:
             zset.pop(member, None)
 
 
-# ── Tests ─────────────────────────────────────────────────────────────────
-
-@pytest.mark.anyio
-async def test_redis_allows_below_limit(monkeypatch):
-    """First N-1 calls under the limit return allowed=True with decreasing remaining."""
-    fake = _FakeRedis()
-
+def _install_fake(monkeypatch, fake):
+    """Replace ``_get_redis`` with one that returns the fake; clear in-mem state."""
     async def _fake_get_redis():
         return fake
 
     monkeypatch.setattr(rate_limiter, "_get_redis", _fake_get_redis)
+    rate_limiter._store._store.clear()
+
+
+# ── Tests ─────────────────────────────────────────────────────────────────
+
+@pytest.mark.asyncio
+async def test_redis_allows_below_limit(monkeypatch):
+    """First N-1 calls under the limit return allowed=True with decreasing remaining."""
+    fake = _FakeRedis()
+    _install_fake(monkeypatch, fake)
 
     results = []
     for _ in range(3):
@@ -113,19 +107,15 @@ async def test_redis_allows_below_limit(monkeypatch):
     assert [r[1] for r in results] == [4, 3, 2]
 
 
-@pytest.mark.anyio
+@pytest.mark.asyncio
 async def test_redis_blocks_above_limit(monkeypatch):
     """The (max+1)-th call must be denied and not counted in the window."""
     fake = _FakeRedis()
-
-    async def _fake_get_redis():
-        return fake
-
-    monkeypatch.setattr(rate_limiter, "_get_redis", _fake_get_redis)
+    _install_fake(monkeypatch, fake)
 
     # Burn the budget.
     for _ in range(3):
-        allowed, _ = await rate_limiter._is_allowed("k2", 3, 60)
+        allowed, _rem = await rate_limiter._is_allowed("k2", 3, 60)
         assert allowed is True
 
     denied, remaining = await rate_limiter._is_allowed("k2", 3, 60)
@@ -136,15 +126,11 @@ async def test_redis_blocks_above_limit(monkeypatch):
     assert len(fake.zsets[zset_key]) == 3
 
 
-@pytest.mark.anyio
+@pytest.mark.asyncio
 async def test_redis_expires_old_entries(monkeypatch):
     """Entries older than the window are pruned and budget resets."""
     fake = _FakeRedis()
-
-    async def _fake_get_redis():
-        return fake
-
-    monkeypatch.setattr(rate_limiter, "_get_redis", _fake_get_redis)
+    _install_fake(monkeypatch, fake)
 
     # Seed the zset with three stale entries outside the 60s window.
     zset_key = f"{rate_limiter._REDIS_KEY_PREFIX}:k3"
@@ -157,7 +143,7 @@ async def test_redis_expires_old_entries(monkeypatch):
     assert remaining == 2
 
 
-@pytest.mark.anyio
+@pytest.mark.asyncio
 async def test_falls_back_to_inmem_when_redis_absent(monkeypatch):
     """With no Redis client, the in-memory limiter still enforces the cap."""
 
@@ -165,16 +151,17 @@ async def test_falls_back_to_inmem_when_redis_absent(monkeypatch):
         return None
 
     monkeypatch.setattr(rate_limiter, "_get_redis", _no_redis)
+    rate_limiter._store._store.clear()
 
     for _ in range(2):
-        allowed, _ = await rate_limiter._is_allowed("k4", 2, 60)
+        allowed, _rem = await rate_limiter._is_allowed("k4", 2, 60)
         assert allowed is True
 
-    denied, _ = await rate_limiter._is_allowed("k4", 2, 60)
+    denied, _rem = await rate_limiter._is_allowed("k4", 2, 60)
     assert denied is False
 
 
-@pytest.mark.anyio
+@pytest.mark.asyncio
 async def test_falls_back_to_inmem_when_redis_raises(monkeypatch):
     """Any Redis error mid-request must degrade to the in-memory path."""
 
@@ -189,24 +176,21 @@ async def test_falls_back_to_inmem_when_redis_raises(monkeypatch):
         return _Exploding()
 
     monkeypatch.setattr(rate_limiter, "_get_redis", _fake_get_redis)
+    rate_limiter._store._store.clear()
 
     for _ in range(2):
-        allowed, _ = await rate_limiter._is_allowed("k5", 2, 60)
+        allowed, _rem = await rate_limiter._is_allowed("k5", 2, 60)
         assert allowed is True
 
-    denied, _ = await rate_limiter._is_allowed("k5", 2, 60)
+    denied, _rem = await rate_limiter._is_allowed("k5", 2, 60)
     assert denied is False
 
 
-@pytest.mark.anyio
+@pytest.mark.asyncio
 async def test_expire_is_refreshed_on_every_allowed_call(monkeypatch):
     """Every accepted request must re-arm the TTL so the key doesn't leak."""
     fake = _FakeRedis()
-
-    async def _fake_get_redis():
-        return fake
-
-    monkeypatch.setattr(rate_limiter, "_get_redis", _fake_get_redis)
+    _install_fake(monkeypatch, fake)
 
     await rate_limiter._is_allowed("k6", 5, 90)
     zset_key = f"{rate_limiter._REDIS_KEY_PREFIX}:k6"
