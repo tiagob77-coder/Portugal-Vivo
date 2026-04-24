@@ -48,6 +48,22 @@ interface AdminData {
   top_pois: { name: string; iq_score: number; category: string; region: string }[];
 }
 
+interface DataQualitySweep {
+  duplicate_clusters_count: number;
+  duplicate_clusters_sample: { name: string; count: number; ids: string[] }[];
+  missing_required_fields: { field: string; count: number }[];
+  coords_outside_portugal: { count: number; sample: { id: string; name: string; lat: number; lng: number }[] };
+}
+
+interface DeepHealth {
+  status: string;
+  checks: {
+    mongo?: { status: string; latency_ms?: number };
+    redis?: { status: string; latency_ms?: number };
+    llm?: { status: string; latency_ms?: number };
+  };
+}
+
 const fetchAdmin = async (): Promise<AdminData> => {
   const r = await api.get('/admin/dashboard');
   return r.data;
@@ -81,6 +97,28 @@ export default function AdminDashboard() {
     queryKey: ['admin-dashboard'],
     queryFn: fetchAdmin,
     refetchInterval: 30000,
+  });
+
+  // Data-quality sweep (PR #105) — duplicates, missing fields, out-of-bounds coords.
+  // On-demand only: the query is heavier and the data shifts slowly; no interval.
+  const { data: dqSweep, refetch: refetchDqSweep, isFetching: dqFetching, error: dqError } = useQuery<DataQualitySweep>({
+    queryKey: ['admin-data-quality-sweep'],
+    queryFn: async () => {
+      const res = await api.get('/admin/data-quality', { params: { sample_limit: 20 } });
+      return res.data;
+    },
+    staleTime: 60_000,
+  });
+
+  // Deep health (PR #100) — LLM probe is a live network call, so we poll gently.
+  const { data: deepHealth } = useQuery<DeepHealth>({
+    queryKey: ['admin-health-deep'],
+    queryFn: async () => {
+      const res = await api.get('/health/deep');
+      return res.data;
+    },
+    refetchInterval: 60_000,
+    staleTime: 30_000,
   });
 
   const { data: uploadsData, isLoading: uploadsLoading } = useQuery({
@@ -254,6 +292,108 @@ export default function AdminDashboard() {
             ))}
           </View>
         )}
+
+        {/* System Health — live probe of Mongo / Redis / LLM (PR #100 /api/health/deep) */}
+        {deepHealth && (
+          <View style={[styles.section, { backgroundColor: colors.surface }]}>
+            <View style={styles.moderationHeader}>
+              <MaterialIcons
+                name={deepHealth.status === 'ok' ? 'favorite' : 'warning'}
+                size={22}
+                color={deepHealth.status === 'ok' ? '#22C55E' : '#EF4444'}
+              />
+              <Text style={[styles.sectionTitle, { color: colors.textPrimary, marginBottom: 0 }]}>
+                Saúde do Sistema
+              </Text>
+            </View>
+            <View style={styles.caopStatsRow}>
+              <HealthProbe label="Mongo" probe={deepHealth.checks.mongo} colors={colors} />
+              <HealthProbe label="Redis" probe={deepHealth.checks.redis} colors={colors} />
+              <HealthProbe label="LLM" probe={deepHealth.checks.llm} colors={colors} />
+            </View>
+          </View>
+        )}
+
+        {/* Data Quality Sweep — duplicates, missing fields, out-of-bounds (PR #105 /admin/data-quality) */}
+        <View style={[styles.section, { backgroundColor: colors.surface }]}>
+          <View style={styles.moderationHeader}>
+            <MaterialIcons name="fact-check" size={22} color="#8B5CF6" />
+            <Text style={[styles.sectionTitle, { color: colors.textPrimary, marginBottom: 0 }]}>
+              Integridade dos Dados
+            </Text>
+            <TouchableOpacity
+              style={{ marginLeft: 'auto', padding: 4 }}
+              onPress={() => refetchDqSweep()}
+              disabled={dqFetching}
+            >
+              {dqFetching ? (
+                <ActivityIndicator size="small" color={colors.accent} />
+              ) : (
+                <MaterialIcons name="refresh" size={20} color={colors.textMuted} />
+              )}
+            </TouchableOpacity>
+          </View>
+
+          {dqError ? (
+            <Text style={{ color: '#EF4444', fontSize: 13 }}>
+              Falha ao carregar. Retry via o ícone acima.
+            </Text>
+          ) : dqSweep ? (
+            <>
+              <View style={styles.caopStatsRow}>
+                <View style={[styles.caopStat, { backgroundColor: (dqSweep.duplicate_clusters_count > 0 ? '#F59E0B' : '#22C55E') + '15' }]}>
+                  <Text style={[styles.caopStatVal, { color: dqSweep.duplicate_clusters_count > 0 ? '#F59E0B' : '#22C55E' }]}>
+                    {dqSweep.duplicate_clusters_count}
+                  </Text>
+                  <Text style={[styles.caopStatLabel, { color: colors.textMuted }]}>Clusters duplicados</Text>
+                </View>
+                <View style={[styles.caopStat, { backgroundColor: (dqSweep.coords_outside_portugal.count > 0 ? '#EF4444' : '#22C55E') + '15' }]}>
+                  <Text style={[styles.caopStatVal, { color: dqSweep.coords_outside_portugal.count > 0 ? '#EF4444' : '#22C55E' }]}>
+                    {dqSweep.coords_outside_portugal.count}
+                  </Text>
+                  <Text style={[styles.caopStatLabel, { color: colors.textMuted }]}>Coords fora PT</Text>
+                </View>
+                <View style={[styles.caopStat, { backgroundColor: '#3B82F615' }]}>
+                  <Text style={[styles.caopStatVal, { color: '#3B82F6' }]}>
+                    {dqSweep.missing_required_fields.reduce((acc, f) => acc + f.count, 0)}
+                  </Text>
+                  <Text style={[styles.caopStatLabel, { color: colors.textMuted }]}>Campos em falta</Text>
+                </View>
+              </View>
+
+              {dqSweep.missing_required_fields.length > 0 && (
+                <View style={{ marginTop: 4 }}>
+                  {dqSweep.missing_required_fields.map((f) => (
+                    <View key={f.field} style={styles.rankRow}>
+                      <Text style={[styles.rankLabel, { color: colors.textPrimary }]}>{f.field}</Text>
+                      <Text style={[styles.rankCount, { color: f.count > 0 ? '#F59E0B' : colors.textMuted }]}>
+                        {f.count}
+                      </Text>
+                    </View>
+                  ))}
+                </View>
+              )}
+
+              {dqSweep.duplicate_clusters_sample.length > 0 && (
+                <View style={{ marginTop: 10 }}>
+                  <Text style={[styles.rankLabel, { color: colors.textMuted, marginBottom: 4 }]}>
+                    Amostra de duplicados:
+                  </Text>
+                  {dqSweep.duplicate_clusters_sample.slice(0, 5).map((c, i) => (
+                    <View key={`${c.name}-${i}`} style={styles.rankRow}>
+                      <Text style={[styles.rankNum, { color: colors.textMuted }]}>×{c.count}</Text>
+                      <Text style={[styles.rankLabel, { color: colors.textPrimary }]} numberOfLines={1}>
+                        {c.name}
+                      </Text>
+                    </View>
+                  ))}
+                </View>
+              )}
+            </>
+          ) : (
+            <ActivityIndicator size="small" color={colors.accent} style={{ marginVertical: 12 }} />
+          )}
+        </View>
 
         {/* Quick Actions */}
         <View style={[styles.section, { backgroundColor: colors.surface }]}>
@@ -518,6 +658,27 @@ function ActivityStat({ icon, label, value, color, colors }: any) {
       <MaterialIcons name={icon} size={20} color={color} />
       <Text style={[styles.activityValue, { color: colors.textPrimary }]}>{value}</Text>
       <Text style={[styles.activityLabel, { color: colors.textMuted }]}>{label}</Text>
+    </View>
+  );
+}
+
+function HealthProbe({ label, probe, colors }: { label: string; probe?: { status: string; latency_ms?: number }; colors: any }) {
+  const ok = probe?.status === 'ok' || probe?.status === 'reachable';
+  const unknown = !probe || probe.status === 'not_configured';
+  const color = unknown ? '#6B7280' : ok ? '#22C55E' : '#EF4444';
+  const bg = color + '15';
+  const statusText = unknown
+    ? (probe?.status || '—')
+    : ok
+      ? 'OK'
+      : (probe?.status || 'down');
+  return (
+    <View style={[styles.caopStat, { backgroundColor: bg }]}>
+      <Text style={[styles.caopStatVal, { color }]}>{statusText}</Text>
+      <Text style={[styles.caopStatLabel, { color: colors.textMuted }]}>
+        {label}
+        {probe?.latency_ms != null ? ` · ${Math.round(probe.latency_ms)}ms` : ''}
+      </Text>
     </View>
   );
 }
