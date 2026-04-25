@@ -51,6 +51,25 @@ async def test_deep_health_includes_llm_probe(client):
 
 @pytest.mark.anyio
 @requires_db
+async def test_metrics_exposes_rate_limit_and_llm_call_counters(client):
+    """The two Fase 4 counters (rate_limit_triggered_total, llm_calls_total) must
+    be registered on import, so they appear in /api/metrics even before any
+    increments — Prometheus client emits the HELP/TYPE lines for declared
+    counters even at zero."""
+    resp = await client.get("/api/metrics")
+    if resp.status_code != 200:
+        pytest.skip("Prometheus client not installed in this environment")
+    body = resp.text
+    assert "rate_limit_triggered_total" in body, (
+        "rate_limit_triggered_total counter not exposed in /api/metrics"
+    )
+    assert "llm_calls_total" in body, (
+        "llm_calls_total counter not exposed in /api/metrics"
+    )
+
+
+@pytest.mark.anyio
+@requires_db
 async def test_request_id_echoed_when_supplied(client):
     """Inbound X-Request-ID is echoed back in the response."""
     resp = await client.get("/api/health", headers={"X-Request-ID": "test-rid-123"})

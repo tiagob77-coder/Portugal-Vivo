@@ -26,6 +26,29 @@ from starlette.middleware.base import BaseHTTPMiddleware
 
 logger = logging.getLogger(__name__)
 
+
+# ── Prometheus counter (best-effort; no-op if client missing) ────────────
+
+try:
+    from prometheus_client import Counter
+
+    _rate_limit_triggered = Counter(
+        "rate_limit_triggered_total",
+        "Number of times a rate limit was hit and the request was denied (429).",
+        ["endpoint", "scope"],  # scope = "endpoint" | "global"
+    )
+except Exception:  # pragma: no cover — prom client optional
+    _rate_limit_triggered = None
+
+
+def _inc_trigger(endpoint: str, scope: str) -> None:
+    if _rate_limit_triggered is None:
+        return
+    try:
+        _rate_limit_triggered.labels(endpoint=endpoint, scope=scope).inc()
+    except Exception:
+        pass
+
 # Endpoint-specific limits: (max_requests, window_seconds)
 ENDPOINT_LIMITS: Dict[str, Tuple[int, int]] = {
     # Search
@@ -235,6 +258,7 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
                 allowed, remaining = await _is_allowed(key, max_req, window)
                 if not allowed:
                     logger.warning("Rate limit hit: %s on %s", client, endpoint_prefix)
+                    _inc_trigger(endpoint_prefix, "endpoint")
                     return Response(
                         content='{"detail":"Rate limit exceeded for this endpoint"}',
                         status_code=429,
@@ -253,6 +277,7 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
             allowed, remaining = await _is_allowed(key, USER_RATE_LIMIT, USER_RATE_WINDOW)
             if not allowed:
                 logger.warning("Global user rate limit hit: %s", client)
+                _inc_trigger(path, "global")
                 return Response(
                     content='{"detail":"Too many requests"}',
                     status_code=429,

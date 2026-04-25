@@ -62,8 +62,13 @@ try:
         "Redis errors encountered during LLM cache access.",
         ["op"],
     )
+    _llm_calls = Counter(
+        "llm_calls_total",
+        "Outbound LLM calls grouped by namespace and outcome.",
+        ["namespace", "outcome"],  # outcome = "success" | "fallback" | "error"
+    )
 except Exception:  # pragma: no cover — prom client optional in tests
-    _hits = _misses = _errors = None
+    _hits = _misses = _errors = _llm_calls = None
 
 
 def _inc(counter, **labels) -> None:
@@ -73,6 +78,21 @@ def _inc(counter, **labels) -> None:
         counter.labels(**labels).inc()
     except Exception:
         pass
+
+
+def record_llm_call(namespace: str, outcome: str) -> None:
+    """Record an outbound LLM call's outcome.
+
+    Callers should invoke this exactly once per attempted upstream request,
+    AFTER the try/except — so a single user-visible response counts as one
+    call regardless of how many internal retries happened.
+
+    ``outcome`` is one of:
+      - ``success``  — LLM returned a valid response
+      - ``fallback`` — LLM unavailable (no key, network error) → static fallback
+      - ``error``    — LLM responded but parse / validation failed
+    """
+    _inc(_llm_calls, namespace=namespace, outcome=outcome)
 
 
 # ── Redis connection bootstrap ─────────────────────────────────────────────

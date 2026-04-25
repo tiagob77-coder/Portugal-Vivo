@@ -17,7 +17,8 @@
 8. [Deploy PWA](#8-deploy-pwa)
 9. [Verificação Pós-Deploy](#9-verificação-pós-deploy)
 10. [Manutenção e Operações](#10-manutenção-e-operações)
-11. [Troubleshooting](#11-troubleshooting)
+11. [Observabilidade](#11-observabilidade)
+12. [Troubleshooting](#12-troubleshooting)
 
 ---
 
@@ -364,7 +365,106 @@ docker compose -f docker-compose.prod.yml exec mongodb \
 
 ---
 
-## 11. Troubleshooting
+## 11. Observabilidade
+
+A aplicação expõe três pilares de observabilidade que vivem por trás de variáveis de ambiente. O código está todo instrumentado — basta fornecer credenciais para acender as luzes.
+
+### 11.1 Sentry (erros + traces)
+
+O SDK do Sentry está integrado em backend (`backend/monitoring.py`) e frontend (`frontend/src/utils/monitoring.ts`). Para activar:
+
+1. Criar conta em **https://sentry.io** (free tier: 5 000 eventos/mês — suficiente para staging e tráfego inicial)
+2. Criar **dois** projectos: `portugal-vivo-backend` (Python) e `portugal-vivo-frontend` (React Native)
+3. Copiar o **DSN** de cada projecto (URL do tipo `https://abc@o123.ingest.sentry.io/456`)
+4. Definir as variáveis de ambiente:
+
+   | Variável | Valor | Onde |
+   |---|---|---|
+   | `SENTRY_DSN` | DSN do projecto backend | Backend host / Emergent / `backend/.env` |
+   | `SENTRY_TRACES_SAMPLE_RATE` | `0.1` (10%) | idem |
+   | `EXPO_PUBLIC_SENTRY_DSN` | DSN do projecto frontend | Build do Expo (EAS env vars ou `frontend/.env`) |
+   | `EXPO_PUBLIC_ENVIRONMENT` | `production` / `staging` | idem |
+
+5. Reiniciar o backend e re-build do frontend
+6. Verificar:
+   - `curl https://api.portugalvivo.pt/api/this-does-not-exist` → 404 → evento aparece no painel Sentry em < 60 s
+   - No frontend, abrir DevTools console e correr `throw new Error('sentry smoke')` → evento aparece no projecto frontend
+
+### 11.2 Prometheus + Grafana
+
+O backend expõe `/api/metrics` em formato Prometheus com 9 métricas:
+
+| Métrica | Tipo | Labels |
+|---|---|---|
+| `http_requests_total` | counter | method, endpoint, status_code |
+| `http_request_duration_seconds` | histogram | method, endpoint |
+| `http_5xx_errors_total` | counter | method, endpoint |
+| `http_status_alerts_total` | counter | status_code, method, endpoint |
+| `llm_cache_hits_total` | counter | namespace |
+| `llm_cache_misses_total` | counter | namespace |
+| `llm_cache_errors_total` | counter | op |
+| `rate_limit_triggered_total` | counter | endpoint, scope |
+| `llm_calls_total` | counter | namespace, outcome |
+
+**Setup recomendado (Grafana Cloud — free tier)**:
+
+1. Criar conta em **grafana.com** (free: 10k series, 14 dias de retenção)
+2. Em **Connections → Add new connection → Hosted Prometheus metrics**, criar credenciais
+3. Em qualquer container que tenha acesso ao backend, correr o Grafana Agent:
+   ```bash
+   docker run -d \
+     -e GRAFANA_CLOUD_API_KEY=... \
+     -e GRAFANA_CLOUD_PROMETHEUS_URL=... \
+     -e SCRAPE_TARGETS="api.portugalvivo.pt:443/api/metrics" \
+     grafana/agent:latest
+   ```
+4. No Grafana UI: **Dashboards → Import → Upload JSON** → carregar `ops/grafana/portugal-vivo-dashboard.json`
+5. Seleccionar a datasource Prometheus criada acima quando solicitado
+
+O dashboard inclui 8 painéis:
+- Top 10 endpoints por taxa de pedidos
+- Latência p95 por endpoint
+- Taxa de erros 5xx
+- Triggers de rate-limit por endpoint
+- 401/429 ao longo do tempo
+- LLM cache hit rate por namespace
+- LLM call rate por namespace × outcome
+- Saúde do scrape (UP/DOWN)
+
+**Auto-hospedar (alternativa)**: ver `docker-compose.prod.yml` — um service Prometheus + Grafana pode ser adicionado seguindo o pattern dos outros services. Não é recomendado para tráfego baixo: o Grafana Cloud free chega.
+
+### 11.3 Logs estruturados
+
+Em `ENVIRONMENT=production` ou `staging` os logs são emitidos como JSON, um por linha, com `request_id`, `tenant_id`, `user_id`, `method`, `path`, `status_code`, `duration_ms`. Para forçar o formato JSON em outros ambientes:
+
+```
+LOG_FORMAT=json
+```
+
+Para correlacionar um pedido específico com o seu rasto Sentry e logs:
+
+1. O cliente recebe sempre o header `X-Request-ID` na resposta
+2. Procurar esse ID nos logs (Loki / CloudWatch / ficheiro): `grep request_id=abc123`
+3. No Sentry, o request_id aparece como tag em cada evento — filtrar por esse valor
+
+### 11.4 Smoke test pós-deploy
+
+Após cada deploy, correr:
+
+```
+python scripts/verify_observability.py --base-url https://api.portugalvivo.pt
+```
+
+Valida que:
+- `/api/metrics` expõe os 9 contadores esperados (incl. os 2 novos da Fase 4)
+- `/api/health/deep` reporta `mongodb`, `redis`, `llm`
+- `X-Request-ID` aparece em todas as respostas
+
+Exit code 0 = OK. Exit code 1 = pelo menos uma verificação falhou — investigar antes de promover o build.
+
+---
+
+## 12. Troubleshooting
 
 ### Backend não arranca
 

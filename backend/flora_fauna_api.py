@@ -21,7 +21,7 @@ import os
 import httpx
 
 from models.api_models import User
-from llm_cache import build_cache_key, cache_get, cache_set
+from llm_cache import build_cache_key, cache_get, cache_set, record_llm_call
 
 flora_fauna_router = APIRouter(prefix="/flora-fauna", tags=["Flora Fauna"])
 
@@ -713,8 +713,10 @@ async def identify_species(
                 _json.dumps(parsed, ensure_ascii=False),
                 ttl_seconds=60 * 60 * 24 * 7,
             )
+            record_llm_call("species-identify", "success")
             return {"identified": parsed, "source": "llm"}
     except Exception:
+        record_llm_call("species-identify", "fallback")
         return {
             "identified": {
                 "scientific_name": "Desconhecida",
