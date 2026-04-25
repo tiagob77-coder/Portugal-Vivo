@@ -45,6 +45,8 @@ ADMIN_AUTH_ENDPOINTS = [
     ("POST", "/api/geo-administrative/enrich-all", {}),
     ("POST", "/api/cultural-routes/enrich/run", {}),
     ("GET",  "/api/admin/data-quality", None),
+    ("GET",  "/api/admin/community-queue", None),
+    ("GET",  "/api/admin/narratives-queue", None),
 ]
 
 
