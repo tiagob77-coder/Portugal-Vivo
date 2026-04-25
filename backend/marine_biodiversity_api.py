@@ -15,7 +15,7 @@ from fastapi import APIRouter, HTTPException, Query, Depends, Request
 from pydantic import BaseModel, Field
 
 from models.api_models import User
-from llm_cache import build_cache_key, cache_get, cache_set
+from llm_cache import build_cache_key, cache_get, cache_set, record_llm_call
 
 marine_biodiversity_router = APIRouter(prefix="/biodiversity", tags=["Biodiversity"])
 
@@ -713,8 +713,10 @@ Responde em JSON com esta estrutura exacta:
             _json.dumps(parsed, ensure_ascii=False),
             ttl_seconds=60 * 60 * 24 * 7,
         )
+        record_llm_call("marine-identify", "success")
         return {**parsed, "source": "llm"}
     except Exception:
+        record_llm_call("marine-identify", "fallback")
         return fallback
 
 

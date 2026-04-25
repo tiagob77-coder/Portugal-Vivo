@@ -11,7 +11,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from pydantic import BaseModel, Field
 
 from models.api_models import User
-from llm_cache import build_cache_key, cache_get, cache_set
+from llm_cache import build_cache_key, cache_get, cache_set, record_llm_call
 
 gastronomy_router = APIRouter(prefix="/gastronomy", tags=["Gastronomy"])
 _db = None
@@ -355,8 +355,10 @@ Responde em JSON: {{"wine": "nome do vinho/região", "olive_oil": "azeite ou nul
             )
         parsed = _j.loads(resp.json()["choices"][0]["message"]["content"])
         await cache_set("gastronomy-pairing", cache_key, _j.dumps(parsed, ensure_ascii=False), ttl_seconds=60 * 60 * 24 * 7)
+        record_llm_call("gastronomy-pairing", "success")
         return {**parsed, "item_id": item_id, "source": "ai"}
     except Exception:
+        record_llm_call("gastronomy-pairing", "fallback")
         return {"item_id": item_id, "wine": "Vinho branco fresco", "olive_oil": "Azeite virgem extra", "notes": "Harmonização genérica", "source": "fallback"}
 
 
