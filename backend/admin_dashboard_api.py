@@ -461,3 +461,56 @@ async def admin_data_quality(
     from scripts.data_quality_check import run_data_quality_check
 
     return await run_data_quality_check(_db, sample_limit=sample_limit)
+
+
+# ─── Editorial queues (Fase 4 — content ops) ──────────────────────────────
+
+# Action endpoints already exist on the public routers:
+#   PATCH /contributions/{id}/moderate          (community_api.py)
+#   POST  /narratives/{id}/validate             (narratives_api.py)
+#   POST  /narratives/{id}/publish              (narratives_api.py)
+# What was missing was an admin-only LIST so the dashboard can surface
+# pending items without exposing the queue to anonymous callers via the
+# public /contributions and /narratives endpoints.
+
+
+@router.get("/admin/community-queue", tags=["Admin"])
+async def admin_community_queue(
+    limit: int = Query(default=50, ge=1, le=200),
+    admin: User = Depends(_admin_dep),
+):
+    """List community contributions awaiting moderation.
+
+    Returns the most recent pending items first so the queue feels live.
+    Operators act via the existing PATCH /contributions/{id}/moderate.
+    """
+    if _db is None:
+        return {"items": [], "total": 0, "limit": limit}
+
+    cursor = _db.contributions.find(
+        {"status": "pending"}, {"_id": 0}
+    ).sort("created_at", -1).limit(limit)
+    items = await cursor.to_list(limit)
+    total = await _db.contributions.count_documents({"status": "pending"})
+    return {"items": items, "total": total, "limit": limit}
+
+
+@router.get("/admin/narratives-queue", tags=["Admin"])
+async def admin_narratives_queue(
+    limit: int = Query(default=50, ge=1, le=200),
+    admin: User = Depends(_admin_dep),
+):
+    """List narratives awaiting editorial review.
+
+    Operators act via POST /narratives/{id}/validate (approve/reject) and
+    POST /narratives/{id}/publish (approved → published).
+    """
+    if _db is None:
+        return {"items": [], "total": 0, "limit": limit}
+
+    cursor = _db.narratives.find(
+        {"status": "pending_review"}, {"_id": 0}
+    ).sort("created_at", -1).limit(limit)
+    items = await cursor.to_list(limit)
+    total = await _db.narratives.count_documents({"status": "pending_review"})
+    return {"items": items, "total": total, "limit": limit}

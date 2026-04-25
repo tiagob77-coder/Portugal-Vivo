@@ -82,6 +82,8 @@ const QUICK_ACTIONS = [
   { label: 'Analytics', icon: 'bar-chart', route: '/analytics', color: '#F59E0B' },
   { label: 'CAOP', icon: 'public', route: '', color: '#10B981' },
   { label: 'Moderação Imagens', icon: 'photo-library', route: '', color: '#EC4899' },
+  { label: 'Comunidade', icon: 'forum', route: '', color: '#0EA5E9' },
+  { label: 'Narrativas', icon: 'auto-stories', route: '', color: '#A855F7' },
 ];
 
 export default function AdminDashboard() {
@@ -91,6 +93,8 @@ export default function AdminDashboard() {
   const queryClient = useQueryClient();
   const [showModeration, setShowModeration] = useState(false);
   const [showCaop, setShowCaop] = useState(false);
+  const [showCommunity, setShowCommunity] = useState(false);
+  const [showNarratives, setShowNarratives] = useState(false);
   const [caopLaunching, setCaopLaunching] = useState(false);
 
   const { data, isLoading } = useQuery({
@@ -98,6 +102,51 @@ export default function AdminDashboard() {
     queryFn: fetchAdmin,
     refetchInterval: 30000,
   });
+
+  // Editorial queues (PR #117) — community contributions + narratives
+  const { data: communityQueue, isLoading: communityLoading } = useQuery({
+    queryKey: ['admin-community-queue'],
+    queryFn: async () => { const r = await api.get('/admin/community-queue', { params: { limit: 30 } }); return r.data; },
+    enabled: showCommunity,
+    staleTime: 15_000,
+  });
+
+  const { data: narrativesQueue, isLoading: narrativesLoading } = useQuery({
+    queryKey: ['admin-narratives-queue'],
+    queryFn: async () => { const r = await api.get('/admin/narratives-queue', { params: { limit: 30 } }); return r.data; },
+    enabled: showNarratives,
+    staleTime: 15_000,
+  });
+
+  const handleModerateContribution = useCallback(async (id: string, action: 'approved' | 'rejected') => {
+    try {
+      await api.patch(`/contributions/${id}/moderate`, { status: action });
+      queryClient.invalidateQueries({ queryKey: ['admin-community-queue'] });
+    } catch {
+      const msg = 'Erro ao moderar contribuição';
+      Platform.OS === 'web' ? window.alert(msg) : Alert.alert('Erro', msg); // eslint-disable-line no-unused-expressions
+    }
+  }, [queryClient]);
+
+  const handleValidateNarrative = useCallback(async (id: string, status: 'approved' | 'rejected') => {
+    try {
+      await api.post(`/narratives/${id}/validate`, { status });
+      queryClient.invalidateQueries({ queryKey: ['admin-narratives-queue'] });
+    } catch {
+      const msg = 'Erro ao validar narrativa';
+      Platform.OS === 'web' ? window.alert(msg) : Alert.alert('Erro', msg); // eslint-disable-line no-unused-expressions
+    }
+  }, [queryClient]);
+
+  const handlePublishNarrative = useCallback(async (id: string) => {
+    try {
+      await api.post(`/narratives/${id}/publish`);
+      queryClient.invalidateQueries({ queryKey: ['admin-narratives-queue'] });
+    } catch {
+      const msg = 'Erro ao publicar narrativa (estado actual inválido?)';
+      Platform.OS === 'web' ? window.alert(msg) : Alert.alert('Erro', msg); // eslint-disable-line no-unused-expressions
+    }
+  }, [queryClient]);
 
   // Data-quality sweep (PR #105) — duplicates, missing fields, out-of-bounds coords.
   // On-demand only: the query is heavier and the data shifts slowly; no interval.
@@ -408,6 +457,10 @@ export default function AdminDashboard() {
                     setShowModeration(!showModeration);
                   } else if (action.label === 'CAOP') {
                     setShowCaop(!showCaop);
+                  } else if (action.label === 'Comunidade') {
+                    setShowCommunity(!showCommunity);
+                  } else if (action.label === 'Narrativas') {
+                    setShowNarratives(!showNarratives);
                   } else {
                     router.push(action.route as any);
                   }
@@ -530,6 +583,138 @@ export default function AdminDashboard() {
               Corre dentro do Docker — sem necessidade de SSH.{'\n'}
               Fonte: GeoAPI.pt (DGT/CAOP oficial). Rate: 1 req/s.
             </Text>
+          </View>
+        )}
+
+        {/* Community Queue — pending contributions (PR #117) */}
+        {showCommunity && (
+          <View style={[styles.section, { backgroundColor: colors.surface }]}>
+            <View style={styles.moderationHeader}>
+              <MaterialIcons name="forum" size={22} color="#0EA5E9" />
+              <Text style={[styles.sectionTitle, { color: colors.textPrimary, marginBottom: 0 }]}>
+                Fila Comunidade
+              </Text>
+              <View style={[styles.modBadge, { backgroundColor: '#0EA5E920' }]}>
+                <Text style={{ fontSize: 12, fontWeight: '700', color: '#0EA5E9' }}>
+                  {communityQueue?.total ?? 0}
+                </Text>
+              </View>
+            </View>
+            {communityLoading ? (
+              <ActivityIndicator size="large" color="#0EA5E9" style={{ marginTop: 20 }} />
+            ) : communityQueue?.items?.length > 0 ? (
+              <View style={styles.moderationGrid}>
+                {communityQueue.items.map((c: any) => {
+                  const id = c.id || c.contribution_id;
+                  return (
+                    <View key={id} style={[styles.modCard, { borderColor: colors.borderLight }]}>
+                      <View style={{ flex: 1, gap: 4 }}>
+                        <Text style={[styles.poiName, { color: colors.textPrimary }]} numberOfLines={1}>
+                          {c.title || c.type || '(sem título)'}
+                        </Text>
+                        <Text style={[styles.modPoi, { color: colors.textMuted }]} numberOfLines={2}>
+                          {c.description || c.content || ''}
+                        </Text>
+                        <Text style={[styles.modUser, { color: colors.textMuted }]}>
+                          {c.user_id?.slice(0, 8) || 'user'} · {c.region || c.type} · ▲{c.upvotes ?? 0}
+                        </Text>
+                      </View>
+                      <View style={styles.modActions}>
+                        <TouchableOpacity
+                          style={[styles.modBtn, { backgroundColor: '#22C55E' }]}
+                          onPress={() => handleModerateContribution(id, 'approved')}
+                        >
+                          <MaterialIcons name="check" size={16} color="#FFF" />
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                          style={[styles.modBtn, { backgroundColor: '#EF4444' }]}
+                          onPress={() => handleModerateContribution(id, 'rejected')}
+                        >
+                          <MaterialIcons name="close" size={16} color="#FFF" />
+                        </TouchableOpacity>
+                      </View>
+                    </View>
+                  );
+                })}
+              </View>
+            ) : (
+              <View style={{ alignItems: 'center', paddingVertical: 30, gap: 8 }}>
+                <MaterialIcons name="check-circle" size={40} color="#22C55E" />
+                <Text style={{ fontSize: 14, fontWeight: '600', color: colors.textMuted }}>
+                  Nenhuma contribuição pendente
+                </Text>
+              </View>
+            )}
+          </View>
+        )}
+
+        {/* Narratives Queue — pending review (PR #117) */}
+        {showNarratives && (
+          <View style={[styles.section, { backgroundColor: colors.surface }]}>
+            <View style={styles.moderationHeader}>
+              <MaterialIcons name="auto-stories" size={22} color="#A855F7" />
+              <Text style={[styles.sectionTitle, { color: colors.textPrimary, marginBottom: 0 }]}>
+                Fila Narrativas
+              </Text>
+              <View style={[styles.modBadge, { backgroundColor: '#A855F720' }]}>
+                <Text style={{ fontSize: 12, fontWeight: '700', color: '#A855F7' }}>
+                  {narrativesQueue?.total ?? 0}
+                </Text>
+              </View>
+            </View>
+            {narrativesLoading ? (
+              <ActivityIndicator size="large" color="#A855F7" style={{ marginTop: 20 }} />
+            ) : narrativesQueue?.items?.length > 0 ? (
+              <View style={styles.moderationGrid}>
+                {narrativesQueue.items.map((n: any) => {
+                  const id = n.id || n.narrative_id;
+                  const credibility = n.credibility?.confidence ?? n.confidence;
+                  return (
+                    <View key={id} style={[styles.modCard, { borderColor: colors.borderLight }]}>
+                      <View style={{ flex: 1, gap: 4 }}>
+                        <Text style={[styles.poiName, { color: colors.textPrimary }]} numberOfLines={1}>
+                          {n.title || '(sem título)'}
+                        </Text>
+                        <Text style={[styles.modPoi, { color: colors.textMuted }]} numberOfLines={2}>
+                          {n.summary || n.content?.slice(0, 120) || ''}
+                        </Text>
+                        <Text style={[styles.modUser, { color: colors.textMuted }]}>
+                          {n.theme || '—'} · {n.region || '—'}
+                          {credibility != null ? ` · cred ${Number(credibility).toFixed(2)}` : ''}
+                        </Text>
+                      </View>
+                      <View style={styles.modActions}>
+                        <TouchableOpacity
+                          style={[styles.modBtn, { backgroundColor: '#22C55E' }]}
+                          onPress={() => handleValidateNarrative(id, 'approved')}
+                        >
+                          <MaterialIcons name="check" size={16} color="#FFF" />
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                          style={[styles.modBtn, { backgroundColor: '#A855F7' }]}
+                          onPress={() => handlePublishNarrative(id)}
+                        >
+                          <MaterialIcons name="publish" size={16} color="#FFF" />
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                          style={[styles.modBtn, { backgroundColor: '#EF4444' }]}
+                          onPress={() => handleValidateNarrative(id, 'rejected')}
+                        >
+                          <MaterialIcons name="close" size={16} color="#FFF" />
+                        </TouchableOpacity>
+                      </View>
+                    </View>
+                  );
+                })}
+              </View>
+            ) : (
+              <View style={{ alignItems: 'center', paddingVertical: 30, gap: 8 }}>
+                <MaterialIcons name="check-circle" size={40} color="#22C55E" />
+                <Text style={{ fontSize: 14, fontWeight: '600', color: colors.textMuted }}>
+                  Nenhuma narrativa pendente
+                </Text>
+              </View>
+            )}
           </View>
         )}
 
