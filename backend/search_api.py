@@ -27,11 +27,23 @@ class SearchFilters(BaseModel):
 
 @search_router.post("/search")
 async def advanced_search(filters: SearchFilters):
-    """Advanced search across heritage items with filters"""
-    skip, limit = clamp_pagination(filters.skip, filters.limit, max_limit=100)
-    query = {}
+    """Advanced search across heritage items with filters.
 
-    if filters.query:
+    Uses MongoDB ``$text`` against the ``idx_heritage_text_search`` index
+    (weights name=10, tags=5, description=1) and ranks by ``textScore``.
+    For very short queries (< 3 chars or single non-word fragments) we
+    fall back to the legacy ``$regex`` path because ``$text`` rejects
+    fragments that don't tokenise cleanly.
+    """
+    skip, limit = clamp_pagination(filters.skip, filters.limit, max_limit=100)
+    query: dict = {}
+
+    use_text = bool(filters.query) and len(filters.query.strip()) >= 3
+    if use_text:
+        query["$text"] = {"$search": filters.query, "$language": "portuguese"}
+    elif filters.query:
+        # Short-query fallback: keep the old regex behaviour so prefix
+        # searches like "Lis" or "@" still return something.
         safe_query = sanitize_regex(filters.query)
         query["$or"] = [
             {"name": {"$regex": safe_query, "$options": "i"}},
@@ -49,10 +61,14 @@ async def advanced_search(filters: SearchFilters):
     if filters.tags:
         query["tags"] = {"$in": filters.tags}
 
-    items = await _db_holder.db.heritage_items.find(
-        query,
-        {"_id": 0}
-    ).skip(skip).limit(limit).to_list(limit)
+    projection = {"_id": 0}
+    if use_text:
+        projection["score"] = {"$meta": "textScore"}
+
+    cursor = _db_holder.db.heritage_items.find(query, projection)
+    if use_text:
+        cursor = cursor.sort([("score", {"$meta": "textScore"})])
+    items = await cursor.skip(skip).limit(limit).to_list(limit)
 
     total = await _db_holder.db.heritage_items.count_documents(query)
 
@@ -211,7 +227,12 @@ def _truncate(text: str, max_len: int = 120) -> str:
 
 @search_router.get("/search/global")
 async def global_search(q: str, limit: int = 20):
-    """Unified search across all content types: POIs, routes, events, articles."""
+    """Unified search across all content types: POIs, routes, events, articles.
+
+    POIs (the largest collection) use the ``$text`` index for relevance
+    ranking when the query is long enough; the smaller collections stay
+    on regex because their text indexes haven't been declared yet.
+    """
     if len(q) < 2:
         return {"query": q, "results": [], "total": 0, "groups": {}}
 
@@ -219,13 +240,17 @@ async def global_search(q: str, limit: int = 20):
     query_lower = q.lower()
 
     regex_filter = {"$regex": safe_q, "$options": "i"}
+    use_text_for_poi = len(q.strip()) >= 3
 
-    # Build queries for each collection
-    poi_query = {"$or": [
-        {"name": regex_filter},
-        {"description": regex_filter},
-        {"tags": regex_filter},
-    ]}
+    # POI query: prefer $text for ranking + speed when the query tokenises.
+    if use_text_for_poi:
+        poi_query = {"$text": {"$search": q, "$language": "portuguese"}}
+    else:
+        poi_query = {"$or": [
+            {"name": regex_filter},
+            {"description": regex_filter},
+            {"tags": regex_filter},
+        ]}
 
     route_query = {"$or": [
         {"name": regex_filter},
@@ -244,9 +269,14 @@ async def global_search(q: str, limit: int = 20):
     ]}
 
     # Run all queries in parallel
-    poi_task = _db_holder.db.heritage_items.find(
-        poi_query, {"_id": 0}
-    ).limit(limit).to_list(limit)
+    if use_text_for_poi:
+        poi_task = _db_holder.db.heritage_items.find(
+            poi_query, {"_id": 0, "score": {"$meta": "textScore"}}
+        ).sort([("score", {"$meta": "textScore"})]).limit(limit).to_list(limit)
+    else:
+        poi_task = _db_holder.db.heritage_items.find(
+            poi_query, {"_id": 0}
+        ).limit(limit).to_list(limit)
 
     route_task = _db_holder.db.routes.find(
         route_query, {"_id": 0}
