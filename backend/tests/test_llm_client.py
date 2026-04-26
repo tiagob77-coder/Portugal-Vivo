@@ -191,13 +191,13 @@ async def test_call_swallows_exceptions(monkeypatch):
     assert out is None
 
 
-def test_call_requires_prompt_or_messages(monkeypatch):
+@pytest.mark.anyio
+async def test_call_requires_prompt_or_messages(monkeypatch):
     """No prompt and no messages is a programmer error → ValueError."""
     monkeypatch.setattr(
         llm_client,
         "_provider",
         {"provider": "openai", "url": llm_client._OPENAI_URL, "api_key": "sk-x"},
     )
-    import asyncio
     with pytest.raises(ValueError):
-        asyncio.run(llm_client.call_chat_completion())
+        await llm_client.call_chat_completion()
