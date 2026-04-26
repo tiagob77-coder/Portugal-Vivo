@@ -14,6 +14,7 @@ from fastapi import APIRouter, HTTPException, Query, Depends, Request
 from pydantic import BaseModel, Field
 
 from llm_cache import build_cache_key, cache_get, cache_set
+from llm_client import call_chat_completion
 from models.api_models import User
 
 maritime_culture_router = APIRouter(prefix="/maritime-culture", tags=["Maritime Culture"])
@@ -514,24 +515,20 @@ Responde em JSON com:
         except Exception:
             pass
 
-    try:
-        async with httpx.AsyncClient(timeout=15.0) as client:
-            resp = await client.post(
-                "https://llm.lil.re.emergentmethods.ai/v1/chat/completions",
-                headers={"Authorization": f"Bearer {_llm_key}", "Content-Type": "application/json"},
-                json={
-                    "model": "gpt-4o-mini",
-                    "messages": [{"role": "user", "content": prompt}],
-                    "temperature": 0.7,
-                    "response_format": {"type": "json_object"},
-                },
-            )
-        content = resp.json()["choices"][0]["message"]["content"]
-        parsed = _json.loads(content)
-        await cache_set("maritime", cache_key, _json.dumps(parsed, ensure_ascii=False), ttl_seconds=60 * 60 * 24)
-        return parsed
-    except Exception:
-        return fallback
+    content = await call_chat_completion(
+        prompt,
+        temperature=0.7,
+        response_format={"type": "json_object"},
+        timeout=15.0,
+    )
+    if content is not None:
+        try:
+            parsed = _json.loads(content)
+            await cache_set("maritime", cache_key, _json.dumps(parsed, ensure_ascii=False), ttl_seconds=60 * 60 * 24)
+            return parsed
+        except Exception:
+            pass
+    return fallback
 
 
 # ─── Routes ──────────────────────────────────────────────────────────────────

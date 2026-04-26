@@ -26,6 +26,7 @@ from fastapi import APIRouter, HTTPException, Query, Depends, Request
 from pydantic import BaseModel, Field
 
 from models.api_models import User
+from llm_client import call_chat_completion
 
 narrative_layer_router = APIRouter(prefix="/narrative-layer", tags=["Narrative Layer"])
 _db = None
@@ -241,27 +242,21 @@ def _entity_summary(doc: dict, entity_type: str) -> str:
 # ─── LLM call ────────────────────────────────────────────────────────────────
 
 async def _call_llm(system_prompt: str, user_prompt: str, max_tokens: int) -> Optional[dict]:
-    if not _llm_key:
-        return None
-    headers = {"Authorization": f"Bearer {_llm_key}", "Content-Type": "application/json"}
-    body = {
-        "model": MODEL,
-        "messages": [
+    content = await call_chat_completion(
+        messages=[
             {"role": "system", "content": system_prompt},
             {"role": "user",   "content": user_prompt},
         ],
-        "temperature": 0.85,
-        "max_tokens": max_tokens,
-        "response_format": {"type": "json_object"},
-    }
+        model=MODEL,
+        temperature=0.85,
+        max_tokens=max_tokens,
+        response_format={"type": "json_object"},
+        timeout=30.0,
+    )
+    if content is None:
+        return None
     try:
-        async with httpx.AsyncClient(timeout=30.0) as client:
-            r = await client.post(LLM_URL, headers=headers, json=body)
-            if r.status_code != 200:
-                return None
-            data = r.json()
-            content = data["choices"][0]["message"]["content"]
-            return json.loads(content)
+        return json.loads(content)
     except Exception:
         return None
 
