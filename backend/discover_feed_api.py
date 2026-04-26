@@ -14,7 +14,7 @@ import httpx
 
 from models.api_models import User
 from auth_api import get_current_user, require_auth
-from shared_utils import DatabaseHolder
+from shared_utils import DatabaseHolder, apply_municipality_filter
 from llm_client import call_chat_completion
 
 logger = logging.getLogger(__name__)
@@ -141,14 +141,18 @@ async def get_trending_items(limit: int = 10):
     return {"items": trending_items, "period": "7_days"}
 
 @router.get("/discover/seasonal")
-async def get_seasonal_content():
+async def get_seasonal_content(
+    current_user: Optional[User] = Depends(get_current_user),
+):
     """Get seasonal/temporal content"""
     db = _db_holder.db
     now = datetime.now(timezone.utc)
     current_month = now.month
 
     # Get current season events directly from events collection
-    all_events = await db.events.find({"month": current_month}, {"_id": 0}).to_list(200)
+    events_query = {"month": current_month}
+    apply_municipality_filter(events_query, current_user)
+    all_events = await db.events.find(events_query, {"_id": 0}).to_list(200)
     season_events = all_events
 
     # Get items related to current season
@@ -169,8 +173,10 @@ async def get_seasonal_content():
 
     categories = season_categories.get(current_month, ["natureza"])
 
+    items_query: Dict = {"category": {"$in": categories}}
+    apply_municipality_filter(items_query, current_user)
     items = await db.heritage_items.find(
-        {"category": {"$in": categories}},
+        items_query,
         {"_id": 0}
     ).limit(20).to_list(20)
 
@@ -188,6 +194,7 @@ async def get_seasonal_content():
 async def get_surprise_poi(
     traveler_profile: Optional[str] = None,
     region: Optional[str] = None,
+    current_user: Optional[User] = Depends(get_current_user),
 ):
     """Return one hidden/lesser-known POI based on profile — the 'Surpreende-me' feature."""
     import random
@@ -198,10 +205,13 @@ async def get_surprise_poi(
         query["region"] = region
     if traveler_profile and traveler_profile in PROFILE_CATEGORIES:
         query["category"] = {"$in": PROFILE_CATEGORIES[traveler_profile]}
+    apply_municipality_filter(query, current_user)
 
     total = await db.heritage_items.count_documents(query)
     if total == 0:
-        query = {}  # fallback: no filter
+        # fallback: drop content-quality filter but keep tenant scope
+        query = {}
+        apply_municipality_filter(query, current_user)
         total = await db.heritage_items.count_documents(query)
 
     skip = random.randint(0, max(0, total - 1))

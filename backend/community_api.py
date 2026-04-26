@@ -8,9 +8,10 @@ from datetime import datetime, timezone
 import uuid
 import logging
 
-from shared_utils import DatabaseHolder, clamp_pagination
+from shared_utils import DatabaseHolder, clamp_pagination, apply_municipality_filter
 from models.api_models import User, Location
 from shared_constants import COMMUNITY_BADGES, sanitize_regex
+from auth_api import get_current_user
 
 logger = logging.getLogger(__name__)
 
@@ -98,7 +99,8 @@ async def get_contributions(
     type: Optional[str] = None,
     region: Optional[str] = None,
     limit: int = 50,
-    skip: int = 0
+    skip: int = 0,
+    current_user: Optional[User] = Depends(get_current_user),
 ):
     """Get community contributions with pagination"""
     skip, limit = clamp_pagination(skip, limit)
@@ -109,6 +111,7 @@ async def get_contributions(
         query["type"] = type
     if region:
         query["region"] = region
+    apply_municipality_filter(query, current_user)
 
     total = await _db_holder.db.contributions.count_documents(query)
     contributions = await _db_holder.db.contributions.find(query, {"_id": 0}).sort("created_at", -1).skip(skip).limit(limit).to_list(limit)
