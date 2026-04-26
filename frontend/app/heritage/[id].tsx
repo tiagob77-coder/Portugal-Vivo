@@ -700,7 +700,7 @@ export default function HeritageDetailScreen() {
               <ShareButton
                 title={item.name}
                 description={`Descobre ${item.name} no Portugal Vivo! \u{1F1F5}\u{1F1F9}`}
-                url={`https://portugal-vivo-3.preview.emergentagent.com/heritage/${id}`}
+                url={`https://mobile-audit-deploy.preview.emergentagent.com/heritage/${id}`}
               />
               <TouchableOpacity 
                 style={[styles.favoriteButton, isFavorite && styles.favoriteButtonActive]} 

@@ -12,7 +12,7 @@ const getBackendUrl = (): string => {
   }
   
   // Fallback to the preview URL for Portugal Vivo
-  return 'https://portugal-vivo-3.preview.emergentagent.com';
+  return 'https://mobile-audit-deploy.preview.emergentagent.com';
 };
 
 export const API_URL = getBackendUrl();

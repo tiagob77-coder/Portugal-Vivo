@@ -10,7 +10,7 @@ import time
 from typing import Dict, Any
 
 # Get backend URL from frontend .env
-BACKEND_URL = "https://portugal-vivo-3.preview.emergentagent.com/api"
+BACKEND_URL = "https://mobile-audit-deploy.preview.emergentagent.com/api"
 
 def test_endpoint(method: str, endpoint: str, data: Dict[Any, Any] = None, expected_status: int = 200) -> Dict[str, Any]:
     """Test a single endpoint and return results"""
