@@ -12,6 +12,7 @@ from pydantic import BaseModel, Field
 
 from models.api_models import User
 from llm_cache import build_cache_key, cache_get, cache_set, record_llm_call
+from llm_client import call_chat_completion
 
 gastronomy_router = APIRouter(prefix="/gastronomy", tags=["Gastronomy"])
 _db = None
@@ -345,21 +346,22 @@ async def get_pairing(
 
     prompt = f"""Sugere harmonização de vinho e azeite para o prato português: "{item['name']}" ({item.get('description','')}).
 Responde em JSON: {{"wine": "nome do vinho/região", "olive_oil": "azeite ou null", "notes": "explicação breve"}}"""
-    try:
-        async with httpx.AsyncClient(timeout=12.0) as client:
-            resp = await client.post(
-                "https://llm.lil.re.emergentmethods.ai/v1/chat/completions",
-                headers={"Authorization": f"Bearer {_llm_key}", "Content-Type": "application/json"},
-                json={"model":"gpt-4o-mini","messages":[{"role":"user","content":prompt}],
-                      "temperature":0.4,"response_format":{"type":"json_object"}},
-            )
-        parsed = _j.loads(resp.json()["choices"][0]["message"]["content"])
-        await cache_set("gastronomy-pairing", cache_key, _j.dumps(parsed, ensure_ascii=False), ttl_seconds=60 * 60 * 24 * 7)
-        record_llm_call("gastronomy-pairing", "success")
-        return {**parsed, "item_id": item_id, "source": "ai"}
-    except Exception:
-        record_llm_call("gastronomy-pairing", "fallback")
-        return {"item_id": item_id, "wine": "Vinho branco fresco", "olive_oil": "Azeite virgem extra", "notes": "Harmonização genérica", "source": "fallback"}
+    content = await call_chat_completion(
+        prompt,
+        temperature=0.4,
+        response_format={"type": "json_object"},
+        timeout=12.0,
+    )
+    if content is not None:
+        try:
+            parsed = _j.loads(content)
+            await cache_set("gastronomy-pairing", cache_key, _j.dumps(parsed, ensure_ascii=False), ttl_seconds=60 * 60 * 24 * 7)
+            record_llm_call("gastronomy-pairing", "success")
+            return {**parsed, "item_id": item_id, "source": "ai"}
+        except Exception:
+            pass
+    record_llm_call("gastronomy-pairing", "fallback")
+    return {"item_id": item_id, "wine": "Vinho branco fresco", "olive_oil": "Azeite virgem extra", "notes": "Harmonização genérica", "source": "fallback"}
 
 
 # ─── Recommendations ─────────────────────────────────────────────────────────

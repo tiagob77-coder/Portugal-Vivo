@@ -14,6 +14,7 @@ from fastapi import APIRouter, HTTPException, Query, Depends, Request
 from pydantic import BaseModel, Field
 
 from llm_cache import build_cache_key, cache_get, cache_set, record_llm_call
+from llm_client import call_chat_completion
 from models.api_models import User
 
 music_router = APIRouter(prefix="/music", tags=["Music"])
@@ -486,26 +487,22 @@ Responde em JSON com:
         except Exception:
             pass  # fall through and re-generate
 
-    try:
-        async with httpx.AsyncClient(timeout=15.0) as client:
-            resp = await client.post(
-                "https://llm.lil.re.emergentmethods.ai/v1/chat/completions",
-                headers={"Authorization": f"Bearer {_llm_key}", "Content-Type": "application/json"},
-                json={
-                    "model": "gpt-4o-mini",
-                    "messages": [{"role": "user", "content": prompt}],
-                    "temperature": 0.7,
-                    "response_format": {"type": "json_object"},
-                },
-            )
-        content = resp.json()["choices"][0]["message"]["content"]
-        parsed = _json.loads(content)
-        await cache_set("music", cache_key, _json.dumps(parsed, ensure_ascii=False), ttl_seconds=60 * 60 * 24)
-        record_llm_call("music", "success")
-        return parsed
-    except Exception:
-        record_llm_call("music", "fallback")
-        return fallback
+    content = await call_chat_completion(
+        prompt,
+        temperature=0.7,
+        response_format={"type": "json_object"},
+        timeout=15.0,
+    )
+    if content is not None:
+        try:
+            parsed = _json.loads(content)
+            await cache_set("music", cache_key, _json.dumps(parsed, ensure_ascii=False), ttl_seconds=60 * 60 * 24)
+            record_llm_call("music", "success")
+            return parsed
+        except Exception:
+            pass
+    record_llm_call("music", "fallback")
+    return fallback
 
 
 # --- Themed Routes ---

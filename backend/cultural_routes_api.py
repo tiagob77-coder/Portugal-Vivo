@@ -15,6 +15,7 @@ from fastapi import APIRouter, HTTPException, Query, Depends, Request
 from pydantic import BaseModel, Field
 
 from llm_cache import build_cache_key, cache_get, cache_set, record_llm_call
+from llm_client import call_chat_completion
 from models.api_models import User
 
 cultural_routes_router = APIRouter(prefix="/cultural-routes", tags=["Cultural Routes"])
@@ -1009,26 +1010,22 @@ Responde APENAS em JSON válido:
         except Exception:
             pass
 
-    try:
-        async with httpx.AsyncClient(timeout=15.0) as client:
-            resp = await client.post(
-                "https://llm.lil.re.emergentmethods.ai/v1/chat/completions",
-                headers={"Authorization": f"Bearer {_llm_key}", "Content-Type": "application/json"},
-                json={
-                    "model": "gpt-4o-mini",
-                    "messages": [{"role": "user", "content": prompt}],
-                    "temperature": 0.7,
-                    "response_format": {"type": "json_object"},
-                },
-            )
-        content = resp.json()["choices"][0]["message"]["content"]
-        parsed = _json.loads(content)
-        await cache_set("cultural-route-narrative", cache_key, _json.dumps(parsed, ensure_ascii=False), ttl_seconds=60 * 60 * 24)
-        record_llm_call("cultural-route-narrative", "success")
-        return parsed
-    except Exception:
-        record_llm_call("cultural-route-narrative", "fallback")
-        return fallback
+    content = await call_chat_completion(
+        prompt,
+        temperature=0.7,
+        response_format={"type": "json_object"},
+        timeout=15.0,
+    )
+    if content is not None:
+        try:
+            parsed = _json.loads(content)
+            await cache_set("cultural-route-narrative", cache_key, _json.dumps(parsed, ensure_ascii=False), ttl_seconds=60 * 60 * 24)
+            record_llm_call("cultural-route-narrative", "success")
+            return parsed
+        except Exception:
+            pass
+    record_llm_call("cultural-route-narrative", "fallback")
+    return fallback
 
 
 # ─── Calendar endpoint ───────────────────────────────────────────────────────
@@ -1347,26 +1344,22 @@ Responde APENAS em JSON válido em {lang}:
     if not _llm_key:
         return fallback
 
-    try:
-        import json as _json
-        async with httpx.AsyncClient(timeout=20.0) as client:
-            resp = await client.post(
-                "https://llm.lil.re.emergentmethods.ai/v1/chat/completions",
-                headers={"Authorization": f"Bearer {_llm_key}", "Content-Type": "application/json"},
-                json={
-                    "model": "gpt-4o-mini",
-                    "messages": [{"role": "user", "content": prompt}],
-                    "temperature": 0.7,
-                    "response_format": {"type": "json_object"},
-                },
-            )
-        content = resp.json()["choices"][0]["message"]["content"]
-        parsed = _json.loads(content)
-        record_llm_call("cultural-route-personalize", "success")
-        return parsed
-    except Exception:
-        record_llm_call("cultural-route-personalize", "fallback")
-        return fallback
+    import json as _json
+    content = await call_chat_completion(
+        prompt,
+        temperature=0.7,
+        response_format={"type": "json_object"},
+        timeout=20.0,
+    )
+    if content is not None:
+        try:
+            parsed = _json.loads(content)
+            record_llm_call("cultural-route-personalize", "success")
+            return parsed
+        except Exception:
+            pass
+    record_llm_call("cultural-route-personalize", "fallback")
+    return fallback
 
 
 @cultural_routes_router.post(

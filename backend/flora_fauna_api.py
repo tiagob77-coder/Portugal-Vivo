@@ -22,6 +22,7 @@ import httpx
 
 from models.api_models import User
 from llm_cache import build_cache_key, cache_get, cache_set, record_llm_call
+from llm_client import call_chat_completion
 
 flora_fauna_router = APIRouter(prefix="/flora-fauna", tags=["Flora Fauna"])
 
@@ -693,20 +694,14 @@ async def identify_species(
         f" Responde em JSON com: scientific_name, common_name, family, confidence (0-1), "
         f"threat_status (código IUCN), habitat_hint, observation_tip."
     )
-    try:
-        async with httpx.AsyncClient(timeout=20) as client:
-            r = await client.post(
-                "https://llm.lil.re.emergentmethods.ai/v1/chat/completions",
-                headers={"Authorization": f"Bearer {_llm_key}", "Content-Type": "application/json"},
-                json={
-                    "model": "gpt-4o-mini",
-                    "messages": [{"role": "user", "content": prompt}],
-                    "response_format": {"type": "json_object"},
-                    "temperature": 0.3,
-                },
-            )
-            data = r.json()
-            content = data["choices"][0]["message"]["content"]
+    content = await call_chat_completion(
+        prompt,
+        temperature=0.3,
+        response_format={"type": "json_object"},
+        timeout=20.0,
+    )
+    if content is not None:
+        try:
             parsed = _json.loads(content)
             await cache_set(
                 "species-identify", cache_key,
@@ -715,9 +710,10 @@ async def identify_species(
             )
             record_llm_call("species-identify", "success")
             return {"identified": parsed, "source": "llm"}
-    except Exception:
-        record_llm_call("species-identify", "fallback")
-        return {
+        except Exception:
+            pass
+    record_llm_call("species-identify", "fallback")
+    return {
             "identified": {
                 "scientific_name": "Desconhecida",
                 "common_name": "Não identificado",

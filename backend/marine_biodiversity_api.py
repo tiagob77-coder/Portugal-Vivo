@@ -16,6 +16,7 @@ from pydantic import BaseModel, Field
 
 from models.api_models import User
 from llm_cache import build_cache_key, cache_get, cache_set, record_llm_call
+from llm_client import call_chat_completion
 
 marine_biodiversity_router = APIRouter(prefix="/biodiversity", tags=["Biodiversity"])
 
@@ -692,32 +693,27 @@ Responde em JSON com esta estrutura exacta:
         except Exception:
             pass
 
-    try:
-        async with httpx.AsyncClient(timeout=15.0) as client:
-            resp = await client.post(
-                "https://llm.lil.re.emergentmethods.ai/v1/chat/completions",
-                headers={"Authorization": f"Bearer {_llm_key}", "Content-Type": "application/json"},
-                json={
-                    "model": "gpt-4o-mini",
-                    "messages": [{"role": "user", "content": prompt}],
-                    "temperature": 0.4,
-                    "response_format": {"type": "json_object"},
-                },
+    content = await call_chat_completion(
+        prompt,
+        temperature=0.4,
+        response_format={"type": "json_object"},
+        timeout=15.0,
+    )
+    if content is not None:
+        try:
+            parsed = _json.loads(content)
+            await cache_set(
+                "marine-identify",
+                cache_key,
+                _json.dumps(parsed, ensure_ascii=False),
+                ttl_seconds=60 * 60 * 24 * 7,
             )
-        data = resp.json()
-        content = data["choices"][0]["message"]["content"]
-        parsed = _json.loads(content)
-        await cache_set(
-            "marine-identify",
-            cache_key,
-            _json.dumps(parsed, ensure_ascii=False),
-            ttl_seconds=60 * 60 * 24 * 7,
-        )
-        record_llm_call("marine-identify", "success")
-        return {**parsed, "source": "llm"}
-    except Exception:
-        record_llm_call("marine-identify", "fallback")
-        return fallback
+            record_llm_call("marine-identify", "success")
+            return {**parsed, "source": "llm"}
+        except Exception:
+            pass
+    record_llm_call("marine-identify", "fallback")
+    return fallback
 
 
 # ─── Endpoint — Stats ────────────────────────────────────────────────────────

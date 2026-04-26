@@ -15,6 +15,7 @@ import httpx
 from models.api_models import User
 from auth_api import get_current_user, require_auth
 from shared_utils import DatabaseHolder
+from llm_client import call_chat_completion
 
 logger = logging.getLogger(__name__)
 
@@ -233,29 +234,19 @@ def _hoje_cache_key(lat: Optional[float], lng: Optional[float], day_str: str) ->
 
 async def _llm_hoje_summary(items_text: str, season: str, month_pt: str) -> str:
     """Ask LLM for a short contextual summary. Returns empty string on failure."""
-    if not _llm_key:
-        return ""
     prompt = (
         f"Estamos em {month_pt} ({season}). "
         f"Resume em 1-2 frases curtas e evocativas o que torna hoje especial para descobrir Portugal, "
         f"com base nestes elementos: {items_text}. "
         f"Tom: entusiasta, poético, conciso. Responde APENAS com as frases, sem formatação."
     )
-    try:
-        async with httpx.AsyncClient(timeout=4.0) as client:
-            r = await client.post(
-                "https://llm.lil.re.emergentmethods.ai/v1/chat/completions",
-                headers={"Authorization": f"Bearer {_llm_key}", "Content-Type": "application/json"},
-                json={
-                    "model": "gpt-4o-mini",
-                    "messages": [{"role": "user", "content": prompt}],
-                    "max_tokens": 120,
-                    "temperature": 0.8,
-                },
-            )
-            return r.json()["choices"][0]["message"]["content"].strip()
-    except Exception:
-        return ""
+    content = await call_chat_completion(
+        prompt,
+        temperature=0.8,
+        max_tokens=120,
+        timeout=4.0,
+    )
+    return content.strip() if content else ""
 
 
 MONTHS_PT = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho",
