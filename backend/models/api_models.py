@@ -15,6 +15,10 @@ class User(BaseModel):
     picture: Optional[str] = None
     created_at: datetime
     favorites: List[str] = []
+    # Multi-tenant scope (Fase 5). When set, geo / list queries should be
+    # restricted to this municipality. None means "global / no tenant".
+    municipality_id: Optional[str] = None
+    is_admin: bool = False
 
 
 class UserSession(BaseModel):
