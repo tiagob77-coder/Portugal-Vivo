@@ -8,6 +8,13 @@ const API_CACHE = 'portugal-vivo-api-v6';
 const OFFLINE_DATA_CACHE = 'portugal-vivo-offline-v6';
 const IMAGE_CACHE = 'portugal-vivo-images-v6';
 const NARRATIVE_CACHE = 'portugal-vivo-narrative-v6';
+// Map tiles (CARTO basemaps + AWS terrarium DEM). Separate cache because
+// tiles are immutable per (z,x,y) so we can keep them long-term and
+// purge independently from the rolling app data.
+const TILE_CACHE = 'portugal-vivo-tiles-v1';
+// Tile cache hard cap (entries). Tiles are ~5-15 KB each so 4000 ≈ 40 MB,
+// well below the typical browser quota for a single origin.
+const TILE_CACHE_MAX_ENTRIES = 4000;
 
 // Static assets to precache
 const PRECACHE_URLS = [
@@ -55,7 +62,7 @@ self.addEventListener('install', (event) => {
 
 // Activate: clean old caches and claim clients
 self.addEventListener('activate', (event) => {
-  const validCaches = [CACHE_NAME, API_CACHE, OFFLINE_DATA_CACHE, IMAGE_CACHE, NARRATIVE_CACHE];
+  const validCaches = [CACHE_NAME, API_CACHE, OFFLINE_DATA_CACHE, IMAGE_CACHE, NARRATIVE_CACHE, TILE_CACHE];
   event.waitUntil(
     caches.keys().then((keys) => {
       return Promise.all(
@@ -65,11 +72,66 @@ self.addEventListener('activate', (event) => {
   );
 });
 
+// Heuristic tile-host check. Hostname-based so a future tile provider
+// only needs adding the domain here.
+function isMapTileRequest(url) {
+  const h = url.hostname;
+  // CARTO Voyager / Positron / Dark-Matter (no API key required)
+  if (h.endsWith('.basemaps.cartocdn.com') || h === 'basemaps.cartocdn.com') return true;
+  // AWS Open Data terrarium DEM (used by MapLibre hillshade)
+  if (h === 'elevation-tiles-prod.s3.amazonaws.com') return true;
+  if (h === 's3.amazonaws.com' && url.pathname.startsWith('/elevation-tiles-prod/')) return true;
+  // Generic OSM raster fallback
+  if (h === 'tile.openstreetmap.org' || h.endsWith('.tile.openstreetmap.org')) return true;
+  return false;
+}
+
+// Trim the tile cache when it exceeds the LRU cap. Browsers cap origin
+// storage anyway but explicit eviction keeps us well below quota.
+async function trimTileCache() {
+  try {
+    const cache = await caches.open(TILE_CACHE);
+    const keys = await cache.keys();
+    if (keys.length <= TILE_CACHE_MAX_ENTRIES) return;
+    const toDelete = keys.length - TILE_CACHE_MAX_ENTRIES;
+    for (let i = 0; i < toDelete; i++) {
+      await cache.delete(keys[i]);
+    }
+  } catch (_e) {
+    // best-effort
+  }
+}
+
 // Fetch: strategy based on request type
 self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return;
   const url = new URL(event.request.url);
   if (!url.protocol.startsWith('http')) return;
+
+  // Map tiles: cache-first with network fallback. Tiles are
+  // (z,x,y)-immutable so a hit is always valid; on cache miss we
+  // network-fetch + store. Separate cache from images so the user can
+  // clear "downloaded regions" without losing avatars/photos.
+  if (isMapTileRequest(url)) {
+    event.respondWith(
+      caches.open(TILE_CACHE).then(async (cache) => {
+        const cached = await cache.match(event.request);
+        if (cached) return cached;
+        try {
+          const response = await fetch(event.request);
+          if (response.ok) {
+            cache.put(event.request, response.clone()).then(trimTileCache).catch(() => {});
+          }
+          return response;
+        } catch (_e) {
+          // No tile available offline. Return empty 504 so MapLibre
+          // shows the placeholder instead of throwing.
+          return new Response('', { status: 504, statusText: 'Tile unavailable offline' });
+        }
+      })
+    );
+    return;
+  }
 
   // Image requests: cache-first with network fallback
   if (url.pathname.match(/\.(jpg|jpeg|png|gif|webp|svg)$/i) ||
