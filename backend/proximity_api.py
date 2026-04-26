@@ -1,11 +1,13 @@
 """
 Proximity & Nearby POIs API - Geofencing and discovery
 """
-from fastapi import APIRouter, Query, Request
+from fastapi import APIRouter, Depends, Query, Request
 from pydantic import BaseModel, Field
 from typing import Optional
 from math import radians, cos
-from shared_utils import haversine_km, DatabaseHolder
+from shared_utils import haversine_km, DatabaseHolder, apply_municipality_filter
+from auth_api import get_current_user
+from models.api_models import User
 
 proximity_router = APIRouter(prefix="/proximity", tags=["Proximity"])
 
@@ -35,6 +37,7 @@ async def get_nearby_pois(
     limit: int = Query(20, ge=1, le=100),
     category: Optional[str] = None,
     municipality_id: Optional[str] = Query(None, description="Restrict to a specific municipality"),
+    current_user: Optional[User] = Depends(get_current_user),
 ):
     """Get POIs near a GPS position, sorted by distance."""
     projection = {
@@ -62,6 +65,8 @@ async def get_nearby_pois(
             query["iq_score"] = {"$gte": min_iq}
         if muni:
             query["municipality_id"] = muni
+        # Fall back to JWT-based tenant when neither header nor query param set it.
+        query = apply_municipality_filter(query, current_user)
 
         candidates = await db.heritage_items.find(query, projection).limit(limit).to_list(limit)
         for poi in candidates:
@@ -85,6 +90,7 @@ async def get_nearby_pois(
             query["category"] = category
         if muni:
             query["municipality_id"] = muni
+        query = apply_municipality_filter(query, current_user)
 
         candidates = await db.heritage_items.find(query, projection).limit(500).to_list(500)
         for poi in candidates:
@@ -113,6 +119,7 @@ async def get_proximity_alerts(
     lat: float = Query(..., ge=-90, le=90),
     lng: float = Query(..., ge=-180, le=180),
     municipality_id: Optional[str] = Query(None),
+    current_user: Optional[User] = Depends(get_current_user),
 ):
     """Get special alerts for nearby rare/high-IQ POIs (within 500m)."""
     projection = {
@@ -136,6 +143,7 @@ async def get_proximity_alerts(
         }
         if muni:
             query["municipality_id"] = muni
+        query = apply_municipality_filter(query, current_user)
         candidates = await db.heritage_items.find(query, projection).limit(50).to_list(50)
     except Exception:
         lat_delta = 0.5 / 111.0
@@ -147,6 +155,7 @@ async def get_proximity_alerts(
         }
         if muni:
             query["municipality_id"] = muni
+        query = apply_municipality_filter(query, current_user)
         candidates = await db.heritage_items.find(query, projection).limit(50).to_list(50)
 
     alerts = []
@@ -177,6 +186,7 @@ async def get_heatzone(
     lng: float = Query(..., ge=-180, le=180),
     radius_km: float = Query(10, ge=0.1, le=100),
     municipality_id: Optional[str] = Query(None),
+    current_user: Optional[User] = Depends(get_current_user),
 ):
     """Get POI density summary for an area."""
     lat_delta = radius_km / 111.0
@@ -189,6 +199,7 @@ async def get_heatzone(
     muni = _tenant_filter(request, municipality_id)
     if muni:
         match["municipality_id"] = muni
+    match = apply_municipality_filter(match, current_user)
 
     pipeline = [
         {"$match": match},

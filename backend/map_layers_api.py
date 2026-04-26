@@ -6,12 +6,16 @@ POST /map/search    → pesquisa full-text com filtro geográfico opcional
 GET /map/trails     → trilhos filtrados por bounding box
 GET /map/environmental → dados ambientais simulados (vento, UV, qualidade do ar)
 """
-from fastapi import APIRouter, Query
+from fastapi import APIRouter, Depends, Query
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 from typing import Optional, List
 import math
 import datetime
+
+from auth_api import get_current_user
+from models.api_models import User
+from shared_utils import apply_municipality_filter
 
 router = APIRouter(prefix="/map", tags=["Map Layers"])
 
@@ -320,7 +324,10 @@ class SearchRequest(BaseModel):
 
 
 @router.post("/search")
-async def search_map(body: SearchRequest):
+async def search_map(
+    body: SearchRequest,
+    current_user: Optional[User] = Depends(get_current_user),
+):
     """Pesquisa full-text nos heritage_items com filtro geográfico e por camada opcionais."""
     if _db is None:
         return {"results": [], "total": 0, "query": body.q, "geo_filtered": False}
@@ -331,6 +338,7 @@ async def search_map(body: SearchRequest):
             {"description": {"$regex": body.q, "$options": "i"}},
         ]
     }
+    apply_municipality_filter(query, current_user)
 
     geo_filtered = False
 
