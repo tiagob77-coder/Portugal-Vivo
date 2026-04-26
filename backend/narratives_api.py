@@ -19,7 +19,8 @@ from fastapi import APIRouter, Depends, HTTPException, Query, UploadFile, File, 
 from pydantic import BaseModel, Field
 
 from auth_api import get_current_user, require_auth
-from shared_utils import DatabaseHolder
+from models.api_models import User
+from shared_utils import DatabaseHolder, apply_municipality_filter
 
 logger = logging.getLogger(__name__)
 
@@ -291,6 +292,7 @@ async def list_narratives(
     poi_id: Optional[str] = Query(None),
     limit: int = Query(20, ge=1, le=100),
     offset: int = Query(0, ge=0),
+    current_user: Optional[User] = Depends(get_current_user),
 ):
     """List narratives with filters."""
     db = _get_db()
@@ -303,6 +305,7 @@ async def list_narratives(
         query["region"] = {"$regex": region, "$options": "i"}
     if poi_id:
         query["poi_id"] = poi_id
+    apply_municipality_filter(query, current_user)
 
     total = await db.narratives.count_documents(query)
     docs = await db.narratives.find(

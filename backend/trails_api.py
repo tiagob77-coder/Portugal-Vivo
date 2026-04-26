@@ -8,8 +8,9 @@ import math
 import uuid
 import xml.etree.ElementTree as ET
 from datetime import datetime, timezone
-from shared_utils import haversine_km as _haversine_km, DatabaseHolder
+from shared_utils import haversine_km as _haversine_km, DatabaseHolder, apply_municipality_filter
 from models.api_models import User
+from auth_api import get_current_user
 
 trails_router = APIRouter(prefix="/trails", tags=["trails"])
 _db_holder = DatabaseHolder("trails")
@@ -142,11 +143,13 @@ async def list_trails(
     length_max: Optional[float] = None,
     limit: int = 50,
     offset: int = 0,
+    current_user: Optional[User] = Depends(get_current_user),
 ):
     """List trails with optional filters: municipality, difficulty, length range."""
     query: dict = {}
     if municipality_id:
         query["municipality_id"] = municipality_id
+    apply_municipality_filter(query, current_user)
     if difficulty:
         query["difficulty"] = difficulty
     if length_min is not None or length_max is not None:
@@ -170,6 +173,7 @@ async def get_nearby_trails(
     dist_km: float = 10.0,
     difficulty: Optional[str] = None,
     limit: int = 20,
+    current_user: Optional[User] = Depends(get_current_user),
 ):
     """Find trails within dist_km of a coordinate (Haversine bounding box)."""
     lat_delta = dist_km / 111.0
@@ -185,6 +189,7 @@ async def get_nearby_trails(
     }
     if difficulty:
         query["difficulty"] = difficulty
+    apply_municipality_filter(query, current_user)
 
     cursor = _db_holder.db.trails.find(query, {"_id": 0, "points": 1, "id": 1, "name": 1,
         "difficulty": 1, "distance_km": 1, "elevation_gain": 1, "color": 1, "region": 1,
