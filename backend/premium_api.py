@@ -534,6 +534,46 @@ async def subscribe(
 # FEATURE GATING
 # =============================================================================
 
+@premium_router.get("/my-features")
+async def my_features(current_user=Depends(require_auth)):
+    """Bulk feature-access map for the authenticated user.
+
+    Single round-trip alternative to N calls to /check-feature/{id}. The
+    frontend uses this once at app boot to populate a per-feature
+    capability map and then drives PremiumGate locally without further
+    backend calls.
+    """
+    db = _db_holder.db
+    sub = await db.subscriptions.find_one(
+        {"user_id": current_user.user_id, "status": "active"},
+        {"_id": 0, "tier": 1},
+    )
+    user_tier = sub.get("tier", "free") if sub else "free"
+    tier_data = TIERS.get(user_tier, TIERS["free"])
+
+    # Free features: anything NOT in the premium-only set.
+    # Premium features: included only if listed in the user's tier with
+    # ``included=True``.
+    free_features = {f["id"] for f in TIERS["free"]["features"] if f.get("included")}
+    paid_features = {f["id"] for f in tier_data["features"] if f.get("included")}
+    granted = free_features | paid_features
+
+    # The full universe of feature ids = union across all tiers, so the
+    # client can render a complete capability matrix without guessing.
+    all_feature_ids: set[str] = set()
+    for tier in TIERS.values():
+        for f in tier["features"]:
+            all_feature_ids.add(f["id"])
+
+    features = {fid: (fid in granted) for fid in all_feature_ids}
+    return {
+        "user_id": current_user.user_id,
+        "tier": user_tier,
+        "tier_name": tier_data.get("name"),
+        "features": features,
+    }
+
+
 @premium_router.get("/check-feature/{feature_id}")
 async def check_feature_access(feature_id: str, current_user=Depends(require_auth)):
     """Check if the authenticated user has access to a specific premium feature."""
