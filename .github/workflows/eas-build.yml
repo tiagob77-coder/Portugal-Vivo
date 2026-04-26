@@ -1,0 +1,106 @@
+name: EAS Build (iOS / Android)
+
+# Manual-only: builds run on Expo's cloud, not GitHub runners. The
+# operator picks platform + profile and the workflow shells out to
+# `eas build --non-interactive`.
+#
+# Pré-requisitos uma única vez no repo:
+#   1. `npm install -g eas-cli` localmente, depois `eas login` e `eas init`
+#      (cria o projecto remoto + escreve o `slug` em frontend/app.json).
+#   2. No GitHub: Settings → Secrets → adicionar `EXPO_TOKEN`
+#      (obter em https://expo.dev/accounts/[teu-user]/settings/access-tokens).
+
+on:
+  workflow_dispatch:
+    inputs:
+      platform:
+        description: "Plataforma alvo"
+        required: true
+        type: choice
+        default: "all"
+        options: ["all", "ios", "android"]
+      profile:
+        description: "Perfil EAS (definido em frontend/eas.json)"
+        required: true
+        type: choice
+        default: "preview"
+        options: ["development", "preview", "production"]
+      submit:
+        description: "Submeter à loja após o build (só faz sentido com profile=production)"
+        required: false
+        type: boolean
+        default: false
+
+jobs:
+  build:
+    name: ${{ github.event.inputs.platform }} · ${{ github.event.inputs.profile }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Setup Node 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Setup EAS CLI
+        uses: expo/expo-github-action@v8
+        with:
+          eas-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
+
+      - name: Sanity check — required secrets
+        run: |
+          if [ -z "${{ secrets.EXPO_TOKEN }}" ]; then
+            echo "::error::EXPO_TOKEN secret is missing. Add it in GitHub → Settings → Secrets."
+            exit 1
+          fi
+
+      - name: Install frontend deps
+        working-directory: frontend
+        run: npm ci --legacy-peer-deps
+
+      - name: Pre-build sanity check
+        working-directory: frontend
+        run: |
+          # Confirm eas.json is parseable and the requested profile exists.
+          node -e "
+            const cfg = require('./eas.json');
+            const p = '${{ github.event.inputs.profile }}';
+            if (!cfg.build || !cfg.build[p]) {
+              console.error('Profile ' + p + ' not found in eas.json');
+              process.exit(1);
+            }
+            console.log('Profile', p, '→', JSON.stringify(cfg.build[p], null, 2));
+          "
+
+      - name: EAS build
+        working-directory: frontend
+        run: |
+          eas build \
+            --platform "${{ github.event.inputs.platform }}" \
+            --profile "${{ github.event.inputs.profile }}" \
+            --non-interactive \
+            --no-wait
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+
+      - name: EAS submit (production only)
+        if: ${{ github.event.inputs.submit == 'true' && github.event.inputs.profile == 'production' }}
+        working-directory: frontend
+        run: |
+          eas submit \
+            --platform "${{ github.event.inputs.platform }}" \
+            --profile production \
+            --non-interactive \
+            --wait
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+
+      - name: Build URL hint
+        if: always()
+        run: |
+          echo "Acompanha o build em: https://expo.dev/accounts/[teu-user]/projects/portugal-vivo/builds"

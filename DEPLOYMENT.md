@@ -183,18 +183,53 @@ Deve retornar:
 
 ## 7. Build do Frontend (Expo/EAS)
 
-### 7.1. Instalar EAS CLI
+A app é distribuída em três canais: **PWA** (web), **iOS** (App Store) e **Android** (Play Store). PWA está coberta na secção 8. Esta secção é sobre os builds nativos via EAS — desde o local até ao GitHub Action que evita a necessidade de máquina pessoal para gerar IPAs / AABs.
+
+### 7.1. Setup inicial (uma vez por desenvolvedor)
 
 ```bash
 npm install -g eas-cli
-eas login
+eas login                          # autentica com a conta Expo
+cd frontend && eas init             # cria projecto EAS remoto, escreve slug em app.json
 ```
 
 ### 7.2. Configurar variáveis de produção
 
-O `eas.json` já define `EXPO_PUBLIC_BACKEND_URL=https://api.portugalvivo.pt` para builds de produção.
+O `frontend/eas.json` já define os perfis `development | preview | production`. O perfil de produção fixa:
 
-### 7.3. Preencher credenciais de submissão
+```json
+"production": {
+  "env": {
+    "APP_VARIANT": "production",
+    "EXPO_PUBLIC_BACKEND_URL": "https://api.portugalvivo.pt"
+  }
+}
+```
+
+Outros `EXPO_PUBLIC_*` (Maps, Sentry) entram via secrets EAS:
+
+```bash
+cd frontend
+eas secret:create --scope project --name EXPO_PUBLIC_GOOGLE_MAPS_API_KEY --value "..."
+eas secret:create --scope project --name EXPO_PUBLIC_SENTRY_DSN --value "..."
+```
+
+### 7.3. Sanity check antes do build
+
+Para apanhar problemas em segundos em vez de minutos:
+
+```bash
+./scripts/eas_prebuild_check.sh production
+```
+
+Verifica:
+- `eas` CLI instalado
+- `eas.json` parseável e perfil pedido existe
+- `app.json` tem `expo.slug` definido
+- `EXPO_PUBLIC_BACKEND_URL` configurado para o perfil
+- Sessão EAS activa (ou `EXPO_TOKEN` em CI)
+
+### 7.4. Preencher credenciais de submissão
 
 Editar `frontend/eas.json` → secção `submit.production`:
 
@@ -215,21 +250,35 @@ Editar `frontend/eas.json` → secção `submit.production`:
 }
 ```
 
-### 7.4. Build e submissão
+### 7.5. Build local (manualmente, da tua máquina)
 
 ```bash
 cd frontend
-
-# Build iOS
-eas build --platform ios --profile production
-
-# Build Android
+eas build --platform ios     --profile production
 eas build --platform android --profile production
-
-# Submeter às lojas
-eas submit --platform ios --profile production
+eas submit --platform ios    --profile production
 eas submit --platform android --profile production
 ```
+
+### 7.6. Build via GitHub Action (sem dependência da tua máquina)
+
+O workflow `.github/workflows/eas-build.yml` permite lançar builds sem ter o EAS CLI instalado localmente — o serviço da Expo executa os builds na sua infra.
+
+**Setup uma vez:**
+1. Em https://expo.dev/accounts/[teu-user]/settings/access-tokens criar um **personal access token**
+2. No repo GitHub: **Settings → Secrets and variables → Actions → New repository secret**
+   - Name: `EXPO_TOKEN`
+   - Value: o token
+
+**Lançar um build:**
+1. **Actions** → **EAS Build (iOS / Android)** → **Run workflow**
+2. Escolher:
+   - `platform`: `all` / `ios` / `android`
+   - `profile`: `preview` (TestFlight / interna) ou `production` (loja)
+   - `submit`: `true` apenas para production quando se quer enviar logo para a loja
+3. O job termina em ~30 s (apenas dispara o build na cloud); o build em si demora 10-25 min e aparece em https://expo.dev/accounts/[teu-user]/projects/portugal-vivo/builds
+
+Esta é a rota recomendada para lançamentos: nada local, tudo reproduzível por commit hash.
 
 ---
 
