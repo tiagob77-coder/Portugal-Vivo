@@ -300,7 +300,7 @@ async def get_night_explorer_items():
     return {"items": result, "total": len(result)}
 
 
-@heritage_router.get("/heritage/top-scored")
+@heritage_router.get("/heritage/top-scored", name="get_top_scored_distinct")
 async def get_top_scored_items(limit_per_cat: int = 1):
     """Get top IQ-scored POI per category for landing page 'Descobertas Raras'"""
     pipeline = [
@@ -346,7 +346,7 @@ async def get_top_scored_items(limit_per_cat: int = 1):
     return result
 
 
-@heritage_router.get("/heritage/stories")
+@heritage_router.get("/heritage/stories", name="get_heritage_stories_distinct")
 async def get_stories():
     """Get curated stories for landing page 'Histórias que Inspiram'.
 
