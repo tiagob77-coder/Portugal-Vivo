@@ -152,15 +152,6 @@ async def get_heritage_items(
     return [HeritageItem(**item) for item in items]
 
 
-@heritage_router.get("/heritage/{item_id}", response_model=HeritageItem)
-async def get_heritage_item(item_id: str):
-    """Get a single heritage item"""
-    item = await _db_holder.db.heritage_items.find_one({"id": item_id}, {"_id": 0})
-    if not item:
-        raise HTTPException(status_code=404, detail="Item not found")
-    return HeritageItem(**item)
-
-
 @heritage_router.get("/heritage/category/{category}", response_model=List[HeritageItem])
 async def get_heritage_by_category(category: str, limit: int = 100):
     """Get heritage items by category"""
@@ -174,6 +165,15 @@ async def get_heritage_by_region(region: str, limit: int = 100):
     """Get heritage items by region"""
     items = await _db_holder.db.heritage_items.find({"region": region}, {"_id": 0}).limit(limit).to_list(limit)
     return [HeritageItem(**item) for item in items]
+
+
+@heritage_router.get("/heritage/{item_id}", response_model=HeritageItem)
+async def get_heritage_item(item_id: str):
+    """Get a single heritage item"""
+    item = await _db_holder.db.heritage_items.find_one({"id": item_id}, {"_id": 0})
+    if not item:
+        raise HTTPException(status_code=404, detail="Item not found")
+    return HeritageItem(**item)
 
 
 @heritage_router.get("/map/items")
