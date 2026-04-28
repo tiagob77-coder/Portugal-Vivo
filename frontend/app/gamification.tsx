@@ -208,7 +208,7 @@ export default function GamificationScreen() {
                 <Text style={s.badgeDesc} numberOfLines={2}>{badge.description}</Text>
                 <View style={s.badgeProgress}>
                   <View style={s.badgeProgressTrack}>
-                    <View style={[s.badgeProgressFill, { width: `${badge.progress_pct}%`, backgroundColor: badge.earned ? badge.color : colors.gray[300] }]} />
+                    <View style={[s.badgeProgressFill, { width: `${badge.progress_pct ?? 0}%`, backgroundColor: badge.earned ? badge.color : colors.gray[300] }]} />
                   </View>
                   <Text style={s.badgeProgressText}>{badge.progress}/{badge.threshold}</Text>
                 </View>

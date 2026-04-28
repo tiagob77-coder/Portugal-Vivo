@@ -69,8 +69,8 @@ describe('GeofenceControl', () => {
 
   it('calls onPOIsLoad callback when geofence service triggers onNearby', async () => {
     const onPOIsLoad = jest.fn();
-    mockGeofenceService.start.mockImplementationOnce(async ({ onNearby }) => {
-      onNearby?.([], 0);
+    mockGeofenceService.start.mockImplementationOnce(async (params) => {
+      params?.onNearby?.([], 0);
     });
 
     const { UNSAFE_getByType } = render(<GeofenceControl onPOIsLoad={onPOIsLoad} />);

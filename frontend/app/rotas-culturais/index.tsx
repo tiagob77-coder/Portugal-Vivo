@@ -240,7 +240,7 @@ export default function RotasCulturais() {
   ]);
 
   const mapStops: HubStop[] = ROUTES_DATA.flatMap((r) =>
-    r.stops.map((s) => ({
+    (r.stops ?? []).map((s) => ({
       name: s.name,
       lat: s.lat,
       lng: s.lng,

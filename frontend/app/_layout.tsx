@@ -115,7 +115,6 @@ function NotificationManager() {
   useEffect(() => {
     if (!isAuthenticated || !sessionToken) return;
 
-    let removeReceived: (() => void) | null = null;
     let removeResponse: (() => void) | null = null;
 
     const setup = async () => {
@@ -153,7 +152,6 @@ function NotificationManager() {
     setup();
 
     return () => {
-      removeReceived?.();
       removeResponse?.();
       if (Platform.OS === 'web') stopWebProximityPolling();
     };
