@@ -116,7 +116,7 @@ function isInSeason(seasonality: CoastalDish['seasonality'], month: number): boo
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
-export default function GastronomyDishCard({ dish, expanded = false, onPress }: GastronomyDishCardProps) {
+function GastronomyDishCard({ dish, expanded = false, onPress }: GastronomyDishCardProps) {
   const { colors } = useTheme();
   const currentMonth = new Date().getMonth() + 1;
   const typeColor = TYPE_COLOR[dish.type];
@@ -583,3 +583,5 @@ const styles = StyleSheet.create({
     marginTop: -4,
   },
 });
+
+export default React.memo(GastronomyDishCard);

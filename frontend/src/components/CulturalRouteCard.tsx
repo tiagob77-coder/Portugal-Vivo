@@ -74,7 +74,7 @@ const MONTH_NAMES = [
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
-export default function CulturalRouteCard({
+function CulturalRouteCard({
   route,
   expanded = false,
   onPress,
@@ -293,3 +293,5 @@ const styles = StyleSheet.create({
   },
   unescoLabelText: { fontSize: 11, color: '#FCD34D', fontWeight: '600', flex: 1 },
 });
+
+export default React.memo(CulturalRouteCard);

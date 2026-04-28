@@ -300,7 +300,7 @@ function ProductContent({ item, expanded }: { item: EconomyMarketCardProps['item
 
 // ─── Main Card ────────────────────────────────────────────────────────────────
 
-export default function EconomyMarketCard({
+function EconomyMarketCard({
   item,
   variant,
   expanded = false,
@@ -527,3 +527,5 @@ const subStyles = StyleSheet.create({
     color: C.textLight,
   },
 });
+
+export default React.memo(EconomyMarketCard);

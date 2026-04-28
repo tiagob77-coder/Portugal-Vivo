@@ -77,8 +77,8 @@ describe('ProximityMonitor', () => {
 
   it('renders alert banner when geofence service triggers alerts', async () => {
     let capturedOnAlert: ((alerts: any[]) => void) | undefined;
-    mockGeofenceService.start.mockImplementationOnce(async ({ onAlert }) => {
-      capturedOnAlert = onAlert;
+    mockGeofenceService.start.mockImplementationOnce(async (params) => {
+      capturedOnAlert = params?.onAlert;
     });
 
     const { queryByText } = render(<ProximityMonitor enabled={true} />);

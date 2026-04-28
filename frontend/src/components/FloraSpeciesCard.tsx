@@ -73,7 +73,7 @@ const MONTH_SHORT = ['J','F','M','A','M','J','J','A','S','O','N','D'];
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
-export default function FloraSpeciesCard({ species, expanded = false, onPress }: FloraSpeciesCardProps) {
+function FloraSpeciesCard({ species, expanded = false, onPress }: FloraSpeciesCardProps) {
   const accentColor = STATUS_COLOR[species.status];
   const { colors } = useTheme();
   const statusIcon  = STATUS_ICON[species.status];
@@ -528,3 +528,5 @@ const styles = StyleSheet.create({
     marginTop: 6,
   },
 });
+
+export default React.memo(FloraSpeciesCard);

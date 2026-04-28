@@ -248,7 +248,7 @@ export default function RouteDetailScreen() {
             <View style={[styles.categoryBadge, { backgroundColor: color + '40' }]}>
               <MaterialIcons name={icon as any} size={16} color={color} />
               <Text style={[styles.categoryText, { color }]}>
-                {route.category.charAt(0).toUpperCase() + route.category.slice(1)}
+                {(route.category ?? '').charAt(0).toUpperCase() + (route.category ?? '').slice(1)}
               </Text>
             </View>
             <Text style={styles.heroTitle}>{route.name}</Text>

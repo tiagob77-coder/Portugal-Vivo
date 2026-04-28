@@ -22,12 +22,13 @@ const CATEGORY_ICONS: Record<string, string> = {
 
 function RouteCard({ route, onPress }: RouteCardProps) {
   const { colors } = useTheme();
-  const color = getCategoryColor(route.category);
-  const icon = CATEGORY_ICONS[route.category] || 'route';
+  const cat = route.category ?? '';
+  const color = getCategoryColor(cat);
+  const icon = CATEGORY_ICONS[cat] || 'route';
 
   return (
     <PressableScale onPress={onPress} style={[styles.card, { backgroundColor: colors.surfaceElevated, borderColor: colors.border }]}>
-      <View style={[styles.iconContainer, { backgroundColor: getCategoryBg(route.category) }]}>
+      <View style={[styles.iconContainer, { backgroundColor: getCategoryBg(cat) }]}>
         <MaterialIcons name={icon as any} size={28} color={color} />
       </View>
 
@@ -36,9 +37,9 @@ function RouteCard({ route, onPress }: RouteCardProps) {
         <Text style={[styles.description, { color: colors.textMuted }]} numberOfLines={2}>{route.description}</Text>
 
         <View style={styles.meta}>
-          <View style={[styles.badge, { backgroundColor: getCategoryBg(route.category) }]}>
+          <View style={[styles.badge, { backgroundColor: getCategoryBg(cat) }]}>
             <Text style={[styles.badgeText, { color }]}>
-              {route.category.charAt(0).toUpperCase() + route.category.slice(1)}
+              {cat.charAt(0).toUpperCase() + cat.slice(1)}
             </Text>
           </View>
           {route.region && (

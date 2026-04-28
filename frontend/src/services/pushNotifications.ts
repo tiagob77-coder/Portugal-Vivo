@@ -119,8 +119,10 @@ class PushNotificationService {
       });
 
       const tokenData = await Notifications.getExpoPushTokenAsync();
-      this.pushToken = tokenData.data;
-      await AsyncStorage.setItem(PUSH_TOKEN_KEY, this.pushToken);
+      this.pushToken = tokenData.data ?? null;
+      if (this.pushToken) {
+        await AsyncStorage.setItem(PUSH_TOKEN_KEY, this.pushToken);
+      }
 
       return this.pushToken;
     } catch (_error) {

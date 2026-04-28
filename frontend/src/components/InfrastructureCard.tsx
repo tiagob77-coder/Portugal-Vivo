@@ -91,7 +91,7 @@ function formatLength(m: number): string {
 
 // ─── Main Card ────────────────────────────────────────────────────────────────
 
-export default function InfrastructureCard({
+function InfrastructureCard({
   item,
   expanded = false,
   onPress,
@@ -473,3 +473,5 @@ const styles = StyleSheet.create({
     marginTop: -4,
   },
 });
+
+export default React.memo(InfrastructureCard);
