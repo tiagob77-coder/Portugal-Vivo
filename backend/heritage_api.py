@@ -167,6 +167,104 @@ async def get_heritage_by_region(region: str, limit: int = 100):
     return [HeritageItem(**item) for item in items]
 
 
+@heritage_router.get("/heritage/top-scored")
+async def get_top_scored_items(limit_per_cat: int = 1):
+    """Get top IQ-scored POI per category for landing page 'Descobertas Raras'"""
+    pipeline = [
+        {"$match": {
+            "location.lat": {"$exists": True, "$ne": None},
+            "image_url": {"$exists": True, "$ne": None, "$ne": ""},
+        }},
+        {"$addFields": {
+            "iq_score_computed": {
+                "$cond": {
+                    "if": {"$isArray": "$iq_results"},
+                    "then": {"$avg": "$iq_results.score"},
+                    "else": {"$ifNull": ["$iq_results.score", 0]}
+                }
+            }
+        }},
+        {"$sort": {"iq_score_computed": -1}},
+        {"$group": {
+            "_id": "$category",
+            "top_item": {"$first": "$$ROOT"}
+        }},
+        {"$replaceRoot": {"newRoot": "$top_item"}},
+        {"$sort": {"iq_score_computed": -1}},
+        {"$limit": 12},
+        {"$project": {
+            "_id": 0, "id": 1, "name": 1, "description": 1, "category": 1,
+            "region": 1, "location": 1, "image_url": 1, "tags": 1,
+            "iq_score_computed": 1,
+        }},
+    ]
+    items = await _db_holder.db.heritage_items.aggregate(pipeline).to_list(12)
+
+    result = []
+    for item in items:
+        cat_id = item.get("category", "")
+        sub = SUBCATEGORY_MAP.get(cat_id, {})
+        main_cat = MAIN_CATEGORY_MAP.get(sub.get("main_category", ""), {})
+        item["category_name"] = sub.get("name", cat_id)
+        item["main_category_name"] = main_cat.get("name", "")
+        item["iq_score"] = round(item.pop("iq_score_computed", 0) or 0, 1)
+        result.append(item)
+
+    return result
+
+
+@heritage_router.get("/heritage/stories")
+async def get_stories():
+    """Get curated stories for landing page 'Histórias que Inspiram'."""
+    pipeline = [
+        {"$match": {
+            "image_url": {"$exists": True, "$ne": None, "$ne": ""},
+            "description": {"$exists": True},
+            "$expr": {"$gte": [{"$strLenCP": {"$ifNull": ["$description", ""]}}, 80]},
+        }},
+        {"$addFields": {
+            "desc_len": {"$strLenCP": "$description"},
+            "iq_score_computed": {
+                "$cond": {
+                    "if": {"$isArray": "$iq_results"},
+                    "then": {"$avg": "$iq_results.score"},
+                    "else": {"$ifNull": ["$iq_results.score", 0]}
+                }
+            }
+        }},
+        {"$sort": {"iq_score_computed": -1, "desc_len": -1}},
+        {"$limit": 8},
+        {"$project": {
+            "_id": 0, "id": 1, "name": 1, "description": 1, "category": 1,
+            "region": 1, "image_url": 1, "tags": 1, "iq_score_computed": 1,
+        }},
+    ]
+    items = await _db_holder.db.heritage_items.aggregate(pipeline).to_list(8)
+
+    stories = []
+    for item in items:
+        desc = item.get("description", "")
+        word_count = len(desc.split())
+        read_min = max(2, round(word_count / 200))
+        cat_id = item.get("category", "")
+        sub = SUBCATEGORY_MAP.get(cat_id, {})
+        stories.append({
+            "id": item["id"],
+            "title": item["name"],
+            "description": desc[:200] + ("..." if len(desc) > 200 else ""),
+            "full_description": desc,
+            "region": item.get("region", ""),
+            "category": cat_id,
+            "category_name": sub.get("name", cat_id),
+            "image_url": item.get("image_url"),
+            "tags": item.get("tags", []),
+            "read_time": f"{read_min} min",
+            "iq_score": round(item.get("iq_score_computed", 0) or 0, 1),
+        })
+
+    return stories
+
+
 @heritage_router.get("/heritage/{item_id}", response_model=HeritageItem)
 async def get_heritage_item(item_id: str):
     """Get a single heritage item"""
@@ -298,110 +396,6 @@ async def get_night_explorer_items():
         result.append(item)
 
     return {"items": result, "total": len(result)}
-
-
-@heritage_router.get("/heritage/top-scored", name="get_top_scored_distinct")
-async def get_top_scored_items(limit_per_cat: int = 1):
-    """Get top IQ-scored POI per category for landing page 'Descobertas Raras'"""
-    pipeline = [
-        {"$match": {
-            "location.lat": {"$exists": True, "$ne": None},
-            "image_url": {"$exists": True, "$ne": None, "$ne": ""},
-        }},
-        {"$addFields": {
-            "iq_score_computed": {
-                "$cond": {
-                    "if": {"$isArray": "$iq_results"},
-                    "then": {"$avg": "$iq_results.score"},
-                    "else": {"$ifNull": ["$iq_results.score", 0]}
-                }
-            }
-        }},
-        {"$sort": {"iq_score_computed": -1}},
-        {"$group": {
-            "_id": "$category",
-            "top_item": {"$first": "$$ROOT"}
-        }},
-        {"$replaceRoot": {"newRoot": "$top_item"}},
-        {"$sort": {"iq_score_computed": -1}},
-        {"$limit": 12},
-        {"$project": {
-            "_id": 0, "id": 1, "name": 1, "description": 1, "category": 1,
-            "region": 1, "location": 1, "image_url": 1, "tags": 1,
-            "iq_score_computed": 1,
-        }},
-    ]
-    items = await _db_holder.db.heritage_items.aggregate(pipeline).to_list(12)
-
-    result = []
-    for item in items:
-        cat_id = item.get("category", "")
-        sub = SUBCATEGORY_MAP.get(cat_id, {})
-        main_cat = MAIN_CATEGORY_MAP.get(sub.get("main_category", ""), {})
-        item["category_name"] = sub.get("name", cat_id)
-        item["main_category_name"] = main_cat.get("name", "")
-        item["iq_score"] = round(item.pop("iq_score_computed", 0) or 0, 1)
-        result.append(item)
-
-    return result
-
-
-@heritage_router.get("/heritage/stories", name="get_heritage_stories_distinct")
-async def get_stories():
-    """Get curated stories for landing page 'Histórias que Inspiram'.
-
-    Returns POIs that have rich descriptions and images, suitable for
-    editorial storytelling. Each story links to a real heritage item.
-    """
-    # Select POIs with long descriptions and images — good story candidates
-    pipeline = [
-        {"$match": {
-            "image_url": {"$exists": True, "$ne": None, "$ne": ""},
-            "description": {"$exists": True},
-            "$expr": {"$gte": [{"$strLenCP": {"$ifNull": ["$description", ""]}}, 80]},
-        }},
-        {"$addFields": {
-            "desc_len": {"$strLenCP": "$description"},
-            "iq_score_computed": {
-                "$cond": {
-                    "if": {"$isArray": "$iq_results"},
-                    "then": {"$avg": "$iq_results.score"},
-                    "else": {"$ifNull": ["$iq_results.score", 0]}
-                }
-            }
-        }},
-        {"$sort": {"iq_score_computed": -1, "desc_len": -1}},
-        {"$limit": 8},
-        {"$project": {
-            "_id": 0, "id": 1, "name": 1, "description": 1, "category": 1,
-            "region": 1, "image_url": 1, "tags": 1, "iq_score_computed": 1,
-        }},
-    ]
-    items = await _db_holder.db.heritage_items.aggregate(pipeline).to_list(8)
-
-    stories = []
-    for item in items:
-        desc = item.get("description", "")
-        # Estimate read time: ~200 words/min in Portuguese
-        word_count = len(desc.split())
-        read_min = max(2, round(word_count / 200))
-        cat_id = item.get("category", "")
-        sub = SUBCATEGORY_MAP.get(cat_id, {})
-        stories.append({
-            "id": item["id"],
-            "title": item["name"],
-            "description": desc[:200] + ("..." if len(desc) > 200 else ""),
-            "full_description": desc,
-            "region": item.get("region", ""),
-            "category": cat_id,
-            "category_name": sub.get("name", cat_id),
-            "image_url": item.get("image_url"),
-            "tags": item.get("tags", []),
-            "read_time": f"{read_min} min",
-            "iq_score": round(item.get("iq_score_computed", 0) or 0, 1),
-        })
-
-    return stories
 
 
 # ========================
