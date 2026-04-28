@@ -11,6 +11,7 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "pt.portugalvivo",
+      "jsEngine": "hermes",
       "infoPlist": {
         "NSLocationWhenInUseUsageDescription": "Descubra património cultural perto de si",
         "NSLocationAlwaysAndWhenInUseUsageDescription": "Receba alertas de locais culturais próximos mesmo quando a app está em segundo plano.",
@@ -26,12 +27,13 @@
         "backgroundColor": "#000000"
       },
       "edgeToEdgeEnabled": true,
+      "jsEngine": "hermes",
+      "enableProguardInReleaseBuilds": true,
+      "enableShrinkResourcesInReleaseBuilds": true,
       "permissions": [
         "ACCESS_FINE_LOCATION",
         "ACCESS_COARSE_LOCATION",
         "CAMERA",
-        "READ_EXTERNAL_STORAGE",
-        "RECEIVE_BOOT_COMPLETED",
         "VIBRATE",
         "POST_NOTIFICATIONS"
       ]
@@ -86,7 +88,8 @@
           "isIosBackgroundLocationEnabled": true,
           "isAndroidBackgroundLocationEnabled": true
         }
-      ]
+      ],
+      "./plugins/withPrivacyManifest.js"
     ],
     "experiments": {
       "typedRoutes": true

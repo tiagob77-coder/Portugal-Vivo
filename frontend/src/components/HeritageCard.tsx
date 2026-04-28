@@ -27,7 +27,7 @@ const REGION_NAMES: Record<string, string> = {
   madeira: 'Madeira',
 };
 
-export default function HeritageCard({ item, categories, onPress, variant = 'default' }: HeritageCardProps) {
+function HeritageCard({ item, categories, onPress, variant = 'default' }: HeritageCardProps) {
   const { colors } = useTheme();
   const { isFavorite, toggleFavorite } = useFavorites();
   const category = categories.find(c => c.id === item.category);
@@ -214,3 +214,5 @@ const styles = StyleSheet.create({
     fontSize: typography.fontSize.xs + 1,
   },
 });
+
+export default React.memo(HeritageCard);

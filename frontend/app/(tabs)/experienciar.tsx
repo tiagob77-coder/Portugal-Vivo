@@ -25,6 +25,7 @@ import {
 } from '../../src/services/api';
 import { useTheme } from '../../src/theme';
 import SmartImage from '../../src/components/SmartImage';
+import ErrorBoundary from '../../src/components/ErrorBoundary';
 
 const { width } = Dimensions.get('window');
 const POPULAR_CARD_WIDTH = Math.min(260, width * 0.7);
@@ -61,7 +62,7 @@ const parseEventDay = (event: CalendarEvent): { day: number; month: number } | n
   return { day, month };
 };
 
-export default function ExperienciarTab() {
+function ExperienciarTab() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { colors } = useTheme();
@@ -762,3 +763,11 @@ const styles = StyleSheet.create({
   },
   actionText: { fontSize: 14, fontWeight: '600', color: '#000' },
 });
+
+export default function ExperienciarTabWithBoundary() {
+  return (
+    <ErrorBoundary>
+      <ExperienciarTab />
+    </ErrorBoundary>
+  );
+}

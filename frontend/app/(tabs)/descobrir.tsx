@@ -21,6 +21,7 @@ import {
   getSurprisePOI, getHojeFeed,
 } from '../../src/services/api';
 import HojeEmPortugalCard, { HojeData } from '../../src/components/HojeEmPortugalCard';
+import ErrorBoundary from '../../src/components/ErrorBoundary';
 import { API_BASE } from '../../src/config/api';
 import { typography, shadows, regionImages } from '../../src/theme';
 import { useTheme } from '../../src/context/ThemeContext';
@@ -68,7 +69,7 @@ const PROFILE_LABELS: Record<string, { label: string; icon: string; color: strin
   familia: { label: 'Família', icon: 'family-restroom', color: '#5B8C5A' },
 };
 
-export default function DescobrerTab() {
+function DescobrerTab() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { colors, isDark } = useTheme();
@@ -1250,3 +1251,11 @@ const styles = StyleSheet.create({
   toolkitTitle: { fontSize: 14, fontWeight: '700' },
   toolkitSub: { fontSize: 12, marginTop: 2 },
 });
+
+export default function DescobrerTabWithBoundary() {
+  return (
+    <ErrorBoundary>
+      <DescobrerTab />
+    </ErrorBoundary>
+  );
+}

@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  PrivacyInfo.xcprivacy
+  Required by App Store since May 2024 for any iOS app submission.
+  https://developer.apple.com/documentation/bundleresources/privacy_manifest_files
+
+  Purpose declarations cover the four "required reason APIs" that this
+  app legitimately uses via React Native + Expo:
+    - UserDefaults (AsyncStorage stores session token, prefs)
+    - FileTimestamp (expo-file-system inspects cache files)
+    - DiskSpace (expo-file-system reports free space for offline downloads)
+    - SystemBootTime (used by RN core to detect app start time)
+
+  Tracking declarations:
+    - NSPrivacyTracking = false (we do not link user data with third-party
+      data for tracking, per ATT definition).
+    - NSPrivacyTrackingDomains = empty (no SKAN attribution).
+
+  Collected data types: declared minimally; expand if/when we add
+  AppsFlyer / Adjust / similar.
+-->
+<plist version="1.0">
+<dict>
+  <key>NSPrivacyTracking</key>
+  <false/>
+
+  <key>NSPrivacyTrackingDomains</key>
+  <array/>
+
+  <key>NSPrivacyCollectedDataTypes</key>
+  <array>
+    <!-- Email + name collected at OAuth login, used for account function. -->
+    <dict>
+      <key>NSPrivacyCollectedDataType</key>
+      <string>NSPrivacyCollectedDataTypeEmailAddress</string>
+      <key>NSPrivacyCollectedDataTypeLinked</key>
+      <true/>
+      <key>NSPrivacyCollectedDataTypeTracking</key>
+      <false/>
+      <key>NSPrivacyCollectedDataTypePurposes</key>
+      <array>
+        <string>NSPrivacyCollectedDataTypePurposeAppFunctionality</string>
+      </array>
+    </dict>
+
+    <!-- Approximate / precise location (proximity-based POI discovery). -->
+    <dict>
+      <key>NSPrivacyCollectedDataType</key>
+      <string>NSPrivacyCollectedDataTypePreciseLocation</string>
+      <key>NSPrivacyCollectedDataTypeLinked</key>
+      <false/>
+      <key>NSPrivacyCollectedDataTypeTracking</key>
+      <false/>
+      <key>NSPrivacyCollectedDataTypePurposes</key>
+      <array>
+        <string>NSPrivacyCollectedDataTypePurposeAppFunctionality</string>
+      </array>
+    </dict>
+
+    <!-- Crash logs (Sentry). User-identifier scrubbed; not linked. -->
+    <dict>
+      <key>NSPrivacyCollectedDataType</key>
+      <string>NSPrivacyCollectedDataTypeCrashData</string>
+      <key>NSPrivacyCollectedDataTypeLinked</key>
+      <false/>
+      <key>NSPrivacyCollectedDataTypeTracking</key>
+      <false/>
+      <key>NSPrivacyCollectedDataTypePurposes</key>
+      <array>
+        <string>NSPrivacyCollectedDataTypePurposeAppFunctionality</string>
+        <string>NSPrivacyCollectedDataTypePurposeAnalytics</string>
+      </array>
+    </dict>
+  </array>
+
+  <key>NSPrivacyAccessedAPITypes</key>
+  <array>
+    <!-- AsyncStorage / SecureStore use NSUserDefaults under the hood. -->
+    <dict>
+      <key>NSPrivacyAccessedAPIType</key>
+      <string>NSPrivacyAccessedAPICategoryUserDefaults</string>
+      <key>NSPrivacyAccessedAPITypeReasons</key>
+      <array>
+        <string>CA92.1</string><!-- Access info written by same app/group -->
+      </array>
+    </dict>
+
+    <!-- expo-file-system: cache + offline downloads need stat() / mtime. -->
+    <dict>
+      <key>NSPrivacyAccessedAPIType</key>
+      <string>NSPrivacyAccessedAPICategoryFileTimestamp</string>
+      <key>NSPrivacyAccessedAPITypeReasons</key>
+      <array>
+        <string>C617.1</string><!-- Inside this app for user-displayed file info -->
+      </array>
+    </dict>
+
+    <!-- Show free disk space when user starts a region offline download. -->
+    <dict>
+      <key>NSPrivacyAccessedAPIType</key>
+      <string>NSPrivacyAccessedAPICategoryDiskSpace</string>
+      <key>NSPrivacyAccessedAPITypeReasons</key>
+      <array>
+        <string>85F4.1</string><!-- Display free space to user as required -->
+      </array>
+    </dict>
+
+    <!-- React Native core uses uptime / boot-time for startup metrics. -->
+    <dict>
+      <key>NSPrivacyAccessedAPIType</key>
+      <string>NSPrivacyAccessedAPICategorySystemBootTime</string>
+      <key>NSPrivacyAccessedAPITypeReasons</key>
+      <array>
+        <string>35F9.1</string><!-- Calculate elapsed system uptime -->
+      </array>
+    </dict>
+  </array>
+</dict>
+</plist>

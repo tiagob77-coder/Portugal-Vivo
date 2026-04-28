@@ -19,10 +19,11 @@ O Portugal Vivo é uma aplicação viva que guia o utilizador por Portugal atrav
 - **+300 eventos 2026** — agenda viral com integração de fontes externas
 - **Beachcams** — câmeras de praia em tempo real com condições marinhas
 - **Dark mode completo** — suporte light/dark/system com tokens semânticos, daltonismo (3 modos) e accents regionais
-- **Modo offline** — cache inteligente com sincronização e fila de ações pendentes
+- **Modo offline** — cache inteligente com sincronização e fila de ações pendentes; service worker com cache-first de tiles
 - **Audio guides** — TTS com 9 vozes e 6 idiomas (premium)
 - **i18n** — PT, EN, ES, FR
-- **Multi-tenant** — isolamento por município com JWT
+- **Multi-tenant** — isolamento por município com JWT (filtro automático em geo / list queries)
+- **11 modos de mapa** e **44 subcategorias de layers** (markers, explorador, heatmap, trails, epochs, timeline, proximity, noturno, satellite, técnico, premium)
 
 ---
 
@@ -33,27 +34,27 @@ O Portugal Vivo é uma aplicação viva que guia o utilizador por Portugal atrav
 |---|---|
 | Framework | FastAPI (Python async) |
 | Base de dados | MongoDB Atlas via Motor (async) |
-| Cache / Leaderboard | Redis |
+| Cache / Leaderboard / Rate limit | Redis (cache LLM com TTL + sliding-window distribuído ZSET) |
 | Autenticação | JWT (python-jose) + Google OAuth2 |
-| IA / LLM | Emergent LLM — gpt-4o-mini via `emergentintegrations` |
+| IA / LLM | Cliente central `llm_client.py` com auto-select OpenAI direct → Emergent fallback (`gpt-4o-mini`) |
 | Imagens | Cloudinary CDN |
 | Pagamentos | Stripe (Card, PayPal, MB Way, Multibanco) |
-| Rate Limiting | slowapi + middleware custom per-endpoint |
-| Monitorização | Sentry + structured logging |
-| Segurança | CSRF, rate limiting, security headers, CORS |
-| Infra | Docker multi-stage, multi-tenant por região |
+| Rate Limiting | Sliding window Redis (per-user + per-endpoint), fail-open in-memory |
+| Observabilidade | Sentry + Prometheus (`/api/metrics`) + structured JSON logs com `request_id` |
+| Segurança | CSRF, rate limiting, security headers, CORS, multi-tenant `municipality_id` |
+| Infra | Docker multi-stage, multi-tenant por município |
 
 ### Frontend
 | Componente | Tecnologia |
 |---|---|
 | Framework | React Native + Expo SDK 54.0.33 |
 | Navegação | Expo Router (file-based routing) |
-| Mapas (web) | MapLibre GL JS 4.7.1 + CARTO tiles (grátis, sem API key) |
-| Mapas (native) | Leaflet via WebView |
+| Mapas (web / PWA) | MapLibre GL JS 4.7.1 + CARTO tiles (grátis, sem API key) |
+| Mapas (iOS / Android) | `react-native-maps` 1.20.1 (Apple Maps / Google Maps nativos) |
 | Terreno 3D | AWS Elevation Tiles (terrarium encoding) + hillshade |
-| Estado servidor | TanStack Query (useQuery, useMutation) |
+| Estado servidor | TanStack Query (`useQuery`, `useMutation`) |
 | i18n | i18next (PT/EN/ES/FR) |
-| Offline | AsyncStorage + cache 24h com fila de ações |
+| Offline | Service worker com cache de tiles (LRU 4000), AsyncStorage 24h, fila de ações |
 | Notificações | expo-notifications |
 | Áudio | expo-av + expo-speech |
 | Geofencing | expo-task-manager + expo-location |
@@ -61,6 +62,7 @@ O Portugal Vivo é uma aplicação viva que guia o utilizador por Portugal atrav
 | Ícones | @expo/vector-icons MaterialIcons |
 | Safe area | react-native-safe-area-context |
 | Monitorização | @sentry/react |
+| Builds | EAS via GitHub Action manual (cloud builds, sem máquina local) |
 
 ---
 
@@ -266,6 +268,39 @@ O ThemeContext fornece `colors` com tokens light/dark:
 - Cache 24h com fila de ações pendentes
 - Imagens optimizadas com blurhash e cache memory-disk
 - Warm cache de favoritos no login
+- **PWA**: service worker com cache-first de tiles MapLibre (CARTO + AWS DEM), LRU 4000 entries (~40 MB), 504 graceful quando offline
+
+### Performance & Cache (Fase 3-5)
+- **LLM cache** Redis (TTL 7 dias) em todos os endpoints LLM (pairing, identify, narrative, hoje) — colapsa chamadas duplicadas
+- **Rate limiter distribuído** Redis ZSET sliding window (substitui counter in-memory por-worker)
+- **Search relevance** com `$text` + `textScore` (Portuguese stemming) em `/api/search` e `/api/search/global`
+- **Bulk content metrics** via `$facet` (5 round-trips → 1)
+- **Mongo `name_normalised`** indexado para dedup POI sem regex scan
+
+---
+
+## Multi-Tenant
+
+Cada utilizador autenticado pode ter `municipality_id` no documento `users`. Quando presente:
+- Queries geo (`$near`, bounding-box) e listagens (POIs, trilhos, narrativas, contribuições, eventos) são automaticamente filtradas por município
+- Anonymous traffic mantém-se sem filtro (descoberta pública)
+- Utilizadores com `is_admin=true` vêem global
+- Header `X-Municipality-Id` (TenantMiddleware) tem prioridade quando presente
+
+Helper central em `backend/shared_utils.py::apply_municipality_filter(query, user)`. Wired em `proximity_api`, `map_layers_api`, `trails_api`, `narratives_api`, `community_api`, `discover_feed_api`.
+
+---
+
+## Observabilidade
+
+Pilares prontos a ligar (basta DSN/scraper):
+
+- **Sentry** — SDK iniciado em backend (`monitoring.py`) e frontend (`utils/monitoring.ts`). Falta apenas `SENTRY_DSN` em env
+- **Prometheus** — `/api/metrics` expõe 9 contadores: `http_requests_total`, `http_request_duration_seconds`, `http_5xx_errors_total`, `http_status_alerts_total`, `llm_cache_{hits,misses,errors}_total`, `rate_limit_triggered_total`, `llm_calls_total`
+- **Grafana dashboard** — `ops/grafana/portugal-vivo-dashboard.json` (8 painéis prontos a importar)
+- **Health checks**: `/api/health`, `/api/health/detailed`, `/api/health/deep` (probes Mongo+Redis+LLM)
+- **Structured logs** — JSON com `request_id` propagado via ContextVar (activar com `LOG_FORMAT=json`)
+- **Smoke test pós-deploy** — `python scripts/verify_observability.py --base-url <url>`
 
 ---
 
@@ -316,8 +351,14 @@ JWT_SECRET_KEY=your-secret-key
 GOOGLE_CLIENT_ID=...
 GOOGLE_CLIENT_SECRET=...
 
-# IA / LLM (Emergent — motor principal)
-EMERGENT_LLM_KEY=...
+# IA / LLM
+# O cliente central (backend/llm_client.py) escolhe ao boot:
+#   1. OPENAI_API_KEY definido → OpenAI directo (recomendado)
+#   2. Senão EMERGENT_LLM_KEY → proxy Emergent (fallback / staging)
+# Override explícito: LLM_PROVIDER=openai|emergent
+OPENAI_API_KEY=
+EMERGENT_LLM_KEY=
+LLM_PROVIDER=
 
 # Imagens
 CLOUDINARY_CLOUD_NAME=...
@@ -433,27 +474,46 @@ Ecrã hub completo em `app/rotas-culturais/index.tsx`:
 |---|---|
 | Ecrãs frontend | 78 |
 | Componentes React Native | 113 |
-| Módulos backend (API) | 90 |
-| Routers registados | 93 |
-| Endpoints REST | 512 |
+| Módulos backend (API) | 90+ |
+| Routers registados | 93+ |
+| Endpoints REST | 520+ |
 | Serviços externos | 24 |
-| Ficheiros de teste | 43 |
-| Testes unitários | 176 |
+| Ficheiros de teste | 50+ |
+| Testes unitários | 200+ |
 | Módulos IQ Engine | 19 |
 | Módulos temáticos | 11 |
 | Módulos motor inteligente | 3 |
-| Idiomas | 5 (PT, EN, ES, FR, DE) |
-| Camadas de mapa | 39+ |
-| Modos de mapa | 7 |
+| Idiomas in-app | 4 (PT, EN, ES, FR) — narrativas LLM em 5 incl. DE |
+| Camadas de mapa | 44 |
+| Modos de mapa | 11 |
+| Contadores Prometheus | 9 |
 
 ---
 
-## Bundle Identifiers (Mobile)
+## Mobile Release (EAS)
+
+Os builds iOS / Android correm na cloud da Expo via GitHub Action — não é preciso máquina pessoal:
+
+1. **Setup uma vez**: token EAS pessoal em `Settings → Secrets → EXPO_TOKEN`
+2. **Lançar build**: GitHub → **Actions** → **EAS Build (iOS / Android)** → Run workflow → escolher `platform`, `profile`, `submit`
+3. **Acompanhar**: https://expo.dev/accounts/[user]/projects/portugal-vivo/builds
+
+Pré-build sanity check local: `./scripts/eas_prebuild_check.sh production`.
+
+### Privacy Manifest (App Store mandatory desde Maio 2024)
+
+`frontend/PrivacyInfo.xcprivacy` declara required-reason API uses (UserDefaults, FileTimestamp, DiskSpace, SystemBootTime) e collected data types (email, location, crash data — todos não-tracking). É copiado para `ios/<AppName>/PrivacyInfo.xcprivacy` durante prebuild via plugin `frontend/plugins/withPrivacyManifest.js`.
+
+### Bundle Identifiers
 
 | Plataforma | Identificador |
 |---|---|
 | iOS | `pt.portugalvivo` |
 | Android | `pt.portugalvivo` |
+
+### Permissões Android (justificadas)
+
+`ACCESS_FINE_LOCATION`, `ACCESS_COARSE_LOCATION` (proximity), `CAMERA` (AR Time Travel), `VIBRATE` (haptics), `POST_NOTIFICATIONS` (push reminders).
 
 ---
 
