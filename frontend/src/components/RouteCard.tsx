@@ -20,7 +20,7 @@ const CATEGORY_ICONS: Record<string, string> = {
   natureza: 'forest',
 };
 
-export default function RouteCard({ route, onPress }: RouteCardProps) {
+function RouteCard({ route, onPress }: RouteCardProps) {
   const { colors } = useTheme();
   const color = getCategoryColor(route.category);
   const icon = CATEGORY_ICONS[route.category] || 'route';
@@ -108,3 +108,5 @@ const styles = StyleSheet.create({
     fontSize: typography.fontSize.xs + 1,
   },
 });
+
+export default React.memo(RouteCard);

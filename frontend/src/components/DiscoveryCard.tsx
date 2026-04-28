@@ -278,4 +278,4 @@ const styles = StyleSheet.create({
   tipText: { fontSize: 12, color: palette.gray[500], lineHeight: 18 },
 });
 
-export default DiscoveryCard;
+export default React.memo(DiscoveryCard);
