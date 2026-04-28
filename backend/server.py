@@ -211,6 +211,35 @@ async def auth_rate_limit_middleware(request: Request, call_next):
         _auth_rate_store[key] = timestamps
     return await call_next(request)
 
+# Global API rate limiter — sliding window, in-memory per IP
+# Limits: 300 req/min for general API, excludes /api/health
+_global_rate_store: Dict[str, list] = {}
+GLOBAL_RATE_LIMIT = 300   # requests
+GLOBAL_RATE_WINDOW = 60   # seconds
+
+@app.middleware("http")
+async def global_api_rate_limit_middleware(request: Request, call_next):
+    path = request.url.path
+    if not path.startswith("/api/") or path == "/api/health":
+        return await call_next(request)
+
+    ip = request.client.host if request.client else "unknown"
+    now = _time.monotonic()
+    timestamps = _global_rate_store.get(ip, [])
+    timestamps = [t for t in timestamps if now - t < GLOBAL_RATE_WINDOW]
+    if len(timestamps) >= GLOBAL_RATE_LIMIT:
+        return Response(
+            status_code=429,
+            content='{"detail":"Taxa de pedidos excedida. Tente novamente em 1 minuto."}',
+            headers={
+                "Content-Type": "application/json",
+                "Retry-After": str(GLOBAL_RATE_WINDOW),
+            },
+        )
+    timestamps.append(now)
+    _global_rate_store[ip] = timestamps
+    return await call_next(request)
+
 @app.middleware("http")
 async def limit_request_body(request: Request, call_next):
     content_length = request.headers.get("content-length")
