@@ -21,13 +21,14 @@ import HeritageCard from '../../src/components/HeritageCard';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { LANGUAGES } from '../../src/i18n';
 import { GeofenceControl } from '../../src/components/GeofenceControl';
+import ErrorBoundary from '../../src/components/ErrorBoundary';
 import { LinearGradient } from 'expo-linear-gradient';
 import { shadows } from '../../src/theme';
 import { useTheme } from '../../src/context/ThemeContext';
 
 const serif = Platform.OS === 'web' ? 'Cormorant Garamond, Georgia, serif' : undefined;
 
-export default function ProfileScreen() {
+function ProfileScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { t, i18n } = useTranslation();
@@ -569,3 +570,11 @@ const styles = StyleSheet.create({
   appInfoTitle: { fontSize: 14, fontWeight: '600' },
   appInfoVersion: { fontSize: 12, marginTop: 4 },
 });
+
+export default function ProfileScreenWithBoundary() {
+  return (
+    <ErrorBoundary>
+      <ProfileScreen />
+    </ErrorBoundary>
+  );
+}

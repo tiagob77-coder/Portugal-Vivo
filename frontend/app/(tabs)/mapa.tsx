@@ -38,6 +38,7 @@ import {
   NIGHT_FILTERS,
 } from '../../src/components/map';
 import type { MapMode } from '../../src/components/map';
+import ErrorBoundary from '../../src/components/ErrorBoundary';
 
 const { width: _width, height: _height } = Dimensions.get('window');
 
@@ -193,7 +194,7 @@ const darkMapStyle = [
   { featureType: 'landscape', elementType: 'geometry', stylers: [{ color: '#1d2c4d' }] },
 ];
 
-export default function MapaTab() {
+function MapaTab() {
   const router = useRouter();
   const { region: regionParam, t: navTimestamp } = useLocalSearchParams<{ region?: string; t?: string }>();
   const insets = useSafeAreaInsets();
@@ -1929,3 +1930,11 @@ const styles = StyleSheet.create({
     color: 'rgba(255,255,255,0.6)',
   },
 });
+
+export default function MapaTabWithBoundary() {
+  return (
+    <ErrorBoundary>
+      <MapaTab />
+    </ErrorBoundary>
+  );
+}

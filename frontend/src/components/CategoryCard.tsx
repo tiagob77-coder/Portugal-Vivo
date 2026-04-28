@@ -15,7 +15,7 @@ interface CategoryCardProps {
   onPress: () => void;
 }
 
-export default function CategoryCard({ category, onPress }: CategoryCardProps) {
+function CategoryCard({ category, onPress }: CategoryCardProps) {
   const { colors } = useTheme();
   const imageUrl = getCategoryImage(category.id);
 
@@ -93,3 +93,5 @@ const styles = StyleSheet.create({
     fontSize: typography.fontSize.sm,
   },
 });
+
+export default React.memo(CategoryCard);
