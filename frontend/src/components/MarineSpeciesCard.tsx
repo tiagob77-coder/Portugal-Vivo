@@ -107,7 +107,7 @@ const CATEGORY_LABEL: Record<MarineSpecies['category'], string> = {
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
-export default function MarineSpeciesCard({ species, expanded = false, onPress }: MarineSpeciesCardProps) {
+function MarineSpeciesCard({ species, expanded = false, onPress }: MarineSpeciesCardProps) {
   const { colors } = useTheme();
   const catColor = CATEGORY_COLOR[species.category];
   const currentMonth = new Date().getMonth() + 1;
@@ -498,3 +498,5 @@ const styles = StyleSheet.create({
     marginTop: 6,
   },
 });
+
+export default React.memo(MarineSpeciesCard);

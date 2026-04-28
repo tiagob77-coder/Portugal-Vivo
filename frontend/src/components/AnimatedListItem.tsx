@@ -8,7 +8,7 @@ interface AnimatedListItemProps {
   style?: ViewStyle;
 }
 
-export default function AnimatedListItem({ children, index, stagger = 50, style }: AnimatedListItemProps) {
+function AnimatedListItem({ children, index, stagger = 50, style }: AnimatedListItemProps) {
   const opacity = useRef(new Animated.Value(0)).current;
   const translateY = useRef(new Animated.Value(18)).current;
 
@@ -36,3 +36,5 @@ export default function AnimatedListItem({ children, index, stagger = 50, style 
     </Animated.View>
   );
 }
+
+export default React.memo(AnimatedListItem);

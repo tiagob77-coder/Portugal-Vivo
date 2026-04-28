@@ -1,9 +1,7 @@
 {
   "extends": "expo/tsconfig.base",
   "compilerOptions": {
-    "strict": false,
-    "strictBindCallApply": true,
-    "strictFunctionTypes": true,
+    "strict": true,
     "noUncheckedIndexedAccess": false,
     "skipLibCheck": true,
     "paths": {

@@ -61,7 +61,7 @@ function buildLine(data: ElevationPoint[], w: number, s: ReturnType<typeof stats
   return data.map((p, i) => `${i === 0 ? 'M' : 'L'} ${sx(p.distance_km).toFixed(1)},${sy(p.elevation).toFixed(1)}`).join(' ');
 }
 
-export default function ElevationProfile({ data, color = '#22C55E', trailName }: Props) {
+function ElevationProfile({ data, color = '#22C55E', trailName }: Props) {
   const { colors } = useTheme();
   const [width, setWidth] = useState(320);
   const onLayout = (e: LayoutChangeEvent) => setWidth(e.nativeEvent.layout.width);
@@ -188,3 +188,5 @@ const st = StyleSheet.create({
   statVal: { fontSize: 14, fontWeight: '800', color: '#111827' },
   statLbl: { fontSize: 10, color: '#9CA3AF', fontWeight: '500' },
 });
+
+export default React.memo(ElevationProfile);

@@ -49,7 +49,7 @@ function Chip({ emoji, label, sub, color }: { emoji?: string; label: string; sub
   );
 }
 
-export default function HojeEmPortugalCard({ data, loading, accentColor = '#10B981' }: Props) {
+function HojeEmPortugalCard({ data, loading, accentColor = '#10B981' }: Props) {
   const router = useRouter();
 
   if (loading) {
@@ -190,3 +190,5 @@ const styles = StyleSheet.create({
   },
   footerText: { fontSize: 11, color: '#6B7280', flex: 1 },
 });
+
+export default React.memo(HojeEmPortugalCard);
