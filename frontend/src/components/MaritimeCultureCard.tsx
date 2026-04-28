@@ -61,7 +61,7 @@ const FREQ_LABEL: Record<string, string> = {
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
-export default function MaritimeCultureCard({
+function MaritimeCultureCard({
   event,
   expanded = false,
   onPress,
@@ -369,3 +369,5 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
 });
+
+export default React.memo(MaritimeCultureCard);

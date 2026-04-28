@@ -103,7 +103,7 @@ const TIME_ICON: Record<NonNullable<FaunaSpecies['best_time_of_day']>, React.Com
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
-export default function FaunaSpeciesCard({ species, expanded = false, onPress }: FaunaSpeciesCardProps) {
+function FaunaSpeciesCard({ species, expanded = false, onPress }: FaunaSpeciesCardProps) {
   const { colors } = useTheme();
   const accentColor  = CLASS_COLOR[species.class];
   const classIcon    = CLASS_ICON[species.class];
@@ -559,3 +559,5 @@ const styles = StyleSheet.create({
     marginTop: 6,
   },
 });
+
+export default React.memo(FaunaSpeciesCard);

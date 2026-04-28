@@ -38,7 +38,7 @@ const CATEGORY_COLORS: Record<string, string> = {
   default: '#4A6741',
 };
 
-export default function MicroStoryCard({
+function MicroStoryCard({
   story,
   onPress,
   onSave,
@@ -268,3 +268,5 @@ const styles = StyleSheet.create({
     padding: 4,
   },
 });
+
+export default React.memo(MicroStoryCard);

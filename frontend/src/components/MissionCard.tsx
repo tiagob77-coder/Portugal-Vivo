@@ -32,7 +32,7 @@ interface MissionCardProps {
   onPress?: (mission: Mission) => void;
 }
 
-export default function MissionCard({ mission, onClaim, onPress }: MissionCardProps) {
+function MissionCard({ mission, onClaim, onPress }: MissionCardProps) {
   const { colors } = useTheme();
   const progress = mission.progress ?? 0;
   const pct = Math.min((progress / mission.target_value) * 100, 100);
@@ -177,3 +177,5 @@ const s = StyleSheet.create({
   },
   inProgressText: { fontSize: 12, fontWeight: '700' },
 });
+
+export default React.memo(MissionCard);

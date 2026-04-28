@@ -94,7 +94,7 @@ export default function TabLayout() {
           name="descobrir"
           options={{
             title: 'Descobrir',
-            tabBarIcon: ({ color }) => (
+            tabBarIcon: ({ color }: { color: string }) => (
               <MaterialIcons name="auto-awesome" size={22} color={color} />
             ),
           }}
@@ -103,7 +103,7 @@ export default function TabLayout() {
           name="mapa"
           options={{
             title: 'Explorar',
-            tabBarIcon: ({ color }) => (
+            tabBarIcon: ({ color }: { color: string }) => (
               <MaterialIcons name="explore" size={22} color={color} />
             ),
           }}
@@ -112,7 +112,7 @@ export default function TabLayout() {
           name="experienciar"
           options={{
             title: 'Viver',
-            tabBarIcon: ({ color }) => (
+            tabBarIcon: ({ color }: { color: string }) => (
               <MaterialIcons name="local-activity" size={22} color={color} />
             ),
           }}
@@ -121,7 +121,7 @@ export default function TabLayout() {
           name="profile"
           options={{
             title: 'Eu',
-            tabBarIcon: ({ color }) => (
+            tabBarIcon: ({ color }: { color: string }) => (
               <MaterialIcons name="person" size={22} color={color} />
             ),
           }}
