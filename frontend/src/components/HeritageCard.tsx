@@ -10,6 +10,8 @@ import { borderRadius, iconSizes } from '../theme/spacing';
 import { getCategoryColor, getCategoryBg } from '../theme/colors';
 import { useFavorites } from '../context/FavoritesContext';
 import { getCategoryImage } from '../theme/categoryImages';
+import { getCulturalIcon, getIQScoreColor, getIQScoreLabel } from '../theme/culturalIcons';
+import { hapticLight, onFavoriteToggle } from '../utils/microInteractions';
 
 const { width: _width } = Dimensions.get('window');
 
