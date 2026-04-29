@@ -18,6 +18,7 @@ import {
   Platform,
   Alert,
 } from 'react-native';
+import { Image } from 'expo-image';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -762,32 +763,53 @@ function MapaTab() {
               onPress={handleItemPress}
               activeOpacity={0.9}
             >
-              <LinearGradient
-                colors={['#2E5E4E', '#1F3F32']}
-                style={styles.selectedGradient}
-              >
-                <View style={styles.selectedContent}>
-                  <View style={[
-                    styles.selectedIcon,
-                    { backgroundColor: getMarkerColor(selectedItem.category) + '30' }
-                  ]}>
+              <View style={styles.selectedCardInner}>
+                {/* Image */}
+                {selectedItem.image_url ? (
+                  <Image
+                    source={{ uri: selectedItem.image_url }}
+                    style={styles.selectedCardImage}
+                    contentFit="cover"
+                  />
+                ) : (
+                  <View style={[styles.selectedCardImage, styles.selectedCardImagePlaceholder]}>
                     <MaterialIcons
                       name={getLayerIcon(selectedItem.category) as any}
-                      size={24}
+                      size={32}
                       color={getMarkerColor(selectedItem.category)}
                     />
                   </View>
-                  <View style={styles.selectedInfo}>
-                    <Text style={styles.selectedName} numberOfLines={1}>
-                      {selectedItem.name}
-                    </Text>
-                    <Text style={styles.selectedMeta}>
-                      {selectedItem.category} • {selectedItem.region}
-                    </Text>
+                )}
+                {/* Content */}
+                <LinearGradient
+                  colors={['transparent', 'rgba(0,0,0,0.8)']}
+                  style={styles.selectedCardGradient}
+                >
+                  <View style={styles.selectedContent}>
+                    <View style={[
+                      styles.selectedIcon,
+                      { backgroundColor: getMarkerColor(selectedItem.category) + '40' }
+                    ]}>
+                      <MaterialIcons
+                        name={getLayerIcon(selectedItem.category) as any}
+                        size={18}
+                        color="#FFFFFF"
+                      />
+                    </View>
+                    <View style={styles.selectedInfo}>
+                      <Text style={styles.selectedName} numberOfLines={1}>
+                        {selectedItem.name}
+                      </Text>
+                      <Text style={styles.selectedMeta}>
+                        {selectedItem.region} {selectedItem.iq_score ? `• IQ ${Math.round(selectedItem.iq_score)}` : ''}
+                      </Text>
+                    </View>
+                    <View style={styles.selectedArrow}>
+                      <MaterialIcons name="chevron-right" size={24} color="#FFFFFF" />
+                    </View>
                   </View>
-                  <MaterialIcons name="chevron-right" size={24} color="#8A8A8A" />
-                </View>
-              </LinearGradient>
+                </LinearGradient>
+              </View>
             </TouchableOpacity>
           )}
 
@@ -1328,6 +1350,25 @@ const styles = StyleSheet.create({
     right: 16,
     borderRadius: 16,
     overflow: 'hidden',
+    height: 100,
+  },
+  selectedCardInner: {
+    flex: 1,
+    position: 'relative',
+  },
+  selectedCardImage: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: '#1F2937',
+  },
+  selectedCardImagePlaceholder: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#374151',
+  },
+  selectedCardGradient: {
+    ...StyleSheet.absoluteFillObject,
+    justifyContent: 'flex-end',
+    padding: 12,
   },
   selectedGradient: {
     padding: 16,
@@ -1335,12 +1376,12 @@ const styles = StyleSheet.create({
   selectedContent: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
+    gap: 10,
   },
   selectedIcon: {
-    width: 48,
-    height: 48,
-    borderRadius: 12,
+    width: 36,
+    height: 36,
+    borderRadius: 10,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -1348,15 +1389,23 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   selectedName: {
-    fontSize: 16,
-    fontWeight: '600',
+    fontSize: 15,
+    fontWeight: '700',
     color: '#FFFFFF',
   },
   selectedMeta: {
-    fontSize: 12,
-    color: '#C8C3B8',
+    fontSize: 11,
+    color: 'rgba(255,255,255,0.7)',
     marginTop: 2,
     textTransform: 'capitalize',
+  },
+  selectedArrow: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   quickActions: {
     position: 'absolute',
