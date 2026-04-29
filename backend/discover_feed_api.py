@@ -374,7 +374,7 @@ async def get_hoje_feed(
 
     # Trails nearby
     trails_nearby: list[dict] = []
-    if db and lat is not None and lng is not None:
+    if db is not None and lat is not None and lng is not None:
         try:
             all_trails = await db.trails.find({}, {"_id": 0, "name": 1, "region": 1, "difficulty": 1, "distance_km": 1, "lat": 1, "lng": 1}).limit(200).to_list(200)
             for t in all_trails:
