@@ -359,19 +359,25 @@ export default function NearbyScreen() {
     error: _poisError
   } = useQuery({
     queryKey: ['nearby', location?.latitude, location?.longitude, radius, selectedCategories],
-    queryFn: () => getNearbyPOIs({
-      latitude: location!.latitude,
-      longitude: location!.longitude,
-      radius_km: radius,
-      categories: selectedCategories.length > 0 ? selectedCategories : undefined,
-      limit: 50,
-    }),
+    queryFn: () => {
+      if (!location) throw new Error('No location available');
+      return getNearbyPOIs({
+        latitude: location.latitude,
+        longitude: location.longitude,
+        radius_km: radius,
+        categories: selectedCategories.length > 0 ? selectedCategories : undefined,
+        limit: 50,
+      });
+    },
     enabled: !!location,
   });
 
   const { data: categoryCounts } = useQuery({
     queryKey: ['nearbyCounts', location?.latitude, location?.longitude, radius],
-    queryFn: () => getNearbyCategoryCounts(location!.latitude, location!.longitude, radius),
+    queryFn: () => {
+      if (!location) throw new Error('No location available');
+      return getNearbyCategoryCounts(location.latitude, location.longitude, radius);
+    },
     enabled: !!location,
   });
 
@@ -656,8 +662,8 @@ export default function NearbyScreen() {
 
                 {item.tags && item.tags.length > 0 && (
                   <View style={s.tagsRow}>
-                    {item.tags.slice(0, 2).map((tag, i) => (
-                      <View key={i} style={s.tag}>
+                    {item.tags.slice(0, 2).map((tag) => (
+                      <View key={`${item.id}-${tag}`} style={s.tag}>
                         <Text style={s.tagText}>{tag}</Text>
                       </View>
                     ))}

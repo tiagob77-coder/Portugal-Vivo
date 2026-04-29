@@ -4,7 +4,7 @@ MongoDB Atlas (Motor async) · FastAPI
 """
 from __future__ import annotations
 import math
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from typing import Any, Dict, List, Optional
 from fastapi import APIRouter, HTTPException, Query
 from pydantic import BaseModel, Field
@@ -177,7 +177,7 @@ async def astro_simulate(
     """
     az = _solar_azimuth_sunrise(lat, day_of_year)
     # Day of year to approximate date
-    dt = datetime(2026, 1, 1) + __import__("datetime").timedelta(days=day_of_year-1)
+    dt = datetime(2026, 1, 1) + timedelta(days=day_of_year-1)
     events_near = []
     solstices = {172: "Solstício de Verão (21 Jun)", 355: "Solstício de Inverno (21 Dez)", 79: "Equinócio de Primavera (20 Mar)", 265: "Equinócio de Outono (22 Set)"}
     for d, name in solstices.items():

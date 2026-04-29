@@ -541,7 +541,7 @@ export default function WelcomeScreen() {
                       body: JSON.stringify({ email, interests: ['natureza', 'gastronomia', 'patrimonio'] }),
                     });
                     if (res.ok) setEmailSent(true);
-                  } catch { setEmailSent(true); }
+                  } catch { setEmailSent(false); }
                 }}
                 data-testid="newsletter-submit"
               >

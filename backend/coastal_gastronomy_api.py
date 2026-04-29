@@ -256,7 +256,7 @@ async def list_items(
 async def seasonal_items(month: Optional[int] = Query(None)):
     m = month or _current_month()
     items = await _col_or_seed("gastronomy_items", SEED_ITEMS)
-    results = [i for i in items if m in i.get("seasonality", list(range(1,13)))]
+    results = [i for i in items if m in i.get("seasonality", [])]
     return {"month": m, "total": len(results), "results": results}
 
 
@@ -272,7 +272,7 @@ async def items_nearby(
     for item in items:
         if not item.get("lat"): continue
         dist = _haversine(lat, lng, item["lat"], item["lng"])
-        if dist <= radius_km and m in item.get("seasonality", list(range(1,13))):
+        if dist <= radius_km and m in item.get("seasonality", []):
             results.append({**item, "distance_km": round(dist,1)})
     results.sort(key=lambda x: x["distance_km"])
     return {"lat": lat, "lng": lng, "radius_km": radius_km, "month": m, "total": len(results), "results": results}
@@ -380,7 +380,7 @@ async def recommend(body: RecommendRequest):
     results = []
     for item in items:
         if not item.get("lat"): continue
-        if m not in item.get("seasonality", list(range(1,13))): continue
+        if m not in item.get("seasonality", []): continue
         dist = _haversine(body.lat, body.lng, item["lat"], item["lng"])
         if dist > body.radius_km: continue
         prox = max(0.0, 1.0 - dist/body.radius_km)
@@ -404,7 +404,7 @@ async def gastronomy_stats():
     for i in items:
         t = i.get("type","?"); by_type[t] = by_type.get(t,0)+1
     m = _current_month()
-    seasonal_now = sum(1 for i in items if m in i.get("seasonality", list(range(1,13))))
+    seasonal_now = sum(1 for i in items if m in i.get("seasonality", []))
     return {"total_items":len(items),"by_type":by_type,"dop_igp_count":dop_count,
             "seasonal_now":seasonal_now,"routes_total":len(routes),
             "current_month":m,"updated_at":datetime.now(timezone.utc).isoformat()}
