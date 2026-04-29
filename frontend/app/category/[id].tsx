@@ -648,10 +648,12 @@ const styles = StyleSheet.create({
     backgroundColor: '#264E41',
     borderBottomWidth: 1,
     borderBottomColor: '#2A2F2A',
+    zIndex: 10,
+    elevation: 5,
   },
   filtersContent: {
     paddingHorizontal: 16,
-    paddingVertical: 12,
+    paddingVertical: 14,
     gap: 8,
   },
   filterChip: {

@@ -66,8 +66,31 @@ def resolve_categories(cat_list: list) -> list:
 
 @heritage_router.get("/categories")
 async def get_categories(response: Response):
-    """Get all heritage categories (legacy flat list for backward compat)"""
-    response.headers["Cache-Control"] = "public, max-age=3600"
+    """Get all heritage categories with item counts"""
+    response.headers["Cache-Control"] = "public, max-age=300"
+    
+    db = _db_holder.db
+    if db is not None:
+        try:
+            # Get counts per category from heritage_items
+            pipeline = [
+                {"$group": {"_id": "$category", "count": {"$sum": 1}}},
+            ]
+            counts_cursor = db.heritage_items.aggregate(pipeline)
+            counts_list = await counts_cursor.to_list(length=100)
+            counts = {item["_id"]: item["count"] for item in counts_list if item["_id"]}
+            
+            # Build categories with counts
+            result = []
+            for cat in CATEGORIES:
+                cat_id = cat["id"]
+                count = counts.get(cat_id, 0)
+                result.append({**cat, "count": count})
+            return result
+        except Exception as e:
+            print(f"[Categories] Error getting counts: {e}")
+            return CATEGORIES
+    
     return CATEGORIES
 
 
