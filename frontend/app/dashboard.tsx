@@ -5,16 +5,18 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { 
-  getDashboardProgress, 
-  getDashboardBadges, 
-  getDashboardStatistics, 
+import {
+  getDashboardProgress,
+  getDashboardBadges,
+  getDashboardStatistics,
   getVisitHistory,
   DashboardProgress,
   Badge,
   DashboardStatistics,
   VisitRecord
 } from '../src/services/api';
+import { useTheme } from '../src/context/ThemeContext';
+import { palette, categoryColors } from '../src/theme/colors';
 
 const { width } = Dimensions.get('window');
 
@@ -60,6 +62,402 @@ const CATEGORY_NAMES: Record<string, string> = {
   aventura: 'Aventura',
 };
 
+function makeStyles(C: Record<string, string>) {
+  return StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: C.bg,
+    },
+    centerContent: {
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    loadingText: {
+      color: C.textSub,
+      fontSize: 14,
+      marginTop: 12,
+    },
+    header: {
+      paddingHorizontal: 20,
+      paddingBottom: 20,
+    },
+    headerRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      marginBottom: 16,
+    },
+    backButton: {
+      width: 44,
+      height: 44,
+      borderRadius: 22,
+      backgroundColor: 'rgba(51, 65, 85, 0.5)',
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    headerTitle: {
+      fontSize: 18,
+      fontWeight: '700',
+      color: C.text,
+    },
+    settingsButton: {
+      width: 44,
+      height: 44,
+      borderRadius: 22,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    levelCard: {
+      flexDirection: 'row',
+      backgroundColor: 'rgba(51, 65, 85, 0.5)',
+      borderRadius: 16,
+      padding: 16,
+      alignItems: 'center',
+    },
+    levelIconContainer: {
+      width: 70,
+      height: 70,
+      borderRadius: 35,
+      backgroundColor: 'rgba(245, 158, 11, 0.2)',
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginRight: 16,
+    },
+    levelInfo: {
+      flex: 1,
+    },
+    levelName: {
+      fontSize: 20,
+      fontWeight: '700',
+      color: C.text,
+    },
+    levelNumber: {
+      fontSize: 13,
+      color: C.textSub,
+      marginBottom: 8,
+    },
+    progressBar: {
+      height: 6,
+      backgroundColor: C.border,
+      borderRadius: 3,
+      overflow: 'hidden',
+    },
+    progressFill: {
+      height: '100%',
+      backgroundColor: C.accent,
+      borderRadius: 3,
+    },
+    pointsText: {
+      fontSize: 12,
+      color: C.accent,
+      marginTop: 4,
+      fontWeight: '600',
+    },
+    tabsContainer: {
+      flexDirection: 'row',
+      backgroundColor: C.card,
+      paddingHorizontal: 8,
+      paddingVertical: 8,
+    },
+    tab: {
+      flex: 1,
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      paddingVertical: 10,
+      borderRadius: 8,
+      gap: 6,
+    },
+    tabActive: {
+      backgroundColor: 'rgba(245, 158, 11, 0.15)',
+    },
+    tabText: {
+      fontSize: 12,
+      fontWeight: '600',
+      color: C.textMuted,
+    },
+    tabTextActive: {
+      color: C.accent,
+    },
+    content: {
+      flex: 1,
+    },
+    quickStats: {
+      flexDirection: 'row',
+      backgroundColor: C.card,
+      marginHorizontal: 16,
+      marginTop: 16,
+      borderRadius: 16,
+      padding: 16,
+    },
+    quickStat: {
+      flex: 1,
+      alignItems: 'center',
+    },
+    quickStatDivider: {
+      width: 1,
+      backgroundColor: C.border,
+    },
+    quickStatValue: {
+      fontSize: 24,
+      fontWeight: '700',
+      color: C.text,
+    },
+    quickStatLabel: {
+      fontSize: 11,
+      color: C.textSub,
+      marginTop: 2,
+    },
+    section: {
+      marginTop: 24,
+      paddingHorizontal: 16,
+    },
+    sectionTitle: {
+      fontSize: 16,
+      fontWeight: '700',
+      color: C.text,
+      marginBottom: 12,
+    },
+    statRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginBottom: 12,
+    },
+    statRowLeft: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      width: 120,
+    },
+    statRank: {
+      fontSize: 12,
+      color: C.textMuted,
+      width: 24,
+    },
+    statName: {
+      fontSize: 14,
+      color: C.text,
+      fontWeight: '500',
+    },
+    statBarContainer: {
+      flex: 1,
+      height: 8,
+      backgroundColor: C.border,
+      borderRadius: 4,
+      marginHorizontal: 12,
+      overflow: 'hidden',
+    },
+    statBar: {
+      height: '100%',
+      backgroundColor: C.accent,
+      borderRadius: 4,
+    },
+    statCount: {
+      fontSize: 14,
+      fontWeight: '700',
+      color: C.text,
+      width: 30,
+      textAlign: 'right',
+    },
+    emptyText: {
+      fontSize: 14,
+      color: C.textMuted,
+      textAlign: 'center',
+      paddingVertical: 20,
+    },
+    streakCards: {
+      flexDirection: 'row',
+      gap: 12,
+    },
+    streakCard: {
+      flex: 1,
+      backgroundColor: C.card,
+      borderRadius: 16,
+      padding: 20,
+      alignItems: 'center',
+    },
+    streakValue: {
+      fontSize: 32,
+      fontWeight: '700',
+      color: C.text,
+      marginTop: 8,
+    },
+    streakLabel: {
+      fontSize: 13,
+      color: C.textSub,
+    },
+    badgesGrid: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      gap: 12,
+    },
+    badgeCard: {
+      width: (width - 56) / 3,
+      backgroundColor: C.card,
+      borderRadius: 12,
+      padding: 12,
+      alignItems: 'center',
+    },
+    badgeCardLocked: {
+      opacity: 0.7,
+    },
+    badgeIcon: {
+      width: 50,
+      height: 50,
+      borderRadius: 25,
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginBottom: 8,
+    },
+    badgeIconLocked: {
+      backgroundColor: C.border,
+    },
+    badgeName: {
+      fontSize: 11,
+      fontWeight: '600',
+      color: C.text,
+      textAlign: 'center',
+    },
+    badgeNameLocked: {
+      color: C.textSub,
+    },
+    badgePoints: {
+      fontSize: 10,
+      color: C.accent,
+      fontWeight: '600',
+      marginTop: 2,
+    },
+    badgeDescription: {
+      fontSize: 9,
+      color: C.textMuted,
+      textAlign: 'center',
+      marginTop: 4,
+    },
+    badgeProgressContainer: {
+      width: '100%',
+      height: 4,
+      backgroundColor: C.border,
+      borderRadius: 2,
+      marginTop: 6,
+      overflow: 'hidden',
+    },
+    badgeProgressBar: {
+      height: '100%',
+      backgroundColor: C.accent,
+      borderRadius: 2,
+    },
+    badgeProgressText: {
+      fontSize: 9,
+      color: C.textMuted,
+      marginTop: 4,
+    },
+    historyItem: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: C.card,
+      borderRadius: 12,
+      padding: 12,
+      marginBottom: 8,
+    },
+    historyIcon: {
+      width: 40,
+      height: 40,
+      borderRadius: 20,
+      backgroundColor: 'rgba(245, 158, 11, 0.2)',
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginRight: 12,
+    },
+    historyContent: {
+      flex: 1,
+    },
+    historyName: {
+      fontSize: 14,
+      fontWeight: '600',
+      color: C.text,
+    },
+    historyMeta: {
+      fontSize: 12,
+      color: C.textSub,
+      marginTop: 2,
+    },
+    historyDate: {
+      fontSize: 11,
+      color: C.textMuted,
+      marginTop: 2,
+    },
+    historyPoints: {
+      backgroundColor: 'rgba(245, 158, 11, 0.2)',
+      paddingHorizontal: 8,
+      paddingVertical: 4,
+      borderRadius: 8,
+    },
+    historyPointsText: {
+      fontSize: 12,
+      fontWeight: '600',
+      color: C.accent,
+    },
+    emptyHistory: {
+      alignItems: 'center',
+      paddingVertical: 40,
+    },
+    emptyTitle: {
+      fontSize: 18,
+      fontWeight: '700',
+      color: C.text,
+      marginTop: 16,
+    },
+    exploreButton: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: C.accent,
+      paddingHorizontal: 20,
+      paddingVertical: 12,
+      borderRadius: 12,
+      marginTop: 20,
+      gap: 8,
+    },
+    exploreButtonText: {
+      fontSize: 14,
+      fontWeight: '600',
+      color: C.bg,
+    },
+    authPrompt: {
+      flex: 1,
+      alignItems: 'center',
+      justifyContent: 'center',
+      paddingHorizontal: 40,
+    },
+    authTitle: {
+      fontSize: 24,
+      fontWeight: '700',
+      color: C.text,
+      marginTop: 20,
+    },
+    authText: {
+      fontSize: 14,
+      color: C.textSub,
+      textAlign: 'center',
+      marginTop: 12,
+      lineHeight: 22,
+    },
+    loginButton: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: C.accent,
+      paddingHorizontal: 24,
+      paddingVertical: 14,
+      borderRadius: 12,
+      marginTop: 24,
+      gap: 8,
+    },
+    loginButtonText: {
+      fontSize: 16,
+      fontWeight: '600',
+      color: C.bg,
+    },
+  });
+}
+
 export default function DashboardScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
@@ -67,14 +465,29 @@ export default function DashboardScreen() {
   const [loading, setLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [token, setToken] = useState<string | null>(null);
-  
+
   // Data from API
   const [progress, setProgress] = useState<DashboardProgress | null>(null);
   const [badges, setBadges] = useState<Badge[]>([]);
   const [stats, setStats] = useState<DashboardStatistics | null>(null);
   const [history, setHistory] = useState<VisitRecord[]>([]);
-  
+
   const [selectedTab, setSelectedTab] = useState<'stats' | 'badges' | 'history'>('stats');
+
+  const { colors, isDark } = useTheme();
+  const C = {
+    bg:       palette.forest[500],
+    card:     palette.forest[600],
+    cardAlt:  isDark ? palette.forest[800] : palette.forest[700],
+    accent:   palette.terracotta[500],
+    text:     palette.gray[50],
+    textSub:  palette.gray[300],
+    textMuted: palette.gray[500],
+    border:   palette.gray[800],
+    highlight: palette.forest[400],
+    progress: palette.ocean[400],
+  };
+  const styles = makeStyles(C);
 
   const checkAuth = useCallback(async (): Promise<string | null> => {
     // In SSR context, skip auth check and show login prompt
@@ -82,7 +495,7 @@ export default function DashboardScreen() {
       setLoading(false);
       return null;
     }
-    
+
     try {
       const savedToken = await AsyncStorage.getItem('session_token');
       if (savedToken) {
@@ -93,7 +506,7 @@ export default function DashboardScreen() {
     } catch (error) {
       console.error('Error checking auth:', error);
     }
-    
+
     // No token found - immediately show login prompt
     setLoading(false);
     return null;
@@ -101,7 +514,7 @@ export default function DashboardScreen() {
 
   const loadData = useCallback(async (authToken?: string | null) => {
     const tokenToUse = authToken || token;
-    
+
     if (!tokenToUse) {
       setLoading(false);
       return;
@@ -153,14 +566,14 @@ export default function DashboardScreen() {
     return (
       <View style={styles.container}>
         <Stack.Screen options={{ headerShown: false }} />
-        
+
         <LinearGradient
-          colors={['#264E41', '#2E5E4E']}
+          colors={[palette.forest[600], palette.forest[500]]}
           style={[styles.header, { paddingTop: insets.top + 12 }]}
         >
           <View style={styles.headerRow}>
             <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
-              <MaterialIcons name="arrow-back" size={24} color="#FAF8F3" />
+              <MaterialIcons name="arrow-back" size={24} color={C.text} />
             </TouchableOpacity>
             <Text style={styles.headerTitle}>O Meu Progresso</Text>
             <View style={{ width: 44 }} />
@@ -173,11 +586,11 @@ export default function DashboardScreen() {
           <Text style={styles.authText}>
             Faz login para acompanhar o teu progresso, ganhar badges e competir no leaderboard!
           </Text>
-          <TouchableOpacity 
+          <TouchableOpacity
             style={styles.loginButton}
             onPress={() => router.push('/profile')}
           >
-            <MaterialIcons name="login" size={20} color="#2E5E4E" />
+            <MaterialIcons name="login" size={20} color={C.bg} />
             <Text style={styles.loginButtonText}>Iniciar Sessão</Text>
           </TouchableOpacity>
         </View>
@@ -189,7 +602,7 @@ export default function DashboardScreen() {
     return (
       <View style={[styles.container, styles.centerContent]}>
         <Stack.Screen options={{ headerShown: false }} />
-        <ActivityIndicator size="large" color="#C49A6C" />
+        <ActivityIndicator size="large" color={C.accent} />
         <Text style={styles.loadingText}>A carregar progresso...</Text>
       </View>
     );
@@ -201,16 +614,16 @@ export default function DashboardScreen() {
 
       {/* Header */}
       <LinearGradient
-        colors={['#264E41', '#2E5E4E']}
+        colors={[palette.forest[600], palette.forest[500]]}
         style={[styles.header, { paddingTop: insets.top + 12 }]}
       >
         <View style={styles.headerRow}>
           <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
-            <MaterialIcons name="arrow-back" size={24} color="#FAF8F3" />
+            <MaterialIcons name="arrow-back" size={24} color={C.text} />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>O Meu Progresso</Text>
           <TouchableOpacity style={styles.settingsButton} onPress={() => {}}>
-            <MaterialIcons name="settings" size={24} color="#94A3B8" />
+            <MaterialIcons name="settings" size={24} color={C.textSub} />
           </TouchableOpacity>
         </View>
 
@@ -218,7 +631,7 @@ export default function DashboardScreen() {
         {progress && (
           <View style={styles.levelCard}>
             <View style={styles.levelIconContainer}>
-              <MaterialIcons name={progress.level_icon as any || 'emoji-objects'} size={40} color="#C49A6C" />
+              <MaterialIcons name={progress.level_icon as any || 'emoji-objects'} size={40} color={C.accent} />
             </View>
             <View style={styles.levelInfo}>
               <Text style={styles.levelName}>{progress.level_name}</Text>
@@ -239,7 +652,7 @@ export default function DashboardScreen() {
           onPress={() => setSelectedTab('stats')}
           data-testid="tab-stats"
         >
-          <MaterialIcons name="analytics" size={20} color={selectedTab === 'stats' ? '#C49A6C' : '#64748B'} />
+          <MaterialIcons name="analytics" size={20} color={selectedTab === 'stats' ? C.accent : C.textMuted} />
           <Text style={[styles.tabText, selectedTab === 'stats' && styles.tabTextActive]}>Estatísticas</Text>
         </TouchableOpacity>
         <TouchableOpacity
@@ -247,7 +660,7 @@ export default function DashboardScreen() {
           onPress={() => setSelectedTab('badges')}
           data-testid="tab-badges"
         >
-          <MaterialIcons name="emoji-events" size={20} color={selectedTab === 'badges' ? '#C49A6C' : '#64748B'} />
+          <MaterialIcons name="emoji-events" size={20} color={selectedTab === 'badges' ? C.accent : C.textMuted} />
           <Text style={[styles.tabText, selectedTab === 'badges' && styles.tabTextActive]}>
             Badges ({unlockedBadges.length}/{badges.length})
           </Text>
@@ -257,7 +670,7 @@ export default function DashboardScreen() {
           onPress={() => setSelectedTab('history')}
           data-testid="tab-history"
         >
-          <MaterialIcons name="history" size={20} color={selectedTab === 'history' ? '#C49A6C' : '#64748B'} />
+          <MaterialIcons name="history" size={20} color={selectedTab === 'history' ? C.accent : C.textMuted} />
           <Text style={[styles.tabText, selectedTab === 'history' && styles.tabTextActive]}>Histórico</Text>
         </TouchableOpacity>
       </View>
@@ -266,7 +679,7 @@ export default function DashboardScreen() {
         style={styles.content}
         showsVerticalScrollIndicator={false}
         refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#C49A6C" />
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={C.accent} />
         }
       >
         {selectedTab === 'stats' && stats && (
@@ -305,11 +718,11 @@ export default function DashboardScreen() {
                       <Text style={styles.statName}>{CATEGORY_NAMES[cat.category] || cat.category}</Text>
                     </View>
                     <View style={styles.statBarContainer}>
-                      <View 
+                      <View
                         style={[
-                          styles.statBar, 
+                          styles.statBar,
                           { width: `${(cat.count / stats.top_categories[0].count) * 100}%` as DimensionValue }
-                        ]} 
+                        ]}
                       />
                     </View>
                     <Text style={styles.statCount}>{cat.count}</Text>
@@ -331,11 +744,11 @@ export default function DashboardScreen() {
                       <Text style={styles.statName}>{REGION_NAMES[reg.region] || reg.region}</Text>
                     </View>
                     <View style={styles.statBarContainer}>
-                      <View 
+                      <View
                         style={[
-                          styles.statBar, 
-                          { width: `${(reg.count / stats.top_regions[0].count) * 100}%` as DimensionValue, backgroundColor: '#3B82F6' }
-                        ]} 
+                          styles.statBar,
+                          { width: `${(reg.count / stats.top_regions[0].count) * 100}%` as DimensionValue, backgroundColor: palette.ocean[400] }
+                        ]}
                       />
                     </View>
                     <Text style={styles.statCount}>{reg.count}</Text>
@@ -351,7 +764,7 @@ export default function DashboardScreen() {
               <Text style={styles.sectionTitle}>Streaks</Text>
               <View style={styles.streakCards}>
                 <View style={styles.streakCard}>
-                  <MaterialIcons name="local-fire-department" size={32} color="#C49A6C" />
+                  <MaterialIcons name="local-fire-department" size={32} color={C.accent} />
                   <Text style={styles.streakValue}>{stats.current_streak}</Text>
                   <Text style={styles.streakLabel}>Atual</Text>
                 </View>
@@ -412,13 +825,13 @@ export default function DashboardScreen() {
             <Text style={styles.sectionTitle}>Visitas Recentes</Text>
             {history.length > 0 ? (
               history.map((visit) => (
-                <TouchableOpacity 
-                  key={visit.id} 
+                <TouchableOpacity
+                  key={visit.id}
                   style={styles.historyItem}
                   onPress={() => router.push(`/heritage/${visit.poi_id}`)}
                 >
                   <View style={styles.historyIcon}>
-                    <MaterialIcons name="place" size={20} color="#C49A6C" />
+                    <MaterialIcons name="place" size={20} color={C.accent} />
                   </View>
                   <View style={styles.historyContent}>
                     <Text style={styles.historyName}>{visit.poi_name}</Text>
@@ -447,11 +860,11 @@ export default function DashboardScreen() {
                 <Text style={styles.emptyText}>
                   Começa a explorar Portugal e as tuas visitas aparecerão aqui!
                 </Text>
-                <TouchableOpacity 
+                <TouchableOpacity
                   style={styles.exploreButton}
                   onPress={() => router.push('/nearby')}
                 >
-                  <MaterialIcons name="near-me" size={18} color="#2E5E4E" />
+                  <MaterialIcons name="near-me" size={18} color={C.bg} />
                   <Text style={styles.exploreButtonText}>Explorar Próximos</Text>
                 </TouchableOpacity>
               </View>
@@ -464,398 +877,3 @@ export default function DashboardScreen() {
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#2E5E4E',
-  },
-  centerContent: {
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  loadingText: {
-    color: '#94A3B8',
-    fontSize: 14,
-    marginTop: 12,
-  },
-  header: {
-    paddingHorizontal: 20,
-    paddingBottom: 20,
-  },
-  headerRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: 16,
-  },
-  backButton: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: 'rgba(51, 65, 85, 0.5)',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  headerTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#FAF8F3',
-  },
-  settingsButton: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  levelCard: {
-    flexDirection: 'row',
-    backgroundColor: 'rgba(51, 65, 85, 0.5)',
-    borderRadius: 16,
-    padding: 16,
-    alignItems: 'center',
-  },
-  levelIconContainer: {
-    width: 70,
-    height: 70,
-    borderRadius: 35,
-    backgroundColor: 'rgba(245, 158, 11, 0.2)',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 16,
-  },
-  levelInfo: {
-    flex: 1,
-  },
-  levelName: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: '#FAF8F3',
-  },
-  levelNumber: {
-    fontSize: 13,
-    color: '#94A3B8',
-    marginBottom: 8,
-  },
-  progressBar: {
-    height: 6,
-    backgroundColor: '#2A2F2A',
-    borderRadius: 3,
-    overflow: 'hidden',
-  },
-  progressFill: {
-    height: '100%',
-    backgroundColor: '#C49A6C',
-    borderRadius: 3,
-  },
-  pointsText: {
-    fontSize: 12,
-    color: '#C49A6C',
-    marginTop: 4,
-    fontWeight: '600',
-  },
-  tabsContainer: {
-    flexDirection: 'row',
-    backgroundColor: '#264E41',
-    paddingHorizontal: 8,
-    paddingVertical: 8,
-  },
-  tab: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 10,
-    borderRadius: 8,
-    gap: 6,
-  },
-  tabActive: {
-    backgroundColor: 'rgba(245, 158, 11, 0.15)',
-  },
-  tabText: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: '#64748B',
-  },
-  tabTextActive: {
-    color: '#C49A6C',
-  },
-  content: {
-    flex: 1,
-  },
-  quickStats: {
-    flexDirection: 'row',
-    backgroundColor: '#264E41',
-    marginHorizontal: 16,
-    marginTop: 16,
-    borderRadius: 16,
-    padding: 16,
-  },
-  quickStat: {
-    flex: 1,
-    alignItems: 'center',
-  },
-  quickStatDivider: {
-    width: 1,
-    backgroundColor: '#2A2F2A',
-  },
-  quickStatValue: {
-    fontSize: 24,
-    fontWeight: '700',
-    color: '#FAF8F3',
-  },
-  quickStatLabel: {
-    fontSize: 11,
-    color: '#94A3B8',
-    marginTop: 2,
-  },
-  section: {
-    marginTop: 24,
-    paddingHorizontal: 16,
-  },
-  sectionTitle: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#FAF8F3',
-    marginBottom: 12,
-  },
-  statRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  statRowLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    width: 120,
-  },
-  statRank: {
-    fontSize: 12,
-    color: '#64748B',
-    width: 24,
-  },
-  statName: {
-    fontSize: 14,
-    color: '#FAF8F3',
-    fontWeight: '500',
-  },
-  statBarContainer: {
-    flex: 1,
-    height: 8,
-    backgroundColor: '#2A2F2A',
-    borderRadius: 4,
-    marginHorizontal: 12,
-    overflow: 'hidden',
-  },
-  statBar: {
-    height: '100%',
-    backgroundColor: '#C49A6C',
-    borderRadius: 4,
-  },
-  statCount: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: '#FAF8F3',
-    width: 30,
-    textAlign: 'right',
-  },
-  emptyText: {
-    fontSize: 14,
-    color: '#64748B',
-    textAlign: 'center',
-    paddingVertical: 20,
-  },
-  streakCards: {
-    flexDirection: 'row',
-    gap: 12,
-  },
-  streakCard: {
-    flex: 1,
-    backgroundColor: '#264E41',
-    borderRadius: 16,
-    padding: 20,
-    alignItems: 'center',
-  },
-  streakValue: {
-    fontSize: 32,
-    fontWeight: '700',
-    color: '#FAF8F3',
-    marginTop: 8,
-  },
-  streakLabel: {
-    fontSize: 13,
-    color: '#94A3B8',
-  },
-  badgesGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 12,
-  },
-  badgeCard: {
-    width: (width - 56) / 3,
-    backgroundColor: '#264E41',
-    borderRadius: 12,
-    padding: 12,
-    alignItems: 'center',
-  },
-  badgeCardLocked: {
-    opacity: 0.7,
-  },
-  badgeIcon: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 8,
-  },
-  badgeIconLocked: {
-    backgroundColor: '#2A2F2A',
-  },
-  badgeName: {
-    fontSize: 11,
-    fontWeight: '600',
-    color: '#FAF8F3',
-    textAlign: 'center',
-  },
-  badgeNameLocked: {
-    color: '#94A3B8',
-  },
-  badgePoints: {
-    fontSize: 10,
-    color: '#C49A6C',
-    fontWeight: '600',
-    marginTop: 2,
-  },
-  badgeDescription: {
-    fontSize: 9,
-    color: '#64748B',
-    textAlign: 'center',
-    marginTop: 4,
-  },
-  badgeProgressContainer: {
-    width: '100%',
-    height: 4,
-    backgroundColor: '#2A2F2A',
-    borderRadius: 2,
-    marginTop: 6,
-    overflow: 'hidden',
-  },
-  badgeProgressBar: {
-    height: '100%',
-    backgroundColor: '#C49A6C',
-    borderRadius: 2,
-  },
-  badgeProgressText: {
-    fontSize: 9,
-    color: '#64748B',
-    marginTop: 4,
-  },
-  historyItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#264E41',
-    borderRadius: 12,
-    padding: 12,
-    marginBottom: 8,
-  },
-  historyIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: 'rgba(245, 158, 11, 0.2)',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 12,
-  },
-  historyContent: {
-    flex: 1,
-  },
-  historyName: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#FAF8F3',
-  },
-  historyMeta: {
-    fontSize: 12,
-    color: '#94A3B8',
-    marginTop: 2,
-  },
-  historyDate: {
-    fontSize: 11,
-    color: '#64748B',
-    marginTop: 2,
-  },
-  historyPoints: {
-    backgroundColor: 'rgba(245, 158, 11, 0.2)',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 8,
-  },
-  historyPointsText: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: '#C49A6C',
-  },
-  emptyHistory: {
-    alignItems: 'center',
-    paddingVertical: 40,
-  },
-  emptyTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#FAF8F3',
-    marginTop: 16,
-  },
-  exploreButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#C49A6C',
-    paddingHorizontal: 20,
-    paddingVertical: 12,
-    borderRadius: 12,
-    marginTop: 20,
-    gap: 8,
-  },
-  exploreButtonText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#2E5E4E',
-  },
-  // Auth prompt styles
-  authPrompt: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 40,
-  },
-  authTitle: {
-    fontSize: 24,
-    fontWeight: '700',
-    color: '#FAF8F3',
-    marginTop: 20,
-  },
-  authText: {
-    fontSize: 14,
-    color: '#94A3B8',
-    textAlign: 'center',
-    marginTop: 12,
-    lineHeight: 22,
-  },
-  loginButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#C49A6C',
-    paddingHorizontal: 24,
-    paddingVertical: 14,
-    borderRadius: 12,
-    marginTop: 24,
-    gap: 8,
-  },
-  loginButtonText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#2E5E4E',
-  },
-});

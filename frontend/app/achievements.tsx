@@ -7,6 +7,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useQuery } from '@tanstack/react-query';
 import { getUserProgress, getLeaderboard, getExplorerProfile, getLeaderboardRegions, Badge, LeaderboardEntry, ExplorerProfile } from '../src/services/api';
 import { useAuth } from '../src/context/AuthContext';
+import { useTheme } from '../src/context/ThemeContext';
+import { palette, withOpacity } from '../src/theme/colors';
 
 const PERIODS = [
   { key: 'all', label: 'Geral' },
@@ -24,7 +26,120 @@ const REGION_COLORS: Record<string, string> = {
   alentejo: '#CA8A04', algarve: '#0EA5E9', acores: '#7C3AED', madeira: '#EC4899',
 };
 
-const MEDAL_COLORS = ['#D4A574', '#94A3B8', '#CD7F32'];
+const MEDAL_COLORS = [palette.terracotta[400], palette.gray[300], palette.terracotta[700]];
+
+function makeStyles(C: Record<string, string>) {
+  return StyleSheet.create({
+    container: { flex: 1, backgroundColor: C.bg },
+    header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingVertical: 12 },
+    backBtn: { width: 44, height: 44, borderRadius: 22, backgroundColor: C.card, alignItems: 'center', justifyContent: 'center' },
+    headerTitle: { fontSize: 20, fontWeight: '700', color: C.text },
+    loginPrompt: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 32 },
+    loginTitle: { fontSize: 24, fontWeight: '700', color: C.text, marginTop: 16 },
+    loginSub: { fontSize: 15, color: C.textSub, textAlign: 'center', marginTop: 8, lineHeight: 22 },
+    loginBtn: { flexDirection: 'row', alignItems: 'center', backgroundColor: C.accent, paddingHorizontal: 24, paddingVertical: 14, borderRadius: 12, marginTop: 24, gap: 8 },
+    loginBtnText: { fontSize: 16, fontWeight: '700', color: C.bg },
+    statsCard: { backgroundColor: C.card, marginHorizontal: 16, borderRadius: 16, padding: 16, borderWidth: 1, borderColor: C.border },
+    statsRow: { flexDirection: 'row', justifyContent: 'space-around', alignItems: 'center' },
+    statItem: { alignItems: 'center' },
+    statVal: { fontSize: 24, fontWeight: '800', color: C.text, marginTop: 4 },
+    statLabel: { fontSize: 12, color: C.textMuted, marginTop: 2 },
+    statDiv: { width: 1, height: 40, backgroundColor: C.border },
+    tabs: { flexDirection: 'row', marginHorizontal: 16, marginTop: 16, backgroundColor: C.card, borderRadius: 12, padding: 4 },
+    tab: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingVertical: 12, borderRadius: 10, gap: 6 },
+    tabActive: { backgroundColor: C.bg },
+    tabText: { fontSize: 14, fontWeight: '600', color: C.textMuted },
+    tabTextActive: { color: C.accent },
+    content: { flex: 1, marginTop: 16 },
+    badgesGrid: { paddingHorizontal: 16, paddingBottom: 20 },
+    sectionTitle: { fontSize: 18, fontWeight: '700', color: C.text, marginBottom: 12, marginTop: 8 },
+    badgesRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 12, marginBottom: 16 },
+    badgeCard: { width: '47%', backgroundColor: C.card, borderRadius: 16, padding: 16, alignItems: 'center', borderWidth: 1, borderColor: C.border },
+    badgeLocked: { opacity: 0.7 },
+    badgeIcon: { width: 64, height: 64, borderRadius: 32, alignItems: 'center', justifyContent: 'center', marginBottom: 12, position: 'relative' },
+    checkMark: { position: 'absolute', bottom: -4, right: -4, backgroundColor: C.card, borderRadius: 10 },
+    badgeName: { fontSize: 14, fontWeight: '700', color: C.text, textAlign: 'center' },
+    badgeDesc: { fontSize: 11, color: C.textMuted, textAlign: 'center', marginTop: 4, lineHeight: 16 },
+    progressWrap: { width: '100%', marginTop: 12 },
+    progressBar: { height: 6, backgroundColor: C.bg, borderRadius: 3, overflow: 'hidden' },
+    progressFill: { height: '100%', borderRadius: 3 },
+    progressText: { fontSize: 10, color: C.textMuted, textAlign: 'center', marginTop: 4 },
+    lbContent: { paddingHorizontal: 16, paddingBottom: 20 },
+    periodRow: { flexDirection: 'row', gap: 8, marginBottom: 12 },
+    periodBtn: { flex: 1, paddingVertical: 10, borderRadius: 10, backgroundColor: C.card, alignItems: 'center', borderWidth: 1, borderColor: C.border },
+    periodBtnActive: { backgroundColor: C.accentMuted, borderColor: C.accent },
+    periodText: { fontSize: 13, fontWeight: '600', color: C.textMuted },
+    periodTextActive: { color: C.accent },
+    regionScroll: { marginBottom: 16 },
+    regionRow: { gap: 8 },
+    regionChip: { paddingHorizontal: 14, paddingVertical: 8, borderRadius: 20, backgroundColor: C.card, borderWidth: 1, borderColor: C.border },
+    regionChipActive: { backgroundColor: C.accentMuted, borderColor: C.accent },
+    regionText: { fontSize: 12, fontWeight: '600', color: C.textMuted },
+    regionTextActive: { color: C.accent },
+    podiumWrap: { flexDirection: 'row', justifyContent: 'center', alignItems: 'flex-end', marginBottom: 24, gap: 8, paddingTop: 16 },
+    podiumCol: { alignItems: 'center', width: 100 },
+    podiumAvatar: { position: 'relative', marginBottom: 8 },
+    podiumImg: { width: 56, height: 56, borderRadius: 28 },
+    podiumImgPlaceholder: { width: 56, height: 56, borderRadius: 28, alignItems: 'center', justifyContent: 'center' },
+    avatarLetter: { fontSize: 22, fontWeight: '800', color: palette.gray[900] },
+    medalBadge: { position: 'absolute', bottom: -4, right: -4, width: 22, height: 22, borderRadius: 11, alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderColor: C.bg },
+    medalText: { fontSize: 11, fontWeight: '800', color: palette.gray[900] },
+    podiumName: { fontSize: 13, fontWeight: '600', color: C.text, marginBottom: 2 },
+    podiumScore: { fontSize: 11, fontWeight: '700', color: C.accent, marginBottom: 6 },
+    podiumBar: { width: '100%', borderTopLeftRadius: 8, borderTopRightRadius: 8, alignItems: 'center', justifyContent: 'center' },
+    podiumRank: { fontSize: 18, fontWeight: '900' },
+    lbListHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 },
+    lbListTitle: { fontSize: 16, fontWeight: '700', color: C.text },
+    lbListCount: { fontSize: 12, color: C.textMuted },
+    lbItem: { flexDirection: 'row', alignItems: 'center', backgroundColor: C.card, borderRadius: 12, padding: 12, marginBottom: 8, borderWidth: 1, borderColor: C.border },
+    lbItemCurrent: { borderColor: C.accent, backgroundColor: withOpacity(palette.terracotta[500], 0.08) },
+    lbRank: { width: 36, alignItems: 'center' },
+    rankNum: { fontSize: 16, fontWeight: '700', color: C.textMuted },
+    lbAvatar: { width: 40, height: 40, borderRadius: 20, marginRight: 12 },
+    lbAvatarPlaceholder: { width: 40, height: 40, borderRadius: 20, backgroundColor: C.accent, alignItems: 'center', justifyContent: 'center', marginRight: 12 },
+    avatarText: { fontSize: 16, fontWeight: '700', color: C.bg },
+    lbInfo: { flex: 1 },
+    lbName: { fontSize: 15, fontWeight: '600', color: C.text },
+    lbStats: { flexDirection: 'row', alignItems: 'center', marginTop: 2, gap: 4 },
+    lbPts: { fontSize: 12, color: C.accent, fontWeight: '600' },
+    lbCheckins: { fontSize: 12, color: C.textMuted, marginLeft: 8 },
+    levelBadge: { backgroundColor: withOpacity('#8B5CF6', 0.12), paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12 },
+    levelText: { fontSize: 12, fontWeight: '700', color: '#8B5CF6' },
+    loader: { marginTop: 40 },
+    emptyState: { alignItems: 'center', paddingTop: 60 },
+    emptyText: { fontSize: 16, color: C.textMuted, marginTop: 12 },
+    emptySubText: { fontSize: 13, color: C.textMuted, marginTop: 4 },
+    modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.7)', justifyContent: 'flex-end' },
+    modalContent: { backgroundColor: C.card, borderTopLeftRadius: 24, borderTopRightRadius: 24, maxHeight: '85%', padding: 20 },
+    modalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 },
+    modalTitle: { fontSize: 18, fontWeight: '700', color: C.text },
+    explorerHeader: { alignItems: 'center', marginBottom: 20 },
+    explorerAvatar: { width: 72, height: 72, borderRadius: 36, marginBottom: 12 },
+    explorerAvatarPlaceholder: { width: 72, height: 72, borderRadius: 36, backgroundColor: C.accent, alignItems: 'center', justifyContent: 'center', marginBottom: 12 },
+    explorerAvatarText: { fontSize: 28, fontWeight: '800', color: C.bg },
+    explorerName: { fontSize: 20, fontWeight: '700', color: C.text },
+    explorerMeta: { flexDirection: 'row', gap: 12, marginTop: 6 },
+    explorerLevel: { fontSize: 14, fontWeight: '600', color: C.accent, backgroundColor: C.accentMuted, paddingHorizontal: 12, paddingVertical: 4, borderRadius: 12 },
+    explorerRank: { fontSize: 14, fontWeight: '600', color: '#8B5CF6', backgroundColor: withOpacity('#8B5CF6', 0.12), paddingHorizontal: 12, paddingVertical: 4, borderRadius: 12 },
+    xpCard: { backgroundColor: C.bg, borderRadius: 12, padding: 14, marginBottom: 16 },
+    xpRow: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 8 },
+    xpLabel: { fontSize: 13, fontWeight: '600', color: C.textMuted },
+    xpValue: { fontSize: 13, fontWeight: '700', color: C.accent },
+    xpBar: { height: 8, backgroundColor: palette.forest[800], borderRadius: 4, overflow: 'hidden' },
+    xpFill: { height: '100%', borderRadius: 4, backgroundColor: C.accent },
+    explorerStats: { flexDirection: 'row', justifyContent: 'space-around', backgroundColor: C.bg, borderRadius: 12, padding: 16, marginBottom: 16 },
+    explorerStat: { alignItems: 'center' },
+    explorerStatVal: { fontSize: 20, fontWeight: '800', color: C.text, marginTop: 4 },
+    explorerStatLbl: { fontSize: 11, color: C.textMuted, marginTop: 2 },
+    regionBreakdown: { marginTop: 4 },
+    regionStatRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 10, gap: 8 },
+    regionDot: { width: 10, height: 10, borderRadius: 5 },
+    regionStatName: { fontSize: 13, fontWeight: '600', color: C.text, width: 70 },
+    regionStatBar: { flex: 1, height: 8, backgroundColor: palette.forest[800], borderRadius: 4, overflow: 'hidden' },
+    regionStatFill: { height: '100%', borderRadius: 4 },
+    regionStatCount: { fontSize: 12, fontWeight: '700', color: C.textMuted, width: 30, textAlign: 'right' },
+  });
+}
 
 export default function AchievementsScreen() {
   const router = useRouter();
@@ -34,6 +149,21 @@ export default function AchievementsScreen() {
   const [period, setPeriod] = useState('all');
   const [selectedRegion, setSelectedRegion] = useState('');
   const [explorerModal, setExplorerModal] = useState<ExplorerProfile | null>(null);
+
+  const { colors, isDark } = useTheme();
+  const C = {
+    bg:          palette.forest[500],
+    card:        palette.forest[600],
+    accent:      palette.terracotta[500],
+    accentMuted: withOpacity(palette.terracotta[500], 0.12),
+    text:        palette.gray[50],
+    textSub:     palette.gray[300],
+    textMuted:   palette.gray[500],
+    border:      palette.gray[800],
+    success:     colors.success,
+    error:       colors.error,
+  };
+  const s = makeStyles(C);
 
   const { data: progress, isLoading: progressLoading, refetch: refetchProgress } = useQuery({
     queryKey: ['userProgress', sessionToken],
@@ -66,11 +196,11 @@ export default function AchievementsScreen() {
     const earned = badge.earned;
     return (
       <View key={badge.id} style={[s.badgeCard, !earned && s.badgeLocked]} data-testid={`badge-${badge.id}`}>
-        <View style={[s.badgeIcon, { backgroundColor: (earned ? badge.color : '#64748B') + '20' }]}>
-          <MaterialIcons name={badge.icon as any} size={32} color={earned ? badge.color : '#64748B'} />
-          {earned && <View style={s.checkMark}><MaterialIcons name="check-circle" size={16} color="#22C55E" /></View>}
+        <View style={[s.badgeIcon, { backgroundColor: withOpacity(earned ? badge.color : palette.gray[500], 0.12) }]}>
+          <MaterialIcons name={badge.icon as any} size={32} color={earned ? badge.color : C.textMuted} />
+          {earned && <View style={s.checkMark}><MaterialIcons name="check-circle" size={16} color={C.success} /></View>}
         </View>
-        <Text style={[s.badgeName, !earned && { color: '#94A3B8' }]}>{badge.name}</Text>
+        <Text style={[s.badgeName, !earned && { color: C.textSub }]}>{badge.name}</Text>
         <Text style={s.badgeDesc}>{badge.description}</Text>
         {!earned && (
           <View style={s.progressWrap}>
@@ -107,7 +237,7 @@ export default function AchievementsScreen() {
               </View>
               <Text style={s.podiumName} numberOfLines={1}>{entry.name.split(' ')[0]}</Text>
               <Text style={s.podiumScore}>{entry.score} pts</Text>
-              <View style={[s.podiumBar, { height: heights[i], backgroundColor: MEDAL_COLORS[realIdx] + '40' }]}>
+              <View style={[s.podiumBar, { height: heights[i], backgroundColor: withOpacity(MEDAL_COLORS[realIdx], 0.25) }]}>
                 <Text style={[s.podiumRank, { color: MEDAL_COLORS[realIdx] }]}>#{realIdx + 1}</Text>
               </View>
             </TouchableOpacity>
@@ -137,7 +267,7 @@ export default function AchievementsScreen() {
         <View style={s.lbInfo}>
           <Text style={s.lbName}>{entry.name}</Text>
           <View style={s.lbStats}>
-            <MaterialIcons name="stars" size={14} color="#C49A6C" />
+            <MaterialIcons name="stars" size={14} color={C.accent} />
             <Text style={s.lbPts}>{entry.score} pts</Text>
             {entry.total_checkins ? <Text style={s.lbCheckins}>{entry.total_checkins} check-ins</Text> : null}
           </View>
@@ -153,7 +283,7 @@ export default function AchievementsScreen() {
 
       <View style={s.header}>
         <TouchableOpacity style={s.backBtn} onPress={() => router.back()} data-testid="achievements-back">
-          <MaterialIcons name="arrow-back" size={24} color="#FAF8F3" />
+          <MaterialIcons name="arrow-back" size={24} color={C.text} />
         </TouchableOpacity>
         <Text style={s.headerTitle}>Conquistas</Text>
         <View style={{ width: 44 }} />
@@ -163,7 +293,7 @@ export default function AchievementsScreen() {
         <View style={s.statsCard}>
           <View style={s.statsRow}>
             <View style={s.statItem}>
-              <MaterialIcons name="stars" size={24} color="#C49A6C" />
+              <MaterialIcons name="stars" size={24} color={C.accent} />
               <Text style={s.statVal}>{progress.total_points}</Text>
               <Text style={s.statLabel}>Pontos</Text>
             </View>
@@ -175,7 +305,7 @@ export default function AchievementsScreen() {
             </View>
             <View style={s.statDiv} />
             <View style={s.statItem}>
-              <MaterialIcons name="explore" size={24} color="#22C55E" />
+              <MaterialIcons name="explore" size={24} color={C.success} />
               <Text style={s.statVal}>{progress.visits_count}</Text>
               <Text style={s.statLabel}>Visitas</Text>
             </View>
@@ -185,29 +315,29 @@ export default function AchievementsScreen() {
 
       <View style={s.tabs}>
         <TouchableOpacity style={[s.tab, activeTab === 'badges' && s.tabActive]} onPress={() => setActiveTab('badges')} data-testid="tab-badges">
-          <MaterialIcons name="emoji-events" size={20} color={activeTab === 'badges' ? '#C49A6C' : '#64748B'} />
+          <MaterialIcons name="emoji-events" size={20} color={activeTab === 'badges' ? C.accent : C.textMuted} />
           <Text style={[s.tabText, activeTab === 'badges' && s.tabTextActive]}>Badges</Text>
         </TouchableOpacity>
         <TouchableOpacity style={[s.tab, activeTab === 'leaderboard' && s.tabActive]} onPress={() => setActiveTab('leaderboard')} data-testid="tab-leaderboard">
-          <MaterialIcons name="leaderboard" size={20} color={activeTab === 'leaderboard' ? '#C49A6C' : '#64748B'} />
+          <MaterialIcons name="leaderboard" size={20} color={activeTab === 'leaderboard' ? C.accent : C.textMuted} />
           <Text style={[s.tabText, activeTab === 'leaderboard' && s.tabTextActive]}>Ranking</Text>
         </TouchableOpacity>
       </View>
 
       {showLoginForBadges ? (
         <View style={s.loginPrompt}>
-          <MaterialIcons name="emoji-events" size={64} color="#C49A6C" />
+          <MaterialIcons name="emoji-events" size={64} color={C.accent} />
           <Text style={s.loginTitle}>Desbloqueie Conquistas</Text>
           <Text style={s.loginSub}>Inicie sessao para acompanhar o seu progresso e ganhar badges exclusivos!</Text>
           <TouchableOpacity style={s.loginBtn} onPress={login} data-testid="achievements-login">
-            <MaterialIcons name="login" size={20} color="#2E5E4E" />
+            <MaterialIcons name="login" size={20} color={C.bg} />
             <Text style={s.loginBtnText}>Entrar com Google</Text>
           </TouchableOpacity>
         </View>
       ) : activeTab === 'badges' ? (
         <ScrollView style={s.content} showsVerticalScrollIndicator={false} contentContainerStyle={s.badgesGrid}
-          refreshControl={<RefreshControl refreshing={progressLoading} onRefresh={refetchProgress} tintColor="#C49A6C" />}>
-          {progressLoading ? <ActivityIndicator size="large" color="#C49A6C" style={s.loader} /> : progress ? (
+          refreshControl={<RefreshControl refreshing={progressLoading} onRefresh={refetchProgress} tintColor={C.accent} />}>
+          {progressLoading ? <ActivityIndicator size="large" color={C.accent} style={s.loader} /> : progress ? (
             <>
               {progress.badges.filter(b => b.earned).length > 0 && (
                 <><Text style={s.sectionTitle}>Conquistados</Text><View style={s.badgesRow}>{progress.badges.filter(b => b.earned).map(renderBadge)}</View></>
@@ -219,7 +349,6 @@ export default function AchievementsScreen() {
         </ScrollView>
       ) : (
         <ScrollView style={s.content} showsVerticalScrollIndicator={false} contentContainerStyle={s.lbContent}>
-          {/* Period Filter */}
           <View style={s.periodRow} data-testid="period-filters">
             {PERIODS.map(p => (
               <TouchableOpacity
@@ -233,7 +362,6 @@ export default function AchievementsScreen() {
             ))}
           </View>
 
-          {/* Region Filter */}
           <ScrollView horizontal showsHorizontalScrollIndicator={false} style={s.regionScroll} contentContainerStyle={s.regionRow}>
             <TouchableOpacity
               style={[s.regionChip, !selectedRegion && s.regionChipActive]}
@@ -245,7 +373,7 @@ export default function AchievementsScreen() {
             {(regions || []).filter(r => r.players > 0).map(r => (
               <TouchableOpacity
                 key={r.region}
-                style={[s.regionChip, selectedRegion === r.region && { backgroundColor: REGION_COLORS[r.region] + '30', borderColor: REGION_COLORS[r.region] }]}
+                style={[s.regionChip, selectedRegion === r.region && { backgroundColor: withOpacity(REGION_COLORS[r.region], 0.18), borderColor: REGION_COLORS[r.region] }]}
                 onPress={() => setSelectedRegion(selectedRegion === r.region ? '' : r.region)}
                 data-testid={`region-${r.region}`}
               >
@@ -254,7 +382,7 @@ export default function AchievementsScreen() {
             ))}
           </ScrollView>
 
-          {lbLoading ? <ActivityIndicator size="large" color="#C49A6C" style={s.loader} /> : leaderboard.length > 0 ? (
+          {lbLoading ? <ActivityIndicator size="large" color={C.accent} style={s.loader} /> : leaderboard.length > 0 ? (
             <>
               {renderPodium()}
               <View style={s.lbListHeader}>
@@ -265,7 +393,7 @@ export default function AchievementsScreen() {
             </>
           ) : (
             <View style={s.emptyState}>
-              <MaterialIcons name="people" size={48} color="#64748B" />
+              <MaterialIcons name="people" size={48} color={C.textMuted} />
               <Text style={s.emptyText}>Ainda nao ha participantes</Text>
               <Text style={s.emptySubText}>Visite monumentos para aparecer no ranking!</Text>
             </View>
@@ -273,14 +401,13 @@ export default function AchievementsScreen() {
         </ScrollView>
       )}
 
-      {/* Explorer Profile Modal */}
       <Modal visible={!!explorerModal} animationType="slide" transparent onRequestClose={() => setExplorerModal(null)}>
         <View style={s.modalOverlay}>
           <View style={s.modalContent}>
             <View style={s.modalHeader}>
               <Text style={s.modalTitle}>Perfil do Explorador</Text>
               <TouchableOpacity onPress={() => setExplorerModal(null)} data-testid="close-explorer-modal">
-                <MaterialIcons name="close" size={24} color="#FAF8F3" />
+                <MaterialIcons name="close" size={24} color={C.text} />
               </TouchableOpacity>
             </View>
             {explorerModal && (
@@ -308,7 +435,7 @@ export default function AchievementsScreen() {
                 </View>
                 <View style={s.explorerStats}>
                   <View style={s.explorerStat}>
-                    <MaterialIcons name="place" size={20} color="#C49A6C" />
+                    <MaterialIcons name="place" size={20} color={C.accent} />
                     <Text style={s.explorerStatVal}>{explorerModal.total_checkins}</Text>
                     <Text style={s.explorerStatLbl}>Check-ins</Text>
                   </View>
@@ -318,7 +445,7 @@ export default function AchievementsScreen() {
                     <Text style={s.explorerStatLbl}>Badges</Text>
                   </View>
                   <View style={s.explorerStat}>
-                    <MaterialIcons name="local-fire-department" size={20} color="#EF4444" />
+                    <MaterialIcons name="local-fire-department" size={20} color={C.error} />
                     <Text style={s.explorerStatVal}>{explorerModal.streak_days}</Text>
                     <Text style={s.explorerStatLbl}>Streak</Text>
                   </View>
@@ -346,114 +473,3 @@ export default function AchievementsScreen() {
     </View>
   );
 }
-
-const s = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#2E5E4E' },
-  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingVertical: 12 },
-  backBtn: { width: 44, height: 44, borderRadius: 22, backgroundColor: '#264E41', alignItems: 'center', justifyContent: 'center' },
-  headerTitle: { fontSize: 20, fontWeight: '700', color: '#FAF8F3' },
-  loginPrompt: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 32 },
-  loginTitle: { fontSize: 24, fontWeight: '700', color: '#FAF8F3', marginTop: 16 },
-  loginSub: { fontSize: 15, color: '#94A3B8', textAlign: 'center', marginTop: 8, lineHeight: 22 },
-  loginBtn: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#C49A6C', paddingHorizontal: 24, paddingVertical: 14, borderRadius: 12, marginTop: 24, gap: 8 },
-  loginBtnText: { fontSize: 16, fontWeight: '700', color: '#2E5E4E' },
-  statsCard: { backgroundColor: '#264E41', marginHorizontal: 16, borderRadius: 16, padding: 16, borderWidth: 1, borderColor: '#2A2F2A' },
-  statsRow: { flexDirection: 'row', justifyContent: 'space-around', alignItems: 'center' },
-  statItem: { alignItems: 'center' },
-  statVal: { fontSize: 24, fontWeight: '800', color: '#FAF8F3', marginTop: 4 },
-  statLabel: { fontSize: 12, color: '#64748B', marginTop: 2 },
-  statDiv: { width: 1, height: 40, backgroundColor: '#2A2F2A' },
-  tabs: { flexDirection: 'row', marginHorizontal: 16, marginTop: 16, backgroundColor: '#264E41', borderRadius: 12, padding: 4 },
-  tab: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingVertical: 12, borderRadius: 10, gap: 6 },
-  tabActive: { backgroundColor: '#2E5E4E' },
-  tabText: { fontSize: 14, fontWeight: '600', color: '#64748B' },
-  tabTextActive: { color: '#C49A6C' },
-  content: { flex: 1, marginTop: 16 },
-  badgesGrid: { paddingHorizontal: 16, paddingBottom: 20 },
-  sectionTitle: { fontSize: 18, fontWeight: '700', color: '#FAF8F3', marginBottom: 12, marginTop: 8 },
-  badgesRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 12, marginBottom: 16 },
-  badgeCard: { width: '47%', backgroundColor: '#264E41', borderRadius: 16, padding: 16, alignItems: 'center', borderWidth: 1, borderColor: '#2A2F2A' },
-  badgeLocked: { opacity: 0.7 },
-  badgeIcon: { width: 64, height: 64, borderRadius: 32, alignItems: 'center', justifyContent: 'center', marginBottom: 12, position: 'relative' },
-  checkMark: { position: 'absolute', bottom: -4, right: -4, backgroundColor: '#264E41', borderRadius: 10 },
-  badgeName: { fontSize: 14, fontWeight: '700', color: '#FAF8F3', textAlign: 'center' },
-  badgeDesc: { fontSize: 11, color: '#64748B', textAlign: 'center', marginTop: 4, lineHeight: 16 },
-  progressWrap: { width: '100%', marginTop: 12 },
-  progressBar: { height: 6, backgroundColor: '#2E5E4E', borderRadius: 3, overflow: 'hidden' },
-  progressFill: { height: '100%', borderRadius: 3 },
-  progressText: { fontSize: 10, color: '#64748B', textAlign: 'center', marginTop: 4 },
-  lbContent: { paddingHorizontal: 16, paddingBottom: 20 },
-  periodRow: { flexDirection: 'row', gap: 8, marginBottom: 12 },
-  periodBtn: { flex: 1, paddingVertical: 10, borderRadius: 10, backgroundColor: '#264E41', alignItems: 'center', borderWidth: 1, borderColor: '#2A2F2A' },
-  periodBtnActive: { backgroundColor: '#C49A6C20', borderColor: '#C49A6C' },
-  periodText: { fontSize: 13, fontWeight: '600', color: '#64748B' },
-  periodTextActive: { color: '#C49A6C' },
-  regionScroll: { marginBottom: 16 },
-  regionRow: { gap: 8 },
-  regionChip: { paddingHorizontal: 14, paddingVertical: 8, borderRadius: 20, backgroundColor: '#264E41', borderWidth: 1, borderColor: '#2A2F2A' },
-  regionChipActive: { backgroundColor: '#C49A6C20', borderColor: '#C49A6C' },
-  regionText: { fontSize: 12, fontWeight: '600', color: '#64748B' },
-  regionTextActive: { color: '#C49A6C' },
-  podiumWrap: { flexDirection: 'row', justifyContent: 'center', alignItems: 'flex-end', marginBottom: 24, gap: 8, paddingTop: 16 },
-  podiumCol: { alignItems: 'center', width: 100 },
-  podiumAvatar: { position: 'relative', marginBottom: 8 },
-  podiumImg: { width: 56, height: 56, borderRadius: 28 },
-  podiumImgPlaceholder: { width: 56, height: 56, borderRadius: 28, alignItems: 'center', justifyContent: 'center' },
-  avatarLetter: { fontSize: 22, fontWeight: '800', color: '#1A0F0A' },
-  medalBadge: { position: 'absolute', bottom: -4, right: -4, width: 22, height: 22, borderRadius: 11, alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderColor: '#2E5E4E' },
-  medalText: { fontSize: 11, fontWeight: '800', color: '#1A0F0A' },
-  podiumName: { fontSize: 13, fontWeight: '600', color: '#FAF8F3', marginBottom: 2 },
-  podiumScore: { fontSize: 11, fontWeight: '700', color: '#C49A6C', marginBottom: 6 },
-  podiumBar: { width: '100%', borderTopLeftRadius: 8, borderTopRightRadius: 8, alignItems: 'center', justifyContent: 'center' },
-  podiumRank: { fontSize: 18, fontWeight: '900' },
-  lbListHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 },
-  lbListTitle: { fontSize: 16, fontWeight: '700', color: '#FAF8F3' },
-  lbListCount: { fontSize: 12, color: '#64748B' },
-  lbItem: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#264E41', borderRadius: 12, padding: 12, marginBottom: 8, borderWidth: 1, borderColor: '#2A2F2A' },
-  lbItemCurrent: { borderColor: '#C49A6C', backgroundColor: '#C49A6C10' },
-  lbRank: { width: 36, alignItems: 'center' },
-  rankNum: { fontSize: 16, fontWeight: '700', color: '#64748B' },
-  lbAvatar: { width: 40, height: 40, borderRadius: 20, marginRight: 12 },
-  lbAvatarPlaceholder: { width: 40, height: 40, borderRadius: 20, backgroundColor: '#C49A6C', alignItems: 'center', justifyContent: 'center', marginRight: 12 },
-  avatarText: { fontSize: 16, fontWeight: '700', color: '#2E5E4E' },
-  lbInfo: { flex: 1 },
-  lbName: { fontSize: 15, fontWeight: '600', color: '#FAF8F3' },
-  lbStats: { flexDirection: 'row', alignItems: 'center', marginTop: 2, gap: 4 },
-  lbPts: { fontSize: 12, color: '#C49A6C', fontWeight: '600' },
-  lbCheckins: { fontSize: 12, color: '#64748B', marginLeft: 8 },
-  levelBadge: { backgroundColor: '#8B5CF620', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12 },
-  levelText: { fontSize: 12, fontWeight: '700', color: '#8B5CF6' },
-  loader: { marginTop: 40 },
-  emptyState: { alignItems: 'center', paddingTop: 60 },
-  emptyText: { fontSize: 16, color: '#64748B', marginTop: 12 },
-  emptySubText: { fontSize: 13, color: '#475569', marginTop: 4 },
-  modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.7)', justifyContent: 'flex-end' },
-  modalContent: { backgroundColor: '#264E41', borderTopLeftRadius: 24, borderTopRightRadius: 24, maxHeight: '85%', padding: 20 },
-  modalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 },
-  modalTitle: { fontSize: 18, fontWeight: '700', color: '#FAF8F3' },
-  explorerHeader: { alignItems: 'center', marginBottom: 20 },
-  explorerAvatar: { width: 72, height: 72, borderRadius: 36, marginBottom: 12 },
-  explorerAvatarPlaceholder: { width: 72, height: 72, borderRadius: 36, backgroundColor: '#C49A6C', alignItems: 'center', justifyContent: 'center', marginBottom: 12 },
-  explorerAvatarText: { fontSize: 28, fontWeight: '800', color: '#2E5E4E' },
-  explorerName: { fontSize: 20, fontWeight: '700', color: '#FAF8F3' },
-  explorerMeta: { flexDirection: 'row', gap: 12, marginTop: 6 },
-  explorerLevel: { fontSize: 14, fontWeight: '600', color: '#C49A6C', backgroundColor: '#C49A6C20', paddingHorizontal: 12, paddingVertical: 4, borderRadius: 12 },
-  explorerRank: { fontSize: 14, fontWeight: '600', color: '#8B5CF6', backgroundColor: '#8B5CF620', paddingHorizontal: 12, paddingVertical: 4, borderRadius: 12 },
-  xpCard: { backgroundColor: '#2E5E4E', borderRadius: 12, padding: 14, marginBottom: 16 },
-  xpRow: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 8 },
-  xpLabel: { fontSize: 13, fontWeight: '600', color: '#64748B' },
-  xpValue: { fontSize: 13, fontWeight: '700', color: '#C49A6C' },
-  xpBar: { height: 8, backgroundColor: '#1A3A2E', borderRadius: 4, overflow: 'hidden' },
-  xpFill: { height: '100%', borderRadius: 4, backgroundColor: '#C49A6C' },
-  explorerStats: { flexDirection: 'row', justifyContent: 'space-around', backgroundColor: '#2E5E4E', borderRadius: 12, padding: 16, marginBottom: 16 },
-  explorerStat: { alignItems: 'center' },
-  explorerStatVal: { fontSize: 20, fontWeight: '800', color: '#FAF8F3', marginTop: 4 },
-  explorerStatLbl: { fontSize: 11, color: '#64748B', marginTop: 2 },
-  regionBreakdown: { marginTop: 4 },
-  regionStatRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 10, gap: 8 },
-  regionDot: { width: 10, height: 10, borderRadius: 5 },
-  regionStatName: { fontSize: 13, fontWeight: '600', color: '#FAF8F3', width: 70 },
-  regionStatBar: { flex: 1, height: 8, backgroundColor: '#1A3A2E', borderRadius: 4, overflow: 'hidden' },
-  regionStatFill: { height: '100%', borderRadius: 4 },
-  regionStatCount: { fontSize: 12, fontWeight: '700', color: '#64748B', width: 30, textAlign: 'right' },
-});

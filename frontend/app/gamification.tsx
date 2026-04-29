@@ -18,22 +18,145 @@ import {
   getGamificationProfile, getNearbyCheckins, doCheckin,
   GamificationProfile as _GamificationProfile, NearbyPOI as _NearbyPOI, Badge as _Badge,
 } from '../src/services/api';
-import { colors, shadows } from '../src/theme';
+import { shadows } from '../src/theme';
+import { useTheme } from '../src/context/ThemeContext';
+import { palette, withOpacity } from '../src/theme/colors';
 import BadgeCelebration from '../src/components/BadgeCelebration';
 import AnimatedListItem from '../src/components/AnimatedListItem';
 import SkeletonCard from '../src/components/SkeletonCard';
 import MissionCard, { Mission } from '../src/components/MissionCard';
 import { API_BASE } from '../src/config/api';
 
+function makeStyles(C: Record<string, string>) {
+  return StyleSheet.create({
+    container: { flex: 1, backgroundColor: C.bg },
+    header: {
+      backgroundColor: C.headerBg, paddingHorizontal: 16, paddingBottom: 12,
+      flexDirection: 'row', alignItems: 'center',
+    },
+    backBtn: {
+      width: 40, height: 40, borderRadius: 20,
+      backgroundColor: 'rgba(255,255,255,0.15)', alignItems: 'center', justifyContent: 'center',
+    },
+    headerCenter: { flex: 1, marginLeft: 12 },
+    headerTitle: { fontSize: 20, fontWeight: '700', color: '#FFF' },
+    headerSub: { fontSize: 12, color: 'rgba(255,255,255,0.6)' },
+    scroll: { flex: 1 },
+    scrollContent: { paddingBottom: 20 },
+
+    // Hero
+    heroCard: { marginHorizontal: 16, marginTop: 16, borderRadius: 20, overflow: 'hidden', ...shadows.lg },
+    heroGrad: { padding: 20, alignItems: 'center' },
+    levelBadge: {
+      backgroundColor: 'rgba(255,255,255,0.2)', paddingHorizontal: 14,
+      paddingVertical: 4, borderRadius: 20, marginBottom: 14,
+    },
+    levelText: { fontSize: 14, fontWeight: '800', color: '#FFF' },
+    heroRow: { flexDirection: 'row', alignItems: 'center', width: '100%', justifyContent: 'space-around' },
+    heroStat: { alignItems: 'center' },
+    heroStatVal: { fontSize: 24, fontWeight: '800', color: '#FFF' },
+    heroStatLabel: { fontSize: 11, color: 'rgba(255,255,255,0.6)', marginTop: 2 },
+    heroStatDivider: { width: 1, height: 30, backgroundColor: 'rgba(255,255,255,0.15)' },
+    xpBar: { width: '100%', marginTop: 16 },
+    xpTrack: { height: 6, backgroundColor: 'rgba(255,255,255,0.15)', borderRadius: 3, overflow: 'hidden' },
+    xpFill: { height: 6, backgroundColor: '#FFF', borderRadius: 3 },
+    xpText: { fontSize: 10, color: 'rgba(255,255,255,0.5)', textAlign: 'center', marginTop: 4 },
+
+    // Tabs
+    tabRow: { flexDirection: 'row', marginHorizontal: 16, marginTop: 16, backgroundColor: C.card, borderRadius: 14, padding: 4, ...shadows.sm },
+    tab: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingVertical: 10, gap: 6, borderRadius: 10 },
+    tabActive: { backgroundColor: C.accentMuted },
+    tabText: { fontSize: 13, fontWeight: '600', color: C.textMuted },
+    tabTextActive: { color: C.accent },
+
+    // Badges
+    badgesGrid: { flexDirection: 'row', flexWrap: 'wrap', padding: 12, gap: 8 },
+    badgeCard: {
+      width: '48%', backgroundColor: C.card, borderRadius: 16,
+      padding: 14, ...shadows.sm, position: 'relative',
+    },
+    badgeCardEarned: { borderWidth: 1.5, borderColor: C.badgeEarnedBorder },
+    badgeIcon: { width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center', marginBottom: 8 },
+    badgeName: { fontSize: 13, fontWeight: '700', color: C.text, marginBottom: 2 },
+    badgeDesc: { fontSize: 10, color: C.textMuted, lineHeight: 14, marginBottom: 8 },
+    badgeProgress: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+    badgeProgressTrack: { flex: 1, height: 4, backgroundColor: C.progressTrack, borderRadius: 2, overflow: 'hidden' },
+    badgeProgressFill: { height: 4, borderRadius: 2 },
+    badgeProgressText: { fontSize: 9, fontWeight: '600', color: C.textMuted },
+    earnedTag: { position: 'absolute', top: 8, right: 8, width: 18, height: 18, borderRadius: 9, alignItems: 'center', justifyContent: 'center' },
+    earnedRow: { position: 'absolute', top: 6, right: 6, flexDirection: 'row', alignItems: 'center', gap: 4 },
+    badgeShareBtn: { width: 24, height: 24, borderRadius: 12, backgroundColor: 'rgba(0,0,0,0.08)' },
+
+    // Missions
+    missionsList: { paddingHorizontal: 16, marginTop: 12 },
+
+    // Nearby
+    nearbyList: { paddingHorizontal: 16, marginTop: 12 },
+    nearbyCard: {
+      flexDirection: 'row', alignItems: 'center', backgroundColor: C.card,
+      borderRadius: 14, padding: 14, marginBottom: 8, ...shadows.sm,
+    },
+    nearbyInfo: { flex: 1 },
+    nearbyName: { fontSize: 14, fontWeight: '600', color: C.text },
+    nearbyMeta: { flexDirection: 'row', gap: 8, marginTop: 2 },
+    nearbyCategory: { fontSize: 11, color: C.textMuted, textTransform: 'capitalize' },
+    nearbyDist: { fontSize: 11, fontWeight: '600', color: C.ocean },
+    checkinBtn: {
+      flexDirection: 'row', alignItems: 'center', gap: 6,
+      backgroundColor: C.accent, paddingHorizontal: 14,
+      paddingVertical: 8, borderRadius: 10,
+    },
+    checkinBtnDisabled: { backgroundColor: C.disabledBg },
+    checkinBtnText: { fontSize: 12, fontWeight: '600', color: '#FFF' },
+
+    // Empty
+    emptyState: { alignItems: 'center', paddingVertical: 40 },
+    emptyText: { fontSize: 14, color: C.textMuted, marginTop: 12 },
+    emptySubtext: { fontSize: 12, color: C.textSubtle, marginTop: 4 },
+
+    // History
+    historyList: { paddingHorizontal: 16, marginTop: 12 },
+    historyCard: {
+      flexDirection: 'row', alignItems: 'center', paddingVertical: 12,
+      borderBottomWidth: 1, borderBottomColor: C.border, gap: 12,
+    },
+    historyDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: C.accent },
+    historyInfo: { flex: 1 },
+    historyName: { fontSize: 13, fontWeight: '600', color: C.text },
+    historyMeta: { fontSize: 11, color: C.textMuted, textTransform: 'capitalize' },
+    historyXP: { backgroundColor: C.accentMuted, paddingHorizontal: 8, paddingVertical: 3, borderRadius: 8 },
+    historyXPText: { fontSize: 12, fontWeight: '700', color: C.accent },
+  });
+}
+
 export default function GamificationScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const queryClient = useQueryClient();
+  const { colors, isDark } = useTheme();
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [tab, setTab] = useState<'badges' | 'nearby' | 'checkins' | 'missions'>('badges');
   const [celebration, setCelebration] = useState<{ visible: boolean; name: string; icon: string; color: string; xp: number }>({
     visible: false, name: '', icon: '', color: '', xp: 0,
   });
+
+  const C = {
+    bg:               isDark ? palette.gray[900] : colors.background,
+    card:             isDark ? palette.gray[800] : colors.surface,
+    headerBg:         palette.forest[700],
+    accent:           colors.accent,
+    accentMuted:      colors.accentMuted,
+    text:             colors.textPrimary,
+    textMuted:        colors.textMuted,
+    textSubtle:       colors.textSecondary,
+    border:           colors.borderLight,
+    badgeEarnedBorder: palette.terracotta[200],
+    progressTrack:    isDark ? palette.gray[700] : palette.gray[100],
+    ocean:            palette.ocean[500],
+    disabledBg:       isDark ? palette.gray[700] : palette.gray[100],
+  };
+
+  const s = makeStyles(C);
 
   // Get user location
   useEffect(() => {
@@ -91,7 +214,7 @@ export default function GamificationScreen() {
         if (data.new_badges && data.new_badges.length > 0) {
           const b = data.new_badges[0];
           if (Platform.OS !== 'web') Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-          setCelebration({ visible: true, name: b.name, icon: b.icon || 'military-tech', color: b.color || colors.terracotta[500], xp: data.xp_earned || 0 });
+          setCelebration({ visible: true, name: b.name, icon: b.icon || 'military-tech', color: b.color || colors.accent, xp: data.xp_earned || 0 });
         } else {
           if (Platform.OS !== 'web') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
           if (Platform.OS === 'web') {
@@ -142,11 +265,11 @@ export default function GamificationScreen() {
         style={s.scroll}
         contentContainerStyle={s.scrollContent}
         showsVerticalScrollIndicator={false}
-        refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={refetch} tintColor={colors.terracotta[500]} />}
+        refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={refetch} tintColor={colors.accent} />}
       >
         {/* Profile Hero */}
         <View style={s.heroCard}>
-          <LinearGradient colors={[colors.terracotta[500], colors.terracotta[700]]} style={s.heroGrad}>
+          <LinearGradient colors={[palette.terracotta[500], palette.terracotta[700]]} style={s.heroGrad}>
             <View style={s.levelBadge}>
               <Text style={s.levelText}>Nv. {profile.level}</Text>
             </View>
@@ -189,7 +312,7 @@ export default function GamificationScreen() {
               onPress={() => setTab(t.id)}
               data-testid={`tab-${t.id}`}
             >
-              <MaterialIcons name={t.icon as any} size={18} color={tab === t.id ? colors.terracotta[500] : colors.gray[400]} />
+              <MaterialIcons name={t.icon as any} size={18} color={tab === t.id ? colors.accent : colors.textMuted} />
               <Text style={[s.tabText, tab === t.id && s.tabTextActive]}>{t.label}</Text>
             </TouchableOpacity>
           ))}
@@ -201,14 +324,14 @@ export default function GamificationScreen() {
             {profile.badges.map((badge, index) => (
               <AnimatedListItem key={badge.id} index={index} stagger={40}>
               <View style={[s.badgeCard, badge.earned && s.badgeCardEarned]} data-testid={`badge-${badge.id}`}>
-                <View style={[s.badgeIcon, { backgroundColor: badge.earned ? badge.color + '20' : colors.gray[100] }]}>
-                  <MaterialIcons name={badge.icon as any} size={24} color={badge.earned ? badge.color : colors.gray[300]} />
+                <View style={[s.badgeIcon, { backgroundColor: badge.earned ? badge.color + '20' : withOpacity(palette.gray[400], 0.15) }]}>
+                  <MaterialIcons name={badge.icon as any} size={24} color={badge.earned ? badge.color : palette.gray[300]} />
                 </View>
-                <Text style={[s.badgeName, !badge.earned && { color: colors.gray[400] }]} numberOfLines={1}>{badge.name}</Text>
+                <Text style={[s.badgeName, !badge.earned && { color: palette.gray[400] }]} numberOfLines={1}>{badge.name}</Text>
                 <Text style={s.badgeDesc} numberOfLines={2}>{badge.description}</Text>
                 <View style={s.badgeProgress}>
                   <View style={s.badgeProgressTrack}>
-                    <View style={[s.badgeProgressFill, { width: `${badge.progress_pct ?? 0}%`, backgroundColor: badge.earned ? badge.color : colors.gray[300] }]} />
+                    <View style={[s.badgeProgressFill, { width: `${badge.progress_pct ?? 0}%`, backgroundColor: badge.earned ? badge.color : palette.gray[300] }]} />
                   </View>
                   <Text style={s.badgeProgressText}>{badge.progress}/{badge.threshold}</Text>
                 </View>
@@ -237,7 +360,7 @@ export default function GamificationScreen() {
           <View style={s.missionsList}>
             {!missionsData?.missions?.length ? (
               <View style={s.emptyState}>
-                <MaterialIcons name="flag" size={40} color={colors.gray[300]} />
+                <MaterialIcons name="flag" size={40} color={colors.textMuted} />
                 <Text style={s.emptyText}>Sem missões activas</Text>
                 <Text style={s.emptySubtext}>Volta na próxima semana!</Text>
               </View>
@@ -259,12 +382,12 @@ export default function GamificationScreen() {
           <View style={s.nearbyList}>
             {!userLocation ? (
               <View style={s.emptyState}>
-                <MaterialIcons name="gps-off" size={40} color={colors.gray[300]} />
+                <MaterialIcons name="gps-off" size={40} color={colors.textMuted} />
                 <Text style={s.emptyText}>A obter localização...</Text>
               </View>
             ) : nearbyData?.pois.length === 0 ? (
               <View style={s.emptyState}>
-                <MaterialIcons name="explore-off" size={40} color={colors.gray[300]} />
+                <MaterialIcons name="explore-off" size={40} color={colors.textMuted} />
                 <Text style={s.emptyText}>Nenhum POI nas proximidades</Text>
               </View>
             ) : (
@@ -288,8 +411,8 @@ export default function GamificationScreen() {
                       <ActivityIndicator size="small" color="#FFF" />
                     ) : (
                       <>
-                        <MaterialIcons name={poi.can_checkin ? "check-circle" : "radio-button-unchecked"} size={16} color={poi.can_checkin ? "#FFF" : colors.gray[400]} />
-                        <Text style={[s.checkinBtnText, !poi.can_checkin && { color: colors.gray[400] }]}>
+                        <MaterialIcons name={poi.can_checkin ? "check-circle" : "radio-button-unchecked"} size={16} color={poi.can_checkin ? "#FFF" : colors.textMuted} />
+                        <Text style={[s.checkinBtnText, !poi.can_checkin && { color: colors.textMuted }]}>
                           {poi.can_checkin ? 'Check-in' : `${poi.distance_m}m`}
                         </Text>
                       </>
@@ -307,7 +430,7 @@ export default function GamificationScreen() {
           <View style={s.historyList}>
             {profile.recent_checkins.length === 0 ? (
               <View style={s.emptyState}>
-                <MaterialIcons name="explore" size={40} color={colors.gray[300]} />
+                <MaterialIcons name="explore" size={40} color={colors.textMuted} />
                 <Text style={s.emptyText}>Ainda sem check-ins</Text>
                 <Text style={s.emptySubtext}>Visite locais e faça check-in!</Text>
               </View>
@@ -342,103 +465,3 @@ export default function GamificationScreen() {
     </View>
   );
 }
-
-const s = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.background.primary },
-  header: {
-    backgroundColor: colors.forest[700], paddingHorizontal: 16, paddingBottom: 12,
-    flexDirection: 'row', alignItems: 'center',
-  },
-  backBtn: {
-    width: 40, height: 40, borderRadius: 20,
-    backgroundColor: 'rgba(255,255,255,0.15)', alignItems: 'center', justifyContent: 'center',
-  },
-  headerCenter: { flex: 1, marginLeft: 12 },
-  headerTitle: { fontSize: 20, fontWeight: '700', color: '#FFF' },
-  headerSub: { fontSize: 12, color: 'rgba(255,255,255,0.6)' },
-  scroll: { flex: 1 },
-  scrollContent: { paddingBottom: 20 },
-
-  // Hero
-  heroCard: { marginHorizontal: 16, marginTop: 16, borderRadius: 20, overflow: 'hidden', ...shadows.lg },
-  heroGrad: { padding: 20, alignItems: 'center' },
-  levelBadge: {
-    backgroundColor: 'rgba(255,255,255,0.2)', paddingHorizontal: 14,
-    paddingVertical: 4, borderRadius: 20, marginBottom: 14,
-  },
-  levelText: { fontSize: 14, fontWeight: '800', color: '#FFF' },
-  heroRow: { flexDirection: 'row', alignItems: 'center', width: '100%', justifyContent: 'space-around' },
-  heroStat: { alignItems: 'center' },
-  heroStatVal: { fontSize: 24, fontWeight: '800', color: '#FFF' },
-  heroStatLabel: { fontSize: 11, color: 'rgba(255,255,255,0.6)', marginTop: 2 },
-  heroStatDivider: { width: 1, height: 30, backgroundColor: 'rgba(255,255,255,0.15)' },
-  xpBar: { width: '100%', marginTop: 16 },
-  xpTrack: { height: 6, backgroundColor: 'rgba(255,255,255,0.15)', borderRadius: 3, overflow: 'hidden' },
-  xpFill: { height: 6, backgroundColor: '#FFF', borderRadius: 3 },
-  xpText: { fontSize: 10, color: 'rgba(255,255,255,0.5)', textAlign: 'center', marginTop: 4 },
-
-  // Tabs
-  tabRow: { flexDirection: 'row', marginHorizontal: 16, marginTop: 16, backgroundColor: colors.background.secondary, borderRadius: 14, padding: 4, ...shadows.sm },
-  tab: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingVertical: 10, gap: 6, borderRadius: 10 },
-  tabActive: { backgroundColor: colors.terracotta[50] },
-  tabText: { fontSize: 13, fontWeight: '600', color: colors.gray[400] },
-  tabTextActive: { color: colors.terracotta[500] },
-
-  // Badges
-  badgesGrid: { flexDirection: 'row', flexWrap: 'wrap', padding: 12, gap: 8 },
-  badgeCard: {
-    width: '48%', backgroundColor: colors.background.secondary, borderRadius: 16,
-    padding: 14, ...shadows.sm, position: 'relative',
-  },
-  badgeCardEarned: { borderWidth: 1.5, borderColor: colors.terracotta[200] },
-  badgeIcon: { width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center', marginBottom: 8 },
-  badgeName: { fontSize: 13, fontWeight: '700', color: colors.gray[800], marginBottom: 2 },
-  badgeDesc: { fontSize: 10, color: colors.gray[400], lineHeight: 14, marginBottom: 8 },
-  badgeProgress: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  badgeProgressTrack: { flex: 1, height: 4, backgroundColor: colors.gray[100], borderRadius: 2, overflow: 'hidden' },
-  badgeProgressFill: { height: 4, borderRadius: 2 },
-  badgeProgressText: { fontSize: 9, fontWeight: '600', color: colors.gray[400] },
-  earnedTag: { position: 'absolute', top: 8, right: 8, width: 18, height: 18, borderRadius: 9, alignItems: 'center', justifyContent: 'center' },
-  earnedRow: { position: 'absolute', top: 6, right: 6, flexDirection: 'row', alignItems: 'center', gap: 4 },
-  badgeShareBtn: { width: 24, height: 24, borderRadius: 12, backgroundColor: 'rgba(0,0,0,0.08)' },
-
-  // Missions
-  missionsList: { paddingHorizontal: 16, marginTop: 12 },
-
-  // Nearby
-  nearbyList: { paddingHorizontal: 16, marginTop: 12 },
-  nearbyCard: {
-    flexDirection: 'row', alignItems: 'center', backgroundColor: colors.background.secondary,
-    borderRadius: 14, padding: 14, marginBottom: 8, ...shadows.sm,
-  },
-  nearbyInfo: { flex: 1 },
-  nearbyName: { fontSize: 14, fontWeight: '600', color: colors.gray[800] },
-  nearbyMeta: { flexDirection: 'row', gap: 8, marginTop: 2 },
-  nearbyCategory: { fontSize: 11, color: colors.gray[400], textTransform: 'capitalize' },
-  nearbyDist: { fontSize: 11, fontWeight: '600', color: colors.ocean[500] },
-  checkinBtn: {
-    flexDirection: 'row', alignItems: 'center', gap: 6,
-    backgroundColor: colors.terracotta[500], paddingHorizontal: 14,
-    paddingVertical: 8, borderRadius: 10,
-  },
-  checkinBtnDisabled: { backgroundColor: colors.gray[100] },
-  checkinBtnText: { fontSize: 12, fontWeight: '600', color: '#FFF' },
-
-  // Empty
-  emptyState: { alignItems: 'center', paddingVertical: 40 },
-  emptyText: { fontSize: 14, color: colors.gray[400], marginTop: 12 },
-  emptySubtext: { fontSize: 12, color: colors.gray[300], marginTop: 4 },
-
-  // History
-  historyList: { paddingHorizontal: 16, marginTop: 12 },
-  historyCard: {
-    flexDirection: 'row', alignItems: 'center', paddingVertical: 12,
-    borderBottomWidth: 1, borderBottomColor: colors.gray[100], gap: 12,
-  },
-  historyDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: colors.terracotta[500] },
-  historyInfo: { flex: 1 },
-  historyName: { fontSize: 13, fontWeight: '600', color: colors.gray[800] },
-  historyMeta: { fontSize: 11, color: colors.gray[400], textTransform: 'capitalize' },
-  historyXP: { backgroundColor: colors.terracotta[50], paddingHorizontal: 8, paddingVertical: 3, borderRadius: 8 },
-  historyXPText: { fontSize: 12, fontWeight: '700', color: colors.terracotta[500] },
-});

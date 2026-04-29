@@ -1,6 +1,6 @@
 /**
  * Excel Importer Screen
- * 
+ *
  * Interface para importar POIs de ficheiros Excel/CSV,
  * com preview, upload e processamento IQ em batch.
  */
@@ -20,14 +20,16 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import Constants from 'expo-constants';
-import { colors, typography, spacing, borders, shadows } from '../src/theme';
+import { typography, spacing, borders, shadows } from '../src/theme';
+import { useTheme } from '../src/context/ThemeContext';
+import { palette, withOpacity } from '../src/theme/colors';
 
 const API_BASE = Constants.expoConfig?.extra?.EXPO_PUBLIC_BACKEND_URL
   || process.env.EXPO_PUBLIC_BACKEND_URL
   || '';
 
 // ============================================
-// API Functions  
+// API Functions
 // ============================================
 const getImporterStats = async () => {
   const res = await fetch(`${API_BASE}/api/importer/stats`);
@@ -60,11 +62,106 @@ const uploadFile = async (formData: FormData) => {
 
 // Score color helper
 const getScoreColor = (score: number): string => {
-  if (score >= 70) return '#22C55E';
-  if (score >= 50) return '#C49A6C';
+  if (score >= 70) return palette.mint[500];
+  if (score >= 50) return palette.terracotta[500];
   if (score >= 30) return '#F97316';
   return '#EF4444';
 };
+
+// ============================================
+// Styles factory
+// ============================================
+function makeStyles(C: Record<string, string>) {
+  return StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: C.bg,
+    },
+    header: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingHorizontal: spacing[4],
+      paddingVertical: spacing[3],
+      backgroundColor: C.card,
+      borderBottomWidth: 1,
+      borderBottomColor: C.border,
+    },
+    backButton: { padding: spacing[2], marginRight: spacing[2] },
+    headerCenter: { flex: 1 },
+    headerTitle: { fontSize: typography.fontSize.xl, fontWeight: '700' as const, color: C.headerTitle },
+    headerSubtitle: { fontSize: typography.fontSize.sm, color: C.textMuted, marginTop: 1 },
+    refreshButton: { padding: spacing[2] },
+    scrollView: { flex: 1 },
+    scrollContent: { padding: spacing[4] },
+
+    statsRow: { flexDirection: 'row', gap: spacing[3], marginBottom: spacing[3] },
+    statCard: {
+      flex: 1, backgroundColor: C.card,
+      borderRadius: borders.radius.xl, padding: spacing[4],
+      alignItems: 'center', gap: spacing[2], ...shadows.sm,
+    },
+    statCardPrimary: { backgroundColor: C.accent },
+    statNumber: { fontSize: 24, fontWeight: '700' as const, color: C.statNumber },
+    statNumberWhite: { fontSize: 24, fontWeight: '700' as const, color: palette.white },
+    statLabel: { fontSize: typography.fontSize.xs, color: C.textMuted, fontWeight: '500' as const },
+    statLabelWhite: { fontSize: typography.fontSize.xs, color: withOpacity(palette.white, 0.8), fontWeight: '500' as const },
+
+    progressSection: {
+      backgroundColor: C.card, borderRadius: borders.radius.xl,
+      padding: spacing[4], marginBottom: spacing[5], ...shadows.sm,
+    },
+    progressHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: spacing[2] },
+    progressTitle: { fontSize: typography.fontSize.sm, fontWeight: '600' as const, color: C.progressTitle },
+    progressPct: { fontSize: typography.fontSize.sm, fontWeight: '700' as const, color: C.accent },
+    progressBar: { height: 8, backgroundColor: C.progressBarBg, borderRadius: 4, overflow: 'hidden' },
+    progressFill: { height: '100%', backgroundColor: C.accent, borderRadius: 4 },
+    avgScoreRow: { flexDirection: 'row', alignItems: 'center', gap: spacing[1], marginTop: spacing[2] },
+    avgScoreText: { fontSize: typography.fontSize.sm, color: C.avgScoreText },
+
+    section: { marginBottom: spacing[5] },
+    sectionTitle: { fontSize: typography.fontSize.lg, fontWeight: '700' as const, color: C.sectionTitle, marginBottom: spacing[3] },
+
+    actionCard: {
+      flexDirection: 'row', alignItems: 'center', backgroundColor: C.card,
+      padding: spacing[4], borderRadius: borders.radius.xl, marginBottom: spacing[2],
+      gap: spacing[3], ...shadows.sm,
+    },
+    actionCardDisabled: { opacity: 0.5 },
+    actionIconBg: { width: 48, height: 48, borderRadius: 14, justifyContent: 'center', alignItems: 'center' },
+    actionInfo: { flex: 1 },
+    actionTitle: { fontSize: typography.fontSize.base, fontWeight: '600' as const, color: C.actionTitle },
+    actionDesc: { fontSize: typography.fontSize.xs, color: C.textMuted, marginTop: 2 },
+
+    batchProgressCard: {
+      backgroundColor: C.batchCardBg, borderRadius: borders.radius.xl,
+      padding: spacing[4], marginBottom: spacing[5],
+      borderWidth: 1, borderColor: C.batchCardBorder,
+    },
+    batchProgressHeader: { flexDirection: 'row', alignItems: 'center', gap: spacing[2], marginBottom: spacing[3] },
+    batchProgressTitle: { fontSize: typography.fontSize.base, fontWeight: '600' as const, color: C.actionTitle },
+    batchStats: { flexDirection: 'row', justifyContent: 'space-around', marginBottom: spacing[3] },
+    batchStat: { alignItems: 'center' },
+    batchStatNum: { fontSize: 20, fontWeight: '700' as const, color: C.statNumber },
+    batchStatLabel: { fontSize: typography.fontSize.xs, color: C.textMuted },
+    batchBar: { height: 6, backgroundColor: C.progressBarBg, borderRadius: 3, overflow: 'hidden' },
+    batchBarFill: { height: '100%', borderRadius: 3 },
+
+    categoriesGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing[2] },
+    categoryChip: {
+      flexDirection: 'row', alignItems: 'center', backgroundColor: C.card,
+      paddingHorizontal: spacing[3], paddingVertical: spacing[2],
+      borderRadius: borders.radius.full, gap: 6, ...shadows.sm,
+    },
+    categoryCount: { fontSize: typography.fontSize.xs, fontWeight: '700' as const, color: C.accent },
+    categoryName: { fontSize: typography.fontSize.xs, color: C.progressTitle, textTransform: 'capitalize' as const },
+
+    regionRow: { flexDirection: 'row', alignItems: 'center', marginBottom: spacing[2], gap: spacing[2] },
+    regionName: { width: 70, fontSize: typography.fontSize.xs, color: C.avgScoreText, textTransform: 'capitalize' as const },
+    regionBarContainer: { flex: 1, height: 8, backgroundColor: C.progressBarBg, borderRadius: 4, overflow: 'hidden' },
+    regionBar: { height: '100%', backgroundColor: palette.forest[400], borderRadius: 4 },
+    regionCount: { width: 35, fontSize: typography.fontSize.xs, fontWeight: '600' as const, color: C.progressTitle, textAlign: 'right' as const },
+  });
+}
 
 // ============================================
 // Main Component
@@ -73,8 +170,33 @@ export default function ImporterScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const queryClient = useQueryClient();
+  const { colors } = useTheme();
   const [batchId, setBatchId] = useState<string | null>(null);
   const [pollingActive, setPollingActive] = useState(false);
+
+  const C = {
+    bg:              colors.background,
+    card:            colors.card,
+    accent:          palette.terracotta[500],
+    border:          colors.border,
+    textMuted:       palette.gray[500],
+    headerTitle:     palette.forest[500],
+    statNumber:      palette.gray[800],
+    progressTitle:   palette.gray[700],
+    progressBarBg:   palette.gray[100],
+    avgScoreText:    palette.gray[600],
+    sectionTitle:    palette.gray[800],
+    actionTitle:     palette.gray[800],
+    batchCardBg:     palette.terracotta[50],
+    batchCardBorder: palette.terracotta[100],
+    ocean:           palette.ocean[500],
+    success:         colors.success,
+    error:           colors.error,
+    warning:         colors.warning,
+    info:            colors.info,
+  };
+
+  const styles = makeStyles(C);
 
   // Stats query
   const { data: stats, isLoading: statsLoading, refetch: refetchStats } = useQuery({
@@ -127,7 +249,6 @@ export default function ImporterScreen() {
 
   const handleFileUpload = async () => {
     if (Platform.OS === 'web') {
-      // Web file picker
       const input = document.createElement('input');
       input.type = 'file';
       input.accept = '.xlsx,.xls,.csv';
@@ -143,7 +264,6 @@ export default function ImporterScreen() {
       };
       input.click();
     } else {
-      // Native - would use expo-document-picker
       Alert.alert('Upload', 'Para fazer upload no telemóvel, use a versão web ou expo-document-picker.');
     }
   };
@@ -158,32 +278,32 @@ export default function ImporterScreen() {
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-          <MaterialIcons name="arrow-back" size={24} color={colors.forest[500]} />
+          <MaterialIcons name="arrow-back" size={24} color={C.headerTitle} />
         </TouchableOpacity>
         <View style={styles.headerCenter}>
           <Text style={styles.headerTitle}>Importador</Text>
-          <Text style={styles.headerSubtitle}>Excel & IQ Batch</Text>
+          <Text style={styles.headerSubtitle}>Excel &amp; IQ Batch</Text>
         </View>
         <TouchableOpacity onPress={() => refetchStats()} style={styles.refreshButton}>
-          <MaterialIcons name="refresh" size={22} color={colors.gray[500]} />
+          <MaterialIcons name="refresh" size={22} color={C.textMuted} />
         </TouchableOpacity>
       </View>
 
       <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
         {/* Stats Overview */}
         {statsLoading ? (
-          <ActivityIndicator size="large" color={colors.terracotta[500]} style={{ marginTop: 40 }} />
+          <ActivityIndicator size="large" color={C.accent} style={{ marginTop: 40 }} />
         ) : stats ? (
           <>
             {/* Main Stats Cards */}
             <View style={styles.statsRow}>
               <View style={[styles.statCard, styles.statCardPrimary]}>
-                <MaterialIcons name="place" size={28} color="#FFFFFF" />
+                <MaterialIcons name="place" size={28} color={palette.white} />
                 <Text style={styles.statNumberWhite}>{stats.total_pois}</Text>
                 <Text style={styles.statLabelWhite}>Total POIs</Text>
               </View>
               <View style={styles.statCard}>
-                <MaterialIcons name="cloud-upload" size={24} color={colors.ocean[500]} />
+                <MaterialIcons name="cloud-upload" size={24} color={C.ocean} />
                 <Text style={styles.statNumber}>{stats.imported_from_excel}</Text>
                 <Text style={styles.statLabel}>Importados</Text>
               </View>
@@ -191,12 +311,12 @@ export default function ImporterScreen() {
 
             <View style={styles.statsRow}>
               <View style={styles.statCard}>
-                <MaterialIcons name="check-circle" size={24} color="#22C55E" />
+                <MaterialIcons name="check-circle" size={24} color={C.success} />
                 <Text style={styles.statNumber}>{stats.iq_processed}</Text>
                 <Text style={styles.statLabel}>IQ Processados</Text>
               </View>
               <View style={styles.statCard}>
-                <MaterialIcons name="pending" size={24} color="#C49A6C" />
+                <MaterialIcons name="pending" size={24} color={C.accent} />
                 <Text style={styles.statNumber}>{pending}</Text>
                 <Text style={styles.statLabel}>Pendentes</Text>
               </View>
@@ -237,17 +357,17 @@ export default function ImporterScreen() {
                 disabled={uploadMutation.isPending}
                 activeOpacity={0.7}
               >
-                <View style={[styles.actionIconBg, { backgroundColor: '#EFF6FF' }]}>
-                  <MaterialIcons name="upload-file" size={28} color={colors.ocean[500]} />
+                <View style={[styles.actionIconBg, { backgroundColor: withOpacity(palette.ocean[400], 0.12) }]}>
+                  <MaterialIcons name="upload-file" size={28} color={C.ocean} />
                 </View>
                 <View style={styles.actionInfo}>
                   <Text style={styles.actionTitle}>Importar Excel/CSV</Text>
                   <Text style={styles.actionDesc}>Upload de ficheiro com POIs para importar</Text>
                 </View>
                 {uploadMutation.isPending ? (
-                  <ActivityIndicator size="small" color={colors.ocean[500]} />
+                  <ActivityIndicator size="small" color={C.ocean} />
                 ) : (
-                  <MaterialIcons name="chevron-right" size={24} color={colors.gray[400]} />
+                  <MaterialIcons name="chevron-right" size={24} color={palette.gray[400]} />
                 )}
               </TouchableOpacity>
 
@@ -258,17 +378,17 @@ export default function ImporterScreen() {
                 disabled={batchMutation.isPending || pollingActive || pending === 0}
                 activeOpacity={0.7}
               >
-                <View style={[styles.actionIconBg, { backgroundColor: '#FEF3C7' }]}>
-                  <MaterialIcons name="bolt" size={28} color="#C49A6C" />
+                <View style={[styles.actionIconBg, { backgroundColor: palette.terracotta[100] }]}>
+                  <MaterialIcons name="bolt" size={28} color={C.accent} />
                 </View>
                 <View style={styles.actionInfo}>
                   <Text style={styles.actionTitle}>Processar 50 POIs</Text>
                   <Text style={styles.actionDesc}>Executar IQ Engine em 50 POIs pendentes</Text>
                 </View>
                 {(batchMutation.isPending || pollingActive) ? (
-                  <ActivityIndicator size="small" color="#C49A6C" />
+                  <ActivityIndicator size="small" color={C.accent} />
                 ) : (
-                  <MaterialIcons name="play-arrow" size={24} color={pending > 0 ? '#C49A6C' : colors.gray[300]} />
+                  <MaterialIcons name="play-arrow" size={24} color={pending > 0 ? C.accent : palette.gray[300]} />
                 )}
               </TouchableOpacity>
 
@@ -279,17 +399,17 @@ export default function ImporterScreen() {
                 disabled={batchMutation.isPending || pollingActive || pending === 0}
                 activeOpacity={0.7}
               >
-                <View style={[styles.actionIconBg, { backgroundColor: '#FEE2E2' }]}>
-                  <MaterialIcons name="local-fire-department" size={28} color="#EF4444" />
+                <View style={[styles.actionIconBg, { backgroundColor: withOpacity(C.error, 0.1) }]}>
+                  <MaterialIcons name="local-fire-department" size={28} color={C.error} />
                 </View>
                 <View style={styles.actionInfo}>
                   <Text style={styles.actionTitle}>Processar 200 POIs</Text>
                   <Text style={styles.actionDesc}>Processamento intensivo de 200 POIs</Text>
                 </View>
                 {(batchMutation.isPending || pollingActive) ? (
-                  <ActivityIndicator size="small" color="#EF4444" />
+                  <ActivityIndicator size="small" color={C.error} />
                 ) : (
-                  <MaterialIcons name="play-arrow" size={24} color={pending > 0 ? '#EF4444' : colors.gray[300]} />
+                  <MaterialIcons name="play-arrow" size={24} color={pending > 0 ? C.error : palette.gray[300]} />
                 )}
               </TouchableOpacity>
             </View>
@@ -301,7 +421,7 @@ export default function ImporterScreen() {
                   <MaterialIcons
                     name={progress.status === 'completed' ? 'check-circle' : 'hourglass-top'}
                     size={24}
-                    color={progress.status === 'completed' ? '#22C55E' : colors.terracotta[500]}
+                    color={progress.status === 'completed' ? C.success : C.accent}
                   />
                   <Text style={styles.batchProgressTitle}>
                     {progress.status === 'completed' ? 'Processamento Completo!' : 'A processar...'}
@@ -317,7 +437,7 @@ export default function ImporterScreen() {
                     <Text style={styles.batchStatLabel}>Total</Text>
                   </View>
                   <View style={styles.batchStat}>
-                    <Text style={[styles.batchStatNum, { color: colors.terracotta[500] }]}>
+                    <Text style={[styles.batchStatNum, { color: C.accent }]}>
                       {progress.percentage.toFixed(0)}%
                     </Text>
                     <Text style={styles.batchStatLabel}>Progresso</Text>
@@ -326,7 +446,7 @@ export default function ImporterScreen() {
                 <View style={styles.batchBar}>
                   <View style={[styles.batchBarFill, {
                     width: `${progress.percentage}%`,
-                    backgroundColor: progress.status === 'completed' ? '#22C55E' : colors.terracotta[500],
+                    backgroundColor: progress.status === 'completed' ? C.success : C.accent,
                   }]} />
                 </View>
               </View>
@@ -373,100 +493,3 @@ export default function ImporterScreen() {
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.background.primary,
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: spacing[4],
-    paddingVertical: spacing[3],
-    backgroundColor: colors.background.secondary,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.gray[200],
-  },
-  backButton: { padding: spacing[2], marginRight: spacing[2] },
-  headerCenter: { flex: 1 },
-  headerTitle: { fontSize: typography.fontSize.xl, fontWeight: '700' as const, color: colors.forest[500] },
-  headerSubtitle: { fontSize: typography.fontSize.sm, color: colors.gray[500], marginTop: 1 },
-  refreshButton: { padding: spacing[2] },
-  scrollView: { flex: 1 },
-  scrollContent: { padding: spacing[4] },
-
-  // Stats
-  statsRow: { flexDirection: 'row', gap: spacing[3], marginBottom: spacing[3] },
-  statCard: {
-    flex: 1, backgroundColor: colors.background.secondary,
-    borderRadius: borders.radius.xl, padding: spacing[4],
-    alignItems: 'center', gap: spacing[2], ...shadows.sm,
-  },
-  statCardPrimary: { backgroundColor: colors.terracotta[500] },
-  statNumber: { fontSize: 24, fontWeight: '700' as const, color: colors.gray[800] },
-  statNumberWhite: { fontSize: 24, fontWeight: '700' as const, color: '#FFFFFF' },
-  statLabel: { fontSize: typography.fontSize.xs, color: colors.gray[500], fontWeight: '500' as const },
-  statLabelWhite: { fontSize: typography.fontSize.xs, color: '#FFFFFFCC', fontWeight: '500' as const },
-
-  // Progress Section
-  progressSection: {
-    backgroundColor: colors.background.secondary, borderRadius: borders.radius.xl,
-    padding: spacing[4], marginBottom: spacing[5], ...shadows.sm,
-  },
-  progressHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: spacing[2] },
-  progressTitle: { fontSize: typography.fontSize.sm, fontWeight: '600' as const, color: colors.gray[700] },
-  progressPct: { fontSize: typography.fontSize.sm, fontWeight: '700' as const, color: colors.terracotta[500] },
-  progressBar: { height: 8, backgroundColor: colors.gray[100], borderRadius: 4, overflow: 'hidden' },
-  progressFill: { height: '100%', backgroundColor: colors.terracotta[500], borderRadius: 4 },
-  avgScoreRow: { flexDirection: 'row', alignItems: 'center', gap: spacing[1], marginTop: spacing[2] },
-  avgScoreText: { fontSize: typography.fontSize.sm, color: colors.gray[600] },
-
-  // Section
-  section: { marginBottom: spacing[5] },
-  sectionTitle: { fontSize: typography.fontSize.lg, fontWeight: '700' as const, color: colors.gray[800], marginBottom: spacing[3] },
-
-  // Action Cards
-  actionCard: {
-    flexDirection: 'row', alignItems: 'center', backgroundColor: colors.background.secondary,
-    padding: spacing[4], borderRadius: borders.radius.xl, marginBottom: spacing[2],
-    gap: spacing[3], ...shadows.sm,
-  },
-  actionCardDisabled: { opacity: 0.5 },
-  actionIconBg: { width: 48, height: 48, borderRadius: 14, justifyContent: 'center', alignItems: 'center' },
-  actionInfo: { flex: 1 },
-  actionTitle: { fontSize: typography.fontSize.base, fontWeight: '600' as const, color: colors.gray[800] },
-  actionDesc: { fontSize: typography.fontSize.xs, color: colors.gray[500], marginTop: 2 },
-
-  // Batch Progress
-  batchProgressCard: {
-    backgroundColor: '#FFFBF5', borderRadius: borders.radius.xl,
-    padding: spacing[4], marginBottom: spacing[5],
-    borderWidth: 1, borderColor: '#FDE8D3',
-  },
-  batchProgressHeader: { flexDirection: 'row', alignItems: 'center', gap: spacing[2], marginBottom: spacing[3] },
-  batchProgressTitle: { fontSize: typography.fontSize.base, fontWeight: '600' as const, color: colors.gray[800] },
-  batchStats: { flexDirection: 'row', justifyContent: 'space-around', marginBottom: spacing[3] },
-  batchStat: { alignItems: 'center' },
-  batchStatNum: { fontSize: 20, fontWeight: '700' as const, color: colors.gray[800] },
-  batchStatLabel: { fontSize: typography.fontSize.xs, color: colors.gray[500] },
-  batchBar: { height: 6, backgroundColor: colors.gray[100], borderRadius: 3, overflow: 'hidden' },
-  batchBarFill: { height: '100%', borderRadius: 3 },
-
-  // Categories
-  categoriesGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing[2] },
-  categoryChip: {
-    flexDirection: 'row', alignItems: 'center', backgroundColor: colors.background.secondary,
-    paddingHorizontal: spacing[3], paddingVertical: spacing[2],
-    borderRadius: borders.radius.full, gap: 6, ...shadows.sm,
-  },
-  categoryCount: { fontSize: typography.fontSize.xs, fontWeight: '700' as const, color: colors.terracotta[500] },
-  categoryName: { fontSize: typography.fontSize.xs, color: colors.gray[700], textTransform: 'capitalize' as const },
-
-  // Regions
-  regionRow: { flexDirection: 'row', alignItems: 'center', marginBottom: spacing[2], gap: spacing[2] },
-  regionName: { width: 70, fontSize: typography.fontSize.xs, color: colors.gray[600], textTransform: 'capitalize' as const },
-  regionBarContainer: { flex: 1, height: 8, backgroundColor: colors.gray[100], borderRadius: 4, overflow: 'hidden' },
-  regionBar: { height: '100%', backgroundColor: colors.forest[400], borderRadius: 4 },
-  regionCount: { width: 35, fontSize: typography.fontSize.xs, fontWeight: '600' as const, color: colors.gray[700], textAlign: 'right' as const },
-});

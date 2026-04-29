@@ -24,6 +24,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useQuery } from '@tanstack/react-query';
 import api, { getAgendaLive, AgendaEvent } from '../../src/services/api';
 import { colors, shadows } from '../../src/theme';
+import { palette } from '../../src/theme/colors';
 import { useTheme } from '../../src/context/ThemeContext';
 import EmptyState from '../../src/components/EmptyState';
 
@@ -39,7 +40,7 @@ const WEEKDAYS_PT = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
 
 // All event categories active
 const EVENT_CATEGORIES = [
-  { id: 'festas', name: 'Festas', icon: 'celebration', color: '#C49A6C' },
+  { id: 'festas', name: 'Festas', icon: 'celebration', color: palette.terracotta[500] },
   { id: 'religioso', name: 'Religioso', icon: 'church', color: '#8B5CF6' },
   { id: 'gastronomia', name: 'Gastronomia', icon: 'restaurant', color: '#EF4444' },
   { id: 'natureza', name: 'Natureza', icon: 'park', color: '#22C55E' },
@@ -164,7 +165,7 @@ const getCategoryIcon = (category: string): string => {
 
 const getCategoryColor = (category: string): string => {
   const cat = EVENT_CATEGORIES.find(c => c.id === category);
-  return cat?.color || '#C49A6C';
+  return cat?.color || palette.terracotta[500];
 };
 
 /**
@@ -355,13 +356,13 @@ export default function EventosTab() {
             )}
           </View>
           <View style={styles.eventMeta}>
-            <MaterialIcons name="event" size={14} color="#64748B" />
+            <MaterialIcons name="event" size={14} color={palette.gray[500]} />
             <Text style={styles.eventDate}>
               {event.date_text || `${event.date_start} - ${event.date_end}`}
             </Text>
           </View>
           <View style={styles.eventMeta}>
-            <MaterialIcons name="location-on" size={14} color="#64748B" />
+            <MaterialIcons name="location-on" size={14} color={palette.gray[500]} />
             <Text style={styles.eventRegion}>
               {event.concelho ? `${event.concelho}, ` : ''}{event.region}
             </Text>
@@ -382,7 +383,7 @@ export default function EventosTab() {
             </TouchableOpacity>
           )}
         </View>
-        <MaterialIcons name="chevron-right" size={24} color="#64748B" />
+        <MaterialIcons name="chevron-right" size={24} color={palette.gray[500]} />
       </TouchableOpacity>
     );
   };
@@ -390,7 +391,7 @@ export default function EventosTab() {
   if (isLoading && !liveData) {
     return (
       <View style={[styles.container, styles.loadingContainer, { backgroundColor: tc.background }]}>
-        <ActivityIndicator size="large" color="#C49A6C" />
+        <ActivityIndicator size="large" color={palette.terracotta[500]} />
         <Text style={styles.loadingText}>A carregar eventos...</Text>
       </View>
     );
@@ -402,7 +403,7 @@ export default function EventosTab() {
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
         refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#C49A6C" />
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={palette.terracotta[500]} />
         }
         showsVerticalScrollIndicator={false}
       >
@@ -421,7 +422,7 @@ export default function EventosTab() {
             <MaterialIcons
               name="calendar-today"
               size={18}
-              color={viewMode === 'calendar' ? '#000' : '#94A3B8'}
+              color={viewMode === 'calendar' ? '#000' : palette.gray[300]}
             />
             <Text style={[styles.toggleText, viewMode === 'calendar' && styles.toggleTextActive]}>
               Calendário
@@ -434,7 +435,7 @@ export default function EventosTab() {
             <MaterialIcons
               name="list"
               size={18}
-              color={viewMode === 'list' ? '#000' : '#94A3B8'}
+              color={viewMode === 'list' ? '#000' : palette.gray[300]}
             />
             <Text style={[styles.toggleText, viewMode === 'list' && styles.toggleTextActive]}>
               Lista
@@ -476,7 +477,7 @@ export default function EventosTab() {
               <MaterialIcons
                 name={cat.icon as any}
                 size={16}
-                color={selectedCategory === cat.id ? '#FFF' : '#94A3B8'}
+                color={selectedCategory === cat.id ? '#FFF' : palette.gray[300]}
               />
               <Text style={[
                 styles.filterText,
@@ -517,7 +518,7 @@ export default function EventosTab() {
         {/* Active Filters Indicator */}
         {(selectedCategory || selectedRegion) && (
           <View style={styles.activeFiltersBar}>
-            <MaterialIcons name="filter-list" size={16} color="#C49A6C" />
+            <MaterialIcons name="filter-list" size={16} color={palette.terracotta[500]} />
             <Text style={styles.activeFiltersText}>
               Filtros:{selectedCategory ? ` ${EVENT_CATEGORIES.find(c => c.id === selectedCategory)?.name || selectedCategory}` : ''}
               {selectedRegion ? ` · ${REGIONS.find(r => r.id === selectedRegion)?.name || selectedRegion}` : ''}
@@ -611,7 +612,7 @@ export default function EventosTab() {
               {liveSources.database} da base de dados · {liveSources.viralagenda} do Viral Agenda RSS
             </Text>
           </View>
-          <MaterialIcons name="rss-feed" size={18} color="#C49A6C" />
+          <MaterialIcons name="rss-feed" size={18} color={palette.terracotta[500]} />
         </View>
 
         {/* Quick Stats */}
@@ -648,7 +649,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   loadingText: {
-    color: '#94A3B8',
+    color: palette.gray[300],
     marginTop: 12,
     fontSize: 14,
   },
@@ -769,14 +770,14 @@ const styles = StyleSheet.create({
   activeFiltersText: {
     flex: 1,
     fontSize: 13,
-    color: '#C49A6C',
+    color: palette.terracotta[500],
     fontWeight: '500',
   },
   clearFiltersButton: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 3,
-    backgroundColor: '#C49A6C',
+    backgroundColor: palette.terracotta[500],
     paddingHorizontal: 8,
     paddingVertical: 3,
     borderRadius: 6,
@@ -980,7 +981,7 @@ const styles = StyleSheet.create({
   agendaViralTitle: {
     fontSize: 13,
     fontWeight: '600',
-    color: '#C49A6C',
+    color: palette.terracotta[500],
   },
   agendaViralSubtitle: {
     fontSize: 11,
@@ -1003,16 +1004,16 @@ const styles = StyleSheet.create({
   statValue: {
     fontSize: 28,
     fontWeight: '700',
-    color: '#C49A6C',
+    color: palette.terracotta[500],
   },
   statLabel: {
     fontSize: 12,
-    color: '#64748B',
+    color: palette.gray[500],
     marginTop: 4,
   },
   statDivider: {
     width: 1,
-    backgroundColor: '#2A2F2A',
+    backgroundColor: palette.gray[800],
     marginVertical: 4,
   },
 });
