@@ -299,7 +299,8 @@ export default function EventosTab() {
       key={index}
       style={[
         styles.calendarDay,
-        isToday(day.date) && styles.calendarDayToday,
+        { backgroundColor: tc.surfaceAlt },
+        isToday(day.date) && [styles.calendarDayToday, { backgroundColor: tc.accent }],
         day.events.length > 0 && styles.calendarDayWithEvent,
       ]}
       disabled={!day.date || day.events.length === 0}
@@ -314,6 +315,7 @@ export default function EventosTab() {
         <>
           <Text style={[
             styles.calendarDayText,
+            { color: tc.textPrimary },
             isToday(day.date) && styles.calendarDayTextToday,
           ]}>
             {day.date.getDate()}
@@ -449,30 +451,30 @@ export default function EventosTab() {
         </View>
 
         {/* View Mode Toggle */}
-        <View style={styles.toggleContainer}>
+        <View style={[styles.toggleContainer, { backgroundColor: tc.surface, borderColor: tc.border }]}>
           <TouchableOpacity
-            style={[styles.toggleButton, viewMode === 'calendar' && styles.toggleActive]}
+            style={[styles.toggleButton, viewMode === 'calendar' && [styles.toggleActive, { backgroundColor: tc.accent }]]}
             onPress={() => setViewMode('calendar')}
           >
             <MaterialIcons
               name="calendar-today"
               size={18}
-              color={viewMode === 'calendar' ? '#000' : palette.gray[300]}
+              color={viewMode === 'calendar' ? '#FFF' : tc.textMuted}
             />
-            <Text style={[styles.toggleText, viewMode === 'calendar' && styles.toggleTextActive]}>
+            <Text style={[styles.toggleText, { color: viewMode === 'calendar' ? '#FFF' : tc.textMuted }, viewMode === 'calendar' && styles.toggleTextActive]}>
               Calendário
             </Text>
           </TouchableOpacity>
           <TouchableOpacity
-            style={[styles.toggleButton, viewMode === 'list' && styles.toggleActive]}
+            style={[styles.toggleButton, viewMode === 'list' && [styles.toggleActive, { backgroundColor: tc.accent }]]}
             onPress={() => setViewMode('list')}
           >
             <MaterialIcons
               name="list"
               size={18}
-              color={viewMode === 'list' ? '#000' : palette.gray[300]}
+              color={viewMode === 'list' ? '#FFF' : tc.textMuted}
             />
-            <Text style={[styles.toggleText, viewMode === 'list' && styles.toggleTextActive]}>
+            <Text style={[styles.toggleText, { color: viewMode === 'list' ? '#FFF' : tc.textMuted }, viewMode === 'list' && styles.toggleTextActive]}>
               Lista
             </Text>
           </TouchableOpacity>
@@ -487,12 +489,14 @@ export default function EventosTab() {
           <TouchableOpacity
             style={[
               styles.filterChip,
-              !selectedCategory && styles.filterChipActive,
+              { backgroundColor: tc.surface, borderColor: tc.border, borderWidth: 1 },
+              !selectedCategory && [styles.filterChipActive, { borderColor: tc.accent }],
             ]}
             onPress={() => setSelectedCategory(null)}
           >
             <Text style={[
               styles.filterText,
+              { color: tc.textSecondary },
               !selectedCategory && styles.filterTextActive,
             ]}>
               Todos
@@ -503,7 +507,8 @@ export default function EventosTab() {
               key={cat.id}
               style={[
                 styles.filterChip,
-                selectedCategory === cat.id && { backgroundColor: cat.color },
+                { backgroundColor: tc.surface, borderColor: tc.border, borderWidth: 1 },
+                selectedCategory === cat.id && { backgroundColor: cat.color, borderColor: cat.color },
               ]}
               onPress={() => setSelectedCategory(
                 selectedCategory === cat.id ? null : cat.id
@@ -512,10 +517,11 @@ export default function EventosTab() {
               <MaterialIcons
                 name={cat.icon as any}
                 size={16}
-                color={selectedCategory === cat.id ? '#FFF' : palette.gray[300]}
+                color={selectedCategory === cat.id ? '#FFF' : tc.textSecondary}
               />
               <Text style={[
                 styles.filterText,
+                { color: tc.textSecondary },
                 selectedCategory === cat.id && styles.filterTextActive,
               ]}>
                 {cat.name}
@@ -535,7 +541,8 @@ export default function EventosTab() {
               key={region.id || 'all'}
               style={[
                 styles.regionPill,
-                selectedRegion === region.id && styles.regionPillActive,
+                { backgroundColor: tc.surface, borderColor: tc.border, borderWidth: 1 },
+                selectedRegion === region.id && [styles.regionPillActive, { borderColor: tc.accent }],
               ]}
               onPress={() => setSelectedRegion(region.id)}
             >
@@ -570,30 +577,30 @@ export default function EventosTab() {
 
         {viewMode === 'calendar' ? (
           /* Calendar View */
-          <View style={styles.calendarContainer}>
+          <View style={[styles.calendarContainer, { backgroundColor: tc.surface }]}>
             {/* Month Navigation */}
             <View style={styles.monthNav}>
               <TouchableOpacity
                 style={styles.monthButton}
                 onPress={() => navigateMonth('prev')}
               >
-                <MaterialIcons name="chevron-left" size={28} color="#FFFFFF" />
+                <MaterialIcons name="chevron-left" size={28} color={tc.textPrimary} />
               </TouchableOpacity>
-              <Text style={styles.monthTitle}>
+              <Text style={[styles.monthTitle, { color: tc.textPrimary }]}>
                 {MONTHS_PT[selectedDate.getMonth()]} {selectedDate.getFullYear()}
               </Text>
               <TouchableOpacity
                 style={styles.monthButton}
                 onPress={() => navigateMonth('next')}
               >
-                <MaterialIcons name="chevron-right" size={28} color="#FFFFFF" />
+                <MaterialIcons name="chevron-right" size={28} color={tc.textPrimary} />
               </TouchableOpacity>
             </View>
 
             {/* Weekday Headers */}
             <View style={styles.weekdaysRow}>
               {WEEKDAYS_PT.map((day, i) => (
-                <Text key={i} style={styles.weekdayText}>{day}</Text>
+                <Text key={i} style={[styles.weekdayText, { color: tc.textSecondary }]}>{day}</Text>
               ))}
             </View>
 
