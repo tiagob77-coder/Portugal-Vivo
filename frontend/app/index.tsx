@@ -88,112 +88,398 @@ function getGreeting(): string {
   return 'Boa noite';
 }
 
-function makeStyles(C: Record<string, string>) {
-  return StyleSheet.create({
-    container: { flex: 1, backgroundColor: C.bg },
-    scroll: { flex: 1 },
-    scrollContent: { paddingBottom: 20 },
+// Styles using design system directly
+const styles = StyleSheet.create({
+  container: { flex: 1, backgroundColor: palette.gray[50] },
+  scroll: { flex: 1 },
+  scrollContent: { paddingBottom: spacing['2xl'] },
 
-    nav: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 20, paddingVertical: 12, marginBottom: 4 },
-    logoWrap: { flexDirection: 'row', alignItems: 'center', gap: 10 },
-    logoIcon: { width: 32, height: 32, borderRadius: 10, backgroundColor: C.forestLight, justifyContent: 'center', alignItems: 'center' },
-    logoText: { fontSize: 18, fontWeight: '700', color: C.forest, fontFamily: headingFont },
-    navLinks: { flex: 1, flexDirection: 'row', justifyContent: 'center', gap: 28 },
-    navLink: {},
-    navLinkText: { fontSize: 14, color: C.textMed, fontWeight: '500', fontFamily: bodyFont },
-    profileBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: C.forestLight, justifyContent: 'center', alignItems: 'center' },
+  nav: { 
+    flexDirection: 'row', 
+    alignItems: 'center', 
+    paddingHorizontal: spacing.base, 
+    paddingVertical: spacing.md, 
+    marginBottom: spacing.xs 
+  },
+  logoWrap: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
+  logoIcon: { 
+    width: 32, 
+    height: 32, 
+    borderRadius: borderRadius.md, 
+    backgroundColor: palette.forest[500], 
+    justifyContent: 'center', 
+    alignItems: 'center' 
+  },
+  logoText: { 
+    ...typography.h4,
+    color: palette.forest[700], 
+    fontFamily: headingFont 
+  },
+  navLinks: { flex: 1, flexDirection: 'row', justifyContent: 'center', gap: 28 },
+  navLink: {},
+  navLinkText: { 
+    ...typography.bodySmall,
+    color: palette.gray[600], 
+    fontWeight: '500', 
+    fontFamily: bodyFont 
+  },
+  profileBtn: { 
+    width: 40, 
+    height: 40, 
+    borderRadius: borderRadius.pill, 
+    backgroundColor: palette.forest[500], 
+    justifyContent: 'center', 
+    alignItems: 'center' 
+  },
 
-    heroSection: { paddingHorizontal: 20, marginBottom: 28 },
-    heroImage: { height: 320, marginBottom: 20 },
-    heroGrad: { flex: 1, borderRadius: 24, justifyContent: 'flex-end', paddingBottom: 0 },
-    heroContent: { paddingHorizontal: 20, paddingBottom: 20 },
-    greeting: { fontSize: 15, color: C.forestLight, fontWeight: '600', marginBottom: 6, fontFamily: bodyFont },
-    heroTitle: { fontSize: 32, fontWeight: '800', color: C.textDark, lineHeight: 40, marginBottom: 10, fontFamily: headingFont },
-    heroSub: { fontSize: 14, color: C.textLight, lineHeight: 22, fontFamily: bodyFont },
+  heroSection: { paddingHorizontal: spacing.base, marginBottom: spacing.xl },
+  heroImage: { height: 320, marginBottom: spacing.base },
+  heroGrad: { flex: 1, borderRadius: borderRadius.xl, justifyContent: 'flex-end', paddingBottom: 0 },
+  heroContent: { paddingHorizontal: spacing.base, paddingBottom: spacing.base },
+  greeting: { 
+    ...typography.bodySmall,
+    color: palette.forest[500], 
+    fontWeight: '600', 
+    marginBottom: spacing.xs, 
+    fontFamily: bodyFont 
+  },
+  heroTitle: { 
+    ...typography.h1,
+    color: palette.gray[900], 
+    marginBottom: spacing.sm, 
+    fontFamily: headingFont 
+  },
+  heroSub: { 
+    ...typography.body,
+    color: palette.gray[600], 
+    fontFamily: bodyFont 
+  },
 
-    searchWrap: { flexDirection: 'row', alignItems: 'center', backgroundColor: C.card, borderRadius: 14, paddingHorizontal: 16, paddingVertical: 14, gap: 12, marginBottom: 20, borderWidth: 1, borderColor: C.border, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 8, elevation: 2 },
-    searchInput: { flex: 1, fontSize: 15, color: C.textDark, fontFamily: bodyFont },
+  searchWrap: { 
+    flexDirection: 'row', 
+    alignItems: 'center', 
+    backgroundColor: palette.white, 
+    borderRadius: borderRadius.lg, 
+    paddingHorizontal: spacing.base, 
+    paddingVertical: spacing.md, 
+    gap: spacing.md, 
+    marginBottom: spacing.base, 
+    borderWidth: 1, 
+    borderColor: palette.gray[200], 
+    ...shadows.sm
+  },
+  searchInput: { 
+    flex: 1, 
+    ...typography.body,
+    color: palette.gray[900], 
+    fontFamily: bodyFont 
+  },
 
-    statsRow: { flexDirection: 'row', gap: 12 },
-    statBox: { flex: 1, borderRadius: 16, paddingVertical: 16, paddingHorizontal: 12, alignItems: 'center', gap: 6 },
-    statVal: { fontSize: 26, fontWeight: '800', fontFamily: headingFont },
-    statLabel: { fontSize: 11, color: C.textLight, fontWeight: '500', fontFamily: bodyFont },
+  statsRow: { flexDirection: 'row', gap: spacing.md },
+  statBox: { 
+    flex: 1, 
+    borderRadius: borderRadius.lg, 
+    paddingVertical: spacing.base, 
+    paddingHorizontal: spacing.md, 
+    alignItems: 'center', 
+    gap: spacing.xs 
+  },
+  statVal: { 
+    ...typography.stat,
+    fontFamily: headingFont 
+  },
+  statLabel: { 
+    ...typography.caption,
+    color: palette.gray[600], 
+    fontWeight: '500', 
+    fontFamily: bodyFont 
+  },
 
-    section: { paddingHorizontal: 20, marginBottom: 32 },
-    sectionHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: 16 },
-    sectionLabel: { fontSize: 11, color: C.forestLight, fontWeight: '700', letterSpacing: 1.5, marginBottom: 4, fontFamily: bodyFont },
-    sectionTitle: { fontSize: 24, fontWeight: '700', color: C.textDark, marginBottom: 6, fontFamily: headingFont },
-    sectionSub: { fontSize: 14, color: C.textLight, lineHeight: 22, marginBottom: 20, fontFamily: bodyFont },
-    seeAllBtn: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingBottom: 6 },
-    seeAllText: { fontSize: 13, color: C.forestLight, fontWeight: '600', fontFamily: bodyFont },
+  section: { paddingHorizontal: spacing.base, marginBottom: spacing['2xl'] },
+  sectionHeader: { 
+    flexDirection: 'row', 
+    justifyContent: 'space-between', 
+    alignItems: 'flex-end', 
+    marginBottom: spacing.base 
+  },
+  sectionLabel: { 
+    ...typography.label,
+    color: palette.forest[500], 
+    marginBottom: spacing.xs, 
+    fontFamily: bodyFont 
+  },
+  sectionTitle: { 
+    ...typography.h2,
+    color: palette.gray[900], 
+    marginBottom: spacing.xs, 
+    fontFamily: headingFont 
+  },
+  sectionSub: { 
+    ...typography.body,
+    color: palette.gray[600], 
+    marginBottom: spacing.base, 
+    fontFamily: bodyFont 
+  },
+  seeAllBtn: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs, paddingBottom: spacing.xs },
+  seeAllText: { 
+    ...typography.bodySmall,
+    color: palette.forest[500], 
+    fontWeight: '600', 
+    fontFamily: bodyFont 
+  },
 
-    actionGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 12 },
-    actionCard: { height: 180, borderRadius: 16, overflow: 'hidden' },
-    actionCardBg: { flex: 1 },
-    actionCardGrad: { flex: 1, justifyContent: 'flex-end', padding: 14, borderRadius: 16 },
-    actionIconWrap: { width: 34, height: 34, borderRadius: 10, justifyContent: 'center', alignItems: 'center', marginBottom: 8 },
-    actionTitle: { fontSize: 16, fontWeight: '700', color: '#FFF', fontFamily: headingFont },
-    actionDesc: { fontSize: 11, color: 'rgba(255,255,255,0.8)', marginTop: 2, fontFamily: bodyFont },
+  actionGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.md },
+  actionCard: { height: 180, borderRadius: borderRadius.lg, overflow: 'hidden' },
+  actionCardBg: { flex: 1 },
+  actionCardGrad: { 
+    flex: 1, 
+    justifyContent: 'flex-end', 
+    padding: spacing.md, 
+    borderRadius: borderRadius.lg 
+  },
+  actionIconWrap: { 
+    width: 34, 
+    height: 34, 
+    borderRadius: borderRadius.md, 
+    justifyContent: 'center', 
+    alignItems: 'center', 
+    marginBottom: spacing.sm 
+  },
+  actionTitle: { 
+    ...typography.h4,
+    color: '#FFF', 
+    fontFamily: headingFont 
+  },
+  actionDesc: { 
+    ...typography.caption,
+    color: 'rgba(255,255,255,0.8)', 
+    marginTop: spacing.xs, 
+    fontFamily: bodyFont 
+  },
 
-    regionScroll: { gap: 12, paddingRight: 20 },
-    regionCard: { width: 260, height: 180, borderRadius: 16, overflow: 'hidden' },
-    regionCardBg: { flex: 1 },
-    regionCardGrad: { flex: 1, justifyContent: 'flex-end', padding: 14, borderRadius: 16 },
-    regionName: { fontSize: 20, fontWeight: '700', color: '#FFF', fontFamily: headingFont },
-    regionDesc: { fontSize: 12, color: 'rgba(255,255,255,0.8)', marginTop: 2, fontFamily: bodyFont },
-    regionStats: { flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 6 },
-    regionStatText: { fontSize: 11, color: C.mint },
+  regionScroll: { gap: spacing.md, paddingRight: spacing.base },
+  regionCard: { width: 260, height: 180, borderRadius: borderRadius.lg, overflow: 'hidden' },
+  regionCardBg: { flex: 1 },
+  regionCardGrad: { 
+    flex: 1, 
+    justifyContent: 'flex-end', 
+    padding: spacing.md, 
+    borderRadius: borderRadius.lg 
+  },
+  regionName: { 
+    ...typography.h3,
+    color: '#FFF', 
+    fontFamily: headingFont 
+  },
+  regionDesc: { 
+    ...typography.caption,
+    color: 'rgba(255,255,255,0.8)', 
+    marginTop: spacing.xs, 
+    fontFamily: bodyFont 
+  },
+  regionStats: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs, marginTop: spacing.xs },
+  regionStatText: { ...typography.caption, color: palette.forest[200] },
 
-    descScroll: { gap: 12, paddingRight: 20 },
-    descCard: { width: 200, height: 240, borderRadius: 14, overflow: 'hidden' },
-    descCardBg: { flex: 1 },
-    descCardGrad: { flex: 1, justifyContent: 'flex-end', padding: 14, borderRadius: 14 },
-    descBadge: { backgroundColor: C.forestLight, alignSelf: 'flex-start', paddingHorizontal: 10, paddingVertical: 3, borderRadius: 12, marginBottom: 8 },
-    descBadgeText: { fontSize: 10, color: '#FFF', fontWeight: '700', textTransform: 'uppercase', fontFamily: bodyFont },
-    descCardTitle: { fontSize: 15, fontWeight: '700', color: '#FFF', fontFamily: headingFont },
-    descCardRegion: { fontSize: 11, color: 'rgba(255,255,255,0.7)', marginTop: 3, fontFamily: bodyFont },
 
-    storyScroll: { gap: 16, paddingRight: 20 },
-    storyCard: { width: 280, borderRadius: 16, overflow: 'hidden', backgroundColor: C.card, borderWidth: 1, borderColor: C.border },
-    storyCardImg: { height: 140 },
-    storyCardImgGrad: { flex: 1, justifyContent: 'flex-end', padding: 12 },
-    storyBadgeRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-    storyRegionBadge: { backgroundColor: withOpacity(palette.forest[500], 0.85), paddingHorizontal: 10, paddingVertical: 3, borderRadius: 10 },
-    storyRegionText: { fontSize: 10, color: '#FFF', fontWeight: '700', fontFamily: bodyFont },
-    storyReadTime: { fontSize: 10, color: 'rgba(255,255,255,0.8)', fontFamily: bodyFont },
-    storyContent: { padding: 14 },
-    storyTitle: { fontSize: 16, fontWeight: '700', color: C.textDark, marginBottom: 6, fontFamily: headingFont },
-    storyDesc: { fontSize: 12, color: C.textLight, lineHeight: 18, marginBottom: 10, fontFamily: bodyFont },
-    storyFooter: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-    storyReadMore: { fontSize: 13, color: C.forestLight, fontWeight: '600', fontFamily: bodyFont },
+  descScroll: { gap: spacing.md, paddingRight: spacing.base },
+  descCard: { width: 200, height: 240, borderRadius: borderRadius.lg, overflow: 'hidden' },
+  descCardBg: { flex: 1 },
+  descCardGrad: { 
+    flex: 1, 
+    justifyContent: 'flex-end', 
+    padding: spacing.md, 
+    borderRadius: borderRadius.lg 
+  },
+  descBadge: { 
+    backgroundColor: palette.forest[500], 
+    alignSelf: 'flex-start', 
+    paddingHorizontal: spacing.sm, 
+    paddingVertical: spacing.xs, 
+    borderRadius: borderRadius.md, 
+    marginBottom: spacing.sm 
+  },
+  descBadgeText: { 
+    ...typography.overline,
+    color: '#FFF', 
+    fontFamily: bodyFont 
+  },
+  descCardTitle: { 
+    ...typography.h4,
+    color: '#FFF', 
+    fontFamily: headingFont 
+  },
+  descCardRegion: { 
+    ...typography.caption,
+    color: 'rgba(255,255,255,0.7)', 
+    marginTop: spacing.xs, 
+    fontFamily: bodyFont 
+  },
 
-    nlSection: { marginHorizontal: 20, backgroundColor: C.forest, borderRadius: 24, padding: 28, marginBottom: 32 },
-    nlContent: { maxWidth: 500 },
-    nlTitle: { fontSize: 22, fontWeight: '700', color: '#FFF', marginBottom: 8, fontFamily: headingFont },
-    nlSub: { fontSize: 14, color: 'rgba(255,255,255,0.7)', lineHeight: 22, marginBottom: 16, fontFamily: bodyFont },
-    nlInterests: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 20 },
-    nlChip: { paddingHorizontal: 14, paddingVertical: 6, borderRadius: 20, borderWidth: 1, borderColor: 'rgba(255,255,255,0.25)' },
-    nlChipText: { fontSize: 12, color: 'rgba(255,255,255,0.8)', fontFamily: bodyFont },
-    nlInputRow: { flexDirection: 'row', gap: 10, marginBottom: 10 },
-    nlInput: { flex: 1, backgroundColor: 'rgba(255,255,255,0.12)', borderRadius: 12, paddingHorizontal: 16, paddingVertical: 14, fontSize: 14, color: '#FFF', fontFamily: bodyFont },
-    nlBtn: { backgroundColor: C.accent, paddingHorizontal: 24, paddingVertical: 14, borderRadius: 12, justifyContent: 'center' },
-    nlBtnText: { color: '#FFF', fontSize: 14, fontWeight: '700', fontFamily: bodyFont },
-    nlDisclaimer: { fontSize: 11, color: 'rgba(255,255,255,0.4)', fontFamily: bodyFont },
+  storyScroll: { gap: spacing.base, paddingRight: spacing.base },
+  storyCard: { 
+    width: 280, 
+    borderRadius: borderRadius.lg, 
+    overflow: 'hidden', 
+    backgroundColor: palette.white, 
+    borderWidth: 1, 
+    borderColor: palette.gray[200] 
+  },
+  storyCardImg: { height: 140 },
+  storyCardImgGrad: { flex: 1, justifyContent: 'flex-end', padding: spacing.md },
+  storyBadgeRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  storyRegionBadge: { 
+    backgroundColor: withOpacity(palette.forest[500], 0.85), 
+    paddingHorizontal: spacing.sm, 
+    paddingVertical: spacing.xs, 
+    borderRadius: borderRadius.md 
+  },
+  storyRegionText: { 
+    ...typography.caption,
+    color: '#FFF', 
+    fontWeight: '700', 
+    fontFamily: bodyFont 
+  },
+  storyReadTime: { 
+    ...typography.caption,
+    color: 'rgba(255,255,255,0.8)', 
+    fontFamily: bodyFont 
+  },
+  storyContent: { padding: spacing.md },
+  storyTitle: { 
+    ...typography.h4,
+    color: palette.gray[900], 
+    marginBottom: spacing.xs, 
+    fontFamily: headingFont 
+  },
+  storyDesc: { 
+    ...typography.bodySmall,
+    color: palette.gray[600], 
+    marginBottom: spacing.sm, 
+    fontFamily: bodyFont 
+  },
+  storyFooter: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs },
+  storyReadMore: { 
+    ...typography.bodySmall,
+    color: palette.forest[500], 
+    fontWeight: '600', 
+    fontFamily: bodyFont 
+  },
 
-    footer: { marginHorizontal: 20, borderTopWidth: 1, borderTopColor: C.border, paddingTop: 32, paddingBottom: 20 },
-    footerTop: { flexDirection: 'row', flexWrap: 'wrap', gap: 40, marginBottom: 24 },
-    footerBrand: { flex: 1, minWidth: 200 },
-    footerLogoRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 10 },
-    footerLogo: { fontSize: 16, fontWeight: '700', color: C.textDark, fontFamily: headingFont },
-    footerDesc: { fontSize: 13, color: C.textLight, lineHeight: 20, maxWidth: 300, fontFamily: bodyFont },
-    footerCol: { minWidth: 120 },
-    footerColTitle: { fontSize: 12, color: C.forestLight, fontWeight: '700', marginBottom: 12, textTransform: 'uppercase', letterSpacing: 0.5, fontFamily: bodyFont },
-    footerLink: { fontSize: 13, color: C.textLight, marginBottom: 8, fontFamily: bodyFont },
-    footerBottom: { borderTopWidth: 1, borderTopColor: C.border, paddingTop: 16, flexDirection: 'row', justifyContent: 'space-between', flexWrap: 'wrap' },
-    footerCopy: { fontSize: 11, color: C.textMuted, fontFamily: bodyFont },
-    footerMade: { fontSize: 11, color: C.textMuted, fontFamily: bodyFont },
-  });
-}
+  nlSection: { 
+    marginHorizontal: spacing.base, 
+    backgroundColor: palette.forest[700], 
+    borderRadius: borderRadius.xl, 
+    padding: spacing.xl, 
+    marginBottom: spacing['2xl'] 
+  },
+  nlContent: { maxWidth: 500 },
+  nlTitle: { 
+    ...typography.h3,
+    color: '#FFF', 
+    marginBottom: spacing.sm, 
+    fontFamily: headingFont 
+  },
+  nlSub: { 
+    ...typography.body,
+    color: 'rgba(255,255,255,0.7)', 
+    marginBottom: spacing.base, 
+    fontFamily: bodyFont 
+  },
+  nlInterests: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm, marginBottom: spacing.base },
+  nlChip: { 
+    paddingHorizontal: spacing.md, 
+    paddingVertical: spacing.xs, 
+    borderRadius: borderRadius.pill, 
+    borderWidth: 1, 
+    borderColor: 'rgba(255,255,255,0.25)' 
+  },
+  nlChipText: { 
+    ...typography.caption,
+    color: 'rgba(255,255,255,0.8)', 
+    fontFamily: bodyFont 
+  },
+  nlInputRow: { flexDirection: 'row', gap: spacing.sm, marginBottom: spacing.sm },
+  nlInput: { 
+    flex: 1, 
+    backgroundColor: 'rgba(255,255,255,0.12)', 
+    borderRadius: borderRadius.md, 
+    paddingHorizontal: spacing.base, 
+    paddingVertical: spacing.md, 
+    ...typography.body,
+    color: '#FFF', 
+    fontFamily: bodyFont 
+  },
+  nlBtn: { 
+    backgroundColor: palette.terracotta[500], 
+    paddingHorizontal: spacing.xl, 
+    paddingVertical: spacing.md, 
+    borderRadius: borderRadius.md, 
+    justifyContent: 'center' 
+  },
+  nlBtnText: { 
+    color: '#FFF', 
+    ...typography.button,
+    fontFamily: bodyFont 
+  },
+  nlDisclaimer: { 
+    ...typography.caption,
+    color: 'rgba(255,255,255,0.4)', 
+    fontFamily: bodyFont 
+  },
+
+  footer: { 
+    marginHorizontal: spacing.base, 
+    borderTopWidth: 1, 
+    borderTopColor: palette.gray[200], 
+    paddingTop: spacing['2xl'], 
+    paddingBottom: spacing.base 
+  },
+  footerTop: { flexDirection: 'row', flexWrap: 'wrap', gap: 40, marginBottom: spacing.xl },
+  footerBrand: { flex: 1, minWidth: 200 },
+  footerLogoRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, marginBottom: spacing.sm },
+  footerLogo: { 
+    ...typography.h4,
+    color: palette.gray[900], 
+    fontFamily: headingFont 
+  },
+  footerDesc: { 
+    ...typography.bodySmall,
+    color: palette.gray[600], 
+    maxWidth: 300, 
+    fontFamily: bodyFont 
+  },
+  footerCol: { minWidth: 120 },
+  footerColTitle: { 
+    ...typography.label,
+    color: palette.forest[500], 
+    marginBottom: spacing.md, 
+    fontFamily: bodyFont 
+  },
+  footerLink: { 
+    ...typography.bodySmall,
+    color: palette.gray[600], 
+    marginBottom: spacing.sm, 
+    fontFamily: bodyFont 
+  },
+  footerBottom: { 
+    borderTopWidth: 1, 
+    borderTopColor: palette.gray[200], 
+    paddingTop: spacing.base, 
+    flexDirection: 'row', 
+    justifyContent: 'space-between', 
+    flexWrap: 'wrap' 
+  },
+  footerCopy: { 
+    ...typography.caption,
+    color: palette.gray[500], 
+    fontFamily: bodyFont 
+  },
+  footerMade: { 
+    ...typography.caption,
+    color: palette.gray[500], 
+    fontFamily: bodyFont 
+  },
+});
 
 export default function WelcomeScreen() {
   const router = useRouter();
