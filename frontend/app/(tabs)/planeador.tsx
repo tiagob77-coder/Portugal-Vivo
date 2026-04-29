@@ -35,6 +35,7 @@ import api, {
   SavedItinerary,
 } from '../../src/services/api';
 import { colors, shadows } from '../../src/theme';
+import { palette } from '../../src/theme/colors';
 import { useTheme } from '../../src/context/ThemeContext';
 import { useAuth } from '../../src/context/AuthContext';
 
@@ -48,8 +49,8 @@ const PLANNING_TOOLS = [
     title: 'Viagem Rápida',
     description: 'Gere um roteiro automático para um dia',
     icon: 'flash-on',
-    color: '#C49A6C',
-    gradient: ['#B08556', '#C49A6C'],
+    color: palette.terracotta[500],
+    gradient: ['#B08556', palette.terracotta[500]],
   },
   {
     id: 'weekend',
@@ -80,7 +81,7 @@ const PLANNING_TOOLS = [
 // All interest categories (covering all 44 subcategories)
 const INTERESTS = [
   { id: 'natureza', name: 'Natureza', icon: 'terrain', color: '#22C55E' },
-  { id: 'patrimonio', name: 'Património', icon: 'account-balance', color: '#C49A6C' },
+  { id: 'patrimonio', name: 'Património', icon: 'account-balance', color: palette.terracotta[500] },
   { id: 'gastronomia', name: 'Gastronomia', icon: 'restaurant', color: '#EF4444' },
   { id: 'historia', name: 'História', icon: 'history-edu', color: '#92400E' },
   { id: 'cultura', name: 'Cultura', icon: 'celebration', color: '#8B5CF6' },
@@ -339,34 +340,34 @@ export default function PlaneadorTab() {
       data-testid={`route-card-${route.id}`}
     >
       <View style={styles.routeIcon}>
-        <MaterialIcons name="route" size={24} color="#C49A6C" />
+        <MaterialIcons name="route" size={24} color={palette.terracotta[500]} />
       </View>
       <View style={styles.routeInfo}>
         <Text style={styles.routeName} numberOfLines={1}>{route.name}</Text>
         <View style={styles.routeMeta}>
           {route.duration_hours && (
             <>
-              <MaterialIcons name="schedule" size={12} color="#64748B" />
+              <MaterialIcons name="schedule" size={12} color={palette.gray[500]} />
               <Text style={styles.routeMetaText}>{route.duration_hours}h</Text>
             </>
           )}
           {route.distance_km && (
             <>
-              <MaterialIcons name="straighten" size={12} color="#64748B" />
+              <MaterialIcons name="straighten" size={12} color={palette.gray[500]} />
               <Text style={styles.routeMetaText}>{route.distance_km}km</Text>
             </>
           )}
           {route.difficulty && (
             <View style={[
               styles.difficultyBadge,
-              { backgroundColor: route.difficulty === 'fácil' ? '#22C55E' : route.difficulty === 'moderado' ? '#C49A6C' : '#EF4444' }
+              { backgroundColor: route.difficulty === 'fácil' ? '#22C55E' : route.difficulty === 'moderado' ? palette.terracotta[500] : '#EF4444' }
             ]}>
               <Text style={styles.difficultyText}>{route.difficulty}</Text>
             </View>
           )}
         </View>
       </View>
-      <MaterialIcons name="chevron-right" size={24} color="#64748B" />
+      <MaterialIcons name="chevron-right" size={24} color={palette.gray[500]} />
     </TouchableOpacity>
   );
 
@@ -386,7 +387,7 @@ export default function PlaneadorTab() {
         {/* Planning Tools */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
-            <MaterialIcons name="auto-fix-high" size={20} color="#C49A6C" />
+            <MaterialIcons name="auto-fix-high" size={20} color={palette.terracotta[500]} />
             <Text style={styles.sectionTitle}>Ferramentas de Planeamento</Text>
           </View>
           <View style={styles.toolsGrid}>
@@ -443,7 +444,7 @@ export default function PlaneadorTab() {
                 <MaterialIcons
                   name={interest.icon as any}
                   size={18}
-                  color={selectedInterests.includes(interest.id) ? '#FFF' : '#94A3B8'}
+                  color={selectedInterests.includes(interest.id) ? '#FFF' : palette.gray[300]}
                 />
                 <Text style={[
                   styles.interestText,
@@ -511,11 +512,11 @@ export default function PlaneadorTab() {
             <Text style={styles.sectionTitle}>Localidade</Text>
           </View>
           <View style={styles.localityInput}>
-            <MaterialIcons name="search" size={18} color="#94A3B8" />
+            <MaterialIcons name="search" size={18} color={palette.gray[300]} />
             <TextInput
               style={styles.localityTextInput}
               placeholder="Pesquisar localidade (ex: Braga, Sintra...)"
-              placeholderTextColor="#64748B"
+              placeholderTextColor={palette.gray[500]}
               value={localitySearch}
               onChangeText={(text) => {
                 setLocalitySearch(text);
@@ -524,7 +525,7 @@ export default function PlaneadorTab() {
             />
             {selectedLocality && (
               <TouchableOpacity onPress={() => { setSelectedLocality(null); setLocalitySearch(''); }}>
-                <MaterialIcons name="close" size={18} color="#94A3B8" />
+                <MaterialIcons name="close" size={18} color={palette.gray[300]} />
               </TouchableOpacity>
             )}
           </View>
@@ -572,7 +573,7 @@ export default function PlaneadorTab() {
                 <MaterialIcons
                   name={pace.icon as any}
                   size={18}
-                  color={selectedPace === pace.id ? '#FFF' : '#94A3B8'}
+                  color={selectedPace === pace.id ? '#FFF' : palette.gray[300]}
                 />
                 <Text style={[
                   styles.paceText,
@@ -604,7 +605,7 @@ export default function PlaneadorTab() {
                 <MaterialIcons
                   name={profile.icon as any}
                   size={18}
-                  color={selectedProfile === profile.id ? '#FFF' : '#94A3B8'}
+                  color={selectedProfile === profile.id ? '#FFF' : palette.gray[300]}
                 />
                 <Text style={[
                   styles.profileText,
@@ -630,7 +631,7 @@ export default function PlaneadorTab() {
             value={aiNarrativeEnabled}
             onValueChange={setAiNarrativeEnabled}
             trackColor={{ false: '#E2E8F0', true: '#C4B5FD' }}
-            thumbColor={aiNarrativeEnabled ? '#8B5CF6' : '#94A3B8'}
+            thumbColor={aiNarrativeEnabled ? '#8B5CF6' : palette.gray[300]}
           />
         </View>
 
@@ -643,7 +644,7 @@ export default function PlaneadorTab() {
           data-testid="start-planning-btn"
         >
           <LinearGradient
-            colors={['#C49A6C', '#B08556']}
+            colors={[palette.terracotta[500], '#B08556']}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 0 }}
             style={styles.startGradient}
@@ -664,7 +665,7 @@ export default function PlaneadorTab() {
         {aiResult && (
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
-              <MaterialIcons name="auto-awesome" size={20} color="#C49A6C" />
+              <MaterialIcons name="auto-awesome" size={20} color={palette.terracotta[500]} />
               <Text style={styles.sectionTitle}>
                 {aiResult.locality ? `Roteiro em ${aiResult.locality}` : `Roteiro ${aiResult.region}`} - {aiResult.days} {aiResult.days === 1 ? 'dia' : 'dias'}
               </Text>
@@ -677,7 +678,7 @@ export default function PlaneadorTab() {
             <View style={styles.aiSummaryCard}>
               <View style={styles.aiSummaryRow}>
                 <View style={styles.aiSummaryItem}>
-                  <MaterialIcons name="place" size={16} color="#C49A6C" />
+                  <MaterialIcons name="place" size={16} color={palette.terracotta[500]} />
                   <Text style={styles.aiSummaryValue}>{aiResult.summary.total_pois}</Text>
                   <Text style={styles.aiSummaryLabel}>POIs</Text>
                 </View>
@@ -730,9 +731,9 @@ export default function PlaneadorTab() {
                       <MaterialIcons
                         name={(PERIOD_ICONS[period.period] || 'schedule') as any}
                         size={14}
-                        color={PERIOD_COLORS[period.period] || '#94A3B8'}
+                        color={PERIOD_COLORS[period.period] || palette.gray[300]}
                       />
-                      <Text style={[styles.aiPeriodLabel, { color: PERIOD_COLORS[period.period] || '#94A3B8' }]}>
+                      <Text style={[styles.aiPeriodLabel, { color: PERIOD_COLORS[period.period] || palette.gray[300] }]}>
                         {period.label} ({period.start_time})
                       </Text>
                     </View>
@@ -742,7 +743,7 @@ export default function PlaneadorTab() {
                         style={styles.aiPoiItem}
                         onPress={() => router.push(`/heritage/${poi.id}`)}
                       >
-                        <MaterialIcons name="place" size={16} color={PERIOD_COLORS[period.period] || '#C49A6C'} />
+                        <MaterialIcons name="place" size={16} color={PERIOD_COLORS[period.period] || palette.terracotta[500]} />
                         <View style={{ flex: 1 }}>
                           <Text style={styles.aiPoiName} numberOfLines={1}>{poi.name}</Text>
                           <View style={styles.aiPoiMeta}>
@@ -844,19 +845,19 @@ export default function PlaneadorTab() {
                 if (next && myPlans.length === 0) loadMyPlans();
               }}
             >
-              <MaterialIcons name="folder" size={20} color="#C49A6C" />
+              <MaterialIcons name="folder" size={20} color={palette.terracotta[500]} />
               <Text style={styles.sectionTitle}>Meus Planos</Text>
               <MaterialIcons
                 name={myPlansOpen ? 'expand-less' : 'expand-more'}
                 size={22}
-                color="#94A3B8"
+                color={palette.gray[300]}
                 style={{ marginLeft: 'auto' }}
               />
             </TouchableOpacity>
 
             {myPlansOpen && (
               myPlansLoading ? (
-                <ActivityIndicator size="small" color="#C49A6C" style={{ padding: 20 }} />
+                <ActivityIndicator size="small" color={palette.terracotta[500]} style={{ padding: 20 }} />
               ) : myPlans.length === 0 ? (
                 <Text style={[styles.emptyText, { paddingHorizontal: 20 }]}>
                   Ainda não tem roteiros guardados.
@@ -877,9 +878,9 @@ export default function PlaneadorTab() {
                         </Text>
                       </View>
                       <TouchableOpacity onPress={() => handleDeletePlan(plan.id)} style={{ padding: 4 }}>
-                        <MaterialIcons name="delete-outline" size={18} color="#94A3B8" />
+                        <MaterialIcons name="delete-outline" size={18} color={palette.gray[300]} />
                       </TouchableOpacity>
-                      <MaterialIcons name="chevron-right" size={20} color="#94A3B8" />
+                      <MaterialIcons name="chevron-right" size={20} color={palette.gray[300]} />
                     </TouchableOpacity>
                   ))}
                 </View>
@@ -896,7 +897,7 @@ export default function PlaneadorTab() {
           </View>
           {routesLoading ? (
             <View style={styles.loadingContainer}>
-              <ActivityIndicator size="small" color="#C49A6C" />
+              <ActivityIndicator size="small" color={palette.terracotta[500]} />
             </View>
           ) : routesData && routesData.length > 0 ? (
             <View style={styles.routesList}>
@@ -904,7 +905,7 @@ export default function PlaneadorTab() {
             </View>
           ) : (
             <View style={styles.emptyState}>
-              <MaterialIcons name="explore" size={32} color="#64748B" />
+              <MaterialIcons name="explore" size={32} color={palette.gray[500]} />
               <Text style={styles.emptyText}>Selecione uma região para ver rotas</Text>
             </View>
           )}
@@ -921,7 +922,7 @@ export default function PlaneadorTab() {
               <MaterialIcons name="auto-awesome" size={24} color={colors.terracotta[500]} />
             </View>
             <Text style={styles.quickActionText}>Rotas Inteligentes (IQ)</Text>
-            <MaterialIcons name="arrow-forward" size={20} color="#64748B" />
+            <MaterialIcons name="arrow-forward" size={20} color={palette.gray[500]} />
           </TouchableOpacity>
           <TouchableOpacity
             style={styles.quickAction}
@@ -929,10 +930,10 @@ export default function PlaneadorTab() {
             data-testid="quick-action-route-planner"
           >
             <View style={styles.quickActionIcon}>
-              <MaterialIcons name="directions" size={24} color="#C49A6C" />
+              <MaterialIcons name="directions" size={24} color={palette.terracotta[500]} />
             </View>
             <Text style={styles.quickActionText}>Planear Rota A→B</Text>
-            <MaterialIcons name="arrow-forward" size={20} color="#64748B" />
+            <MaterialIcons name="arrow-forward" size={20} color={palette.gray[500]} />
           </TouchableOpacity>
           <TouchableOpacity
             style={styles.quickAction}
@@ -942,7 +943,7 @@ export default function PlaneadorTab() {
               <MaterialIcons name="near-me" size={24} color="#22C55E" />
             </View>
             <Text style={styles.quickActionText}>Locais Perto de Mim</Text>
-            <MaterialIcons name="arrow-forward" size={20} color="#64748B" />
+            <MaterialIcons name="arrow-forward" size={20} color={palette.gray[500]} />
           </TouchableOpacity>
         </View>
 
@@ -1083,7 +1084,7 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     backgroundColor: colors.mint[100],
     borderWidth: 1,
-    borderColor: '#2A2F2A',
+    borderColor: palette.gray[800],
     marginRight: 8,
   },
   regionChipActive: {
@@ -1116,7 +1117,7 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
   },
   aiBadge: {
-    backgroundColor: '#C49A6C',
+    backgroundColor: palette.terracotta[500],
     paddingHorizontal: 8,
     paddingVertical: 2,
     borderRadius: 8,
@@ -1125,7 +1126,7 @@ const styles = StyleSheet.create({
   aiBadgeText: { color: '#FFF', fontSize: 10, fontWeight: '700' },
   aiSubtitle: {
     fontSize: 14,
-    color: '#64748B',
+    color: palette.gray[500],
     fontStyle: 'italic',
     paddingHorizontal: 20,
     marginBottom: 12,
@@ -1140,7 +1141,7 @@ const styles = StyleSheet.create({
   },
   aiDayHeader: { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 10 },
   aiDayBadge: {
-    backgroundColor: '#C49A6C',
+    backgroundColor: palette.terracotta[500],
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: 8,
@@ -1159,14 +1160,14 @@ const styles = StyleSheet.create({
   aiPeriodLabel: {
     fontSize: 11,
     fontWeight: '700',
-    color: '#94A3B8',
+    color: palette.gray[300],
     textTransform: 'uppercase',
     letterSpacing: 1,
     marginBottom: 4,
   },
   aiNarrative: {
     fontSize: 13,
-    color: '#64748B',
+    color: palette.gray[500],
     lineHeight: 18,
     marginBottom: 6,
     fontStyle: 'italic',
@@ -1185,7 +1186,7 @@ const styles = StyleSheet.create({
     paddingVertical: 2,
     borderRadius: 6,
   },
-  iqText: { fontSize: 10, fontWeight: '700', color: '#C49A6C' },
+  iqText: { fontSize: 10, fontWeight: '700', color: palette.terracotta[500] },
   aiTip: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -1195,7 +1196,7 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: '#F1F5F9',
   },
-  aiTipText: { flex: 1, fontSize: 12, color: '#64748B' },
+  aiTipText: { flex: 1, fontSize: 12, color: palette.gray[500] },
   aiClosing: {
     fontSize: 14,
     color: '#7C3AED',
@@ -1305,7 +1306,7 @@ const styles = StyleSheet.create({
     gap: 8,
     marginTop: 2,
   },
-  aiPoiMetaText: { fontSize: 10, color: '#94A3B8' },
+  aiPoiMetaText: { fontSize: 10, color: palette.gray[300] },
   aiPoiTravel: { fontSize: 10, color: '#3B82F6' },
   // Events card
   aiEventsCard: {
@@ -1375,7 +1376,7 @@ const styles = StyleSheet.create({
   },
   routeMetaText: {
     fontSize: 12,
-    color: '#64748B',
+    color: palette.gray[500],
     marginRight: 8,
   },
   difficultyBadge: {
@@ -1393,13 +1394,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 32,
     marginHorizontal: 20,
-    backgroundColor: '#264E41',
+    backgroundColor: palette.forest[600],
     borderRadius: 12,
     gap: 8,
   },
   emptyText: {
     fontSize: 14,
-    color: '#64748B',
+    color: palette.gray[500],
   },
   quickActionsSection: {
     marginTop: 24,
@@ -1409,7 +1410,7 @@ const styles = StyleSheet.create({
   quickAction: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#264E41',
+    backgroundColor: palette.forest[600],
     borderRadius: 12,
     padding: 16,
     gap: 12,
@@ -1491,7 +1492,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#2E5E4E',
+    backgroundColor: palette.forest[500],
     marginHorizontal: 20,
     marginTop: 8,
     borderRadius: 12,

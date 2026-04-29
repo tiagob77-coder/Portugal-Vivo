@@ -12,6 +12,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useQuery } from '@tanstack/react-query';
 import { WebView } from 'react-native-webview';
 import { colors, typography } from '../../src/theme';
+import { palette } from '../../src/theme/colors';
 import { useTheme } from '../../src/context/ThemeContext';
 import api, { getBeaches, getBeachBandeiraAzul } from '../../src/services/api';
 
@@ -23,7 +24,7 @@ const REGIONS = [
   { id: 'Centro', label: 'Centro', color: '#059669' },
   { id: 'Lisboa', label: 'Lisboa', color: '#DC2626' },
   { id: 'Alentejo', label: 'Alentejo', color: '#854D0E' },
-  { id: 'Algarve', label: 'Algarve', color: '#C49A6C' },
+  { id: 'Algarve', label: 'Algarve', color: palette.terracotta[500] },
   { id: 'Açores', label: 'Açores', color: '#0E7490' },
   { id: 'Madeira', label: 'Madeira', color: '#7C3AED' },
 ];
@@ -39,7 +40,7 @@ const QUALITY_COLORS: Record<string, string> = {
 const SURF_COLORS: Record<string, string> = {
   'Extremo': '#DC2626',
   'Avancado': '#F97316',
-  'Intermedio-Avancado': '#C49A6C',
+  'Intermedio-Avancado': palette.terracotta[500],
   'Intermedio': '#EAB308',
   'Iniciante-Intermedio': '#22C55E',
   'Iniciante': '#10B981',
@@ -212,7 +213,7 @@ export default function BeachcamsScreen() {
                       <Text style={[styles.surfBadgeText, { color: surfColor }]}>{cam.surf_level}</Text>
                     </View>
                     <View style={styles.seasonBadge}>
-                      <MaterialIcons name="wb-sunny" size={12} color="#C49A6C" />
+                      <MaterialIcons name="wb-sunny" size={12} color={palette.terracotta[500]} />
                       <Text style={styles.seasonText}>{cam.best_season}</Text>
                     </View>
                   </View>
@@ -241,7 +242,7 @@ export default function BeachcamsScreen() {
               </View>
             ) : (
               beaches.map((beach: any) => {
-                const qColor = QUALITY_COLORS[beach.water_quality] || '#94A3B8';
+                const qColor = QUALITY_COLORS[beach.water_quality] || palette.gray[300];
                 return (
                   <View key={beach.id} style={styles.beachQualityCard}>
                     <View style={styles.beachQualityHeader}>
@@ -332,7 +333,7 @@ const styles = StyleSheet.create({
   surfBadge: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 10, paddingVertical: 4, borderRadius: 10 },
   surfBadgeText: { fontSize: 11, fontWeight: '700' },
   seasonBadge: { flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: 'rgba(245,158,11,0.12)', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 10 },
-  seasonText: { fontSize: 11, fontWeight: '600', color: '#C49A6C' },
+  seasonText: { fontSize: 11, fontWeight: '600', color: palette.terracotta[500] },
   highlights: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginTop: 12 },
   highlightTag: { backgroundColor: 'rgba(255,255,255,0.06)', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8, borderWidth: 1, borderColor: 'rgba(255,255,255,0.08)' },
   highlightText: { fontSize: 10, color: 'rgba(255,255,255,0.5)', fontWeight: '500' },

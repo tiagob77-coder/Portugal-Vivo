@@ -13,6 +13,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useQuery } from '@tanstack/react-query';
 import { getIQAdmin } from '../src/services/api';
 import { colors } from '../src/theme';
+import { palette, withOpacity } from '../src/theme/colors';
 
 const MODULE_DISPLAY: Record<string, { name: string; icon: string; color: string }> = {
   semantic_validation: { name: 'Validação Semântica', icon: 'spellcheck', color: '#3B82F6' },
@@ -238,9 +239,9 @@ function StatBox({ label, value, color, icon }: { label: string; value: string; 
 }
 
 const a = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#0F1419' },
+  container: { flex: 1, backgroundColor: palette.gray[900] },
   header: {
-    backgroundColor: '#1A2332', paddingHorizontal: 16, paddingBottom: 12,
+    backgroundColor: palette.gray[800], paddingHorizontal: 16, paddingBottom: 12,
     flexDirection: 'row', alignItems: 'center',
     borderBottomWidth: 1, borderBottomColor: '#2D3748',
   },
@@ -260,7 +261,7 @@ const a = StyleSheet.create({
   // Stats
   statsRow: { flexDirection: 'row', gap: 8, marginTop: 12 },
   statBox: {
-    flex: 1, backgroundColor: '#1A2332', borderRadius: 12,
+    flex: 1, backgroundColor: palette.gray[800], borderRadius: 12,
     padding: 10, alignItems: 'center', gap: 4,
     borderWidth: 1, borderColor: '#2D3748',
   },
@@ -269,7 +270,7 @@ const a = StyleSheet.create({
 
   // Progress
   progressCard: {
-    marginTop: 12, backgroundColor: '#1A2332', borderRadius: 14,
+    marginTop: 12, backgroundColor: palette.gray[800], borderRadius: 14,
     padding: 14, borderWidth: 1, borderColor: '#2D3748',
   },
   progressHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 },
@@ -281,7 +282,7 @@ const a = StyleSheet.create({
 
   // Sections
   sectionCard: {
-    marginTop: 12, backgroundColor: '#1A2332', borderRadius: 14,
+    marginTop: 12, backgroundColor: palette.gray[800], borderRadius: 14,
     padding: 14, borderWidth: 1, borderColor: '#2D3748',
   },
   sectionHeader: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 12 },
