@@ -18,6 +18,8 @@ import {
   Linking,
   Platform,
 } from 'react-native';
+import { Image } from 'expo-image';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -166,6 +168,11 @@ const getCategoryIcon = (category: string): string => {
 const getCategoryColor = (category: string): string => {
   const cat = EVENT_CATEGORIES.find(c => c.id === category);
   return cat?.color || palette.terracotta[500];
+};
+
+const getCategoryName = (category: string): string => {
+  const cat = EVENT_CATEGORIES.find(c => c.id === category);
+  return cat?.name || category;
 };
 
 /**
@@ -326,19 +333,21 @@ export default function EventosTab() {
     </TouchableOpacity>
   );
 
-  // Event category images
+  // Event category images - high quality Portuguese cultural images
   const getCategoryImage = (category: string): string => {
     const images: Record<string, string> = {
-      religioso: 'https://images.unsplash.com/photo-1548625149-fc4a29cf7092?w=400&q=80',
-      musica: 'https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?w=400&q=80',
-      gastronomia: 'https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=400&q=80',
-      tradicional: 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=400&q=80',
-      festa: 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=400&q=80',
-      feira: 'https://images.unsplash.com/photo-1488459716781-31db52582fe9?w=400&q=80',
-      cultural: 'https://images.unsplash.com/photo-1499781350541-7783f6c6a0c8?w=400&q=80',
-      desportivo: 'https://images.unsplash.com/photo-1461896836934- voices-of-a-distant-star?w=400&q=80',
+      religioso: 'https://images.unsplash.com/photo-1548625149-fc4a29cf7092?w=800&q=80',
+      musica: 'https://images.pexels.com/photos/27271689/pexels-photo-27271689.jpeg?w=800&q=80',
+      gastronomia: 'https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=800&q=80',
+      tradicional: 'https://images.pexels.com/photos/19911485/pexels-photo-19911485.jpeg?w=800&q=80',
+      festa: 'https://images.unsplash.com/photo-1766354632527-0e9690328afc?w=800&q=80',
+      festas: 'https://images.unsplash.com/photo-1766354632527-0e9690328afc?w=800&q=80',
+      feira: 'https://images.pexels.com/photos/17821300/pexels-photo-17821300.jpeg?w=800&q=80',
+      cultural: 'https://images.unsplash.com/photo-1766355621721-e2f9c90a6588?w=800&q=80',
+      festival: 'https://images.pexels.com/photos/27271689/pexels-photo-27271689.jpeg?w=800&q=80',
+      natureza: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&q=80',
     };
-    return images[category] || 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=400&q=80';
+    return images[category] || 'https://images.unsplash.com/photo-1634820491182-014e84a586b4?w=800&q=80';
   };
 
   const renderEventCard = (event: CalendarEvent) => {
@@ -884,16 +893,39 @@ const styles = StyleSheet.create({
   listContainer: {
     paddingHorizontal: 20,
     marginTop: 8,
-    gap: 8,
+    gap: 12,
   },
   eventCard: {
+    borderRadius: 16,
+    overflow: 'hidden',
+    height: 180,
+    ...shadows.md,
+  },
+  eventImage: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: '#2E5E4E',
+  },
+  eventGradient: {
+    ...StyleSheet.absoluteFillObject,
+  },
+  eventContent: {
+    flex: 1,
+    justifyContent: 'flex-end',
+    padding: 16,
+  },
+  eventCategoryBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.background.secondary,
+    gap: 4,
+    alignSelf: 'flex-start',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
     borderRadius: 12,
-    padding: 14,
-    gap: 12,
-    ...shadows.sm,
+    marginBottom: 8,
+  },
+  eventCategoryText: {
+    fontSize: 11,
+    fontWeight: '600',
   },
   eventIcon: {
     width: 48,
@@ -906,36 +938,39 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   eventName: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: colors.gray[800],
-    marginBottom: 4,
-    flex: 1,
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#FFFFFF',
+    marginBottom: 6,
+    textShadowColor: 'rgba(0,0,0,0.5)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 3,
   },
   eventMeta: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
-    marginTop: 2,
+    marginTop: 4,
   },
   eventDate: {
     fontSize: 12,
-    color: colors.gray[500],
+    color: 'rgba(255,255,255,0.9)',
   },
   eventRegion: {
     fontSize: 12,
-    color: colors.gray[500],
+    color: 'rgba(255,255,255,0.9)',
     textTransform: 'capitalize',
   },
   rarityBadge: {
-    width: 16,
-    height: 16,
+    position: 'absolute',
+    top: 12,
+    right: 12,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
     borderRadius: 8,
-    justifyContent: 'center',
-    alignItems: 'center',
   },
   rarityText: {
-    fontSize: 8,
+    fontSize: 10,
     color: '#FFF',
     fontWeight: '700',
   },
