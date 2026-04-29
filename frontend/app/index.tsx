@@ -10,11 +10,81 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useQuery } from '@tanstack/react-query';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { getStats, getTopScoredItems, getStories, TopScoredItem, StoryItem } from '../src/services/api';
-import { regionImages, typography, spacing, borderRadius, shadows } from '../src/theme';
+import { regionImages, colors as themeColors } from '../src/theme';
 import { useTheme } from '../src/context/ThemeContext';
 import { palette, categoryColors, withOpacity } from '../src/theme/colors';
 
 const { width } = Dimensions.get('window');
+
+// ============ Design System Constants ============
+// Typography scale (from typography.ts)
+const typography = {
+  h1: { fontSize: 32, lineHeight: 40, fontWeight: '700' as const, letterSpacing: -0.5 },
+  h2: { fontSize: 24, lineHeight: 32, fontWeight: '600' as const, letterSpacing: -0.3 },
+  h3: { fontSize: 20, lineHeight: 28, fontWeight: '600' as const },
+  h4: { fontSize: 18, lineHeight: 24, fontWeight: '600' as const },
+  body: { fontSize: 16, lineHeight: 24, fontWeight: '400' as const },
+  bodySmall: { fontSize: 14, lineHeight: 20, fontWeight: '400' as const },
+  button: { fontSize: 16, lineHeight: 20, fontWeight: '600' as const, letterSpacing: 0.2 },
+  caption: { fontSize: 12, lineHeight: 16, fontWeight: '400' as const, letterSpacing: 0.2 },
+  label: { fontSize: 12, lineHeight: 16, fontWeight: '600' as const, letterSpacing: 0.5, textTransform: 'uppercase' as const },
+  overline: { fontSize: 10, lineHeight: 12, fontWeight: '600' as const, letterSpacing: 1, textTransform: 'uppercase' as const },
+  stat: { fontSize: 28, lineHeight: 32, fontWeight: '700' as const, letterSpacing: -0.5 },
+};
+
+// Spacing scale (from spacing.ts)
+const spacing = {
+  xs: 4,
+  sm: 8,
+  md: 12,
+  base: 16,
+  lg: 20,
+  xl: 24,
+  '2xl': 32,
+  '3xl': 48,
+  '4xl': 64,
+};
+
+// Border radius (from spacing.ts)
+const borderRadius = {
+  none: 0,
+  sm: 8,
+  md: 12,
+  lg: 16,
+  xl: 24,
+  pill: 999,
+  full: 9999,
+};
+
+// Shadows (from spacing.ts)
+const shadows = {
+  sm: {
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 2,
+  },
+  md: {
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 4,
+  },
+};
+
+// Color aliases for backward compatibility - maps to design system
+const C = {
+  bg: palette.gray[50],
+  textLight: palette.gray[500],
+  textMuted: palette.gray[400],
+  statGreen: palette.forest[600],
+  statOrange: palette.terracotta[500],
+  statBlue: palette.ocean[500],
+  forestLight: palette.forest[500],
+  mint: palette.forest[200],
+};
 
 if (Platform.OS === 'web' && typeof document !== 'undefined') {
   const link = document.createElement('link');
