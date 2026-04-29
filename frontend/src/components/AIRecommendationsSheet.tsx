@@ -48,16 +48,18 @@ type InterestId = 'natureza' | 'historia' | 'foto' | 'surf' | 'gastronomia';
 // CONSTANTS
 // ========================
 
+import { palette } from '../theme';
+
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 
 const C = {
-  bg: '#1C2B2D',
-  card: '#243336',
-  accent: '#2E8B6A',
-  text: '#E2DFD6',
-  textMuted: '#94A3B8',
+  bg: palette.gray[900],
+  card: palette.gray[800],
+  accent: palette.forest[500],
+  text: palette.gray[100],
+  textMuted: palette.gray[400],
   chip: 'rgba(255,255,255,0.08)',
-  chipActive: '#2E5E4E',
+  chipActive: palette.forest[700],
 };
 
 const INTERESTS: { id: InterestId; label: string; emoji: string }[] = [
@@ -144,7 +146,7 @@ function RecommendationCard({
         {/* IQ score */}
         {item.iq_score !== undefined && (
           <View style={styles.iqRow}>
-            <MaterialIcons name="auto-awesome" size={12} color="#F59E0B" />
+            <MaterialIcons name="auto-awesome" size={12} color={palette.terracotta[500]} />
             <Text style={styles.iqText}>IQ {item.iq_score}</Text>
           </View>
         )}
@@ -527,7 +529,7 @@ const styles = StyleSheet.create({
   },
   iqText: {
     fontSize: 11,
-    color: '#F59E0B',
+    color: palette.terracotta[500],
     fontWeight: '600',
   },
   regionText: {
