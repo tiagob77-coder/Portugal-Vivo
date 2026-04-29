@@ -391,33 +391,33 @@ export default function AdminDashboard() {
           ) : dqSweep ? (
             <>
               <View style={styles.caopStatsRow}>
-                <View style={[styles.caopStat, { backgroundColor: (dqSweep.duplicate_clusters_count > 0 ? '#F59E0B' : '#22C55E') + '15' }]}>
-                  <Text style={[styles.caopStatVal, { color: dqSweep.duplicate_clusters_count > 0 ? '#F59E0B' : '#22C55E' }]}>
-                    {dqSweep.duplicate_clusters_count}
+                <View style={[styles.caopStat, { backgroundColor: ((dqSweep.duplicate_clusters_count || 0) > 0 ? '#F59E0B' : '#22C55E') + '15' }]}>
+                  <Text style={[styles.caopStatVal, { color: (dqSweep.duplicate_clusters_count || 0) > 0 ? '#F59E0B' : '#22C55E' }]}>
+                    {dqSweep.duplicate_clusters_count || 0}
                   </Text>
                   <Text style={[styles.caopStatLabel, { color: colors.textMuted }]}>Clusters duplicados</Text>
                 </View>
-                <View style={[styles.caopStat, { backgroundColor: (dqSweep.coords_outside_portugal.count > 0 ? '#EF4444' : '#22C55E') + '15' }]}>
-                  <Text style={[styles.caopStatVal, { color: dqSweep.coords_outside_portugal.count > 0 ? '#EF4444' : '#22C55E' }]}>
-                    {dqSweep.coords_outside_portugal.count}
+                <View style={[styles.caopStat, { backgroundColor: ((dqSweep.coords_outside_portugal?.count || 0) > 0 ? '#EF4444' : '#22C55E') + '15' }]}>
+                  <Text style={[styles.caopStatVal, { color: (dqSweep.coords_outside_portugal?.count || 0) > 0 ? '#EF4444' : '#22C55E' }]}>
+                    {dqSweep.coords_outside_portugal?.count || 0}
                   </Text>
                   <Text style={[styles.caopStatLabel, { color: colors.textMuted }]}>Coords fora PT</Text>
                 </View>
                 <View style={[styles.caopStat, { backgroundColor: '#3B82F615' }]}>
                   <Text style={[styles.caopStatVal, { color: '#3B82F6' }]}>
-                    {dqSweep.missing_required_fields.reduce((acc, f) => acc + f.count, 0)}
+                    {(dqSweep.missing_required_fields || []).reduce((acc, f) => acc + (f.count || 0), 0)}
                   </Text>
                   <Text style={[styles.caopStatLabel, { color: colors.textMuted }]}>Campos em falta</Text>
                 </View>
               </View>
 
-              {dqSweep.missing_required_fields.length > 0 && (
+              {(dqSweep.missing_required_fields || []).length > 0 && (
                 <View style={{ marginTop: 4 }}>
-                  {dqSweep.missing_required_fields.map((f) => (
+                  {(dqSweep.missing_required_fields || []).map((f) => (
                     <View key={f.field} style={styles.rankRow}>
                       <Text style={[styles.rankLabel, { color: colors.textPrimary }]}>{f.field}</Text>
-                      <Text style={[styles.rankCount, { color: f.count > 0 ? '#F59E0B' : colors.textMuted }]}>
-                        {f.count}
+                      <Text style={[styles.rankCount, { color: (f.count || 0) > 0 ? '#F59E0B' : colors.textMuted }]}>
+                        {f.count || 0}
                       </Text>
                     </View>
                   ))}
