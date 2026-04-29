@@ -326,9 +326,26 @@ export default function EventosTab() {
     </TouchableOpacity>
   );
 
+  // Event category images
+  const getCategoryImage = (category: string): string => {
+    const images: Record<string, string> = {
+      religioso: 'https://images.unsplash.com/photo-1548625149-fc4a29cf7092?w=400&q=80',
+      musica: 'https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?w=400&q=80',
+      gastronomia: 'https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=400&q=80',
+      tradicional: 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=400&q=80',
+      festa: 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=400&q=80',
+      feira: 'https://images.unsplash.com/photo-1488459716781-31db52582fe9?w=400&q=80',
+      cultural: 'https://images.unsplash.com/photo-1499781350541-7783f6c6a0c8?w=400&q=80',
+      desportivo: 'https://images.unsplash.com/photo-1461896836934- voices-of-a-distant-star?w=400&q=80',
+    };
+    return images[category] || 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=400&q=80';
+  };
+
   const renderEventCard = (event: CalendarEvent) => {
     const color = getCategoryColor(event.category);
     const rarityColor = getRarityColor(event.rarity);
+    const imageUrl = event.image_url || getCategoryImage(event.category);
+    
     return (
       <TouchableOpacity
         key={event.id}
@@ -337,53 +354,62 @@ export default function EventosTab() {
         activeOpacity={0.8}
         data-testid={`event-card-${event.id}`}
       >
-        <View style={[styles.eventIcon, { backgroundColor: color + '20' }]}>
-          <MaterialIcons
-            name={getCategoryIcon(event.category) as any}
-            size={24}
-            color={color}
-          />
-        </View>
-        <View style={styles.eventInfo}>
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-            <Text style={styles.eventName} numberOfLines={1}>{event.name}</Text>
-            {rarityColor && (
-              <View style={[styles.rarityBadge, { backgroundColor: rarityColor }]}>
-                <Text style={styles.rarityText}>
-                  {event.rarity === 'epico' ? '★' : event.rarity === 'raro' ? '◆' : '●'}
-                </Text>
-              </View>
-            )}
+        {/* Event Image */}
+        <Image
+          source={{ uri: imageUrl }}
+          style={styles.eventImage}
+          contentFit="cover"
+        />
+        <LinearGradient
+          colors={['transparent', 'rgba(0,0,0,0.85)']}
+          style={styles.eventGradient}
+        />
+        
+        {/* Rarity Badge */}
+        {rarityColor && (
+          <View style={[styles.rarityBadge, { backgroundColor: rarityColor }]}>
+            <Text style={styles.rarityText}>
+              {event.rarity === 'epico' ? '★ Épico' : event.rarity === 'raro' ? '◆ Raro' : '● Comum'}
+            </Text>
           </View>
+        )}
+        
+        {/* Content */}
+        <View style={styles.eventContent}>
+          <View style={[styles.eventCategoryBadge, { backgroundColor: color + '30' }]}>
+            <MaterialIcons name={getCategoryIcon(event.category) as any} size={14} color={color} />
+            <Text style={[styles.eventCategoryText, { color }]}>
+              {getCategoryName(event.category)}
+            </Text>
+          </View>
+          
+          <Text style={styles.eventName} numberOfLines={2}>{event.name}</Text>
+          
           <View style={styles.eventMeta}>
-            <MaterialIcons name="event" size={14} color={palette.gray[500]} />
+            <MaterialIcons name="event" size={14} color="rgba(255,255,255,0.7)" />
             <Text style={styles.eventDate}>
               {event.date_text || `${event.date_start} - ${event.date_end}`}
             </Text>
           </View>
+          
           <View style={styles.eventMeta}>
-            <MaterialIcons name="location-on" size={14} color={palette.gray[500]} />
+            <MaterialIcons name="location-on" size={14} color="rgba(255,255,255,0.7)" />
             <Text style={styles.eventRegion}>
               {event.concelho ? `${event.concelho}, ` : ''}{event.region}
             </Text>
           </View>
-          {event.source === 'viralagenda' && (
-            <View style={[styles.sourceBadge, { backgroundColor: '#06B6D420' }]}>
-              <Text style={[styles.sourceText, { color: '#06B6D4' }]}>● Viral Agenda</Text>
-            </View>
-          )}
+          
           {event.has_tickets && event.ticket_url && (
             <TouchableOpacity
               style={styles.ticketButton}
               onPress={(e) => { e.stopPropagation(); Linking.openURL(event.ticket_url!); }}
               activeOpacity={0.7}
             >
-              <MaterialIcons name="confirmation-number" size={12} color="#FFF" />
-              <Text style={styles.ticketText}>Bilhetes</Text>
+              <MaterialIcons name="confirmation-number" size={14} color="#FFF" />
+              <Text style={styles.ticketText}>Comprar Bilhetes</Text>
             </TouchableOpacity>
           )}
         </View>
-        <MaterialIcons name="chevron-right" size={24} color={palette.gray[500]} />
       </TouchableOpacity>
     );
   };
