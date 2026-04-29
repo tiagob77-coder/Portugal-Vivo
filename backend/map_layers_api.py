@@ -451,7 +451,7 @@ async def get_environmental_data(
     lng: float = Query(..., description="Longitude"),
 ):
     """Dados ambientais simulados para sobreposição no mapa (sem API externa)."""
-    now = datetime.datetime.utcnow()
+    now = datetime.datetime.now(datetime.timezone.utc)
     day_of_year = now.timetuple().tm_yday
     hour = now.hour
 
