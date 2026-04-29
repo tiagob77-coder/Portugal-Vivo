@@ -12,6 +12,7 @@ import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useQuery } from '@tanstack/react-query';
 import { LinearGradient } from 'expo-linear-gradient';
+import { palette } from '../../src/theme/colors';
 import { useTheme } from '../../src/context/ThemeContext';
 import api from '../../src/services/api';
 
@@ -168,7 +169,7 @@ export default function ColeccoesScreen() {
   // MAIN OVERVIEW VIEW (Mockup Design)
   // =====================
   return (
-    <View style={[styles.container, { backgroundColor: '#2E5E4E', paddingTop: insets.top }]} data-testid="encyclopedia-page">
+    <View style={[styles.container, { backgroundColor: palette.forest[500], paddingTop: insets.top }]} data-testid="encyclopedia-page">
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
         {/* Header */}
         <View style={styles.mainHeader}>
@@ -231,7 +232,7 @@ export default function ColeccoesScreen() {
         {/* Universe Cards Grid */}
         {!searchResults && (
           isLoading ? (
-            <ActivityIndicator size="large" color="#C49A6C" style={{ marginTop: 40 }} />
+            <ActivityIndicator size="large" color={palette.terracotta[500]} style={{ marginTop: 40 }} />
           ) : (
             <View style={styles.cardsGrid}>
               {(universes || []).map((universe: any) => (

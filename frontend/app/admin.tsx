@@ -14,6 +14,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { LinearGradient } from 'expo-linear-gradient';
 import api from '../src/services/api';
 import { useTheme } from '../src/context/ThemeContext';
+import { palette, withOpacity } from '../src/theme/colors';
 import { shadows } from '../src/theme';
 
 const serif = Platform.OS === 'web' ? 'Cormorant Garamond, Georgia, serif' : undefined;
@@ -253,7 +254,7 @@ export default function AdminDashboard() {
 
       <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
         {/* Header */}
-        <LinearGradient colors={['#1E3A3F', '#2A5F6B']} style={[styles.header, { paddingTop: insets.top + 12 }]}>
+        <LinearGradient colors={[palette.forest[700], palette.ocean[500]]} style={[styles.header, { paddingTop: insets.top + 12 }]}>
           <View style={styles.headerRow}>
             <TouchableOpacity onPress={() => router.back()}>
               <MaterialIcons name="arrow-back" size={24} color="#FFF" />
@@ -329,14 +330,14 @@ export default function AdminDashboard() {
             <Text style={[styles.sectionTitle, { color: colors.textPrimary }]}>Top 5 POIs (IQ Score)</Text>
             {data.top_pois.map((poi, i) => (
               <View key={i} style={styles.poiRow}>
-                <View style={[styles.poiRank, { backgroundColor: i === 0 ? '#C49A6C' : colors.accent + '20' }]}>
+                <View style={[styles.poiRank, { backgroundColor: i === 0 ? palette.terracotta[500] : colors.accent + '20' }]}>
                   <Text style={[styles.poiRankText, { color: i === 0 ? '#FFF' : colors.accent }]}>{i + 1}</Text>
                 </View>
                 <View style={{ flex: 1 }}>
                   <Text style={[styles.poiName, { color: colors.textPrimary }]} numberOfLines={1}>{poi.name}</Text>
                   <Text style={[styles.poiMeta, { color: colors.textMuted }]}>{poi.region} · {poi.category}</Text>
                 </View>
-                <Text style={[styles.poiScore, { color: '#C49A6C' }]}>{poi.iq_score.toFixed(1)}</Text>
+                <Text style={[styles.poiScore, { color: palette.terracotta[500] }]}>{poi.iq_score.toFixed(1)}</Text>
               </View>
             ))}
           </View>
