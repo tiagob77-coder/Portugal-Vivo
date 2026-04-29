@@ -10,7 +10,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useQuery } from '@tanstack/react-query';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { getStats, getTopScoredItems, getStories, TopScoredItem, StoryItem } from '../src/services/api';
-import { regionImages } from '../src/theme';
+import { regionImages, typography, spacing, borderRadius, shadows } from '../src/theme';
 import { useTheme } from '../src/context/ThemeContext';
 import { palette, categoryColors, withOpacity } from '../src/theme/colors';
 
@@ -206,26 +206,9 @@ export default function WelcomeScreen() {
   const slideAnim = useRef(new Animated.Value(30)).current;
 
   const { colors } = useTheme();
-  const C = {
-    bg:          colors.background,
-    card:        colors.surface,
-    forest:      palette.forest[700],
-    forestLight: colors.primary,
-    teal:        palette.ocean[500],
-    accent:      colors.accent,
-    mint:        palette.forest[200],
-    mintLight:   palette.forest[50],
-    textDark:    colors.textPrimary,
-    textMed:     colors.textSecondary,
-    textLight:   colors.textSecondary,
-    textMuted:   colors.textMuted,
-    border:      colors.border,
-    borderLight: colors.borderLight,
-    statGreen:   palette.forest[500],
-    statOrange:  palette.terracotta[500],
-    statBlue:    palette.ocean[500],
-  };
-  const s = makeStyles(C);
+  
+  // Direct design system usage - no intermediate object needed
+  const s = styles;
 
   const { data: stats } = useQuery({ queryKey: ['stats'], queryFn: getStats });
   const { data: topScored } = useQuery({ queryKey: ['top-scored'], queryFn: getTopScoredItems });
