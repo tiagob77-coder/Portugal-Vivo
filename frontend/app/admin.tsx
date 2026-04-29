@@ -301,7 +301,7 @@ export default function AdminDashboard() {
           {data?.regions.map(r => (
             <View key={r.id} style={styles.barRow}>
               <Text style={[styles.barLabel, { color: colors.textPrimary }]}>{r.id}</Text>
-              <View style={styles.barTrack}>
+              <View style={[styles.barTrack, { backgroundColor: colors.border }]}>
                 <View style={[styles.barFill, {
                   width: `${Math.min(100, r.count / Math.max(1, ...(data?.regions.map(x => x.count) || [1])) * 100)}%`,
                   backgroundColor: REGION_COLORS[r.id] || colors.accent,
@@ -909,7 +909,7 @@ const styles = StyleSheet.create({
   // Bars
   barRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 8, gap: 8 },
   barLabel: { width: 60, fontSize: 12, fontWeight: '600', textTransform: 'capitalize' },
-  barTrack: { flex: 1, height: 8, backgroundColor: '#E5E7EB', borderRadius: 4, overflow: 'hidden' },
+  barTrack: { flex: 1, height: 8, borderRadius: 4, overflow: 'hidden' },
   barFill: { height: '100%', borderRadius: 4 },
   barCount: { width: 40, fontSize: 12, textAlign: 'right' },
   // Rank
