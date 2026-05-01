@@ -351,9 +351,13 @@ function MapaTab() {
       if (mapMode === 'trails') {
         return getMapItems(TRAIL_CATEGORIES, regionFilter);
       }
+      // In heatmap/explorador modes, load all POIs if no categories selected
+      if ((mapMode === 'heatmap' || mapMode === 'explorador') && activeCategories.length === 0) {
+        return getMapItems([], regionFilter); // Empty array = all categories
+      }
       return getMapItems(activeCategories, regionFilter);
     },
-    enabled: (activeCategories.length > 0 || mapMode === 'trails') && !['epochs'].includes(mapMode),
+    enabled: (activeCategories.length > 0 || mapMode === 'trails' || mapMode === 'heatmap' || mapMode === 'explorador') && !['epochs'].includes(mapMode),
   });
 
   // Trails data
