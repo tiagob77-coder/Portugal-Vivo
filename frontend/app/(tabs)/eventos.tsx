@@ -85,6 +85,7 @@ interface CalendarEvent {
   day_start?: number;
   day_end?: number;
   month?: number;
+  image_url?: string;
 }
 
 const getCalendarEvents = async (
