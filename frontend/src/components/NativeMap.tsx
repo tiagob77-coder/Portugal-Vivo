@@ -11,11 +11,12 @@ export type { MapItem, LeafletMapProps } from './NativeMap.types';
 
 // Import everything from web module for web platform
 // On native, Metro will use NativeMap.native.tsx instead of this file
-export { 
+export {
   default,
-  LeafletMapComponent, 
-  Marker, 
-  Callout, 
-  PROVIDER_GOOGLE, 
-  isMapAvailable 
+  LeafletMapComponent,
+  Marker,
+  Callout,
+  Polyline,
+  PROVIDER_GOOGLE,
+  isMapAvailable
 } from './NativeMap.web';
