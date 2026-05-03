@@ -303,7 +303,7 @@ async def get_hoje_feed(
     lng:    Optional[float] = Query(None, description="Longitude do utilizador"),
     date:   Optional[str]   = Query(None, description="Data alvo YYYY-MM-DD (omitir = hoje)"),
     region: Optional[str]   = Query(None, description="Região (override de geo)"),
-    # Public endpoint - no auth required for discovery feed
+    current_user: User = Depends(require_auth),
 ):
     """
     Dado GPS + data, cruza eventos próximos (50 km) + flora em flor + fauna visível
