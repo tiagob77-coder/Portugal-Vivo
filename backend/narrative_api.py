@@ -66,6 +66,8 @@ async def generate_narrative(request: NarrativeRequest):
         )
 
         response = await chat.send_message(user_message)
+        if not response:
+            raise HTTPException(status_code=500, detail="LLM returned empty response")
 
         return NarrativeResponse(
             narrative=response,

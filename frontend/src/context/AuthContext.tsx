@@ -7,6 +7,11 @@ import { exchangeSession, getCurrentUser, logout as apiLogout, getSubscriptionSt
 import { User } from '../types';
 import { eventBus } from '../services/eventBus';
 
+interface AuthSessionData extends User {
+  session_token?: string;
+  id?: string;
+}
+
 interface AuthContextType {
   user: User | null;
   isLoading: boolean;
@@ -45,14 +50,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       if (sessionId) {
         setIsLoading(true);
-        const userData = await exchangeSession(sessionId);
+        const userData = await exchangeSession(sessionId) as AuthSessionData;
         setUser(userData);
 
         // Store token
-        const token = (userData as any).session_token || sessionId;
+        const token = userData.session_token || sessionId;
         setSessionToken(token);
         await AsyncStorage.setItem('session_token', token);
-        const uid = (userData as any).id || (userData as any).user_id;
+        const uid = userData.id || userData.user_id;
         if (uid) await AsyncStorage.setItem('user_id', uid);
         eventBus.emit('user.login', { userId: uid });
       }
@@ -70,9 +75,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const storedToken = await AsyncStorage.getItem('session_token');
         if (storedToken) {
           setSessionToken(storedToken);
-          const userData = await getCurrentUser(storedToken);
+          const userData = await getCurrentUser(storedToken) as AuthSessionData;
           setUser(userData);
-          const uid = (userData as any).id || (userData as any).user_id;
+          const uid = userData.id || userData.user_id;
           if (uid) await AsyncStorage.setItem('user_id', uid);
         }
       } catch (_error) {
@@ -160,9 +165,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const refreshSubscription = async () => {
-    if (user && (user as any).id) {
+    const authUser = user as AuthSessionData | null;
+    if (authUser?.id) {
       try {
-        const status = await getSubscriptionStatus((user as any).id);
+        const status = await getSubscriptionStatus(authUser.id);
         setPremiumTier(status.tier || 'free');
       } catch (_error) {
         setPremiumTier('free');
@@ -173,12 +179,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const refreshUser = async () => {
     if (sessionToken) {
       try {
-        const userData = await getCurrentUser(sessionToken);
+        const userData = await getCurrentUser(sessionToken) as AuthSessionData;
         setUser(userData);
         // Also refresh subscription status
-        if ((userData as any)?.id) {
+        if (userData.id) {
           try {
-            const status = await getSubscriptionStatus((userData as any).id);
+            const status = await getSubscriptionStatus(userData.id);
             setPremiumTier(status.tier || 'free');
           } catch (_e) { /* ignore */ }
         }

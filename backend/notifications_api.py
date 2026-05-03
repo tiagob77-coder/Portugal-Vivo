@@ -11,7 +11,7 @@ from models.api_models import User
 
 logger = logging.getLogger(__name__)
 
-from shared_utils import DatabaseHolder
+from shared_utils import DatabaseHolder, clamp_pagination
 
 notifications_router = APIRouter()
 
@@ -125,7 +125,6 @@ async def get_notification_history(
     current_user: User = Depends(_auth_dep)
 ):
     """Get user's notification history"""
-    from shared_utils import clamp_pagination
     _, limit = clamp_pagination(0, limit, max_limit=100)
     notifications = await _db_holder.db.notification_history.find(
         {"user_id": current_user.user_id},

@@ -204,7 +204,7 @@ export default function SearchPage() {
         ) : searchQuery.length >= 2 && searchData ? (
           <>
             <Text style={styles.resultsSummary}>
-              {totalResults} resultado{totalResults !== 1 ? 's' : ''} para &quot;{searchData.query}&quot;
+              {totalResults} resultado{totalResults !== 1 ? 's' : ''} para &ldquo;{searchData.query}&rdquo;
             </Text>
 
             {totalResults === 0 ? (

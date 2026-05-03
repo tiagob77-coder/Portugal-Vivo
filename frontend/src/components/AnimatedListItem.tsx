@@ -28,7 +28,7 @@ function AnimatedListItem({ children, index, stagger = 50, style }: AnimatedList
         useNativeDriver: true,
       }),
     ]).start();
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [index, stagger]); // re-run animation when position or timing changes
 
   return (
     <Animated.View style={[{ opacity, transform: [{ translateY }] }, style]}>
