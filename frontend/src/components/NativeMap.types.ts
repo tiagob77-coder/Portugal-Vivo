@@ -13,6 +13,13 @@ export interface MapItem {
   image_url?: string;
 }
 
+export interface WaypointMarker {
+  lat: number;
+  lng: number;
+  name: string;
+  order: number;
+}
+
 export interface LeafletMapProps {
   items: MapItem[];
   onItemPress?: (item: MapItem) => void;
@@ -21,6 +28,7 @@ export interface LeafletMapProps {
   mapMode?: string;
   trailPoints?: { lat: number; lng: number; ele?: number }[];
   trailColor?: string;
+  waypoints?: WaypointMarker[];
   style?: any;
   children?: React.ReactNode;
   ref?: any;

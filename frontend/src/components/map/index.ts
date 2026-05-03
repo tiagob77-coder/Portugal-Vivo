@@ -5,3 +5,5 @@ export { default as TimelineControls } from './TimelineControls';
 export type { TimelineEpoch } from './TimelineControls';
 export { default as ProximityPanel } from './ProximityPanel';
 export { default as NightExplorerPanel, NIGHT_FILTERS } from './NightExplorerPanel';
+export { default as RouteDetailSheet } from './RouteDetailSheet';
+export type { RouteDetail, RouteWaypoint } from './RouteDetailSheet';

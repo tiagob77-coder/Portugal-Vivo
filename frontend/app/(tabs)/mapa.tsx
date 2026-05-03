@@ -35,9 +35,11 @@ import {
   TimelineControls,
   ProximityPanel,
   NightExplorerPanel,
+  RouteDetailSheet,
   NIGHT_FILTERS,
 } from '../../src/components/map';
 import type { MapMode } from '../../src/components/map';
+import type { RouteDetail, RouteWaypoint } from '../../src/components/map/RouteDetailSheet';
 import ErrorBoundary from '../../src/components/ErrorBoundary';
 
 const { width: _width, height: _height } = Dimensions.get('window');
@@ -441,6 +443,37 @@ function MapaTab() {
       );
     }
   }, [mapMode]); // eslint-disable-line react-hooks/exhaustive-deps
+  // Rotas mode — infrastructure (passadiços + ecovias) list
+  const { data: infraList } = useQuery({
+    queryKey: ['infra-list-rotas'],
+    queryFn: async () => {
+      const res = await api.get('/infrastructure/list?limit=50');
+      return res.data?.results || [];
+    },
+    enabled: mapMode === 'rotas',
+  });
+
+  // Rotas mode — cultural routes list
+  const { data: culturalRoutesList } = useQuery({
+    queryKey: ['cultural-routes-list'],
+    queryFn: async () => {
+      const res = await api.get('/cultural-routes/routes');
+      return Array.isArray(res.data) ? res.data : (res.data?.routes || []);
+    },
+    enabled: mapMode === 'rotas',
+  });
+
+  // Rotas mode — selected route detail (infrastructure)
+  const [selectedInfraId, setSelectedInfraId] = useState<string | null>(null);
+  const { data: infraDetail } = useQuery({
+    queryKey: ['infra-detail', selectedInfraId],
+    queryFn: async () => {
+      const res = await api.get(`/infrastructure/${selectedInfraId}`);
+      return res.data;
+    },
+    enabled: !!selectedInfraId,
+  });
+
   // Explorador mode — technical overlays (weather, fires, surf)
   const { data: exploradorWeather } = useQuery({
     queryKey: ['explorador-weather'],
@@ -473,10 +506,51 @@ function MapaTab() {
 
   // NIGHT_FILTERS imported from components/map/NightExplorerPanel
   const [nightFilter, setNightFilter] = useState('all');
+  const [selectedRoute, setSelectedRoute] = useState<RouteDetail | null>(null);
+  const [fullscreenRoute, setFullscreenRoute] = useState(false);
+  const [routeTypeFilter, setRouteTypeFilter] = useState<'all' | 'trail' | 'passadico' | 'cultural'>('all');
 
   const nightItems = mapMode === 'noturno'
     ? (nightData?.items || []).filter((i: any) => nightFilter === 'all' || i.night_type === nightFilter)
     : [];
+
+  // Build selectedRoute when infra detail arrives
+  useEffect(() => {
+    if (!infraDetail || !selectedInfraId) return;
+    const typeMap: Record<string, RouteDetail['type']> = {
+      passadico: 'passadico',
+      ecovia: 'ecovia',
+      via_verde: 'ecovia',
+      ponte_suspensa: 'passadico',
+    };
+    setSelectedRoute({
+      name: infraDetail.name,
+      type: typeMap[infraDetail.type] || 'passadico',
+      description_short: infraDetail.description_short,
+      distance_km: infraDetail.length_km,
+      duration_hours: infraDetail.estimated_hours,
+      difficulty: infraDetail.difficulty,
+      elevation_gain: infraDetail.elevation_gain,
+      waypoints: (infraDetail.waypoints || []).map((wp: any, i: number) => ({
+        lat: wp.lat,
+        lng: wp.lng,
+        name: wp.name || `Ponto ${i + 1}`,
+        order: wp.order ?? i + 1,
+      })),
+      color: '#0EA5E9',
+      tags: infraDetail.tags || [],
+    });
+    setFullscreenRoute(true);
+  }, [infraDetail, selectedInfraId]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Reset route state when leaving rotas mode
+  useEffect(() => {
+    if (mapMode !== 'rotas') {
+      setSelectedRoute(null);
+      setFullscreenRoute(false);
+      setSelectedInfraId(null);
+    }
+  }, [mapMode]);
 
   // Create stable items reference for the map component
   // DEBUG: Using direct calculation without useMemo to debug
@@ -579,6 +653,50 @@ function MapaTab() {
   }, {} as Record<string, number>);
 
   const isNativeMap = isMapAvailable && MapView !== null;
+
+  // ── Full-screen route mode (web only) ──────────────────────────────────────
+  if (!isNativeMap && fullscreenRoute && selectedRoute) {
+    const routeTrailPoints = selectedRoute.waypoints.map(wp => ({ lat: wp.lat, lng: wp.lng }));
+    return (
+      <View style={{ flex: 1, backgroundColor: '#0D1117' }}>
+        <LeafletMapComponent
+          items={[]}
+          getMarkerColor={getMarkerColor}
+          getLayerIcon={getLayerIcon}
+          mapMode="markers"
+          trailPoints={routeTrailPoints}
+          trailColor={selectedRoute.color || '#22C55E'}
+          waypoints={selectedRoute.waypoints}
+          navigateToRegion={null}
+          style={{ flex: 1 }}
+        />
+        <RouteDetailSheet
+          route={selectedRoute}
+          onClose={() => {
+            setFullscreenRoute(false);
+            setSelectedRoute(null);
+            setSelectedInfraId(null);
+          }}
+          onWaypointPress={(wp: RouteWaypoint) => {
+            // fly to waypoint — handled inside NativeMap via navigateToRegion-like prop
+            // For now, the map already shows the full route; this is a no-op placeholder
+          }}
+        />
+        {/* Close button top-right */}
+        <TouchableOpacity
+          style={styles.fullscreenCloseBtn}
+          onPress={() => {
+            setFullscreenRoute(false);
+            setSelectedRoute(null);
+            setSelectedInfraId(null);
+          }}
+          activeOpacity={0.85}
+        >
+          <MaterialIcons name="close" size={20} color="#fff" />
+        </TouchableOpacity>
+      </View>
+    );
+  }
 
   return (
     <View style={[styles.container, { paddingTop: insets.top }]} data-testid="mapa-tab">
@@ -1104,17 +1222,149 @@ function MapaTab() {
               </View>
             )}
             <LeafletMapComponent
-              items={mapComponentItems}
+              items={mapMode === 'rotas' ? [] : mapComponentItems}
               onItemPress={(item) => setSelectedItem(item)}
               getMarkerColor={getMarkerColor}
               getLayerIcon={getLayerIcon}
-              mapMode={['trails', 'epochs', 'timeline', 'proximity'].includes(mapMode) ? 'markers' : mapMode}
-              trailPoints={trailData?.points}
-              trailColor={trailData?.color || '#C49A6C'}
+              mapMode={['trails', 'epochs', 'timeline', 'proximity', 'rotas'].includes(mapMode) ? 'markers' : mapMode}
+              trailPoints={
+                mapMode === 'rotas' && selectedRoute
+                  ? selectedRoute.waypoints.map(wp => ({ lat: wp.lat, lng: wp.lng }))
+                  : trailData?.points
+              }
+              trailColor={
+                mapMode === 'rotas' && selectedRoute
+                  ? (selectedRoute.color || '#0EA5E9')
+                  : (trailData?.color || '#C49A6C')
+              }
+              waypoints={
+                mapMode === 'rotas' && selectedRoute
+                  ? selectedRoute.waypoints
+                  : undefined
+              }
               navigateToRegion={webNavigateToRegion}
               style={{ flex: 1, minHeight: 480, borderRadius: 16 }}
             />
           </View>
+
+          {/* Rotas Mode — route type filter + route list */}
+          {mapMode === 'rotas' && (
+            <View style={styles.rotasContainer}>
+              {/* Type filter chips */}
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 10 }}>
+                <View style={{ flexDirection: 'row', gap: 8, paddingHorizontal: 4 }}>
+                  {([
+                    { id: 'all', label: 'Todos', icon: 'layers', color: '#64748B' },
+                    { id: 'trail', label: 'Trilhos', icon: 'hiking', color: '#22C55E' },
+                    { id: 'passadico', label: 'Passadiços', icon: 'directions-walk', color: '#0EA5E9' },
+                    { id: 'cultural', label: 'Culturais', icon: 'account-balance', color: '#A855F7' },
+                  ] as const).map((f) => (
+                    <TouchableOpacity
+                      key={f.id}
+                      style={[
+                        styles.routeTypeChip,
+                        routeTypeFilter === f.id && { backgroundColor: f.color, borderColor: f.color },
+                      ]}
+                      onPress={() => setRouteTypeFilter(f.id)}
+                    >
+                      <MaterialIcons name={f.icon as any} size={13} color={routeTypeFilter === f.id ? '#FFF' : f.color} />
+                      <Text style={[styles.routeTypeChipText, routeTypeFilter === f.id && { color: '#FFF' }]}>{f.label}</Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              </ScrollView>
+
+              {/* Trilhos list */}
+              {(routeTypeFilter === 'all' || routeTypeFilter === 'trail') && (trailsList || []).map((trail: any) => (
+                <TouchableOpacity
+                  key={trail.id}
+                  style={styles.routeListItem}
+                  onPress={() => {
+                    setSelectedTrail(trail.id);
+                    const wps = trail.waypoints || [];
+                    setSelectedRoute({
+                      name: trail.name,
+                      type: 'trail',
+                      description_short: trail.description,
+                      distance_km: trail.distance_km,
+                      duration_hours: trail.estimated_hours,
+                      difficulty: trail.difficulty,
+                      elevation_gain: trail.elevation_gain,
+                      color: trail.color || '#22C55E',
+                      waypoints: wps.map((wp: any, i: number) => ({
+                        lat: wp.lat, lng: wp.lng,
+                        name: wp.name || `Ponto ${i + 1}`,
+                        order: wp.order ?? i + 1,
+                      })),
+                    });
+                    setFullscreenRoute(true);
+                  }}
+                  activeOpacity={0.8}
+                >
+                  <View style={[styles.routeItemDot, { backgroundColor: trail.color || '#22C55E' }]} />
+                  <View style={{ flex: 1 }}>
+                    <Text style={styles.routeItemName} numberOfLines={1}>{trail.name}</Text>
+                    <Text style={styles.routeItemMeta}>{trail.distance_km}km · {trail.difficulty}</Text>
+                  </View>
+                  <MaterialIcons name="chevron-right" size={18} color="#9CA3AF" />
+                </TouchableOpacity>
+              ))}
+
+              {/* Passadiços / Ecovias list */}
+              {(routeTypeFilter === 'all' || routeTypeFilter === 'passadico') && (infraList || [])
+                .filter((i: any) => ['passadico', 'ecovia', 'ponte_suspensa', 'via_verde'].includes(i.type))
+                .map((infra: any) => (
+                  <TouchableOpacity
+                    key={infra.id}
+                    style={styles.routeListItem}
+                    onPress={() => setSelectedInfraId(infra.id)}
+                    activeOpacity={0.8}
+                  >
+                    <View style={[styles.routeItemDot, { backgroundColor: '#0EA5E9' }]} />
+                    <View style={{ flex: 1 }}>
+                      <Text style={styles.routeItemName} numberOfLines={1}>{infra.name}</Text>
+                      <Text style={styles.routeItemMeta}>{infra.length_km ? `${infra.length_km}km · ` : ''}{infra.type}</Text>
+                    </View>
+                    <MaterialIcons name="chevron-right" size={18} color="#9CA3AF" />
+                  </TouchableOpacity>
+                ))}
+
+              {/* Cultural routes list */}
+              {(routeTypeFilter === 'all' || routeTypeFilter === 'cultural') && (culturalRoutesList || []).map((cr: any) => (
+                <TouchableOpacity
+                  key={cr.id}
+                  style={styles.routeListItem}
+                  onPress={() => {
+                    const stops = (cr.stops || []).sort((a: any, b: any) => (a.order ?? 0) - (b.order ?? 0));
+                    setSelectedRoute({
+                      name: cr.name,
+                      type: 'cultural',
+                      description_short: cr.description,
+                      distance_km: cr.distance_km,
+                      duration_days: cr.duration_days,
+                      difficulty: cr.difficulty,
+                      color: '#A855F7',
+                      waypoints: stops.map((s: any, i: number) => ({
+                        lat: s.lat, lng: s.lng,
+                        name: s.name,
+                        order: s.order ?? i + 1,
+                        type: s.type,
+                      })),
+                    });
+                    setFullscreenRoute(true);
+                  }}
+                  activeOpacity={0.8}
+                >
+                  <View style={[styles.routeItemDot, { backgroundColor: '#A855F7' }]} />
+                  <View style={{ flex: 1 }}>
+                    <Text style={styles.routeItemName} numberOfLines={1}>{cr.name}</Text>
+                    <Text style={styles.routeItemMeta}>{(cr.stops || []).length} paragens{cr.distance_km ? ` · ${cr.distance_km}km` : ''}</Text>
+                  </View>
+                  <MaterialIcons name="chevron-right" size={18} color="#9CA3AF" />
+                </TouchableOpacity>
+              ))}
+            </View>
+          )}
 
           {/* Trail Info Card */}
           {mapMode === 'trails' && trailData && (
@@ -1929,6 +2179,66 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: 'rgba(255,255,255,0.6)',
   },
+  // Rotas mode styles
+  rotasContainer: {
+    marginHorizontal: 16,
+    marginTop: 8,
+    marginBottom: 4,
+  },
+  routeTypeChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    paddingHorizontal: 12,
+    paddingVertical: 7,
+    borderRadius: 20,
+    backgroundColor: '#F8F9FA',
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+  },
+  routeTypeChipText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#374151',
+  },
+  routeListItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 12,
+    paddingHorizontal: 4,
+    gap: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F2EDE4',
+  },
+  routeItemDot: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    flexShrink: 0,
+  },
+  routeItemName: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#1F2937',
+  },
+  routeItemMeta: {
+    fontSize: 11,
+    color: '#9CA3AF',
+    marginTop: 2,
+    textTransform: 'capitalize',
+  },
+  fullscreenCloseBtn: {
+    position: 'absolute',
+    top: 16,
+    right: 16,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: 'rgba(0,0,0,0.6)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 200,
+  } as any,
 });
 
 export default function MapaTabWithBoundary() {
