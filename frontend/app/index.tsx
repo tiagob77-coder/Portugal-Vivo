@@ -132,14 +132,14 @@ function makeStyles(C: Record<string, string>) {
     actionCardBg: { flex: 1 },
     actionCardGrad: { flex: 1, justifyContent: 'flex-end', padding: 14, borderRadius: 16 },
     actionIconWrap: { width: 34, height: 34, borderRadius: 10, justifyContent: 'center', alignItems: 'center', marginBottom: 8 },
-    actionTitle: { fontSize: 16, fontWeight: '700', color: '#FFF', fontFamily: headingFont },
+    actionTitle: { fontSize: 16, fontWeight: '700', color: C.white, fontFamily: headingFont },
     actionDesc: { fontSize: 11, color: 'rgba(255,255,255,0.8)', marginTop: 2, fontFamily: bodyFont },
 
     regionScroll: { gap: 12, paddingRight: 20 },
     regionCard: { width: 260, height: 180, borderRadius: 16, overflow: 'hidden' },
     regionCardBg: { flex: 1 },
     regionCardGrad: { flex: 1, justifyContent: 'flex-end', padding: 14, borderRadius: 16 },
-    regionName: { fontSize: 20, fontWeight: '700', color: '#FFF', fontFamily: headingFont },
+    regionName: { fontSize: 20, fontWeight: '700', color: C.white, fontFamily: headingFont },
     regionDesc: { fontSize: 12, color: 'rgba(255,255,255,0.8)', marginTop: 2, fontFamily: bodyFont },
     regionStats: { flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 6 },
     regionStatText: { fontSize: 11, color: C.mint },
@@ -149,8 +149,8 @@ function makeStyles(C: Record<string, string>) {
     descCardBg: { flex: 1 },
     descCardGrad: { flex: 1, justifyContent: 'flex-end', padding: 14, borderRadius: 14 },
     descBadge: { backgroundColor: C.forestLight, alignSelf: 'flex-start', paddingHorizontal: 10, paddingVertical: 3, borderRadius: 12, marginBottom: 8 },
-    descBadgeText: { fontSize: 10, color: '#FFF', fontWeight: '700', textTransform: 'uppercase', fontFamily: bodyFont },
-    descCardTitle: { fontSize: 15, fontWeight: '700', color: '#FFF', fontFamily: headingFont },
+    descBadgeText: { fontSize: 10, color: C.white, fontWeight: '700', textTransform: 'uppercase', fontFamily: bodyFont },
+    descCardTitle: { fontSize: 15, fontWeight: '700', color: C.white, fontFamily: headingFont },
     descCardRegion: { fontSize: 11, color: 'rgba(255,255,255,0.7)', marginTop: 3, fontFamily: bodyFont },
 
     storyScroll: { gap: 16, paddingRight: 20 },
@@ -159,7 +159,7 @@ function makeStyles(C: Record<string, string>) {
     storyCardImgGrad: { flex: 1, justifyContent: 'flex-end', padding: 12 },
     storyBadgeRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
     storyRegionBadge: { backgroundColor: withOpacity(palette.forest[500], 0.85), paddingHorizontal: 10, paddingVertical: 3, borderRadius: 10 },
-    storyRegionText: { fontSize: 10, color: '#FFF', fontWeight: '700', fontFamily: bodyFont },
+    storyRegionText: { fontSize: 10, color: C.white, fontWeight: '700', fontFamily: bodyFont },
     storyReadTime: { fontSize: 10, color: 'rgba(255,255,255,0.8)', fontFamily: bodyFont },
     storyContent: { padding: 14 },
     storyTitle: { fontSize: 16, fontWeight: '700', color: C.textDark, marginBottom: 6, fontFamily: headingFont },
@@ -169,15 +169,15 @@ function makeStyles(C: Record<string, string>) {
 
     nlSection: { marginHorizontal: 20, backgroundColor: C.forest, borderRadius: 24, padding: 28, marginBottom: 32 },
     nlContent: { maxWidth: 500 },
-    nlTitle: { fontSize: 22, fontWeight: '700', color: '#FFF', marginBottom: 8, fontFamily: headingFont },
+    nlTitle: { fontSize: 22, fontWeight: '700', color: C.white, marginBottom: 8, fontFamily: headingFont },
     nlSub: { fontSize: 14, color: 'rgba(255,255,255,0.7)', lineHeight: 22, marginBottom: 16, fontFamily: bodyFont },
     nlInterests: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 20 },
     nlChip: { paddingHorizontal: 14, paddingVertical: 6, borderRadius: 20, borderWidth: 1, borderColor: 'rgba(255,255,255,0.25)' },
     nlChipText: { fontSize: 12, color: 'rgba(255,255,255,0.8)', fontFamily: bodyFont },
     nlInputRow: { flexDirection: 'row', gap: 10, marginBottom: 10 },
-    nlInput: { flex: 1, backgroundColor: 'rgba(255,255,255,0.12)', borderRadius: 12, paddingHorizontal: 16, paddingVertical: 14, fontSize: 14, color: '#FFF', fontFamily: bodyFont },
+    nlInput: { flex: 1, backgroundColor: 'rgba(255,255,255,0.12)', borderRadius: 12, paddingHorizontal: 16, paddingVertical: 14, fontSize: 14, color: C.white, fontFamily: bodyFont },
     nlBtn: { backgroundColor: C.accent, paddingHorizontal: 24, paddingVertical: 14, borderRadius: 12, justifyContent: 'center' },
-    nlBtnText: { color: '#FFF', fontSize: 14, fontWeight: '700', fontFamily: bodyFont },
+    nlBtnText: { color: C.white, fontSize: 14, fontWeight: '700', fontFamily: bodyFont },
     nlDisclaimer: { fontSize: 11, color: 'rgba(255,255,255,0.4)', fontFamily: bodyFont },
 
     footer: { marginHorizontal: 20, borderTopWidth: 1, borderTopColor: C.border, paddingTop: 32, paddingBottom: 20 },
@@ -224,6 +224,7 @@ export default function WelcomeScreen() {
     statGreen:   palette.forest[500],
     statOrange:  palette.terracotta[500],
     statBlue:    palette.ocean[500],
+    white:       palette.white,
   };
   const s = makeStyles(C);
 
@@ -267,7 +268,7 @@ export default function WelcomeScreen() {
         <View style={s.nav} data-testid="nav-bar">
           <TouchableOpacity style={s.logoWrap} onPress={() => router.replace('/(tabs)')}>
             <View style={s.logoIcon}>
-              <MaterialIcons name="terrain" size={18} color="#FFF" />
+              <MaterialIcons name="terrain" size={18} color={palette.white} />
             </View>
             <Text style={s.logoText}>Portugal Vivo</Text>
           </TouchableOpacity>
@@ -285,7 +286,7 @@ export default function WelcomeScreen() {
             onPress={() => router.push('/(tabs)/profile' as any)}
             data-testid="connect-btn"
           >
-            <MaterialIcons name="person" size={20} color="#FFF" />
+            <MaterialIcons name="person" size={20} color={palette.white} />
           </TouchableOpacity>
         </View>
 
@@ -370,7 +371,7 @@ export default function WelcomeScreen() {
                     style={s.actionCardGrad}
                   >
                     <View style={[s.actionIconWrap, { backgroundColor: withOpacity(card.color, 0.5) }]}>
-                      <MaterialIcons name={card.icon as any} size={18} color="#FFF" />
+                      <MaterialIcons name={card.icon as any} size={18} color={palette.white} />
                     </View>
                     <Text style={s.actionTitle}>{card.title}</Text>
                     <Text style={s.actionDesc}>{card.desc}</Text>
@@ -557,7 +558,7 @@ export default function WelcomeScreen() {
             <View style={s.footerBrand}>
               <View style={s.footerLogoRow}>
                 <View style={s.logoIcon}>
-                  <MaterialIcons name="terrain" size={14} color="#FFF" />
+                  <MaterialIcons name="terrain" size={14} color={palette.white} />
                 </View>
                 <Text style={s.footerLogo}>Portugal Vivo</Text>
               </View>

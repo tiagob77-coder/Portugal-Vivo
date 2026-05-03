@@ -58,7 +58,7 @@ const QUICK_ACTIONS = [
   { id: 'album', title: 'Álbum', icon: 'photo-album', route: '/album' },
   { id: 'ranking', title: 'Ranking', icon: 'leaderboard', route: '/leaderboard' },
   { id: 'transportes', title: 'Transportes', icon: 'train', route: '/(tabs)/transportes' },
-  { id: 'beachcams', title: 'Beachcams', icon: 'videocam', route: '/beachcams' },
+  { id: 'beachcams', title: 'Beachcams', icon: 'videocam', route: '/(tabs)/beachcams' },
   { id: 'coleccoes', title: 'Enciclopédia', icon: 'collections-bookmark', route: '/(tabs)/coleccoes' },
   { id: 'guia', title: 'Guia Viajante', icon: 'menu-book', route: null },
 ];

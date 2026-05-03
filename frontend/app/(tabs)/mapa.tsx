@@ -18,6 +18,7 @@ import {
   Platform,
   Alert,
 } from 'react-native';
+import { Image } from 'expo-image';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -350,9 +351,13 @@ function MapaTab() {
       if (mapMode === 'trails') {
         return getMapItems(TRAIL_CATEGORIES, regionFilter);
       }
+      // In heatmap/explorador modes, load all POIs if no categories selected
+      if ((mapMode === 'heatmap' || mapMode === 'explorador') && activeCategories.length === 0) {
+        return getMapItems([], regionFilter); // Empty array = all categories
+      }
       return getMapItems(activeCategories, regionFilter);
     },
-    enabled: (activeCategories.length > 0 || mapMode === 'trails') && !['epochs'].includes(mapMode),
+    enabled: (activeCategories.length > 0 || mapMode === 'trails' || mapMode === 'heatmap' || mapMode === 'explorador') && !['epochs'].includes(mapMode),
   });
 
   // Trails data
@@ -444,19 +449,19 @@ function MapaTab() {
   // Explorador mode — technical overlays (weather, fires, surf)
   const { data: exploradorWeather } = useQuery({
     queryKey: ['explorador-weather'],
-    queryFn: async () => { const res = await api.get('/weather/forecast?region=lisboa'); return res.data; },
+    queryFn: async () => { const res = await api.get('/weather/forecast/lisboa'); return res.data; },
     enabled: mapMode === 'explorador',
     staleTime: 30 * 60 * 1000,
   });
   const { data: exploradorFires } = useQuery({
     queryKey: ['explorador-fires'],
-    queryFn: async () => { const res = await api.get('/safety/fires'); return res.data; },
+    queryFn: async () => { const res = await api.get('/fires/active'); return res.data; },
     enabled: mapMode === 'explorador',
     staleTime: 5 * 60 * 1000,
   });
   const { data: exploradorSurf } = useQuery({
     queryKey: ['explorador-surf'],
-    queryFn: async () => { const res = await api.get('/surf/all-spots'); return res.data; },
+    queryFn: async () => { const res = await api.get('/marine/spots/all'); return res.data; },
     enabled: mapMode === 'explorador',
     staleTime: 5 * 60 * 1000,
   });
@@ -762,32 +767,53 @@ function MapaTab() {
               onPress={handleItemPress}
               activeOpacity={0.9}
             >
-              <LinearGradient
-                colors={['#2E5E4E', '#1F3F32']}
-                style={styles.selectedGradient}
-              >
-                <View style={styles.selectedContent}>
-                  <View style={[
-                    styles.selectedIcon,
-                    { backgroundColor: getMarkerColor(selectedItem.category) + '30' }
-                  ]}>
+              <View style={styles.selectedCardInner}>
+                {/* Image */}
+                {selectedItem.image_url ? (
+                  <Image
+                    source={{ uri: selectedItem.image_url }}
+                    style={styles.selectedCardImage}
+                    contentFit="cover"
+                  />
+                ) : (
+                  <View style={[styles.selectedCardImage, styles.selectedCardImagePlaceholder]}>
                     <MaterialIcons
                       name={getLayerIcon(selectedItem.category) as any}
-                      size={24}
+                      size={32}
                       color={getMarkerColor(selectedItem.category)}
                     />
                   </View>
-                  <View style={styles.selectedInfo}>
-                    <Text style={styles.selectedName} numberOfLines={1}>
-                      {selectedItem.name}
-                    </Text>
-                    <Text style={styles.selectedMeta}>
-                      {selectedItem.category} • {selectedItem.region}
-                    </Text>
+                )}
+                {/* Content */}
+                <LinearGradient
+                  colors={['transparent', 'rgba(0,0,0,0.8)']}
+                  style={styles.selectedCardGradient}
+                >
+                  <View style={styles.selectedContent}>
+                    <View style={[
+                      styles.selectedIcon,
+                      { backgroundColor: getMarkerColor(selectedItem.category) + '40' }
+                    ]}>
+                      <MaterialIcons
+                        name={getLayerIcon(selectedItem.category) as any}
+                        size={18}
+                        color="#FFFFFF"
+                      />
+                    </View>
+                    <View style={styles.selectedInfo}>
+                      <Text style={styles.selectedName} numberOfLines={1}>
+                        {selectedItem.name}
+                      </Text>
+                      <Text style={styles.selectedMeta}>
+                        {selectedItem.region} {selectedItem.iq_score ? `• IQ ${Math.round(selectedItem.iq_score)}` : ''}
+                      </Text>
+                    </View>
+                    <View style={styles.selectedArrow}>
+                      <MaterialIcons name="chevron-right" size={24} color="#FFFFFF" />
+                    </View>
                   </View>
-                  <MaterialIcons name="chevron-right" size={24} color="#8A8A8A" />
-                </View>
-              </LinearGradient>
+                </LinearGradient>
+              </View>
             </TouchableOpacity>
           )}
 
@@ -1049,23 +1075,23 @@ function MapaTab() {
                 <Text style={{ color: '#FFF', fontWeight: '700', fontSize: 13, marginBottom: 4 }}>Dados Técnicos em Tempo Real</Text>
 
                 {/* Weather */}
-                {exploradorWeather?.forecast?.[0] && (
+                {exploradorWeather?.forecasts?.[0] && (
                   <View style={{ backgroundColor: 'rgba(255,255,255,0.1)', borderRadius: 10, padding: 10, flexDirection: 'row', alignItems: 'center', gap: 10 }}>
                     <MaterialIcons name="wb-sunny" size={20} color="#FCD34D" />
                     <View>
-                      <Text style={{ color: '#FFF', fontWeight: '600', fontSize: 13 }}>Meteorologia</Text>
-                      <Text style={{ color: 'rgba(255,255,255,0.7)', fontSize: 12 }}>{exploradorWeather.forecast[0].description} · {exploradorWeather.forecast[0].temp_max}°C max</Text>
+                      <Text style={{ color: '#FFF', fontWeight: '600', fontSize: 13 }}>Meteorologia — {exploradorWeather.location}</Text>
+                      <Text style={{ color: 'rgba(255,255,255,0.7)', fontSize: 12 }}>{exploradorWeather.forecasts[0].weather_description} · {exploradorWeather.forecasts[0].temp_max}°C max</Text>
                     </View>
                   </View>
                 )}
 
                 {/* Fires */}
                 <View style={{ backgroundColor: 'rgba(255,255,255,0.1)', borderRadius: 10, padding: 10, flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-                  <MaterialIcons name="local-fire-department" size={20} color={exploradorFires?.active_fires > 0 ? '#EF4444' : '#4ADE80'} />
+                  <MaterialIcons name="local-fire-department" size={20} color={exploradorFires?.active_count > 0 ? '#EF4444' : '#4ADE80'} />
                   <View>
                     <Text style={{ color: '#FFF', fontWeight: '600', fontSize: 13 }}>Risco de Incêndio</Text>
                     <Text style={{ color: 'rgba(255,255,255,0.7)', fontSize: 12 }}>
-                      {exploradorFires?.active_fires != null ? `${exploradorFires.active_fires} ocorrências activas` : 'A carregar...'}
+                      {exploradorFires?.active_count != null ? `${exploradorFires.active_count} ocorrências activas` : 'A carregar...'}
                     </Text>
                   </View>
                 </View>
@@ -1075,9 +1101,9 @@ function MapaTab() {
                   <View style={{ backgroundColor: 'rgba(255,255,255,0.1)', borderRadius: 10, padding: 10, flexDirection: 'row', alignItems: 'center', gap: 10 }}>
                     <MaterialIcons name="waves" size={20} color="#38BDF8" />
                     <View>
-                      <Text style={{ color: '#FFF', fontWeight: '600', fontSize: 13 }}>Mar — {exploradorSurf.spots[0].name}</Text>
+                      <Text style={{ color: '#FFF', fontWeight: '600', fontSize: 13 }}>Mar — {exploradorSurf.spots[0].spot?.name || 'Costa'}</Text>
                       <Text style={{ color: 'rgba(255,255,255,0.7)', fontSize: 12 }}>
-                        Ondas {exploradorSurf.spots[0].wave_height_m}m · Vento {exploradorSurf.spots[0].wind_speed_kmh} km/h
+                        Ondas {exploradorSurf.spots[0].wave_height_m}m · {exploradorSurf.spots[0].surf_quality || 'Bom'}
                       </Text>
                     </View>
                   </View>
@@ -1328,6 +1354,25 @@ const styles = StyleSheet.create({
     right: 16,
     borderRadius: 16,
     overflow: 'hidden',
+    height: 100,
+  },
+  selectedCardInner: {
+    flex: 1,
+    position: 'relative',
+  },
+  selectedCardImage: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: '#1F2937',
+  },
+  selectedCardImagePlaceholder: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#374151',
+  },
+  selectedCardGradient: {
+    ...StyleSheet.absoluteFillObject,
+    justifyContent: 'flex-end',
+    padding: 12,
   },
   selectedGradient: {
     padding: 16,
@@ -1335,12 +1380,12 @@ const styles = StyleSheet.create({
   selectedContent: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
+    gap: 10,
   },
   selectedIcon: {
-    width: 48,
-    height: 48,
-    borderRadius: 12,
+    width: 36,
+    height: 36,
+    borderRadius: 10,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -1348,15 +1393,23 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   selectedName: {
-    fontSize: 16,
-    fontWeight: '600',
+    fontSize: 15,
+    fontWeight: '700',
     color: '#FFFFFF',
   },
   selectedMeta: {
-    fontSize: 12,
-    color: '#C8C3B8',
+    fontSize: 11,
+    color: 'rgba(255,255,255,0.7)',
     marginTop: 2,
     textTransform: 'capitalize',
+  },
+  selectedArrow: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   quickActions: {
     position: 'absolute',
