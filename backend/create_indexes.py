@@ -240,6 +240,31 @@ async def create_all_indexes(db):
     await db.schema_versions.create_index("version", unique=True, name="idx_schema_version")
     logger.info("  schema_versions: 1 index created")
 
+    # ─── pois (canonical POI collection — multi-tenant, geospatial) ───
+    await db["pois"].create_index([("location", "2dsphere")], name="idx_pois_geo")
+    await db["pois"].create_index(
+        [("municipality_id", 1), ("status", 1), ("category", 1)],
+        name="idx_pois_muni_status_cat",
+    )
+    await db["pois"].create_index([("slug", 1)], unique=True, name="idx_pois_slug")
+    await db["pois"].create_index(
+        [("municipality_id", 1), ("updated_at", -1)],
+        name="idx_pois_muni_updated",
+    )
+    await db["pois"].create_index(
+        [("content.pt.title", "text"), ("content.pt.full_description", "text"), ("metadata.tags", "text")],
+        default_language="portuguese",
+        weights={"content.pt.title": 10, "metadata.tags": 5, "content.pt.full_description": 1},
+        name="idx_pois_text_search_pt",
+    )
+    logger.info("  pois: 5 indexes created")
+
+    # ─── favorites (user POI favourites — new canonical collection) ───
+    await db["favorites"].create_index(
+        [("user_id", 1), ("poi_id", 1)], unique=True, name="idx_favorites_user_poi"
+    )
+    logger.info("  favorites: 1 index created")
+
     # --- narrative_cache (dedicated LLM narrative cache) ---
     await db.narrative_cache.create_index("cache_key", unique=True)
     await db.narrative_cache.create_index("poi_id")
@@ -324,15 +349,16 @@ async def create_all_indexes(db):
     # notification_history: 2, push_tokens: 1, notification_prefs: 1,
     # reviews: 6, poi_translations: 3, iq_processing_queue: 2,
     # iq_processing_results: 2, schema_versions: 1,
+    # pois: 5, favorites: 1,
     # narrative_cache: 3, narratives: 7,
     # events: 8, maritime_events: 3, cultural_routes: 4, streaks: 1,
     # notification_log: 2, notification_preferences: 1
     total = (
         17 + 2 + 3 + 3 + 7 + 3 + 3 + 5 + 4 + 1 + 2 + 1 + 2 + 3 + 3 + 2
-        + 1 + 1 + 6 + 3 + 2 + 2 + 1 + 3 + 7
+        + 1 + 1 + 6 + 3 + 2 + 2 + 1 + 5 + 1 + 3 + 7
         + 8 + 3 + 4 + 1 + 2 + 1
     )
-    logger.info(f"\nTotal: {total} indexes across 31 collections")
+    logger.info(f"\nTotal: {total} indexes across 33 collections")
 
 
 async def create_indexes():
