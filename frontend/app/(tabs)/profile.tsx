@@ -273,6 +273,16 @@ function ProfileScreen() {
               <MaterialIcons name="chevron-right" size={20} color={colors.textMuted} />
             </TouchableOpacity>
             <TouchableOpacity
+              style={styles.actionButton}
+              onPress={() => router.push('/settings/appearance' as any)}
+            >
+              <View style={[styles.actionIcon, { backgroundColor: '#A855F7' + '15' }]}>
+                <MaterialIcons name="palette" size={24} color="#A855F7" />
+              </View>
+              <Text style={[styles.actionText, { color: colors.textPrimary }]}>Aparência Avançada</Text>
+              <MaterialIcons name="chevron-right" size={20} color={colors.textMuted} />
+            </TouchableOpacity>
+            <TouchableOpacity
               style={[styles.actionButton, { borderBottomWidth: 0 }]}
               onPress={() => router.push('/settings/language' as any)}
             >

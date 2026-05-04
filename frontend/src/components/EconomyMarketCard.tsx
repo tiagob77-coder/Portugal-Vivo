@@ -5,6 +5,8 @@ import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useTheme } from '../context/ThemeContext';
+import { palette } from '../theme';
+import { borderRadius, spacing } from '../theme/spacing';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -36,21 +38,21 @@ export interface EconomyMarketCardProps {
 // ─── Colors ───────────────────────────────────────────────────────────────────
 
 const C = {
-  bg: '#FAFAF7',
-  card: '#FFFFFF',
-  market: '#D97706',
-  marketLight: '#FEF3C7',
+  bg: palette.gray[50],
+  card: palette.white,
+  market: palette.terracotta[500],
+  marketLight: palette.terracotta[50],
   artisan: '#7C3AED',
   artisanLight: '#EDE9FE',
-  fish: '#0369A1',
-  fishLight: '#E0F2FE',
-  dop: '#059669',
-  dopLight: '#D1FAE5',
-  textDark: '#1C1917',
-  textMed: '#57534E',
-  textLight: '#78716C',
-  border: '#E7E5E4',
-  accent: '#C2410C',
+  fish: palette.ocean[600],
+  fishLight: palette.ocean[50],
+  dop: palette.forest[600],
+  dopLight: palette.forest[50],
+  textDark: palette.gray[900],
+  textMed: palette.gray[600],
+  textLight: palette.gray[500],
+  border: palette.gray[200],
+  accent: palette.terracotta[600],
 };
 
 // ─── Type Badge Config ────────────────────────────────────────────────────────
@@ -348,7 +350,7 @@ function EconomyMarketCard({
 const styles = StyleSheet.create({
   card: {
     backgroundColor: C.card,
-    borderRadius: 14,
+    borderRadius: borderRadius.lg,
     borderWidth: 1,
     borderColor: C.border,
     overflow: 'hidden',
@@ -367,13 +369,13 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
-    padding: 14,
-    gap: 8,
+    padding: spacing.md,
+    gap: spacing.sm,
   },
   headerRow: {
     flexDirection: 'row',
     alignItems: 'flex-start',
-    gap: 10,
+    gap: spacing.sm,
   },
   titleBlock: {
     flex: 1,
@@ -396,9 +398,9 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   typeBadge: {
-    paddingHorizontal: 8,
+    paddingHorizontal: spacing.sm,
     paddingVertical: 3,
-    borderRadius: 8,
+    borderRadius: borderRadius.sm,
     maxWidth: 130,
   },
   typeBadgeText: {
@@ -443,16 +445,16 @@ const styles = StyleSheet.create({
   categoryIconWrap: {
     width: 38,
     height: 38,
-    borderRadius: 12,
+    borderRadius: borderRadius.md,
     alignItems: 'center',
     justifyContent: 'center',
     flexShrink: 0,
   },
   dopBadge: {
-    backgroundColor: '#D97706',
-    paddingHorizontal: 8,
+    backgroundColor: palette.terracotta[500],
+    paddingHorizontal: spacing.sm,
     paddingVertical: 3,
-    borderRadius: 8,
+    borderRadius: borderRadius.sm,
     alignSelf: 'flex-start',
   },
   dopBadgeText: {

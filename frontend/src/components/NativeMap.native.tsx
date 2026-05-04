@@ -1,24 +1,22 @@
 /**
  * NativeMap.native.tsx — Native map using react-native-maps
- * 
- * This file is loaded by Metro bundler for iOS and Android platforms.
- * Uses Google Maps on Android and Apple Maps on iOS.
+ *
+ * Loaded by Metro bundler for iOS and Android.
+ * Supports: POI markers, route polylines, numbered waypoint markers, fitBounds.
  */
-import React from 'react';
+import React, { useEffect } from 'react';
 import { StyleSheet, View, Text, Platform } from 'react-native';
-import MapView, { Marker, Callout, PROVIDER_GOOGLE, PROVIDER_DEFAULT } from 'react-native-maps';
-import type { MapItem, LeafletMapProps } from './NativeMap.types';
+import MapView, { Marker, Callout, Polyline, PROVIDER_GOOGLE, PROVIDER_DEFAULT } from 'react-native-maps';
+import type { MapItem, LeafletMapProps, WaypointMarker } from './NativeMap.types';
 
-// Re-export types for backwards compatibility
-export type { MapItem, LeafletMapProps };
+// Re-export types
+export type { MapItem, LeafletMapProps, WaypointMarker };
 
-// Re-export components from react-native-maps
-export { Marker, Callout, PROVIDER_GOOGLE };
+// Re-export components
+export { Marker, Callout, Polyline, PROVIDER_GOOGLE };
 
-// Map is available on native platforms
 export const isMapAvailable = true;
 
-// Default map region (Portugal)
 const PORTUGAL_REGION = {
   latitude: 39.5,
   longitude: -8.0,
@@ -26,7 +24,6 @@ const PORTUGAL_REGION = {
   longitudeDelta: 6,
 };
 
-// Dark map style for Google Maps
 const darkMapStyle = [
   { elementType: 'geometry', stylers: [{ color: '#1d2c4d' }] },
   { elementType: 'labels.text.fill', stylers: [{ color: '#8ec3b9' }] },
@@ -44,12 +41,6 @@ const darkMapStyle = [
   { featureType: 'landscape', elementType: 'geometry', stylers: [{ color: '#1d2c4d' }] },
 ];
 
-/**
- * LeafletMapComponent - Compatibility wrapper for native map
- * 
- * On native platforms, this renders a react-native-maps MapView
- * with the same props interface as the web Leaflet version.
- */
 export function LeafletMapComponent({
   items = [],
   onItemPress,
@@ -57,25 +48,44 @@ export function LeafletMapComponent({
   mapMode = 'light',
   trailPoints,
   trailColor = '#22C55E',
+  waypoints,
   style,
   onMapReady,
   ...props
 }: LeafletMapProps) {
   const mapRef = React.useRef<MapView>(null);
   const safeItems = Array.isArray(items) ? items : [];
-  
-  // Filter items with valid coordinates
+
   const validItems = safeItems.filter(
     item => item?.location?.lat && item?.location?.lng &&
     Math.abs(item.location.lat) <= 90 &&
     Math.abs(item.location.lng) <= 180
   );
 
-  // Determine if dark mode
   const isDark = mapMode === 'dark' || mapMode === 'noturno';
-
-  // Provider: Use Google Maps on Android for better performance
   const provider = Platform.OS === 'android' ? PROVIDER_GOOGLE : PROVIDER_DEFAULT;
+
+  // Auto-fitBounds to waypoints when they change
+  useEffect(() => {
+    if (!mapRef.current) return;
+    const wps: WaypointMarker[] = Array.isArray(waypoints) ? waypoints : [];
+    if (wps.length > 0) {
+      const coords = wps.map(wp => ({ latitude: wp.lat, longitude: wp.lng }));
+      mapRef.current.fitToCoordinates(coords, {
+        edgePadding: { top: 80, right: 40, bottom: 320, left: 40 },
+        animated: true,
+      });
+      return;
+    }
+    // Fallback to trailPoints
+    if (trailPoints && trailPoints.length > 1) {
+      const coords = trailPoints.map(p => ({ latitude: p.lat, longitude: p.lng }));
+      mapRef.current.fitToCoordinates(coords, {
+        edgePadding: { top: 80, right: 40, bottom: 240, left: 40 },
+        animated: true,
+      });
+    }
+  }, [waypoints, trailPoints]);
 
   return (
     <View style={[styles.container, style]}>
@@ -88,19 +98,15 @@ export function LeafletMapComponent({
         showsUserLocation
         showsMyLocationButton={false}
         showsCompass={false}
-        onMapReady={() => {
-          onMapReady?.();
-        }}
+        onMapReady={() => onMapReady?.()}
         mapPadding={{ top: 0, right: 0, bottom: 100, left: 0 }}
         {...props}
       >
+        {/* POI markers */}
         {validItems.map((item) => (
           <Marker
             key={item.id}
-            coordinate={{
-              latitude: item.location.lat,
-              longitude: item.location.lng,
-            }}
+            coordinate={{ latitude: item.location.lat, longitude: item.location.lng }}
             onPress={() => onItemPress?.(item)}
             tracksViewChanges={false}
           >
@@ -118,64 +124,71 @@ export function LeafletMapComponent({
             </Callout>
           </Marker>
         ))}
+
+        {/* Trail polyline (from raw trailPoints — no named waypoints) */}
+        {trailPoints && trailPoints.length > 1 && (
+          <Polyline
+            coordinates={trailPoints.map(p => ({ latitude: p.lat, longitude: p.lng }))}
+            strokeColor={trailColor}
+            strokeWidth={5}
+          />
+        )}
+
+        {/* Route polyline through named waypoints */}
+        {Array.isArray(waypoints) && waypoints.length > 1 && (
+          <Polyline
+            coordinates={waypoints
+              .sort((a, b) => a.order - b.order)
+              .map(wp => ({ latitude: wp.lat, longitude: wp.lng }))}
+            strokeColor={trailColor}
+            strokeWidth={5}
+          />
+        )}
+
+        {/* Numbered waypoint markers */}
+        {Array.isArray(waypoints) && waypoints.map((wp) => (
+          <Marker
+            key={`wp-${wp.order}`}
+            coordinate={{ latitude: wp.lat, longitude: wp.lng }}
+            tracksViewChanges={false}
+            anchor={{ x: 0.5, y: 0.5 }}
+          >
+            <View style={[styles.waypointMarker, { backgroundColor: trailColor }]}>
+              <Text style={styles.waypointNum}>{wp.order}</Text>
+            </View>
+          </Marker>
+        ))}
       </MapView>
     </View>
   );
 }
 
-// Default export is the MapView component itself
 export default MapView;
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    overflow: 'hidden',
-  },
-  map: {
-    ...StyleSheet.absoluteFillObject,
-  },
+  container: { flex: 1, overflow: 'hidden' },
+  map: { ...StyleSheet.absoluteFillObject },
   markerOuter: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    justifyContent: 'center',
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 4,
-    elevation: 4,
-    borderWidth: 2,
-    borderColor: '#FFFFFF',
+    width: 28, height: 28, borderRadius: 14,
+    justifyContent: 'center', alignItems: 'center',
+    shadowColor: '#000', shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25, shadowRadius: 4, elevation: 4,
+    borderWidth: 2, borderColor: '#FFFFFF',
   },
-  markerInner: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: '#FFFFFF',
+  markerInner: { width: 8, height: 8, borderRadius: 4, backgroundColor: '#FFFFFF' },
+  waypointMarker: {
+    width: 28, height: 28, borderRadius: 14,
+    justifyContent: 'center', alignItems: 'center',
+    borderWidth: 2, borderColor: '#FFFFFF',
+    shadowColor: '#000', shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3, shadowRadius: 4, elevation: 5,
   },
+  waypointNum: { fontSize: 12, fontWeight: '700', color: '#FFFFFF' },
   calloutContainer: {
-    backgroundColor: '#264E41',
-    borderRadius: 12,
-    padding: 12,
-    minWidth: 180,
-    maxWidth: 250,
+    backgroundColor: '#264E41', borderRadius: 12,
+    padding: 12, minWidth: 180, maxWidth: 250,
   },
-  calloutTitle: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#FFFFFF',
-    marginBottom: 4,
-  },
-  calloutCategory: {
-    fontSize: 12,
-    color: '#C8C3B8',
-    textTransform: 'capitalize',
-    marginBottom: 6,
-  },
-  calloutAction: {
-    fontSize: 11,
-    color: '#C49A6C',
-    fontWeight: '500',
-  },
+  calloutTitle: { fontSize: 14, fontWeight: '600', color: '#FFFFFF', marginBottom: 4 },
+  calloutCategory: { fontSize: 12, color: '#C8C3B8', textTransform: 'capitalize', marginBottom: 6 },
+  calloutAction: { fontSize: 11, color: '#C49A6C', fontWeight: '500' },
 });

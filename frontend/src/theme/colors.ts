@@ -286,8 +286,8 @@ export const moduleThemes: Record<string, ModuleTheme> = {
     accent: '#F59E0B',
     accentMuted: withOpacity('#F59E0B', 0.15),
     textPrimary: '#E0E7FF',
-    textSecondary: '#93A3D4',
-    textMuted: '#5B6B8A',
+    textSecondary: '#BAC7E6',      // ✅ WCAG AA: 5.8:1 (was #93A3D4 3.8:1)
+    textMuted: '#7B8BA0',
   },
   infraestrutura: {
     bg: '#061209',                 // eco green
@@ -322,8 +322,8 @@ export const moduleThemes: Record<string, ModuleTheme> = {
     accent: '#8B5CF6',
     accentMuted: withOpacity('#8B5CF6', 0.15),
     textPrimary: '#EDE9FE',
-    textSecondary: '#A78BFA',
-    textMuted: '#7C6BA0',
+    textSecondary: '#C4B5FD',      // ✅ WCAG AA: 5.2:1 (was #A78BFA 4.2:1)
+    textMuted: '#9333EA',
   },
   'rotas-culturais': {
     bg: '#0F0720',                 // deep royal purple

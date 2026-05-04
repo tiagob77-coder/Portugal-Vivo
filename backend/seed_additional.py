@@ -74,7 +74,7 @@ def get_image_for_category(category: str, index: int = 0) -> str:
 # PERCURSOS PEDESTRES (Nova categoria)
 # ========================
 PERCURSOS = [
-    {"name": "Passadiços do Paiva", "description": "8 km de passadiços de madeira ao longo do Rio Paiva, uma das mais espetaculares caminhadas de Portugal.", "region": "norte", "location": {"lat": 40.9667, "lng": -8.2333}, "address": "Arouca"},
+    {"name": "Passadiços do Paiva", "description": "8 km de passadiços de madeira ao longo do Rio Paiva, uma das mais espetaculares caminhadas de Portugal.", "region": "norte", "location": {"lat": 40.970826, "lng": -8.193645}, "address": "Arouca"},
     {"name": "Trilho dos Pescadores", "description": "Percurso costeiro de 226 km ao longo da Costa Vicentina, de Porto Covo a Lagos.", "region": "alentejo", "location": {"lat": 37.8500, "lng": -8.7833}, "address": "Costa Vicentina"},
     {"name": "Rota Vicentina - Caminho Histórico", "description": "263 km de trilhos pelo interior alentejano até ao Cabo de São Vicente.", "region": "alentejo", "location": {"lat": 37.0000, "lng": -8.8000}, "address": "Alentejo - Algarve"},
     {"name": "Levada do Caldeirão Verde", "description": "13 km de caminhada ao longo de levadas através da Laurissilva até cascatas espetaculares.", "region": "madeira", "location": {"lat": 32.7833, "lng": -16.9167}, "address": "Santana, Madeira"},

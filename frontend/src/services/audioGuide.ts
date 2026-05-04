@@ -202,6 +202,57 @@ class AudioGuideService {
   }
 
   /**
+   * Get the best PT-PT voice available
+   * Prioritizes: pt-PT > pt-BR > any Portuguese > fallback
+   */
+  private async getBestPortugueseVoice(): Promise<string | undefined> {
+    try {
+      const voices = await Speech.getAvailableVoicesAsync();
+      
+      // Priority 1: Exact pt-PT match
+      const ptPT = voices.find(v => 
+        v.language === 'pt-PT' || 
+        v.language === 'pt_PT' ||
+        v.identifier?.includes('pt-PT') ||
+        v.identifier?.includes('pt_PT')
+      );
+      if (ptPT) {
+        console.log('[TTS] Using PT-PT voice:', ptPT.identifier);
+        return ptPT.identifier;
+      }
+
+      // Priority 2: Any European Portuguese indicator
+      const european = voices.find(v => 
+        v.name?.toLowerCase().includes('portugal') ||
+        v.name?.toLowerCase().includes('european') ||
+        v.name?.toLowerCase().includes('joana') || // Common PT-PT voice name
+        v.name?.toLowerCase().includes('catarina') ||
+        v.name?.toLowerCase().includes('cristiano')
+      );
+      if (european) {
+        console.log('[TTS] Using European Portuguese voice:', european.identifier);
+        return european.identifier;
+      }
+
+      // Priority 3: Any Portuguese voice (including pt-BR)
+      const anyPT = voices.find(v => 
+        v.language.startsWith('pt') ||
+        v.language.includes('Portuguese')
+      );
+      if (anyPT) {
+        console.log('[TTS] Using Portuguese voice:', anyPT.identifier);
+        return anyPT.identifier;
+      }
+
+      console.log('[TTS] No Portuguese voice found, using system default');
+      return undefined;
+    } catch (error) {
+      console.error('[TTS] Error finding voice:', error);
+      return undefined;
+    }
+  }
+
+  /**
    * Play audio guide for a POI
    */
   async play(
@@ -243,11 +294,15 @@ class AudioGuideService {
     try {
       options?.onStart?.();
 
+      // Get best Portuguese voice
+      const voiceId = await this.getBestPortugueseVoice();
+
       await Speech.speak(cleanText, {
         language: this.settings.language,
         rate: this.settings.rate,
         pitch: this.settings.pitch,
         volume: this.settings.volume,
+        voice: voiceId, // Use specific voice if found
         onDone: () => {
           this.isPlaying = false;
           this.currentPoiId = null;

@@ -2,6 +2,8 @@ import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useTheme } from '../context/ThemeContext';
+import { palette } from '../theme';
+import { borderRadius, spacing } from '../theme/spacing';
 
 interface CoastalDataCardProps {
   zone: {
@@ -43,15 +45,15 @@ function getSimulatedWindSpeed(vento: string): number {
 function getSegurancaDisplay(seguranca: string): { label: string; color: string; bg: string; emoji: string } {
   switch (seguranca) {
     case 'muito_alta':
-      return { label: 'Segura', color: '#16A34A', bg: '#DCFCE7', emoji: '🟢' };
+      return { label: 'Segura', color: palette.forest[600], bg: palette.forest[50], emoji: '🟢' };
     case 'alta':
-      return { label: 'Boa', color: '#16A34A', bg: '#DCFCE7', emoji: '🟢' };
+      return { label: 'Boa', color: palette.forest[600], bg: palette.forest[50], emoji: '🟢' };
     case 'media':
-      return { label: 'Atenção', color: '#D97706', bg: '#FEF3C7', emoji: '🟡' };
+      return { label: 'Atenção', color: palette.terracotta[600], bg: palette.terracotta[50], emoji: '🟡' };
     case 'baixa':
       return { label: 'Perigosa', color: '#DC2626', bg: '#FEE2E2', emoji: '🔴' };
     default:
-      return { label: 'Desconhecida', color: '#64748B', bg: '#F1F5F9', emoji: '⚪' };
+      return { label: 'Desconhecida', color: palette.gray[500], bg: palette.gray[100], emoji: '⚪' };
   }
 }
 
@@ -69,7 +71,7 @@ const CoastalDataCard: React.FC<CoastalDataCardProps> = ({ zone, compact = false
         {/* Marés */}
         <View style={[styles.cell, styles.cellBorderRight, styles.cellBorderBottom, { borderRightColor: colors.border, borderBottomColor: colors.border }]}>
           <View style={styles.cellHeader}>
-            <MaterialIcons name="water" size={20} color="#0E7490" />
+            <MaterialIcons name="water" size={20} color={palette.ocean[500]} />
             <Text style={[styles.cellLabel, { color: colors.textMuted }]}>Marés</Text>
           </View>
           <Text style={[styles.cellValue, { color: colors.textPrimary }]}>{tide.phase}</Text>
@@ -79,7 +81,7 @@ const CoastalDataCard: React.FC<CoastalDataCardProps> = ({ zone, compact = false
         {/* Ondas */}
         <View style={[styles.cell, styles.cellBorderBottom, { borderBottomColor: colors.border }]}>
           <View style={styles.cellHeader}>
-            <MaterialIcons name="waves" size={20} color="#0E7490" />
+            <MaterialIcons name="waves" size={20} color={palette.ocean[500]} />
             <Text style={[styles.cellLabel, { color: colors.textMuted }]}>Ondas</Text>
           </View>
           <Text style={[styles.cellValue, { color: colors.textPrimary }]}>{condicoes.ondas_media_m} m</Text>
@@ -89,7 +91,7 @@ const CoastalDataCard: React.FC<CoastalDataCardProps> = ({ zone, compact = false
         {/* Vento */}
         <View style={[styles.cell, styles.cellBorderRight, { borderRightColor: colors.border }]}>
           <View style={styles.cellHeader}>
-            <MaterialIcons name="air" size={20} color="#0E7490" />
+            <MaterialIcons name="air" size={20} color={palette.ocean[500]} />
             <Text style={[styles.cellLabel, { color: colors.textMuted }]}>Vento</Text>
           </View>
           <Text style={[styles.cellValue, { color: colors.textPrimary }]}>{windSpeed} km/h</Text>
@@ -99,7 +101,7 @@ const CoastalDataCard: React.FC<CoastalDataCardProps> = ({ zone, compact = false
         {/* Segurança */}
         <View style={styles.cell}>
           <View style={styles.cellHeader}>
-            <MaterialIcons name="shield" size={20} color="#0E7490" />
+            <MaterialIcons name="shield" size={20} color={palette.ocean[500]} />
             <Text style={[styles.cellLabel, { color: colors.textMuted }]}>Segurança</Text>
           </View>
           <View style={[styles.segurancaBadge, { backgroundColor: seg.bg }]}>
@@ -113,7 +115,7 @@ const CoastalDataCard: React.FC<CoastalDataCardProps> = ({ zone, compact = false
 
       {/* Melhor época */}
       <View style={[styles.epocaRow, { borderTopColor: colors.border, backgroundColor: colors.surface }]}>
-        <MaterialIcons name="wb-sunny" size={14} color="#D97706" />
+        <MaterialIcons name="wb-sunny" size={14} color={palette.terracotta[500]} />
         <Text style={[styles.epocaLabel, { color: colors.textSecondary }]}>Melhor época:</Text>
         <View style={styles.epocaChip}>
           <Text style={styles.epocaChipText}>{condicoes.melhor_epoca}</Text>
@@ -126,19 +128,19 @@ const CoastalDataCard: React.FC<CoastalDataCardProps> = ({ zone, compact = false
 const styles = StyleSheet.create({
   card: {
     backgroundColor: '#FFFFFF',
-    borderRadius: 14,
+    borderRadius: borderRadius.lg,
     overflow: 'hidden',
-    shadowColor: '#0E7490',
+    shadowColor: palette.ocean[600],
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.08,
     shadowRadius: 8,
     elevation: 3,
     borderWidth: 1,
-    borderColor: '#E0F2FE',
-    marginTop: 12,
+    borderColor: palette.ocean[100],
+    marginTop: spacing.md,
   },
   cardCompact: {
-    marginTop: 8,
+    marginTop: spacing.sm,
   },
   grid: {
     flexDirection: 'row',
@@ -146,16 +148,16 @@ const styles = StyleSheet.create({
   },
   cell: {
     width: '50%',
-    padding: 14,
-    gap: 4,
+    padding: spacing.md,
+    gap: spacing.xs,
   },
   cellBorderRight: {
     borderRightWidth: 1,
-    borderRightColor: '#E0F2FE',
+    borderRightColor: palette.ocean[100],
   },
   cellBorderBottom: {
     borderBottomWidth: 1,
-    borderBottomColor: '#E0F2FE',
+    borderBottomColor: palette.ocean[100],
   },
   cellHeader: {
     flexDirection: 'row',
@@ -165,7 +167,7 @@ const styles = StyleSheet.create({
   },
   cellLabel: {
     fontSize: 10,
-    color: '#64748B',
+    color: palette.gray[500],
     fontWeight: '600',
     textTransform: 'uppercase',
     letterSpacing: 0.5,
@@ -173,17 +175,17 @@ const styles = StyleSheet.create({
   cellValue: {
     fontSize: 14,
     fontWeight: '700',
-    color: '#0F172A',
+    color: palette.gray[900],
   },
   cellSub: {
     fontSize: 11,
-    color: '#64748B',
+    color: palette.gray[500],
   },
   segurancaBadge: {
     alignSelf: 'flex-start',
-    paddingHorizontal: 8,
+    paddingHorizontal: spacing.sm,
     paddingVertical: 3,
-    borderRadius: 8,
+    borderRadius: borderRadius.sm,
     marginTop: 2,
   },
   segurancaText: {
@@ -194,26 +196,26 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    paddingHorizontal: 14,
-    paddingVertical: 10,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
     borderTopWidth: 1,
-    borderTopColor: '#E0F2FE',
-    backgroundColor: '#F0F7FA',
+    borderTopColor: palette.ocean[100],
+    backgroundColor: palette.gray[50],
   },
   epocaLabel: {
     fontSize: 11,
-    color: '#64748B',
+    color: palette.gray[500],
     fontWeight: '500',
   },
   epocaChip: {
-    backgroundColor: '#FEF3C7',
-    paddingHorizontal: 8,
+    backgroundColor: palette.terracotta[50],
+    paddingHorizontal: spacing.sm,
     paddingVertical: 2,
-    borderRadius: 8,
+    borderRadius: borderRadius.sm,
   },
   epocaChipText: {
     fontSize: 11,
-    color: '#D97706',
+    color: palette.terracotta[600],
     fontWeight: '700',
   },
 });

@@ -18,6 +18,8 @@ import {
   Linking,
   Platform,
 } from 'react-native';
+import { Image } from 'expo-image';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -83,6 +85,7 @@ interface CalendarEvent {
   day_start?: number;
   day_end?: number;
   month?: number;
+  image_url?: string;
 }
 
 const getCalendarEvents = async (
@@ -166,6 +169,11 @@ const getCategoryIcon = (category: string): string => {
 const getCategoryColor = (category: string): string => {
   const cat = EVENT_CATEGORIES.find(c => c.id === category);
   return cat?.color || palette.terracotta[500];
+};
+
+const getCategoryName = (category: string): string => {
+  const cat = EVENT_CATEGORIES.find(c => c.id === category);
+  return cat?.name || category;
 };
 
 /**
@@ -292,7 +300,8 @@ export default function EventosTab() {
       key={index}
       style={[
         styles.calendarDay,
-        isToday(day.date) && styles.calendarDayToday,
+        { backgroundColor: tc.surfaceAlt },
+        isToday(day.date) && [styles.calendarDayToday, { backgroundColor: tc.accent }],
         day.events.length > 0 && styles.calendarDayWithEvent,
       ]}
       disabled={!day.date || day.events.length === 0}
@@ -307,6 +316,7 @@ export default function EventosTab() {
         <>
           <Text style={[
             styles.calendarDayText,
+            { color: tc.textPrimary },
             isToday(day.date) && styles.calendarDayTextToday,
           ]}>
             {day.date.getDate()}
@@ -326,9 +336,28 @@ export default function EventosTab() {
     </TouchableOpacity>
   );
 
+  // Event category images - high quality Portuguese cultural images
+  const getCategoryImage = (category: string): string => {
+    const images: Record<string, string> = {
+      religioso: 'https://images.unsplash.com/photo-1548625149-fc4a29cf7092?w=800&q=80',
+      musica: 'https://images.pexels.com/photos/27271689/pexels-photo-27271689.jpeg?w=800&q=80',
+      gastronomia: 'https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=800&q=80',
+      tradicional: 'https://images.pexels.com/photos/19911485/pexels-photo-19911485.jpeg?w=800&q=80',
+      festa: 'https://images.unsplash.com/photo-1766354632527-0e9690328afc?w=800&q=80',
+      festas: 'https://images.unsplash.com/photo-1766354632527-0e9690328afc?w=800&q=80',
+      feira: 'https://images.pexels.com/photos/17821300/pexels-photo-17821300.jpeg?w=800&q=80',
+      cultural: 'https://images.unsplash.com/photo-1766355621721-e2f9c90a6588?w=800&q=80',
+      festival: 'https://images.pexels.com/photos/27271689/pexels-photo-27271689.jpeg?w=800&q=80',
+      natureza: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&q=80',
+    };
+    return images[category] || 'https://images.unsplash.com/photo-1634820491182-014e84a586b4?w=800&q=80';
+  };
+
   const renderEventCard = (event: CalendarEvent) => {
     const color = getCategoryColor(event.category);
     const rarityColor = getRarityColor(event.rarity);
+    const imageUrl = event.image_url || getCategoryImage(event.category);
+    
     return (
       <TouchableOpacity
         key={event.id}
@@ -337,53 +366,62 @@ export default function EventosTab() {
         activeOpacity={0.8}
         data-testid={`event-card-${event.id}`}
       >
-        <View style={[styles.eventIcon, { backgroundColor: color + '20' }]}>
-          <MaterialIcons
-            name={getCategoryIcon(event.category) as any}
-            size={24}
-            color={color}
-          />
-        </View>
-        <View style={styles.eventInfo}>
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-            <Text style={styles.eventName} numberOfLines={1}>{event.name}</Text>
-            {rarityColor && (
-              <View style={[styles.rarityBadge, { backgroundColor: rarityColor }]}>
-                <Text style={styles.rarityText}>
-                  {event.rarity === 'epico' ? '★' : event.rarity === 'raro' ? '◆' : '●'}
-                </Text>
-              </View>
-            )}
+        {/* Event Image */}
+        <Image
+          source={{ uri: imageUrl }}
+          style={styles.eventImage}
+          contentFit="cover"
+        />
+        <LinearGradient
+          colors={['transparent', 'rgba(0,0,0,0.85)']}
+          style={styles.eventGradient}
+        />
+        
+        {/* Rarity Badge */}
+        {rarityColor && (
+          <View style={[styles.rarityBadge, { backgroundColor: rarityColor }]}>
+            <Text style={styles.rarityText}>
+              {event.rarity === 'epico' ? '★ Épico' : event.rarity === 'raro' ? '◆ Raro' : '● Comum'}
+            </Text>
           </View>
+        )}
+        
+        {/* Content */}
+        <View style={styles.eventContent}>
+          <View style={[styles.eventCategoryBadge, { backgroundColor: color + '30' }]}>
+            <MaterialIcons name={getCategoryIcon(event.category) as any} size={14} color={color} />
+            <Text style={[styles.eventCategoryText, { color }]}>
+              {getCategoryName(event.category)}
+            </Text>
+          </View>
+          
+          <Text style={styles.eventName} numberOfLines={2}>{event.name}</Text>
+          
           <View style={styles.eventMeta}>
-            <MaterialIcons name="event" size={14} color={palette.gray[500]} />
+            <MaterialIcons name="event" size={14} color="rgba(255,255,255,0.7)" />
             <Text style={styles.eventDate}>
               {event.date_text || `${event.date_start} - ${event.date_end}`}
             </Text>
           </View>
+          
           <View style={styles.eventMeta}>
-            <MaterialIcons name="location-on" size={14} color={palette.gray[500]} />
+            <MaterialIcons name="location-on" size={14} color="rgba(255,255,255,0.7)" />
             <Text style={styles.eventRegion}>
               {event.concelho ? `${event.concelho}, ` : ''}{event.region}
             </Text>
           </View>
-          {event.source === 'viralagenda' && (
-            <View style={[styles.sourceBadge, { backgroundColor: '#06B6D420' }]}>
-              <Text style={[styles.sourceText, { color: '#06B6D4' }]}>● Viral Agenda</Text>
-            </View>
-          )}
+          
           {event.has_tickets && event.ticket_url && (
             <TouchableOpacity
               style={styles.ticketButton}
               onPress={(e) => { e.stopPropagation(); Linking.openURL(event.ticket_url!); }}
               activeOpacity={0.7}
             >
-              <MaterialIcons name="confirmation-number" size={12} color="#FFF" />
-              <Text style={styles.ticketText}>Bilhetes</Text>
+              <MaterialIcons name="confirmation-number" size={14} color="#FFF" />
+              <Text style={styles.ticketText}>Comprar Bilhetes</Text>
             </TouchableOpacity>
           )}
         </View>
-        <MaterialIcons name="chevron-right" size={24} color={palette.gray[500]} />
       </TouchableOpacity>
     );
   };
@@ -414,30 +452,30 @@ export default function EventosTab() {
         </View>
 
         {/* View Mode Toggle */}
-        <View style={styles.toggleContainer}>
+        <View style={[styles.toggleContainer, { backgroundColor: tc.surface, borderColor: tc.border }]}>
           <TouchableOpacity
-            style={[styles.toggleButton, viewMode === 'calendar' && styles.toggleActive]}
+            style={[styles.toggleButton, viewMode === 'calendar' && [styles.toggleActive, { backgroundColor: tc.accent }]]}
             onPress={() => setViewMode('calendar')}
           >
             <MaterialIcons
               name="calendar-today"
               size={18}
-              color={viewMode === 'calendar' ? '#000' : palette.gray[300]}
+              color={viewMode === 'calendar' ? '#FFF' : tc.textMuted}
             />
-            <Text style={[styles.toggleText, viewMode === 'calendar' && styles.toggleTextActive]}>
+            <Text style={[styles.toggleText, { color: viewMode === 'calendar' ? '#FFF' : tc.textMuted }, viewMode === 'calendar' && styles.toggleTextActive]}>
               Calendário
             </Text>
           </TouchableOpacity>
           <TouchableOpacity
-            style={[styles.toggleButton, viewMode === 'list' && styles.toggleActive]}
+            style={[styles.toggleButton, viewMode === 'list' && [styles.toggleActive, { backgroundColor: tc.accent }]]}
             onPress={() => setViewMode('list')}
           >
             <MaterialIcons
               name="list"
               size={18}
-              color={viewMode === 'list' ? '#000' : palette.gray[300]}
+              color={viewMode === 'list' ? '#FFF' : tc.textMuted}
             />
-            <Text style={[styles.toggleText, viewMode === 'list' && styles.toggleTextActive]}>
+            <Text style={[styles.toggleText, { color: viewMode === 'list' ? '#FFF' : tc.textMuted }, viewMode === 'list' && styles.toggleTextActive]}>
               Lista
             </Text>
           </TouchableOpacity>
@@ -452,12 +490,14 @@ export default function EventosTab() {
           <TouchableOpacity
             style={[
               styles.filterChip,
-              !selectedCategory && styles.filterChipActive,
+              { backgroundColor: tc.surface, borderColor: tc.border, borderWidth: 1 },
+              !selectedCategory && [styles.filterChipActive, { borderColor: tc.accent }],
             ]}
             onPress={() => setSelectedCategory(null)}
           >
             <Text style={[
               styles.filterText,
+              { color: tc.textSecondary },
               !selectedCategory && styles.filterTextActive,
             ]}>
               Todos
@@ -468,7 +508,8 @@ export default function EventosTab() {
               key={cat.id}
               style={[
                 styles.filterChip,
-                selectedCategory === cat.id && { backgroundColor: cat.color },
+                { backgroundColor: tc.surface, borderColor: tc.border, borderWidth: 1 },
+                selectedCategory === cat.id && { backgroundColor: cat.color, borderColor: cat.color },
               ]}
               onPress={() => setSelectedCategory(
                 selectedCategory === cat.id ? null : cat.id
@@ -477,10 +518,11 @@ export default function EventosTab() {
               <MaterialIcons
                 name={cat.icon as any}
                 size={16}
-                color={selectedCategory === cat.id ? '#FFF' : palette.gray[300]}
+                color={selectedCategory === cat.id ? '#FFF' : tc.textSecondary}
               />
               <Text style={[
                 styles.filterText,
+                { color: tc.textSecondary },
                 selectedCategory === cat.id && styles.filterTextActive,
               ]}>
                 {cat.name}
@@ -500,7 +542,8 @@ export default function EventosTab() {
               key={region.id || 'all'}
               style={[
                 styles.regionPill,
-                selectedRegion === region.id && styles.regionPillActive,
+                { backgroundColor: tc.surface, borderColor: tc.border, borderWidth: 1 },
+                selectedRegion === region.id && [styles.regionPillActive, { borderColor: tc.accent }],
               ]}
               onPress={() => setSelectedRegion(region.id)}
             >
@@ -535,30 +578,30 @@ export default function EventosTab() {
 
         {viewMode === 'calendar' ? (
           /* Calendar View */
-          <View style={styles.calendarContainer}>
+          <View style={[styles.calendarContainer, { backgroundColor: tc.surface }]}>
             {/* Month Navigation */}
             <View style={styles.monthNav}>
               <TouchableOpacity
                 style={styles.monthButton}
                 onPress={() => navigateMonth('prev')}
               >
-                <MaterialIcons name="chevron-left" size={28} color="#FFFFFF" />
+                <MaterialIcons name="chevron-left" size={28} color={tc.textPrimary} />
               </TouchableOpacity>
-              <Text style={styles.monthTitle}>
+              <Text style={[styles.monthTitle, { color: tc.textPrimary }]}>
                 {MONTHS_PT[selectedDate.getMonth()]} {selectedDate.getFullYear()}
               </Text>
               <TouchableOpacity
                 style={styles.monthButton}
                 onPress={() => navigateMonth('next')}
               >
-                <MaterialIcons name="chevron-right" size={28} color="#FFFFFF" />
+                <MaterialIcons name="chevron-right" size={28} color={tc.textPrimary} />
               </TouchableOpacity>
             </View>
 
             {/* Weekday Headers */}
             <View style={styles.weekdaysRow}>
               {WEEKDAYS_PT.map((day, i) => (
-                <Text key={i} style={styles.weekdayText}>{day}</Text>
+                <Text key={i} style={[styles.weekdayText, { color: tc.textSecondary }]}>{day}</Text>
               ))}
             </View>
 
@@ -858,16 +901,39 @@ const styles = StyleSheet.create({
   listContainer: {
     paddingHorizontal: 20,
     marginTop: 8,
-    gap: 8,
+    gap: 12,
   },
   eventCard: {
+    borderRadius: 16,
+    overflow: 'hidden',
+    height: 180,
+    ...shadows.md,
+  },
+  eventImage: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: '#2E5E4E',
+  },
+  eventGradient: {
+    ...StyleSheet.absoluteFillObject,
+  },
+  eventContent: {
+    flex: 1,
+    justifyContent: 'flex-end',
+    padding: 16,
+  },
+  eventCategoryBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.background.secondary,
+    gap: 4,
+    alignSelf: 'flex-start',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
     borderRadius: 12,
-    padding: 14,
-    gap: 12,
-    ...shadows.sm,
+    marginBottom: 8,
+  },
+  eventCategoryText: {
+    fontSize: 11,
+    fontWeight: '600',
   },
   eventIcon: {
     width: 48,
@@ -880,36 +946,39 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   eventName: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: colors.gray[800],
-    marginBottom: 4,
-    flex: 1,
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#FFFFFF',
+    marginBottom: 6,
+    textShadowColor: 'rgba(0,0,0,0.5)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 3,
   },
   eventMeta: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
-    marginTop: 2,
+    marginTop: 4,
   },
   eventDate: {
     fontSize: 12,
-    color: colors.gray[500],
+    color: 'rgba(255,255,255,0.9)',
   },
   eventRegion: {
     fontSize: 12,
-    color: colors.gray[500],
+    color: 'rgba(255,255,255,0.9)',
     textTransform: 'capitalize',
   },
   rarityBadge: {
-    width: 16,
-    height: 16,
+    position: 'absolute',
+    top: 12,
+    right: 12,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
     borderRadius: 8,
-    justifyContent: 'center',
-    alignItems: 'center',
   },
   rarityText: {
-    fontSize: 8,
+    fontSize: 10,
     color: '#FFF',
     fontWeight: '700',
   },
