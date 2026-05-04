@@ -3,11 +3,13 @@
  */
 import React, { useState } from 'react';
 import {
-  View, Text, StyleSheet, ScrollView, TouchableOpacity,
+  View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator,
 } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useQuery } from '@tanstack/react-query';
+import { API_BASE } from '../../src/config/api';
 import FloraSpeciesCard, { FloraSpecies } from '../../src/components/FloraSpeciesCard';
 import { getModuleTheme } from '../../src/theme/colors';
 
@@ -310,6 +312,18 @@ export default function FloraScreen() {
 
   const currentMonth = new Date().getMonth() + 1;
 
+  const { data: floraData, isLoading } = useQuery({
+    queryKey: ['flora-species'],
+    queryFn: async () => {
+      const res = await fetch(`${API_BASE}/flora-fauna/flora?limit=200`);
+      if (!res.ok) throw new Error('fetch failed');
+      return res.json();
+    },
+    staleTime: 10 * 60 * 1000,
+  });
+
+  const allSpecies: FloraSpecies[] = floraData?.flora ?? FLORA_DATA;
+
   const handleTabPress = (key: TabKey) => {
     setActiveTab(key);
     setExpandedId(null);
@@ -320,13 +334,13 @@ export default function FloraScreen() {
   };
 
   // Apply tab filter then month filter
-  const tabFiltered = filterByTab(FLORA_DATA, activeTab);
+  const tabFiltered = filterByTab(allSpecies, activeTab);
   const filtered = monthFilter
     ? tabFiltered.filter((s) => isFlowering(s, monthFilter))
     : tabFiltered;
 
   // Count species flowering this month
-  const floweringNow = FLORA_DATA.filter((s) => isFlowering(s, currentMonth)).length;
+  const floweringNow = allSpecies.filter((s) => isFlowering(s, currentMonth)).length;
 
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
@@ -439,7 +453,10 @@ export default function FloraScreen() {
 
         {/* ── Species list ────────────────────────────────────────────────── */}
         <View style={styles.listContainer}>
-          {filtered.map((species) => (
+          {isLoading && (
+            <ActivityIndicator size="large" color={C.accent} style={{ marginVertical: 32 }} />
+          )}
+          {!isLoading && filtered.map((species) => (
             <FloraSpeciesCard
               key={species.id}
               species={species}
@@ -449,7 +466,7 @@ export default function FloraScreen() {
           ))}
 
           {/* Empty state */}
-          {filtered.length === 0 && (
+          {!isLoading && filtered.length === 0 && (
             <View style={styles.emptyState}>
               <MaterialIcons name="eco" size={40} color={C.textLight} />
               <Text style={styles.emptyStateTitle}>Sem espécies neste filtro</Text>

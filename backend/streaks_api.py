@@ -258,7 +258,7 @@ async def get_activity_calendar(user_id: str, months: int = 3):
     checkins = await db.checkins.find(
         {"user_id": user_id, "checked_in_at": {"$gte": start_date}},
         {"_id": 0, "checked_in_at": 1},
-    ).to_list(10000)
+    ).limit(500).to_list(500)
 
     # Group by date
     date_counts: dict[str, int] = {}
