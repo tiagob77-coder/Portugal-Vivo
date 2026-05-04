@@ -59,7 +59,9 @@ jobs:
 
       - name: Instalar dependências
         working-directory: backend
-        run: pip install -r requirements.txt pytest-cov || (sleep 5 && pip install -r requirements.txt pytest-cov)
+        run: |
+          pip install -r requirements.txt -r requirements-test.txt \
+            || (sleep 5 && pip install -r requirements.txt -r requirements-test.txt)
 
       - name: Criar índices MongoDB
         working-directory: backend
@@ -72,12 +74,13 @@ jobs:
             --cov=. \
             --cov-report=xml \
             --cov-report=term-missing \
-            --cov-fail-under=8 \
+            --cov-fail-under=30 \
             -v \
             --timeout=60 \
             -x
         env:
           PYTHONPATH: .
+          EMERGENT_LLM_KEY: ""
 
       - name: Publicar relatório de cobertura
         uses: codecov/codecov-action@v4
