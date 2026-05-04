@@ -4,10 +4,12 @@
 import React, { useState, useRef } from 'react';
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity,
-  Animated, Dimensions,
+  Animated, Dimensions, ActivityIndicator,
 } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
+import { useQuery } from '@tanstack/react-query';
+import { API_BASE } from '../../src/config/api';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import CoastalDataCard from '../../src/components/CoastalDataCard';
 import { getModuleTheme } from '../../src/theme/colors';
@@ -394,16 +396,28 @@ export default function CostaScreen() {
   const [activeProfile, setActiveProfile] = useState<ProfileKey | null>(null);
   const [expandedZone, setExpandedZone] = useState<string | null>(null);
 
+  const { data: costaData, isLoading } = useQuery({
+    queryKey: ['costa-zones'],
+    queryFn: async () => {
+      const res = await fetch(`${API_BASE}/costa/zones`);
+      if (!res.ok) throw new Error('fetch failed');
+      return res.json();
+    },
+    staleTime: 15 * 60 * 1000,
+  });
+
+  const allZones: CoastalZone[] = costaData?.zones ?? COASTAL_ZONES;
+
   const filteredZones = activeProfile
-    ? COASTAL_ZONES.filter((z) => z.perfis[activeProfile] >= 4)
-    : COASTAL_ZONES;
+    ? allZones.filter((z) => z.perfis[activeProfile] >= 4)
+    : allZones;
 
   const handleZonePress = (zoneId: string) => {
     setExpandedZone(expandedZone === zoneId ? null : zoneId);
   };
 
   const activeZoneIndex = expandedZone
-    ? COASTAL_ZONES.findIndex((z) => z.id === expandedZone)
+    ? allZones.findIndex((z) => z.id === expandedZone)
     : -1;
 
   return (
@@ -437,7 +451,7 @@ export default function CostaScreen() {
             <Text style={styles.progressLabel}>Sul</Text>
           </View>
           <View style={styles.progressTrack}>
-            {COASTAL_ZONES.map((zone, idx) => {
+            {allZones.map((zone, idx) => {
               const isActive = zone.id === expandedZone;
               const isPast =
                 activeZoneIndex >= 0 && idx < activeZoneIndex;
@@ -506,7 +520,10 @@ export default function CostaScreen() {
 
         {/* Zone Cards */}
         <View style={styles.zoneList}>
-          {filteredZones.map((zone) => (
+          {isLoading && (
+            <ActivityIndicator size="large" color={C.ocean} style={{ marginVertical: 32 }} />
+          )}
+          {!isLoading && filteredZones.map((zone) => (
             <ZoneCard
               key={zone.id}
               zone={zone}

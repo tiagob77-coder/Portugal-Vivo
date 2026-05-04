@@ -17,10 +17,13 @@ from pydantic import BaseModel
 from typing import Optional, List
 import math
 import datetime
+from shared_utils import haversine_km as _haversine
 import os
 import httpx
 
 from models.api_models import User
+from auth_api import get_current_user
+from shared_utils import apply_municipality_filter
 from llm_cache import build_cache_key, cache_get, cache_set, record_llm_call
 from llm_client import call_chat_completion
 
@@ -455,19 +458,16 @@ SEED_HABITATS = [
 
 # ─── Helpers ───────────────────────────────────────────────────────────────────
 
-def _haversine(lat1, lng1, lat2, lng2) -> float:
-    R = 6371.0
-    p1, p2 = math.radians(lat1), math.radians(lat2)
-    dp = math.radians(lat2 - lat1)
-    dl = math.radians(lng2 - lng1)
-    a = math.sin(dp / 2) ** 2 + math.cos(p1) * math.cos(p2) * math.sin(dl / 2) ** 2
-    return R * 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
 
 
-async def _col_or_seed(col: str, seed: list) -> list:
+async def _col_or_seed(col: str, seed: list, query: Optional[dict] = None) -> list:
+    q = query or {}
     if _db is None:
-        return list(seed)
-    docs = await _db[col].find({}, {"_id": 0}).to_list(1000)
+        docs = list(seed)
+        if q.get("municipality_id"):
+            docs = [d for d in docs if d.get("municipality_id") == q["municipality_id"]]
+        return docs
+    docs = await _db[col].find(q, {"_id": 0}).to_list(500)
     return docs if docs else list(seed)
 
 
@@ -483,8 +483,11 @@ async def list_flora(
     endemica: Optional[bool] = Query(None),
     search: Optional[str] = Query(None),
     limit: int = Query(50, le=200),
+    current_user: Optional[User] = Depends(get_current_user),
 ):
-    items = await _col_or_seed("flora_species", SEED_FLORA)
+    query: dict = {}
+    apply_municipality_filter(query, current_user)
+    items = await _col_or_seed("flora_species", SEED_FLORA, query)
     if status:
         items = [i for i in items if i.get("status") == status]
     if habitat:
@@ -544,8 +547,11 @@ async def list_fauna(
     mes: Optional[int] = Query(None, ge=1, le=12, description="Mês de melhor observação"),
     search: Optional[str] = Query(None),
     limit: int = Query(50, le=200),
+    current_user: Optional[User] = Depends(get_current_user),
 ):
-    items = await _col_or_seed("fauna_species", SEED_FAUNA)
+    query: dict = {}
+    apply_municipality_filter(query, current_user)
+    items = await _col_or_seed("fauna_species", SEED_FAUNA, query)
     if classe:
         items = [i for i in items if i.get("class") == classe]
     if raridade:

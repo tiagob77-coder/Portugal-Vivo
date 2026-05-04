@@ -6,11 +6,15 @@ from __future__ import annotations
 
 import math
 import re
+from shared_utils import haversine_km as _haversine
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, Field
+from auth_api import get_current_user
+from models.api_models import User
+from shared_utils import apply_municipality_filter
 
 infrastructure_router = APIRouter(prefix="/infrastructure", tags=["Infrastructure"])
 
@@ -326,13 +330,6 @@ SEED_INFRA: List[Dict[str, Any]] = [
 
 # ─── Helpers ─────────────────────────────────────────────────────────────────
 
-def _haversine(lat1: float, lng1: float, lat2: float, lng2: float) -> float:
-    R = 6371.0
-    phi1, phi2 = math.radians(lat1), math.radians(lat2)
-    dphi = math.radians(lat2 - lat1)
-    dlam = math.radians(lng2 - lng1)
-    a = math.sin(dphi / 2) ** 2 + math.cos(phi1) * math.cos(phi2) * math.sin(dlam / 2) ** 2
-    return R * 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
 
 
 def _serialize(doc: Dict) -> Dict:
@@ -341,11 +338,15 @@ def _serialize(doc: Dict) -> Dict:
     return doc
 
 
-async def _col_or_seed(col: str, seed: List[Dict]) -> List[Dict]:
+async def _col_or_seed(col: str, seed: List[Dict], query: Optional[Dict] = None) -> List[Dict]:
+    q = query or {}
     if _db is None:
-        return [dict(d) for d in seed]
+        docs = [dict(d) for d in seed]
+        if q.get("municipality_id"):
+            docs = [d for d in docs if d.get("municipality_id") == q["municipality_id"]]
+        return docs
     try:
-        docs = await _db[col].find({}).to_list(500)
+        docs = await _db[col].find(q).to_list(500)
         if docs:
             return [_serialize(d) for d in docs]
     except Exception:
@@ -366,8 +367,11 @@ async def list_infrastructure(
     search: Optional[str] = Query(None),
     limit: int = Query(50, le=200),
     offset: int = Query(0, ge=0),
+    current_user: Optional[User] = Depends(get_current_user),
 ):
-    items = await _col_or_seed("infrastructure", SEED_INFRA)
+    query: Dict[str, Any] = {}
+    apply_municipality_filter(query, current_user)
+    items = await _col_or_seed("infrastructure", SEED_INFRA, query)
 
     if type:
         items = [i for i in items if i.get("type") == type]

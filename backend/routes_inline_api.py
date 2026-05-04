@@ -161,7 +161,7 @@ async def plan_route(request: RoutePlanRequest):
     query["location"] = {"$exists": True, "$ne": None}
 
     # Get all items with location — large cap because we filter geometrically below
-    all_items = await _db_holder.db.heritage_items.find(query, {"_id": 0}).to_list(5000)
+    all_items = await _db_holder.db.heritage_items.find(query, {"_id": 0}).to_list(500)
 
     def _coords_from_item(item):
         """Accept both {lat,lng} and GeoJSON {coordinates:[lng,lat]} formats."""

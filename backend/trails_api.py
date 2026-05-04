@@ -239,7 +239,7 @@ async def get_trail_pois(trail_id: str, radius_km: float = 2.0):
     pois = await _db_holder.db.heritage_items.find({
         "location.lat": {"$gte": min(lats) - lat_delta, "$lte": max(lats) + lat_delta},
         "location.lng": {"$gte": min(lngs) - lng_delta, "$lte": max(lngs) + lng_delta},
-    }, {"_id": 0, "id": 1, "name": 1, "category": 1, "region": 1, "location": 1, "iq_score": 1}).to_list(5000)
+    }, {"_id": 0, "id": 1, "name": 1, "category": 1, "region": 1, "location": 1, "iq_score": 1}).to_list(500)
 
     nearby_ids = set()
     nearby_pois = []

@@ -320,6 +320,8 @@ function EconomyMarketCard({
         onPress={onPress}
         activeOpacity={0.85}
         style={styles.inner}
+        accessibilityRole="button"
+        accessibilityLabel={`${expanded ? 'Recolher' : 'Expandir'} ${item.name}`}
       >
         {/* Left accent bar */}
         <View style={[styles.accentBar, { backgroundColor: accentColor }]} />

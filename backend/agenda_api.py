@@ -150,7 +150,7 @@ async def get_events(
 @agenda_router.get("/calendar")
 async def get_calendar():
     """Get events grouped by month for calendar view."""
-    events = await _db_holder.db.events.find({}, {"_id": 0}).to_list(5000)
+    events = await _db_holder.db.events.find({}, {"_id": 0}).to_list(500)
 
     calendar = {}
     for i in range(1, 13):
@@ -422,7 +422,7 @@ async def get_upcoming_events(
     if region:
         query["region"] = {"$regex": sanitize_regex(region), "$options": "i"}
 
-    all_events = await _db_holder.db.events.find(query, {"_id": 0}).to_list(5000)
+    all_events = await _db_holder.db.events.find(query, {"_id": 0}).to_list(500)
     all_events = [_enrich_with_ticket(e) for e in all_events]
 
     upcoming = []
@@ -494,7 +494,7 @@ async def compat_calendar_events(
         query["month"] = month
     if category:
         query["type"] = category
-    events = await _db_holder.db.events.find(query, {"_id": 0}).to_list(5000)
+    events = await _db_holder.db.events.find(query, {"_id": 0}).to_list(500)
     result = [_to_calendar_format(_enrich_with_ticket(e)) for e in events]
     if region:
         rn = _normalize_region(region)
@@ -515,7 +515,7 @@ async def compat_upcoming_events(
     query: dict = {}
     if category:
         query["type"] = category
-    events = await _db_holder.db.events.find(query, {"_id": 0}).to_list(5000)
+    events = await _db_holder.db.events.find(query, {"_id": 0}).to_list(500)
     events = [_to_calendar_format(_enrich_with_ticket(e)) for e in events]
 
     if region:

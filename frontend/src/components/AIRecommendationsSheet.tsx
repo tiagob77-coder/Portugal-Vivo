@@ -106,7 +106,13 @@ function RecommendationCard({
   onPress?: () => void;
 }) {
   return (
-    <TouchableOpacity style={styles.card} onPress={onPress} activeOpacity={0.8}>
+    <TouchableOpacity
+      style={styles.card}
+      onPress={onPress}
+      activeOpacity={0.8}
+      accessibilityRole="button"
+      accessibilityLabel={`Ver detalhes de ${item.name}`}
+    >
       {/* Thumbnail */}
       <View style={styles.thumbContainer}>
         {item.image_url ? (
@@ -220,7 +226,12 @@ export default function AIRecommendationsSheet({
           <MaterialIcons name="auto-awesome" size={18} color={C.accent} />
           <Text style={styles.headerTitle}>Recomendações IA</Text>
         </View>
-        <TouchableOpacity onPress={onClose} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+        <TouchableOpacity
+          onPress={onClose}
+          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+          accessibilityRole="button"
+          accessibilityLabel="Fechar recomendações"
+        >
           <MaterialIcons name="close" size={22} color={C.textMuted} />
         </TouchableOpacity>
       </View>
@@ -239,6 +250,8 @@ export default function AIRecommendationsSheet({
               style={[styles.interestChip, isActive && styles.interestChipActive]}
               onPress={() => toggleInterest(interest.id)}
               activeOpacity={0.75}
+              accessibilityRole="button"
+              accessibilityLabel={`${isActive ? 'Remover filtro' : 'Filtrar por'} ${interest.label}`}
             >
               <Text style={styles.interestEmoji}>{interest.emoji}</Text>
               <Text style={[styles.interestLabel, isActive && styles.interestLabelActive]}>
@@ -297,6 +310,8 @@ export default function AIRecommendationsSheet({
             style={styles.verMaisBtn}
             onPress={() => setRadiusExtra((prev) => prev + RADIUS_STEP)}
             activeOpacity={0.8}
+            accessibilityRole="button"
+            accessibilityLabel={`Expandir raio de pesquisa para ${radius + RADIUS_STEP} km`}
           >
             <MaterialIcons name="expand-more" size={18} color={C.accent} />
             <Text style={styles.verMaisText}>

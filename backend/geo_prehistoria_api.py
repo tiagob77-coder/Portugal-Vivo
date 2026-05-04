@@ -4,10 +4,15 @@ MongoDB Atlas (Motor async) · FastAPI
 """
 from __future__ import annotations
 import math
+from shared_utils import haversine_km as _haversine
+from datetime import datetime, timezone
 from datetime import datetime, timedelta, timezone
 from typing import Any, Dict, List, Optional
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, Field
+from auth_api import get_current_user
+from models.api_models import User
+from shared_utils import apply_municipality_filter
 
 geo_prehistoria_router = APIRouter(prefix="/geo-prehistoria", tags=["GeoPrehistoria"])
 _db = None
@@ -49,14 +54,6 @@ ASTRO_EVENTS = [
 
 # ─── Helpers ──────────────────────────────────────────────────────────────────
 
-def _haversine(lat1, lng1, lat2, lng2):
-    R = 6371.0
-    p1, p2 = math.radians(lat1), math.radians(lat2)
-    dp = math.radians(lat2 - lat1)
-    dl = math.radians(lng2 - lng1)
-    a = math.sin(dp/2)**2 + math.cos(p1)*math.cos(p2)*math.sin(dl/2)**2
-    return R * 2 * math.atan2(math.sqrt(a), math.sqrt(1-a))
-
 def _solar_azimuth_sunrise(lat_deg: float, day_of_year: int) -> float:
     """Approximate azimuth of sunrise for a given latitude and day."""
     decl = math.radians(-23.45 * math.cos(math.radians(360/365*(day_of_year+10))))
@@ -70,11 +67,15 @@ def _serialize(doc: Dict) -> Dict:
     doc["id"] = str(doc.pop("_id", doc.get("id", "")))
     return doc
 
-async def _collection_or_seed(col: str, seed: List[Dict]) -> List[Dict]:
+async def _collection_or_seed(col: str, seed: List[Dict], query: Optional[Dict] = None) -> List[Dict]:
+    q = query or {}
     if _db is None:
-        return [dict(d) for d in seed]
+        docs = [dict(d) for d in seed]
+        if q.get("municipality_id"):
+            docs = [d for d in docs if d.get("municipality_id") == q["municipality_id"]]
+        return docs
     try:
-        docs = await _db[col].find({}).to_list(1000)
+        docs = await _db[col].find(q).to_list(500)
         if docs:
             return [_serialize(d) for d in docs]
     except Exception:
@@ -92,8 +93,11 @@ async def list_sites(
     search: Optional[str] = Query(None),
     limit: int = Query(50, le=200),
     offset: int = Query(0, ge=0),
+    current_user: Optional[User] = Depends(get_current_user),
 ):
-    items = await _collection_or_seed("prehistoria_sites", SEED_SITES)
+    query: Dict[str, Any] = {}
+    apply_municipality_filter(query, current_user)
+    items = await _collection_or_seed("prehistoria_sites", SEED_SITES, query)
     if category:
         items = [i for i in items if i.get("category") == category]
     if period:

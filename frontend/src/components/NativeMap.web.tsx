@@ -22,11 +22,24 @@ const MAP_STYLES: Record<string, string> = {
   light:     'https://basemaps.cartocdn.com/gl/voyager-gl-style/style.json',
   voyager:   'https://basemaps.cartocdn.com/gl/voyager-gl-style/style.json',
   dark:      'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json',
-  satellite: 'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json',
   terrain:   'https://basemaps.cartocdn.com/gl/voyager-gl-style/style.json',
   tecnico:   'https://basemaps.cartocdn.com/gl/voyager-gl-style/style.json',
   premium:   'https://basemaps.cartocdn.com/gl/positron-gl-style/style.json',
 };
+
+// Esri World Imagery satellite style (raster, gratuito, sem API key)
+const SATELLITE_STYLE = {
+  version: 8,
+  sources: {
+    esri_satellite: {
+      type: 'raster',
+      tiles: ['https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'],
+      tileSize: 256,
+      attribution: 'Tiles © Esri',
+    },
+  },
+  layers: [{ id: 'esri_satellite_layer', type: 'raster', source: 'esri_satellite' }],
+} as const;
 
 // Centro de Portugal e limites
 const PT_CENTER: [number, number] = [-7.8491, 39.6945];
@@ -144,7 +157,7 @@ export function LeafletMapComponent(props: LeafletMapProps) {
 
       map = new ml.Map({
         container: containerRef.current,
-        style: MAP_STYLES[mapMode] || MAP_STYLES.light,
+        style: mapMode === 'satellite' ? SATELLITE_STYLE as any : (MAP_STYLES[mapMode] || MAP_STYLES.light),
         center: PT_CENTER,
         zoom: PT_ZOOM,
         pitch: 0,
@@ -494,9 +507,11 @@ export function LeafletMapComponent(props: LeafletMapProps) {
     }
 
     const map = mapRef.current;
-    const newStyle = mapMode === 'premium'
-      ? MAP_STYLES.premium
-      : (MAP_STYLES[mapMode] || MAP_STYLES.light);
+    const newStyle = mapMode === 'satellite'
+      ? SATELLITE_STYLE as any
+      : mapMode === 'premium'
+        ? MAP_STYLES.premium
+        : (MAP_STYLES[mapMode] || MAP_STYLES.light);
 
     map.setStyle(newStyle);
 

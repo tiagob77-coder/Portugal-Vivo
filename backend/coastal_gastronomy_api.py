@@ -4,6 +4,7 @@ MongoDB Atlas (Motor async) · FastAPI
 """
 from __future__ import annotations
 import math, re
+from shared_utils import haversine_km as _haversine
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 import httpx
@@ -11,6 +12,8 @@ from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from pydantic import BaseModel, Field
 
 from models.api_models import User
+from auth_api import get_current_user
+from shared_utils import apply_municipality_filter
 from llm_cache import build_cache_key, cache_get, cache_set, record_llm_call
 from llm_client import call_chat_completion
 
@@ -200,22 +203,22 @@ SEED_PAIRINGS: Dict[str, Dict] = {
 
 # ─── Helpers ─────────────────────────────────────────────────────────────────
 
-def _haversine(lat1, lng1, lat2, lng2):
-    R = 6371.0
-    phi1, phi2 = math.radians(lat1), math.radians(lat2)
-    a = math.sin(math.radians(lat2-lat1)/2)**2 + math.cos(phi1)*math.cos(phi2)*math.sin(math.radians(lng2-lng1)/2)**2
-    return R * 2 * math.atan2(math.sqrt(a), math.sqrt(1-a))
-
 def _serialize(doc):
     doc = dict(doc); doc["id"] = str(doc.pop("_id", doc.get("id",""))); return doc
 
-async def _col_or_seed(col, seed):
+async def _col_or_seed(col, seed, query: Optional[Dict] = None):
+    q = query or {}
     if _db is None:
-        return [dict(d) for d in seed]
+        docs = [dict(d) for d in seed]
+        if q.get("municipality_id"):
+            docs = [d for d in docs if d.get("municipality_id") == q["municipality_id"]]
+        return docs
     try:
-        docs = await _db[col].find({}).to_list(500)
-        if docs: return [_serialize(d) for d in docs]
-    except Exception: pass
+        docs = await _db[col].find(q).to_list(500)
+        if docs:
+            return [_serialize(d) for d in docs]
+    except Exception:
+        pass
     return [dict(d) for d in seed]
 
 def _current_month():
@@ -236,8 +239,11 @@ async def list_items(
     search: Optional[str] = Query(None),
     limit: int = Query(50, le=200),
     offset: int = Query(0, ge=0),
+    current_user: Optional[User] = Depends(get_current_user),
 ):
-    items = await _col_or_seed("gastronomy_items", SEED_ITEMS)
+    query: Dict[str, Any] = {}
+    apply_municipality_filter(query, current_user)
+    items = await _col_or_seed("gastronomy_items", SEED_ITEMS, query)
     if type: items = [i for i in items if i.get("type") == type]
     if category: items = [i for i in items if i.get("category") == category]
     if region: items = [i for i in items if region.lower() in i.get("region","").lower()]
