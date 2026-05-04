@@ -14,6 +14,7 @@ import json
 
 from llm_utils import llm_chat
 from models.api_models import User
+from shared_utils import haversine_km as _haversine_km
 
 logger = logging.getLogger(__name__)
 
@@ -99,17 +100,6 @@ DURATION_LABELS = {"1h": "1 hora", "3h": "3 horas", "1dia": "1 dia", "2dias": "2
 
 
 # ─── Helpers ──────────────────────────────────────────────────────────────────
-
-def _haversine_km(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
-    R = 6371
-    dLat = math.radians(lat2 - lat1)
-    dLon = math.radians(lon2 - lon1)
-    a = (
-        math.sin(dLat / 2) ** 2
-        + math.cos(math.radians(lat1)) * math.cos(math.radians(lat2)) * math.sin(dLon / 2) ** 2
-    )
-    return R * 2 * math.asin(math.sqrt(a))
-
 
 async def _call_llm(messages: list, max_tokens: int = 800) -> Optional[str]:
     """Thin shim kept for backwards compat — delegates to llm_utils.llm_chat."""

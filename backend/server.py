@@ -700,6 +700,12 @@ set_translation_db(db)
 set_translation_admin(require_admin)
 api_router.include_router(translation_router)
 
+# Localization - Editorial bilingual content (PT-PT / EN) with LLM generation
+from localization_api import localization_router, set_localization_db, set_localization_admin
+set_localization_db(db)
+set_localization_admin(require_admin)
+api_router.include_router(localization_router)
+
 # Analytics Dashboard
 from analytics_api import analytics_router, set_analytics_db
 set_analytics_db(db)

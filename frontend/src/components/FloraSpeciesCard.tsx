@@ -100,6 +100,8 @@ function FloraSpeciesCard({ species, expanded = false, onPress }: FloraSpeciesCa
       style={[styles.card, { borderLeftColor: accentColor, backgroundColor: colors.card }]}
       onPress={onPress}
       activeOpacity={0.85}
+      accessibilityRole="button"
+      accessibilityLabel={`${expanded ? 'Recolher' : 'Ver detalhes de'} ${species.common_name}`}
     >
       {/* ── Header ──────────────────────────────────────────────────────────── */}
       <View style={styles.header}>

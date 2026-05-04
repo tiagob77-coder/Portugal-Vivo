@@ -13,6 +13,8 @@ import { SearchBar } from '../src/components/SearchBar';
 import AnimatedListItem from '../src/components/AnimatedListItem';
 import SkeletonCard from '../src/components/SkeletonCard';
 import EmptyState from '../src/components/EmptyState';
+import { useTheme } from '../src/context/ThemeContext';
+import { palette, withOpacity } from '../src/theme/colors';
 
 import { API_URL } from '../src/config/api';
 const serif = Platform.OS === 'web' ? 'Cormorant Garamond, Georgia, serif' : undefined;
@@ -26,7 +28,7 @@ interface SearchResult {
   region?: string;
   average_rating?: number;
   image_url?: string;
-  type?: string; // 'poi' | 'route' | 'event' | 'article'
+  type?: string;
 }
 
 const REGIONS = [
@@ -62,6 +64,54 @@ const getPopularSearches = async () => {
   return res.json();
 };
 
+function makeStyles(C: Record<string, string>) {
+  return StyleSheet.create({
+    container: { flex: 1, backgroundColor: C.bg },
+    header: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, paddingVertical: 10, gap: 8 },
+    backButton: { padding: 6 },
+    regionBar: { maxHeight: 44 },
+    regionBarContent: { paddingHorizontal: 16, gap: 8, alignItems: 'center', flexDirection: 'row' },
+    regionChip: {
+      paddingHorizontal: 14, paddingVertical: 6, borderRadius: 16,
+      backgroundColor: C.card, borderWidth: 1, borderColor: C.border,
+    },
+    regionChipActive: { backgroundColor: C.accent, borderColor: C.accent },
+    regionChipText: { fontSize: 13, color: C.textSub, fontWeight: '500' },
+    regionChipTextActive: { color: palette.gray[900], fontWeight: '700' },
+    clearChip: { width: 28, height: 28, borderRadius: 14, backgroundColor: withOpacity(palette.rust[500], 0.15), alignItems: 'center', justifyContent: 'center' },
+    content: { flex: 1 },
+    contentInner: { padding: 16, paddingBottom: 40 },
+    center: { alignItems: 'center', paddingVertical: 40, gap: 10 },
+    mutedText: { color: C.textMuted, fontSize: 14 },
+    resultsSummary: { color: C.textMuted, fontSize: 13, marginBottom: 16 },
+    emptyTitle: { fontSize: 18, fontWeight: '600', color: C.text },
+    group: { marginBottom: 24 },
+    groupHeader: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 10 },
+    groupTitle: { fontSize: 16, fontWeight: '700', color: C.text, fontFamily: serif },
+    countBadge: { backgroundColor: withOpacity(palette.terracotta[500], 0.2), paddingHorizontal: 8, paddingVertical: 2, borderRadius: 10 },
+    countText: { fontSize: 12, color: C.accent, fontWeight: '700' },
+    resultCard: {
+      flexDirection: 'row', alignItems: 'center',
+      backgroundColor: C.cardDeep, borderRadius: 12, padding: 14, marginBottom: 8,
+    },
+    resultName: { fontSize: 15, fontWeight: '600', color: C.text, marginBottom: 4 },
+    resultMeta: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 4 },
+    catBadge: { backgroundColor: withOpacity(palette.terracotta[500], 0.15), paddingHorizontal: 7, paddingVertical: 1, borderRadius: 4 },
+    catBadgeText: { fontSize: 11, color: C.accent, textTransform: 'capitalize' },
+    regionText: { fontSize: 12, color: C.textMuted, textTransform: 'capitalize' },
+    ratingText: { fontSize: 12, color: C.accent, fontWeight: '600' },
+    resultDesc: { fontSize: 13, color: C.textSub, lineHeight: 18 },
+    sectionTitle: { fontSize: 16, fontWeight: '700', color: C.text, marginBottom: 12, fontFamily: serif },
+    chipsWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 24 },
+    popularChip: {
+      flexDirection: 'row', alignItems: 'center', gap: 6,
+      paddingHorizontal: 14, paddingVertical: 8, borderRadius: 20,
+      backgroundColor: C.card,
+    },
+    popularChipText: { fontSize: 14, color: C.text },
+  });
+}
+
 export default function SearchPage() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
@@ -69,6 +119,19 @@ export default function SearchPage() {
 
   const [searchQuery, setSearchQuery] = useState(params.q || '');
   const [selectedRegions, setSelectedRegions] = useState<string[]>([]);
+
+  const { colors, isDark } = useTheme();
+  const C = {
+    bg:       palette.forest[500],
+    card:     palette.forest[600],
+    cardDeep: isDark ? palette.forest[800] : palette.forest[700],
+    border:   palette.forest[700],
+    accent:   palette.terracotta[500],
+    text:     palette.gray[50],
+    textSub:  palette.gray[300],
+    textMuted: palette.gray[500],
+  };
+  const styles = makeStyles(C);
 
   const { data: popularData } = useQuery({
     queryKey: ['popularSearches'],
@@ -86,7 +149,6 @@ export default function SearchPage() {
     setSelectedRegions(prev => prev.includes(id) ? prev.filter(r => r !== id) : [...prev, id]);
   };
 
-  // Group results by type
   const grouped: Record<string, SearchResult[]> = {};
   if (searchData?.results) {
     for (const item of searchData.results) {
@@ -101,7 +163,7 @@ export default function SearchPage() {
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-          <MaterialIcons name="arrow-back" size={24} color="#FFFFFF" />
+          <MaterialIcons name="arrow-back" size={24} color={C.text} />
         </TouchableOpacity>
         <View style={{ flex: 1 }}>
           <SearchBar
@@ -128,7 +190,7 @@ export default function SearchPage() {
         ))}
         {selectedRegions.length > 0 && (
           <TouchableOpacity style={styles.clearChip} onPress={() => setSelectedRegions([])}>
-            <MaterialIcons name="close" size={14} color="#C65D3B" />
+            <MaterialIcons name="close" size={14} color={palette.rust[500]} />
           </TouchableOpacity>
         )}
       </ScrollView>
@@ -142,7 +204,7 @@ export default function SearchPage() {
         ) : searchQuery.length >= 2 && searchData ? (
           <>
             <Text style={styles.resultsSummary}>
-              {totalResults} resultado{totalResults !== 1 ? 's' : ''} para &quot;{searchData.query}&quot;
+              {totalResults} resultado{totalResults !== 1 ? 's' : ''} para &ldquo;{searchData.query}&rdquo;
             </Text>
 
             {totalResults === 0 ? (
@@ -159,7 +221,7 @@ export default function SearchPage() {
                 return (
                   <View key={type} style={styles.group}>
                     <View style={styles.groupHeader}>
-                      <MaterialIcons name={info.icon as any} size={18} color="#C49A6C" />
+                      <MaterialIcons name={info.icon as any} size={18} color={C.accent} />
                       <Text style={styles.groupTitle}>{info.label}</Text>
                       <View style={styles.countBadge}>
                         <Text style={styles.countText}>{items.length}</Text>
@@ -187,7 +249,7 @@ export default function SearchPage() {
                             {item.region && <Text style={styles.regionText}>{item.region}</Text>}
                             {item.average_rating != null && (
                               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 2 }}>
-                                <MaterialIcons name="star" size={12} color="#C49A6C" />
+                                <MaterialIcons name="star" size={12} color={C.accent} />
                                 <Text style={styles.ratingText}>{item.average_rating.toFixed(1)}</Text>
                               </View>
                             )}
@@ -196,7 +258,7 @@ export default function SearchPage() {
                             <Text style={styles.resultDesc} numberOfLines={2}>{item.description}</Text>
                           )}
                         </View>
-                        <MaterialIcons name="chevron-right" size={22} color="#475569" />
+                        <MaterialIcons name="chevron-right" size={22} color={C.textMuted} />
                       </TouchableOpacity>
                       </AnimatedListItem>
                     ))}
@@ -206,13 +268,12 @@ export default function SearchPage() {
             )}
           </>
         ) : (
-          /* Empty state: popular searches */
           <>
             <Text style={styles.sectionTitle}>Pesquisas Populares</Text>
             <View style={styles.chipsWrap}>
               {(popularData?.suggested_searches || ['Cascatas', 'Termas', 'Gastronomia', 'Piscinas', 'Lendas']).map((term: string) => (
                 <TouchableOpacity key={term} style={styles.popularChip} onPress={() => setSearchQuery(term)}>
-                  <MaterialIcons name="trending-up" size={16} color="#C49A6C" />
+                  <MaterialIcons name="trending-up" size={16} color={C.accent} />
                   <Text style={styles.popularChipText}>{term}</Text>
                 </TouchableOpacity>
               ))}
@@ -223,49 +284,3 @@ export default function SearchPage() {
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#2E5E4E' },
-  header: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, paddingVertical: 10, gap: 8 },
-  backButton: { padding: 6 },
-  regionBar: { maxHeight: 44 },
-  regionBarContent: { paddingHorizontal: 16, gap: 8, alignItems: 'center', flexDirection: 'row' },
-  regionChip: {
-    paddingHorizontal: 14, paddingVertical: 6, borderRadius: 16,
-    backgroundColor: '#264E41', borderWidth: 1, borderColor: '#2A4A3E',
-  },
-  regionChipActive: { backgroundColor: '#C49A6C', borderColor: '#C49A6C' },
-  regionChipText: { fontSize: 13, color: '#94A3B8', fontWeight: '500' },
-  regionChipTextActive: { color: '#1a0f0a', fontWeight: '700' },
-  clearChip: { width: 28, height: 28, borderRadius: 14, backgroundColor: 'rgba(198,93,59,0.15)', alignItems: 'center', justifyContent: 'center' },
-  content: { flex: 1 },
-  contentInner: { padding: 16, paddingBottom: 40 },
-  center: { alignItems: 'center', paddingVertical: 40, gap: 10 },
-  mutedText: { color: '#64748B', fontSize: 14 },
-  resultsSummary: { color: '#64748B', fontSize: 13, marginBottom: 16 },
-  emptyTitle: { fontSize: 18, fontWeight: '600', color: '#FFFFFF' },
-  group: { marginBottom: 24 },
-  groupHeader: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 10 },
-  groupTitle: { fontSize: 16, fontWeight: '700', color: '#E2E8F0', fontFamily: serif },
-  countBadge: { backgroundColor: 'rgba(196,154,108,0.2)', paddingHorizontal: 8, paddingVertical: 2, borderRadius: 10 },
-  countText: { fontSize: 12, color: '#C49A6C', fontWeight: '700' },
-  resultCard: {
-    flexDirection: 'row', alignItems: 'center',
-    backgroundColor: '#1E3A2F', borderRadius: 12, padding: 14, marginBottom: 8,
-  },
-  resultName: { fontSize: 15, fontWeight: '600', color: '#FFFFFF', marginBottom: 4 },
-  resultMeta: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 4 },
-  catBadge: { backgroundColor: 'rgba(196,154,108,0.15)', paddingHorizontal: 7, paddingVertical: 1, borderRadius: 4 },
-  catBadgeText: { fontSize: 11, color: '#C49A6C', textTransform: 'capitalize' },
-  regionText: { fontSize: 12, color: '#64748B', textTransform: 'capitalize' },
-  ratingText: { fontSize: 12, color: '#C49A6C', fontWeight: '600' },
-  resultDesc: { fontSize: 13, color: '#94A3B8', lineHeight: 18 },
-  sectionTitle: { fontSize: 16, fontWeight: '700', color: '#E2E8F0', marginBottom: 12, fontFamily: serif },
-  chipsWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 24 },
-  popularChip: {
-    flexDirection: 'row', alignItems: 'center', gap: 6,
-    paddingHorizontal: 14, paddingVertical: 8, borderRadius: 20,
-    backgroundColor: '#264E41',
-  },
-  popularChipText: { fontSize: 14, color: '#E2E8F0' },
-});

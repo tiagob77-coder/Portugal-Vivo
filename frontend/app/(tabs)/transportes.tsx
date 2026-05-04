@@ -12,6 +12,7 @@ import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useQuery } from '@tanstack/react-query';
 import { colors, typography, borders, shadows } from '../../src/theme';
+import { palette } from '../../src/theme/colors';
 import { useTheme } from '../../src/context/ThemeContext';
 import api from '../../src/services/api';
 
@@ -176,7 +177,7 @@ export default function TransportesScreen() {
                   </View>
                   {op.tip && (
                     <View style={styles.operatorTip}>
-                      <MaterialIcons name="lightbulb" size={13} color="#C49A6C" />
+                      <MaterialIcons name="lightbulb" size={13} color={palette.terracotta[500]} />
                       <Text style={styles.operatorTipText} numberOfLines={2}>{op.tip}</Text>
                     </View>
                   )}
@@ -228,7 +229,7 @@ export default function TransportesScreen() {
                 </View>
                 {card.tip && (
                   <View style={styles.transportCardTip}>
-                    <MaterialIcons name="lightbulb" size={12} color="#C49A6C" />
+                    <MaterialIcons name="lightbulb" size={12} color={palette.terracotta[500]} />
                     <Text style={styles.transportCardTipText}>{card.tip}</Text>
                   </View>
                 )}

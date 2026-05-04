@@ -325,7 +325,7 @@ async def get_hoje_feed(
     cache_key = _hoje_cache_key(lat, lng, day_str)
 
     # Cache hit
-    if db:
+    if db is not None:
         try:
             cached = await db.hoje_cache.find_one({"key": cache_key})
             if cached:
@@ -351,7 +351,7 @@ async def get_hoje_feed(
 
     # Events nearby
     events_nearby: list[dict] = []
-    if db:
+    if db is not None:
         try:
             all_events = await db.events.find({"month": month}, {"_id": 0}).limit(200).to_list(200)
             if lat is not None and lng is not None:
@@ -374,7 +374,7 @@ async def get_hoje_feed(
 
     # Trails nearby
     trails_nearby: list[dict] = []
-    if db and lat is not None and lng is not None:
+    if db is not None and lat is not None and lng is not None:
         try:
             all_trails = await db.trails.find({}, {"_id": 0, "name": 1, "region": 1, "difficulty": 1, "distance_km": 1, "lat": 1, "lng": 1}).limit(200).to_list(200)
             for t in all_trails:
@@ -421,7 +421,7 @@ async def get_hoje_feed(
     }
 
     # Cache 6 h
-    if db:
+    if db is not None:
         try:
             expires = datetime.now(timezone.utc) + timedelta(hours=6)
             await db.hoje_cache.replace_one(

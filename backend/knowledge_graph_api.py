@@ -19,6 +19,7 @@ Endpoints:
 from __future__ import annotations
 
 import math
+from shared_utils import haversine_km as _haversine
 from typing import Any, Optional
 
 from fastapi import APIRouter, Query, HTTPException
@@ -65,17 +66,6 @@ MAX_TOTAL_NODES = 60
 MAX_DEPTH = 3
 
 MONTHS = ["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"]
-
-
-# ─── Haversine ────────────────────────────────────────────────────────────────
-
-def _haversine(lat1: float, lng1: float, lat2: float, lng2: float) -> float:
-    R = 6371.0
-    p1, p2 = math.radians(lat1), math.radians(lat2)
-    dp = math.radians(lat2 - lat1)
-    dl = math.radians(lng2 - lng1)
-    a = math.sin(dp / 2) ** 2 + math.cos(p1) * math.cos(p2) * math.sin(dl / 2) ** 2
-    return R * 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
 
 
 # ─── Node normaliser ──────────────────────────────────────────────────────────

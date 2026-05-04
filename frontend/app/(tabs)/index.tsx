@@ -270,7 +270,7 @@ export default function ExploreScreen() {
               >
                 <MaterialIcons
                   name={sc.icon as any}
-                  size={15}
+                  size={13}
                   color={isActive ? '#FFFFFF' : sc.color}
                 />
                 <Text style={[
@@ -435,15 +435,15 @@ const styles = StyleSheet.create({
   },
   searchInput: { flex: 1, marginLeft: 10, fontSize: 15 },
   // Super-categorias
-  superCatScroll: { maxHeight: 46, marginBottom: 8 },
-  superCatContent: { paddingHorizontal: 20, gap: 8 },
+  superCatScroll: { maxHeight: 38, marginBottom: 6 },
+  superCatContent: { paddingHorizontal: 20, gap: 6 },
   superChip: {
-    flexDirection: 'row', alignItems: 'center', gap: 5,
-    paddingHorizontal: 14, paddingVertical: 8,
-    borderRadius: 20, borderWidth: 1.5,
+    flexDirection: 'row', alignItems: 'center', gap: 4,
+    paddingHorizontal: 10, paddingVertical: 5,
+    borderRadius: 16, borderWidth: 1,
     backgroundColor: 'transparent',
   },
-  superChipText: { fontSize: 13, fontWeight: '500' },
+  superChipText: { fontSize: 12, fontWeight: '500' },
   // Region filter
   filtersScroll: { maxHeight: 40, marginBottom: 8 },
   filtersContent: { paddingHorizontal: 20, gap: 8 },
@@ -471,7 +471,10 @@ const styles = StyleSheet.create({
   content: { flex: 1 },
   categoriesGrid: { paddingHorizontal: 20, paddingBottom: 20 },
   gridContainer: {
-    flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between',
+    display: 'flex',
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
   },
   listContent: { paddingHorizontal: 20, paddingBottom: 20 },
   loader: { marginTop: 40 },

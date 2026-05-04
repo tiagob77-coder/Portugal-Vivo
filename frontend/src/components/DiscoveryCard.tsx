@@ -2,8 +2,10 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { enrichEvent, getEventToNatureItinerary } from '../services/api';
-import { palette, stateColors } from '../theme';
+import { palette } from '../theme';
 import { useTheme } from '../context/ThemeContext';
+import { borderRadius, spacing } from '../theme/spacing';
+import { typography } from '../theme/typography';
 
 interface DiscoveryCardProps {
   eventName: string;
@@ -49,7 +51,7 @@ const DiscoveryCard: React.FC<DiscoveryCardProps> = ({
   if (loading) {
     return (
       <View style={styles.loading}>
-        <ActivityIndicator size="small" color={stateColors.rarity.raro} />
+        <ActivityIndicator size="small" color={palette.forest[500]} />
       </View>
     );
   }
@@ -75,7 +77,7 @@ const DiscoveryCard: React.FC<DiscoveryCardProps> = ({
           onPress={() => onNaturePress?.(enrichment.protected_area)}
         >
           <View style={styles.sectionHeader}>
-            <MaterialIcons name="park" size={18} color={stateColors.surf.excellent} />
+            <MaterialIcons name="park" size={18} color={palette.forest[500]} />
             <Text style={[styles.sectionTitle, { color: colors.textPrimary }]}>Área Protegida Próxima</Text>
           </View>
           <Text style={[styles.areaName, { color: colors.textPrimary }]}>{enrichment.protected_area.area.name}</Text>
@@ -91,7 +93,7 @@ const DiscoveryCard: React.FC<DiscoveryCardProps> = ({
           onPress={() => onNaturePress?.(enrichment.biodiversity_station)}
         >
           <View style={styles.sectionHeader}>
-            <MaterialIcons name="biotech" size={18} color={stateColors.tide.rising} />
+            <MaterialIcons name="biotech" size={18} color={palette.ocean[500]} />
             <Text style={[styles.sectionTitle, { color: colors.textPrimary }]}>Estação de Biodiversidade</Text>
           </View>
           <Text style={[styles.areaName, { color: colors.textPrimary }]}>{enrichment.biodiversity_station.station.name}</Text>
@@ -138,7 +140,7 @@ const DiscoveryCard: React.FC<DiscoveryCardProps> = ({
       {enrichment.nature_suggestions && enrichment.nature_suggestions.length > 0 && (
         <View style={[styles.section, { backgroundColor: colors.card }]}>
           <View style={styles.sectionHeader}>
-            <MaterialIcons name="eco" size={18} color={stateColors.surf.excellent} />
+            <MaterialIcons name="eco" size={18} color={palette.forest[500]} />
             <Text style={[styles.sectionTitle, { color: colors.textPrimary }]}>Sugestões de Natureza</Text>
           </View>
           {enrichment.nature_suggestions.map((sug: any, i: number) => (
@@ -167,7 +169,7 @@ const DiscoveryCard: React.FC<DiscoveryCardProps> = ({
       {itinerary && itinerary.day_2_morning && (
         <View style={[styles.itinerarySection, { backgroundColor: colors.surfaceAlt, borderColor: colors.border }]}>
           <View style={styles.sectionHeader}>
-            <MaterialIcons name="event-note" size={18} color={stateColors.rarity.raro} />
+            <MaterialIcons name="event-note" size={18} color={palette.terracotta[500]} />
             <Text style={[styles.sectionTitle, { color: colors.textPrimary }]}>Itinerário Sustentável (2 dias)</Text>
           </View>
 
@@ -178,7 +180,7 @@ const DiscoveryCard: React.FC<DiscoveryCardProps> = ({
 
           {itinerary.transport_between && (
             <View style={styles.transportArrow}>
-              <MaterialIcons name="arrow-downward" size={20} color={stateColors.rarity.raro} />
+              <MaterialIcons name="arrow-downward" size={20} color={palette.terracotta[500]} />
               <Text style={styles.transportNote}>
                 {itinerary.transport_between.direct_distance_km} km por transporte público
               </Text>
@@ -201,7 +203,7 @@ const DiscoveryCard: React.FC<DiscoveryCardProps> = ({
 
           {itinerary.sustainability_tips && (
             <View style={[styles.tipsBox, { backgroundColor: colors.surface }]}>
-              <MaterialIcons name="lightbulb" size={16} color={stateColors.surf.excellent} />
+              <MaterialIcons name="lightbulb" size={16} color={palette.forest[500]} />
               <Text style={[styles.tipsTitle, { color: colors.textPrimary }]}>Dicas de Sustentabilidade</Text>
               {itinerary.sustainability_tips.slice(0, 3).map((tip: string, i: number) => (
                 <Text key={i} style={[styles.tipText, { color: colors.textSecondary }]}>- {tip}</Text>
@@ -231,7 +233,7 @@ const styles = StyleSheet.create({
   sectionTitle: { fontSize: 14, fontWeight: '700', color: palette.gray[700] },
   areaName: { fontSize: 15, fontWeight: '600', color: palette.gray[800] },
   areaDesignation: { fontSize: 12, color: palette.gray[500], marginTop: 2 },
-  distance: { fontSize: 12, color: stateColors.surf.excellent, fontWeight: '700', marginTop: 6 },
+  distance: { fontSize: 12, color: palette.forest[500], fontWeight: '700', marginTop: 6 },
   highlightsRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginTop: 8 },
   chip: {
     backgroundColor: '#EFF6FF', paddingHorizontal: 10, paddingVertical: 3, borderRadius: 10,
@@ -265,12 +267,12 @@ const styles = StyleSheet.create({
   dayCard: {
     backgroundColor: palette.white, borderRadius: 10, padding: 12, marginTop: 8,
   },
-  dayLabel: { fontSize: 12, fontWeight: '700', color: stateColors.rarity.raro, textTransform: 'uppercase' },
+  dayLabel: { fontSize: 12, fontWeight: '700', color: palette.terracotta[500], textTransform: 'uppercase' },
   dayActivity: { fontSize: 14, fontWeight: '600', color: palette.gray[800], marginTop: 4 },
   transportArrow: {
     flexDirection: 'row', alignItems: 'center', gap: 8, paddingVertical: 8, paddingHorizontal: 12,
   },
-  transportNote: { fontSize: 12, color: stateColors.rarity.raro },
+  transportNote: { fontSize: 12, color: palette.terracotta[500] },
   tipsBox: {
     backgroundColor: '#F0FDF4', borderRadius: 10, padding: 12, marginTop: 10,
   },

@@ -6,6 +6,7 @@ from __future__ import annotations
 
 import math
 import re
+from shared_utils import haversine_km as _haversine
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 
@@ -16,6 +17,8 @@ from pydantic import BaseModel, Field
 from llm_cache import build_cache_key, cache_get, cache_set
 from llm_client import call_chat_completion
 from models.api_models import User
+from auth_api import get_current_user
+from shared_utils import apply_municipality_filter
 
 maritime_culture_router = APIRouter(prefix="/maritime-culture", tags=["Maritime Culture"])
 
@@ -63,8 +66,8 @@ SEED_EVENTS: List[Dict[str, Any]] = [
         "activities": ["procissão marítima", "tapetes de flores", "cortejo etnográfico", "arraial", "fogo de artifício"],
         "gastronomy_links": ["papas de sarrabulho", "rojões à minhota", "vinho verde"],
         "tags": ["procissão", "barcos", "minhota", "flores", "maior"],
-        "lat": 41.6934,
-        "lng": -8.8301,
+        "lat": 41.693400,
+        "lng": -8.830100,
         "iq_score": 99,
     },
     {
@@ -82,8 +85,8 @@ SEED_EVENTS: List[Dict[str, Any]] = [
         "saint_or_symbol": "São Bartolomeu",
         "activities": ["banho ritual noturno", "fogueiras", "danças populares", "peregrinação"],
         "tags": ["pré-cristão", "purificação", "ritual", "Ofir", "noturno"],
-        "lat": 41.5512,
-        "lng": -8.7893,
+        "lat": 41.524400,
+        "lng": -8.780800,
         "iq_score": 95,
     },
     {
@@ -103,8 +106,8 @@ SEED_EVENTS: List[Dict[str, Any]] = [
         "activities": ["bênção episcopal", "desfile de barcos", "missa dos pescadores", "exposição marítima"],
         "gastronomy_links": ["bacalhau à lagareiro", "bacalhau com natas"],
         "tags": ["bacalhau", "lugres", "bênção", "Ílhavo", "Terra Nova"],
-        "lat": 40.6017,
-        "lng": -8.6711,
+        "lat": 40.601700,
+        "lng": -8.671100,
         "iq_score": 92,
     },
     {
@@ -123,8 +126,8 @@ SEED_EVENTS: List[Dict[str, Any]] = [
         "activities": ["procissão marítima", "bênção dos barcos", "fogo de artifício", "arraial"],
         "gastronomy_links": ["sardinha assada", "mariscos de Matosinhos"],
         "tags": ["Leixões", "pescadores", "Matosinhos", "maior procissão norte"],
-        "lat": 41.1854,
-        "lng": -8.6922,
+        "lat": 41.185400,
+        "lng": -8.705300,
         "iq_score": 93,
     },
     {
@@ -141,8 +144,8 @@ SEED_EVENTS: List[Dict[str, Any]] = [
         "activities": ["sardinhas assadas", "música ao vivo", "espetáculos", "mercado artesanal"],
         "gastronomy_links": ["sardinha assada", "mariscos", "polvo grelhado"],
         "tags": ["gastronomia", "sardinha", "cultura piscatória", "festa"],
-        "lat": 41.1854,
-        "lng": -8.6922,
+        "lat": 41.185400,
+        "lng": -8.705300,
         "iq_score": 88,
     },
     {
@@ -161,8 +164,8 @@ SEED_EVENTS: List[Dict[str, Any]] = [
         "activities": ["procissão pedestre", "descida ao mar", "trajes típicos das varinas", "missa na praia"],
         "gastronomy_links": ["caldeirada de peixe", "peixe seco", "filetes de polvo"],
         "tags": ["Nazaré", "varinas", "sete saias", "Senhora da Nazaré"],
-        "lat": 39.6016,
-        "lng": -9.0713,
+        "lat": 39.601600,
+        "lng": -9.071300,
         "iq_score": 96,
     },
     {
@@ -180,8 +183,8 @@ SEED_EVENTS: List[Dict[str, Any]] = [
         "boats_involved": 30,
         "activities": ["procissão marítima", "arraial", "fogo de artifício", "concurso de pesca"],
         "tags": ["Póvoa de Varzim", "pesca", "Assunção"],
-        "lat": 41.3803,
-        "lng": -8.7609,
+        "lat": 41.380300,
+        "lng": -8.760900,
         "iq_score": 87,
     },
     {
@@ -198,8 +201,8 @@ SEED_EVENTS: List[Dict[str, Any]] = [
         "saint_or_symbol": "Senhor Santo Cristo dos Milagres",
         "activities": ["procissão solene", "tapetes de flores", "foguetes", "peregrinação da diáspora"],
         "tags": ["Açores", "diáspora", "maior festa açoriana", "flores"],
-        "lat": 37.7412,
-        "lng": -25.6756,
+        "lat": 37.741200,
+        "lng": -25.675600,
         "iq_score": 98,
     },
     {
@@ -218,8 +221,8 @@ SEED_EVENTS: List[Dict[str, Any]] = [
         "activities": ["demonstração pública", "lançamento da rede", "arrasto com bois", "venda do peixe na praia"],
         "gastronomy_links": ["peixe fresco grelhado", "caldeirada"],
         "tags": ["arte xávega", "bois", "pesca tradicional", "demonstração", "milenar"],
-        "lat": 39.6016,
-        "lng": -9.0713,
+        "lat": 39.601600,
+        "lng": -9.071300,
         "iq_score": 94,
     },
     {
@@ -238,8 +241,8 @@ SEED_EVENTS: List[Dict[str, Any]] = [
         "activities": ["regata de barcos rabelos", "fogo de artifício", "arraial", "almoços de São João"],
         "gastronomy_links": ["sardinha assada", "vinho do Porto", "bifanas"],
         "tags": ["São João", "barcos rabelos", "Douro", "vinho do Porto"],
-        "lat": 41.1414,
-        "lng": -8.6139,
+        "lat": 41.141400,
+        "lng": -8.613900,
         "iq_score": 91,
     },
     {
@@ -257,8 +260,8 @@ SEED_EVENTS: List[Dict[str, Any]] = [
         "activities": ["procissão de barcos", "concurso de pesca desportiva", "gastronomia", "espetáculos"],
         "gastronomy_links": ["choco frito", "peixe grelhado", "mariscos"],
         "tags": ["Sesimbra", "pesca", "vila piscatória"],
-        "lat": 38.4437,
-        "lng": -9.1026,
+        "lat": 38.443700,
+        "lng": -9.102600,
         "iq_score": 83,
     },
     {
@@ -277,8 +280,8 @@ SEED_EVENTS: List[Dict[str, Any]] = [
         "activities": ["bênção episcopal", "desfile de barcos", "missa dos pescadores"],
         "gastronomy_links": ["amêijoas à bulhão pato", "cataplana", "percebes"],
         "tags": ["Olhão", "Ria Formosa", "Algarve", "bênção"],
-        "lat": 37.0280,
-        "lng": -7.8413,
+        "lat": 37.028000,
+        "lng": -7.841300,
         "iq_score": 85,
     },
     {
@@ -297,8 +300,8 @@ SEED_EVENTS: List[Dict[str, Any]] = [
         "activities": ["procissão marítima", "concurso de pesca", "arraial", "gastronomia"],
         "gastronomy_links": ["percebes de Peniche", "caldeirada", "peixe espada"],
         "tags": ["São Pedro", "Peniche", "percebes", "surf"],
-        "lat": 39.3563,
-        "lng": -9.3827,
+        "lat": 39.356300,
+        "lng": -9.382700,
         "iq_score": 86,
     },
     {
@@ -317,8 +320,8 @@ SEED_EVENTS: List[Dict[str, Any]] = [
         "activities": ["procissão fluvial", "barcos moliceiros decorados", "fogo de artifício", "arraial"],
         "gastronomy_links": ["ovos moles de Aveiro", "bacalhau à lagareiro"],
         "tags": ["Aveiro", "moliceiros", "canais", "fluvial"],
-        "lat": 40.6405,
-        "lng": -8.6538,
+        "lat": 40.640500,
+        "lng": -8.653800,
         "iq_score": 89,
     },
 ]
@@ -326,13 +329,6 @@ SEED_EVENTS: List[Dict[str, Any]] = [
 
 # ─── Helpers ─────────────────────────────────────────────────────────────────
 
-def _haversine(lat1: float, lng1: float, lat2: float, lng2: float) -> float:
-    R = 6371.0
-    phi1, phi2 = math.radians(lat1), math.radians(lat2)
-    dphi = math.radians(lat2 - lat1)
-    dlam = math.radians(lng2 - lng1)
-    a = math.sin(dphi / 2) ** 2 + math.cos(phi1) * math.cos(phi2) * math.sin(dlam / 2) ** 2
-    return R * 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
 
 
 def _serialize(doc: Dict) -> Dict:
@@ -341,11 +337,15 @@ def _serialize(doc: Dict) -> Dict:
     return doc
 
 
-async def _col_or_seed(col: str, seed: List[Dict]) -> List[Dict]:
+async def _col_or_seed(col: str, seed: List[Dict], query: Optional[Dict] = None) -> List[Dict]:
+    q = query or {}
     if _db is None:
-        return [dict(d) for d in seed]
+        docs = [dict(d) for d in seed]
+        if q.get("municipality_id"):
+            docs = [d for d in docs if d.get("municipality_id") == q["municipality_id"]]
+        return docs
     try:
-        docs = await _db[col].find({}).to_list(500)
+        docs = await _db[col].find(q).to_list(500)
         if docs:
             return [_serialize(d) for d in docs]
     except Exception:
@@ -374,8 +374,11 @@ async def list_events(
     search: Optional[str] = Query(None),
     limit: int = Query(50, le=200),
     offset: int = Query(0, ge=0),
+    current_user: Optional[User] = Depends(get_current_user),
 ):
-    items = await _col_or_seed("maritime_events", SEED_EVENTS)
+    query: Dict[str, Any] = {}
+    apply_municipality_filter(query, current_user)
+    items = await _col_or_seed("maritime_events", SEED_EVENTS, query)
 
     if type:
         items = [i for i in items if i.get("type") == type]

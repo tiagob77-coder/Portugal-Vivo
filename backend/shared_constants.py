@@ -123,25 +123,24 @@ SUBCATEGORIES = [
     {"id": "festas_romarias", "name": "Festas e Romarias", "icon": "celebration", "color": "#F59E0B", "main_category": "cultura_viva", "theme": "Cultura & Tradicao", "poi_target": 151},
 
     # -------------------------------------------------------------------------
-    # 5. PRAIAS & MAR (3 folhas, 658 POI)
+    # 5. PRAIAS & MAR (2 folhas, 479 POI)
     # -------------------------------------------------------------------------
     {"id": "surf", "name": "Surf", "icon": "surfing", "color": "#0EA5E9", "main_category": "praias_mar", "theme": "Desporto & Mar", "poi_target": 36},
-    {"id": "praias_fluviais_mar", "name": "Praias Fluviais", "icon": "waves", "color": "#06B6D4", "main_category": "praias_mar", "theme": "Natureza & Agua", "poi_target": 179},
     {"id": "praias_bandeira_azul", "name": "Praias Bandeira Azul", "icon": "beach-access", "color": "#2563EB", "main_category": "praias_mar", "theme": "Natureza & Praia", "poi_target": 443},
 
     # -------------------------------------------------------------------------
     # 6. EXPERIENCIAS & ROTAS TEMATICAS (10 folhas, 841 POI)
     # -------------------------------------------------------------------------
     {"id": "rotas_tematicas", "name": "Rotas Tematicas", "icon": "route", "color": "#EC4899", "main_category": "experiencias_rotas", "theme": "Rotas & Itinerarios", "poi_target": 177},
-    {"id": "grande_expedicao", "name": "Grande Expedicao 2026", "icon": "explore", "color": "#F59E0B", "main_category": "experiencias_rotas", "theme": "Rotas & Itinerarios", "poi_target": 27},
+    {"id": "grande_expedicao", "name": "Grande Expedicao 2026", "icon": "explore", "color": "#F59E0B", "main_category": "experiencias_rotas", "theme": "Rotas & Itinerarios", "poi_target": 27, "coming_soon": True},
     {"id": "perolas_portugal", "name": "Perolas de Portugal", "icon": "diamond", "color": "#D946EF", "main_category": "experiencias_rotas", "theme": "Destaque Editorial", "poi_target": 49},
     {"id": "alojamentos_rurais", "name": "Alojamentos Rurais", "icon": "cottage", "color": "#92400E", "main_category": "experiencias_rotas", "theme": "Alojamento", "poi_target": 136, "coming_soon": True},
     {"id": "parques_campismo", "name": "Parques de Campismo", "icon": "camping", "color": "#22C55E", "main_category": "experiencias_rotas", "theme": "Alojamento", "poi_target": 82},
     {"id": "pousadas_juventude", "name": "Pousadas de Juventude", "icon": "hotel", "color": "#3B82F6", "main_category": "experiencias_rotas", "theme": "Alojamento", "poi_target": 54},
     {"id": "agentes_turisticos", "name": "Agentes Turisticos", "icon": "support-agent", "color": "#14B8A6", "main_category": "experiencias_rotas", "theme": "Servicos Turisticos", "poi_target": 115, "coming_soon": True},
     {"id": "entidades_operadores", "name": "Entidades e Operadores", "icon": "business", "color": "#6366F1", "main_category": "experiencias_rotas", "theme": "Servicos Turisticos", "poi_target": 64, "coming_soon": True},
-    {"id": "guia_viajante", "name": "Guia do Viajante", "icon": "menu-book", "color": "#F97316", "main_category": "experiencias_rotas", "theme": "Informacao Pratica", "poi_target": 73},
-    {"id": "transportes", "name": "Transportes", "icon": "directions-bus", "color": "#78716C", "main_category": "experiencias_rotas", "theme": "Informacao Pratica", "poi_target": 64},
+    {"id": "guia_viajante", "name": "Guia do Viajante", "icon": "menu-book", "color": "#F97316", "main_category": "experiencias_rotas", "theme": "Informacao Pratica", "poi_target": 73, "coming_soon": True},
+    {"id": "transportes", "name": "Transportes", "icon": "directions-bus", "color": "#78716C", "main_category": "experiencias_rotas", "theme": "Informacao Pratica", "poi_target": 64, "coming_soon": True},
 ]
 
 SUBCATEGORY_IDS = [s["id"] for s in SUBCATEGORIES]

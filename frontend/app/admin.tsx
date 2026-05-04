@@ -14,6 +14,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { LinearGradient } from 'expo-linear-gradient';
 import api from '../src/services/api';
 import { useTheme } from '../src/context/ThemeContext';
+import { palette, withOpacity } from '../src/theme/colors';
 import { shadows } from '../src/theme';
 
 const serif = Platform.OS === 'web' ? 'Cormorant Garamond, Georgia, serif' : undefined;
@@ -253,7 +254,7 @@ export default function AdminDashboard() {
 
       <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
         {/* Header */}
-        <LinearGradient colors={['#1E3A3F', '#2A5F6B']} style={[styles.header, { paddingTop: insets.top + 12 }]}>
+        <LinearGradient colors={[palette.forest[700], palette.ocean[500]]} style={[styles.header, { paddingTop: insets.top + 12 }]}>
           <View style={styles.headerRow}>
             <TouchableOpacity onPress={() => router.back()}>
               <MaterialIcons name="arrow-back" size={24} color="#FFF" />
@@ -300,7 +301,7 @@ export default function AdminDashboard() {
           {data?.regions.map(r => (
             <View key={r.id} style={styles.barRow}>
               <Text style={[styles.barLabel, { color: colors.textPrimary }]}>{r.id}</Text>
-              <View style={styles.barTrack}>
+              <View style={[styles.barTrack, { backgroundColor: colors.border }]}>
                 <View style={[styles.barFill, {
                   width: `${Math.min(100, r.count / Math.max(1, ...(data?.regions.map(x => x.count) || [1])) * 100)}%`,
                   backgroundColor: REGION_COLORS[r.id] || colors.accent,
@@ -329,14 +330,14 @@ export default function AdminDashboard() {
             <Text style={[styles.sectionTitle, { color: colors.textPrimary }]}>Top 5 POIs (IQ Score)</Text>
             {data.top_pois.map((poi, i) => (
               <View key={i} style={styles.poiRow}>
-                <View style={[styles.poiRank, { backgroundColor: i === 0 ? '#C49A6C' : colors.accent + '20' }]}>
+                <View style={[styles.poiRank, { backgroundColor: i === 0 ? palette.terracotta[500] : colors.accent + '20' }]}>
                   <Text style={[styles.poiRankText, { color: i === 0 ? '#FFF' : colors.accent }]}>{i + 1}</Text>
                 </View>
                 <View style={{ flex: 1 }}>
                   <Text style={[styles.poiName, { color: colors.textPrimary }]} numberOfLines={1}>{poi.name}</Text>
                   <Text style={[styles.poiMeta, { color: colors.textMuted }]}>{poi.region} · {poi.category}</Text>
                 </View>
-                <Text style={[styles.poiScore, { color: '#C49A6C' }]}>{poi.iq_score.toFixed(1)}</Text>
+                <Text style={[styles.poiScore, { color: palette.terracotta[500] }]}>{poi.iq_score.toFixed(1)}</Text>
               </View>
             ))}
           </View>
@@ -390,33 +391,33 @@ export default function AdminDashboard() {
           ) : dqSweep ? (
             <>
               <View style={styles.caopStatsRow}>
-                <View style={[styles.caopStat, { backgroundColor: (dqSweep.duplicate_clusters_count > 0 ? '#F59E0B' : '#22C55E') + '15' }]}>
-                  <Text style={[styles.caopStatVal, { color: dqSweep.duplicate_clusters_count > 0 ? '#F59E0B' : '#22C55E' }]}>
-                    {dqSweep.duplicate_clusters_count}
+                <View style={[styles.caopStat, { backgroundColor: ((dqSweep.duplicate_clusters_count || 0) > 0 ? '#F59E0B' : '#22C55E') + '15' }]}>
+                  <Text style={[styles.caopStatVal, { color: (dqSweep.duplicate_clusters_count || 0) > 0 ? '#F59E0B' : '#22C55E' }]}>
+                    {dqSweep.duplicate_clusters_count || 0}
                   </Text>
                   <Text style={[styles.caopStatLabel, { color: colors.textMuted }]}>Clusters duplicados</Text>
                 </View>
-                <View style={[styles.caopStat, { backgroundColor: (dqSweep.coords_outside_portugal.count > 0 ? '#EF4444' : '#22C55E') + '15' }]}>
-                  <Text style={[styles.caopStatVal, { color: dqSweep.coords_outside_portugal.count > 0 ? '#EF4444' : '#22C55E' }]}>
-                    {dqSweep.coords_outside_portugal.count}
+                <View style={[styles.caopStat, { backgroundColor: ((dqSweep.coords_outside_portugal?.count || 0) > 0 ? '#EF4444' : '#22C55E') + '15' }]}>
+                  <Text style={[styles.caopStatVal, { color: (dqSweep.coords_outside_portugal?.count || 0) > 0 ? '#EF4444' : '#22C55E' }]}>
+                    {dqSweep.coords_outside_portugal?.count || 0}
                   </Text>
                   <Text style={[styles.caopStatLabel, { color: colors.textMuted }]}>Coords fora PT</Text>
                 </View>
                 <View style={[styles.caopStat, { backgroundColor: '#3B82F615' }]}>
                   <Text style={[styles.caopStatVal, { color: '#3B82F6' }]}>
-                    {dqSweep.missing_required_fields.reduce((acc, f) => acc + f.count, 0)}
+                    {(dqSweep.missing_required_fields || []).reduce((acc, f) => acc + (f.count || 0), 0)}
                   </Text>
                   <Text style={[styles.caopStatLabel, { color: colors.textMuted }]}>Campos em falta</Text>
                 </View>
               </View>
 
-              {dqSweep.missing_required_fields.length > 0 && (
+              {(dqSweep.missing_required_fields || []).length > 0 && (
                 <View style={{ marginTop: 4 }}>
-                  {dqSweep.missing_required_fields.map((f) => (
+                  {(dqSweep.missing_required_fields || []).map((f) => (
                     <View key={f.field} style={styles.rankRow}>
                       <Text style={[styles.rankLabel, { color: colors.textPrimary }]}>{f.field}</Text>
-                      <Text style={[styles.rankCount, { color: f.count > 0 ? '#F59E0B' : colors.textMuted }]}>
-                        {f.count}
+                      <Text style={[styles.rankCount, { color: (f.count || 0) > 0 ? '#F59E0B' : colors.textMuted }]}>
+                        {f.count || 0}
                       </Text>
                     </View>
                   ))}
@@ -908,7 +909,7 @@ const styles = StyleSheet.create({
   // Bars
   barRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 8, gap: 8 },
   barLabel: { width: 60, fontSize: 12, fontWeight: '600', textTransform: 'capitalize' },
-  barTrack: { flex: 1, height: 8, backgroundColor: '#E5E7EB', borderRadius: 4, overflow: 'hidden' },
+  barTrack: { flex: 1, height: 8, borderRadius: 4, overflow: 'hidden' },
   barFill: { height: '100%', borderRadius: 4 },
   barCount: { width: 40, fontSize: 12, textAlign: 'right' },
   // Rank

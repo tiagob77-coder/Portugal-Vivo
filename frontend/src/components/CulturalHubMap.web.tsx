@@ -2,7 +2,7 @@
  * CulturalHubMap.web.tsx — MapLibre GL hub map with 6 toggle layers
  *
  * Layers:
- *   1. routes     — route centroids (purple circles)
+ *   1. routes     — route polyline + numbered stop markers (purple)
  *   2. heritage   — nearby POIs (amber pins)
  *   3. events     — upcoming events (pink pins)
  *   4. trails     — walking trails (green circles)
@@ -19,6 +19,7 @@ interface CulturalHubMapProps extends BaseProps {
   stops: HubStop[];
   layers: HubMapLayer[];
   onLayerToggle: (id: string) => void;
+  height?: number;
 }
 
 // ─── MapLibre lazy loader ─────────────────────────────────────────────────────
@@ -63,7 +64,41 @@ function stopsToGeoJSON(stops: HubStop[]) {
   };
 }
 
-// UNESCO stops (those with family === 'integradas' or stops with unesco flag, we use gold)
+function stopsToLineGeoJSON(stops: HubStop[]) {
+  const sorted = [...stops]
+    .filter((s) => s.lat != null && s.lng != null)
+    .sort((a, b) => ((a as any).order ?? 0) - ((b as any).order ?? 0));
+  if (sorted.length < 2) return { type: 'FeatureCollection' as const, features: [] };
+  return {
+    type: 'FeatureCollection' as const,
+    features: [{
+      type: 'Feature' as const,
+      geometry: {
+        type: 'LineString' as const,
+        coordinates: sorted.map((s) => [s.lng, s.lat]),
+      },
+      properties: {},
+    }],
+  };
+}
+
+function stopsToNumberedGeoJSON(stops: HubStop[]) {
+  return {
+    type: 'FeatureCollection' as const,
+    features: stops
+      .filter((s) => s.lat != null && s.lng != null)
+      .sort((a, b) => ((a as any).order ?? 0) - ((b as any).order ?? 0))
+      .map((s, i) => ({
+        type: 'Feature' as const,
+        geometry: { type: 'Point' as const, coordinates: [s.lng, s.lat] },
+        properties: {
+          name: s.name,
+          order: (s as any).order ?? i + 1,
+        },
+      })),
+  };
+}
+
 function unescoGeoJSON(stops: HubStop[]) {
   return {
     type: 'FeatureCollection' as const,
@@ -77,9 +112,11 @@ function unescoGeoJSON(stops: HubStop[]) {
   };
 }
 
+const EMPTY_FC = { type: 'FeatureCollection' as const, features: [] };
+
 // ─── Component ────────────────────────────────────────────────────────────────
 
-export default function CulturalHubMap({ stops, layers, onLayerToggle }: CulturalHubMapProps) {
+export default function CulturalHubMap({ stops, layers, onLayerToggle, height = 380 }: CulturalHubMapProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<any>(null);
   const [ready, setReady] = useState(false);
@@ -118,20 +155,48 @@ export default function CulturalHubMap({ stops, layers, onLayerToggle }: Cultura
           encoding: 'terrarium',
         });
 
-        // ── Layer 1: Routes ──────────────────────────────────────────────────
-        map.addSource('routes-src', { type: 'geojson', data: stopsToGeoJSON(stops) });
+        // ── Layer 1: Route polyline ──────────────────────────────────────────
+        map.addSource('route-line-src', { type: 'geojson', data: stopsToLineGeoJSON(stops) });
         map.addLayer({
-          id: 'routes-layer',
-          type: 'circle',
-          source: 'routes-src',
+          id: 'route-line',
+          type: 'line',
+          source: 'route-line-src',
+          layout: { 'line-cap': 'round', 'line-join': 'round' },
           paint: {
-            'circle-color': '#A855F7',
-            'circle-radius': 7,
-            'circle-stroke-width': 2,
-            'circle-stroke-color': '#ffffff',
-            'circle-opacity': 0.9,
+            'line-color': '#A855F7',
+            'line-width': 3,
+            'line-opacity': 0.85,
+            'line-dasharray': [2, 1],
           },
         });
+
+        // ── Layer 1b: Numbered stop circles ──────────────────────────────────
+        map.addSource('route-stops-src', { type: 'geojson', data: stopsToNumberedGeoJSON(stops) });
+        map.addLayer({
+          id: 'route-stops',
+          type: 'circle',
+          source: 'route-stops-src',
+          paint: {
+            'circle-color': '#A855F7',
+            'circle-radius': 10,
+            'circle-stroke-width': 2,
+            'circle-stroke-color': '#fff',
+          },
+        });
+        map.addLayer({
+          id: 'route-stop-numbers',
+          type: 'symbol',
+          source: 'route-stops-src',
+          layout: {
+            'text-field': ['get', 'order'],
+            'text-size': 11,
+            'text-font': ['Open Sans Bold', 'Arial Unicode MS Bold'],
+          },
+          paint: { 'text-color': '#fff' },
+        });
+
+        // ── Routes centroid labels ───────────────────────────────────────────
+        map.addSource('routes-src', { type: 'geojson', data: stopsToGeoJSON(stops) });
         map.addLayer({
           id: 'routes-labels',
           type: 'symbol',
@@ -160,19 +225,8 @@ export default function CulturalHubMap({ stops, layers, onLayerToggle }: Cultura
           },
         });
 
-        // ── Layer 2: Heritage (shifted slightly) ─────────────────────────────
-        const heritageData = {
-          type: 'FeatureCollection' as const,
-          features: stops.slice(0, Math.min(stops.length, 8)).map((s, i) => ({
-            type: 'Feature' as const,
-            geometry: {
-              type: 'Point' as const,
-              coordinates: [s.lng + (i % 3 - 1) * 0.15, s.lat + (i % 2 === 0 ? 0.1 : -0.1)],
-            },
-            properties: { name: s.name + ' (POI)' },
-          })),
-        };
-        map.addSource('heritage-src', { type: 'geojson', data: heritageData });
+        // ── Layer 2: Heritage (empty — real data loaded externally) ──────────
+        map.addSource('heritage-src', { type: 'geojson', data: EMPTY_FC });
         map.addLayer({
           id: 'heritage-layer',
           type: 'circle',
@@ -187,19 +241,8 @@ export default function CulturalHubMap({ stops, layers, onLayerToggle }: Cultura
           },
         });
 
-        // ── Layer 3: Events ───────────────────────────────────────────────────
-        const eventsData = {
-          type: 'FeatureCollection' as const,
-          features: stops.slice(0, Math.min(stops.length, 6)).map((s, i) => ({
-            type: 'Feature' as const,
-            geometry: {
-              type: 'Point' as const,
-              coordinates: [s.lng + (i % 2 === 0 ? 0.08 : -0.08), s.lat + 0.06],
-            },
-            properties: { name: 'Evento — ' + s.name },
-          })),
-        };
-        map.addSource('events-src', { type: 'geojson', data: eventsData });
+        // ── Layer 3: Events (empty) ───────────────────────────────────────────
+        map.addSource('events-src', { type: 'geojson', data: EMPTY_FC });
         map.addLayer({
           id: 'events-layer',
           type: 'circle',
@@ -214,19 +257,8 @@ export default function CulturalHubMap({ stops, layers, onLayerToggle }: Cultura
           },
         });
 
-        // ── Layer 4: Trails ───────────────────────────────────────────────────
-        const trailsData = {
-          type: 'FeatureCollection' as const,
-          features: stops.slice(0, Math.min(stops.length, 5)).map((s, i) => ({
-            type: 'Feature' as const,
-            geometry: {
-              type: 'Point' as const,
-              coordinates: [s.lng - 0.12, s.lat + (i % 2 === 0 ? 0.15 : -0.05)],
-            },
-            properties: { name: 'Trilho — ' + s.municipality },
-          })),
-        };
-        map.addSource('trails-src', { type: 'geojson', data: trailsData });
+        // ── Layer 4: Trails (empty) ───────────────────────────────────────────
+        map.addSource('trails-src', { type: 'geojson', data: EMPTY_FC });
         map.addLayer({
           id: 'trails-layer',
           type: 'circle',
@@ -241,19 +273,8 @@ export default function CulturalHubMap({ stops, layers, onLayerToggle }: Cultura
           },
         });
 
-        // ── Layer 6: Gastronomy ───────────────────────────────────────────────
-        const gastData = {
-          type: 'FeatureCollection' as const,
-          features: stops.slice(0, Math.min(stops.length, 7)).map((s, i) => ({
-            type: 'Feature' as const,
-            geometry: {
-              type: 'Point' as const,
-              coordinates: [s.lng + 0.1, s.lat - 0.08],
-            },
-            properties: { name: 'Gastronomia — ' + s.municipality },
-          })),
-        };
-        map.addSource('gastronomy-src', { type: 'geojson', data: gastData });
+        // ── Layer 6: Gastronomy (empty) ───────────────────────────────────────
+        map.addSource('gastronomy-src', { type: 'geojson', data: EMPTY_FC });
         map.addLayer({
           id: 'gastronomy-layer',
           type: 'circle',
@@ -267,6 +288,18 @@ export default function CulturalHubMap({ stops, layers, onLayerToggle }: Cultura
             'circle-opacity': 0.85,
           },
         });
+
+        // ── fitBounds to stops ───────────────────────────────────────────────
+        const valid = stops.filter((s) => s.lat != null && s.lng != null);
+        if (valid.length > 1) {
+          const lngs = valid.map((s) => s.lng);
+          const lats = valid.map((s) => s.lat);
+          map.fitBounds(
+            [[Math.min(...lngs) - 0.5, Math.min(...lats) - 0.3],
+             [Math.max(...lngs) + 0.5, Math.max(...lats) + 0.3]],
+            { padding: 40, duration: 800 },
+          );
+        }
 
         mapRef.current = map;
         if (mounted) setReady(true);
@@ -286,7 +319,7 @@ export default function CulturalHubMap({ stops, layers, onLayerToggle }: Cultura
     if (!map || !ready) return;
 
     const layerMap: Record<string, string[]> = {
-      routes:     ['routes-layer', 'routes-labels'],
+      routes:     ['route-line', 'route-stops', 'route-stop-numbers', 'routes-labels'],
       heritage:   ['heritage-layer'],
       events:     ['events-layer'],
       trails:     ['trails-layer'],
@@ -319,7 +352,7 @@ export default function CulturalHubMap({ stops, layers, onLayerToggle }: Cultura
   }, [terrain3d, ready]);
 
   return (
-    <View style={styles.wrapper}>
+    <View style={[styles.wrapper, { height }]}>
       {/* MapLibre container */}
       <div
         ref={containerRef as React.RefObject<HTMLDivElement>}
@@ -363,7 +396,6 @@ export default function CulturalHubMap({ stops, layers, onLayerToggle }: Cultura
 
 const styles = StyleSheet.create({
   wrapper: {
-    height: 300,
     borderRadius: 16,
     overflow: 'hidden',
     backgroundColor: '#0F0720',
