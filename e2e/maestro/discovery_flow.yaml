@@ -1,0 +1,24 @@
+appId: pt.portugalvivo.app
+name: "Discovery Flow — Perto de mim"
+---
+- launchApp
+
+- assertVisible: "Descobrir Portugal"
+
+- tapOn: "Perto de mim"
+
+- assertVisible:
+    text: "km"
+    index: 0
+
+# Tap first nearby result
+- tapOn:
+    index: 0
+    text: ".*km"
+
+- assertVisible: "Ver no mapa"
+
+- tapOn: "Ver no mapa"
+
+- assertVisible:
+    id: "map-container"
