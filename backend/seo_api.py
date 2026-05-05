@@ -354,7 +354,7 @@ async def sitemap_xml():
         {"loc": "/descobrir", "priority": "0.9", "changefreq": "daily"},
         {"loc": "/mapa", "priority": "0.8", "changefreq": "weekly"},
         {"loc": "/leaderboard", "priority": "0.7", "changefreq": "daily"},
-        {"loc": "/categorias", "priority": "0.8", "changefreq": "weekly"},
+        {"loc": "/categories", "priority": "0.8", "changefreq": "weekly"},
     ]
     for page in static_pages:
         urls.append(
@@ -590,7 +590,7 @@ async def robots_txt():
         "Allow: /route/\n"
         "Allow: /trail/\n"
         "Allow: /evento/\n"
-        "Allow: /categorias\n"
+        "Allow: /categories\n"
         "Disallow: /api/\n"
         "Disallow: /admin\n"
         "Disallow: /iq-admin\n"

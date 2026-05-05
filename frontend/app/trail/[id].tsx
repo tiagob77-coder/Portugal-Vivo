@@ -136,8 +136,10 @@ export default function TrailDetailScreen() {
     description: trail.description || '',
     url: trailCanonical,
     inLanguage: ['pt-PT', 'en'],
-    ...(trail.distance_km ? { amenityFeature: [{ '@type': 'LocationFeatureSpecification', name: 'distance', value: `${trail.distance_km} km` }] } : {}),
-    ...(trail.elevation_gain ? { amenityFeature: [{ '@type': 'LocationFeatureSpecification', name: 'elevation', value: `${trail.elevation_gain} m` }] } : {}),
+    amenityFeature: [
+      ...(trail.distance_km ? [{ '@type': 'LocationFeatureSpecification', name: 'distance', value: `${trail.distance_km} km` }] : []),
+      ...(trail.elevation_gain ? [{ '@type': 'LocationFeatureSpecification', name: 'elevation', value: `${trail.elevation_gain} m` }] : []),
+    ],
   };
 
   return (
