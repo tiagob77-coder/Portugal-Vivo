@@ -15,6 +15,7 @@ import {
   Linking,
 } from 'react-native';
 import { useLocalSearchParams, useRouter, Stack } from 'expo-router';
+import Head from 'expo-router/head';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useQuery } from '@tanstack/react-query';
@@ -109,9 +110,44 @@ export default function EventDetailPage() {
   const rarityConfig = RARITY_CONFIG[rarity] || RARITY_CONFIG.comum;
   const regionName = REGION_NAMES[(event.region || '').toLowerCase()] || event.region || '';
 
+  const eventCanonical = `https://portugal-vivo.app/evento/${id}`;
+  const eventDesc = event.description ? event.description.slice(0, 160) : `${catConfig.label} — ${event.name} em ${regionName || 'Portugal'}`;
+  const eventTitle = `${event.name} — ${catConfig.label} em ${regionName || 'Portugal'} | Portugal Vivo`;
+  const eventSchema: Record<string, unknown> = {
+    '@context': 'https://schema.org',
+    '@type': 'Event',
+    name: event.name,
+    description: event.description || '',
+    url: eventCanonical,
+    inLanguage: ['pt-PT', 'en'],
+    eventStatus: 'https://schema.org/EventScheduled',
+    ...(event.start_date ? { startDate: event.start_date } : {}),
+    ...(event.end_date ? { endDate: event.end_date } : {}),
+    ...(regionName ? { location: { '@type': 'Place', address: { '@type': 'PostalAddress', addressRegion: regionName, addressCountry: 'PT' } } } : {}),
+  };
+
   return (
     <View style={[styles.container, { paddingTop: insets.top, backgroundColor: tc.background }]}>
       <Stack.Screen options={{ headerShown: false }} />
+      {Platform.OS === 'web' && (
+        <Head>
+          <title>{eventTitle}</title>
+          <meta name="description" content={eventDesc} />
+          <meta property="og:title" content={event.name} />
+          <meta property="og:description" content={eventDesc} />
+          <meta property="og:type" content="article" />
+          <meta property="og:url" content={eventCanonical} />
+          <meta property="og:locale" content="pt_PT" />
+          <meta property="og:site_name" content="Portugal Vivo" />
+          <meta name="twitter:card" content="summary_large_image" />
+          <meta name="twitter:title" content={event.name} />
+          <meta name="twitter:description" content={eventDesc} />
+          <link rel="canonical" href={eventCanonical} />
+          <link rel="alternate" hreflang="pt" href={eventCanonical} />
+          <link rel="alternate" hreflang="en" href={`https://portugal-vivo.app/en/evento/${id}`} />
+          <script type="application/ld+json">{JSON.stringify(eventSchema)}</script>
+        </Head>
+      )}
 
       {/* Header Bar */}
       <View style={styles.headerBar}>
