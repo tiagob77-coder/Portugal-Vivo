@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * Tests for AuthContext / AuthProvider
  * Covers: login, logout, token persistence, user state, loading state, unauthenticated state
@@ -80,14 +79,14 @@ jest.mock('react-native', () => {
   return RN;
 });
 
-const mockGetInitialURL = jest.fn(() => Promise.resolve(null));
-const mockAddEventListener = jest.fn(() => ({ remove: jest.fn() }));
-const mockCreateURL = jest.fn(() => 'myapp://');
+const mockGetInitialURL: jest.Mock<Promise<string | null>> = jest.fn(() => Promise.resolve(null));
+const mockAddEventListener = jest.fn<{ remove: jest.Mock }, [string, (...a: unknown[]) => void]>(() => ({ remove: jest.fn() }));
+const mockCreateURL = jest.fn<string, [string]>(() => 'myapp://');
 
 jest.mock('expo-linking', () => ({
   getInitialURL: () => mockGetInitialURL(),
-  addEventListener: (...args: any[]) => mockAddEventListener(...args),
-  createURL: (...args: any[]) => mockCreateURL(...args),
+  addEventListener: (event: string, handler: (...a: unknown[]) => void) => mockAddEventListener(event, handler),
+  createURL: (path: string) => mockCreateURL(path),
 }));
 
 jest.mock('expo-web-browser', () => ({

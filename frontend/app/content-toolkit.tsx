@@ -2,7 +2,7 @@
  * Content Toolkit — AI-assisted content creation for cultural agents.
  * Flow: Rascunho humano → Enriquecimento IA → Revisão → Publicação
  */
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity,
   TextInput, ActivityIndicator, Alert, KeyboardAvoidingView,
@@ -112,7 +112,13 @@ export default function ContentToolkitScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { colors } = useTheme();
-  const { sessionToken } = useAuth();
+  const { sessionToken, user, isLoading: authLoading } = useAuth();
+
+  useEffect(() => {
+    if (!authLoading && !sessionToken) {
+      router.replace('/auth');
+    }
+  }, [sessionToken, authLoading, router]);
 
   const [step, setStep] = useState<WorkflowStep>('draft');
   const [draftId, setDraftId] = useState<string | null>(null);

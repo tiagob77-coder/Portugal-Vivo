@@ -1,4 +1,4 @@
-// @ts-nocheck
+
 /**
  * Tests for Background Tasks Service
  * Covers: task registration (native/web), web proximity polling,

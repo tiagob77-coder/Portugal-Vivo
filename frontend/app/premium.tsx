@@ -216,6 +216,27 @@ export default function PremiumScreen() {
           </View>
         )}
 
+        {/* MB Way / Multibanco renewal warning */}
+        {isSubscribed && subStatus?.requires_manual_renewal && (
+          <View style={[styles.renewalWarning, {
+            backgroundColor: (subStatus?.days_until_expiry ?? 99) <= 7 ? '#FEF3C7' : '#FFF7ED',
+            borderColor: (subStatus?.days_until_expiry ?? 99) <= 7 ? '#F59E0B' : '#FDBA74',
+          }]}>
+            <MaterialIcons
+              name={(subStatus?.days_until_expiry ?? 99) <= 7 ? 'warning' : 'info'}
+              size={18}
+              color={(subStatus?.days_until_expiry ?? 99) <= 7 ? '#D97706' : '#EA580C'}
+            />
+            <Text style={[styles.renewalWarningText, {
+              color: (subStatus?.days_until_expiry ?? 99) <= 7 ? '#92400E' : '#9A3412',
+            }]}>
+              {(subStatus?.days_until_expiry ?? 99) <= 7
+                ? `A sua subscrição expira em ${subStatus?.days_until_expiry ?? 0} dia(s). Renove manualmente para não perder acesso premium.`
+                : 'Este método de pagamento não renova automaticamente. Lembre-se de renovar antes do fim do período.'}
+            </Text>
+          </View>
+        )}
+
         {/* Tier Toggle */}
         {!isSubscribed && (
           <>
@@ -459,6 +480,12 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   manageBtnText: { color: '#FFF', fontWeight: '700', fontSize: 13 },
+  renewalWarning: {
+    flexDirection: 'row', alignItems: 'flex-start', gap: 8,
+    marginHorizontal: 20, marginTop: 10,
+    padding: 12, borderRadius: 10, borderWidth: 1,
+  },
+  renewalWarningText: { flex: 1, fontSize: 13, lineHeight: 18 },
   tierToggle: {
     flexDirection: 'row',
     marginHorizontal: 20,

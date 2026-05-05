@@ -247,6 +247,16 @@ async def get_subscription_status(user_id: str, current_user: User = Depends(req
 
     if sub:
         tier = TIERS.get(sub.get("tier", "free"), TIERS["free"])
+        payment_method = sub.get("payment_method", "")
+        requires_manual_renewal = payment_method in ("mb_way", "multibanco")
+        expires_at = sub.get("expires_at")
+        days_until_expiry: int | None = None
+        if expires_at and requires_manual_renewal:
+            try:
+                exp_dt = datetime.fromisoformat(expires_at.replace("Z", "+00:00"))
+                days_until_expiry = (exp_dt - datetime.now(timezone.utc)).days
+            except Exception:
+                pass
         return {
             "user_id": user_id,
             "tier": sub.get("tier", "free"),
@@ -254,8 +264,11 @@ async def get_subscription_status(user_id: str, current_user: User = Depends(req
             "status": "active",
             "features": tier["features"],
             "started_at": sub.get("started_at"),
-            "expires_at": sub.get("expires_at"),
+            "expires_at": expires_at,
             "stripe_subscription_id": sub.get("stripe_subscription_id"),
+            "payment_method": payment_method,
+            "requires_manual_renewal": requires_manual_renewal,
+            "days_until_expiry": days_until_expiry,
         }
 
     return {
@@ -264,6 +277,7 @@ async def get_subscription_status(user_id: str, current_user: User = Depends(req
         "tier_name": "Explorador",
         "status": "active",
         "features": TIERS["free"]["features"],
+        "requires_manual_renewal": False,
     }
 
 

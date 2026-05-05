@@ -1,4 +1,4 @@
-// @ts-nocheck
+
 /**
  * Tests for the Gamification Service
  * Covers: points, badge unlocking, streak logic, level calculation, error handling

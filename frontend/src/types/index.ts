@@ -81,6 +81,8 @@ export interface User {
   name: string;
   picture?: string;
   favorites: string[];
+  role?: string;
+  is_admin?: boolean;
 }
 
 export interface Stats {
@@ -199,7 +201,7 @@ export interface EventEnrichment {
   protected_area?: { area: ProtectedArea; distance_km: number };
   biodiversity_station?: { station: BiodiversityStation; distance_km: number };
   transport: TransportStop[];
-  trails: any[];
+  trails: HikingTrail[];
   natura2000_nearby?: Natura2000Site[];
   geo_context?: GeoContext;
   nature_suggestions: NatureSuggestion[];
@@ -232,7 +234,7 @@ export interface EventToNatureItinerary {
   };
   day_2_morning?: {
     activity: string;
-    nature_destination: any;
+    nature_destination: { name: string; type: string; location: Location; distance_km: number };
     location: Location;
     notable_species?: NotableSpecies[];
   };

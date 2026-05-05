@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * Tests for PushNotificationService
  * Covers: permission request, token registration, local notification scheduling,
@@ -226,7 +225,7 @@ describe('initialize — web', () => {
   });
 
   it('generates a web token and persists it when permission is granted and no existing sub', async () => {
-    const reg = buildSwRegistration(null); // no existing subscription
+    const reg = buildSwRegistration(undefined); // no existing subscription
     (navigator as any).serviceWorker = {
       ready: Promise.resolve(reg),
       addEventListener: jest.fn(),

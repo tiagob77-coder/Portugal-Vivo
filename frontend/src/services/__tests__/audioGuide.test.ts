@@ -1,4 +1,4 @@
-// @ts-nocheck
+
 /**
  * Tests for the AudioGuide Service
  * Covers: play, pause, stop, settings persistence, error handling

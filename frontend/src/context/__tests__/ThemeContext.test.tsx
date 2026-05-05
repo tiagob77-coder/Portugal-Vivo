@@ -1,4 +1,4 @@
-// @ts-nocheck
+
 /**
  * Tests for ThemeContext / ThemeProvider
  * Covers: default theme, setMode, toggleTheme, persistence to AsyncStorage,
