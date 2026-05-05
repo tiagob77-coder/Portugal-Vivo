@@ -663,26 +663,89 @@ export default function HeritageDetailScreen() {
   return (
     <View style={styles.container}>
       <Stack.Screen options={{ headerShown: false }} />
-      {Platform.OS === 'web' && (
-        <Head>
-          <title>{item.name} — Portugal Vivo</title>
-          <meta name="description" content={item.description ? item.description.slice(0, 155) : `Descubra ${item.name} no Portugal Vivo. Património cultural e natural de Portugal.`} />
-          <meta property="og:title" content={`${item.name} — Portugal Vivo`} />
-          <meta property="og:description" content={item.description ? item.description.slice(0, 200) : `Descubra ${item.name} em ${item.region || 'Portugal'}.`} />
-          {(item.image_url) && <meta property="og:image" content={item.image_url} />}
-          <meta property="og:type" content="place" />
-          <link rel="canonical" href={`https://portugal-vivo.app/heritage/${item.id}`} />
-          <script type="application/ld+json">{JSON.stringify({
-            '@context': 'https://schema.org',
-            '@type': 'TouristAttraction',
-            name: item.name,
-            description: item.description,
-            image: item.image_url,
-            address: { '@type': 'PostalAddress', addressRegion: item.region, addressCountry: 'PT' },
-            url: `https://portugal-vivo.app/heritage/${item.id}`,
-          })}</script>
-        </Head>
-      )}
+      {Platform.OS === 'web' && (() => {
+        const SCHEMA_TYPE_MAP: Record<string, string> = {
+          museus_monumentos: 'Museum',
+          castelos: 'LandmarksOrHistoricalBuildings',
+          arqueologia: 'LandmarksOrHistoricalBuildings',
+          arqueologia_geologia: 'LandmarksOrHistoricalBuildings',
+          religioso: 'LandmarksOrHistoricalBuildings',
+          patrimonio_industrial: 'LandmarksOrHistoricalBuildings',
+          percursos_pedestres: 'SportsActivityLocation',
+          ecovias_passadicos: 'SportsActivityLocation',
+          aventura_natureza: 'SportsActivityLocation',
+          praias_bandeira_azul: 'Beach',
+          praias_fluviais: 'Beach',
+          aldeias: 'City',
+          restaurantes_gastronomia: 'Restaurant',
+          tabernas_tascas: 'Restaurant',
+          festas_festivais: 'Event',
+        };
+        const CAT_DISPLAY: Record<string, string> = {
+          percursos_pedestres: 'Percurso Pedestre', museus_monumentos: 'Museu',
+          castelos: 'Castelo', praias_bandeira_azul: 'Praia', praias_fluviais: 'Praia Fluvial',
+          aldeias: 'Aldeia', miradouros: 'Miradouro', arqueologia: 'Arqueologia',
+          religioso: 'Património Religioso', restaurantes_gastronomia: 'Gastronomia',
+          enoturismo_vinho: 'Enoturismo', festas_festivais: 'Festas & Festivais',
+        };
+        const REGION_DISPLAY: Record<string, string> = {
+          norte: 'Norte', centro: 'Centro', lisboa: 'Lisboa',
+          alentejo: 'Alentejo', algarve: 'Algarve', acores: 'Açores', madeira: 'Madeira',
+        };
+        const schemaType = SCHEMA_TYPE_MAP[item.category] || 'TouristAttraction';
+        const catDisplay = CAT_DISPLAY[item.category] || item.category || 'Destino';
+        const locality = (item as any).concelho || (item as any).municipality || '';
+        const locationDisplay = locality || REGION_DISPLAY[item.region || ''] || 'Portugal';
+        const slug = (item as any).slug || item.id;
+        const canonical = `https://portugal-vivo.app/heritage/${slug}`;
+        const canonicalEn = `https://portugal-vivo.app/en/heritage/${slug}`;
+        const ogImage = item.image_url || 'https://images.unsplash.com/photo-1555881400-74d7acaacd8b?w=1200&q=80';
+        const desc160 = item.description ? item.description.slice(0, 160) : `Descubra ${item.name} em ${locationDisplay}.`;
+        const rawTitle = `${item.name} — ${catDisplay} em ${locationDisplay} | Portugal Vivo`;
+        const pageTitle = rawTitle.length <= 60 ? rawTitle : `${item.name} | Portugal Vivo`;
+        const coords = (item as any).location?.coordinates || [];
+        const schemaOrg = {
+          '@context': 'https://schema.org',
+          '@type': schemaType,
+          name: item.name,
+          description: item.description || '',
+          url: canonical,
+          image: ogImage,
+          geo: coords.length >= 2
+            ? { '@type': 'GeoCoordinates', latitude: coords[1], longitude: coords[0] }
+            : undefined,
+          address: {
+            '@type': 'PostalAddress',
+            addressLocality: locality || undefined,
+            addressRegion: REGION_DISPLAY[item.region || ''] || item.region,
+            addressCountry: 'PT',
+          },
+          inLanguage: ['pt-PT', 'en'],
+          isAccessibleForFree: true,
+        };
+        return (
+          <Head>
+            <title>{pageTitle}</title>
+            <meta name="description" content={desc160} />
+            <meta property="og:title" content={item.name} />
+            <meta property="og:description" content={desc160} />
+            <meta property="og:image" content={ogImage} />
+            <meta property="og:type" content="place" />
+            <meta property="og:url" content={canonical} />
+            <meta property="og:locale" content="pt_PT" />
+            <meta property="og:site_name" content="Portugal Vivo" />
+            <meta name="twitter:card" content="summary_large_image" />
+            <meta name="twitter:title" content={item.name} />
+            <meta name="twitter:description" content={desc160} />
+            <meta name="twitter:image" content={ogImage} />
+            <link rel="canonical" href={canonical} />
+            <link rel="alternate" hreflang="pt" href={canonical} />
+            <link rel="alternate" hreflang="en" href={canonicalEn} />
+            <link rel="alternate" hreflang="x-default" href={canonical} />
+            <script type="application/ld+json">{JSON.stringify(schemaOrg)}</script>
+          </Head>
+        );
+      })()}
       
       {/* Hero Image */}
       <ImageBackground

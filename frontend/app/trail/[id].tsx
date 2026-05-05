@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, Linking, Platform } from 'react-native';
 import { useLocalSearchParams, useRouter, Stack } from 'expo-router';
+import Head from 'expo-router/head';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useQuery } from '@tanstack/react-query';
@@ -125,9 +126,44 @@ export default function TrailDetailScreen() {
   const windSpeed = safetyData?.wind_speed_kmh as number | undefined;
   const weather = safetyData?.weather as Record<string, any> | undefined;
 
+  const trailCanonical = `https://portugal-vivo.app/trail/${id}`;
+  const trailDesc = trail.description ? trail.description.slice(0, 160) : `Trilho ${trail.name} — ${regionLabel || 'Portugal'}`;
+  const trailTitle = `${trail.name} — Trilho em ${regionLabel || 'Portugal'} | Portugal Vivo`;
+  const trailSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'SportsActivityLocation',
+    name: trail.name,
+    description: trail.description || '',
+    url: trailCanonical,
+    inLanguage: ['pt-PT', 'en'],
+    amenityFeature: [
+      ...(trail.distance_km ? [{ '@type': 'LocationFeatureSpecification', name: 'distance', value: `${trail.distance_km} km` }] : []),
+      ...(trail.elevation_gain ? [{ '@type': 'LocationFeatureSpecification', name: 'elevation', value: `${trail.elevation_gain} m` }] : []),
+    ],
+  };
+
   return (
     <View style={s.container}>
       <Stack.Screen options={{ headerShown: false }} />
+      {Platform.OS === 'web' && (
+        <Head>
+          <title>{trailTitle}</title>
+          <meta name="description" content={trailDesc} />
+          <meta property="og:title" content={trail.name} />
+          <meta property="og:description" content={trailDesc} />
+          <meta property="og:type" content="article" />
+          <meta property="og:url" content={trailCanonical} />
+          <meta property="og:locale" content="pt_PT" />
+          <meta property="og:site_name" content="Portugal Vivo" />
+          <meta name="twitter:card" content="summary_large_image" />
+          <meta name="twitter:title" content={trail.name} />
+          <meta name="twitter:description" content={trailDesc} />
+          <link rel="canonical" href={trailCanonical} />
+          <link rel="alternate" hreflang="pt" href={trailCanonical} />
+          <link rel="alternate" hreflang="en" href={`https://portugal-vivo.app/en/trail/${id}`} />
+          <script type="application/ld+json">{JSON.stringify(trailSchema)}</script>
+        </Head>
+      )}
 
       {/* ── Fixed gradient header ── */}
       <LinearGradient

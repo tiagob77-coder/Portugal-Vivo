@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, ImageBackground, Platform, Linking, Alert } from 'react-native';
 import { useLocalSearchParams, useRouter, Stack } from 'expo-router';
+import Head from 'expo-router/head';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useQuery } from '@tanstack/react-query';
@@ -91,40 +92,6 @@ export default function RouteDetailScreen() {
     }
   }
 
-  // Inject SEO meta tags on web
-  useEffect(() => {
-    if (Platform.OS !== 'web' || !route || typeof document === 'undefined') return;
-
-    const title = `${route.name} — Portugal Vivo`;
-    const desc = route.description?.slice(0, 160) || `Rota ${route.name} no Portugal Vivo`;
-    const image = route.image_url || 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1200&q=80';
-    const url = window.location.href;
-
-    document.title = title;
-
-    const setMeta = (property: string, content: string) => {
-      let el = document.querySelector(`meta[property="${property}"]`) as HTMLMetaElement | null;
-      if (!el) { el = document.createElement('meta'); el.setAttribute('property', property); document.head.appendChild(el); }
-      el.content = content;
-    };
-    const setMetaName = (name: string, content: string) => {
-      let el = document.querySelector(`meta[name="${name}"]`) as HTMLMetaElement | null;
-      if (!el) { el = document.createElement('meta'); el.name = name; document.head.appendChild(el); }
-      el.content = content;
-    };
-
-    setMeta('og:title', title);
-    setMeta('og:description', desc);
-    setMeta('og:image', image);
-    setMeta('og:url', url);
-    setMeta('og:type', 'article');
-    setMeta('og:site_name', 'Portugal Vivo');
-    setMetaName('twitter:card', 'summary_large_image');
-    setMetaName('twitter:title', title);
-    setMetaName('twitter:description', desc);
-    setMetaName('twitter:image', image);
-    setMetaName('description', desc);
-  }, [route]);
 
   const { data: categories = [] } = useQuery({
     queryKey: ['categories'],
@@ -220,10 +187,45 @@ export default function RouteDetailScreen() {
     );
   }
 
+  const routeCanonical = `https://portugal-vivo.app/route/${id}`;
+  const routeDesc = route.description ? route.description.slice(0, 160) : `Rota ${route.name} — Portugal Vivo`;
+  const routeTitle = `${route.name} — Rota | Portugal Vivo`;
+  const routeImage = (route as any).image_url || coverImage;
+  const routeSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'TouristTrip',
+    name: route.name,
+    description: route.description || '',
+    url: routeCanonical,
+    inLanguage: ['pt-PT', 'en'],
+    ...(route.distance_km ? { distance: `${route.distance_km} km` } : {}),
+  };
+
   return (
     <View style={styles.container}>
       <Stack.Screen options={{ headerShown: false }} />
-      
+      {Platform.OS === 'web' && (
+        <Head>
+          <title>{routeTitle}</title>
+          <meta name="description" content={routeDesc} />
+          <meta property="og:title" content={route.name} />
+          <meta property="og:description" content={routeDesc} />
+          <meta property="og:image" content={routeImage} />
+          <meta property="og:type" content="article" />
+          <meta property="og:url" content={routeCanonical} />
+          <meta property="og:locale" content="pt_PT" />
+          <meta property="og:site_name" content="Portugal Vivo" />
+          <meta name="twitter:card" content="summary_large_image" />
+          <meta name="twitter:title" content={route.name} />
+          <meta name="twitter:description" content={routeDesc} />
+          <meta name="twitter:image" content={routeImage} />
+          <link rel="canonical" href={routeCanonical} />
+          <link rel="alternate" hreflang="pt" href={routeCanonical} />
+          <link rel="alternate" hreflang="en" href={`https://portugal-vivo.app/en/route/${id}`} />
+          <script type="application/ld+json">{JSON.stringify(routeSchema)}</script>
+        </Head>
+      )}
+
       {/* Hero Image */}
       <ImageBackground
         source={{ uri: coverImage }}
