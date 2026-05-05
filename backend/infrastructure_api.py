@@ -6,11 +6,15 @@ from __future__ import annotations
 
 import math
 import re
+from shared_utils import haversine_km as _haversine
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, Field
+from auth_api import get_current_user
+from models.api_models import User
+from shared_utils import apply_municipality_filter
 
 infrastructure_router = APIRouter(prefix="/infrastructure", tags=["Infrastructure"])
 
@@ -42,8 +46,16 @@ SEED_INFRA: List[Dict[str, Any]] = [
         "is_accessible": False,
         "best_season": ["primavera", "verao", "outono"],
         "opening_hours": "Ter-Dom 09h-17h (época baixa) / 08h-19h (época alta)",
-        "lat": 40.9253,
-        "lng": -8.2389,
+        "lat": 40.970826,
+        "lng": -8.193645,
+        "start_point": {"name": "Praia Fluvial do Areinho", "lat": 40.952689, "lng": -8.175847},
+        "end_point": {"name": "Espiunca", "lat": 40.992964, "lng": -8.211442},
+        "waypoints": [
+            {"name": "Praia Fluvial do Areinho (entrada sul)", "lat": 40.952689, "lng": -8.175847, "order": 1},
+            {"name": "Ponte 516 Arouca", "lat": 40.968408, "lng": -8.174970, "order": 2},
+            {"name": "Miradouro do Paiva", "lat": 40.975000, "lng": -8.190000, "order": 3},
+            {"name": "Espiunca (entrada norte)", "lat": 40.992964, "lng": -8.211442, "order": 4},
+        ],
         "iq_score": 99,
         "tags": ["rio", "canyons", "ponte suspensa", "natureza"],
     },
@@ -103,8 +115,8 @@ SEED_INFRA: List[Dict[str, Any]] = [
         "safety_restrictions": "Vento superior a 60 km/h. Não recomendado para pessoas com medo de alturas.",
         "best_season": ["primavera", "verao", "outono"],
         "opening_hours": "Ter-Dom 09h-17h",
-        "lat": 40.9387,
-        "lng": -8.2401,
+        "lat": 40.968408,
+        "lng": -8.174970,
         "iq_score": 98,
         "tags": ["recorde mundial", "engenharia", "espetacular"],
     },
@@ -144,6 +156,13 @@ SEED_INFRA: List[Dict[str, Any]] = [
         "best_season": ["primavera", "verao", "outono"],
         "lat": 41.2722,
         "lng": -8.0795,
+        "start_point": {"name": "Amarante", "lat": 41.268100, "lng": -8.074200},
+        "end_point": {"name": "Arco de Baúlhe", "lat": 41.502500, "lng": -7.977800},
+        "waypoints": [
+            {"name": "Amarante (início)", "lat": 41.268100, "lng": -8.074200, "order": 1},
+            {"name": "Celorico de Basto", "lat": 41.389200, "lng": -7.988900, "order": 2},
+            {"name": "Arco de Baúlhe (fim)", "lat": 41.502500, "lng": -7.977800, "order": 3},
+        ],
         "iq_score": 90,
         "tags": ["ciclovia", "ferroviário", "rio Tâmega", "família"],
     },
@@ -163,6 +182,14 @@ SEED_INFRA: List[Dict[str, Any]] = [
         "best_season": ["primavera", "verao", "outono"],
         "lat": 41.8742,
         "lng": -8.8532,
+        "start_point": {"name": "Âncora", "lat": 41.815300, "lng": -8.862800},
+        "end_point": {"name": "Caminha", "lat": 41.875100, "lng": -8.836200},
+        "waypoints": [
+            {"name": "Âncora (início)", "lat": 41.815300, "lng": -8.862800, "order": 1},
+            {"name": "Vila Praia de Âncora", "lat": 41.816500, "lng": -8.872200, "order": 2},
+            {"name": "Moledo do Minho", "lat": 41.843200, "lng": -8.865100, "order": 3},
+            {"name": "Caminha (fim)", "lat": 41.875100, "lng": -8.836200, "order": 4},
+        ],
         "iq_score": 87,
         "tags": ["costa", "ciclovia", "Minho", "Galiza"],
     },
@@ -184,6 +211,13 @@ SEED_INFRA: List[Dict[str, Any]] = [
         "best_season": ["primavera", "verao", "outono"],
         "lat": 40.6566,
         "lng": -7.9122,
+        "start_point": {"name": "Viseu", "lat": 40.656600, "lng": -7.912200},
+        "end_point": {"name": "Satão", "lat": 40.736100, "lng": -7.725800},
+        "waypoints": [
+            {"name": "Viseu (início)", "lat": 40.656600, "lng": -7.912200, "order": 1},
+            {"name": "Abrunhosa-a-Velha", "lat": 40.696700, "lng": -7.829400, "order": 2},
+            {"name": "Satão (fim)", "lat": 40.736100, "lng": -7.725800, "order": 3},
+        ],
         "iq_score": 93,
         "tags": ["ciclovia", "rio Dão", "túneis", "vinha"],
     },
@@ -223,17 +257,17 @@ SEED_INFRA: List[Dict[str, Any]] = [
     },
     {
         "_id": "inf_011",
-        "name": "Miradouro do Facho",
+        "name": "Miradouro do Pico do Facho",
         "type": "miradouro",
         "subtype": "costeiro",
         "region": "Madeira",
-        "municipality": "Câmara de Lobos",
-        "description_short": "O ponto mais alto da Ponta de São Lourenço com vistas sobre o oceano e a costa selvagem da Madeira.",
-        "height_m": 517,
+        "municipality": "Machico",
+        "description_short": "Miradouro a 280m de altitude no Pico do Facho, com panorâmica 360° sobre Machico, o vale e a costa leste da Madeira.",
+        "height_m": 280,
         "access_type": "livre",
         "best_season": ["primavera", "verao", "outono", "inverno"],
-        "lat": 32.7325,
-        "lng": -16.7012,
+        "lat": 32.723890,
+        "lng": -16.758710,
         "iq_score": 97,
         "tags": ["Madeira", "oceano", "panorâmico", "vulcânico"],
     },
@@ -243,12 +277,12 @@ SEED_INFRA: List[Dict[str, Any]] = [
         "type": "miradouro",
         "subtype": "costeiro",
         "region": "Açores",
-        "municipality": "Vila do Porto",
-        "description_short": "O ponto mais oriental da União Europeia. Nascer do sol espetacular sobre o Atlântico.",
+        "municipality": "Nordeste",
+        "description_short": "O nascer do sol mais espetacular dos Açores, na costa nordeste de São Miguel a 276m de altitude.",
         "access_type": "livre",
         "best_season": ["primavera", "verao"],
-        "lat": 36.9553,
-        "lng": -24.9892,
+        "lat": 37.840000,
+        "lng": -25.140000,
         "iq_score": 95,
         "tags": ["Açores", "Europa", "nascer do sol", "atlântico"],
     },
@@ -296,13 +330,6 @@ SEED_INFRA: List[Dict[str, Any]] = [
 
 # ─── Helpers ─────────────────────────────────────────────────────────────────
 
-def _haversine(lat1: float, lng1: float, lat2: float, lng2: float) -> float:
-    R = 6371.0
-    phi1, phi2 = math.radians(lat1), math.radians(lat2)
-    dphi = math.radians(lat2 - lat1)
-    dlam = math.radians(lng2 - lng1)
-    a = math.sin(dphi / 2) ** 2 + math.cos(phi1) * math.cos(phi2) * math.sin(dlam / 2) ** 2
-    return R * 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
 
 
 def _serialize(doc: Dict) -> Dict:
@@ -311,11 +338,15 @@ def _serialize(doc: Dict) -> Dict:
     return doc
 
 
-async def _col_or_seed(col: str, seed: List[Dict]) -> List[Dict]:
+async def _col_or_seed(col: str, seed: List[Dict], query: Optional[Dict] = None) -> List[Dict]:
+    q = query or {}
     if _db is None:
-        return [dict(d) for d in seed]
+        docs = [dict(d) for d in seed]
+        if q.get("municipality_id"):
+            docs = [d for d in docs if d.get("municipality_id") == q["municipality_id"]]
+        return docs
     try:
-        docs = await _db[col].find({}).to_list(500)
+        docs = await _db[col].find(q).to_list(500)
         if docs:
             return [_serialize(d) for d in docs]
     except Exception:
@@ -336,8 +367,11 @@ async def list_infrastructure(
     search: Optional[str] = Query(None),
     limit: int = Query(50, le=200),
     offset: int = Query(0, ge=0),
+    current_user: Optional[User] = Depends(get_current_user),
 ):
-    items = await _col_or_seed("infrastructure", SEED_INFRA)
+    query: Dict[str, Any] = {}
+    apply_municipality_filter(query, current_user)
+    items = await _col_or_seed("infrastructure", SEED_INFRA, query)
 
     if type:
         items = [i for i in items if i.get("type") == type]

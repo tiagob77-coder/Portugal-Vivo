@@ -11,10 +11,10 @@
  */
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { View, StyleSheet, TouchableOpacity, Text } from 'react-native';
-import type { MapItem, LeafletMapProps } from './NativeMap.types';
+import type { MapItem, LeafletMapProps, WaypointMarker } from './NativeMap.types';
 
 // Re-export types for backwards compatibility
-export type { MapItem, LeafletMapProps };
+export type { MapItem, LeafletMapProps, WaypointMarker };
 
 // ─── Estilos CARTO (gratuitos, sem API key) ───────────────────────────────────
 
@@ -22,11 +22,24 @@ const MAP_STYLES: Record<string, string> = {
   light:     'https://basemaps.cartocdn.com/gl/voyager-gl-style/style.json',
   voyager:   'https://basemaps.cartocdn.com/gl/voyager-gl-style/style.json',
   dark:      'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json',
-  satellite: 'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json',
   terrain:   'https://basemaps.cartocdn.com/gl/voyager-gl-style/style.json',
   tecnico:   'https://basemaps.cartocdn.com/gl/voyager-gl-style/style.json',
   premium:   'https://basemaps.cartocdn.com/gl/positron-gl-style/style.json',
 };
+
+// Esri World Imagery satellite style (raster, gratuito, sem API key)
+const SATELLITE_STYLE = {
+  version: 8,
+  sources: {
+    esri_satellite: {
+      type: 'raster',
+      tiles: ['https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'],
+      tileSize: 256,
+      attribution: 'Tiles © Esri',
+    },
+  },
+  layers: [{ id: 'esri_satellite_layer', type: 'raster', source: 'esri_satellite' }],
+} as const;
 
 // Centro de Portugal e limites
 const PT_CENTER: [number, number] = [-7.8491, 39.6945];
@@ -108,6 +121,7 @@ export function LeafletMapComponent(props: LeafletMapProps) {
     mapMode = 'light',
     trailPoints,
     trailColor = '#22C55E',
+    waypoints,
     style,
     onMapReady,
     navigateToRegion,
@@ -143,7 +157,7 @@ export function LeafletMapComponent(props: LeafletMapProps) {
 
       map = new ml.Map({
         container: containerRef.current,
-        style: MAP_STYLES[mapMode] || MAP_STYLES.light,
+        style: mapMode === 'satellite' ? SATELLITE_STYLE as any : (MAP_STYLES[mapMode] || MAP_STYLES.light),
         center: PT_CENTER,
         zoom: PT_ZOOM,
         pitch: 0,
@@ -172,6 +186,7 @@ export function LeafletMapComponent(props: LeafletMapProps) {
         _addTerrainSource(map);
         _addPOIsLayer(map);
         _addTrailLayers(map);
+        _addWaypointLayers(map);
         _applySolarLight(map);
         setReady(true);
         onMapReady?.();
@@ -381,6 +396,48 @@ export function LeafletMapComponent(props: LeafletMapProps) {
     });
   }
 
+  function _addWaypointLayers(map: any) {
+    map.addSource('waypoints', { type: 'geojson', data: { type: 'FeatureCollection', features: [] } });
+    map.addLayer({
+      id: 'waypoint-circle',
+      type: 'circle',
+      source: 'waypoints',
+      paint: {
+        'circle-color': trailColor,
+        'circle-radius': 12,
+        'circle-stroke-width': 2,
+        'circle-stroke-color': '#fff',
+      },
+    });
+    map.addLayer({
+      id: 'waypoint-number',
+      type: 'symbol',
+      source: 'waypoints',
+      layout: {
+        'text-field': ['get', 'order'],
+        'text-size': 12,
+        'text-font': ['Open Sans Bold', 'Arial Unicode MS Bold'],
+      },
+      paint: { 'text-color': '#fff' },
+    });
+    map.addLayer({
+      id: 'waypoint-label',
+      type: 'symbol',
+      source: 'waypoints',
+      layout: {
+        'text-field': ['get', 'name'],
+        'text-offset': [0, 1.8],
+        'text-anchor': 'top',
+        'text-size': 10,
+      },
+      paint: { 'text-color': '#fff', 'text-halo-color': '#000', 'text-halo-width': 1.5 },
+      minzoom: 11,
+    });
+
+    map.on('mouseenter', 'waypoint-circle', () => { map.getCanvas().style.cursor = 'pointer'; });
+    map.on('mouseleave', 'waypoint-circle', () => { map.getCanvas().style.cursor = ''; });
+  }
+
   // Update markers when items change or map becomes ready
   useEffect(() => {
     if (!ready || !mapRef.current) return;
@@ -420,6 +477,23 @@ export function LeafletMapComponent(props: LeafletMapProps) {
     }
   }, [trailPoints, ready]);
 
+  // ── Actualizar waypoints ───────────────────────────────────────────────────
+  useEffect(() => {
+    if (!mapRef.current || !ready) return;
+    const src = mapRef.current.getSource('waypoints');
+    if (!src) return;
+
+    const wps: WaypointMarker[] = Array.isArray(waypoints) ? waypoints : [];
+    src.setData({
+      type: 'FeatureCollection',
+      features: wps.map((wp) => ({
+        type: 'Feature',
+        geometry: { type: 'Point', coordinates: [wp.lng, wp.lat] },
+        properties: { order: wp.order, name: wp.name },
+      })),
+    });
+  }, [waypoints, ready]);
+
   // ── Mudar estilo de mapa ───────────────────────────────────────────────────
   // CRITICAL: setStyle() destroys ALL sources and layers — must re-add them after.
   // Skip on initial render (layers already added in map.on('load')).
@@ -433,9 +507,11 @@ export function LeafletMapComponent(props: LeafletMapProps) {
     }
 
     const map = mapRef.current;
-    const newStyle = mapMode === 'premium'
-      ? MAP_STYLES.premium
-      : (MAP_STYLES[mapMode] || MAP_STYLES.light);
+    const newStyle = mapMode === 'satellite'
+      ? SATELLITE_STYLE as any
+      : mapMode === 'premium'
+        ? MAP_STYLES.premium
+        : (MAP_STYLES[mapMode] || MAP_STYLES.light);
 
     map.setStyle(newStyle);
 
@@ -444,6 +520,7 @@ export function LeafletMapComponent(props: LeafletMapProps) {
       _addTerrainSource(map);
       _addPOIsLayer(map);
       _addTrailLayers(map);
+      _addWaypointLayers(map);
       _applySolarLight(map);
 
       // Re-populate POI data
@@ -592,6 +669,7 @@ export default MapViewStub;
 // Stubs de compatibilidade
 export const Marker: React.FC<any> = () => null;
 export const Callout: React.FC<any> = () => null;
+export const Polyline: React.FC<any> = () => null;
 export const PROVIDER_GOOGLE = null;
 // On web, MapView is not actually available (we use LeafletMapComponent instead)
 // So we set isMapAvailable to false to use the web fallback rendering path

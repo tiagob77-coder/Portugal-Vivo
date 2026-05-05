@@ -1060,35 +1060,7 @@ export default function HeritageDetailScreen() {
                 ))}
               </View>
 
-              {/* Cognitive Profile Selection */}
-              <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginTop: 8 }}>
-                <View style={{ flexDirection: 'row', gap: 6, paddingHorizontal: 4 }}>
-                  <TouchableOpacity
-                    style={[styles.styleOption, { paddingHorizontal: 10, paddingVertical: 6 }, !cognitiveProfile && styles.styleOptionActive]}
-                    onPress={() => setCognitiveProfile(undefined)}
-                  >
-                    <Text style={[styles.styleOptionText, { fontSize: 11 }, !cognitiveProfile && styles.styleOptionTextActive]}>Geral</Text>
-                  </TouchableOpacity>
-                  {([
-                    { id: 'gourmet', emoji: '\uD83C\uDF77', label: 'Gourmet' },
-                    { id: 'familia', emoji: '\uD83D\uDC68\u200D\uD83D\uDC69\u200D\uD83D\uDC67', label: 'Família' },
-                    { id: 'arquitetura', emoji: '\uD83C\uDFDB\uFE0F', label: 'Arquitetura' },
-                    { id: 'natureza_radical', emoji: '\uD83C\uDFD4\uFE0F', label: 'Aventura' },
-                    { id: 'historia_profunda', emoji: '\uD83D\uDCDC', label: 'História' },
-                    { id: 'criancas', emoji: '\uD83E\uDDD2', label: 'Juniores' },
-                  ] as const).map((profile) => (
-                    <TouchableOpacity
-                      key={profile.id}
-                      style={[styles.styleOption, { paddingHorizontal: 10, paddingVertical: 6 }, cognitiveProfile === profile.id && styles.styleOptionActive]}
-                      onPress={() => setCognitiveProfile(profile.id as CognitiveProfile)}
-                    >
-                      <Text style={{ fontSize: 12 }}>{profile.emoji}</Text>
-                      <Text style={[styles.styleOptionText, { fontSize: 11 }, cognitiveProfile === profile.id && styles.styleOptionTextActive]}>{profile.label}</Text>
-                    </TouchableOpacity>
-                  ))}
-                </View>
-              </ScrollView>
-
+              {/* Generate Button - Direct, without profile selection */}
               <TouchableOpacity
                 style={[styles.generateButton, !isPremium && depthLevel !== 'snackable' && styles.generateButtonLocked]}
                 onPress={() => {

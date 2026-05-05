@@ -6,8 +6,9 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useQuery } from '@tanstack/react-query';
 import { getMainCategories } from '../src/services/api';
 import { LinearGradient } from 'expo-linear-gradient';
+import { useTheme } from '../src/context/ThemeContext';
+import { palette } from '../src/theme/colors';
 
-// Main category images
 const MAIN_CATEGORY_IMAGES: Record<string, string> = {
   territorio_natureza: 'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=600&q=80',
   historia_patrimonio: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=600&q=80',
@@ -17,10 +18,82 @@ const MAIN_CATEGORY_IMAGES: Record<string, string> = {
   experiencias_rotas: 'https://images.unsplash.com/photo-1551632811-561732d1e306?w=600&q=80',
 };
 
+function makeStyles(C: Record<string, string>) {
+  return StyleSheet.create({
+    container: { flex: 1, backgroundColor: C.bg },
+    header: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingHorizontal: 20,
+      paddingBottom: 16,
+      backgroundColor: C.bg,
+      borderBottomWidth: 1,
+      borderBottomColor: C.card,
+    },
+    backButton: {
+      width: 44, height: 44, borderRadius: 22,
+      backgroundColor: C.card,
+      alignItems: 'center', justifyContent: 'center',
+    },
+    headerTitleContainer: { flex: 1, alignItems: 'center' },
+    headerTitle: { fontSize: 18, fontWeight: '700', color: C.text },
+    headerSubtitle: { fontSize: 12, color: C.textSub, marginTop: 2 },
+    placeholder: { width: 44 },
+    scrollView: { flex: 1 },
+    content: { paddingHorizontal: 16, paddingTop: 16 },
+    mainCategoryContainer: { marginBottom: 14 },
+    mainCategoryCard: { height: 140, borderRadius: 16, overflow: 'hidden' },
+    mainCategoryImage: { borderRadius: 16 },
+    mainCategoryGradient: { flex: 1, justifyContent: 'space-between', padding: 16 },
+    mainCategoryHeader: { flexDirection: 'row', alignItems: 'flex-start', gap: 12 },
+    iconContainer: { width: 50, height: 50, borderRadius: 14, justifyContent: 'center', alignItems: 'center' },
+    mainCategoryInfo: { flex: 1 },
+    mainCategoryName: { fontSize: 18, fontWeight: '800', color: '#FFFFFF', marginBottom: 2 },
+    mainCategoryDescription: { fontSize: 12, color: palette.gray[200], lineHeight: 16 },
+    mainCategoryFooter: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+    statsRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+    statText: { fontSize: 12, fontWeight: '600', color: C.accent },
+    statDivider: { fontSize: 12, color: C.textMuted },
+    subcategoriesContainer: {
+      backgroundColor: C.card,
+      borderBottomLeftRadius: 16,
+      borderBottomRightRadius: 16,
+      marginTop: -8,
+      paddingTop: 8,
+      paddingHorizontal: 12,
+      paddingBottom: 4,
+    },
+    subcategoryRow: {
+      flexDirection: 'row', alignItems: 'center',
+      paddingVertical: 12, paddingHorizontal: 8,
+      borderBottomWidth: 1, borderBottomColor: palette.forest[500],
+      gap: 12,
+    },
+    subcategoryRowLast: { borderBottomWidth: 0 },
+    subIconContainer: { width: 36, height: 36, borderRadius: 10, justifyContent: 'center', alignItems: 'center' },
+    subInfo: { flex: 1 },
+    subName: { fontSize: 14, fontWeight: '600', color: C.text },
+    subTheme: { fontSize: 11, color: C.textSub, marginTop: 1 },
+    subRight: { flexDirection: 'row', alignItems: 'center', gap: 4 },
+    subCount: { fontSize: 12, fontWeight: '600', color: C.accent },
+  });
+}
+
 export default function CategoriesScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const [expandedCategory, setExpandedCategory] = useState<string | null>(null);
+
+  const { colors, isDark } = useTheme();
+  const C = {
+    bg:       palette.forest[500],
+    card:     palette.forest[600],
+    accent:   palette.terracotta[500],
+    text:     palette.gray[50],
+    textSub:  palette.gray[300],
+    textMuted: palette.gray[500],
+  };
+  const styles = makeStyles(C);
 
   const { data: mainCategories = [] } = useQuery({
     queryKey: ['mainCategories'],
@@ -41,10 +114,9 @@ export default function CategoriesScreen() {
     <View style={styles.container}>
       <Stack.Screen options={{ headerShown: false }} />
 
-      {/* Header */}
       <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
         <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
-          <MaterialIcons name="arrow-back" size={24} color="#FAF8F3" />
+          <MaterialIcons name="arrow-back" size={24} color={C.text} />
         </TouchableOpacity>
         <View style={styles.headerTitleContainer}>
           <Text style={styles.headerTitle}>Portugal Vivo</Text>
@@ -53,7 +125,6 @@ export default function CategoriesScreen() {
         <View style={styles.placeholder} />
       </View>
 
-      {/* Main Categories */}
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + 20 }]}
@@ -66,11 +137,7 @@ export default function CategoriesScreen() {
 
           return (
             <View key={mc.id} style={styles.mainCategoryContainer}>
-              {/* Main Category Card */}
-              <TouchableOpacity
-                activeOpacity={0.85}
-                onPress={() => toggleExpand(mc.id)}
-              >
+              <TouchableOpacity activeOpacity={0.85} onPress={() => toggleExpand(mc.id)}>
                 <ImageBackground
                   source={{ uri: image }}
                   style={styles.mainCategoryCard}
@@ -98,14 +165,13 @@ export default function CategoriesScreen() {
                       <MaterialIcons
                         name={isExpanded ? 'expand-less' : 'expand-more'}
                         size={24}
-                        color="#C49A6C"
+                        color={C.accent}
                       />
                     </View>
                   </LinearGradient>
                 </ImageBackground>
               </TouchableOpacity>
 
-              {/* Expanded Subcategories */}
               {isExpanded && (
                 <View style={styles.subcategoriesContainer}>
                   {subcategories.map((sub: any, index: number) => (
@@ -127,7 +193,7 @@ export default function CategoriesScreen() {
                       </View>
                       <View style={styles.subRight}>
                         <Text style={styles.subCount}>{sub.poi_target}</Text>
-                        <MaterialIcons name="chevron-right" size={20} color="#64748B" />
+                        <MaterialIcons name="chevron-right" size={20} color={C.textMuted} />
                       </View>
                     </TouchableOpacity>
                   ))}
@@ -140,163 +206,3 @@ export default function CategoriesScreen() {
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#2E5E4E',
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingBottom: 16,
-    backgroundColor: '#2E5E4E',
-    borderBottomWidth: 1,
-    borderBottomColor: '#264E41',
-  },
-  backButton: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: '#264E41',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  headerTitleContainer: {
-    flex: 1,
-    alignItems: 'center',
-  },
-  headerTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#FAF8F3',
-  },
-  headerSubtitle: {
-    fontSize: 12,
-    color: '#94A3B8',
-    marginTop: 2,
-  },
-  placeholder: {
-    width: 44,
-  },
-  scrollView: {
-    flex: 1,
-  },
-  content: {
-    paddingHorizontal: 16,
-    paddingTop: 16,
-  },
-  mainCategoryContainer: {
-    marginBottom: 14,
-  },
-  mainCategoryCard: {
-    height: 140,
-    borderRadius: 16,
-    overflow: 'hidden',
-  },
-  mainCategoryImage: {
-    borderRadius: 16,
-  },
-  mainCategoryGradient: {
-    flex: 1,
-    justifyContent: 'space-between',
-    padding: 16,
-  },
-  mainCategoryHeader: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    gap: 12,
-  },
-  iconContainer: {
-    width: 50,
-    height: 50,
-    borderRadius: 14,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  mainCategoryInfo: {
-    flex: 1,
-  },
-  mainCategoryName: {
-    fontSize: 18,
-    fontWeight: '800',
-    color: '#FFFFFF',
-    marginBottom: 2,
-  },
-  mainCategoryDescription: {
-    fontSize: 12,
-    color: '#C8C3B8',
-    lineHeight: 16,
-  },
-  mainCategoryFooter: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  statsRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  statText: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: '#C49A6C',
-  },
-  statDivider: {
-    fontSize: 12,
-    color: '#64748B',
-  },
-  subcategoriesContainer: {
-    backgroundColor: '#264E41',
-    borderBottomLeftRadius: 16,
-    borderBottomRightRadius: 16,
-    marginTop: -8,
-    paddingTop: 8,
-    paddingHorizontal: 12,
-    paddingBottom: 4,
-  },
-  subcategoryRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 12,
-    paddingHorizontal: 8,
-    borderBottomWidth: 1,
-    borderBottomColor: '#2A5544',
-    gap: 12,
-  },
-  subcategoryRowLast: {
-    borderBottomWidth: 0,
-  },
-  subIconContainer: {
-    width: 36,
-    height: 36,
-    borderRadius: 10,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  subInfo: {
-    flex: 1,
-  },
-  subName: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#FAF8F3',
-  },
-  subTheme: {
-    fontSize: 11,
-    color: '#94A3B8',
-    marginTop: 1,
-  },
-  subRight: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-  },
-  subCount: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: '#C49A6C',
-  },
-});

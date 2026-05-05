@@ -4,9 +4,14 @@ import OptimizedImage from './OptimizedImage';
 import { MaterialIcons } from '@expo/vector-icons';
 import { HeritageItem, Category } from '../types';
 import PressableScale from './PressableScale';
-import { useTheme, typography, spacing, borders, getCategoryColor, getCategoryBg } from '../theme';
+import { useTheme } from '../context/ThemeContext';
+import { typography, spacing, shadows } from '../theme';
+import { borderRadius, iconSizes } from '../theme/spacing';
+import { getCategoryColor, getCategoryBg } from '../theme/colors';
 import { useFavorites } from '../context/FavoritesContext';
 import { getCategoryImage } from '../theme/categoryImages';
+import { getCulturalIcon, getIQScoreColor, getIQScoreLabel } from '../theme/culturalIcons';
+import { hapticLight, onFavoriteToggle } from '../utils/microInteractions';
 
 const { width: _width } = Dimensions.get('window');
 
@@ -118,7 +123,7 @@ function HeritageCard({ item, categories, onPress, variant = 'default' }: Herita
 const styles = StyleSheet.create({
   // Default card styles
   card: {
-    borderRadius: borders.radius.xl,
+    borderRadius: borderRadius.xl,
     marginBottom: spacing[3],
     borderWidth: 1,
     overflow: 'hidden',
@@ -145,7 +150,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: spacing[2],
     paddingVertical: 3,
-    borderRadius: borders.radius.md,
+    borderRadius: borderRadius.md,
     gap: 4,
   },
   categoryText: {
@@ -173,7 +178,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: spacing[2],
     paddingVertical: 3,
-    borderRadius: borders.radius.md,
+    borderRadius: borderRadius.md,
     gap: 4,
   },
   regionText: {
@@ -184,7 +189,7 @@ const styles = StyleSheet.create({
   // Compact card styles
   compactCard: {
     width: 140,
-    borderRadius: borders.radius.lg,
+    borderRadius: borderRadius.lg,
     marginRight: spacing[3],
     overflow: 'hidden',
     borderWidth: 1,
@@ -199,7 +204,7 @@ const styles = StyleSheet.create({
   smallBadge: {
     width: 24,
     height: 24,
-    borderRadius: borders.radius.md,
+    borderRadius: borderRadius.md,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 6,

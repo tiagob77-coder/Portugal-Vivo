@@ -6,12 +6,16 @@ MongoDB Atlas (Motor async) · FastAPI
 from __future__ import annotations
 
 import math
+from shared_utils import haversine_km as _haversine
 import re
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, Field
+from auth_api import get_current_user
+from models.api_models import User
+from shared_utils import apply_municipality_filter
 
 economy_router = APIRouter(prefix="/economy", tags=["Economy"])
 
@@ -32,8 +36,8 @@ SEED_MARKETS: List[Dict[str, Any]] = [
         "category": "mercado_municipal",
         "region": "Porto",
         "municipality": "Porto",
-        "lat": 41.1496,
-        "lng": -8.6093,
+        "lat": 41.148333,
+        "lng": -8.606306,
         "description": "Mercado histórico do Porto, renovado em 2022, com produtos frescos e tradicionais.",
         "horario": "Seg-Sáb 08h-20h",
         "produtos": ["peixe fresco", "legumes", "frutas", "flores", "charcutaria"],
@@ -48,8 +52,8 @@ SEED_MARKETS: List[Dict[str, Any]] = [
         "category": "mercado_municipal",
         "region": "Lisboa",
         "municipality": "Lisboa",
-        "lat": 38.7071,
-        "lng": -9.1453,
+        "lat": 38.706442,
+        "lng": -9.142563,
         "description": "Mercado histórico de Lisboa junto ao Tejo, com oferta gastronómica diversificada.",
         "horario": "Diário 10h-00h",
         "produtos": ["gastronomia", "vinhos", "queijos", "petiscos"],
@@ -64,8 +68,8 @@ SEED_MARKETS: List[Dict[str, Any]] = [
         "category": "feira",
         "region": "Minho",
         "municipality": "Barcelos",
-        "lat": 41.5348,
-        "lng": -8.6180,
+        "lat": 41.534800,
+        "lng": -8.618000,
         "description": "Maior feira semanal de Portugal, às quintas-feiras, famosa pelo galo de Barcelos.",
         "horario": "Qui 07h-17h",
         "produtos": ["artesanato", "cerâmica", "gastronomia", "animais", "têxteis"],
@@ -80,8 +84,8 @@ SEED_MARKETS: List[Dict[str, Any]] = [
         "category": "mercado_municipal",
         "region": "Algarve",
         "municipality": "Loulé",
-        "lat": 37.1440,
-        "lng": -8.0235,
+        "lat": 37.143944,
+        "lng": -8.023460,
         "description": "Mercado árabe-mourisca com produtos do Algarve: amêndoa, figos, alfarroba.",
         "horario": "Seg-Sáb 07h-14h",
         "produtos": ["frutos secos", "especiarias", "peixe", "mel", "queijo"],
@@ -96,8 +100,8 @@ SEED_MARKETS: List[Dict[str, Any]] = [
         "category": "mercado_municipal",
         "region": "Alentejo",
         "municipality": "Évora",
-        "lat": 38.5742,
-        "lng": -7.9077,
+        "lat": 38.574200,
+        "lng": -7.907700,
         "description": "Mercado de produtos alentejanos: azeite, enchidos, vinhos e queijos.",
         "horario": "Seg-Sáb 07h-13h",
         "produtos": ["enchidos", "azeite", "vinhos", "queijos", "legumes"],
@@ -115,8 +119,8 @@ SEED_ARTISANS: List[Dict[str, Any]] = [
         "category": "olaria",
         "region": "Minho",
         "municipality": "Barcelos",
-        "lat": 41.5329,
-        "lng": -8.6193,
+        "lat": 41.532900,
+        "lng": -8.619300,
         "description": "Olaria tradicional com mais de 3 gerações, especialistas no Galo de Barcelos.",
         "oficio": "Cerâmica e olaria",
         "certificacoes": ["Artesão Certificado CRAT"],
@@ -130,8 +134,8 @@ SEED_ARTISANS: List[Dict[str, Any]] = [
         "category": "rendas",
         "region": "Centro",
         "municipality": "Peniche",
-        "lat": 39.3563,
-        "lng": -9.3827,
+        "lat": 39.356300,
+        "lng": -9.382700,
         "description": "Artesã especializada em rendas de bilros de Peniche, técnica UNESCO.",
         "oficio": "Rendas e bordados",
         "certificacoes": ["Património Cultural Imaterial"],
@@ -145,8 +149,8 @@ SEED_ARTISANS: List[Dict[str, Any]] = [
         "category": "ourivesaria",
         "region": "Norte",
         "municipality": "Gondomar",
-        "lat": 41.1392,
-        "lng": -8.5253,
+        "lat": 41.139200,
+        "lng": -8.525300,
         "description": "Mestre em filigrana portuguesa, ouro e prata com padrões do séc. XVIII.",
         "oficio": "Ourivesaria e filigrana",
         "certificacoes": ["Artesão Mestre", "DOP Filigrana"],
@@ -160,8 +164,8 @@ SEED_ARTISANS: List[Dict[str, Any]] = [
         "category": "tapetes",
         "region": "Alentejo",
         "municipality": "Arraiolos",
-        "lat": 38.7252,
-        "lng": -7.9852,
+        "lat": 38.725200,
+        "lng": -7.985200,
         "description": "Tapetes de Arraiolos feitos à mão com lã merino e padrões tradicionais.",
         "oficio": "Tapeçaria",
         "certificacoes": ["IGP Tapetes de Arraiolos"],
@@ -261,8 +265,8 @@ SEED_FISHING: List[Dict[str, Any]] = [
         "category": "porto_pesca",
         "region": "Setúbal",
         "municipality": "Sesimbra",
-        "lat": 38.4437,
-        "lng": -9.1026,
+        "lat": 38.443700,
+        "lng": -9.102600,
         "description": "Porto de pesca artesanal com lota diária e restaurantes de peixe fresco.",
         "especies": ["choco", "garoupa", "linguado", "robalo"],
         "tecnicas": ["linha", "palangre", "nassas"],
@@ -276,8 +280,8 @@ SEED_FISHING: List[Dict[str, Any]] = [
         "category": "comunidade_pesca",
         "region": "Centro",
         "municipality": "Nazaré",
-        "lat": 39.6016,
-        "lng": -9.0713,
+        "lat": 39.601600,
+        "lng": -9.071300,
         "description": "Pesca artesanal com arte xávega e tradição centenária das mulheres na praia.",
         "especies": ["sardinha", "carapau", "safio"],
         "tecnicas": ["arte xávega", "redes de tresmalho"],
@@ -291,8 +295,8 @@ SEED_FISHING: List[Dict[str, Any]] = [
         "category": "pesca_atum",
         "region": "Algarve",
         "municipality": "Silves",
-        "lat": 37.1018,
-        "lng": -8.3285,
+        "lat": 37.101800,
+        "lng": -8.328500,
         "description": "Antiga armação de pesca de atum com técnica árabe milenar.",
         "especies": ["atum rabilho", "atum voador"],
         "tecnicas": ["armação", "palangre de deriva"],
@@ -347,27 +351,24 @@ SEED_ROUTES: List[Dict[str, Any]] = [
 
 # ─── Helpers ─────────────────────────────────────────────────────────────────
 
-def _haversine(lat1: float, lng1: float, lat2: float, lng2: float) -> float:
-    R = 6371.0
-    phi1, phi2 = math.radians(lat1), math.radians(lat2)
-    dphi = math.radians(lat2 - lat1)
-    dlambda = math.radians(lng2 - lng1)
-    a = math.sin(dphi / 2) ** 2 + math.cos(phi1) * math.cos(phi2) * math.sin(dlambda / 2) ** 2
-    return R * 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
-
-
 def _serialize(doc: Dict) -> Dict:
     doc = dict(doc)
     doc["id"] = str(doc.pop("_id", doc.get("id", "")))
     return doc
 
 
-async def _get_collection_or_seed(collection: str, seed: List[Dict]) -> List[Dict]:
+async def _get_collection_or_seed(
+    collection: str, seed: List[Dict], query: Optional[Dict] = None
+) -> List[Dict]:
     """Return docs from MongoDB collection; fall back to seed data if empty."""
+    q = query or {}
     if _db is None:
-        return seed
+        docs = [dict(d) for d in seed]
+        if q.get("municipality_id"):
+            docs = [d for d in docs if d.get("municipality_id") == q["municipality_id"]]
+        return docs
     try:
-        docs = await _db[collection].find({}).to_list(500)
+        docs = await _db[collection].find(q).to_list(500)
         if docs:
             return [_serialize(d) for d in docs]
     except Exception:
@@ -384,9 +385,12 @@ async def get_markets(
     search: Optional[str] = Query(None),
     limit: int = Query(50, le=200),
     offset: int = Query(0, ge=0),
+    current_user: Optional[User] = Depends(get_current_user),
 ):
     """List local markets and fairs with optional filters."""
-    items = await _get_collection_or_seed("local_markets", SEED_MARKETS)
+    query: Dict[str, Any] = {}
+    apply_municipality_filter(query, current_user)
+    items = await _get_collection_or_seed("local_markets", SEED_MARKETS, query)
 
     if region:
         items = [i for i in items if region.lower() in i.get("region", "").lower()]
@@ -418,9 +422,12 @@ async def get_artisans(
     search: Optional[str] = Query(None),
     limit: int = Query(50, le=200),
     offset: int = Query(0, ge=0),
+    current_user: Optional[User] = Depends(get_current_user),
 ):
     """List artisans and traditional crafts."""
-    items = await _get_collection_or_seed("artisans", SEED_ARTISANS)
+    query: Dict[str, Any] = {}
+    apply_municipality_filter(query, current_user)
+    items = await _get_collection_or_seed("artisans", SEED_ARTISANS, query)
 
     if region:
         items = [i for i in items if region.lower() in i.get("region", "").lower()]
@@ -443,9 +450,12 @@ async def get_products(
     search: Optional[str] = Query(None),
     limit: int = Query(50, le=200),
     offset: int = Query(0, ge=0),
+    current_user: Optional[User] = Depends(get_current_user),
 ):
     """List DOP/IGP/DOC certified regional products."""
-    items = await _get_collection_or_seed("local_products", SEED_PRODUCTS)
+    query: Dict[str, Any] = {}
+    apply_municipality_filter(query, current_user)
+    items = await _get_collection_or_seed("local_products", SEED_PRODUCTS, query)
 
     if region:
         items = [i for i in items if region.lower() in i.get("region", "").lower()]
@@ -467,9 +477,12 @@ async def get_fishing(
     region: Optional[str] = Query(None),
     category: Optional[str] = Query(None),
     limit: int = Query(50, le=200),
+    current_user: Optional[User] = Depends(get_current_user),
 ):
     """List artisanal fishing communities and ports."""
-    items = await _get_collection_or_seed("fishing_economy", SEED_FISHING)
+    query: Dict[str, Any] = {}
+    apply_municipality_filter(query, current_user)
+    items = await _get_collection_or_seed("fishing_economy", SEED_FISHING, query)
 
     if region:
         items = [i for i in items if region.lower() in i.get("region", "").lower()]
@@ -485,9 +498,12 @@ async def get_routes(
     region: Optional[str] = Query(None),
     max_days: Optional[int] = Query(None),
     limit: int = Query(20, le=100),
+    current_user: Optional[User] = Depends(get_current_user),
 ):
     """List thematic economic routes (gastronomy, crafts, fish, wine)."""
-    items = await _get_collection_or_seed("economic_zones", SEED_ROUTES)
+    query: Dict[str, Any] = {}
+    apply_municipality_filter(query, current_user)
+    items = await _get_collection_or_seed("economic_zones", SEED_ROUTES, query)
 
     if category:
         items = [i for i in items if i.get("category") == category]

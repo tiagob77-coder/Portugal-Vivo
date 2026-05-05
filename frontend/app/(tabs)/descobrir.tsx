@@ -24,6 +24,7 @@ import HojeEmPortugalCard, { HojeData } from '../../src/components/HojeEmPortuga
 import ErrorBoundary from '../../src/components/ErrorBoundary';
 import { API_BASE } from '../../src/config/api';
 import { typography, shadows, regionImages } from '../../src/theme';
+import { palette } from '../../src/theme/colors';
 import { useTheme } from '../../src/context/ThemeContext';
 // OnboardingModal removed — handled by /onboarding screen
 
@@ -57,13 +58,13 @@ const QUICK_ACTIONS = [
   { id: 'album', title: 'Álbum', icon: 'photo-album', route: '/album' },
   { id: 'ranking', title: 'Ranking', icon: 'leaderboard', route: '/leaderboard' },
   { id: 'transportes', title: 'Transportes', icon: 'train', route: '/(tabs)/transportes' },
-  { id: 'beachcams', title: 'Beachcams', icon: 'videocam', route: '/beachcams' },
+  { id: 'beachcams', title: 'Beachcams', icon: 'videocam', route: '/(tabs)/beachcams' },
   { id: 'coleccoes', title: 'Enciclopédia', icon: 'collections-bookmark', route: '/(tabs)/coleccoes' },
   { id: 'guia', title: 'Guia Viajante', icon: 'menu-book', route: null },
 ];
 
 const PROFILE_LABELS: Record<string, { label: string; icon: string; color: string }> = {
-  aventureiro: { label: 'Aventureiro', icon: 'terrain', color: '#2E5E4E' },
+  aventureiro: { label: 'Aventureiro', icon: 'terrain', color: palette.forest[500] },
   gastronomo: { label: 'Gastrónomo', icon: 'restaurant', color: '#C65D3B' },
   cultural: { label: 'Cultural', icon: 'account-balance', color: '#8B6914' },
   familia: { label: 'Família', icon: 'family-restroom', color: '#5B8C5A' },

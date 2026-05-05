@@ -4,13 +4,15 @@
 import React, { useState } from 'react';
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity,
-  Dimensions,
+  Dimensions, ActivityIndicator,
 } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useQuery } from '@tanstack/react-query';
 import EconomyMarketCard from '../../src/components/EconomyMarketCard';
 import { getModuleTheme } from '../../src/theme/colors';
+import { API_BASE } from '../../src/config/api';
 
 const { width: _SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -132,6 +134,41 @@ export default function EconomiaScreen() {
 
   const currentMonth = new Date().getMonth() + 1;
 
+  const { data: marketsData, isLoading: loadingMarkets } = useQuery({
+    queryKey: ['economy-markets'],
+    queryFn: async () => {
+      const res = await fetch(`${API_BASE}/economy/markets?limit=100`);
+      if (!res.ok) throw new Error('fetch failed');
+      return res.json();
+    },
+    staleTime: 5 * 60 * 1000,
+  });
+
+  const { data: artisansData, isLoading: loadingArtisans } = useQuery({
+    queryKey: ['economy-artisans'],
+    queryFn: async () => {
+      const res = await fetch(`${API_BASE}/economy/artisans?limit=100`);
+      if (!res.ok) throw new Error('fetch failed');
+      return res.json();
+    },
+    staleTime: 5 * 60 * 1000,
+  });
+
+  const { data: productsData, isLoading: loadingProducts } = useQuery({
+    queryKey: ['economy-products'],
+    queryFn: async () => {
+      const res = await fetch(`${API_BASE}/economy/products?limit=100`);
+      if (!res.ok) throw new Error('fetch failed');
+      return res.json();
+    },
+    staleTime: 5 * 60 * 1000,
+  });
+
+  const mercados = marketsData?.results ?? ECONOMY_DATA.mercados;
+  const artesaos = artisansData?.results ?? ECONOMY_DATA.artesaos;
+  const produtos = productsData?.results ?? ECONOMY_DATA.produtos;
+  const isLoading = loadingMarkets || loadingArtisans || loadingProducts;
+
   // Initialise season filter to current month when switching to Produtos tab
   const handleTabPress = (key: TabKey) => {
     setActiveTab(key);
@@ -147,8 +184,8 @@ export default function EconomiaScreen() {
 
   // Filtered produtos based on season chip selection
   const filteredProdutos = seasonFilter
-    ? ECONOMY_DATA.produtos.filter((p) => p.season.includes(seasonFilter))
-    : ECONOMY_DATA.produtos;
+    ? produtos.filter((p: any) => p.season?.includes(seasonFilter))
+    : produtos;
 
   const activeTabConf = TABS.find((t) => t.key === activeTab)!;
 
@@ -282,9 +319,13 @@ export default function EconomiaScreen() {
 
         {/* ── Content List ───────────────────────────────────────────────── */}
         <View style={styles.listContainer}>
+          {isLoading && (
+            <ActivityIndicator size="large" color={C.market} style={{ marginVertical: 32 }} />
+          )}
+
           {/* Mercados */}
-          {activeTab === 'mercados' &&
-            ECONOMY_DATA.mercados.map((item) => (
+          {!isLoading && activeTab === 'mercados' &&
+            mercados.map((item: any) => (
               <EconomyMarketCard
                 key={item.id}
                 item={item}
@@ -295,8 +336,8 @@ export default function EconomiaScreen() {
             ))}
 
           {/* Artesãos */}
-          {activeTab === 'artesaos' &&
-            ECONOMY_DATA.artesaos.map((item) => (
+          {!isLoading && activeTab === 'artesaos' &&
+            artesaos.map((item: any) => (
               <EconomyMarketCard
                 key={item.id}
                 item={item}
@@ -307,8 +348,8 @@ export default function EconomiaScreen() {
             ))}
 
           {/* Produtos */}
-          {activeTab === 'produtos' &&
-            filteredProdutos.map((item) => (
+          {!isLoading && activeTab === 'produtos' &&
+            filteredProdutos.map((item: any) => (
               <EconomyMarketCard
                 key={item.id}
                 item={item}

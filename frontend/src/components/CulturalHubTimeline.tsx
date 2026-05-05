@@ -5,6 +5,8 @@
 import React from 'react';
 import { View, Text, StyleSheet, ScrollView } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
+import { palette } from '../theme';
+import { borderRadius, spacing } from '../theme/spacing';
 
 export interface TimelineMonth {
   month: number; // 1-12
@@ -74,15 +76,15 @@ export default function CulturalHubTimeline({ months, accentColor = '#A855F7' }:
 }
 
 const styles = StyleSheet.create({
-  wrapper: { marginHorizontal: 16, marginBottom: 16, backgroundColor: '#1A0E30', borderRadius: 14, padding: 14 },
-  titleRow: { flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 12 },
+  wrapper: { marginHorizontal: spacing.base, marginBottom: spacing.base, backgroundColor: palette.gray[900], borderRadius: borderRadius.lg, padding: spacing.md },
+  titleRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs, marginBottom: spacing.md },
   title: { fontSize: 13, fontWeight: '700', letterSpacing: 0.4 },
-  scroll: { gap: 6, paddingBottom: 2 },
-  monthCol: { alignItems: 'center', width: 38, paddingVertical: 4, paddingHorizontal: 2 },
+  scroll: { gap: spacing.xs, paddingBottom: 2 },
+  monthCol: { alignItems: 'center', width: 38, paddingVertical: spacing.xs, paddingHorizontal: 2 },
   highlight: { fontSize: 7, fontWeight: '700', letterSpacing: 0.2, textAlign: 'center', marginBottom: 2 },
   highlightSpacer: { fontSize: 7, marginBottom: 2 },
   barTrack: { height: 44, justifyContent: 'flex-end', alignItems: 'center' },
   bar: { width: 14, borderRadius: 3 },
-  monthLabel: { fontSize: 10, color: '#9CA3AF', marginTop: 3, fontWeight: '500' },
-  count: { fontSize: 9, color: '#6B7280', marginTop: 1 },
+  monthLabel: { fontSize: 10, color: palette.gray[400], marginTop: 3, fontWeight: '500' },
+  count: { fontSize: 9, color: palette.gray[500], marginTop: 1 },
 });

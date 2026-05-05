@@ -5,6 +5,8 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useQuery } from '@tanstack/react-query';
 import { getCalendarEvents, getUpcomingEvents, CalendarEvent } from '../src/services/api';
+import { useTheme } from '../src/context/ThemeContext';
+import { palette, withOpacity } from '../src/theme/colors';
 
 const MONTHS = [
   { id: 1, name: 'Janeiro', short: 'Jan' },
@@ -22,7 +24,7 @@ const MONTHS = [
 ];
 
 const CATEGORY_COLORS: Record<string, string> = {
-  festas: '#C49A6C',
+  festas: palette.terracotta[500],
   religioso: '#7C3AED',
 };
 
@@ -41,11 +43,222 @@ const REGION_NAMES: Record<string, string> = {
   madeira: 'Madeira',
 };
 
+function makeStyles(C: Record<string, string>) {
+  return StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: C.bg,
+    },
+    header: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      paddingHorizontal: 16,
+      paddingVertical: 12,
+    },
+    backButton: {
+      width: 44,
+      height: 44,
+      borderRadius: 22,
+      backgroundColor: C.card,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    headerTitle: {
+      fontSize: 20,
+      fontWeight: '700',
+      color: C.text,
+    },
+    monthScroll: {
+      maxHeight: 50,
+      marginBottom: 8,
+    },
+    monthScrollContent: {
+      paddingHorizontal: 16,
+    },
+    monthChip: {
+      paddingHorizontal: 16,
+      paddingVertical: 10,
+      borderRadius: 20,
+      backgroundColor: C.card,
+      marginRight: 8,
+      borderWidth: 1,
+      borderColor: C.border,
+    },
+    monthChipActive: {
+      backgroundColor: withOpacity(C.accent, 0.12),
+      borderColor: C.accent,
+    },
+    monthChipCurrent: {
+      borderColor: C.success,
+    },
+    monthChipText: {
+      fontSize: 13,
+      fontWeight: '600',
+      color: C.textSub,
+    },
+    monthChipTextActive: {
+      color: C.accent,
+    },
+    upcomingSection: {
+      paddingHorizontal: 16,
+      marginBottom: 16,
+    },
+    sectionHeader: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 8,
+      marginBottom: 12,
+    },
+    sectionTitle: {
+      fontSize: 16,
+      fontWeight: '700',
+      color: C.text,
+    },
+    upcomingScroll: {
+      paddingRight: 16,
+    },
+    upcomingCard: {
+      width: 160,
+      backgroundColor: C.card,
+      borderRadius: 12,
+      padding: 12,
+      marginRight: 12,
+      borderWidth: 1,
+    },
+    upcomingDate: {
+      fontSize: 12,
+      fontWeight: '700',
+      color: C.accent,
+      marginBottom: 4,
+    },
+    upcomingName: {
+      fontSize: 14,
+      fontWeight: '600',
+      color: C.text,
+      marginBottom: 4,
+      lineHeight: 18,
+    },
+    upcomingRegion: {
+      fontSize: 11,
+      color: C.textMuted,
+    },
+    listContent: {
+      paddingHorizontal: 16,
+      paddingBottom: 20,
+    },
+    listHeader: {
+      fontSize: 18,
+      fontWeight: '700',
+      color: C.text,
+      marginBottom: 12,
+    },
+    eventCard: {
+      flexDirection: 'row',
+      backgroundColor: C.card,
+      borderRadius: 16,
+      padding: 16,
+      marginBottom: 12,
+      borderWidth: 1,
+      borderColor: C.border,
+    },
+    eventIconContainer: {
+      width: 48,
+      height: 48,
+      borderRadius: 12,
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginRight: 12,
+    },
+    eventContent: {
+      flex: 1,
+    },
+    eventHeader: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'flex-start',
+      marginBottom: 6,
+    },
+    eventName: {
+      fontSize: 16,
+      fontWeight: '700',
+      color: C.text,
+      flex: 1,
+      marginRight: 8,
+    },
+    categoryBadge: {
+      paddingHorizontal: 8,
+      paddingVertical: 3,
+      borderRadius: 8,
+    },
+    categoryBadgeText: {
+      fontSize: 10,
+      fontWeight: '600',
+    },
+    eventDescription: {
+      fontSize: 13,
+      color: C.textSub,
+      lineHeight: 18,
+      marginBottom: 8,
+    },
+    eventFooter: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 16,
+    },
+    eventDate: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 4,
+    },
+    eventDateText: {
+      fontSize: 12,
+      fontWeight: '600',
+      color: C.accent,
+    },
+    eventRegion: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 4,
+    },
+    eventRegionText: {
+      fontSize: 12,
+      color: C.textSub,
+    },
+    loader: {
+      marginTop: 40,
+    },
+    emptyState: {
+      alignItems: 'center',
+      paddingTop: 60,
+    },
+    emptyText: {
+      fontSize: 16,
+      color: C.textMuted,
+      marginTop: 12,
+    },
+  });
+}
+
 export default function CalendarScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const { colors, isDark } = useTheme();
   const currentMonth = new Date().getMonth() + 1;
   const [selectedMonth, setSelectedMonth] = useState<number | null>(null);
+
+  const C = {
+    bg:      palette.forest[500],
+    card:    palette.forest[600],
+    accent:  palette.terracotta[500],
+    text:    palette.gray[50],
+    textSub: palette.gray[300],
+    textMuted: palette.gray[500],
+    border:  palette.gray[800],
+    success: colors.success,
+  };
+
+  const styles = makeStyles(C);
 
   const { data: allEvents = [], isLoading: eventsLoading } = useQuery({
     queryKey: ['calendarEvents'],
@@ -57,8 +270,7 @@ export default function CalendarScreen() {
     queryFn: () => getUpcomingEvents(5),
   });
 
-  // Filter events by selected month
-  const filteredEvents = selectedMonth 
+  const filteredEvents = selectedMonth
     ? allEvents.filter(e => {
         const monthStr = `${selectedMonth.toString().padStart(2, '0')}`;
         return e.date_start.startsWith(monthStr);
@@ -70,7 +282,7 @@ export default function CalendarScreen() {
     const [endMonth, endDay] = end.split('-');
     const startMonthName = MONTHS[parseInt(startMonth) - 1]?.short;
     const endMonthName = MONTHS[parseInt(endMonth) - 1]?.short;
-    
+
     if (startMonth === endMonth && startDay === endDay) {
       return `${startDay} ${startMonthName}`;
     } else if (startMonth === endMonth) {
@@ -81,39 +293,39 @@ export default function CalendarScreen() {
   };
 
   const renderEventCard = ({ item }: { item: CalendarEvent }) => {
-    const color = CATEGORY_COLORS[item.category] || '#C49A6C';
+    const color = CATEGORY_COLORS[item.category] || C.accent;
     const icon = CATEGORY_ICONS[item.category] || 'event';
-    
+
     return (
       <View style={styles.eventCard}>
-        <View style={[styles.eventIconContainer, { backgroundColor: color + '20' }]}>
+        <View style={[styles.eventIconContainer, { backgroundColor: withOpacity(color, 0.12) }]}>
           <MaterialIcons name={icon as any} size={24} color={color} />
         </View>
-        
+
         <View style={styles.eventContent}>
           <View style={styles.eventHeader}>
             <Text style={styles.eventName}>{item.name}</Text>
-            <View style={[styles.categoryBadge, { backgroundColor: color + '20' }]}>
+            <View style={[styles.categoryBadge, { backgroundColor: withOpacity(color, 0.12) }]}>
               <Text style={[styles.categoryBadgeText, { color }]}>
                 {item.category === 'festas' ? 'Festa' : 'Religioso'}
               </Text>
             </View>
           </View>
-          
+
           <Text style={styles.eventDescription} numberOfLines={2}>
             {item.description}
           </Text>
-          
+
           <View style={styles.eventFooter}>
             <View style={styles.eventDate}>
-              <MaterialIcons name="event" size={14} color="#C49A6C" />
+              <MaterialIcons name="event" size={14} color={C.accent} />
               <Text style={styles.eventDateText}>
                 {formatDateRange(item.date_start, item.date_end)}
               </Text>
             </View>
-            
+
             <View style={styles.eventRegion}>
-              <MaterialIcons name="place" size={14} color="#94A3B8" />
+              <MaterialIcons name="place" size={14} color={C.textSub} />
               <Text style={styles.eventRegionText}>
                 {REGION_NAMES[item.region] || item.region}
               </Text>
@@ -127,19 +339,17 @@ export default function CalendarScreen() {
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
       <Stack.Screen options={{ headerShown: false }} />
-      
-      {/* Header */}
+
       <View style={styles.header}>
         <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
-          <MaterialIcons name="arrow-back" size={24} color="#FAF8F3" />
+          <MaterialIcons name="arrow-back" size={24} color={C.text} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Calendário Cultural</Text>
         <View style={{ width: 44 }} />
       </View>
 
-      {/* Month Selector */}
-      <ScrollView 
-        horizontal 
+      <ScrollView
+        horizontal
         showsHorizontalScrollIndicator={false}
         style={styles.monthScroll}
         contentContainerStyle={styles.monthScrollContent}
@@ -156,14 +366,14 @@ export default function CalendarScreen() {
           <TouchableOpacity
             key={month.id}
             style={[
-              styles.monthChip, 
+              styles.monthChip,
               selectedMonth === month.id && styles.monthChipActive,
               month.id === currentMonth && !selectedMonth && styles.monthChipCurrent,
             ]}
             onPress={() => setSelectedMonth(month.id)}
           >
             <Text style={[
-              styles.monthChipText, 
+              styles.monthChipText,
               selectedMonth === month.id && styles.monthChipTextActive,
             ]}>
               {month.short}
@@ -172,20 +382,19 @@ export default function CalendarScreen() {
         ))}
       </ScrollView>
 
-      {/* Upcoming Events Section */}
       {!selectedMonth && upcomingEvents.length > 0 && (
         <View style={styles.upcomingSection}>
           <View style={styles.sectionHeader}>
-            <MaterialIcons name="schedule" size={20} color="#22C55E" />
+            <MaterialIcons name="schedule" size={20} color={colors.success} />
             <Text style={styles.sectionTitle}>Próximos Eventos</Text>
           </View>
-          <ScrollView 
-            horizontal 
+          <ScrollView
+            horizontal
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={styles.upcomingScroll}
           >
             {upcomingEvents.map((event) => {
-              const color = CATEGORY_COLORS[event.category] || '#C49A6C';
+              const color = CATEGORY_COLORS[event.category] || C.accent;
               return (
                 <View key={event.id} style={[styles.upcomingCard, { borderColor: color }]}>
                   <Text style={styles.upcomingDate}>
@@ -202,7 +411,6 @@ export default function CalendarScreen() {
         </View>
       )}
 
-      {/* Events List */}
       <FlatList
         data={filteredEvents}
         keyExtractor={(item) => item.id}
@@ -220,10 +428,10 @@ export default function CalendarScreen() {
         }
         ListEmptyComponent={
           eventsLoading ? (
-            <ActivityIndicator size="large" color="#C49A6C" style={styles.loader} />
+            <ActivityIndicator size="large" color={C.accent} style={styles.loader} />
           ) : (
             <View style={styles.emptyState}>
-              <MaterialIcons name="event-busy" size={48} color="#64748B" />
+              <MaterialIcons name="event-busy" size={48} color={C.textMuted} />
               <Text style={styles.emptyText}>Sem eventos neste mês</Text>
             </View>
           )
@@ -232,198 +440,3 @@ export default function CalendarScreen() {
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#2E5E4E',
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-  },
-  backButton: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: '#264E41',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  headerTitle: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: '#FAF8F3',
-  },
-  monthScroll: {
-    maxHeight: 50,
-    marginBottom: 8,
-  },
-  monthScrollContent: {
-    paddingHorizontal: 16,
-  },
-  monthChip: {
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    borderRadius: 20,
-    backgroundColor: '#264E41',
-    marginRight: 8,
-    borderWidth: 1,
-    borderColor: '#2A2F2A',
-  },
-  monthChipActive: {
-    backgroundColor: '#C49A6C20',
-    borderColor: '#C49A6C',
-  },
-  monthChipCurrent: {
-    borderColor: '#22C55E',
-  },
-  monthChipText: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: '#94A3B8',
-  },
-  monthChipTextActive: {
-    color: '#C49A6C',
-  },
-  upcomingSection: {
-    paddingHorizontal: 16,
-    marginBottom: 16,
-  },
-  sectionHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    marginBottom: 12,
-  },
-  sectionTitle: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#FAF8F3',
-  },
-  upcomingScroll: {
-    paddingRight: 16,
-  },
-  upcomingCard: {
-    width: 160,
-    backgroundColor: '#264E41',
-    borderRadius: 12,
-    padding: 12,
-    marginRight: 12,
-    borderWidth: 1,
-  },
-  upcomingDate: {
-    fontSize: 12,
-    fontWeight: '700',
-    color: '#C49A6C',
-    marginBottom: 4,
-  },
-  upcomingName: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#FAF8F3',
-    marginBottom: 4,
-    lineHeight: 18,
-  },
-  upcomingRegion: {
-    fontSize: 11,
-    color: '#64748B',
-  },
-  listContent: {
-    paddingHorizontal: 16,
-    paddingBottom: 20,
-  },
-  listHeader: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#FAF8F3',
-    marginBottom: 12,
-  },
-  eventCard: {
-    flexDirection: 'row',
-    backgroundColor: '#264E41',
-    borderRadius: 16,
-    padding: 16,
-    marginBottom: 12,
-    borderWidth: 1,
-    borderColor: '#2A2F2A',
-  },
-  eventIconContainer: {
-    width: 48,
-    height: 48,
-    borderRadius: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 12,
-  },
-  eventContent: {
-    flex: 1,
-  },
-  eventHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: 6,
-  },
-  eventName: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#FAF8F3',
-    flex: 1,
-    marginRight: 8,
-  },
-  categoryBadge: {
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 8,
-  },
-  categoryBadgeText: {
-    fontSize: 10,
-    fontWeight: '600',
-  },
-  eventDescription: {
-    fontSize: 13,
-    color: '#94A3B8',
-    lineHeight: 18,
-    marginBottom: 8,
-  },
-  eventFooter: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 16,
-  },
-  eventDate: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-  },
-  eventDateText: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: '#C49A6C',
-  },
-  eventRegion: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-  },
-  eventRegionText: {
-    fontSize: 12,
-    color: '#94A3B8',
-  },
-  loader: {
-    marginTop: 40,
-  },
-  emptyState: {
-    alignItems: 'center',
-    paddingTop: 60,
-  },
-  emptyText: {
-    fontSize: 16,
-    color: '#64748B',
-    marginTop: 12,
-  },
-});

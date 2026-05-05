@@ -129,3 +129,53 @@ async def client():
     transport = httpx.ASGITransport(app=app)
     async with httpx.AsyncClient(transport=transport, base_url="http://testserver") as c:
         yield c
+
+
+# ---------------------------------------------------------------------------
+# MongoDB mock fixture (no external MongoDB required)
+# ---------------------------------------------------------------------------
+try:
+    import mongomock_motor
+    _MONGOMOCK_AVAILABLE = True
+except ImportError:
+    _MONGOMOCK_AVAILABLE = False
+
+
+@pytest_asyncio.fixture
+async def mock_db():
+    """In-memory MongoDB using mongomock-motor. No running MongoDB required."""
+    if not _MONGOMOCK_AVAILABLE:
+        pytest.skip("mongomock-motor not installed — run: pip install mongomock-motor")
+
+    client = mongomock_motor.AsyncMongoMockClient()
+    db = client["portugal_vivo_test"]
+
+    await db["heritage"].insert_many([
+        {
+            "name": "Torre de Belém",
+            "category": "monumento",
+            "municipality_id": "lisboa-01",
+            "location": {"type": "Point", "coordinates": [-9.2159, 38.6916]},
+            "region": "Lisboa",
+            "is_active": True,
+        },
+        {
+            "name": "Castelo de Guimarães",
+            "category": "monumento",
+            "municipality_id": "guimaraes-03",
+            "location": {"type": "Point", "coordinates": [-8.2952, 41.4425]},
+            "region": "Minho",
+            "is_active": True,
+        },
+        {
+            "name": "Praia de Albufeira",
+            "category": "praia",
+            "municipality_id": "albufeira-08",
+            "location": {"type": "Point", "coordinates": [-8.2473, 37.0852]},
+            "region": "Algarve",
+            "is_active": True,
+        },
+    ])
+    await db["heritage"].create_index([("location", "2dsphere")])
+    await db["heritage"].create_index([("municipality_id", 1)])
+    return db

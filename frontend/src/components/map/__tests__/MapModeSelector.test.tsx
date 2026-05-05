@@ -91,15 +91,15 @@ describe('MapModeSelector', () => {
     ).not.toThrow();
   });
 
-  it('renders 11 mode buttons total', () => {
+  it('renders 12 mode buttons total', () => {
     const { UNSAFE_getAllByType } = render(
       <MapModeSelector activeMode="markers" onModeChange={onModeChange} />
     );
     const { TouchableOpacity } = require('react-native'); // eslint-disable-line @typescript-eslint/no-require-imports
     const buttons = UNSAFE_getAllByType(TouchableOpacity);
-    // 11 modes: markers, explorador, heatmap, trails, epochs, timeline,
-    //           proximity, noturno, satellite, tecnico, premium
-    expect(buttons.length).toBe(11);
+    // 12 modes: markers, explorador, heatmap, trails, epochs, timeline,
+    //           proximity, noturno, satellite, tecnico, premium, rotas
+    expect(buttons.length).toBe(12);
   });
 
   it('calls onModeChange with "tecnico" when Vista técnica is pressed', () => {

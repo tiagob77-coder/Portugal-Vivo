@@ -14,6 +14,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useQuery } from '@tanstack/react-query';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useTheme } from '../src/context/ThemeContext';
+import { palette, withOpacity } from '../src/theme/colors';
 import { shadows } from '../src/theme';
 import { getAnalyticsDashboard, getAnalyticsTrends } from '../src/services/api';
 
@@ -168,7 +169,7 @@ export default function AnalyticsScreen() {
       >
         {/* Header */}
         <LinearGradient
-          colors={['#1E1F4B', '#2D2F6B']}
+          colors={[palette.ocean[800], palette.ocean[600]]}
           style={[styles.header, { paddingTop: insets.top + 12 }]}
         >
           <View style={styles.headerRow}>
@@ -334,7 +335,7 @@ export default function AnalyticsScreen() {
                   <View key={poi.poi_id || i} style={styles.poiRow}>
                     <View style={[
                       styles.poiRankBadge,
-                      { backgroundColor: i === 0 ? '#C49A6C' : colors.accent + '20' },
+                      { backgroundColor: i === 0 ? palette.terracotta[500] : colors.accent + '20' },
                     ]}>
                       <Text style={[
                         styles.poiRankText,
