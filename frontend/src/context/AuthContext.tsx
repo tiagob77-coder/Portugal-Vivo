@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import * as WebBrowser from 'expo-web-browser';
 import * as Linking from 'expo-linking';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { secureStorage } from '../utils/secureStorage';
 import { Platform } from 'react-native';
 import { exchangeSession, getCurrentUser, logout as apiLogout, getSubscriptionStatus } from '../services/api';
 import { User } from '../types';
@@ -53,12 +53,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const userData = await exchangeSession(sessionId) as AuthSessionData;
         setUser(userData);
 
-        // Store token
+        // Store token in encrypted storage (SecureStore on native, AsyncStorage on web)
         const token = userData.session_token || sessionId;
         setSessionToken(token);
-        await AsyncStorage.setItem('session_token', token);
+        await secureStorage.setItem('session_token', token);
         const uid = userData.id || userData.user_id;
-        if (uid) await AsyncStorage.setItem('user_id', uid);
+        if (uid) await secureStorage.setItem('user_id', uid);
         eventBus.emit('user.login', { userId: uid });
       }
     } catch (error) {
@@ -72,17 +72,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const checkExistingSession = async () => {
       try {
-        const storedToken = await AsyncStorage.getItem('session_token');
+        const storedToken = await secureStorage.getItem('session_token');
         if (storedToken) {
           setSessionToken(storedToken);
           const userData = await getCurrentUser(storedToken) as AuthSessionData;
           setUser(userData);
           const uid = userData.id || userData.user_id;
-          if (uid) await AsyncStorage.setItem('user_id', uid);
+          if (uid) await secureStorage.setItem('user_id', uid);
         }
       } catch (_error) {
         // Session expired or invalid - clear stored token
-        await AsyncStorage.removeItem('session_token');
+        await secureStorage.removeItem('session_token');
       } finally {
         setIsLoading(false);
       }
@@ -159,8 +159,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
     setUser(null);
     setSessionToken(null);
-    await AsyncStorage.removeItem('session_token');
-    await AsyncStorage.removeItem('user_id');
+    await secureStorage.removeItem('session_token');
+    await secureStorage.removeItem('user_id');
     eventBus.emit('user.logout');
   };
 

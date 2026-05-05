@@ -18,7 +18,7 @@ import os
 import logging
 from datetime import datetime, timezone
 from fastapi import APIRouter, HTTPException, Request, Header, Depends
-from auth_api import require_auth
+from auth_api import require_auth, require_admin
 from pydantic import BaseModel
 from typing import Optional
 from shared_utils import DatabaseHolder
@@ -27,6 +27,8 @@ from models.api_models import User
 logger = logging.getLogger(__name__)
 
 # Stripe setup - graceful if key not configured
+_IS_PRODUCTION = os.getenv("ENVIRONMENT", "development") == "production"
+
 try:
     import stripe
     stripe.api_key = os.getenv("STRIPE_SECRET_KEY", "")
@@ -34,13 +36,26 @@ try:
     STRIPE_ENABLED = bool(stripe.api_key)
     if STRIPE_ENABLED:
         logger.info("Stripe integration enabled")
+        if not STRIPE_WEBHOOK_SECRET:
+            logger.warning("STRIPE_WEBHOOK_SECRET not set — webhook signature verification disabled")
+        if not os.getenv("STRIPE_PRICE_PREMIUM") or not os.getenv("STRIPE_PRICE_ANNUAL"):
+            _msg = "STRIPE_PRICE_PREMIUM and STRIPE_PRICE_ANNUAL must be set when Stripe is enabled"
+            if _IS_PRODUCTION:
+                raise RuntimeError(_msg)
+            logger.warning(_msg)
     else:
-        logger.warning("Stripe not configured - running in demo mode (set STRIPE_SECRET_KEY)")
+        _msg = "Stripe not configured - running in demo mode (set STRIPE_SECRET_KEY)"
+        if _IS_PRODUCTION:
+            raise RuntimeError("STRIPE_SECRET_KEY is required in production. " + _msg)
+        logger.warning(_msg)
 except ImportError:
     STRIPE_ENABLED = False
     stripe = None
     STRIPE_WEBHOOK_SECRET = ""
-    logger.warning("stripe package not installed - running in demo mode")
+    _msg = "stripe package not installed - running in demo mode"
+    if _IS_PRODUCTION:
+        raise RuntimeError("stripe package required in production. " + _msg)
+    logger.warning(_msg)
 
 premium_router = APIRouter(prefix="/premium", tags=["Premium"])
 
@@ -218,8 +233,12 @@ async def get_tiers():
 
 
 @premium_router.get("/status/{user_id}")
-async def get_subscription_status(user_id: str):
+async def get_subscription_status(user_id: str, current_user: User = Depends(require_auth)):
     """Check a user's current subscription status."""
+    if current_user.user_id != user_id:
+        user_doc = await _db_holder.db.users.find_one({"user_id": current_user.user_id}, {"_id": 0, "role": 1})
+        if not user_doc or user_doc.get("role") != "admin":
+            raise HTTPException(status_code=403, detail="Acesso restrito ao próprio utilizador")
     db = _db_holder.db
     sub = await db.subscriptions.find_one(
         {"user_id": user_id, "status": "active"},
@@ -607,7 +626,7 @@ async def check_feature_access(feature_id: str, current_user=Depends(require_aut
 # =============================================================================
 
 @premium_router.get("/stats")
-async def get_premium_stats():
+async def get_premium_stats(_: User = Depends(require_admin)):
     """Get premium subscription statistics (admin)."""
     db = _db_holder.db
     total = await db.subscriptions.count_documents({"status": "active"})

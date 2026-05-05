@@ -17,7 +17,7 @@ if (Platform.OS !== 'web') {
   WebView = require('react-native-webview').WebView;
 }
 
-const GOOGLE_MAPS_API_KEY = process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY || '';
+const GOOGLE_MAPS_API_KEY = (process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY || '').replace(/[^A-Za-z0-9_\-]/g, '');
 
 // Popular destinations in Portugal
 const POPULAR_DESTINATIONS = [

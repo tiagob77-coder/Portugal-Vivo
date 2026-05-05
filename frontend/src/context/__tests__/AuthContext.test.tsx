@@ -38,6 +38,23 @@ jest.mock('@react-native-async-storage/async-storage', () => ({
 }));
 
 // ──────────────────────────────────────────────
+// SecureStorage mock (platform-safe wrapper used by AuthContext)
+// ──────────────────────────────────────────────
+jest.mock('../../utils/secureStorage', () => ({
+  secureStorage: {
+    getItem: jest.fn((key: string) => Promise.resolve(mockStorage[key] ?? null)),
+    setItem: jest.fn((key: string, value: string) => {
+      mockStorage[key] = value;
+      return Promise.resolve();
+    }),
+    removeItem: jest.fn((key: string) => {
+      delete mockStorage[key];
+      return Promise.resolve();
+    }),
+  },
+}));
+
+// ──────────────────────────────────────────────
 // API mocks
 // ──────────────────────────────────────────────
 const mockExchangeSession = jest.fn();
@@ -188,29 +205,29 @@ describe('AuthContext', () => {
       mockStorage['session_token'] = 'expired-token';
       mockGetCurrentUser.mockRejectedValue(new Error('Token expired'));
 
-      const AsyncStorage = require('@react-native-async-storage/async-storage').default;
+      const { secureStorage } = require('../../utils/secureStorage');
       const { getByTestId } = renderWithProvider();
 
       await waitFor(() => {
         expect(getByTestId('loading').props.children).toBe('false');
       });
 
-      expect(AsyncStorage.removeItem).toHaveBeenCalledWith('session_token');
+      expect(secureStorage.removeItem).toHaveBeenCalledWith('session_token');
       expect(getByTestId('authenticated').props.children).toBe('false');
     });
 
-    it('stores user_id in AsyncStorage after restoring session', async () => {
+    it('stores user_id in secure storage after restoring session', async () => {
       mockStorage['session_token'] = 'stored-token-abc';
       mockGetCurrentUser.mockResolvedValue(mockUser);
 
-      const AsyncStorage = require('@react-native-async-storage/async-storage').default;
+      const { secureStorage } = require('../../utils/secureStorage');
       const { getByTestId } = renderWithProvider();
 
       await waitFor(() => {
         expect(getByTestId('loading').props.children).toBe('false');
       });
 
-      expect(AsyncStorage.setItem).toHaveBeenCalledWith('user_id', 'u-001');
+      expect(secureStorage.setItem).toHaveBeenCalledWith('user_id', 'u-001');
     });
   });
 
@@ -237,13 +254,13 @@ describe('AuthContext', () => {
       expect(getByTestId('session-token').props.children).toBe('no-token');
     });
 
-    it('removes session_token and user_id from AsyncStorage on logout', async () => {
+    it('removes session_token and user_id from secure storage on logout', async () => {
       mockStorage['session_token'] = 'tok-xyz';
       mockStorage['user_id'] = 'u-001';
       mockGetCurrentUser.mockResolvedValue(mockUser);
       mockApiLogout.mockResolvedValue(undefined);
 
-      const AsyncStorage = require('@react-native-async-storage/async-storage').default;
+      const { secureStorage } = require('../../utils/secureStorage');
       const { getByTestId } = renderWithProvider();
       await waitFor(() => {
         expect(getByTestId('authenticated').props.children).toBe('true');
@@ -253,8 +270,8 @@ describe('AuthContext', () => {
         getByTestId('logout').props.onPress();
       });
 
-      expect(AsyncStorage.removeItem).toHaveBeenCalledWith('session_token');
-      expect(AsyncStorage.removeItem).toHaveBeenCalledWith('user_id');
+      expect(secureStorage.removeItem).toHaveBeenCalledWith('session_token');
+      expect(secureStorage.removeItem).toHaveBeenCalledWith('user_id');
     });
 
     it('still clears local state when API logout call fails', async () => {
@@ -434,7 +451,6 @@ describe('AuthContext', () => {
         session_token: 'exchanged-token',
       });
 
-      const AsyncStorage = require('@react-native-async-storage/async-storage').default;
       const { getByTestId } = renderWithProvider();
 
       await waitFor(() => {
@@ -442,7 +458,8 @@ describe('AuthContext', () => {
       });
 
       expect(mockExchangeSession).toHaveBeenCalledWith('sess-abc');
-      expect(AsyncStorage.setItem).toHaveBeenCalledWith('session_token', 'exchanged-token');
+      const { secureStorage } = require('../../utils/secureStorage');
+      expect(secureStorage.setItem).toHaveBeenCalledWith('session_token', 'exchanged-token');
       expect(getByTestId('authenticated').props.children).toBe('true');
     });
 
