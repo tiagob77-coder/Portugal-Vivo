@@ -218,7 +218,7 @@ from conftest import requires_db
 async def test_nearby_endpoint_returns_list(client):
     """Map items endpoint must return a list for valid Portuguese coordinates."""
     response = await client.get(
-        "/api/heritage/map/items?lat=38.7169&lng=-9.1399",
+        "/api/map/items?lat=38.7169&lng=-9.1399",
         headers={"Authorization": "Bearer test-jwt-token"},
     )
     assert response.status_code in (200, 401, 403)
@@ -232,7 +232,7 @@ async def test_nearby_endpoint_returns_list(client):
 async def test_nearby_endpoint_outside_portugal(client):
     """Geo endpoint with Paris coords should handle gracefully (no 500)."""
     response = await client.get(
-        "/api/heritage/map/items?lat=48.8534&lng=2.3488",
+        "/api/map/items?lat=48.8534&lng=2.3488",
         headers={"Authorization": "Bearer test-jwt-token"},
     )
     assert response.status_code != 500, "Server must not crash for out-of-bounds coords"

@@ -130,7 +130,7 @@ async def test_invalid_municipality_id_format(client):
 async def test_map_items_tenant_filter(client):
     """Map items endpoint must respect municipality filter."""
     response = await client.get(
-        "/api/heritage/map/items?lat=38.72&lng=-9.14",
+        "/api/map/items?lat=38.72&lng=-9.14",
         headers=LISBOA_HEADERS,
     )
     assert response.status_code in (200, 401, 403)
