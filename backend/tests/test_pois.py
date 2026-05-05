@@ -10,7 +10,6 @@ Covers the four critical patterns required by the testing spec:
 import math
 import pytest
 
-pytestmark = pytest.mark.skip(reason="diagnostic skip — verify CI passes without these tests")
 from conftest import requires_db
 
 BASE_MUNICIPALITY = "lisboa-01"
@@ -77,7 +76,7 @@ async def test_list_pois_tenant_isolation(client):
 async def test_list_pois_geosearch(client):
     """Map items endpoint must return a list for valid Portuguese coordinates."""
     response = await client.get(
-        f"/api/heritage/map/items?lat={LISBON_LAT}&lng={LISBON_LNG}&radius_km=5",
+        f"/api/map/items?lat={LISBON_LAT}&lng={LISBON_LNG}&radius_km=5",
         headers=AUTH_HEADERS,
     )
     assert response.status_code in (200, 401, 403)
