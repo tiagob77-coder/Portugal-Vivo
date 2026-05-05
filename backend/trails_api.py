@@ -209,6 +209,57 @@ async def get_nearby_trails(
     return {"trails": results[:limit], "total": len(results[:limit]), "center": {"lat": lat, "lng": lon}, "radius_km": dist_km}
 
 
+_PT_LAT = (32.0, 42.5)
+_PT_LNG = (-31.5, -6.0)
+
+
+@trails_router.get("/audit")
+async def audit_trails_gps():
+    """GPS quality audit for all trails in the database."""
+    trails = await _db_holder.db.trails.find(
+        {}, {"_id": 0, "id": 1, "name": 1, "region": 1, "difficulty": 1, "distance_km": 1, "points": 1}
+    ).to_list(5000)
+
+    no_gps: list = []
+    few_points: list = []
+    out_of_bounds: list = []
+    ok_count = 0
+
+    for t in trails:
+        pts = t.get("points", [])
+        trail_id = t.get("id", "")
+        trail_name = t.get("name", "")
+        base = {"id": trail_id, "name": trail_name, "region": t.get("region", ""), "difficulty": t.get("difficulty", "")}
+        if not pts:
+            no_gps.append(base)
+        elif len(pts) < 3:
+            few_points.append({**base, "point_count": len(pts)})
+        else:
+            bad = [
+                p for p in pts
+                if not (_PT_LAT[0] <= p.get("lat", 0) <= _PT_LAT[1]
+                        and _PT_LNG[0] <= p.get("lng", 0) <= _PT_LNG[1])
+            ]
+            if bad:
+                out_of_bounds.append({**base, "total_points": len(pts), "bad_points": len(bad),
+                                       "sample_bad": bad[:3]})
+            else:
+                ok_count += 1
+
+    return {
+        "summary": {
+            "total": len(trails),
+            "ok": ok_count,
+            "no_gps": len(no_gps),
+            "few_points": len(few_points),
+            "out_of_bounds": len(out_of_bounds),
+        },
+        "no_gps": no_gps,
+        "few_points": few_points,
+        "out_of_bounds": out_of_bounds,
+    }
+
+
 @trails_router.get("/{trail_id}")
 async def get_trail(trail_id: str):
     """Get a specific trail with all points."""

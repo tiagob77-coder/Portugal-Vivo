@@ -201,6 +201,94 @@ async def admin_dashboard():
 
 
 # ========================
+# GPS AUDIT
+# ========================
+
+_PT_LAT = (32.0, 42.5)
+_PT_LNG = (-31.5, -6.0)
+
+
+@router.get("/admin/pois/gps-audit", tags=["Admin"])
+async def admin_pois_gps_audit(limit: int = 500):
+    """GPS quality audit for all heritage_items POIs."""
+    items = await _db.heritage_items.find(
+        {},
+        {"_id": 0, "id": 1, "name": 1, "category": 1, "region": 1, "location": 1, "caop_validated": 1}
+    ).to_list(10000)
+
+    missing_gps: list = []
+    out_of_bounds: list = []
+    zero_coords: list = []
+    ok_count = 0
+
+    for item in items:
+        base = {"id": item.get("id", ""), "name": item.get("name", ""),
+                "category": item.get("category", ""), "region": item.get("region", "")}
+        loc = item.get("location") or {}
+        lat = loc.get("lat")
+        lng = loc.get("lng")
+
+        if lat is None or lng is None:
+            missing_gps.append(base)
+        elif lat == 0.0 and lng == 0.0:
+            zero_coords.append(base)
+        elif not (_PT_LAT[0] <= lat <= _PT_LAT[1] and _PT_LNG[0] <= lng <= _PT_LNG[1]):
+            out_of_bounds.append({**base, "lat": lat, "lng": lng})
+        else:
+            ok_count += 1
+
+    total = len(items)
+    return {
+        "summary": {
+            "total": total,
+            "ok": ok_count,
+            "missing_gps": len(missing_gps),
+            "zero_coords": len(zero_coords),
+            "out_of_bounds": len(out_of_bounds),
+            "gps_coverage_pct": round(ok_count / max(total, 1) * 100, 1),
+        },
+        "missing_gps": missing_gps[:limit],
+        "zero_coords": zero_coords[:limit],
+        "out_of_bounds": out_of_bounds[:limit],
+    }
+
+
+@router.post("/admin/pois/bulk-validate", tags=["Admin"])
+async def admin_pois_bulk_validate(admin: User = Depends(_admin_dep)):
+    """Run CAOP geo_validator on all POIs that haven't been validated yet."""
+    from geo_validator import validate, log_audit
+
+    items = await _db.heritage_items.find(
+        {"caop_validated": {"$ne": True}, "location.lat": {"$exists": True}},
+        {"_id": 0, "id": 1, "name": 1, "location": 1, "parish_code": 1}
+    ).to_list(5000)
+
+    counts = {"checked": 0, "ok": 0, "snapped": 0, "sea_snapped": 0, "suspect": 0, "invalid": 0, "skipped": 0}
+
+    for item in items:
+        loc = item.get("location") or {}
+        lat = loc.get("lat")
+        lng = loc.get("lng")
+        if lat is None or lng is None:
+            counts["skipped"] += 1
+            continue
+
+        result = validate(lat, lng, item.get("parish_code"))
+        counts["checked"] += 1
+        counts[result.status] = counts.get(result.status, 0) + 1
+
+        update: dict = {"caop_validated": True, "caop_validated_at": datetime.now(timezone.utc).isoformat()}
+        if result.status in ("snapped", "sea_snapped") and result.lat is not None:
+            update["location.lat"] = result.lat
+            update["location.lng"] = result.lng
+
+        await _db.heritage_items.update_one({"id": item["id"]}, {"$set": update})
+        await log_audit(_db, item["id"], result, actor="bulk-validate-api")
+
+    return counts
+
+
+# ========================
 # IMAGE MODERATION
 # ========================
 
