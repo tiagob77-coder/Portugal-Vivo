@@ -8,9 +8,10 @@ const getBackendUrl = (): string => {
   if (envUrl && envUrl.trim() !== '') {
     return envUrl.trim();
   }
-  
-  // Fallback to the preview URL for Portugal Vivo
-  return 'https://mobile-audit-deploy.preview.emergentagent.com';
+  if (process.env.NODE_ENV === 'production') {
+    throw new Error('EXPO_PUBLIC_BACKEND_URL must be set in production builds');
+  }
+  return 'http://localhost:8001';
 };
 
 export const API_URL = getBackendUrl();
