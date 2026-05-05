@@ -1153,7 +1153,9 @@ async def startup_tenant_system():
 
 @app.on_event("startup")
 async def seed_expedicao_data():
-    """Seed Grande Expedição stages if collection is empty."""
+    """Seed Grande Expedição stages if collection is empty (dev/staging only)."""
+    if os.environ.get("ENVIRONMENT") == "production" and os.environ.get("AUTO_SEED_ENABLED") != "true":
+        return
     try:
         await seed_grande_expedicao(db)
     except Exception as e:
@@ -1161,7 +1163,10 @@ async def seed_expedicao_data():
 
 @app.on_event("startup")
 async def auto_seed_from_excel():
-    """Auto-seed heritage_items from Excel if collection is empty or too small."""
+    """Auto-seed heritage_items from Excel if collection is empty or too small (dev/staging only)."""
+    if os.environ.get("ENVIRONMENT") == "production" and os.environ.get("AUTO_SEED_ENABLED") != "true":
+        logger.info("Auto-seed disabled in production (set AUTO_SEED_ENABLED=true to override)")
+        return
     try:
         count = await db.heritage_items.count_documents({})
         if count < 500:  # Less than 500 = needs full import
@@ -1175,7 +1180,9 @@ async def auto_seed_from_excel():
 
 @app.on_event("startup")
 async def seed_encyclopedia_data():
-    """Seed encyclopedia articles from heritage_items if empty."""
+    """Seed encyclopedia articles from heritage_items if empty (dev/staging only)."""
+    if os.environ.get("ENVIRONMENT") == "production" and os.environ.get("AUTO_SEED_ENABLED") != "true":
+        return
     try:
         await seed_encyclopedia_if_empty(db)
     except Exception as e:

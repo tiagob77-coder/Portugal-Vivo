@@ -1,4 +1,4 @@
-// @ts-nocheck
+
 /**
  * Tests for pwaRegistration service
  * Covers: service worker registration, online/offline detection,

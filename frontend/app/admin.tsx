@@ -2,7 +2,7 @@
  * Admin Dashboard — Unified management panel
  * Shows POI stats, user metrics, subscription data, data quality, and quick actions
  */
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity,
   ActivityIndicator, Platform, Image, Alert,
@@ -14,6 +14,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { LinearGradient } from 'expo-linear-gradient';
 import api from '../src/services/api';
 import { useTheme } from '../src/context/ThemeContext';
+import { useAuth } from '../src/context/AuthContext';
 import { palette, withOpacity } from '../src/theme/colors';
 import { shadows } from '../src/theme';
 
@@ -92,6 +93,13 @@ export default function AdminDashboard() {
   const insets = useSafeAreaInsets();
   const { colors } = useTheme();
   const queryClient = useQueryClient();
+  const { user, isLoading: authLoading } = useAuth();
+
+  useEffect(() => {
+    if (!authLoading && (!user || (user.role !== 'admin' && !user.is_admin))) {
+      router.replace('/');
+    }
+  }, [user, authLoading, router]);
   const [showModeration, setShowModeration] = useState(false);
   const [showCaop, setShowCaop] = useState(false);
   const [showCommunity, setShowCommunity] = useState(false);

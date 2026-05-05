@@ -1,4 +1,4 @@
-// @ts-nocheck
+
 /**
  * Tests for GeofenceService
  * Covers: start/stop, web geolocation watching, native expo-location,

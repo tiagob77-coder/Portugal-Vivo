@@ -1,8 +1,7 @@
-// @ts-nocheck
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // In-memory mock storage
-const mockStorage = {};
+const mockStorage: Record<string, unknown> = {};
 
 jest.mock('@react-native-async-storage/async-storage', () => ({
   getItem: jest.fn((key) => Promise.resolve(mockStorage[key] || null)),
@@ -15,8 +14,8 @@ jest.mock('@react-native-async-storage/async-storage', () => ({
     return Promise.resolve();
   }),
   getAllKeys: jest.fn(() => Promise.resolve(Object.keys(mockStorage))),
-  multiRemove: jest.fn((keys) => {
-    keys.forEach((k) => delete mockStorage[k]);
+  multiRemove: jest.fn((keys: string[]) => {
+    keys.forEach((k: string) => delete mockStorage[k]);
     return Promise.resolve();
   }),
 }));
@@ -95,7 +94,7 @@ describe('OfflineCacheService', () => {
 
       const raw = mockStorage['cache_offline_queue'];
       expect(raw).toBeDefined();
-      const entry = JSON.parse(raw);
+      const entry = JSON.parse(raw as string);
       const queue = entry.data;
       expect(queue).toHaveLength(1);
       expect(queue[0]).toHaveProperty('id');

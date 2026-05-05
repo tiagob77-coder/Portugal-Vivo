@@ -2204,6 +2204,9 @@ export interface SubscriptionStatus {
   started_at?: string;
   expires_at?: string;
   stripe_subscription_id?: string;
+  payment_method?: string;
+  requires_manual_renewal?: boolean;
+  days_until_expiry?: number | null;
 }
 
 export interface CheckoutResponse {
