@@ -842,7 +842,7 @@ function DescobrerTab() {
                   activeOpacity={0.8}
                   data-testid={`discovery-card-${item.content_id}`}
                 >
-                  <SmartImage uri={item.content_data.image_url} category={item.content_data.category} name={item.content_data.name} style={styles.discoveryImage} contentFit="cover" />
+                  <SmartImage uri={item.content_data.image_url} name={item.content_data.name} style={styles.discoveryImage} contentFit="cover" />
                   <View style={styles.discoveryContent}>
                     <Text style={[styles.discoveryTitle, ds.textPrimary]} numberOfLines={2}>{item.content_data.name}</Text>
                     <View style={[styles.reasonBadge, { backgroundColor: colors.primary + '12' }]}>
