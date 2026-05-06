@@ -1,5 +1,6 @@
 import React from 'react';
 import { TouchableOpacity, View, Text, StyleSheet } from 'react-native';
+import OptimizedImage from './OptimizedImage';
 
 export interface POI {
   id: string;
@@ -23,6 +24,11 @@ export default function POICard({ poi, onPress }: POICardProps) {
       onPress={() => onPress?.(poi.id)}
       activeOpacity={0.8}
     >
+      {poi.cover_image && (
+        <View style={styles.thumbWrap}>
+          <OptimizedImage uri={poi.cover_image} style={styles.thumb} contentFit="cover" />
+        </View>
+      )}
       <View style={styles.content}>
         <Text style={styles.name}>{poi.name}</Text>
         <Text style={styles.category}>{poi.category}</Text>
@@ -49,8 +55,23 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.08,
     shadowRadius: 4,
     elevation: 3,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  thumbWrap: {
+    width: 56,
+    height: 56,
+    borderRadius: 10,
+    overflow: 'hidden',
+    flexShrink: 0,
+  },
+  thumb: {
+    width: '100%',
+    height: '100%',
   },
   content: {
+    flex: 1,
     gap: 4,
   },
   name: {
