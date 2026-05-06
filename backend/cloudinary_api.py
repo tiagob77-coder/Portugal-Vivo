@@ -40,6 +40,35 @@ def cloudinary_url(public_id: str, **transforms) -> str:
     return f"https://res.cloudinary.com/{cloud_name}/image/upload/{t_str}/{public_id}"
 
 
+import urllib.parse as _urlparse
+
+# Supported ratios per display context:
+#   "square"   → 1:1  — card thumbnails, profile images
+#   "detail"   → 16:9 — hero banners, detail screens
+#   "portrait" → 4:5  — Instagram-style tall cards
+#   "panorama" → 21:9 — map popups, ultra-wide headers
+_RATIO_TRANSFORMS = {
+    "square":   "ar_1:1,c_fill,w_600",
+    "detail":   "ar_16:9,c_fill,w_800",
+    "portrait": "ar_4:5,c_fill,w_600",
+    "panorama": "ar_21:9,c_fill,w_800",
+}
+
+
+def cloudinary_fetch_url(source_url: str, context: str = "square") -> str:
+    """
+    Wrap any public image URL in a Cloudinary Fetch transform.
+    context: "square" (1:1 cards), "detail" (16:9 hero), "portrait" (4:5), "panorama" (21:9 map)
+    Requires Cloudinary Remote Fetch to be enabled in account settings.
+    """
+    cloud_name = os.environ.get("CLOUDINARY_CLOUD_NAME", "")
+    if not cloud_name:
+        return source_url
+    transforms = _RATIO_TRANSFORMS.get(context, _RATIO_TRANSFORMS["square"])
+    encoded = _urlparse.quote(source_url, safe="")
+    return f"https://res.cloudinary.com/{cloud_name}/image/fetch/{transforms},q_auto,f_auto/{encoded}"
+
+
 @cloudinary_router.get("/signature")
 async def generate_signature(
     folder: str = Query("uploads", description="Upload folder path"),

@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
 import {
   View, Text, StyleSheet, ScrollView, RefreshControl,
-  TouchableOpacity, Image, Dimensions, ActivityIndicator,
+  TouchableOpacity, Dimensions, ActivityIndicator,
   ImageBackground, Animated, Platform,
 } from 'react-native';
+import SmartImage from '../../src/components/SmartImage';
 import { useRouter } from 'expo-router';
 import Head from 'expo-router/head';
 import { MaterialIcons } from '@expo/vector-icons';
@@ -622,11 +623,13 @@ function DescobrerTab() {
               activeOpacity={0.85}
               data-testid="poi-do-dia-card"
             >
-              {/* Placeholder for future real image */}
-              <View style={[styles.poiDiaImagePlaceholder, { backgroundColor: isDark ? colors.surfaceAlt : colors.backgroundAlt }]}>
-                <MaterialIcons name={poiDoDia.category_icon as any || 'place'} size={32} color={colors.accent} />
-                <Text style={[styles.poiDiaImageHint, { color: colors.textMuted }]}>Foto brevemente</Text>
-              </View>
+              <SmartImage
+                uri={poiDoDia.poi.image_url}
+                category={poiDoDia.poi.category}
+                name={poiDoDia.poi.name}
+                style={styles.poiDiaImage}
+                contentFit="cover"
+              />
               <View style={styles.poiDiaContent}>
                 <View style={styles.poiDiaTop}>
                   <View style={[styles.poiDiaBadge, { backgroundColor: colors.accent + '18' }]}>
@@ -727,9 +730,13 @@ function DescobrerTab() {
             <ActivityIndicator size="small" color={colors.accent} />
           ) : surprisePOI ? (
             <>
-              <View style={[styles.surpriseIcon, { backgroundColor: colors.accent + '20' }]}>
-                <MaterialIcons name="auto-awesome" size={24} color={colors.accent} />
-              </View>
+              <SmartImage
+                uri={surprisePOI.image_url}
+                category={surprisePOI.category}
+                name={surprisePOI.name}
+                style={styles.surpriseThumb}
+                contentFit="cover"
+              />
               <View style={{ flex: 1 }}>
                 <Text style={[{ fontSize: 11, fontWeight: '700', letterSpacing: 1, color: colors.accent, marginBottom: 2 }]}>LUGAR ESCONDIDO</Text>
                 <Text style={[styles.surpriseTitle, ds.textPrimary]} numberOfLines={1}>{surprisePOI.name}</Text>
@@ -773,7 +780,7 @@ function DescobrerTab() {
                   <View style={[styles.trendingRank, { backgroundColor: colors.primary + '15' }]}>
                     <Text style={[styles.trendingRankText, { color: colors.primary }]}>{index + 1}</Text>
                   </View>
-                  <Image source={{ uri: item.image_url || 'https://via.placeholder.com/80' }} style={styles.trendingImage} />
+                  <SmartImage uri={item.image_url} category={item.category} name={item.name} style={styles.trendingImage} contentFit="cover" />
                   <View style={styles.trendingInfo}>
                     <Text style={[styles.trendingTitle, ds.textPrimary]} numberOfLines={2}>{item.name}</Text>
                     <View style={styles.trendingMeta}>
@@ -835,7 +842,7 @@ function DescobrerTab() {
                   activeOpacity={0.8}
                   data-testid={`discovery-card-${item.content_id}`}
                 >
-                  <Image source={{ uri: item.content_data.image_url || 'https://via.placeholder.com/300x200' }} style={styles.discoveryImage} />
+                  <SmartImage uri={item.content_data.image_url} category={item.content_data.category} name={item.content_data.name} style={styles.discoveryImage} contentFit="cover" />
                   <View style={styles.discoveryContent}>
                     <Text style={[styles.discoveryTitle, ds.textPrimary]} numberOfLines={2}>{item.content_data.name}</Text>
                     <View style={[styles.reasonBadge, { backgroundColor: colors.primary + '12' }]}>
@@ -1179,8 +1186,7 @@ const styles = StyleSheet.create({
 
   // POI do Dia
   poiDiaCard: { marginHorizontal: 16, borderRadius: 16, overflow: 'hidden', borderWidth: 1 },
-  poiDiaImagePlaceholder: { height: 120, justifyContent: 'center', alignItems: 'center', gap: 6 },
-  poiDiaImageHint: { fontSize: 10 },
+  poiDiaImage: { width: '100%', height: 160 },
   poiDiaContent: { padding: 14, gap: 8 },
   poiDiaTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   poiDiaBadge: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 8, paddingVertical: 3, borderRadius: 20, gap: 4 },
@@ -1221,6 +1227,7 @@ const styles = StyleSheet.create({
     borderWidth: 1, padding: 14,
   },
   surpriseIcon: { width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center' },
+  surpriseThumb: { width: 56, height: 56, borderRadius: 12 },
   surpriseTitle: { fontSize: 15, fontWeight: '700' },
 
   // Category tabs

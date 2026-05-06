@@ -8,6 +8,7 @@ import {
 } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useTheme } from '../context/ThemeContext';
+import OptimizedImage from './OptimizedImage';
 
 // ─── Interfaces ───────────────────────────────────────────────────────────────
 
@@ -127,9 +128,15 @@ function MarineSpeciesCard({ species, expanded = false, onPress }: MarineSpecies
 
       {/* ── Header ─────────────────────────────────────────────────────── */}
       <View style={styles.headerRow}>
-        <View style={[styles.iconCircle, { backgroundColor: catColor + '20' }]}>
-          <MaterialIcons name={CATEGORY_ICON[species.category]} size={20} color={catColor} />
-        </View>
+        {species.photo_url ? (
+          <View style={[styles.photoThumb, { borderColor: catColor + '55' }]}>
+            <OptimizedImage uri={species.photo_url} style={{ width: '100%', height: '100%' }} contentFit="cover" />
+          </View>
+        ) : (
+          <View style={[styles.iconCircle, { backgroundColor: catColor + '20' }]}>
+            <MaterialIcons name={CATEGORY_ICON[species.category]} size={20} color={catColor} />
+          </View>
+        )}
         <View style={styles.nameBlock}>
           <Text style={[styles.commonName, { color: colors.textPrimary }]}>{species.common_name_pt}</Text>
           <Text style={[styles.scientificName, { color: colors.textMuted }]}>{species.scientific_name}</Text>
@@ -300,6 +307,14 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     alignItems: 'center',
     justifyContent: 'center',
+    flexShrink: 0,
+  },
+  photoThumb: {
+    width: 48,
+    height: 48,
+    borderRadius: 10,
+    overflow: 'hidden',
+    borderWidth: 1,
     flexShrink: 0,
   },
   nameBlock: {

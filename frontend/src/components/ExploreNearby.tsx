@@ -10,6 +10,7 @@ import {
   RefreshControl,
 } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
+import SmartImage from './SmartImage';
 import { useQuery } from '@tanstack/react-query';
 import axios from 'axios';
 import { API_BASE } from '../config/api';
@@ -274,14 +275,20 @@ const ExploreNearby: React.FC<ExploreNearbyProps> = ({ onPOIPress, onRoutePress 
     if (!poi) return null;
     return (
       <TouchableOpacity style={styles.highlightCard} onPress={() => onPOIPress?.(poi)}>
-        <View style={[styles.highlightIconWrap, { backgroundColor: color + '20' }]}>
-          <MaterialIcons name={icon} size={20} color={color} />
+        <SmartImage
+          uri={poi.image_url}
+          category={poi.category}
+          name={poi.name}
+          style={styles.highlightImage}
+          contentFit="cover"
+        />
+        <View style={styles.highlightBody}>
+          <Text style={styles.highlightLabel}>{title}</Text>
+          <Text style={styles.highlightName} numberOfLines={1}>{poi.name}</Text>
+          <Text style={styles.highlightMeta}>
+            {poi.distance_km} km {DIRECTION_ARROWS[poi.direction] || ''} {poi.direction}
+          </Text>
         </View>
-        <Text style={styles.highlightLabel}>{title}</Text>
-        <Text style={styles.highlightName} numberOfLines={1}>{poi.name}</Text>
-        <Text style={styles.highlightMeta}>
-          {poi.distance_km} km {DIRECTION_ARROWS[poi.direction] || ''} {poi.direction}
-        </Text>
       </TouchableOpacity>
     );
   };
@@ -293,7 +300,13 @@ const ExploreNearby: React.FC<ExploreNearbyProps> = ({ onPOIPress, onRoutePress 
       onPress={() => onPOIPress?.(poi)}
     >
       <View style={styles.poiHeader}>
-        <MaterialIcons name={getCategoryIcon(poi.category)} size={22} color={palette.terracotta[500]} />
+        <SmartImage
+          uri={poi.image_url}
+          category={poi.category}
+          name={poi.name}
+          style={styles.poiThumb}
+          contentFit="cover"
+        />
         <View style={styles.poiInfo}>
           <Text style={styles.poiName} numberOfLines={1}>{poi.name}</Text>
           <Text style={styles.poiCategory}>{poi.category}{poi.region ? ` · ${poi.region}` : ''}</Text>
@@ -619,19 +632,18 @@ const styles = StyleSheet.create({
   highlightCard: {
     backgroundColor: '#1E293B',
     borderRadius: 14,
-    padding: 14,
     marginRight: 10,
     width: 150,
     borderWidth: 1,
     borderColor: '#334155',
+    overflow: 'hidden',
   },
-  highlightIconWrap: {
-    width: 36,
-    height: 36,
-    borderRadius: 10,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 8,
+  highlightImage: {
+    width: '100%',
+    height: 90,
+  },
+  highlightBody: {
+    padding: 10,
   },
   highlightLabel: {
     fontSize: 11,
@@ -799,6 +811,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 10,
+  },
+  poiThumb: {
+    width: 48,
+    height: 48,
+    borderRadius: 10,
+    flexShrink: 0,
   },
   poiInfo: {
     flex: 1,

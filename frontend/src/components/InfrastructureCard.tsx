@@ -5,6 +5,7 @@ import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useTheme } from '../context/ThemeContext';
+import OptimizedImage from './OptimizedImage';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -109,10 +110,16 @@ function InfrastructureCard({
         <View style={styles.content}>
           {/* ── Header ────────────────────────────────────────────────── */}
           <View style={styles.headerRow}>
-            {/* Type icon circle */}
-            <View style={[styles.iconCircle, { backgroundColor: typeConf.bg }]}>
-              <MaterialIcons name={typeConf.icon} size={20} color={typeConf.color} />
-            </View>
+            {/* Photo thumbnail or icon */}
+            {item.photo_url ? (
+              <View style={[styles.photoThumb, { borderColor: typeConf.color + '55' }]}>
+                <OptimizedImage uri={item.photo_url} style={{ width: '100%', height: '100%' }} contentFit="cover" />
+              </View>
+            ) : (
+              <View style={[styles.iconCircle, { backgroundColor: typeConf.bg }]}>
+                <MaterialIcons name={typeConf.icon} size={20} color={typeConf.color} />
+              </View>
+            )}
 
             {/* Name + location */}
             <View style={styles.titleBlock}>
@@ -293,6 +300,14 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     alignItems: 'center',
     justifyContent: 'center',
+    flexShrink: 0,
+  },
+  photoThumb: {
+    width: 48,
+    height: 48,
+    borderRadius: 10,
+    overflow: 'hidden',
+    borderWidth: 1,
     flexShrink: 0,
   },
   titleBlock: {

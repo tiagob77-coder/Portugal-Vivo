@@ -5,6 +5,7 @@ import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useTheme } from '../context/ThemeContext';
+import OptimizedImage from './OptimizedImage';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -143,9 +144,16 @@ function GastronomyDishCard({ dish, expanded = false, onPress }: GastronomyDishC
 
       {/* ── Header ───────────────────────────────────────────────────────── */}
       <View style={styles.header}>
-        <View style={[styles.typeIconWrap, { backgroundColor: typeColor + '22' }]}>
-          <MaterialIcons name={typeIcon} size={20} color={typeColor} />
-        </View>
+        {/* Photo thumbnail (1:1) or icon fallback */}
+        {dish.photo_url ? (
+          <View style={[styles.photoThumb, { borderColor: typeColor + '55' }]}>
+            <OptimizedImage uri={dish.photo_url} style={{ width: '100%', height: '100%' }} contentFit="cover" />
+          </View>
+        ) : (
+          <View style={[styles.typeIconWrap, { backgroundColor: typeColor + '22' }]}>
+            <MaterialIcons name={typeIcon} size={20} color={typeColor} />
+          </View>
+        )}
         <View style={styles.headerText}>
           <Text style={[styles.dishName, { color: colors.textPrimary }]} numberOfLines={2}>{dish.name}</Text>
           <View style={styles.regionRow}>
@@ -318,6 +326,16 @@ const styles = StyleSheet.create({
     padding: 14,
     gap: 10,
     position: 'relative',
+  },
+
+  // Photo thumbnail — 1:1 square replacing the icon when photo available
+  photoThumb: {
+    width: 48,
+    height: 48,
+    borderRadius: 10,
+    overflow: 'hidden',
+    borderWidth: 1,
+    flexShrink: 0,
   },
 
   // IQ Badge
