@@ -62,6 +62,13 @@ class BatchProcessRequest(BaseModel):
     poi_ids: List[str]
     modules: Optional[List[str]] = None
 
+class ReprocessImagesRequest(BaseModel):
+    """Request to reprocess image quality (M3) for POIs with image_url but zero/missing score"""
+    dry_run: bool = False
+    limit: int = 200
+    concurrency: int = 5
+    force: bool = False  # reprocess even if iq_score > 0
+
 class IQEngineHealthResponse(BaseModel):
     """IQ Engine health check"""
     status: str
@@ -418,6 +425,89 @@ async def get_batch_status(batch_id: str):
             detail="Error retrieving batch status"
         )
 
+@iq_router.post("/reprocess-images")
+async def reprocess_image_quality(
+    request: ReprocessImagesRequest,
+    background_tasks: BackgroundTasks,
+    admin: User = Depends(_admin_dep),
+):
+    """
+    Discover POIs that have image_url but zero/missing iq_score and reprocess
+    them through M3 (ImageQualityModule) only.
+
+    Use dry_run=true to count candidates without processing.
+    Use force=true to reprocess POIs regardless of existing score.
+    """
+    tenant_id = get_current_tenant()
+    if not tenant_id:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Tenant context required (use X-Tenant-ID header)"
+        )
+
+    if request.limit < 1 or request.limit > 2000:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="limit must be between 1 and 2000"
+        )
+    if request.concurrency < 1 or request.concurrency > 20:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="concurrency must be between 1 and 20"
+        )
+
+    try:
+        tenant_manager = get_tenant_manager()
+        tenant_db = await tenant_manager.get_tenant_db(tenant_id)
+
+        query: Dict[str, Any] = {"image_url": {"$exists": True, "$ne": None, "$ne": ""}}
+        if not request.force:
+            query["$or"] = [
+                {"iq_score": {"$exists": False}},
+                {"iq_score": 0},
+                {"iq_score": None},
+            ]
+
+        total = await tenant_db.heritage_items.count_documents(query)
+        candidates = min(total, request.limit)
+
+        if request.dry_run:
+            return {
+                "dry_run": True,
+                "candidates_found": total,
+                "would_process": candidates,
+                "query": "image_url exists AND (iq_score missing OR iq_score == 0)"
+                if not request.force
+                else "image_url exists (force=true)",
+            }
+
+        batch_id = str(uuid.uuid4())
+        background_tasks.add_task(
+            _reprocess_images_background,
+            batch_id,
+            tenant_id,
+            request.limit,
+            request.concurrency,
+            request.force,
+        )
+
+        return {
+            "batch_id": batch_id,
+            "status": "processing",
+            "candidates_found": total,
+            "limit_applied": candidates,
+            "message": f"Poll /api/iq/batch-status/{batch_id} for progress",
+        }
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error("Error starting image reprocess: %s", e, exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Erro ao iniciar reprocessamento de imagens"
+        )
+
 # ========================
 # HELPER FUNCTIONS
 # ========================
@@ -544,6 +634,131 @@ async def _process_single_poi_background(job_id: str, tenant_id: str, poi_id: st
         except Exception:
             pass
 
+async def _reprocess_images_background(
+    batch_id: str,
+    tenant_id: str,
+    limit: int,
+    concurrency: int,
+    force: bool,
+):
+    """Background task: run M3 on POIs that have image_url but missing/zero iq_score."""
+    import asyncio
+    from tenant_context import set_current_tenant
+
+    set_current_tenant(tenant_id)
+
+    try:
+        tenant_manager = get_tenant_manager()
+        tenant_db = await tenant_manager.get_tenant_db(tenant_id)
+
+        query: Dict[str, Any] = {"image_url": {"$exists": True, "$ne": None, "$ne": ""}}
+        if not force:
+            query["$or"] = [
+                {"iq_score": {"$exists": False}},
+                {"iq_score": 0},
+                {"iq_score": None},
+            ]
+
+        poi_docs = await tenant_db.heritage_items.find(
+            query,
+            {"id": 1, "name": 1, "description": 1, "category": 1, "subcategory": 1,
+             "region": 1, "location": 1, "address": 1, "image_url": 1, "tags": 1, "metadata": 1}
+        ).limit(limit).to_list(length=limit)
+
+        total = len(poi_docs)
+
+        await tenant_db.iq_processing_queue.insert_one({
+            "batch_id": batch_id,
+            "tenant_id": tenant_id,
+            "type": "reprocess_images",
+            "status": "processing",
+            "total_pois": total,
+            "processed_count": 0,
+            "successful_count": 0,
+            "failed_count": 0,
+            "started_at": datetime.now(timezone.utc),
+        })
+
+        engine = get_iq_engine()
+        module_types = [ModuleType.IMAGE_QUALITY]
+        semaphore = asyncio.Semaphore(concurrency)
+        successful = 0
+        failed = 0
+
+        async def _process_one(poi_doc: dict) -> bool:
+            async with semaphore:
+                poi_id = poi_doc.get("id", "")
+                try:
+                    poi_data = POIProcessingData(
+                        id=poi_id,
+                        name=poi_doc.get("name", ""),
+                        description=poi_doc.get("description", ""),
+                        category=poi_doc.get("category"),
+                        subcategory=poi_doc.get("subcategory"),
+                        region=poi_doc.get("region"),
+                        location=poi_doc.get("location"),
+                        address=poi_doc.get("address"),
+                        image_url=poi_doc.get("image_url"),
+                        tags=poi_doc.get("tags", []),
+                        metadata=poi_doc.get("metadata", {}),
+                    )
+
+                    results = await engine.process_poi(poi_data, module_types, tenant_id)
+
+                    m3_result = next(
+                        (r for r in results if r.module == ModuleType.IMAGE_QUALITY), None
+                    )
+                    m3_score = m3_result.score if m3_result and m3_result.score is not None else 0.0
+
+                    await _save_iq_results(tenant_db, poi_id, m3_score, results)
+
+                    await tenant_db.heritage_items.update_one(
+                        {"id": poi_id},
+                        {"$set": {"image_quality_score": round(m3_score, 1)}}
+                    )
+                    return True
+                except Exception as e:
+                    logger.error("M3 reprocess failed for POI %s: %s", poi_id, e)
+                    return False
+
+        tasks = [_process_one(doc) for doc in poi_docs]
+        results_list = await asyncio.gather(*tasks, return_exceptions=True)
+
+        for res in results_list:
+            if res is True:
+                successful += 1
+            else:
+                failed += 1
+
+        await tenant_db.iq_processing_queue.update_one(
+            {"batch_id": batch_id},
+            {
+                "$set": {
+                    "status": "completed",
+                    "processed_count": total,
+                    "successful_count": successful,
+                    "failed_count": failed,
+                    "completed_at": datetime.now(timezone.utc),
+                }
+            },
+        )
+
+        logger.info(
+            "reprocess-images batch %s done: %d/%d successful",
+            batch_id, successful, total
+        )
+
+    except Exception as e:
+        logger.error("Fatal error in reprocess-images batch %s: %s", batch_id, e, exc_info=True)
+        try:
+            await tenant_db.iq_processing_queue.update_one(
+                {"batch_id": batch_id},
+                {"$set": {"status": "failed", "error": str(e)}}
+            )
+        except Exception:
+            pass
+
+
 async def _process_batch_background(batch_id: str, tenant_id: str, poi_ids: List[str], modules: Optional[List[str]]):
     """Background task to process batch of POIs"""
     from tenant_context import set_current_tenant
@@ -567,15 +782,43 @@ async def _process_batch_background(batch_id: str, tenant_id: str, poi_ids: List
             "started_at": datetime.now(timezone.utc)
         })
 
-        # Process each POI
+        # Parse modules
+        module_types = None
+        if modules:
+            try:
+                module_types = [ModuleType(m) for m in modules]
+            except ValueError as e:
+                logger.error("Invalid module name in batch %s: %s", batch_id, e)
+
+        engine = get_iq_engine()
         successful = 0
         failed = 0
 
         for idx, poi_id in enumerate(poi_ids):
             try:
-                # This would call the processing logic
-                # For now, just increment counter
-                successful += 1
+                poi_doc = await tenant_db.heritage_items.find_one({"id": poi_id})
+                if not poi_doc:
+                    logger.warning("Batch %s: POI %s not found, skipping", batch_id, poi_id)
+                    failed += 1
+                else:
+                    poi_data = POIProcessingData(
+                        id=poi_doc.get("id", poi_id),
+                        name=poi_doc.get("name", ""),
+                        description=poi_doc.get("description", ""),
+                        category=poi_doc.get("category"),
+                        subcategory=poi_doc.get("subcategory"),
+                        region=poi_doc.get("region"),
+                        location=poi_doc.get("location"),
+                        address=poi_doc.get("address"),
+                        image_url=poi_doc.get("image_url"),
+                        tags=poi_doc.get("tags", []),
+                        metadata=poi_doc.get("metadata", {}),
+                    )
+                    results = await engine.process_poi(poi_data, module_types, tenant_id)
+                    scores = [r.score for r in results if r.score is not None]
+                    overall_score = sum(scores) / len(scores) if scores else 0.0
+                    await _save_iq_results(tenant_db, poi_id, overall_score, results)
+                    successful += 1
             except Exception as e:
                 logger.error(f"Error processing POI {poi_id} in batch: {e}")
                 failed += 1
