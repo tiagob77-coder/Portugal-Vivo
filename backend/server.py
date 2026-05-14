@@ -182,33 +182,45 @@ async def security_headers_middleware(request: Request, call_next):
     response.headers["Permissions-Policy"] = "camera=(), microphone=(), geolocation=(self)"
     return response
 
-# In-memory auth rate limiter (per IP, for login/register/reset)
-_auth_rate_store: Dict[str, list] = {}
+# Auth rate limiter (per IP, for login/register/reset). Backed by the
+# shared sliding-window helper in rate_limiter.py: Redis ZSET when
+# available, in-memory fallback otherwise. The previous version kept a
+# per-process dict, which silently lost most attempts when the backend
+# ran with multiple workers (Dockerfile CMD: --workers 2).
+from rate_limiter import _is_allowed as _rate_limit_is_allowed  # noqa: E402
+
 AUTH_RATE_LIMIT = 10  # max attempts per window
 AUTH_RATE_WINDOW = 60  # seconds
+_AUTH_RATE_PATHS = {
+    "/api/auth/login",
+    "/api/auth/register",
+    "/api/auth/forgot-password",
+    "/api/auth/reset-password",
+}
+
 
 @app.middleware("http")
 async def auth_rate_limit_middleware(request: Request, call_next):
-    """Rate limit auth endpoints to prevent brute-force attacks"""
-    path = request.url.path
-    if request.method == "POST" and path in (
-        "/api/auth/login", "/api/auth/register",
-        "/api/auth/forgot-password", "/api/auth/reset-password"
-    ):
-        ip = request.client.host if request.client else "unknown"
-        now = _time.monotonic()
-        key = f"{ip}:{path}"
-        timestamps = _auth_rate_store.get(key, [])
-        # Prune old entries
-        timestamps = [t for t in timestamps if now - t < AUTH_RATE_WINDOW]
-        if len(timestamps) >= AUTH_RATE_LIMIT:
-            return Response(
-                status_code=429,
-                content="Demasiadas tentativas. Tente novamente em 1 minuto.",
-                headers={"Retry-After": str(AUTH_RATE_WINDOW)}
-            )
-        timestamps.append(now)
-        _auth_rate_store[key] = timestamps
+    """Rate limit auth endpoints to prevent brute-force attacks."""
+    if request.method != "POST" or request.url.path not in _AUTH_RATE_PATHS:
+        return await call_next(request)
+
+    forwarded = request.headers.get("x-forwarded-for")
+    ip = (
+        forwarded.split(",")[0].strip()
+        if forwarded
+        else (request.client.host if request.client else "unknown")
+    )
+    key = f"auth:{ip}:{request.url.path}"
+    allowed, _remaining = await _rate_limit_is_allowed(
+        key, AUTH_RATE_LIMIT, AUTH_RATE_WINDOW
+    )
+    if not allowed:
+        return Response(
+            status_code=429,
+            content="Demasiadas tentativas. Tente novamente em 1 minuto.",
+            headers={"Retry-After": str(AUTH_RATE_WINDOW)},
+        )
     return await call_next(request)
 
 # Global API rate limiter — sliding window, in-memory per IP
