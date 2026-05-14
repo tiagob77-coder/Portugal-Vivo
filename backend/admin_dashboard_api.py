@@ -209,12 +209,20 @@ _PT_LNG = (-31.5, -6.0)
 
 
 @router.get("/admin/pois/gps-audit", tags=["Admin"])
-async def admin_pois_gps_audit(limit: int = 500):
-    """GPS quality audit for all heritage_items POIs."""
+async def admin_pois_gps_audit(limit: int = 500, offset: int = 0):
+    """GPS quality audit for heritage_items POIs.
+
+    Paginated to avoid loading the entire collection (~6k+ rows) into memory
+    on each call. Callers paginate via `limit` (default 500, max 2000) and
+    `offset`. The summary counts reported are scoped to the returned page —
+    use the cursor to walk through the full set.
+    """
+    limit = max(1, min(limit, 2000))
+    offset = max(0, offset)
     items = await _db.heritage_items.find(
         {},
         {"_id": 0, "id": 1, "name": 1, "category": 1, "region": 1, "location": 1, "caop_validated": 1}
-    ).to_list(10000)
+    ).skip(offset).limit(limit).to_list(limit)
 
     missing_gps: list = []
     out_of_bounds: list = []

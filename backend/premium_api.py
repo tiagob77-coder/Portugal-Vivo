@@ -37,7 +37,13 @@ try:
     if STRIPE_ENABLED:
         logger.info("Stripe integration enabled")
         if not STRIPE_WEBHOOK_SECRET:
-            logger.warning("STRIPE_WEBHOOK_SECRET not set — webhook signature verification disabled")
+            _msg = (
+                "STRIPE_WEBHOOK_SECRET not set — webhook signature verification disabled. "
+                "This MUST be set in production to prevent forged webhook events."
+            )
+            if _IS_PRODUCTION:
+                raise RuntimeError(_msg)
+            logger.warning(_msg)
         if not os.getenv("STRIPE_PRICE_PREMIUM") or not os.getenv("STRIPE_PRICE_ANNUAL"):
             _msg = "STRIPE_PRICE_PREMIUM and STRIPE_PRICE_ANNUAL must be set when Stripe is enabled"
             if _IS_PRODUCTION:
@@ -475,16 +481,20 @@ async def stripe_webhook(request: Request):
     if not STRIPE_ENABLED:
         raise HTTPException(status_code=503, detail="Stripe not configured")
 
+    # Refuse to process webhooks without signature verification — a forged
+    # payload could otherwise activate paid tiers free of charge.
+    if not STRIPE_WEBHOOK_SECRET:
+        logger.error("Refusing Stripe webhook: STRIPE_WEBHOOK_SECRET not configured")
+        raise HTTPException(
+            status_code=503,
+            detail="Webhook signature verification not configured",
+        )
+
     payload = await request.body()
     sig_header = request.headers.get("stripe-signature", "")
 
     try:
-        if STRIPE_WEBHOOK_SECRET:
-            event = stripe.Webhook.construct_event(payload, sig_header, STRIPE_WEBHOOK_SECRET)
-        else:
-            import json
-            event = stripe.Event.construct_from(json.loads(payload), stripe.api_key)
-            logger.warning("Webhook signature verification skipped (STRIPE_WEBHOOK_SECRET not set)")
+        event = stripe.Webhook.construct_event(payload, sig_header, STRIPE_WEBHOOK_SECRET)
     except ValueError:
         raise HTTPException(status_code=400, detail="Invalid payload")
     except stripe.error.SignatureVerificationError:

@@ -1,6 +1,7 @@
 """
 Heritage API - Heritage CRUD and map endpoints extracted from server.py.
 """
+import logging
 from fastapi import APIRouter, HTTPException, Depends, Request
 from fastapi import Response
 from typing import List, Optional
@@ -8,6 +9,8 @@ from typing import List, Optional
 from models.api_models import HeritageItem, AccessibilityInfo, User
 from shared_constants import CATEGORIES, REGIONS, MAIN_CATEGORIES, SUBCATEGORIES, SUBCATEGORIES_BY_MAIN, SUBCATEGORY_MAP, MAIN_CATEGORY_MAP, sanitize_regex
 from shared_utils import DatabaseHolder, clamp_pagination
+
+logger = logging.getLogger(__name__)
 
 heritage_router = APIRouter()
 
@@ -88,7 +91,7 @@ async def get_categories(response: Response):
                 result.append({**cat, "count": count})
             return result
         except Exception as e:
-            print(f"[Categories] Error getting counts: {e}")
+            logger.warning("Categories: failed to compute counts: %s", e)
             return CATEGORIES
     
     return CATEGORIES

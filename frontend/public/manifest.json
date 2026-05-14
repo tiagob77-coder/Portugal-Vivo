@@ -71,13 +71,13 @@
     {
       "name": "Explorar Mapa",
       "short_name": "Mapa",
-      "url": "/(tabs)/mapa",
+      "url": "/mapa",
       "icons": [{ "src": "/assets/images/favicon.png", "sizes": "48x48" }]
     },
     {
       "name": "Descobrir POIs",
       "short_name": "Descobrir",
-      "url": "/(tabs)/descobrir",
+      "url": "/descobrir",
       "icons": [{ "src": "/assets/images/favicon.png", "sizes": "48x48" }]
     },
     {

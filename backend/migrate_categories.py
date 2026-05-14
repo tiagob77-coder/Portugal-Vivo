@@ -110,9 +110,11 @@ async def rollback_migration():
     """Rollback migration using legacy_category field."""
     print("Rolling back category migration...")
 
-    result = await db.heritage_items.find(
+    cursor = db.heritage_items.find(
         {"legacy_category": {"$exists": True}},
-    ).to_list(None)
+    ).batch_size(200)
+    # Stream-iterate to avoid OOM on large rollback runs.
+    result = [item async for item in cursor]
 
     count = 0
     for item in result:
