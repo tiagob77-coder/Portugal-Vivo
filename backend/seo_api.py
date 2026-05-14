@@ -369,8 +369,6 @@ async def sitemap_xml():
     pois = await db.heritage_items.find(
         {}, {"_id": 0, "id": 1, "slug": 1, "updated_at": 1, "created_at": 1}
     ).limit(5000).to_list(5000)
-        {}, {"_id": 0, "id": 1, "name": 1, "created_at": 1}
-    ).limit(500).to_list(500)
 
     for poi in pois:
         path = poi.get("slug") or poi["id"]

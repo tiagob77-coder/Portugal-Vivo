@@ -16,6 +16,16 @@ from typing import Optional
 from shared_utils import DatabaseHolder
 from models.api_models import User
 
+# Pillow is the source of truth for what bytes really are — content-type
+# headers are trivially spoofable. We import lazily so the rest of the
+# module still loads in environments without Pillow (tests).
+try:
+    from PIL import Image  # type: ignore[import-not-found]
+    _PIL_AVAILABLE = True
+except Exception:  # pragma: no cover
+    Image = None  # type: ignore[assignment]
+    _PIL_AVAILABLE = False
+
 logger = logging.getLogger(__name__)
 
 upload_router = APIRouter(prefix="/uploads", tags=["Uploads"])
@@ -62,6 +72,73 @@ else:
 MAX_FILE_SIZE = 5 * 1024 * 1024  # 5 MB
 ALLOWED_TYPES = {"image/jpeg", "image/png", "image/webp"}
 _CHUNK_SIZE = 64 * 1024  # 64 KB
+
+# Pillow's identifier per supported MIME type. Anything else returned by
+# ``Image.open(...).format`` is rejected — we don't accept SVG, GIF, BMP
+# or polyglot files.
+_ALLOWED_PIL_FORMATS = {"JPEG", "PNG", "WEBP"}
+_PIL_FORMAT_TO_MIME = {"JPEG": "image/jpeg", "PNG": "image/png", "WEBP": "image/webp"}
+
+# Sanity bounds on image dimensions so a 1×1 pixel decompression bomb or
+# a 32k×32k tiny file cannot trip us up. Pillow has its own
+# DecompressionBombError but we set a much tighter limit here.
+_MAX_DIMENSION = 8192  # px on either axis
+_MIN_DIMENSION = 16    # px — anything smaller is almost certainly garbage
+
+
+def _validate_image_bytes(file_bytes: bytes) -> str:
+    """Validate that ``file_bytes`` is a real, sane image and return its
+    canonical MIME type.
+
+    Raises HTTPException(400) on anything that fails — the message is
+    safe to surface to the user.
+
+    Why not trust ``file.content_type``? The browser/SDK supplies that
+    header from the file extension or even an arbitrary value; an
+    attacker can rename ``payload.php`` to ``photo.jpg`` and the
+    Content-Type stays ``image/jpeg``. Pillow does the only thing that
+    matters: opens the bytes and tells us what they really are.
+    """
+    if not _PIL_AVAILABLE:
+        # Environments without Pillow (a stripped-down test bench, for
+        # instance) get a soft pass — better to refuse to gate than to
+        # 500 on every legitimate upload. The Dockerfile installs
+        # Pillow so production never lands here.
+        logger.warning("Pillow not available — falling back to content-type only")
+        return "image/jpeg"
+
+    try:
+        with Image.open(io.BytesIO(file_bytes)) as img:
+            fmt = (img.format or "").upper()
+            img.verify()  # parses the whole file; throws on tampering
+    except Exception:
+        raise HTTPException(status_code=400, detail="Ficheiro não é uma imagem válida")
+
+    if fmt not in _ALLOWED_PIL_FORMATS:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Formato {fmt or 'desconhecido'} não suportado. Use JPEG, PNG ou WebP.",
+        )
+
+    # ``verify()`` invalidates the image — reopen to inspect dimensions.
+    try:
+        with Image.open(io.BytesIO(file_bytes)) as img:
+            width, height = img.size
+    except Exception:
+        raise HTTPException(status_code=400, detail="Ficheiro corrompido")
+
+    if width < _MIN_DIMENSION or height < _MIN_DIMENSION:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Imagem demasiado pequena (mínimo {_MIN_DIMENSION}×{_MIN_DIMENSION} px)",
+        )
+    if width > _MAX_DIMENSION or height > _MAX_DIMENSION:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Imagem demasiado grande (máximo {_MAX_DIMENSION}×{_MAX_DIMENSION} px)",
+        )
+
+    return _PIL_FORMAT_TO_MIME[fmt]
 
 
 async def _read_with_limit(file: UploadFile, limit: int) -> bytes:
@@ -124,8 +201,12 @@ async def upload_image(
     - **context**: what the image is for (poi, review, contribution, general)
     - **item_id**: optional heritage item or contribution ID
     """
-    # Validate content type
-    if file.content_type not in ALLOWED_TYPES:
+    # The content-type header is a courtesy from the client — it is NOT
+    # an authority on the file's actual type. We still gate on it cheaply
+    # to short-circuit obvious junk (e.g. application/octet-stream) before
+    # reading the bytes, but the canonical decision is made below by
+    # ``_validate_image_bytes``.
+    if file.content_type and file.content_type not in ALLOWED_TYPES:
         raise HTTPException(
             status_code=400,
             detail="Tipo de ficheiro não suportado. Use: JPEG, PNG ou WebP",
@@ -136,6 +217,12 @@ async def upload_image(
     if len(file_bytes) == 0:
         raise HTTPException(status_code=400, detail="Ficheiro vazio")
 
+    # Magic-bytes validation: the only check that matters. Pillow opens
+    # the buffer, identifies the real format and verifies that the whole
+    # file decodes. Returns the canonical MIME type to store with the
+    # upload record (the header value can be misleading).
+    canonical_mime = _validate_image_bytes(file_bytes)
+
     # Generate unique ID
     public_id = f"{context}_{uuid.uuid4().hex[:12]}"
     folder = context
@@ -144,12 +231,14 @@ async def upload_image(
         if _cloudinary_configured:
             url = await _upload_to_cloudinary(file_bytes, folder, public_id)
         else:
-            url = await _upload_to_mongo(file_bytes, file.content_type or "image/jpeg", folder, public_id)
+            url = await _upload_to_mongo(file_bytes, canonical_mime, folder, public_id)
     except Exception as e:
         logger.error("Upload failed: %s", e)
         raise HTTPException(status_code=500, detail="Erro ao fazer upload da imagem")
 
-    # Record upload metadata
+    # Record upload metadata. We persist BOTH the canonical MIME (from
+    # Pillow) and the original client header for audit — divergence
+    # between the two is a signal worth keeping for forensic review.
     upload_record = {
         "id": public_id,
         "user_id": current_user.user_id,
@@ -157,7 +246,8 @@ async def upload_image(
         "context": context,
         "item_id": item_id,
         "original_filename": file.filename,
-        "content_type": file.content_type,
+        "content_type": canonical_mime,
+        "content_type_claimed": file.content_type,
         "size": len(file_bytes),
         "created_at": datetime.now(timezone.utc),
     }
