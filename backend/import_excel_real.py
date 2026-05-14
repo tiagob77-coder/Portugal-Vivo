@@ -585,13 +585,29 @@ def parse_sheet(ws, sheet_name: str, config: Dict) -> List[Dict]:
                     lat, lng = coords
                     break
         
-        # Fallback: region center with random offset
+        # Refuse to fabricate coordinates. The previous fallback was a
+        # ±0.5° (~55 km) random offset around the region centre, which
+        # produced thousands of POIs whose location was meaningless. Now
+        # the row is skipped and logged so it can be reviewed in
+        # scripts/correct_gps_excel.py and geocoded explicitly.
         if lat is None:
-            import random
-            base = REGION_COORDS.get(region, (39.5, -8.0))
-            lat = base[0] + random.uniform(-0.5, 0.5)
-            lng = base[1] + random.uniform(-0.5, 0.5)
-        
+            logger.warning(
+                "POI skipped: no GPS found (name=%r, region=%s)",
+                name[:60], region,
+            )
+            continue
+
+        # Reject anything outside the Portuguese envelope — these are
+        # almost always parser slip-ups (e.g. picking up numbers from the
+        # POI name like "7 Lagoas").
+        if not (32.0 <= lat <= 42.5 and -31.5 <= lng <= -6.0):
+            logger.warning(
+                "POI skipped: GPS outside Portugal envelope "
+                "(name=%r, lat=%s, lng=%s)",
+                name[:60], lat, lng,
+            )
+            continue
+
         # Build extra fields
         extra = {}
         for key in ["distance", "duration", "difficulty", "type", "altitude", "best_season",

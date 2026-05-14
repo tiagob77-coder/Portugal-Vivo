@@ -27,14 +27,11 @@ REGION_COORDS = {
     "madeira": {"lat": 32.65, "lng": -16.91}
 }
 
-def get_coords(region: str, variation: float = 0.5):
-    """Get coordinates with slight variation"""
-    import random
-    base = REGION_COORDS.get(region, {"lat": 39.5, "lng": -8.0})
-    return {
-        "lat": base["lat"] + random.uniform(-variation, variation),
-        "lng": base["lng"] + random.uniform(-variation, variation)
-    }
+# NOTE: a previous helper `get_coords(region, variation)` returned a random
+# point inside a ±0.5° square around the regional centre. It was never
+# called from this module and we deliberately do not provide a replacement:
+# legends/myths without an actual anchor should be left at the regional
+# centroid (REGION_COORDS) so that the absence of precision is honest.
 
 # ========================
 # LENDAS E MITOS
