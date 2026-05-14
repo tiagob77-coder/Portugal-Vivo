@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, Alert, Platform } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, Alert, Platform, Linking } from 'react-native';
+import { API_BASE } from '../../src/config/api';
 import OptimizedImage from '../../src/components/OptimizedImage';
 import { useRouter } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
@@ -104,6 +105,102 @@ function ProfileScreen() {
     ]);
   };
 
+  // RGPD — download a JSON copy of every record we hold about the user.
+  // We open a blob URL on web and share the response body on native; either
+  // way the payload never lives in our own state for longer than needed.
+  const handleExportData = async () => {
+    if (!sessionToken) return;
+    try {
+      const res = await fetch(`${API_BASE}/auth/export-data`, {
+        headers: { Authorization: `Bearer ${sessionToken}` },
+      });
+      if (!res.ok) {
+        Alert.alert('Erro', 'Não foi possível exportar os seus dados. Tente mais tarde.');
+        return;
+      }
+      const body = await res.text();
+      if (Platform.OS === 'web') {
+        const blob = new Blob([body], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `portugal-vivo-dados-${user?.user_id ?? 'export'}.json`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(url);
+      } else {
+        // Native fallback — open in the system browser as a data URL. Good
+        // enough for a one-off RGPD request; a future iteration could write
+        // to FileSystem + Sharing.
+        const dataUrl = `data:application/json;charset=utf-8,${encodeURIComponent(body)}`;
+        await Linking.openURL(dataUrl);
+      }
+    } catch (e) {
+      Alert.alert('Erro', 'Falha de rede ao exportar os dados.');
+    }
+  };
+
+  // RGPD — destroy the account. Two-step confirmation: a "Tem a certeza?"
+  // dialog, then a literal "DELETE" prompt that the server also enforces.
+  const handleDeleteAccount = () => {
+    Alert.alert(
+      'Eliminar conta',
+      'Esta ação é irreversível. Todos os seus favoritos, visitas, badges e contributos serão apagados em 30 dias. Pretende mesmo continuar?',
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        {
+          text: 'Continuar',
+          style: 'destructive',
+          onPress: () => {
+            // Tier 2: ask for the literal "DELETE" string to avoid accidental
+            // taps. On native we use Alert.prompt where available; on web we
+            // fall back to window.prompt.
+            const ask = (cb: (value: string | null) => void) => {
+              if (Platform.OS === 'ios' && (Alert as any).prompt) {
+                (Alert as any).prompt(
+                  'Confirme com "DELETE"',
+                  'Escreva DELETE em maiúsculas para confirmar.',
+                  [
+                    { text: 'Cancelar', style: 'cancel', onPress: () => cb(null) },
+                    { text: 'Eliminar', style: 'destructive', onPress: cb },
+                  ],
+                  'plain-text'
+                );
+              } else if (typeof window !== 'undefined' && (window as any).prompt) {
+                cb((window as any).prompt('Escreva DELETE para confirmar a eliminação.'));
+              } else {
+                cb('DELETE'); // Android: confirmation already happened in tier 1
+              }
+            };
+            ask(async (value) => {
+              if (value !== 'DELETE') return;
+              try {
+                const res = await fetch(`${API_BASE}/auth/delete-account`, {
+                  method: 'POST',
+                  headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${sessionToken}`,
+                  },
+                  body: JSON.stringify({ confirm: 'DELETE' }),
+                });
+                if (!res.ok) {
+                  const detail = await res.json().catch(() => ({}));
+                  Alert.alert('Não foi possível eliminar', detail?.detail || 'Tente mais tarde.');
+                  return;
+                }
+                Alert.alert('Conta eliminada', 'Os seus dados serão purgados em 30 dias.');
+                logout();
+              } catch (e) {
+                Alert.alert('Erro', 'Falha de rede ao eliminar a conta.');
+              }
+            });
+          },
+        },
+      ]
+    );
+  };
+
   if (authLoading) {
     return (
       <View style={[styles.container, { backgroundColor: colors.background, justifyContent: 'center', alignItems: 'center', paddingTop: insets.top }]}>
@@ -149,6 +246,15 @@ function ProfileScreen() {
               <MaterialIcons name="login" size={20} color="#FFFFFF" />
               <Text style={styles.loginButtonText}>Entrar com Google</Text>
             </TouchableOpacity>
+            <View style={styles.legalLinksRow}>
+              <Text style={[styles.legalLink, { color: colors.textMuted }]} onPress={() => router.push('/privacy' as any)}>
+                Política de Privacidade
+              </Text>
+              <Text style={[styles.legalLinkSep, { color: colors.textMuted }]}>·</Text>
+              <Text style={[styles.legalLink, { color: colors.textMuted }]} onPress={() => router.push('/terms' as any)}>
+                Termos
+              </Text>
+            </View>
           </View>
 
           {/* Stats */}
@@ -293,6 +399,58 @@ function ProfileScreen() {
                 <Text style={[styles.actionText, { color: colors.textPrimary }]}>{t('profile.language')}</Text>
                 <Text style={[styles.languageCurrent, { color: colors.textMuted }]}>{currentLang.flag} {currentLang.name}</Text>
               </View>
+              <MaterialIcons name="chevron-right" size={20} color={colors.textMuted} />
+            </TouchableOpacity>
+          </View>
+
+          {/* Conta e Privacidade — RGPD */}
+          <View style={[styles.quickActions, { backgroundColor: colors.surface, borderColor: colors.borderLight, marginTop: 16 }]}>
+            <TouchableOpacity
+              style={[styles.actionButton, { borderBottomColor: colors.borderLight, borderBottomWidth: 1 }]}
+              onPress={() => router.push('/privacy' as any)}
+              accessibilityLabel="Política de Privacidade"
+              accessibilityRole="button"
+            >
+              <View style={[styles.actionIcon, { backgroundColor: colors.info + '15' }]}>
+                <MaterialIcons name="privacy-tip" size={24} color={colors.info} />
+              </View>
+              <Text style={[styles.actionText, { color: colors.textPrimary }]}>Política de Privacidade</Text>
+              <MaterialIcons name="chevron-right" size={20} color={colors.textMuted} />
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.actionButton, { borderBottomColor: colors.borderLight, borderBottomWidth: 1 }]}
+              onPress={() => router.push('/terms' as any)}
+              accessibilityLabel="Termos de Utilização"
+              accessibilityRole="button"
+            >
+              <View style={[styles.actionIcon, { backgroundColor: colors.info + '15' }]}>
+                <MaterialIcons name="description" size={24} color={colors.info} />
+              </View>
+              <Text style={[styles.actionText, { color: colors.textPrimary }]}>Termos de Utilização</Text>
+              <MaterialIcons name="chevron-right" size={20} color={colors.textMuted} />
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.actionButton, { borderBottomColor: colors.borderLight, borderBottomWidth: 1 }]}
+              onPress={handleExportData}
+              accessibilityLabel="Exportar os meus dados"
+              accessibilityRole="button"
+            >
+              <View style={[styles.actionIcon, { backgroundColor: colors.success + '15' }]}>
+                <MaterialIcons name="download" size={24} color={colors.success} />
+              </View>
+              <Text style={[styles.actionText, { color: colors.textPrimary }]}>Exportar os meus dados</Text>
+              <MaterialIcons name="chevron-right" size={20} color={colors.textMuted} />
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.actionButton, { borderBottomWidth: 0 }]}
+              onPress={handleDeleteAccount}
+              accessibilityLabel="Eliminar conta"
+              accessibilityRole="button"
+            >
+              <View style={[styles.actionIcon, { backgroundColor: colors.error + '15' }]}>
+                <MaterialIcons name="delete-forever" size={24} color={colors.error} />
+              </View>
+              <Text style={[styles.actionText, { color: colors.error }]}>Eliminar conta</Text>
               <MaterialIcons name="chevron-right" size={20} color={colors.textMuted} />
             </TouchableOpacity>
           </View>
@@ -507,6 +665,9 @@ const styles = StyleSheet.create({
   loginSubtitle: { fontSize: 15, textAlign: 'center', lineHeight: 22, marginBottom: 32 },
   loginButton: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 24, paddingVertical: 14, borderRadius: 14, gap: 8 },
   loginButtonText: { fontSize: 16, fontWeight: '700', color: '#FFFFFF' },
+  legalLinksRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginTop: 12, gap: 8 },
+  legalLink: { fontSize: 12, textDecorationLine: 'underline' },
+  legalLinkSep: { fontSize: 12 },
   statsCard: { marginHorizontal: 20, marginTop: 40, borderRadius: 18, padding: 20, borderWidth: 1, ...shadows.md },
   statsTitle: { fontSize: 14, fontWeight: '600', textAlign: 'center', marginBottom: 16 },
   statsRow: { flexDirection: 'row', justifyContent: 'space-around' },

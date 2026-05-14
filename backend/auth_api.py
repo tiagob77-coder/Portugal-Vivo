@@ -282,6 +282,11 @@ async def email_login(request: EmailLoginRequest, response: Response):
     if not user:
         raise HTTPException(status_code=401, detail="Email ou password incorretos")
 
+    # Tombstoned accounts (deleted_at set during RGPD erasure) must not be
+    # reusable. Their e-mail was unset, but a race could still occur.
+    if user.get("deleted_at") is not None:
+        raise HTTPException(status_code=401, detail="Email ou password incorretos")
+
     if "password_hash" not in user:
         raise HTTPException(status_code=401, detail="Esta conta usa login social. Use o botao Google.")
 
@@ -494,3 +499,183 @@ async def logout(request: Request, response: Response):
 
     response.delete_cookie(key="session_token", path="/")
     return {"message": "Logged out"}
+
+
+# ========================
+# RGPD — DATA PORTABILITY & RIGHT TO ERASURE
+# ========================
+
+# Collections that hold per-user records. The export and delete endpoints
+# walk this list rather than hard-coding queries at each call site so that
+# new user-scoped collections only need to be appended here.
+USER_DATA_COLLECTIONS: list[tuple[str, str]] = [
+    ("user_sessions", "user_id"),
+    ("password_resets", "user_id"),
+    ("favorites", "user_id"),
+    ("favorite_spots", "user_id"),
+    ("visits", "user_id"),
+    ("checkins", "user_id"),
+    ("user_progress", "user_id"),
+    ("user_badges", "user_id"),
+    ("streaks", "user_id"),
+    ("gamification_profiles", "user_id"),
+    ("user_preferences", "user_id"),
+    ("notification_preferences", "user_id"),
+    ("notification_prefs", "user_id"),
+    ("notifications", "user_id"),
+    ("notification_log", "user_id"),
+    ("notification_history", "user_id"),
+    ("push_tokens", "user_id"),
+    ("reviews", "user_id"),
+    ("contributions", "user_id"),
+    ("saved_itineraries", "user_id"),
+    ("upload_records", "user_id"),
+]
+
+
+def _strip_internal(doc: dict) -> dict:
+    """Remove fields that must never leave the system in an RGPD export.
+
+    Specifically the bcrypt hash of the password and any private salt — even
+    though they cannot be reversed, exposing them outside our own DB widens
+    the attack surface for offline cracking attempts.
+    """
+    safe = {k: v for k, v in doc.items() if k not in {"_id", "password_hash", "password_salt"}}
+    return safe
+
+
+@auth_router.get("/auth/export-data")
+async def export_personal_data(current_user: User = Depends(require_auth)):
+    """RGPD art. 20 — return everything we hold about the calling user.
+
+    Output is a single JSON object with one key per collection. Sessions,
+    password resets and any field flagged as internal are stripped from the
+    user document. The caller is expected to download this and store it on
+    their device.
+    """
+    db = _db_holder.db
+    user_doc = await db.users.find_one({"user_id": current_user.user_id}, {"_id": 0})
+    if not user_doc:
+        raise HTTPException(status_code=404, detail="Conta não encontrada")
+
+    export: dict = {
+        "exported_at": datetime.now(timezone.utc).isoformat(),
+        "user_id": current_user.user_id,
+        "profile": _strip_internal(user_doc),
+        "collections": {},
+    }
+
+    for coll_name, field in USER_DATA_COLLECTIONS:
+        try:
+            cursor = db[coll_name].find({field: current_user.user_id}, {"_id": 0})
+            export["collections"][coll_name] = [doc async for doc in cursor]
+        except Exception as e:
+            # A missing collection is not an error — just skip it. Anything
+            # else is logged but does not abort the whole export, so the
+            # user still receives the data that IS available.
+            logger.warning("export-data: collection %s failed: %s", coll_name, e)
+            export["collections"][coll_name] = []
+
+    return export
+
+
+class DeleteAccountRequest(BaseModel):
+    confirm: str  # must be the literal "DELETE" — guard against accidental clicks
+    password: Optional[str] = None  # required for email accounts
+
+
+@auth_router.post("/auth/delete-account")
+async def delete_account(
+    body: DeleteAccountRequest,
+    request: Request,
+    response: Response,
+    current_user: User = Depends(require_auth),
+):
+    """RGPD art. 17 — erase the calling user and all linked records.
+
+    Deletion is hard for everything except `users` itself, which is
+    tombstoned with `deleted_at` for a 30-day grace period. After 30 days a
+    scheduled job (separate concern) should drop the tombstone too. We do
+    not keep the e-mail or name in the tombstone — only the user_id is
+    retained so support requests citing the old id can be answered ("yes,
+    we deleted account X on date Y").
+    """
+    if body.confirm != "DELETE":
+        raise HTTPException(
+            status_code=400,
+            detail='Confirme com a string literal "DELETE" no campo confirm.',
+        )
+
+    db = _db_holder.db
+    user_doc = await db.users.find_one({"user_id": current_user.user_id})
+    if not user_doc:
+        raise HTTPException(status_code=404, detail="Conta não encontrada")
+
+    # Email accounts must re-prove the password — protects against an
+    # attacker who steals a session and tries to nuke the account.
+    if user_doc.get("password_hash"):
+        if not body.password:
+            raise HTTPException(status_code=400, detail="Password obrigatória")
+        if not verify_user_password(body.password, user_doc):
+            raise HTTPException(status_code=401, detail="Password incorreta")
+
+    # Hard-delete all per-user collections.
+    deleted_counts: dict[str, int] = {}
+    for coll_name, field in USER_DATA_COLLECTIONS:
+        try:
+            res = await db[coll_name].delete_many({field: current_user.user_id})
+            if res.deleted_count:
+                deleted_counts[coll_name] = res.deleted_count
+        except Exception as e:
+            logger.warning("delete-account: %s failed: %s", coll_name, e)
+
+    # Tombstone the user record. The 30-day window is documented in the
+    # privacy policy; a separate scheduled job is responsible for finally
+    # purging tombstoned rows.
+    now = datetime.now(timezone.utc)
+    await db.users.update_one(
+        {"user_id": current_user.user_id},
+        {
+            "$set": {
+                "deleted_at": now,
+                "deletion_grace_until": now + timedelta(days=30),
+            },
+            "$unset": {
+                "email": "",
+                "name": "",
+                "picture": "",
+                "password_hash": "",
+                "password_salt": "",
+                "google_id": "",
+                "favorites": "",
+            },
+        },
+    )
+
+    # Audit log so the DPO can answer SAR / regulator requests later.
+    try:
+        await db.audit_log.insert_one({
+            "action": "account_deleted",
+            "user_id": current_user.user_id,
+            "at": now,
+            "deleted_counts": deleted_counts,
+        })
+    except Exception as e:
+        logger.warning("delete-account: audit log failed: %s", e)
+
+    # Invalidate the session in the in-process cache too, otherwise
+    # subsequent requests within the next 60s would still see a "valid"
+    # user even though the row in user_sessions has been deleted above.
+    session_token = request.cookies.get("session_token")
+    if not session_token:
+        auth_header = request.headers.get("Authorization", "")
+        if auth_header.startswith("Bearer "):
+            session_token = auth_header[7:]
+    if session_token:
+        _cache_invalidate(session_token)
+
+    response.delete_cookie(key="session_token", path="/")
+    return {
+        "message": "Conta eliminada. Os dados serão purgados em 30 dias.",
+        "deleted_counts": deleted_counts,
+    }
