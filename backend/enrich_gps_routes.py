@@ -201,10 +201,11 @@ async def enrich_pois_with_gps():
 
         if coords:
             lat, lng = coords
-            # Add small random offset to avoid stacking
-            import random
-            lat += random.uniform(-0.01, 0.01)
-            lng += random.uniform(-0.01, 0.01)
+            # Stacking on the map (multiple POIs at identical coords) is a
+            # rendering problem and must be solved at render time with
+            # clustering or spiderfication — NOT by mutating the stored
+            # coordinate. The previous ±0.01° jitter (~1.1 km) was
+            # degrading real GPS values for purely visual reasons.
 
             await db.heritage_items.update_one(
                 {'_id': poi['_id']},
