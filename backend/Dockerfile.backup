@@ -1,0 +1,37 @@
+# =============================================================================
+# Portugal Vivo — Backup container
+#
+# A thin image that bundles ``mongodump`` (from the official mongo:6 image)
+# with Python 3 plus the ``backup_mongodb.py`` script and its only runtime
+# dependency, ``boto3``.
+#
+# The container is intentionally tiny — it runs ``backup_mongodb.py`` once and
+# exits. ``docker-compose.prod.yml`` keeps it alive by wrapping it in a
+# ``while :; do … sleep 86400; done`` entrypoint so the service produces one
+# backup per day. A separate cron host could just as well invoke
+# ``docker compose run --rm backup`` once a day; either pattern is fine.
+# =============================================================================
+FROM mongo:6
+
+# Add Python 3 + pip, install boto3 (S3 client used by the script when
+# S3_BACKUP_BUCKET is configured), then clean apt caches to keep the image
+# slim. Pillow / numpy / pandas etc. are NOT needed here.
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends python3 python3-pip ca-certificates \
+    && rm -rf /var/lib/apt/lists/* \
+    && pip3 install --no-cache-dir --break-system-packages boto3==1.42.29
+
+WORKDIR /app
+
+# Only the backup script needs to live in the image — the rest of the backend
+# would be dead weight. Run as non-root inside compose for defence in depth.
+COPY backup_mongodb.py /app/backup_mongodb.py
+RUN useradd -m -u 10001 backupper \
+    && mkdir -p /backups \
+    && chown -R backupper:backupper /app /backups
+USER backupper
+
+VOLUME ["/backups"]
+
+# One-shot by default; the compose service wraps this in a sleep loop.
+CMD ["python3", "/app/backup_mongodb.py"]

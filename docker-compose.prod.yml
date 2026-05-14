@@ -124,6 +124,52 @@ services:
     # Renovar a cada 12h (Certbot só renova se faltarem < 30 dias)
     entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew --webroot -w /var/www/certbot; sleep 12h & wait $${!}; done;'"
 
+  # ─────────────────────────────────────────────
+  # Backup — mongodump diário com retenção 7d/4w/3m
+  # Activar com:  docker compose -f docker-compose.prod.yml --profile backup up -d
+  # O profile mantém o serviço fora dos arranques normais; activar
+  # apenas em hosts com espaço em disco (e idealmente S3) preparado.
+  # ─────────────────────────────────────────────
+  backup:
+    profiles: ["backup"]
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.backup
+    restart: always
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    environment:
+      # Apontar para a base interna do compose. A password vem do mesmo
+      # secret usado pelo backend.
+      MONGO_URL: "mongodb://pv_app:${MONGO_APP_PASSWORD}@mongodb:27017/portugal_vivo?authSource=portugal_vivo"
+      DB_NAME: "portugal_vivo"
+      BACKUP_DIR: "/backups"
+      # Opcional — quando definidas, o script faz upload do dump para S3
+      # e elimina cópias antigas conforme a retenção. Sem estes valores
+      # mantém apenas as cópias locais em /backups.
+      S3_BACKUP_BUCKET: "${S3_BACKUP_BUCKET:-}"
+      S3_BACKUP_PREFIX: "${S3_BACKUP_PREFIX:-mongodb-backups/}"
+      AWS_ACCESS_KEY_ID: "${AWS_ACCESS_KEY_ID:-}"
+      AWS_SECRET_ACCESS_KEY: "${AWS_SECRET_ACCESS_KEY:-}"
+      AWS_REGION: "${AWS_REGION:-eu-west-1}"
+    volumes:
+      - backup_data:/backups
+    # One mongodump + retention pass per day. A simple sleep loop is the
+    # right shape for a single-host compose deploy; if we move to k8s the
+    # CronJob primitive replaces this.
+    entrypoint:
+      [
+        "/bin/sh",
+        "-c",
+        "trap exit TERM; while :; do python3 /app/backup_mongodb.py || echo 'backup failed'; sleep 86400 & wait $${!}; done",
+      ]
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "5m"
+        max-file: "3"
+
 volumes:
   mongo_data:
     driver: local
@@ -132,4 +178,6 @@ volumes:
   certbot_data:
     driver: local
   certbot_www:
+    driver: local
+  backup_data:
     driver: local
