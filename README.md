@@ -23,7 +23,7 @@ O Portugal Vivo é uma aplicação viva que guia o utilizador por Portugal atrav
 - **Audio guides** — TTS com 9 vozes e 6 idiomas (premium)
 - **i18n** — PT, EN, ES, FR
 - **Multi-tenant** — isolamento por município com JWT (filtro automático em geo / list queries)
-- **11 modos de mapa** e **44 subcategorias de layers** (markers, explorador, heatmap, trails, epochs, timeline, proximity, noturno, satellite, técnico, premium)
+- **12 modos de mapa** e **44 subcategorias de layers** (markers, rotas, explorador, heatmap, trails, epochs, timeline, proximity, noturno, satellite, técnico, premium)
 
 ---
 

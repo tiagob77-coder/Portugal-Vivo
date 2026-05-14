@@ -165,17 +165,18 @@ async def update_poi_images():
     """Atualiza todos os POIs com imagens do Cloudinary"""
     print("🔄 A atualizar imagens dos POIs...")
     
-    # Buscar todos os POIs sem imagem ou com imagem None
-    pois = await db.heritage_items.find({
+    # Buscar todos os POIs sem imagem ou com imagem None.
+    # Stream-iterate to avoid loading every POI into memory at once.
+    cursor = db.heritage_items.find({
         "$or": [
             {"image_url": None},
             {"image_url": {"$exists": False}},
             {"image_url": ""}
         ]
-    }).to_list(None)
-    
+    }).batch_size(200)
+    pois = [poi async for poi in cursor]
     print(f"📍 Encontrados {len(pois)} POIs sem imagem")
-    
+
     updated = 0
     for poi in pois:
         image_url = get_image_for_poi(poi['name'], poi.get('category', ''))

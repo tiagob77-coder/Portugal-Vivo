@@ -1,0 +1,14 @@
+# Portugal Vivo — robots.txt
+# Public PWA available to indexing; API and admin endpoints are not for crawlers.
+
+User-agent: *
+Allow: /
+Disallow: /api/
+Disallow: /admin/
+Disallow: /admin
+Disallow: /dashboard
+Disallow: /content-toolkit
+Disallow: /settings/
+Disallow: /profile/
+
+Sitemap: https://portugalvivo.pt/sitemap.xml

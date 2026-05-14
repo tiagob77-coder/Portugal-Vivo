@@ -54,7 +54,10 @@ def _cache_put(token: str, user: Optional[User]) -> None:
 def _cache_invalidate(token: str) -> None:
     _session_cache.pop(token, None)
 
-AUTH_BACKEND_URL = os.environ.get("AUTH_BACKEND_URL", "https://demobackend.emergentagent.com")
+# AUTH_BACKEND_URL is only used by the legacy /auth/session exchange flow for
+# OAuth-via-Emergent. No default is provided: if the deployment does not set
+# the variable, the exchange endpoint refuses to call out to a third party.
+AUTH_BACKEND_URL = os.environ.get("AUTH_BACKEND_URL", "").strip()
 ADMIN_SECRET = os.environ.get("ADMIN_SECRET", "")
 
 auth_router = APIRouter()
@@ -199,10 +202,19 @@ def validate_email(email: str) -> str:
 
 
 def validate_password(password: str) -> str:
-    if len(password) < 6:
-        raise ValueError("Password deve ter pelo menos 6 caracteres")
+    if len(password) < 8:
+        raise ValueError("Password deve ter pelo menos 8 caracteres")
     if len(password) > 128:
         raise ValueError("Password demasiado longa")
+    # Reject the worst-of-the-worst common passwords. Defence-in-depth, not a
+    # substitute for a full HIBP check — but it costs nothing and stops the
+    # obvious cases (password, 12345678, qwerty...).
+    lowered = password.lower()
+    if lowered in {
+        "password", "passw0rd", "12345678", "123456789", "qwertyui", "qwerty12",
+        "abcd1234", "11111111", "00000000", "portugal", "portugal1",
+    }:
+        raise ValueError("Password demasiado comum — escolha outra")
     return password
 
 
@@ -394,6 +406,14 @@ async def reset_password(token: str, new_password: str):
 @auth_router.post("/auth/session")
 async def exchange_session(request: Request, response: Response):
     """Exchange session_id for session_token"""
+    if not AUTH_BACKEND_URL:
+        # Refuse to silently call a third-party demo backend in production.
+        # Deployments that need this legacy flow must opt in by setting the env var.
+        raise HTTPException(
+            status_code=503,
+            detail="Session exchange disabled: AUTH_BACKEND_URL not configured",
+        )
+
     session_id = request.headers.get("X-Session-ID")
     if not session_id:
         raise HTTPException(status_code=400, detail="Session ID required")

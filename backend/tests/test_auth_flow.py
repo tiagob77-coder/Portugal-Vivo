@@ -114,12 +114,12 @@ class TestPasswordValidation:
 
     def test_valid_password(self):
         from auth_api import validate_password
-        assert validate_password("valid123") == "valid123"
+        assert validate_password("valid12345") == "valid12345"
 
     def test_password_too_short(self):
         from auth_api import validate_password
-        with pytest.raises(ValueError, match="pelo menos 6"):
-            validate_password("12345")
+        with pytest.raises(ValueError, match="pelo menos 8"):
+            validate_password("1234567")
 
     def test_password_too_long(self):
         from auth_api import validate_password
@@ -128,11 +128,18 @@ class TestPasswordValidation:
 
     def test_password_min_length(self):
         from auth_api import validate_password
-        assert validate_password("123456") == "123456"
+        # Boundary case: exactly 8 chars, not in the common-password blocklist.
+        assert validate_password("abcd1235") == "abcd1235"
 
     def test_password_max_length(self):
         from auth_api import validate_password
         assert validate_password("x" * 128) == "x" * 128
+
+    def test_password_common_rejected(self):
+        from auth_api import validate_password
+        for common in ("password", "12345678", "qwerty12", "portugal"):
+            with pytest.raises(ValueError, match="demasiado comum"):
+                validate_password(common)
 
 
 # ---------------------------------------------------------------------------
@@ -174,29 +181,29 @@ class TestAuthModels:
 
     def test_login_request_valid(self):
         from auth_api import EmailLoginRequest
-        req = EmailLoginRequest(email="user@test.com", password="pass123")
+        req = EmailLoginRequest(email="user@test.com", password="pass1234")
         assert req.email == "user@test.com"
 
     def test_login_request_bad_email(self):
         from auth_api import EmailLoginRequest
         with pytest.raises(ValidationError):
-            EmailLoginRequest(email="not-email", password="pass123")
+            EmailLoginRequest(email="not-email", password="pass1234")
 
     def test_register_request_valid(self):
         from auth_api import EmailRegisterRequest
-        req = EmailRegisterRequest(email="new@test.com", password="pass123", name="Test User")
+        req = EmailRegisterRequest(email="new@test.com", password="pass1234", name="Test User")
         assert req.email == "new@test.com"
         assert req.name == "Test User"
 
     def test_register_short_password(self):
         from auth_api import EmailRegisterRequest
         with pytest.raises(ValidationError):
-            EmailRegisterRequest(email="new@test.com", password="12345", name="Test")
+            EmailRegisterRequest(email="new@test.com", password="1234567", name="Test")
 
     def test_register_short_name(self):
         from auth_api import EmailRegisterRequest
         with pytest.raises(ValidationError):
-            EmailRegisterRequest(email="new@test.com", password="pass123", name="A")
+            EmailRegisterRequest(email="new@test.com", password="pass1234", name="A")
 
     def test_forgot_password_valid(self):
         from auth_api import ForgotPasswordRequest

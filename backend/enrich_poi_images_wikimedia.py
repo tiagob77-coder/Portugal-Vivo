@@ -168,9 +168,10 @@ async def main() -> None:
             {"image_url": {"$exists": False}},
             {"image_url": ""},
         ]
-    })
+    }).batch_size(200)
 
-    pois = await cursor.to_list(None)
+    # Stream-iterate to avoid materialising thousands of POIs at once.
+    pois = [poi async for poi in cursor]
     total_updated = 0
     headers = {"User-Agent": "PortugalVivo/1.0 (educational; contact@portugalvivo.pt)"}
 
