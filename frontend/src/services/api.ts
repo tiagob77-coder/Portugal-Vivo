@@ -1,6 +1,6 @@
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { HeritageItem, Route, Category, MainCategory, Subcategory, Region, User, Stats } from '../types';
+import { HeritageItem, Route, Category, MainCategory, Subcategory, Region, User, Stats, ApiParams } from '../types';
 import offlineCache from './offlineCache';
 
 import { API_BASE } from '../config/api';
@@ -113,7 +113,7 @@ export const getMapItems = async (
   region?: string,
   limit?: number,
 ): Promise<HeritageItem[]> => {
-  const params: any = {};
+  const params: ApiParams = {};
   if (categories && categories.length > 0) {
     params.categories = categories.join(',');
   }
@@ -402,7 +402,7 @@ export const getRouteDirections = async (
   destination: string,
   waypoints?: string[]
 ): Promise<DirectionsResponse> => {
-  const params: any = { origin, destination };
+  const params: ApiParams = { origin, destination };
   if (waypoints && waypoints.length > 0) {
     params.waypoints = waypoints;
   }
@@ -984,7 +984,7 @@ export const getDiscoveryFeed = async (
   traveler_profile?: string,
   category?: string
 ): Promise<DiscoveryFeedResponse> => {
-  const headers: any = { 'Content-Type': 'application/json' };
+  const headers: Record<string, string> = { 'Content-Type': 'application/json' };
   if (token) headers.Authorization = `Bearer ${token}`;
   const response = await api.post('/discover/feed',
     { lat, lng, limit: limit || 30, traveler_profile, category: category || null },
@@ -1003,7 +1003,7 @@ export const getHojeFeed = async (lat?: number, lng?: number, date?: string) => 
 };
 
 export const getSurprisePOI = async (traveler_profile?: string, region?: string) => {
-  const params: any = {};
+  const params: ApiParams = {};
   if (traveler_profile) params.traveler_profile = traveler_profile;
   if (region) params.region = region;
   const response = await api.get('/discover/surprise', { params });
@@ -1621,7 +1621,7 @@ export const processPoiIQ = async (
   tenantId: string,
   modules?: string[]
 ): Promise<IQProcessResult> => {
-  const config: any = {
+  const config: { params?: ApiParams; headers?: Record<string, string> } = {
     headers: { 'X-Tenant-ID': tenantId },
   };
   const response = await api.post(

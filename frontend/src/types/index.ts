@@ -287,3 +287,39 @@ export interface LongDistanceTrail {
   region: string;
   description: string;
 }
+
+// ─── Generic shapes used across api.ts and screens ────────────────────────────
+//
+// These exist so the codebase has a single named alias for "any JSON-ish
+// payload" instead of leaking raw `any` into every signature. Use them
+// when you genuinely do not know the shape; otherwise prefer a concrete
+// interface above.
+
+/** A JSON value — the most permissive type-safe shape. */
+export type Json =
+  | string
+  | number
+  | boolean
+  | null
+  | Json[]
+  | { [key: string]: Json };
+
+/** A plain object record where the keys are strings. Use for query-param
+ *  bags, request bodies and other "loose" object payloads. */
+export type AnyRecord = Record<string, unknown>;
+
+/** Scalar values an axios query param can take. Lists are accepted too
+ *  because axios serialises arrays into repeated `?key=a&key=b` pairs,
+ *  which is what e.g. waypoint endpoints rely on. */
+export type ApiParamValue = string | number | boolean | undefined | string[] | number[];
+
+/** Shape of axios request params we build in api.ts. */
+export type ApiParams = Record<string, ApiParamValue>;
+
+/** A paginated response envelope used by most list endpoints. */
+export interface Paginated<T> {
+  items: T[];
+  total: number;
+  page?: number;
+  limit?: number;
+}

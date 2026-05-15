@@ -20,6 +20,12 @@ module.exports = defineConfig([
           caughtErrorsIgnorePattern: '^_',
         },
       ],
+      // FE-001 — the rule is left at the expo-config default ('off' for
+      // legacy reasons). Switching it on (even at 'warn') made `expo lint`
+      // fail because the runner uses --max-warnings 0 by default and the
+      // codebase still has ~150 audit-tracked `any` usages. Re-enable once
+      // they are migrated file-by-file:
+      // '@typescript-eslint/no-explicit-any': 'warn',
       'import/no-named-as-default': 'off',
     },
   },
