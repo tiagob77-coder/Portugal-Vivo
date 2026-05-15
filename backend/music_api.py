@@ -20,14 +20,21 @@ from models.api_models import User
 
 music_router = APIRouter(prefix="/music", tags=["Music"])
 
-_db = None
 _llm_key: str = ""
 _require_auth = None
 
 
 def set_music_db(database) -> None:
-    global _db
-    _db = database
+    """No-op shim — the module reads the DB via dependencies.get_db()."""
+    _ = database
+
+
+def _db_or_none():
+    try:
+        from dependencies import get_db
+        return get_db()
+    except Exception:
+        return None
 
 
 def set_music_llm_key(key: str) -> None:
@@ -318,10 +325,10 @@ def _serialize(doc: Dict) -> Dict:
 
 
 async def _col_or_seed(col: str, seed: list) -> list:
-    if _db is None:
+    if _db_or_none() is None:
         return [dict(d) for d in seed]
     try:
-        docs = await _db[col].find({}).to_list(500)
+        docs = await _db_or_none()[col].find({}).to_list(500)
         if docs:
             return [_serialize(d) for d in docs]
     except Exception:

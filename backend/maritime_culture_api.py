@@ -22,14 +22,21 @@ from shared_utils import apply_municipality_filter
 
 maritime_culture_router = APIRouter(prefix="/maritime-culture", tags=["Maritime Culture"])
 
-_db = None
 _llm_key: str = ""
 _require_auth = None
 
 
 def set_maritime_culture_db(database) -> None:
-    global _db
-    _db = database
+    """No-op shim — the module reads the DB via dependencies.get_db()."""
+    _ = database
+
+
+def _db_or_none():
+    try:
+        from dependencies import get_db
+        return get_db()
+    except Exception:
+        return None
 
 
 def set_maritime_culture_llm_key(key: str) -> None:
@@ -339,13 +346,13 @@ def _serialize(doc: Dict) -> Dict:
 
 async def _col_or_seed(col: str, seed: List[Dict], query: Optional[Dict] = None) -> List[Dict]:
     q = query or {}
-    if _db is None:
+    if _db_or_none() is None:
         docs = [dict(d) for d in seed]
         if q.get("municipality_id"):
             docs = [d for d in docs if d.get("municipality_id") == q["municipality_id"]]
         return docs
     try:
-        docs = await _db[col].find(q).to_list(500)
+        docs = await _db_or_none()[col].find(q).to_list(500)
         if docs:
             return [_serialize(d) for d in docs]
     except Exception:
