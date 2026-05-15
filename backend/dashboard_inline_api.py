@@ -19,13 +19,19 @@ logger = logging.getLogger(__name__)
 
 dashboard_inline_router = APIRouter()
 
-_db = None
 _redis_lb = None
 
 
 def set_dashboard_inline_db(database):
-    global _db
-    _db = database
+    """No-op shim — the module reads the DB via dependencies.get_db()."""
+    _ = database
+
+
+def _db():
+    """Lazy resolver — see ARCH-002. Keeps existing `_db.coll` call sites
+    intact (they only gain parentheses)."""
+    from dependencies import get_db
+    return get_db()
 
 
 def set_dashboard_redis_lb(lb):
@@ -65,7 +71,7 @@ class UserDashboardProgress(BaseModel):
 async def record_visit(poi_id: str, current_user: User = Depends(require_auth)):
     """Record a visit to a POI and update user progress"""
     # Get POI details
-    poi = await _db.heritage_items.find_one({"id": poi_id}, {"_id": 0})
+    poi = await _db().heritage_items.find_one({"id": poi_id}, {"_id": 0})
     if not poi:
         raise HTTPException(status_code=404, detail="POI not found")
 
@@ -82,13 +88,13 @@ async def record_visit(poi_id: str, current_user: User = Depends(require_auth)):
     }
 
     try:
-        await _db.visits.insert_one(visit)
+        await _db().visits.insert_one(visit)
     except Exception as e:
         logger.error("Failed to insert visit: %s", e)
         raise HTTPException(status_code=500, detail="Erro ao registar visita")
 
     # Get or create user progress
-    progress = await _db.user_progress.find_one({"user_id": current_user.user_id}, {"_id": 0})
+    progress = await _db().user_progress.find_one({"user_id": current_user.user_id}, {"_id": 0})
     if not progress:
         progress = {
             "user_id": current_user.user_id,
@@ -107,7 +113,7 @@ async def record_visit(poi_id: str, current_user: User = Depends(require_auth)):
     today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
 
     # Check if this is a new POI
-    existing_visit = await _db.visits.find_one({
+    existing_visit = await _db().visits.find_one({
         "user_id": current_user.user_id,
         "poi_id": poi_id,
         "id": {"$ne": visit["id"]}
@@ -180,7 +186,7 @@ async def record_visit(poi_id: str, current_user: User = Depends(require_auth)):
 
     # Save progress
     try:
-        await _db.user_progress.update_one(
+        await _db().user_progress.update_one(
             {"user_id": current_user.user_id},
             {"$set": progress},
             upsert=True
@@ -208,7 +214,7 @@ async def record_visit(poi_id: str, current_user: User = Depends(require_auth)):
 @dashboard_inline_router.get("/dashboard/progress")
 async def get_user_progress(current_user: User = Depends(require_auth)):
     """Get user's dashboard progress"""
-    progress = await _db.user_progress.find_one({"user_id": current_user.user_id}, {"_id": 0})
+    progress = await _db().user_progress.find_one({"user_id": current_user.user_id}, {"_id": 0})
 
     if not progress:
         progress = {
@@ -255,7 +261,7 @@ async def get_user_progress(current_user: User = Depends(require_auth)):
 @dashboard_inline_router.get("/dashboard/badges")
 async def get_badges(current_user: User = Depends(require_auth)):
     """Get all badges with user's progress"""
-    progress = await _db.user_progress.find_one({"user_id": current_user.user_id}, {"_id": 0})
+    progress = await _db().user_progress.find_one({"user_id": current_user.user_id}, {"_id": 0})
     earned_badges = progress["badges_earned"] if progress else []
 
     badges = []
@@ -285,7 +291,7 @@ async def get_badges(current_user: User = Depends(require_auth)):
 @dashboard_inline_router.get("/dashboard/statistics")
 async def get_statistics(current_user: User = Depends(require_auth)):
     """Get detailed statistics for user dashboard"""
-    progress = await _db.user_progress.find_one({"user_id": current_user.user_id}, {"_id": 0})
+    progress = await _db().user_progress.find_one({"user_id": current_user.user_id}, {"_id": 0})
 
     if not progress:
         return {
@@ -329,7 +335,7 @@ async def get_statistics(current_user: User = Depends(require_auth)):
 async def get_visit_history(limit: int = 20, current_user: User = Depends(require_auth)):
     """Get user's visit history"""
     _, limit = clamp_pagination(0, limit, max_limit=100)
-    visits = await _db.visits.find(
+    visits = await _db().visits.find(
         {"user_id": current_user.user_id},
         {"_id": 0}
     ).sort("timestamp", -1).limit(limit).to_list(limit)
@@ -341,14 +347,14 @@ async def get_visit_history(limit: int = 20, current_user: User = Depends(requir
 async def get_leaderboard(limit: int = 10):
     """Get top users leaderboard"""
     _, limit = clamp_pagination(0, limit, max_limit=100)
-    users = await _db.user_progress.find(
+    users = await _db().user_progress.find(
         {},
         {"_id": 0}
     ).sort("total_points", -1).limit(limit).to_list(limit)
 
     # Batch fetch all user docs in one query (avoids N+1)
     user_ids = [u.get("user_id") for u in users if u.get("user_id")]
-    user_docs_list = await _db.users.find(
+    user_docs_list = await _db().users.find(
         {"user_id": {"$in": user_ids}},
         {"_id": 0, "user_id": 1, "name": 1, "picture": 1}
     ).to_list(len(user_ids))

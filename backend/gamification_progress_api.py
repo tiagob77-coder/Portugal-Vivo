@@ -17,12 +17,18 @@ logger = logging.getLogger(__name__)
 
 gamification_progress_router = APIRouter(tags=["Gamification"])
 
-_db = None
-
 
 def set_gamification_progress_db(database):
-    global _db
-    _db = database
+    """No-op shim — the module reads the DB via dependencies.get_db()."""
+    _ = database
+
+
+def _db():
+    """Lazy resolver for the live Motor database — kept as a function so
+    every existing ``_db.coll`` call site needs only to gain a pair of
+    parentheses (``_db().coll``)."""
+    from dependencies import get_db
+    return get_db()
 
 
 class UserProgress(BaseModel):
@@ -40,7 +46,7 @@ class UserProgress(BaseModel):
 @gamification_progress_router.get("/gamification/progress", tags=["Gamification"])
 async def get_gamification_progress(current_user: User = Depends(require_auth)):
     """Get user's gamification progress"""
-    progress = await _db.user_progress.find_one(
+    progress = await _db().user_progress.find_one(
         {"user_id": current_user.user_id},
         {"_id": 0}
     )
@@ -59,7 +65,7 @@ async def get_gamification_progress(current_user: User = Depends(require_auth)):
             "updated_at": datetime.now(timezone.utc)
         }
         try:
-            await _db.user_progress.insert_one(progress)
+            await _db().user_progress.insert_one(progress)
         except Exception as e:
             logger.error("Failed to create user progress: %s", e)
             raise HTTPException(status_code=500, detail="Erro ao criar progresso")
@@ -83,13 +89,13 @@ async def get_gamification_progress(current_user: User = Depends(require_auth)):
             current_progress = visits_count
         elif badge_type == "region":
             region = badge.get("region", "")
-            items_in_region = await _db.heritage_items.find(
+            items_in_region = await _db().heritage_items.find(
                 {"id": {"$in": progress.get("visits", [])}, "region": region}
             ).to_list(100)
             current_progress = len(items_in_region)
         elif badge_type == "category":
             category = badge.get("category", "")
-            items_in_cat = await _db.heritage_items.find(
+            items_in_cat = await _db().heritage_items.find(
                 {"id": {"$in": progress.get("visits", [])}, "category": category}
             ).to_list(100)
             current_progress = len(items_in_cat)
@@ -118,13 +124,13 @@ async def get_gamification_progress(current_user: User = Depends(require_auth)):
 async def record_gamification_visit(item_id: str, current_user: User = Depends(require_auth)):
     """Record a visit to a heritage item"""
     # Verify item exists
-    item = await _db.heritage_items.find_one({"id": item_id})
+    item = await _db().heritage_items.find_one({"id": item_id})
     if not item:
         raise HTTPException(status_code=404, detail="Item not found")
 
     # Update user progress
     try:
-        await _db.user_progress.update_one(
+        await _db().user_progress.update_one(
             {"user_id": current_user.user_id},
             {
                 "$addToSet": {"visits": item_id},
@@ -143,12 +149,12 @@ async def record_gamification_visit(item_id: str, current_user: User = Depends(r
 @gamification_progress_router.post("/gamification/complete-route/{route_id}")
 async def complete_route(route_id: str, current_user: User = Depends(require_auth)):
     """Mark a route as completed"""
-    route = await _db.routes.find_one({"id": route_id})
+    route = await _db().routes.find_one({"id": route_id})
     if not route:
         raise HTTPException(status_code=404, detail="Route not found")
 
     try:
-        await _db.user_progress.update_one(
+        await _db().user_progress.update_one(
             {"user_id": current_user.user_id},
             {
                 "$addToSet": {"routes_completed": route_id},
@@ -177,7 +183,7 @@ async def get_all_badges():
 @gamification_progress_router.get("/badges/user")
 async def get_user_badges(current_user: User = Depends(require_auth)):
     """Get current user's earned badges"""
-    user_badges = await _db.user_badges.find(
+    user_badges = await _db().user_badges.find(
         {"user_id": current_user.user_id},
         {"_id": 0}
     ).to_list(100)
@@ -206,7 +212,7 @@ async def get_user_badges(current_user: User = Depends(require_auth)):
 async def get_badges_progress(current_user: User = Depends(require_auth)):
     """Get user's progress towards all badges"""
     # Get user's visited items
-    user_progress = await _db.user_progress.find_one(
+    user_progress = await _db().user_progress.find_one(
         {"user_id": current_user.user_id},
         {"_id": 0}
     )
@@ -217,7 +223,7 @@ async def get_badges_progress(current_user: User = Depends(require_auth)):
     # Get items by category for universe badges
     items_by_universe = {}
     if visited_ids:
-        visited_heritage = await _db.heritage_items.find(
+        visited_heritage = await _db().heritage_items.find(
             {"id": {"$in": visited_ids}},
             {"_id": 0, "category": 1, "region": 1}
         ).to_list(1000)
@@ -240,7 +246,7 @@ async def get_badges_progress(current_user: User = Depends(require_auth)):
                 regions_visited.add(item["region"])
 
     # Get user's current badges
-    user_badges = await _db.user_badges.find(
+    user_badges = await _db().user_badges.find(
         {"user_id": current_user.user_id},
         {"_id": 0}
     ).to_list(100)
@@ -312,7 +318,7 @@ async def check_and_award_badges(current_user: User = Depends(require_auth)):
                 "visits_count": prog["visits"],
                 "points_earned": current_tier["points"]
             }
-            await _db.user_badges.insert_one(new_badge)
+            await _db().user_badges.insert_one(new_badge)
             new_badge.pop("_id", None)
             newly_awarded.append({
                 **new_badge,
@@ -332,7 +338,7 @@ async def check_and_award_badges(current_user: User = Depends(require_auth)):
             if new_level_index > current_level_index:
                 # Upgrade badge
                 points_diff = current_tier["points"] - user_badge.get("points_earned", 0)
-                await _db.user_badges.update_one(
+                await _db().user_badges.update_one(
                     {"user_id": current_user.user_id, "badge_id": badge["id"]},
                     {"$set": {
                         "level": current_tier["level"],
