@@ -112,7 +112,7 @@ async def get_stats(response: Response):
 # ========================
 
 @router.get("/admin/dashboard", tags=["Admin"])
-async def admin_dashboard():
+async def admin_dashboard(admin: User = Depends(_admin_dep)):
     """Unified admin dashboard with key metrics for POIs, users, subscriptions, and activity."""
     import asyncio
     from datetime import timedelta
@@ -209,13 +209,21 @@ _PT_LNG = (-31.5, -6.0)
 
 
 @router.get("/admin/pois/gps-audit", tags=["Admin"])
-async def admin_pois_gps_audit(limit: int = 500, offset: int = 0):
+async def admin_pois_gps_audit(
+    limit: int = 500,
+    offset: int = 0,
+    admin: User = Depends(_admin_dep),
+):
     """GPS quality audit for heritage_items POIs.
 
     Paginated to avoid loading the entire collection (~6k+ rows) into memory
     on each call. Callers paginate via `limit` (default 500, max 2000) and
     `offset`. The summary counts reported are scoped to the returned page —
     use the cursor to walk through the full set.
+
+    Admin-only: the report exposes the raw GPS coverage of the whole heritage
+    collection, which is editorial information that should not leak to
+    anonymous callers.
     """
     limit = max(1, min(limit, 2000))
     offset = max(0, offset)
@@ -305,6 +313,7 @@ async def admin_list_uploads(
     status: Optional[str] = None,
     limit: int = 50,
     skip: int = 0,
+    admin: User = Depends(_admin_dep),
 ):
     """List user-uploaded images for admin moderation."""
     query = {}
@@ -379,6 +388,7 @@ async def get_iq_score_by_module(
     module: Optional[str] = Query(None, description="trilhos | patrimonio | gastronomia | natureza | all"),
     tenant_id: Optional[str] = Query(None),
     period: int = Query(30, description="Dias de histórico"),
+    admin: User = Depends(_admin_dep),
 ):
     """IQ Score médio por módulo/categoria — Doc4 §3.3"""
     query: dict = {}
@@ -437,6 +447,7 @@ async def get_heatmap_data(
     category: Optional[str] = Query(None),
     resolution: float = Query(0.05, description="Grid cell size in degrees (~5km)"),
     limit: int = Query(500, ge=10, le=2000),
+    admin: User = Depends(_admin_dep),
 ):
     """
     Agrega visitas/POIs num grid geográfico para heatmap — Doc4 §3.3.
@@ -494,6 +505,7 @@ async def get_heatmap_data(
 async def get_trail_alerts(
     tenant_id: Optional[str] = Query(None),
     types: Optional[str] = Query(None, description="fire,wind,rain,tide — comma separated"),
+    admin: User = Depends(_admin_dep),
 ):
     """
     Alertas activos para trilhos: incêndio, vento, chuva.
