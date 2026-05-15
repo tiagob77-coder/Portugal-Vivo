@@ -20,13 +20,20 @@ logger = logging.getLogger(__name__)
 
 ai_itinerary_router = APIRouter(prefix="/ai", tags=["AI Itinerary"])
 
-_db = None
 _require_auth = None
 
 
 def set_ai_itinerary_db(database):
-    global _db
-    _db = database
+    """No-op shim — the module reads the DB via dependencies.get_db()."""
+    _ = database
+
+
+def _db_or_none():
+    try:
+        from dependencies import get_db
+        return get_db()
+    except Exception:
+        return None
 
 
 def set_ai_itinerary_auth(auth_fn):
@@ -218,7 +225,7 @@ async def generate_itinerary(
 
     # ── Buscar POIs próximos na DB ────────────────────────────────────────────
     pois: list = []
-    if _db is not None:
+    if _db_or_none() is not None:
         lat_delta = body.radius_km / 111.0
         lng_delta = body.radius_km / (111.0 * abs(math.cos(math.radians(body.lat))) + 0.001)
         theme_cats = THEME_CATEGORIES[body.theme]
@@ -228,7 +235,7 @@ async def generate_itinerary(
             "location.lng": {"$gte": body.lng - lng_delta, "$lte": body.lng + lng_delta},
             "category": {"$in": theme_cats},
         }
-        cursor = _db["heritage_items"].find(
+        cursor = _db_or_none()["heritage_items"].find(
             query,
             {
                 "_id": 0, "id": 1, "name": 1, "category": 1,
@@ -328,8 +335,8 @@ async def enrich_poi(
 
     # ── Buscar POI na DB ──────────────────────────────────────────────────────
     poi = None
-    if _db is not None:
-        poi = await _db["heritage_items"].find_one({"id": body.poi_id}, {"_id": 0})
+    if _db_or_none() is not None:
+        poi = await _db_or_none()["heritage_items"].find_one({"id": body.poi_id}, {"_id": 0})
 
     if not poi:
         raise HTTPException(status_code=404, detail=f"POI '{body.poi_id}' não encontrado")
@@ -442,8 +449,8 @@ async def get_recommendations(
         query["id"] = {"$nin": body.exclude_ids}
 
     recs: list = []
-    if _db is not None:
-        cursor = _db["heritage_items"].find(query, {
+    if _db_or_none() is not None:
+        cursor = _db_or_none()["heritage_items"].find(query, {
             "_id": 0, "id": 1, "name": 1, "category": 1, "description": 1,
             "region": 1, "location": 1, "iq_score": 1, "image_url": 1,
         }).limit(body.limit * 4)
