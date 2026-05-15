@@ -308,8 +308,13 @@ export type Json =
  *  bags, request bodies and other "loose" object payloads. */
 export type AnyRecord = Record<string, unknown>;
 
+/** Scalar values an axios query param can take. Lists are accepted too
+ *  because axios serialises arrays into repeated `?key=a&key=b` pairs,
+ *  which is what e.g. waypoint endpoints rely on. */
+export type ApiParamValue = string | number | boolean | undefined | string[] | number[];
+
 /** Shape of axios request params we build in api.ts. */
-export type ApiParams = Record<string, string | number | boolean | undefined>;
+export type ApiParams = Record<string, ApiParamValue>;
 
 /** A paginated response envelope used by most list endpoints. */
 export interface Paginated<T> {
