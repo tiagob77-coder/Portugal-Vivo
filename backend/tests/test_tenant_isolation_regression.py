@@ -134,19 +134,26 @@ class TestRequirePoiAccess:
         ],
     )
     @pytest.mark.anyio
-    async def test_role_action_matrix(self, action, role, should_allow):
+    async def test_role_action_matrix(self, action, role, should_allow, monkeypatch):
         """Smoke the role × action grid against the real allowed-set
         constants. If anyone tightens the rules silently this test
-        will catch the regression."""
+        will catch the regression.
+
+        We force ``_db`` to None for this test so the inner check returns
+        immediately after the role gate, without touching Mongo. In CI
+        the global is wired up to a real client at app import time, and
+        running Motor queries on a synthetic POI id inside a parametrised
+        async test risked the event loop blocking on a server-selection
+        round trip.
+        """
         from fastapi import HTTPException
+        import tenant_middleware as _tm
+
+        monkeypatch.setattr(_tm, "_db", None)
 
         dep = require_poi_access(action)
         ctx = _ctx(role, "lisboa-01")
 
-        # The inner check function inspects only the role and (for
-        # non-admin) the POI's municipality_id. Without a DB connection
-        # the POI lookup is skipped — exactly the path we want to test
-        # for "does this role pass the gate at all".
         if should_allow:
             # Should NOT raise
             result = await dep(poi_id="any-poi", tenant=ctx)
