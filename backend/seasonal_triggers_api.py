@@ -52,15 +52,20 @@ seasonal_router = APIRouter(prefix="/seasonal", tags=["Seasonal Triggers"])
 
 # ─── DB / Auth / LLM injection ───────────────────────────────────────────────
 
-_db = None
 _require_auth = None
 _require_admin = None
 _llm_key: Optional[str] = None
 
 
+def _db():
+    """Lazy resolver — call sites use ``_db()["coll"]``."""
+    from dependencies import get_db
+    return get_db()
+
+
 def set_seasonal_db(database) -> None:
-    global _db
-    _db = database
+    """No-op shim — the module reads the DB via dependencies.get_db()."""
+    _ = database
 
 
 def set_seasonal_auth(require_auth, require_admin) -> None:
@@ -171,14 +176,13 @@ async def _run_matching(horizon_days: int = 30) -> Dict[str, int]:
     Corre o matching eventos↔POIs e cria/actualiza flags na collection seasonal_flags.
     Devolve estatísticas: {created, updated, skipped}.
     """
-    if _db is None:
-        return {"created": 0, "updated": 0, "skipped": 0}
+    # DB-uninit guard removed — _db() raises a 500 itself if not initialised.
 
     now = _now()
     horizon = now + timedelta(days=horizon_days)
 
     # Puxar eventos (todos — filtragem de data em Python pois o campo pode ser string)
-    events_cursor = _db["events"].find({}, {
+    events_cursor = _db()["events"].find({}, {
         "id": 1, "name": 1, "region": 1, "location": 1, "concelho": 1,
         "date": 1, "start_date": 1, "type": 1, "poi_id": 1, "_id": 0,
     })
@@ -200,7 +204,7 @@ async def _run_matching(horizon_days: int = 30) -> Dict[str, int]:
 
     # Puxar POIs relevantes pelas regiões dos eventos
     regions = list({ev.get("region", "") for ev in upcoming if ev.get("region")})
-    poi_cursor = _db["heritage_items"].find(
+    poi_cursor = _db()["heritage_items"].find(
         {"region": {"$in": regions}} if regions else {},
         {"id": 1, "name": 1, "description": 1, "category": 1, "region": 1,
          "concelho": 1, "last_edited_at": 1, "_id": 0},
@@ -217,7 +221,7 @@ async def _run_matching(horizon_days: int = 30) -> Dict[str, int]:
 
             # Verificar se já existe flag para este par
             flag_id_key = f"{event.get('id', '')}_{poi.get('id', '')}"
-            existing = await _db["seasonal_flags"].find_one({
+            existing = await _db()["seasonal_flags"].find_one({
                 "event_id": event.get("id", ""),
                 "poi_id": poi.get("id", ""),
             })
@@ -232,7 +236,7 @@ async def _run_matching(horizon_days: int = 30) -> Dict[str, int]:
                     skipped += 1
                     continue
                 # Actualizar datas se necessário
-                await _db["seasonal_flags"].update_one(
+                await _db()["seasonal_flags"].update_one(
                     {"_id": existing["_id"]},
                     {"$set": {"active_from": active_from, "revert_after": revert_after, "updated_at": now}},
                 )
@@ -256,7 +260,7 @@ async def _run_matching(horizon_days: int = 30) -> Dict[str, int]:
                     "created_at": now,
                     "updated_at": now,
                 }
-                await _db["seasonal_flags"].insert_one(flag)
+                await _db()["seasonal_flags"].insert_one(flag)
                 created += 1
 
     logger.info("[seasonal] created=%d updated=%d skipped=%d", created, updated, skipped)
@@ -274,8 +278,7 @@ async def run_daily(
     Trigger diário do matching eventos↔POIs.
     Chamar via cron às 06:00 UTC ou manualmente pelo admin.
     """
-    if _db is None:
-        raise HTTPException(503, "DB não disponível")
+    # DB-uninit guard removed — _db() raises a 500 itself if not initialised.
 
     stats = await _run_matching(horizon_days=horizon_days)
     return {
@@ -295,8 +298,7 @@ async def list_flags(
     page_size: int = Query(30, ge=1, le=100),
 ):
     """Lista de flags sazonais activos, ordenados por data de evento."""
-    if _db is None:
-        raise HTTPException(503, "DB não disponível")
+    # DB-uninit guard removed — _db() raises a 500 itself if not initialised.
 
     query: Dict[str, Any] = {}
     if status:
@@ -308,11 +310,11 @@ async def list_flags(
     if poi_id:
         query["poi_id"] = poi_id
 
-    total = await _db["seasonal_flags"].count_documents(query)
+    total = await _db()["seasonal_flags"].count_documents(query)
     skip = (page - 1) * page_size
 
     cursor = (
-        _db["seasonal_flags"]
+        _db()["seasonal_flags"]
         .find(query, {"_id": 0})
         .sort("event_date", 1)
         .skip(skip)
@@ -325,10 +327,9 @@ async def list_flags(
 @seasonal_router.get("/flags/{poi_id}")
 async def get_poi_flags(poi_id: str):
     """Flags sazonais para um POI específico."""
-    if _db is None:
-        raise HTTPException(503, "DB não disponível")
+    # DB-uninit guard removed — _db() raises a 500 itself if not initialised.
 
-    cursor = _db["seasonal_flags"].find(
+    cursor = _db()["seasonal_flags"].find(
         {"poi_id": poi_id},
         {"_id": 0},
     ).sort("event_date", 1)
@@ -345,10 +346,9 @@ async def enrich_flag(
     Gera um draft sazonal para o POI via LLM e cria-o na collection content_drafts.
     O draft fica com status 'draft' pronto para entrar no pipeline toolkit.
     """
-    if _db is None:
-        raise HTTPException(503, "DB não disponível")
+    # DB-uninit guard removed — _db() raises a 500 itself if not initialised.
 
-    flag = await _db["seasonal_flags"].find_one({"flag_id": flag_id})
+    flag = await _db()["seasonal_flags"].find_one({"flag_id": flag_id})
     if not flag:
         raise HTTPException(404, f"Flag {flag_id} não encontrado")
 
@@ -356,7 +356,7 @@ async def enrich_flag(
         raise HTTPException(400, f"Flag já está em estado '{flag['status']}'")
 
     # Puxar detalhe do POI
-    poi = await _db["heritage_items"].find_one(
+    poi = await _db()["heritage_items"].find_one(
         {"id": flag["poi_id"]},
         {"name": 1, "description": 1, "category": 1, "region": 1, "_id": 0},
     )
@@ -408,10 +408,10 @@ async def enrich_flag(
         "updated_at": _now(),
         "published_at": None,
     }
-    await _db["content_drafts"].insert_one(draft)
+    await _db()["content_drafts"].insert_one(draft)
 
     # Actualizar flag
-    await _db["seasonal_flags"].update_one(
+    await _db()["seasonal_flags"].update_one(
         {"flag_id": flag_id},
         {"$set": {"status": "enriched", "draft_id": draft_id, "updated_at": _now()}},
     )
@@ -431,10 +431,9 @@ async def resolve_flag(
     admin: User = Depends(_admin_dep),
 ):
     """Marcar flag como resolvido (draft publicado manualmente)."""
-    if _db is None:
-        raise HTTPException(503, "DB não disponível")
+    # DB-uninit guard removed — _db() raises a 500 itself if not initialised.
 
-    result = await _db["seasonal_flags"].update_one(
+    result = await _db()["seasonal_flags"].update_one(
         {"flag_id": flag_id},
         {"$set": {"status": "resolved", "updated_at": _now()}},
     )
@@ -449,10 +448,9 @@ async def skip_flag(
     admin: User = Depends(_admin_dep),
 ):
     """Saltar este flag — POI não é relevante para este evento."""
-    if _db is None:
-        raise HTTPException(503, "DB não disponível")
+    # DB-uninit guard removed — _db() raises a 500 itself if not initialised.
 
-    result = await _db["seasonal_flags"].update_one(
+    result = await _db()["seasonal_flags"].update_one(
         {"flag_id": flag_id},
         {"$set": {"status": "skipped", "updated_at": _now()}},
     )

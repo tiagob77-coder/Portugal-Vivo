@@ -47,14 +47,19 @@ contributions_router = APIRouter(prefix="/contributions", tags=["Micro Contribut
 
 # ─── DB / Auth injection ─────────────────────────────────────────────────────
 
-_db = None
 _require_auth = None
 _require_admin = None
 
 
 def set_contributions_db(database) -> None:
-    global _db
-    _db = database
+    """No-op shim — the module reads the DB via dependencies.get_db()."""
+    _ = database
+
+
+def _db():
+    """Lazy resolver — call sites use ``_db()["coll"]``."""
+    from dependencies import get_db
+    return get_db()
 
 
 def set_contributions_auth(require_auth, require_admin) -> None:
@@ -135,7 +140,7 @@ async def _handle_hours_update(
         "reviewed_at": None,
         "created_at": _now(),
     }
-    await _db["micro_contributions"].insert_one(doc)
+    await _db()["micro_contributions"].insert_one(doc)
     return {"contrib_id": contrib_id, "type": "hours_update", "status": "pending",
             "message": "Horário submetido. Ficará visível após revisão."}
 
@@ -159,7 +164,7 @@ async def _handle_status_report(
         "reviewed_at": None,
         "created_at": _now(),
     }
-    await _db["micro_contributions"].insert_one(doc)
+    await _db()["micro_contributions"].insert_one(doc)
     return {"contrib_id": contrib_id, "type": "status_report", "status": "pending",
             "message": "Reporte recebido. Obrigado — será verificado em breve."}
 
@@ -186,7 +191,7 @@ async def _handle_photo_add(
         "reviewed_at": None,
         "created_at": _now(),
     }
-    await _db["micro_contributions"].insert_one(doc)
+    await _db()["micro_contributions"].insert_one(doc)
     return {"contrib_id": contrib_id, "type": "photo_add", "status": "pending",
             "message": "Foto recebida. Ficará disponível após moderação."}
 
@@ -248,9 +253,9 @@ async def _handle_curiosity(
         "updated_at": _now(),
         "published_at": None,
     }
-    await _db["content_drafts"].insert_one(draft)
+    await _db()["content_drafts"].insert_one(draft)
     doc["draft_id"] = draft_id
-    await _db["micro_contributions"].insert_one(doc)
+    await _db()["micro_contributions"].insert_one(doc)
 
     return {
         "contrib_id": contrib_id,
@@ -276,14 +281,14 @@ async def submit_contribution(
     Submeter uma micro-contribuição para um POI.
     Requer autenticação (injectada via server.py).
     """
-    if _db is None:
-        raise HTTPException(503, "DB não disponível")
+    # DB unavailable guards removed — _db() resolves through dependencies.get_db()
+    # and raises a 500 itself when init_database() was never called.
 
     if req.type not in VALID_TYPES:
         raise HTTPException(400, f"Tipo inválido. Permitidos: {', '.join(sorted(VALID_TYPES))}")
 
     # Verificar que o POI existe
-    poi = await _db["heritage_items"].find_one(
+    poi = await _db()["heritage_items"].find_one(
         {"id": req.poi_id},
         {"id": 1, "name": 1, "category": 1, "region": 1, "_id": 0},
     )
@@ -318,14 +323,14 @@ async def get_poi_contributions(
     Contribuições aprovadas para um POI (vista pública).
     Útil para mostrar horários actualizados ou alertas de estado.
     """
-    if _db is None:
-        raise HTTPException(503, "DB não disponível")
+    # DB unavailable guards removed — _db() resolves through dependencies.get_db()
+    # and raises a 500 itself when init_database() was never called.
 
     query: Dict[str, Any] = {"poi_id": poi_id, "status": "approved"}
     if type:
         query["type"] = type
 
-    cursor = _db["micro_contributions"].find(query, {"_id": 0}).sort("reviewed_at", -1).limit(50)
+    cursor = _db()["micro_contributions"].find(query, {"_id": 0}).sort("reviewed_at", -1).limit(50)
     items = await cursor.to_list(length=50)
     return {"poi_id": poi_id, "contributions": items, "total": len(items)}
 
@@ -338,18 +343,18 @@ async def list_pending(
     current_user: dict = Depends(lambda: {"user_id": "anon"}),
 ):
     """Fila de contribuições pendentes de revisão (admin)."""
-    if _db is None:
-        raise HTTPException(503, "DB não disponível")
+    # DB unavailable guards removed — _db() resolves through dependencies.get_db()
+    # and raises a 500 itself when init_database() was never called.
 
     query: Dict[str, Any] = {"status": "pending"}
     if type:
         query["type"] = type
 
-    total = await _db["micro_contributions"].count_documents(query)
+    total = await _db()["micro_contributions"].count_documents(query)
     skip = (page - 1) * page_size
 
     cursor = (
-        _db["micro_contributions"]
+        _db()["micro_contributions"]
         .find(query, {"_id": 0})
         .sort("created_at", 1)   # mais antigas primeiro
         .skip(skip)
@@ -360,7 +365,7 @@ async def list_pending(
     # Contar por tipo para overview
     type_counts: Dict[str, int] = {}
     for t in VALID_TYPES:
-        type_counts[t] = await _db["micro_contributions"].count_documents({"status": "pending", "type": t})
+        type_counts[t] = await _db()["micro_contributions"].count_documents({"status": "pending", "type": t})
 
     return {
         "items": items,
@@ -381,17 +386,17 @@ async def approve_contribution(
     Aprovar ou rejeitar uma contribuição.
     Se aprovada e do tipo hours_update: actualiza o campo opening_hours no POI.
     """
-    if _db is None:
-        raise HTTPException(503, "DB não disponível")
+    # DB unavailable guards removed — _db() resolves through dependencies.get_db()
+    # and raises a 500 itself when init_database() was never called.
 
-    contrib = await _db["micro_contributions"].find_one({"contrib_id": contrib_id})
+    contrib = await _db()["micro_contributions"].find_one({"contrib_id": contrib_id})
     if not contrib:
         raise HTTPException(404, f"Contribuição {contrib_id} não encontrada")
 
     new_status = "approved" if payload.approved else "rejected"
     reviewer_id = current_user.get("user_id", "admin")
 
-    await _db["micro_contributions"].update_one(
+    await _db()["micro_contributions"].update_one(
         {"contrib_id": contrib_id},
         {"$set": {
             "status": new_status,
@@ -418,7 +423,7 @@ async def _apply_approved_contribution(contrib: Dict[str, Any], reviewer_id: str
 
     if ctype == "hours_update":
         # Persistir horários no POI
-        await _db["heritage_items"].update_one(
+        await _db()["heritage_items"].update_one(
             {"id": poi_id},
             {"$set": {
                 "opening_hours": cp.get("weekday_hours", {}),
@@ -438,12 +443,12 @@ async def _apply_approved_contribution(contrib: Dict[str, Any], reviewer_id: str
         }
         if cp.get("new_address"):
             update["address"] = cp["new_address"]
-        await _db["heritage_items"].update_one({"id": poi_id}, {"$set": update})
+        await _db()["heritage_items"].update_one({"id": poi_id}, {"$set": update})
         logger.info("[contributions] Status '%s' aplicado a POI %s", status_val, poi_id)
 
     elif ctype == "photo_add":
         # Adicionar à galeria de imagens candidatas (array no documento do POI)
-        await _db["heritage_items"].update_one(
+        await _db()["heritage_items"].update_one(
             {"id": poi_id},
             {"$push": {"community_photos": {
                 "url": cp.get("image_url"),
