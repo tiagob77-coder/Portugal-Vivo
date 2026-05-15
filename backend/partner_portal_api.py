@@ -45,14 +45,19 @@ partner_router = APIRouter(prefix="/partner", tags=["Partner Portal"])
 
 # ─── DB / Auth injection ─────────────────────────────────────────────────────
 
-_db = None
 _require_auth = None
 _require_admin = None
 
 
+def _db():
+    """Lazy resolver — call sites use ``_db()["coll"]``."""
+    from dependencies import get_db
+    return get_db()
+
+
 def set_partner_db(database) -> None:
-    global _db
-    _db = database
+    """No-op shim — the module reads the DB via dependencies.get_db()."""
+    _ = database
 
 
 def set_partner_auth(require_auth, require_admin) -> None:
@@ -68,9 +73,8 @@ def _now() -> datetime:
 
 
 async def _get_org_for_user(user_id: str) -> Optional[Dict[str, Any]]:
-    if _db is None:
-        return None
-    return await _db["partner_orgs"].find_one({"user_id": user_id, "approved": True})
+    # _db() raises a 500 itself when init_database() never ran.
+    return await _db()["partner_orgs"].find_one({"user_id": user_id, "approved": True})
 
 
 async def _require_partner(current_user: dict) -> Dict[str, Any]:
@@ -157,8 +161,7 @@ class OrgApproveRequest(BaseModel):
 @partner_router.post("/register", status_code=201)
 async def register_org(payload: OrgRegisterRequest, current_user: dict = Depends(lambda: {"user_id": "anon"})):
     """Registar uma nova organização parceira (fica pendente até aprovação de admin)."""
-    if _db is None:
-        raise HTTPException(503, "DB não disponível")
+    # _db() raises a 500 itself when init_database() never ran.
 
     if _require_auth:
         pass  # auth é injectado via Depends em server.py
@@ -166,7 +169,7 @@ async def register_org(payload: OrgRegisterRequest, current_user: dict = Depends
     user_id = current_user.get("user_id", "")
 
     # Verificar se já existe
-    existing = await _db["partner_orgs"].find_one({"user_id": user_id})
+    existing = await _db()["partner_orgs"].find_one({"user_id": user_id})
     if existing:
         raise HTTPException(409, "Já existe uma organização registada para este utilizador")
 
@@ -186,7 +189,7 @@ async def register_org(payload: OrgRegisterRequest, current_user: dict = Depends
         "approved_at": None,
         "approved_by": None,
     }
-    await _db["partner_orgs"].insert_one(doc)
+    await _db()["partner_orgs"].insert_one(doc)
     doc.pop("_id", None)
 
     logger.info("[partner] Nova org registada: %s (%s)", payload.name, org_id)
@@ -196,10 +199,9 @@ async def register_org(payload: OrgRegisterRequest, current_user: dict = Depends
 @partner_router.get("/profile")
 async def get_partner_profile(current_user: dict = Depends(lambda: {"user_id": "anon"})):
     """Perfil da organização parceira do utilizador autenticado."""
-    if _db is None:
-        raise HTTPException(503, "DB não disponível")
+    # _db() raises a 500 itself when init_database() never ran.
     user_id = current_user.get("user_id", "")
-    org = await _db["partner_orgs"].find_one({"user_id": user_id}, {"_id": 0})
+    org = await _db()["partner_orgs"].find_one({"user_id": user_id}, {"_id": 0})
     if not org:
         raise HTTPException(404, "Sem organização registada")
     return org
@@ -215,8 +217,7 @@ async def list_partner_pois(
     current_user: dict = Depends(lambda: {"user_id": "anon"}),
 ):
     """Lista de POIs do território do parceiro com health score."""
-    if _db is None:
-        raise HTTPException(503, "DB não disponível")
+    # _db() raises a 500 itself when init_database() never ran.
 
     org = await _require_partner(current_user)
     concelhos = org.get("concelhos", [])
@@ -231,7 +232,7 @@ async def list_partner_pois(
         "_id": 0,
     }
 
-    cursor = _db["heritage_items"].find({"concelho": {"$in": concelhos}}, projection)
+    cursor = _db()["heritage_items"].find({"concelho": {"$in": concelhos}}, projection)
     raw = await cursor.to_list(length=2000)
 
     scored = []
@@ -269,13 +270,12 @@ async def list_partner_pois(
 @partner_router.get("/pois/{poi_id}")
 async def get_partner_poi(poi_id: str, current_user: dict = Depends(lambda: {"user_id": "anon"})):
     """Detalhe de um POI do território do parceiro."""
-    if _db is None:
-        raise HTTPException(503, "DB não disponível")
+    # _db() raises a 500 itself when init_database() never ran.
 
     org = await _require_partner(current_user)
     concelhos = org.get("concelhos", [])
 
-    item = await _db["heritage_items"].find_one(
+    item = await _db()["heritage_items"].find_one(
         {"id": poi_id, "concelho": {"$in": concelhos}},
         {"_id": 0},
     )
@@ -287,7 +287,7 @@ async def get_partner_poi(poi_id: str, current_user: dict = Depends(lambda: {"us
     item["content_health_tier"] = _tier(score)
 
     # Drafts pendentes para este POI
-    pending_drafts = await _db["content_drafts"].count_documents({
+    pending_drafts = await _db()["content_drafts"].count_documents({
         "target_id": poi_id,
         "status": {"$in": ["draft", "enriching", "enriched", "reviewing", "reviewed"]},
     })
@@ -308,14 +308,13 @@ async def submit_partner_draft(
     Submeter uma actualização de conteúdo para um POI.
     Entra como draft no pipeline Content Toolkit (status: 'draft').
     """
-    if _db is None:
-        raise HTTPException(503, "DB não disponível")
+    # _db() raises a 500 itself when init_database() never ran.
 
     org = await _require_partner(current_user)
     concelhos = org.get("concelhos", [])
 
     # Verificar que o POI pertence ao território do parceiro
-    poi = await _db["heritage_items"].find_one(
+    poi = await _db()["heritage_items"].find_one(
         {"id": poi_id, "concelho": {"$in": concelhos}},
         {"id": 1, "name": 1, "category": 1, "region": 1, "_id": 0},
     )
@@ -361,7 +360,7 @@ async def submit_partner_draft(
         "published_at": None,
     }
 
-    await _db["content_drafts"].insert_one(doc)
+    await _db()["content_drafts"].insert_one(doc)
     logger.info("[partner] Draft submetido: %s para POI %s por org %s", draft_id, poi_id, org.get("org_id"))
 
     return {
@@ -381,15 +380,14 @@ async def list_partner_drafts(
     current_user: dict = Depends(lambda: {"user_id": "anon"}),
 ):
     """Drafts submetidos pela organização parceira."""
-    if _db is None:
-        raise HTTPException(503, "DB não disponível")
+    # _db() raises a 500 itself when init_database() never ran.
 
     org = await _require_partner(current_user)
     query: Dict[str, Any] = {"author_org_id": org.get("org_id", "")}
     if status:
         query["status"] = status
 
-    cursor = _db["content_drafts"].find(query, {"_id": 0}).sort("created_at", -1).limit(100)
+    cursor = _db()["content_drafts"].find(query, {"_id": 0}).sort("created_at", -1).limit(100)
     drafts = await cursor.to_list(length=100)
     return {"drafts": drafts, "total": len(drafts)}
 
@@ -399,26 +397,25 @@ async def list_partner_drafts(
 @partner_router.get("/metrics")
 async def get_partner_metrics(current_user: dict = Depends(lambda: {"user_id": "anon"})):
     """Métricas básicas do território gerido pelo parceiro."""
-    if _db is None:
-        raise HTTPException(503, "DB não disponível")
+    # _db() raises a 500 itself when init_database() never ran.
 
     org = await _require_partner(current_user)
     concelhos = org.get("concelhos", [])
 
-    total_pois = await _db["heritage_items"].count_documents({"concelho": {"$in": concelhos}})
-    with_image = await _db["heritage_items"].count_documents({
+    total_pois = await _db()["heritage_items"].count_documents({"concelho": {"$in": concelhos}})
+    with_image = await _db()["heritage_items"].count_documents({
         "concelho": {"$in": concelhos},
         "image_url": {"$exists": True, "$ne": "", "$ne": None},
     })
-    with_narrative = await _db["heritage_items"].count_documents({
+    with_narrative = await _db()["heritage_items"].count_documents({
         "concelho": {"$in": concelhos},
         "micro_pitch": {"$exists": True, "$ne": ""},
     })
-    pending_drafts = await _db["content_drafts"].count_documents({
+    pending_drafts = await _db()["content_drafts"].count_documents({
         "author_org_id": org.get("org_id", ""),
         "status": {"$in": ["draft", "enriching", "enriched", "reviewing", "reviewed"]},
     })
-    published_drafts = await _db["content_drafts"].count_documents({
+    published_drafts = await _db()["content_drafts"].count_documents({
         "author_org_id": org.get("org_id", ""),
         "status": "published",
     })
@@ -439,8 +436,7 @@ async def get_partner_metrics(current_user: dict = Depends(lambda: {"user_id": "
 @partner_router.get("/health-summary")
 async def get_partner_health_summary(current_user: dict = Depends(lambda: {"user_id": "anon"})):
     """Distribuição de health scores no território do parceiro."""
-    if _db is None:
-        raise HTTPException(503, "DB não disponível")
+    # _db() raises a 500 itself when init_database() never ran.
 
     org = await _require_partner(current_user)
     concelhos = org.get("concelhos", [])
@@ -452,7 +448,7 @@ async def get_partner_health_summary(current_user: dict = Depends(lambda: {"user
         "_id": 0,
     }
 
-    cursor = _db["heritage_items"].find({"concelho": {"$in": concelhos}}, projection)
+    cursor = _db()["heritage_items"].find({"concelho": {"$in": concelhos}}, projection)
     raw = await cursor.to_list(length=2000)
 
     tiers: Dict[str, int] = {"healthy": 0, "attention": 0, "stale": 0, "critical": 0}
@@ -478,14 +474,13 @@ async def list_orgs(
     current_user: dict = Depends(lambda: {"user_id": "anon"}),
 ):
     """Lista todas as organizações parceiras (admin)."""
-    if _db is None:
-        raise HTTPException(503, "DB não disponível")
+    # _db() raises a 500 itself when init_database() never ran.
 
     query: Dict[str, Any] = {}
     if approved is not None:
         query["approved"] = approved
 
-    cursor = _db["partner_orgs"].find(query, {"_id": 0}).sort("created_at", -1)
+    cursor = _db()["partner_orgs"].find(query, {"_id": 0}).sort("created_at", -1)
     orgs = await cursor.to_list(length=200)
     return {"orgs": orgs, "total": len(orgs)}
 
@@ -497,10 +492,9 @@ async def approve_org(
     current_user: dict = Depends(lambda: {"user_id": "anon"}),
 ):
     """Aprovar ou rejeitar uma organização parceira (admin)."""
-    if _db is None:
-        raise HTTPException(503, "DB não disponível")
+    # _db() raises a 500 itself when init_database() never ran.
 
-    result = await _db["partner_orgs"].update_one(
+    result = await _db()["partner_orgs"].update_one(
         {"org_id": org_id},
         {"$set": {
             "approved": payload.approved,

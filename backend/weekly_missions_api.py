@@ -40,14 +40,19 @@ missions_router = APIRouter(prefix="/missions", tags=["Weekly Missions"])
 
 # ─── DB / Auth injection ─────────────────────────────────────────────────────
 
-_db = None
 _require_auth = None
 _require_admin = None
 
 
+def _db():
+    """Lazy resolver — call sites use ``_db()["coll"]``."""
+    from dependencies import get_db
+    return get_db()
+
+
 def set_missions_db(database) -> None:
-    global _db
-    _db = database
+    """No-op shim — the module reads the DB via dependencies.get_db()."""
+    _ = database
 
 
 def set_missions_auth(require_auth, require_admin) -> None:
@@ -200,11 +205,10 @@ async def _generate_missions_for_week(week_start: datetime, week_end: datetime) 
     Cria 4–5 missões para a semana indicada.
     Rota internamente para variar as missões semana a semana.
     """
-    if _db is None:
-        return []
+    # _db() raises a 500 itself when init_database() never ran.
 
     # Verificar se já existem para esta semana
-    existing = await _db["missions"].count_documents({"active_from": week_start})
+    existing = await _db()["missions"].count_documents({"active_from": week_start})
     if existing > 0:
         logger.info("[missions] Semana %s já tem %d missões", week_start.date(), existing)
         return []
@@ -238,7 +242,7 @@ async def _generate_missions_for_week(week_start: datetime, week_end: datetime) 
             "created_at": _now(),
             "is_secret": "Secreta" in tmpl["title"],
         }
-        await _db["missions"].insert_one(doc)
+        await _db()["missions"].insert_one(doc)
         mission_ids.append(mission_id)
 
     logger.info("[missions] Geradas %d missões para semana %s", len(selected), week_start.date())
@@ -252,13 +256,12 @@ async def get_active_missions(
     include_secret: bool = Query(True),
 ):
     """Missões activas para a semana corrente (sem necessidade de auth)."""
-    if _db is None:
-        raise HTTPException(503, "DB não disponível")
+    # _db() raises a 500 itself when init_database() never ran.
 
     week_start, week_end = _week_bounds()
 
     # Gerar se ainda não existem
-    count = await _db["missions"].count_documents({
+    count = await _db()["missions"].count_documents({
         "active_from": {"$lte": _now()},
         "expires_at": {"$gte": _now()},
     })
@@ -272,7 +275,7 @@ async def get_active_missions(
     if not include_secret:
         query["is_secret"] = {"$ne": True}
 
-    cursor = _db["missions"].find(query, {"_id": 0}).sort("reward_xp", -1)
+    cursor = _db()["missions"].find(query, {"_id": 0}).sort("reward_xp", -1)
     missions = await cursor.to_list(length=10)
 
     # Adicionar dias restantes
@@ -289,8 +292,7 @@ async def get_active_missions(
 @missions_router.get("/my")
 async def get_my_missions(current_user: dict = Depends(lambda: {"user_id": "anon"})):
     """Missões da semana + progresso do utilizador autenticado."""
-    if _db is None:
-        raise HTTPException(503, "DB não disponível")
+    # _db() raises a 500 itself when init_database() never ran.
 
     user_id = current_user.get("user_id", "anon")
 
@@ -300,7 +302,7 @@ async def get_my_missions(current_user: dict = Depends(lambda: {"user_id": "anon
 
     # Progresso do user
     mission_ids = [m["mission_id"] for m in missions]
-    progress_cursor = _db["user_mission_progress"].find({
+    progress_cursor = _db()["user_mission_progress"].find({
         "user_id": user_id,
         "mission_id": {"$in": mission_ids},
     }, {"_id": 0})
@@ -323,13 +325,12 @@ async def claim_mission(
     current_user: dict = Depends(lambda: {"user_id": "anon"}),
 ):
     """Reclamar recompensa de missão concluída."""
-    if _db is None:
-        raise HTTPException(503, "DB não disponível")
+    # _db() raises a 500 itself when init_database() never ran.
 
     user_id = current_user.get("user_id", "anon")
 
     # Verificar missão existe e está activa
-    mission = await _db["missions"].find_one({
+    mission = await _db()["missions"].find_one({
         "mission_id": mission_id,
         "expires_at": {"$gte": _now()},
     })
@@ -337,7 +338,7 @@ async def claim_mission(
         raise HTTPException(404, "Missão não encontrada ou expirada")
 
     # Verificar progresso
-    prog = await _db["user_mission_progress"].find_one(
+    prog = await _db()["user_mission_progress"].find_one(
         {"user_id": user_id, "mission_id": mission_id}
     )
     if not prog:
@@ -348,14 +349,14 @@ async def claim_mission(
         raise HTTPException(409, "Recompensa já reclamada")
 
     # Marcar como reclamada
-    await _db["user_mission_progress"].update_one(
+    await _db()["user_mission_progress"].update_one(
         {"user_id": user_id, "mission_id": mission_id},
         {"$set": {"claimed": True, "claimed_at": _now()}},
     )
 
     # Atribuir XP ao perfil de gamificação
     xp_reward = mission.get("reward_xp", 0)
-    await _db["gamification_profiles"].update_one(
+    await _db()["gamification_profiles"].update_one(
         {"user_id": user_id},
         {"$inc": {"xp": xp_reward, "missions_completed": 1}},
         upsert=True,
@@ -363,7 +364,7 @@ async def claim_mission(
 
     badge = mission.get("reward_badge")
     if badge:
-        await _db["gamification_profiles"].update_one(
+        await _db()["gamification_profiles"].update_one(
             {"user_id": user_id},
             {"$addToSet": {"badges": {"id": badge, "earned_at": _now().isoformat()}}},
         )
@@ -388,12 +389,11 @@ async def update_mission_progress(
     Actualizar o progresso de um user numa missão.
     Chamado internamente por outros endpoints (check-in, upload, etc.)
     """
-    if _db is None:
-        raise HTTPException(503, "DB não disponível")
+    # _db() raises a 500 itself when init_database() never ran.
 
     user_id = current_user.get("user_id", "anon")
 
-    mission = await _db["missions"].find_one(
+    mission = await _db()["missions"].find_one(
         {"mission_id": mission_id, "expires_at": {"$gte": _now()}},
         {"target_value": 1, "_id": 0},
     )
@@ -403,7 +403,7 @@ async def update_mission_progress(
     target = mission["target_value"]
 
     # Upsert progresso
-    result = await _db["user_mission_progress"].find_one_and_update(
+    result = await _db()["user_mission_progress"].find_one_and_update(
         {"user_id": user_id, "mission_id": mission_id},
         {
             "$inc": {"current_value": payload.delta},
@@ -418,7 +418,7 @@ async def update_mission_progress(
     completed = new_value >= target
 
     if completed:
-        await _db["user_mission_progress"].update_one(
+        await _db()["user_mission_progress"].update_one(
             {"user_id": user_id, "mission_id": mission_id},
             {"$set": {"completed": True, "completed_at": _now()}},
         )
@@ -438,8 +438,7 @@ async def generate_weekly_missions(
     current_user: dict = Depends(lambda: {"user_id": "anon"}),
 ):
     """Gerar missões para a semana (admin/cron — chamado à segunda-feira às 00:05 UTC)."""
-    if _db is None:
-        raise HTTPException(503, "DB não disponível")
+    # _db() raises a 500 itself when init_database() never ran.
 
     if for_next_week:
         week_start, week_end = _next_week_bounds()
@@ -458,8 +457,7 @@ async def generate_weekly_missions(
 @missions_router.get("/leaderboard/weekly")
 async def weekly_missions_leaderboard():
     """Top 10 users por missões concluídas nesta semana."""
-    if _db is None:
-        raise HTTPException(503, "DB não disponível")
+    # _db() raises a 500 itself when init_database() never ran.
 
     week_start, _ = _week_bounds()
 
@@ -471,6 +469,6 @@ async def weekly_missions_leaderboard():
         {"$project": {"_id": 0, "user_id": "$_id", "missions_done": 1}},
     ]
 
-    cursor = _db["user_mission_progress"].aggregate(pipeline)
+    cursor = _db()["user_mission_progress"].aggregate(pipeline)
     leaders = await cursor.to_list(length=10)
     return {"leaderboard": leaders, "week": week_start.isoformat()}

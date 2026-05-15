@@ -32,11 +32,25 @@ logger = logging.getLogger(__name__)
 # ─── Router ───────────────────────────────────────────────────────────────────
 
 router = APIRouter(prefix="/admin/import", tags=["Excel Import"])
-_db = None
+
+# Optional explicit override — used by the CLI entry point (`__main__`)
+# which builds its own Motor client outside the FastAPI dependency
+# container. When None, _db() falls through to dependencies.get_db().
+_db_override = None
+
 
 def set_import_db(database):
-    global _db
-    _db = database
+    """Set an explicit DB handle. Used by the CLI runner; for HTTP
+    endpoints the resolver falls back to dependencies.get_db()."""
+    global _db_override
+    _db_override = database
+
+
+def _db():
+    if _db_override is not None:
+        return _db_override
+    from dependencies import get_db
+    return get_db()
 
 # ─── Mapeamento de colunas (PT + EN + variações) ──────────────────────────────
 
@@ -295,8 +309,9 @@ def parse_excel_to_pois(
 
 async def upsert_pois(pois: List[dict], dry_run: bool = False) -> dict:
     """Insere ou actualiza POIs na colecção heritage_items. Deduplicação por nome+município."""
-    if _db is None:
-        raise RuntimeError("DB não configurada")
+    # _db() raises a 500/RuntimeError itself if neither the CLI override nor
+    # the FastAPI dependency container has provided a database.
+    _db()
 
     created = updated = skipped = 0
 
@@ -305,7 +320,7 @@ async def upsert_pois(pois: List[dict], dry_run: bool = False) -> dict:
             created += 1
             continue
 
-        existing = await _db.heritage_items.find_one({
+        existing = await _db().heritage_items.find_one({
             "name": poi["name"],
             "municipality_id": poi.get("municipality_id"),
         }, {"_id": 0, "id": 1})
@@ -315,13 +330,13 @@ async def upsert_pois(pois: List[dict], dry_run: bool = False) -> dict:
             update_fields = {k: v for k, v in poi.items()
                              if k not in ("id", "status", "iq_score") and v}
             update_fields["updated_at"] = datetime.now(timezone.utc).isoformat()
-            await _db.heritage_items.update_one(
+            await _db().heritage_items.update_one(
                 {"id": existing["id"]},
                 {"$set": update_fields}
             )
             updated += 1
         else:
-            await _db.heritage_items.insert_one(poi)
+            await _db().heritage_items.insert_one(poi)
             created += 1
 
     return {"created": created, "updated": updated, "skipped": skipped}
