@@ -20,6 +20,11 @@ module.exports = defineConfig([
           caughtErrorsIgnorePattern: '^_',
         },
       ],
+      // FE-001 — flag new `any` introductions without failing the build.
+      // Existing usages (~150 across services/api.ts, mapa, descobrir,
+      // heritage detail) are tracked in the audit and migrated in batches;
+      // moving this to 'error' is a follow-up once those are typed.
+      '@typescript-eslint/no-explicit-any': 'warn',
       'import/no-named-as-default': 'off',
     },
   },
