@@ -29,10 +29,17 @@ from models.api_models import User
 from llm_client import call_chat_completion
 
 narrative_layer_router = APIRouter(prefix="/narrative-layer", tags=["Narrative Layer"])
-_db = None
 _llm_key: Optional[str] = None
 _require_admin = None
 _require_auth = None
+
+
+def _db_or_none():
+    try:
+        from dependencies import get_db
+        return get_db()
+    except Exception:
+        return None
 
 LLM_URL = "https://llm.lil.re.emergentmethods.ai/v1/chat/completions"
 MODEL = "gpt-4o-mini"
@@ -41,8 +48,8 @@ CACHE_COLLECTION = "narrative_cache"
 
 
 def set_narrative_layer_db(database) -> None:
-    global _db
-    _db = database
+    """No-op shim — the module reads the DB via dependencies.get_db()."""
+    _ = database
 
 
 def set_narrative_layer_llm_key(key: Optional[str]) -> None:
@@ -161,20 +168,20 @@ def _cache_key(req: NarrativeRequest) -> str:
 
 
 async def _ensure_index() -> None:
-    if _db is None:
+    if _db_or_none() is None:
         return
     try:
-        await _db[CACHE_COLLECTION].create_index("cache_key", unique=True)
-        await _db[CACHE_COLLECTION].create_index("expires_at", expireAfterSeconds=0)
+        await _db_or_none()[CACHE_COLLECTION].create_index("cache_key", unique=True)
+        await _db_or_none()[CACHE_COLLECTION].create_index("expires_at", expireAfterSeconds=0)
     except Exception:
         pass
 
 
 async def _get_cached(key: str) -> Optional[dict]:
-    if _db is None:
+    if _db_or_none() is None:
         return None
     try:
-        doc = await _db[CACHE_COLLECTION].find_one({"cache_key": key})
+        doc = await _db_or_none()[CACHE_COLLECTION].find_one({"cache_key": key})
         if doc:
             doc.pop("_id", None)
             return doc
@@ -184,12 +191,12 @@ async def _get_cached(key: str) -> Optional[dict]:
 
 
 async def _save_cached(key: str, payload: dict) -> None:
-    if _db is None:
+    if _db_or_none() is None:
         return
     try:
         expires = datetime.now(timezone.utc) + timedelta(days=CACHE_TTL_DAYS)
         doc = {**payload, "cache_key": key, "expires_at": expires, "cached_at": datetime.now(timezone.utc)}
-        await _db[CACHE_COLLECTION].replace_one({"cache_key": key}, doc, upsert=True)
+        await _db_or_none()[CACHE_COLLECTION].replace_one({"cache_key": key}, doc, upsert=True)
     except Exception:
         pass
 
@@ -197,7 +204,7 @@ async def _save_cached(key: str, payload: dict) -> None:
 # ─── Entity loader ────────────────────────────────────────────────────────────
 
 async def _load_entity(entity_type: str, entity_id: str) -> Optional[dict]:
-    if _db is None:
+    if _db_or_none() is None:
         return None
     col = ENTITY_COLLECTIONS.get(entity_type)
     if not col:
@@ -210,7 +217,7 @@ async def _load_entity(entity_type: str, entity_id: str) -> Optional[dict]:
         except Exception:
             query = {"$or": [{"id": entity_id}, {"slug": entity_id},
                               {"name": {"$regex": entity_id, "$options": "i"}}]}
-        return await _db[col].find_one(query)
+        return await _db_or_none()[col].find_one(query)
     except Exception:
         return None
 
@@ -391,11 +398,11 @@ async def invalidate_narrative(
     admin: User = Depends(_admin_dep),
 ):
     """Deletes cached narrative (admin only); next /generate call will hit the LLM."""
-    if _db is None:
+    if _db_or_none() is None:
         return {"deleted": 0}
     key = _cache_key(req)
     try:
-        result = await _db[CACHE_COLLECTION].delete_one({"cache_key": key})
+        result = await _db_or_none()[CACHE_COLLECTION].delete_one({"cache_key": key})
         return {"deleted": result.deleted_count, "cache_key": key}
     except Exception as exc:
         raise HTTPException(500, f"Failed to invalidate: {exc}")
@@ -404,25 +411,25 @@ async def invalidate_narrative(
 @narrative_layer_router.get("/stats", summary="Narrative cache statistics")
 async def narrative_stats():
     """Returns cache size, breakdown by entity_type, persona and language."""
-    if _db is None:
+    if _db_or_none() is None:
         return {"total": 0, "available": False}
     try:
-        total = await _db[CACHE_COLLECTION].count_documents({})
+        total = await _db_or_none()[CACHE_COLLECTION].count_documents({})
 
         by_type: dict[str, int] = {}
-        async for row in _db[CACHE_COLLECTION].aggregate([
+        async for row in _db_or_none()[CACHE_COLLECTION].aggregate([
             {"$group": {"_id": "$entity_type", "n": {"$sum": 1}}},
         ]):
             by_type[row["_id"] or "unknown"] = row["n"]
 
         by_persona: dict[str, int] = {}
-        async for row in _db[CACHE_COLLECTION].aggregate([
+        async for row in _db_or_none()[CACHE_COLLECTION].aggregate([
             {"$group": {"_id": "$persona", "n": {"$sum": 1}}},
         ]):
             by_persona[row["_id"] or "unknown"] = row["n"]
 
         by_lang: dict[str, int] = {}
-        async for row in _db[CACHE_COLLECTION].aggregate([
+        async for row in _db_or_none()[CACHE_COLLECTION].aggregate([
             {"$group": {"_id": "$lang", "n": {"$sum": 1}}},
         ]):
             by_lang[row["_id"] or "pt"] = row["n"]
