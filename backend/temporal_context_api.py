@@ -25,12 +25,19 @@ from typing import Any, Optional
 from fastapi import APIRouter, Query
 
 temporal_router = APIRouter(prefix="/temporal", tags=["Temporal Context"])
-_db = None
 
 
 def set_temporal_db(database) -> None:
-    global _db
-    _db = database
+    """No-op shim — the module reads the DB via dependencies.get_db()."""
+    _ = database
+
+
+def _db_or_none():
+    try:
+        from dependencies import get_db
+        return get_db()
+    except Exception:
+        return None
 
 
 # ─── Static knowledge tables ──────────────────────────────────────────────────
@@ -167,7 +174,7 @@ def _active_fauna(month: int, region: Optional[str] = None) -> list[dict]:
 # ─── Upcoming events from DB ──────────────────────────────────────────────────
 
 async def _upcoming_events(months_ahead: int = 3, region: Optional[str] = None) -> list[dict]:
-    if _db is None:
+    if _db_or_none() is None:
         return []
     now = datetime.now(timezone.utc)
     cutoff = now + timedelta(days=months_ahead * 30)
@@ -175,7 +182,7 @@ async def _upcoming_events(months_ahead: int = 3, region: Optional[str] = None) 
         query: dict[str, Any] = {}
         if region:
             query["region"] = {"$regex": region, "$options": "i"}
-        docs = await _db["events"].find(query).limit(100).to_list(100)
+        docs = await _db_or_none()["events"].find(query).limit(100).to_list(100)
         results = []
         for d in docs:
             name = d.get("name") or d.get("title") or ""
@@ -192,10 +199,10 @@ async def _upcoming_events(months_ahead: int = 3, region: Optional[str] = None) 
 
 
 async def _upcoming_cultural_routes(month: int) -> list[dict]:
-    if _db is None:
+    if _db_or_none() is None:
         return []
     try:
-        docs = await _db["cultural_routes"].find(
+        docs = await _db_or_none()["cultural_routes"].find(
             {"best_months": month}
         ).limit(8).to_list(8)
         return [{"name": d.get("name", ""), "region": d.get("region", ""), "family": d.get("family", "")} for d in docs]
@@ -267,7 +274,7 @@ async def enrich_entity(
     # Fetch entity best_months from DB
     best_months: list[int] = []
     entity_name = entity_id
-    if _db is not None:
+    if _db_or_none() is not None:
         col_map = {
             "cultural_route": "cultural_routes",
             "heritage":       "heritage_items",
@@ -279,7 +286,7 @@ async def enrich_entity(
         col = col_map.get(module)
         if col:
             try:
-                doc = await _db[col].find_one({"$or": [{"id": entity_id}, {"name": {"$regex": entity_id, "$options": "i"}}]})
+                doc = await _db_or_none()[col].find_one({"$or": [{"id": entity_id}, {"name": {"$regex": entity_id, "$options": "i"}}]})
                 if doc:
                     best_months = doc.get("best_months") or doc.get("bloom_months") or []
                     entity_name = doc.get("name") or doc.get("common_name") or entity_id
