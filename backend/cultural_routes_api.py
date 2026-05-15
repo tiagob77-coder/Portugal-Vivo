@@ -21,15 +21,22 @@ from models.api_models import User
 
 cultural_routes_router = APIRouter(prefix="/cultural-routes", tags=["Cultural Routes"])
 
-_db = None
 _llm_key: str = ""
 _require_admin = None
 _require_auth = None
 
 
 def set_cultural_routes_db(database) -> None:
-    global _db
-    _db = database
+    """No-op shim — the module reads the DB via dependencies.get_db()."""
+    _ = database
+
+
+def _db_or_none():
+    try:
+        from dependencies import get_db
+        return get_db()
+    except Exception:
+        return None
 
 
 def set_cultural_routes_llm_key(key: str) -> None:
@@ -793,10 +800,10 @@ def _serialize(doc: Dict) -> Dict:
 
 
 async def _col_or_seed(col: str, seed: List[Dict]) -> List[Dict]:
-    if _db is None:
+    if _db_or_none() is None:
         return [dict(d) for d in seed]
     try:
-        docs = await _db[col].find({}).to_list(500)
+        docs = await _db_or_none()[col].find({}).to_list(500)
         if docs:
             return [_serialize(d) for d in docs]
     except Exception:
@@ -1068,7 +1075,7 @@ async def cultural_routes_hub(
     family breakdown and UNESCO-certified routes.
     """
     from cultural_routes_hub import get_hub_dashboard  # noqa: PLC0415
-    return await get_hub_dashboard(_db, SEED_ROUTES, month=month, lat=lat, lng=lng)
+    return await get_hub_dashboard(_db_or_none(), SEED_ROUTES, month=month, lat=lat, lng=lng)
 
 
 @cultural_routes_router.get("/spotlight", summary="Route of the day — deterministic daily rotation")
@@ -1080,7 +1087,7 @@ async def cultural_routes_spotlight():
     Includes enrichment summary (POI count, upcoming events, trails).
     """
     from cultural_routes_hub import get_spotlight  # noqa: PLC0415
-    result = await get_spotlight(_db, SEED_ROUTES)
+    result = await get_spotlight(_db_or_none(), SEED_ROUTES)
     if result is None:
         raise HTTPException(status_code=503, detail="Sem rotas disponíveis")
     return result
@@ -1103,7 +1110,7 @@ async def discover_routes(
     """
     from cultural_routes_hub import score_and_discover  # noqa: PLC0415
     results = await score_and_discover(
-        _db, SEED_ROUTES,
+        _db_or_none(), SEED_ROUTES,
         mood=mood, lat=lat, lng=lng, month=month, limit=limit,
     )
     return {
@@ -1130,7 +1137,7 @@ async def get_enriched_route(route_id: str):
     Computes live on cache miss.
     """
     from cultural_routes_hub import get_enriched  # noqa: PLC0415
-    result = await get_enriched(_db, route_id, SEED_ROUTES)
+    result = await get_enriched(_db_or_none(), route_id, SEED_ROUTES)
     if result is None:
         raise HTTPException(status_code=404, detail="Rota cultural não encontrada")
     return result
@@ -1154,7 +1161,7 @@ async def route_live_calendar(route_id: str, limit: int = Query(12, ge=1, le=50)
         raise HTTPException(status_code=404, detail="Rota cultural não encontrada")
 
     from cultural_routes_hub import _events_for_route  # noqa: PLC0415
-    events = await _events_for_route(_db, route, limit=limit)
+    events = await _events_for_route(_db_or_none(), route, limit=limit)
     return {
         "route_id": route_id,
         "route_name": route.get("name"),
@@ -1374,7 +1381,7 @@ async def trigger_enrichment(
     from cultural_routes_hub import bootstrap_enrichment  # noqa: PLC0415
 
     async def _run():
-        return await bootstrap_enrichment(_db)
+        return await bootstrap_enrichment(_db_or_none())
 
     _asyncio.create_task(_run())
     return {
