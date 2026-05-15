@@ -171,15 +171,41 @@ async def csrf_middleware(request: Request, call_next):
     return response
 
 
+_IS_PRODUCTION = os.environ.get("ENVIRONMENT", "development") == "production"
+
+# Content-Security-Policy for the API. The backend serves JSON, never HTML
+# UI, so the policy can be maximally restrictive: nothing loads, nothing
+# frames, nothing renders. The PWA itself uses the matching policy declared
+# by nginx in ops/nginx/conf.d/portugalvivo.conf — keeping a copy here means
+# that any environment running the backend *without* nginx (dev, staging,
+# in-tree docker-compose) still gets the same protection rather than being
+# silently more permissive.
+_API_CSP = "default-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'"
+
+
 @app.middleware("http")
 async def security_headers_middleware(request: Request, call_next):
-    """Add security headers to all responses"""
+    """Add security headers to all responses."""
     response = await call_next(request)
-    response.headers["X-Content-Type-Options"] = "nosniff"
-    response.headers["X-Frame-Options"] = "DENY"
-    response.headers["X-XSS-Protection"] = "1; mode=block"
-    response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
-    response.headers["Permissions-Policy"] = "camera=(), microphone=(), geolocation=(self)"
+    response.headers.setdefault("X-Content-Type-Options", "nosniff")
+    response.headers.setdefault("X-Frame-Options", "DENY")
+    response.headers.setdefault("X-XSS-Protection", "1; mode=block")
+    response.headers.setdefault("Referrer-Policy", "strict-origin-when-cross-origin")
+    response.headers.setdefault(
+        "Permissions-Policy", "camera=(), microphone=(), geolocation=(self)"
+    )
+    # The API never serves HTML, so the policy is restrictive on purpose.
+    response.headers.setdefault("Content-Security-Policy", _API_CSP)
+    response.headers.setdefault("Cross-Origin-Opener-Policy", "same-origin")
+    response.headers.setdefault("Cross-Origin-Resource-Policy", "same-site")
+    # HSTS only makes sense over TLS; the nginx layer already serves it on
+    # 443. In production we add it here too so a misconfigured deploy that
+    # exposes uvicorn behind a different proxy still gets the header.
+    if _IS_PRODUCTION:
+        response.headers.setdefault(
+            "Strict-Transport-Security",
+            "max-age=31536000; includeSubDomains",
+        )
     return response
 
 # Auth rate limiter (per IP, for login/register/reset). Backed by the
