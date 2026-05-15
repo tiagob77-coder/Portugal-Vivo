@@ -2,6 +2,7 @@
  * Centralized API configuration.
  * All modules should import API_URL from here instead of declaring their own.
  */
+import logger from '../utils/logger';
 
 const getBackendUrl = (): string => {
   const envUrl = process.env.EXPO_PUBLIC_BACKEND_URL;
@@ -18,7 +19,7 @@ export const API_URL = getBackendUrl();
 export const API_BASE = `${API_URL}/api`;
 
 if (__DEV__) {
-  console.log('[API Config] EXPO_PUBLIC_BACKEND_URL:', process.env.EXPO_PUBLIC_BACKEND_URL);
-  console.log('[API Config] API_URL:', API_URL);
-  console.log('[API Config] API_BASE:', API_BASE);
+  logger.debug('[API Config] EXPO_PUBLIC_BACKEND_URL:', process.env.EXPO_PUBLIC_BACKEND_URL);
+  logger.debug('[API Config] API_URL:', API_URL);
+  logger.debug('[API Config] API_BASE:', API_BASE);
 }

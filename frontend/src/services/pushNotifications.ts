@@ -7,6 +7,7 @@
 import { Platform } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { API_BASE } from '../config/api';
+import logger from '../utils/logger';
 
 const PUSH_TOKEN_KEY = 'push_notification_token';
 
@@ -75,7 +76,7 @@ class PushNotificationService {
       const execEnv = Constants?.default?.executionEnvironment || Constants?.executionEnvironment;
       if (execEnv === 'storeClient') {
         // Running in Expo Go — push notifications not supported since SDK 53
-        console.log('Push notifications: Skipped (Expo Go detected)');
+        logger.debug('Push notifications: Skipped (Expo Go detected)');
         return null;
       }
 
@@ -85,18 +86,18 @@ class PushNotificationService {
         Notifications = require('expo-notifications'); // eslint-disable-line @typescript-eslint/no-require-imports
         Device = require('expo-device'); // eslint-disable-line @typescript-eslint/no-require-imports
       } catch (importError) {
-        console.log('Push notifications module not available');
+        logger.debug('Push notifications module not available');
         return null;
       }
 
       if (!Device?.isDevice) {
-        console.log('Push notifications require a physical device');
+        logger.debug('Push notifications require a physical device');
         return null;
       }
 
       // Check if getPermissionsAsync is available (not in Expo Go SDK 53+)
       if (typeof Notifications?.getPermissionsAsync !== 'function') {
-        console.log('Push notifications API not available in this build');
+        logger.debug('Push notifications API not available in this build');
         return null;
       }
 
@@ -126,7 +127,7 @@ class PushNotificationService {
 
       return this.pushToken;
     } catch (_error) {
-      console.log('Push notifications not available in this environment');
+      logger.debug('Push notifications not available in this environment');
       return null;
     }
   }

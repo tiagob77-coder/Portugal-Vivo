@@ -6,6 +6,7 @@
 import * as Speech from 'expo-speech';
 // import { Platform } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import logger from '../utils/logger';
 
 const STORAGE_KEYS = {
   AUDIO_SETTINGS: 'audio_guide_settings',
@@ -217,7 +218,7 @@ class AudioGuideService {
         v.identifier?.includes('pt_PT')
       );
       if (ptPT) {
-        console.log('[TTS] Using PT-PT voice:', ptPT.identifier);
+        logger.debug('[TTS] Using PT-PT voice:', ptPT.identifier);
         return ptPT.identifier;
       }
 
@@ -230,7 +231,7 @@ class AudioGuideService {
         v.name?.toLowerCase().includes('cristiano')
       );
       if (european) {
-        console.log('[TTS] Using European Portuguese voice:', european.identifier);
+        logger.debug('[TTS] Using European Portuguese voice:', european.identifier);
         return european.identifier;
       }
 
@@ -240,11 +241,11 @@ class AudioGuideService {
         v.language.includes('Portuguese')
       );
       if (anyPT) {
-        console.log('[TTS] Using Portuguese voice:', anyPT.identifier);
+        logger.debug('[TTS] Using Portuguese voice:', anyPT.identifier);
         return anyPT.identifier;
       }
 
-      console.log('[TTS] No Portuguese voice found, using system default');
+      logger.debug('[TTS] No Portuguese voice found, using system default');
       return undefined;
     } catch (error) {
       console.error('[TTS] Error finding voice:', error);

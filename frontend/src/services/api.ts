@@ -4,6 +4,7 @@ import { HeritageItem, Route, Category, MainCategory, Subcategory, Region, User,
 import offlineCache from './offlineCache';
 
 import { API_BASE } from '../config/api';
+import logger from '../utils/logger';
 
 const api = axios.create({
   baseURL: API_BASE,
@@ -34,7 +35,7 @@ api.interceptors.request.use(async (config) => {
 if (__DEV__) {
   api.interceptors.request.use(
     (config) => {
-      console.log(`[API Request] ${config.method?.toUpperCase()} ${config.baseURL}${config.url}`);
+      logger.debug(`[API Request] ${config.method?.toUpperCase()} ${config.baseURL}${config.url}`);
       return config;
     },
     (error) => {
@@ -45,7 +46,7 @@ if (__DEV__) {
 
   api.interceptors.response.use(
     (response) => {
-      console.log(`[API Response] ${response.status} ${response.config.url} - ${JSON.stringify(response.data).slice(0, 100)}...`);
+      logger.debug(`[API Response] ${response.status} ${response.config.url} - ${JSON.stringify(response.data).slice(0, 100)}...`);
       return response;
     },
     (error) => {
