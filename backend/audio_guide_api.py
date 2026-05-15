@@ -1,18 +1,21 @@
 from fastapi import APIRouter, HTTPException, Depends
+from motor.motor_asyncio import AsyncIOMotorDatabase
 from pydantic import BaseModel
 from typing import Optional
 
+from dependencies import get_db
 from services.audio_guide_service import audio_guide_service
 from premium_guard import require_feature
 
 router = APIRouter()
 
-_db = None
 
-
+# Backwards-compatibility shim — server.py wires every router via set_X_db()
+# at startup. Keeping the no-op preserves that call site so this refactor
+# can land one module at a time without touching server.py.
 def set_audio_guide_db(database):
-    global _db
-    _db = database
+    """No-op; the module now reads the DB via Depends(get_db)."""
+    _ = database
 
 
 class AudioGuideRequest(BaseModel):
@@ -47,10 +50,15 @@ async def get_available_voices():
 
 
 @router.get("/audio/guide/{item_id}", dependencies=[Depends(require_feature("audio_guides"))])
-async def get_audio_for_item(item_id: str, use_hd: bool = False, speed: str = "normal"):
+async def get_audio_for_item(
+    item_id: str,
+    use_hd: bool = False,
+    speed: str = "normal",
+    db: AsyncIOMotorDatabase = Depends(get_db),
+):
     """Generate audio guide for a specific heritage item (Premium)"""
     # Get item details
-    item = await _db.heritage_items.find_one({"id": item_id}, {"_id": 0})
+    item = await db.heritage_items.find_one({"id": item_id}, {"_id": 0})
     if not item:
         raise HTTPException(status_code=404, detail="Item not found")
 
