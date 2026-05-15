@@ -25,12 +25,21 @@ from typing import Any, Optional
 from fastapi import APIRouter, Query, HTTPException
 
 graph_router = APIRouter(prefix="/graph", tags=["Knowledge Graph"])
-_db = None
 
 
 def set_graph_db(database) -> None:
-    global _db
-    _db = database
+    """No-op shim — the module now reads the DB via dependencies.get_db()."""
+    _ = database
+
+
+def _db_or_none():
+    """Lookup the live Motor database lazily so seed fallbacks still work
+    in environments where init_database() has not been called yet."""
+    try:
+        from dependencies import get_db
+        return get_db()
+    except Exception:
+        return None
 
 
 # ─── Constants ────────────────────────────────────────────────────────────────
@@ -167,10 +176,10 @@ def _score_connection(a: dict, b: dict) -> tuple[float, str]:
 
 async def _all_of_type(node_type: str) -> list[dict]:
     col = NODE_COLLECTIONS.get(node_type)
-    if not col or _db is None:
+    if not col or _db_or_none() is None:
         return []
     try:
-        docs = await _db[col].find({}).to_list(500)
+        docs = await _db_or_none()[col].find({}).to_list(500)
         return [_normalise(d, node_type) for d in docs]
     except Exception:
         return []
@@ -178,7 +187,7 @@ async def _all_of_type(node_type: str) -> list[dict]:
 
 async def _fetch_node(node_id: str, node_type: str) -> Optional[dict]:
     col = NODE_COLLECTIONS.get(node_type)
-    if not col or _db is None:
+    if not col or _db_or_none() is None:
         return None
     raw_id = node_id.split(":", 1)[-1] if ":" in node_id else node_id
     try:
@@ -188,7 +197,7 @@ async def _fetch_node(node_id: str, node_type: str) -> Optional[dict]:
             query = {"_id": ObjectId(raw_id)}
         except Exception:
             query = {"$or": [{"id": raw_id}, {"slug": raw_id}, {"name": raw_id}]}
-        doc = await _db[col].find_one(query)
+        doc = await _db_or_none()[col].find_one(query)
         return _normalise(doc, node_type) if doc else None
     except Exception:
         return None
@@ -324,11 +333,11 @@ async def graph_summary():
     counts: dict[str, int] = {}
     total = 0
     for node_type, col in NODE_COLLECTIONS.items():
-        if _db is None:
+        if _db_or_none() is None:
             counts[node_type] = 0
             continue
         try:
-            n = await _db[col].count_documents({})
+            n = await _db_or_none()[col].count_documents({})
             counts[node_type] = n
             total += n
         except Exception:

@@ -224,6 +224,33 @@ _AUTH_RATE_PATHS = {
     "/api/auth/reset-password",
 }
 
+# Trusted-proxy allow-list. Only requests whose immediate TCP peer is in
+# this set are allowed to override the rate-limit key via X-Forwarded-For —
+# otherwise an attacker hitting uvicorn directly could rotate the header
+# value and evade the limiter altogether (Codex r3247555951 / P1).
+_TRUSTED_PROXIES = {
+    ip.strip()
+    for ip in os.environ.get("TRUSTED_PROXIES", "127.0.0.1,::1").split(",")
+    if ip.strip()
+}
+
+
+def _client_ip_for_rate_limit(request: Request) -> str:
+    """Return the IP we should bucket the auth limiter on.
+
+    The TCP peer (``request.client.host``) is always authoritative — anyone
+    can put whatever value they like in ``X-Forwarded-For``. We only honour
+    the header when the peer itself is a trusted reverse proxy (the nginx
+    container in production), and even then we take the *first* entry, which
+    is the original client per RFC 7239.
+    """
+    peer = request.client.host if request.client else ""
+    if peer in _TRUSTED_PROXIES:
+        forwarded = request.headers.get("x-forwarded-for", "").strip()
+        if forwarded:
+            return forwarded.split(",")[0].strip() or peer or "unknown"
+    return peer or "unknown"
+
 
 @app.middleware("http")
 async def auth_rate_limit_middleware(request: Request, call_next):
@@ -231,6 +258,7 @@ async def auth_rate_limit_middleware(request: Request, call_next):
     if request.method != "POST" or request.url.path not in _AUTH_RATE_PATHS:
         return await call_next(request)
 
+    ip = _client_ip_for_rate_limit(request)
     forwarded = request.headers.get("x-forwarded-for")
     ip = (
         forwarded.split(",")[0].strip()

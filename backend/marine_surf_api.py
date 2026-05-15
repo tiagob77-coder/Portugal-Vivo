@@ -10,12 +10,21 @@ from auth_api import require_auth
 
 router = APIRouter()
 
-_db = None
-
 
 def set_marine_surf_db(database):
-    global _db
-    _db = database
+    """No-op shim — the module now reads the DB via dependencies.get_db().
+
+    Kept so server.py's set_X_db wiring loop does not need to be touched
+    while the DI refactor lands module by module.
+    """
+    _ = database
+
+
+def _db():
+    """Lookup the live Motor database lazily so test imports do not break
+    if the dependency container has not been initialised yet."""
+    from dependencies import get_db
+    return get_db()
 
 
 # ========================
@@ -116,7 +125,7 @@ class SurfAlertPreferences(BaseModel):
 @router.get("/alerts/surf")
 async def get_surf_alert_preferences(current_user: User = Depends(require_auth)):
     """Get user's surf alert preferences"""
-    prefs = await _db.surf_alerts.find_one(
+    prefs = await _db().surf_alerts.find_one(
         {"user_id": current_user.user_id},
         {"_id": 0}
     )
@@ -133,7 +142,7 @@ async def update_surf_alert_preferences(
     current_user: User = Depends(require_auth)
 ):
     """Update user's surf alert preferences"""
-    await _db.surf_alerts.update_one(
+    await _db().surf_alerts.update_one(
         {"user_id": current_user.user_id},
         {"$set": {
             "user_id": current_user.user_id,
@@ -194,7 +203,7 @@ async def get_favorite_spots(current_user: User = Depends(require_auth)):
     """Get user's favorite surf spots with current conditions"""
     from services.marine_service import marine_service
 
-    user_favorites = await _db.favorite_spots.find(
+    user_favorites = await _db().favorite_spots.find(
         {"user_id": current_user.user_id},
         {"_id": 0}
     ).to_list(20)
@@ -236,14 +245,14 @@ async def add_favorite_spot(
         raise HTTPException(status_code=404, detail="Spot não encontrado")
 
     # Check if already favorited
-    existing = await _db.favorite_spots.find_one({
+    existing = await _db().favorite_spots.find_one({
         "user_id": current_user.user_id,
         "spot_id": spot_id
     })
     if existing:
         raise HTTPException(status_code=400, detail="Spot já está nos favoritos")
 
-    await _db.favorite_spots.insert_one({
+    await _db().favorite_spots.insert_one({
         "user_id": current_user.user_id,
         "spot_id": spot_id,
         "spot_name": spot["name"],
@@ -261,7 +270,7 @@ async def remove_favorite_spot(
     current_user: User = Depends(require_auth)
 ):
     """Remove a surf spot from favorites"""
-    result = await _db.favorite_spots.delete_one({
+    result = await _db().favorite_spots.delete_one({
         "user_id": current_user.user_id,
         "spot_id": spot_id
     })
@@ -280,7 +289,7 @@ async def update_spot_notifications(
     current_user: User = Depends(require_auth)
 ):
     """Update notification preferences for a favorite spot"""
-    result = await _db.favorite_spots.update_one(
+    result = await _db().favorite_spots.update_one(
         {"user_id": current_user.user_id, "spot_id": spot_id},
         {"$set": {
             "notify_excellent": notify_excellent,

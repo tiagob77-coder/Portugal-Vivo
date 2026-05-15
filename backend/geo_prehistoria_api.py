@@ -15,11 +15,25 @@ from models.api_models import User
 from shared_utils import apply_municipality_filter
 
 geo_prehistoria_router = APIRouter(prefix="/geo-prehistoria", tags=["GeoPrehistoria"])
-_db = None
+
 
 def set_geo_prehistoria_db(database) -> None:
-    global _db
-    _db = database
+    """No-op shim — the module now reads the DB via dependencies.get_db().
+
+    Kept so server.py's wiring loop does not break while the DI refactor
+    lands one module at a time.
+    """
+    _ = database
+
+
+def _db_or_none():
+    """Return the current Motor database, or None if the app has not
+    initialised it yet (e.g. early in test collection)."""
+    try:
+        from dependencies import get_db
+        return get_db()
+    except Exception:
+        return None
 
 # ─── Seed data ────────────────────────────────────────────────────────────────
 
@@ -69,13 +83,14 @@ def _serialize(doc: Dict) -> Dict:
 
 async def _collection_or_seed(col: str, seed: List[Dict], query: Optional[Dict] = None) -> List[Dict]:
     q = query or {}
-    if _db is None:
+    db = _db_or_none()
+    if db is None:
         docs = [dict(d) for d in seed]
         if q.get("municipality_id"):
             docs = [d for d in docs if d.get("municipality_id") == q["municipality_id"]]
         return docs
     try:
-        docs = await _db[col].find(q).to_list(500)
+        docs = await db[col].find(q).to_list(500)
         if docs:
             return [_serialize(d) for d in docs]
     except Exception:

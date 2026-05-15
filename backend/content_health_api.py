@@ -38,14 +38,21 @@ health_router = APIRouter(prefix="/content-health", tags=["Content Health"])
 
 # ─── DB injection ────────────────────────────────────────────────────────────
 
-_db = None
 _require_auth = None
 _require_admin = None
 
 
 def set_content_health_db(database) -> None:
-    global _db
-    _db = database
+    """No-op shim — the module reads the DB via dependencies.get_db()."""
+    _ = database
+
+
+def _db_or_none():
+    try:
+        from dependencies import get_db
+        return get_db()
+    except Exception:
+        return None
 
 
 def set_content_health_auth(require_auth, require_admin) -> None:
@@ -152,7 +159,7 @@ def _compute_iq_component(item: Dict[str, Any]) -> int:
 
 async def _compute_seasonal_freshness(item: Dict[str, Any]) -> int:
     """0–10: tem evento próximo (≤30 dias)? Foi o POI actualizado recentemente?"""
-    if _db is None:
+    if _db_or_none() is None:
         return 7
 
     poi_id = item.get("id") or item.get("_id")
@@ -162,7 +169,7 @@ async def _compute_seasonal_freshness(item: Dict[str, Any]) -> int:
 
     # Procurar eventos com poi_id directo ou na mesma região
     try:
-        events_col = _db["events"]
+        events_col = _db_or_none()["events"]
         query = {
             "$or": [
                 {"poi_id": str(poi_id)},
@@ -277,10 +284,10 @@ class HealthSummaryResponse(BaseModel):
 @health_router.get("/score/{poi_id}", response_model=HealthScoreResponse)
 async def get_poi_health_score(poi_id: str):
     """Health score de um POI específico."""
-    if _db is None:
+    if _db_or_none() is None:
         raise HTTPException(503, "DB não disponível")
 
-    item = await _db["heritage_items"].find_one({"id": poi_id})
+    item = await _db_or_none()["heritage_items"].find_one({"id": poi_id})
     if not item:
         raise HTTPException(404, f"POI {poi_id} não encontrado")
 
@@ -300,7 +307,7 @@ async def get_stale_queue(
     Lista de POIs ordenados por health score (mais baixo primeiro).
     Ideal para a fila de trabalho editorial.
     """
-    if _db is None:
+    if _db_or_none() is None:
         raise HTTPException(503, "DB não disponível")
 
     # Construir filtro MongoDB base
@@ -321,12 +328,12 @@ async def get_stale_queue(
     }
 
     skip = (page - 1) * page_size
-    total_count = await _db["heritage_items"].count_documents(mongo_filter)
+    total_count = await _db_or_none()["heritage_items"].count_documents(mongo_filter)
 
     # Puxar um lote maior para poder ordenar por score (sem índice de score no Mongo)
     # Para grandes colecções usar /recompute que persiste scores
     batch_size = min(total_count, max(page_size * 10, 300))
-    cursor = _db["heritage_items"].find(mongo_filter, projection).limit(batch_size)
+    cursor = _db_or_none()["heritage_items"].find(mongo_filter, projection).limit(batch_size)
     raw_items = await cursor.to_list(length=batch_size)
 
     # Calcular scores
@@ -366,7 +373,7 @@ async def get_health_summary(
     region: Optional[str] = Query(None),
 ):
     """Distribuição de saúde editorial agregada — para o dashboard de admin."""
-    if _db is None:
+    if _db_or_none() is None:
         raise HTTPException(503, "DB não disponível")
 
     mongo_filter: Dict[str, Any] = {}
@@ -382,7 +389,7 @@ async def get_health_summary(
     }
 
     # Amostrar até 2000 itens para performance
-    cursor = _db["heritage_items"].find(mongo_filter, projection).limit(2000)
+    cursor = _db_or_none()["heritage_items"].find(mongo_filter, projection).limit(2000)
     raw_items = await cursor.to_list(length=2000)
 
     tiers: Dict[str, int] = {"healthy": 0, "attention": 0, "stale": 0, "critical": 0}
@@ -413,7 +420,7 @@ async def recompute_scores(current_user: dict = Depends(lambda: None)):
     Operação pesada — chamar em off-peak ou via cron.
     Admin apenas.
     """
-    if _db is None:
+    if _db_or_none() is None:
         raise HTTPException(503, "DB não disponível")
 
     projection = {
@@ -424,13 +431,13 @@ async def recompute_scores(current_user: dict = Depends(lambda: None)):
         "_id": 0,
     }
 
-    cursor = _db["heritage_items"].find({}, projection)
+    cursor = _db_or_none()["heritage_items"].find({}, projection)
     items = await cursor.to_list(length=None)
 
     updated = 0
     for item in items:
         s = await _score_item(item)
-        await _db["heritage_items"].update_one(
+        await _db_or_none()["heritage_items"].update_one(
             {"id": item.get("id")},
             {"$set": {
                 "content_health_score": s["score"],

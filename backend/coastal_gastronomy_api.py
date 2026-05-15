@@ -18,12 +18,21 @@ from llm_cache import build_cache_key, cache_get, cache_set, record_llm_call
 from llm_client import call_chat_completion
 
 gastronomy_router = APIRouter(prefix="/gastronomy", tags=["Gastronomy"])
-_db = None
 _llm_key: str = ""
 _require_auth = None
 
+
 def set_gastronomy_db(database) -> None:
-    global _db; _db = database
+    """No-op shim — the module reads the DB via dependencies.get_db()."""
+    _ = database
+
+
+def _db_or_none():
+    try:
+        from dependencies import get_db
+        return get_db()
+    except Exception:
+        return None
 
 def set_gastronomy_llm_key(key: str) -> None:
     global _llm_key; _llm_key = key
@@ -208,13 +217,14 @@ def _serialize(doc):
 
 async def _col_or_seed(col, seed, query: Optional[Dict] = None):
     q = query or {}
-    if _db is None:
+    db = _db_or_none()
+    if db is None:
         docs = [dict(d) for d in seed]
         if q.get("municipality_id"):
             docs = [d for d in docs if d.get("municipality_id") == q["municipality_id"]]
         return docs
     try:
-        docs = await _db[col].find(q).to_list(500)
+        docs = await db[col].find(q).to_list(500)
         if docs:
             return [_serialize(d) for d in docs]
     except Exception:
