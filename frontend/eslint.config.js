@@ -20,11 +20,12 @@ module.exports = defineConfig([
           caughtErrorsIgnorePattern: '^_',
         },
       ],
-      // FE-001 — flag new `any` introductions without failing the build.
-      // Existing usages (~150 across services/api.ts, mapa, descobrir,
-      // heritage detail) are tracked in the audit and migrated in batches;
-      // moving this to 'error' is a follow-up once those are typed.
-      '@typescript-eslint/no-explicit-any': 'warn',
+      // FE-001 — the rule is left at the expo-config default ('off' for
+      // legacy reasons). Switching it on (even at 'warn') made `expo lint`
+      // fail because the runner uses --max-warnings 0 by default and the
+      // codebase still has ~150 audit-tracked `any` usages. Re-enable once
+      // they are migrated file-by-file:
+      // '@typescript-eslint/no-explicit-any': 'warn',
       'import/no-named-as-default': 'off',
     },
   },
