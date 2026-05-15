@@ -28,13 +28,20 @@ from workflow_chains import (
 )
 
 orchestrator_router = APIRouter(prefix="/orchestrator", tags=["Smart Orchestrator"])
-_db = None
 logger = logging.getLogger("orchestrator")
 
 
 def set_orchestrator_db(database) -> None:
-    global _db
-    _db = database
+    """No-op shim — the module reads the DB via dependencies.get_db()."""
+    _ = database
+
+
+def _db_or_none():
+    try:
+        from dependencies import get_db
+        return get_db()
+    except Exception:
+        return None
 
 
 # ─── Models ────────────────────────────────────────────────────────────────────
@@ -118,8 +125,8 @@ async def _generate_actions(ctx: UserContext, active: List[str]) -> List[SmartAc
     month = ctx.month if ctx.month is not None else datetime.now(timezone.utc).month
 
     # ── Proximity-based actions ──
-    if ctx.lat and ctx.lng and _db is not None:
-        nearby = await _db.heritage_items.find({
+    if ctx.lat and ctx.lng and _db_or_none() is not None:
+        nearby = await _db_or_none().heritage_items.find({
             "location": {
                 "$nearSphere": {
                     "$geometry": {"type": "Point", "coordinates": [ctx.lng, ctx.lat]},
@@ -144,7 +151,7 @@ async def _generate_actions(ctx: UserContext, active: List[str]) -> List[SmartAc
 
         # Trail suggestion if morning + near nature
         if hour < 14 and "trails" in active:
-            trails = await _db.trails.find({
+            trails = await _db_or_none().trails.find({
                 "start_location": {
                     "$nearSphere": {
                         "$geometry": {"type": "Point", "coordinates": [ctx.lng, ctx.lat]},
@@ -248,8 +255,8 @@ async def _generate_actions(ctx: UserContext, active: List[str]) -> List[SmartAc
             ))
 
     # ── Safety alerts (always check) ──
-    if _db is not None:
-        fires = await _db.safety_alerts.find({
+    if _db_or_none() is not None:
+        fires = await _db_or_none().safety_alerts.find({
             "type": "fire",
             "active": True,
         }).to_list(3)
@@ -266,9 +273,9 @@ async def _generate_actions(ctx: UserContext, active: List[str]) -> List[SmartAc
             ))
 
     # ── Events today ──
-    if _db is not None:
+    if _db_or_none() is not None:
         today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
-        events = await _db.calendar_events.find({
+        events = await _db_or_none().calendar_events.find({
             "date": {"$regex": f"^{today}"}
         }).to_list(3)
         if events:
@@ -310,12 +317,12 @@ async def _generate_actions(ctx: UserContext, active: List[str]) -> List[SmartAc
 async def _preload_data(ctx: UserContext, active: List[str]) -> Dict[str, Any]:
     """Pré-carrega dados dos módulos activos para evitar waterfalls no frontend."""
     preloaded: Dict[str, Any] = {}
-    if _db is None:
+    if _db_or_none() is None:
         return preloaded
 
     # Weather if available
     if "weather" in active and ctx.lat and ctx.lng:
-        weather = await _db.weather_cache.find_one(
+        weather = await _db_or_none().weather_cache.find_one(
             {"region": {"$exists": True}},
             sort=[("updated_at", -1)],
         )
@@ -328,7 +335,7 @@ async def _preload_data(ctx: UserContext, active: List[str]) -> Dict[str, Any]:
 
     # User stats if authenticated
     if ctx.user_id and "gamification" in active:
-        progress = await _db.user_progress.find_one({"user_id": ctx.user_id})
+        progress = await _db_or_none().user_progress.find_one({"user_id": ctx.user_id})
         if progress:
             preloaded["gamification"] = {
                 "level": progress.get("level", 1),
@@ -339,7 +346,7 @@ async def _preload_data(ctx: UserContext, active: List[str]) -> Dict[str, Any]:
 
     # POI count by active modules
     if ctx.lat and ctx.lng:
-        nearby_count = await _db.heritage_items.count_documents({
+        nearby_count = await _db_or_none().heritage_items.count_documents({
             "location": {
                 "$nearSphere": {
                     "$geometry": {"type": "Point", "coordinates": [ctx.lng, ctx.lat]},
@@ -354,7 +361,7 @@ async def _preload_data(ctx: UserContext, active: List[str]) -> Dict[str, Any]:
         try:
             from cultural_routes_hub import get_spotlight  # noqa: PLC0415
             from cultural_routes_api import SEED_ROUTES   # noqa: PLC0415
-            spotlight = await get_spotlight(_db, SEED_ROUTES)
+            spotlight = await get_spotlight(_db_or_none(), SEED_ROUTES)
             if spotlight:
                 preloaded["cultural_routes_spotlight"] = {
                     "id": spotlight.get("id"),
@@ -434,7 +441,7 @@ async def smart_discover(
     Pesquisa em TODAS as colecções geo-localizadas e retorna resultados
     ordenados por relevância (proximidade + IQ score + perfil).
     """
-    if _db is None or not ctx.lat or not ctx.lng:
+    if _db_or_none() is None or not ctx.lat or not ctx.lng:
         raise HTTPException(400, "Location required for smart discover")
 
     active = _get_active_modules(ctx)
@@ -446,7 +453,7 @@ async def smart_discover(
         if source["module"] not in active and source["module"] not in ("heritage", "events"):
             continue
 
-        col = _db[source["collection"]]
+        col = _db_or_none()[source["collection"]]
 
         # Try geo query — different collections may store location differently
         try:
