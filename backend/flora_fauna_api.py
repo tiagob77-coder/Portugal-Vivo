@@ -29,13 +29,21 @@ from llm_client import call_chat_completion
 
 flora_fauna_router = APIRouter(prefix="/flora-fauna", tags=["Flora Fauna"])
 
-_db = None
 _llm_key = ""
 _require_auth = None
 
+
 def set_flora_fauna_db(database) -> None:
-    global _db
-    _db = database
+    """No-op shim — the module reads the DB via dependencies.get_db()."""
+    _ = database
+
+
+def _db_or_none():
+    try:
+        from dependencies import get_db
+        return get_db()
+    except Exception:
+        return None
 
 def set_flora_fauna_llm_key(key: str) -> None:
     global _llm_key
@@ -462,12 +470,12 @@ SEED_HABITATS = [
 
 async def _col_or_seed(col: str, seed: list, query: Optional[dict] = None) -> list:
     q = query or {}
-    if _db is None:
+    if _db_or_none() is None:
         docs = list(seed)
         if q.get("municipality_id"):
             docs = [d for d in docs if d.get("municipality_id") == q["municipality_id"]]
         return docs
-    docs = await _db[col].find(q, {"_id": 0}).to_list(500)
+    docs = await _db_or_none()[col].find(q, {"_id": 0}).to_list(500)
     return docs if docs else list(seed)
 
 
