@@ -113,15 +113,10 @@ async def test_upload_requires_auth(client):
 
 @pytest.mark.anyio
 @requires_db
-async def test_admin_uploads_list(client):
-    """Admin uploads endpoint should return a list."""
+async def test_admin_uploads_list_requires_auth(client):
+    """Admin uploads endpoint is admin-only — unauthenticated callers must be rejected."""
     resp = await client.get("/api/admin/uploads", params={"limit": 10})
-    assert resp.status_code in (200, 429)
-    if resp.status_code == 200:
-        data = resp.json()
-        assert "uploads" in data
-        assert "total" in data
-        assert isinstance(data["uploads"], list)
+    assert resp.status_code in (401, 403, 429)
 
 
 @pytest.mark.anyio

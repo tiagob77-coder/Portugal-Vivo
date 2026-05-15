@@ -434,7 +434,64 @@ async def sitemap_xml():
         + '\n'.join(urls) + '\n'
         '</urlset>'
     )
-    return Response(content=xml, media_type="application/xml")
+    return Response(
+        content=xml,
+        media_type="application/xml",
+        headers={
+            # 1 hour is the same window we cache at the nginx layer; if you
+            # need a sooner refresh after a deploy, purge the nginx cache.
+            "Cache-Control": "public, max-age=3600",
+        },
+    )
+
+
+@seo_router.get("/sitemap-pois.xml")
+async def sitemap_pois_xml(page: int = 1):
+    """POI-only sitemap split by page.
+
+    The combined ``/sitemap.xml`` caps the POI list at 5 000 entries so it
+    stays well inside the 50 000-URL sitemap protocol limit. Crawlers that
+    want the full coverage can walk this paginated companion sitemap
+    instead — 5 000 POIs per page, no ceiling on the page count.
+    """
+    db = _get_db()
+    page = max(1, page)
+    PAGE_SIZE = 5000
+    skip = (page - 1) * PAGE_SIZE
+
+    pois = await db.heritage_items.find(
+        {}, {"_id": 0, "id": 1, "slug": 1, "updated_at": 1, "created_at": 1},
+    ).skip(skip).limit(PAGE_SIZE).to_list(PAGE_SIZE)
+
+    urls: list[str] = []
+    for poi in pois:
+        path = poi.get("slug") or poi["id"]
+        date_field = poi.get("updated_at") or poi.get("created_at")
+        lastmod = ""
+        if date_field:
+            if hasattr(date_field, "strftime"):
+                lastmod = f"\n    <lastmod>{date_field.strftime('%Y-%m-%d')}</lastmod>"
+            elif isinstance(date_field, str) and len(date_field) >= 10:
+                lastmod = f"\n    <lastmod>{date_field[:10]}</lastmod>"
+        urls.append(
+            f'  <url>\n'
+            f'    <loc>{SITE_URL}/heritage/{path}</loc>{lastmod}\n'
+            f'    <changefreq>monthly</changefreq>\n'
+            f'    <priority>0.7</priority>\n'
+            f'  </url>'
+        )
+
+    xml = (
+        '<?xml version="1.0" encoding="UTF-8"?>\n'
+        '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
+        + '\n'.join(urls) + '\n'
+        '</urlset>'
+    )
+    return Response(
+        content=xml,
+        media_type="application/xml",
+        headers={"Cache-Control": "public, max-age=3600"},
+    )
 
 
 @seo_router.get("/share/poi/{poi_id}", response_class=HTMLResponse)

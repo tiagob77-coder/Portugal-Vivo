@@ -171,44 +171,82 @@ async def csrf_middleware(request: Request, call_next):
     return response
 
 
+_IS_PRODUCTION = os.environ.get("ENVIRONMENT", "development") == "production"
+
+# Content-Security-Policy for the API. The backend serves JSON, never HTML
+# UI, so the policy can be maximally restrictive: nothing loads, nothing
+# frames, nothing renders. The PWA itself uses the matching policy declared
+# by nginx in ops/nginx/conf.d/portugalvivo.conf — keeping a copy here means
+# that any environment running the backend *without* nginx (dev, staging,
+# in-tree docker-compose) still gets the same protection rather than being
+# silently more permissive.
+_API_CSP = "default-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'"
+
+
 @app.middleware("http")
 async def security_headers_middleware(request: Request, call_next):
-    """Add security headers to all responses"""
+    """Add security headers to all responses."""
     response = await call_next(request)
-    response.headers["X-Content-Type-Options"] = "nosniff"
-    response.headers["X-Frame-Options"] = "DENY"
-    response.headers["X-XSS-Protection"] = "1; mode=block"
-    response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
-    response.headers["Permissions-Policy"] = "camera=(), microphone=(), geolocation=(self)"
+    response.headers.setdefault("X-Content-Type-Options", "nosniff")
+    response.headers.setdefault("X-Frame-Options", "DENY")
+    response.headers.setdefault("X-XSS-Protection", "1; mode=block")
+    response.headers.setdefault("Referrer-Policy", "strict-origin-when-cross-origin")
+    response.headers.setdefault(
+        "Permissions-Policy", "camera=(), microphone=(), geolocation=(self)"
+    )
+    # The API never serves HTML, so the policy is restrictive on purpose.
+    response.headers.setdefault("Content-Security-Policy", _API_CSP)
+    response.headers.setdefault("Cross-Origin-Opener-Policy", "same-origin")
+    response.headers.setdefault("Cross-Origin-Resource-Policy", "same-site")
+    # HSTS only makes sense over TLS; the nginx layer already serves it on
+    # 443. In production we add it here too so a misconfigured deploy that
+    # exposes uvicorn behind a different proxy still gets the header.
+    if _IS_PRODUCTION:
+        response.headers.setdefault(
+            "Strict-Transport-Security",
+            "max-age=31536000; includeSubDomains",
+        )
     return response
 
-# In-memory auth rate limiter (per IP, for login/register/reset)
-_auth_rate_store: Dict[str, list] = {}
+# Auth rate limiter (per IP, for login/register/reset). Backed by the
+# shared sliding-window helper in rate_limiter.py: Redis ZSET when
+# available, in-memory fallback otherwise. The previous version kept a
+# per-process dict, which silently lost most attempts when the backend
+# ran with multiple workers (Dockerfile CMD: --workers 2).
+from rate_limiter import _is_allowed as _rate_limit_is_allowed  # noqa: E402
+
 AUTH_RATE_LIMIT = 10  # max attempts per window
 AUTH_RATE_WINDOW = 60  # seconds
+_AUTH_RATE_PATHS = {
+    "/api/auth/login",
+    "/api/auth/register",
+    "/api/auth/forgot-password",
+    "/api/auth/reset-password",
+}
+
 
 @app.middleware("http")
 async def auth_rate_limit_middleware(request: Request, call_next):
-    """Rate limit auth endpoints to prevent brute-force attacks"""
-    path = request.url.path
-    if request.method == "POST" and path in (
-        "/api/auth/login", "/api/auth/register",
-        "/api/auth/forgot-password", "/api/auth/reset-password"
-    ):
-        ip = request.client.host if request.client else "unknown"
-        now = _time.monotonic()
-        key = f"{ip}:{path}"
-        timestamps = _auth_rate_store.get(key, [])
-        # Prune old entries
-        timestamps = [t for t in timestamps if now - t < AUTH_RATE_WINDOW]
-        if len(timestamps) >= AUTH_RATE_LIMIT:
-            return Response(
-                status_code=429,
-                content="Demasiadas tentativas. Tente novamente em 1 minuto.",
-                headers={"Retry-After": str(AUTH_RATE_WINDOW)}
-            )
-        timestamps.append(now)
-        _auth_rate_store[key] = timestamps
+    """Rate limit auth endpoints to prevent brute-force attacks."""
+    if request.method != "POST" or request.url.path not in _AUTH_RATE_PATHS:
+        return await call_next(request)
+
+    forwarded = request.headers.get("x-forwarded-for")
+    ip = (
+        forwarded.split(",")[0].strip()
+        if forwarded
+        else (request.client.host if request.client else "unknown")
+    )
+    key = f"auth:{ip}:{request.url.path}"
+    allowed, _remaining = await _rate_limit_is_allowed(
+        key, AUTH_RATE_LIMIT, AUTH_RATE_WINDOW
+    )
+    if not allowed:
+        return Response(
+            status_code=429,
+            content="Demasiadas tentativas. Tente novamente em 1 minuto.",
+            headers={"Retry-After": str(AUTH_RATE_WINDOW)},
+        )
     return await call_next(request)
 
 # Global API rate limiter — sliding window, in-memory per IP
