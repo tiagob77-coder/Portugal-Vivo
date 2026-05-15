@@ -8,6 +8,7 @@ import { useQuery } from '@tanstack/react-query';
 import { getCategories, getHeritageItems, getStats, getRegions } from '../../src/services/api';
 import CategoryCard from '../../src/components/CategoryCard';
 import HeritageCard from '../../src/components/HeritageCard';
+import BrandLogo from '../../src/components/BrandLogo';
 import ErrorState from '../../src/components/ui/ErrorState';
 import { Category, HeritageItem, Region } from '../../src/types';
 import { useTheme, palette, withOpacity } from '../../src/theme';
@@ -215,8 +216,13 @@ export default function ExploreScreen() {
       )}
       {/* Header */}
       <View style={styles.header}>
-        <Text style={[styles.headerTitle, { color: colors.textPrimary }]}>Explorar</Text>
-        <Text style={[styles.headerSubtitle, { color: colors.textSecondary }]}>Descubra o melhor de Portugal</Text>
+        <View style={styles.brandRow}>
+          <BrandLogo height={44} accessibilityLabel="Portugal Vivo" />
+          <View style={{ flex: 1 }}>
+            <Text style={[styles.headerTitle, { color: colors.textPrimary }]}>Explorar</Text>
+            <Text style={[styles.headerSubtitle, { color: colors.textSecondary }]}>Descubra o melhor de Portugal</Text>
+          </View>
+        </View>
       </View>
 
       {/* Search Bar */}
@@ -426,6 +432,7 @@ export default function ExploreScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1 },
   header: { paddingHorizontal: 20, paddingTop: 8, paddingBottom: 12 },
+  brandRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   headerTitle: { fontSize: 28, fontWeight: '800' },
   headerSubtitle: { fontSize: 14, marginTop: 2 },
   searchContainer: { paddingHorizontal: 20, marginBottom: 10 },

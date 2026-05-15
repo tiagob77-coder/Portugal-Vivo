@@ -12,7 +12,9 @@ import { View, ActivityIndicator, Platform } from 'react-native';
 import i18n, { initI18n } from '../src/i18n';
 import OfflineBanner from '../src/components/OfflineBanner';
 import InstallPrompt from '../src/components/InstallPrompt';
+import CookieBanner from '../src/components/CookieBanner';
 import ErrorBoundary from '../src/components/ErrorBoundary';
+import BrandLogo from '../src/components/BrandLogo';
 import { registerServiceWorker } from '../src/services/pwaRegistration';
 import { initMonitoring, captureException } from '../src/utils/monitoring';
 import { pushNotificationService } from '../src/services/pushNotifications';
@@ -273,8 +275,9 @@ export default function RootLayout() {
 
   if (!isI18nReady) {
     return (
-      <View style={{ flex: 1, backgroundColor: '#1a0f0a', alignItems: 'center', justifyContent: 'center' }}>
-        <ActivityIndicator size="large" color="#C65D3B" />
+      <View style={{ flex: 1, backgroundColor: '#1a0f0a', alignItems: 'center', justifyContent: 'center', gap: 24 }}>
+        <BrandLogo height={180} />
+        <ActivityIndicator size="small" color="#C49A6C" />
       </View>
     );
   }
@@ -308,6 +311,7 @@ export default function RootLayout() {
                       <POIPrefetcher />
                       <OfflineBanner />
                       {Platform.OS === 'web' && <InstallPrompt />}
+                      <CookieBanner />
                     </SmartContextProvider>
                   </FavoritesProvider>
                 </AuthProvider>

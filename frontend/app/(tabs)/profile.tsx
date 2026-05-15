@@ -19,6 +19,7 @@ import {
 import type { GamificationProfile, SubscriptionStatus } from '../../src/services/api';
 import EmptyState from '../../src/components/EmptyState';
 import HeritageCard from '../../src/components/HeritageCard';
+import BrandLogo from '../../src/components/BrandLogo';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { LANGUAGES } from '../../src/i18n';
 import { GeofenceControl } from '../../src/components/GeofenceControl';
@@ -235,9 +236,7 @@ function ProfileScreen() {
         <View>
           {/* Login CTA */}
           <View style={styles.loginContainer}>
-            <View style={[styles.loginIcon, { backgroundColor: colors.primary + '15' }]}>
-              <MaterialIcons name="person-outline" size={64} color={colors.primary} />
-            </View>
+            <BrandLogo height={140} style={{ marginBottom: 16 }} />
             <Text style={[styles.loginTitle, { color: colors.textPrimary }]}>Inicie Sessao</Text>
             <Text style={[styles.loginSubtitle, { color: colors.textSecondary }]}>
               Aceda a sua conta para guardar favoritos, contribuir com historias e personalizar a sua experiencia.
