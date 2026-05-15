@@ -494,6 +494,49 @@ async def sitemap_pois_xml(page: int = 1):
     )
 
 
+@seo_router.get("/sitemap-index.xml")
+async def sitemap_index_xml():
+    """Sitemap index — points crawlers at every page of the POI sitemap.
+
+    Without this, ``robots.txt`` could only advertise page 1 of the
+    paginated POI sitemap and crawlers would silently miss every POI
+    beyond row 5 000 (Codex review r3247555955 / P2). The index counts
+    the heritage collection and emits one <sitemap> entry per page of
+    5 000, plus the static sitemap.xml.
+    """
+    db = _get_db()
+    PAGE_SIZE = 5000
+    try:
+        total_pois = await db.heritage_items.estimated_document_count()
+    except Exception:
+        total_pois = 0
+    # At least one page, even when the collection is empty, so the
+    # index never returns an empty <sitemapindex> that crawlers ignore.
+    pages = max(1, (total_pois + PAGE_SIZE - 1) // PAGE_SIZE)
+
+    entries: list[str] = [
+        f'  <sitemap>\n    <loc>{SITE_URL}/sitemap.xml</loc>\n  </sitemap>'
+    ]
+    for n in range(1, pages + 1):
+        entries.append(
+            f'  <sitemap>\n'
+            f'    <loc>{SITE_URL}/sitemap-pois.xml?page={n}</loc>\n'
+            f'  </sitemap>'
+        )
+
+    xml = (
+        '<?xml version="1.0" encoding="UTF-8"?>\n'
+        '<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
+        + '\n'.join(entries) + '\n'
+        '</sitemapindex>'
+    )
+    return Response(
+        content=xml,
+        media_type="application/xml",
+        headers={"Cache-Control": "public, max-age=3600"},
+    )
+
+
 @seo_router.get("/share/poi/{poi_id}", response_class=HTMLResponse)
 async def poi_share_page(poi_id: str):
     """Server-rendered share page with full OG + JSON-LD for social crawlers."""
