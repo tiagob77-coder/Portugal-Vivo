@@ -22,6 +22,7 @@ import { offlineCache } from '../src/services/offlineCache';
 import { getMapItems, getCategories, getStats } from '../src/services/api';
 import { FavoritesProvider } from '../src/context/FavoritesContext';
 import { SmartContextProvider } from '../src/context/SmartContext';
+import logger from '../src/utils/logger';
 import {
   registerBackgroundTasks,
   startWebProximityPolling,
@@ -127,7 +128,7 @@ function NotificationManager() {
         }
       } catch (e) {
         // Gracefully handle notification init failure (Expo Go SDK 53+)
-        console.log('Push notifications unavailable:', e);
+        logger.debug('Push notifications unavailable:', e);
       }
 
       // Listen for notification taps → navigate to the relevant screen

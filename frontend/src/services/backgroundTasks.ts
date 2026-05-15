@@ -8,6 +8,7 @@ import { Platform } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { API_BASE } from '../config/api';
 import { pushNotificationService } from './pushNotifications';
+import logger from '../utils/logger';
 
 export const PROXIMITY_CHECK_TASK = 'PT_VIVO_PROXIMITY_CHECK';
 const PROXIMITY_RADIUS_KM = 2.0;
@@ -19,14 +20,14 @@ const SESSION_INTERVAL_MS = 10 * 60 * 1000; // 10 min when tab is active (web)
 export async function registerBackgroundTasks(): Promise<void> {
   if (Platform.OS === 'web') return;
   // Native implementation - defer to native build
-  console.log('[BackgroundTasks] Native background tasks not available in web build');
+  logger.debug('[BackgroundTasks] Native background tasks not available in web build');
 }
 
 /** Unregister background task (called on logout or notifications disabled). */
 export async function unregisterBackgroundTasks(): Promise<void> {
   if (Platform.OS === 'web') return;
   // Native implementation - defer to native build
-  console.log('[BackgroundTasks] Native background tasks not available in web build');
+  logger.debug('[BackgroundTasks] Native background tasks not available in web build');
 }
 
 // ─── web fallback: in-session proximity polling ──────────────────────────────

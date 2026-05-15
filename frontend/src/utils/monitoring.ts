@@ -5,6 +5,7 @@
  */
 import * as Sentry from "@sentry/react";
 import React from "react";
+import logger from './logger';
 
 // ---------------------------------------------------------------------------
 // Initialization
@@ -23,7 +24,7 @@ let _initialized = false;
 export function initMonitoring(): void {
   if (_initialized || !SENTRY_DSN) {
     if (!SENTRY_DSN) {
-      console.log(
+      logger.debug(
         "[monitoring] EXPO_PUBLIC_SENTRY_DSN not set — Sentry disabled"
       );
     }
@@ -49,7 +50,7 @@ export function initMonitoring(): void {
   Sentry.setTag("version", APP_VERSION);
 
   _initialized = true;
-  console.log(
+  logger.debug(
     `[monitoring] Sentry initialized (env=${ENVIRONMENT}, version=${APP_VERSION})`
   );
 }
