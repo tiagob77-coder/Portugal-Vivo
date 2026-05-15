@@ -8,13 +8,28 @@ from models.api_models import User
 
 router = APIRouter()
 
-_db = None
 _require_admin = None
 
 
+def _db():
+    """Lazy resolver — call sites use ``_db().collection``."""
+    from dependencies import get_db
+    return get_db()
+
+
+def _db_or_none():
+    """Like _db() but returns None instead of raising — for endpoints
+    that have a graceful empty-state path."""
+    try:
+        from dependencies import get_db
+        return get_db()
+    except Exception:
+        return None
+
+
 def set_admin_dashboard_db(database):
-    global _db
-    _db = database
+    """No-op shim — the module reads the DB via dependencies.get_db()."""
+    _ = database
 
 
 def set_admin_dashboard_admin(admin_fn):
@@ -31,7 +46,7 @@ async def get_gallery(category: str, limit: int = 20):
     """Get images for a category"""
     from shared_utils import clamp_pagination
     _, limit = clamp_pagination(0, limit, max_limit=100)
-    items = await _db.heritage_items.find(
+    items = await _db().heritage_items.find(
         {"category": category, "image_url": {"$ne": None}},
         {"_id": 0, "id": 1, "name": 1, "image_url": 1, "region": 1}
     ).limit(limit).to_list(limit)
@@ -41,9 +56,9 @@ async def get_gallery(category: str, limit: int = 20):
 @router.get("/share/{item_id}")
 async def get_share_data(item_id: str):
     """Return Open Graph metadata for social sharing previews"""
-    item = await _db.heritage_items.find_one({"id": item_id}, {"_id": 0, "name": 1, "description": 1, "category": 1, "region": 1, "images": 1})
+    item = await _db().heritage_items.find_one({"id": item_id}, {"_id": 0, "name": 1, "description": 1, "category": 1, "region": 1, "images": 1})
     if not item:
-        route = await _db.routes.find_one({"id": item_id}, {"_id": 0, "name": 1, "description": 1, "stops": 1})
+        route = await _db().routes.find_one({"id": item_id}, {"_id": 0, "name": 1, "description": 1, "stops": 1})
         if not route:
             return {"og_title": "Portugal Vivo", "og_description": "Descobre o património cultural e natural de Portugal", "og_image": None}
         return {
@@ -78,11 +93,11 @@ async def get_stats(response: Response):
     ]
 
     total_items, total_routes, total_users, cat_results, region_results = await asyncio.gather(
-        _db.heritage_items.count_documents({}),
-        _db.routes.count_documents({}),
-        _db.users.count_documents({}),
-        _db.heritage_items.aggregate(cat_pipeline).to_list(200),
-        _db.heritage_items.aggregate(region_pipeline).to_list(50),
+        _db().heritage_items.count_documents({}),
+        _db().routes.count_documents({}),
+        _db().users.count_documents({}),
+        _db().heritage_items.aggregate(cat_pipeline).to_list(200),
+        _db().heritage_items.aggregate(region_pipeline).to_list(50),
     )
 
     # Build lookup dicts from aggregation results
@@ -128,24 +143,24 @@ async def admin_dashboard(admin: User = Depends(_admin_dep)):
         recent_users, recent_visits,
         cat_stats, region_stats, subcategory_stats,
     ) = await asyncio.gather(
-        _db.heritage_items.count_documents({}),
-        _db.routes.count_documents({}),
-        _db.users.count_documents({}),
-        _db.calendar_events.count_documents({}),
-        _db.heritage_items.count_documents({"geo_location": {"$exists": True}}),
-        _db.heritage_items.count_documents({"image_url": {"$exists": True, "$ne": None, "$ne": ""}}),
-        _db.subscriptions.count_documents({"status": "active"}),
-        _db.users.count_documents({"created_at": {"$gte": week_ago}}),
-        _db.visits.count_documents({"visited_at": {"$gte": month_ago}}),
-        _db.heritage_items.aggregate([
+        _db().heritage_items.count_documents({}),
+        _db().routes.count_documents({}),
+        _db().users.count_documents({}),
+        _db().calendar_events.count_documents({}),
+        _db().heritage_items.count_documents({"geo_location": {"$exists": True}}),
+        _db().heritage_items.count_documents({"image_url": {"$exists": True, "$ne": None, "$ne": ""}}),
+        _db().subscriptions.count_documents({"status": "active"}),
+        _db().users.count_documents({"created_at": {"$gte": week_ago}}),
+        _db().visits.count_documents({"visited_at": {"$gte": month_ago}}),
+        _db().heritage_items.aggregate([
             {"$group": {"_id": "$category", "count": {"$sum": 1}}},
             {"$sort": {"count": -1}},
         ]).to_list(50),
-        _db.heritage_items.aggregate([
+        _db().heritage_items.aggregate([
             {"$group": {"_id": "$region", "count": {"$sum": 1}}},
             {"$sort": {"count": -1}},
         ]).to_list(20),
-        _db.heritage_items.aggregate([
+        _db().heritage_items.aggregate([
             {"$group": {"_id": "$subcategory", "count": {"$sum": 1}}},
             {"$sort": {"count": -1}},
             {"$limit": 20},
@@ -153,21 +168,21 @@ async def admin_dashboard(admin: User = Depends(_admin_dep)):
     )
 
     # IQ stats
-    iq_processed = await _db.heritage_items.count_documents({"iq_score": {"$exists": True}})
-    avg_iq_result = await _db.heritage_items.aggregate([
+    iq_processed = await _db().heritage_items.count_documents({"iq_score": {"$exists": True}})
+    avg_iq_result = await _db().heritage_items.aggregate([
         {"$match": {"iq_score": {"$exists": True}}},
         {"$group": {"_id": None, "avg": {"$avg": "$iq_score"}}},
     ]).to_list(1)
     avg_iq = round(avg_iq_result[0]["avg"], 1) if avg_iq_result else 0
 
     # Top 5 POIs by IQ
-    top_pois = await _db.heritage_items.find(
+    top_pois = await _db().heritage_items.find(
         {"iq_score": {"$exists": True}},
         {"_id": 0, "name": 1, "iq_score": 1, "category": 1, "region": 1, "subcategory": 1}
     ).sort("iq_score", -1).limit(5).to_list(5)
 
     # Recent activity
-    recent_reviews = await _db.reviews.count_documents({"created_at": {"$gte": week_ago}})
+    recent_reviews = await _db().reviews.count_documents({"created_at": {"$gte": week_ago}})
 
     return {
         "overview": {
@@ -227,7 +242,7 @@ async def admin_pois_gps_audit(
     """
     limit = max(1, min(limit, 2000))
     offset = max(0, offset)
-    items = await _db.heritage_items.find(
+    items = await _db().heritage_items.find(
         {},
         {"_id": 0, "id": 1, "name": 1, "category": 1, "region": 1, "location": 1, "caop_validated": 1}
     ).skip(offset).limit(limit).to_list(limit)
@@ -274,7 +289,7 @@ async def admin_pois_bulk_validate(admin: User = Depends(_admin_dep)):
     """Run CAOP geo_validator on all POIs that haven't been validated yet."""
     from geo_validator import validate, log_audit
 
-    items = await _db.heritage_items.find(
+    items = await _db().heritage_items.find(
         {"caop_validated": {"$ne": True}, "location.lat": {"$exists": True}},
         {"_id": 0, "id": 1, "name": 1, "location": 1, "parish_code": 1}
     ).to_list(5000)
@@ -298,8 +313,8 @@ async def admin_pois_bulk_validate(admin: User = Depends(_admin_dep)):
             update["location.lat"] = result.lat
             update["location.lng"] = result.lng
 
-        await _db.heritage_items.update_one({"id": item["id"]}, {"$set": update})
-        await log_audit(_db, item["id"], result, actor="bulk-validate-api")
+        await _db().heritage_items.update_one({"id": item["id"]}, {"$set": update})
+        await log_audit(_db(), item["id"], result, actor="bulk-validate-api")
 
     return counts
 
@@ -320,17 +335,17 @@ async def admin_list_uploads(
     if status:
         query["moderation_status"] = status
 
-    uploads = await _db.user_images.find(
+    uploads = await _db().user_images.find(
         query, {"_id": 0}
     ).sort("created_at", -1).skip(skip).limit(limit).to_list(limit)
 
     # Also check upload_records collection (from upload_api.py)
     if not uploads:
-        uploads = await _db.upload_records.find(
+        uploads = await _db().upload_records.find(
             query, {"_id": 0}
         ).sort("created_at", -1).skip(skip).limit(limit).to_list(limit)
 
-    total = await _db.user_images.count_documents(query) + await _db.upload_records.count_documents(query)
+    total = await _db().user_images.count_documents(query) + await _db().upload_records.count_documents(query)
     return {"uploads": uploads, "total": total}
 
 
@@ -346,12 +361,12 @@ async def moderate_upload(
         raise HTTPException(status_code=400, detail="Ação inválida. Use: approve, reject, delete")
 
     # Try user_images first, then upload_records
-    record = await _db.user_images.find_one({"public_id": image_id})
+    record = await _db().user_images.find_one({"public_id": image_id})
     collection = "user_images"
     key_field = "public_id"
 
     if not record:
-        record = await _db.upload_records.find_one({"id": image_id})
+        record = await _db().upload_records.find_one({"id": image_id})
         collection = "upload_records"
         key_field = "id"
 
@@ -367,11 +382,11 @@ async def moderate_upload(
                 cloudinary.uploader.destroy(public_id, invalidate=True)
         except Exception:
             pass
-        await _db[collection].delete_one({key_field: image_id})
+        await _db()[collection].delete_one({key_field: image_id})
         return {"success": True, "message": "Imagem eliminada"}
 
     # approve or reject
-    await _db[collection].update_one(
+    await _db()[collection].update_one(
         {key_field: image_id},
         {"$set": {
             "moderation_status": "approved" if action == "approve" else "rejected",
@@ -419,7 +434,7 @@ async def get_iq_score_by_module(
                 "with_iq": {"$sum": {"$cond": [{"$gt": ["$iq_score", 0]}, 1, 0]}},
             }},
         ]
-        agg = await _db.heritage_items.aggregate(pipeline).to_list(1)
+        agg = await _db().heritage_items.aggregate(pipeline).to_list(1)
         if agg:
             r = agg[0]
             results[mod] = {
@@ -483,7 +498,7 @@ async def get_heatmap_data(
         {"$limit": limit},
     ]
 
-    cells = await _db.heritage_items.aggregate(pipeline).to_list(limit)
+    cells = await _db().heritage_items.aggregate(pipeline).to_list(limit)
     max_intensity = max((c.get("intensity", 1) for c in cells), default=1)
 
     # Normalize intensity 0..1
@@ -568,7 +583,7 @@ async def admin_data_quality(
     """
     from scripts.data_quality_check import run_data_quality_check
 
-    return await run_data_quality_check(_db, sample_limit=sample_limit)
+    return await run_data_quality_check(_db(), sample_limit=sample_limit)
 
 
 # ─── Editorial queues (Fase 4 — content ops) ──────────────────────────────
@@ -592,14 +607,14 @@ async def admin_community_queue(
     Returns the most recent pending items first so the queue feels live.
     Operators act via the existing PATCH /contributions/{id}/moderate.
     """
-    if _db is None:
+    if _db_or_none() is None:
         return {"items": [], "total": 0, "limit": limit}
 
-    cursor = _db.contributions.find(
+    cursor = _db().contributions.find(
         {"status": "pending"}, {"_id": 0}
     ).sort("created_at", -1).limit(limit)
     items = await cursor.to_list(limit)
-    total = await _db.contributions.count_documents({"status": "pending"})
+    total = await _db().contributions.count_documents({"status": "pending"})
     return {"items": items, "total": total, "limit": limit}
 
 
@@ -613,12 +628,12 @@ async def admin_narratives_queue(
     Operators act via POST /narratives/{id}/validate (approve/reject) and
     POST /narratives/{id}/publish (approved → published).
     """
-    if _db is None:
+    if _db_or_none() is None:
         return {"items": [], "total": 0, "limit": limit}
 
-    cursor = _db.narratives.find(
+    cursor = _db().narratives.find(
         {"status": "pending_review"}, {"_id": 0}
     ).sort("created_at", -1).limit(limit)
     items = await cursor.to_list(limit)
-    total = await _db.narratives.count_documents({"status": "pending_review"})
+    total = await _db().narratives.count_documents({"status": "pending_review"})
     return {"items": items, "total": total, "limit": limit}
