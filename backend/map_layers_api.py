@@ -19,11 +19,18 @@ from shared_utils import apply_municipality_filter
 
 router = APIRouter(prefix="/map", tags=["Map Layers"])
 
-_db = None
 
 def set_map_layers_db(database):
-    global _db
-    _db = database
+    """No-op shim — the module reads the DB via dependencies.get_db()."""
+    _ = database
+
+
+def _db_or_none():
+    try:
+        from dependencies import get_db
+        return get_db()
+    except Exception:
+        return None
 
 # ─── Layer definitions ─────────────────────────────────────────────────────────
 
@@ -268,7 +275,7 @@ async def get_nearby_pois(
     limit: int = Query(50, ge=1, le=200),
 ):
     """POIs próximos de uma coordenada, com filtro opcional por camada."""
-    if _db is None:
+    if _db_or_none() is None:
         return {"pois": [], "total": 0}
 
     # Bounding box para pré-filtrar no MongoDB
@@ -292,7 +299,7 @@ async def get_nearby_pois(
         if layer_def:
             query["category"] = {"$in": layer_def["categories"]}
 
-    cursor = _db["heritage_items"].find(query, {
+    cursor = _db_or_none()["heritage_items"].find(query, {
         "_id": 0, "id": 1, "name": 1, "category": 1, "region": 1,
         "location": 1, "iq_score": 1, "image_url": 1,
     }).limit(limit * 3)  # fetch more, filter by real distance
@@ -329,7 +336,7 @@ async def search_map(
     current_user: Optional[User] = Depends(get_current_user),
 ):
     """Pesquisa full-text nos heritage_items com filtro geográfico e por camada opcionais."""
-    if _db is None:
+    if _db_or_none() is None:
         return {"results": [], "total": 0, "query": body.q, "geo_filtered": False}
 
     query: dict = {
@@ -360,7 +367,7 @@ async def search_map(
         if allowed_categories:
             query["category"] = {"$in": list(set(allowed_categories))}
 
-    cursor = _db["heritage_items"].find(query, {
+    cursor = _db_or_none()["heritage_items"].find(query, {
         "_id": 0, "id": 1, "name": 1, "category": 1, "region": 1,
         "location": 1, "iq_score": 1, "image_url": 1, "description": 1,
     }).limit(body.limit * 3)
@@ -399,7 +406,7 @@ async def get_map_trails(
     limit: int = Query(50, ge=1, le=200),
 ):
     """Trilhos filtrados por bounding box e/ou dificuldade."""
-    if _db is None:
+    if _db_or_none() is None:
         return {"trails": [], "total": 0}
 
     query: dict = {}
@@ -424,7 +431,7 @@ async def get_map_trails(
         except (ValueError, AttributeError):
             pass  # Ignore malformed bbox — return all
 
-    cursor = _db["trails"].find(query, {
+    cursor = _db_or_none()["trails"].find(query, {
         "_id": 0,
         "id": 1,
         "name": 1,
