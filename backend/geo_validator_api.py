@@ -19,8 +19,10 @@ import logging
 from typing import Any, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query
+from motor.motor_asyncio import AsyncIOMotorDatabase
 from pydantic import BaseModel, Field
 
+from dependencies import get_db
 from geo_validator import log_audit, validate
 from services.caop_lookup import lookup
 
@@ -28,12 +30,10 @@ log = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/geo-validator", tags=["Geo Validator"])
 
-_db = None
-
 
 def set_geo_validator_db(database) -> None:
-    global _db
-    _db = database
+    """No-op shim — the module now reads the DB via Depends(get_db)."""
+    _ = database
 
 
 # ─── Optional admin dependency ────────────────────────────────────────────────
@@ -86,28 +86,30 @@ async def status():
 
 
 @router.post("/validate", response_model=ValidateResponse)
-async def validate_point(req: ValidateRequest):
+async def validate_point(
+    req: ValidateRequest,
+    db: AsyncIOMotorDatabase = Depends(get_db),
+):
     result = validate(req.lat, req.lng, declared_parish_code=req.declared_parish_code)
     # Only log if a poi_id was supplied (one-off lat/lng checks are throwaway)
-    if req.poi_id and _db is not None:
-        await log_audit(_db, poi_id=req.poi_id, result=result, actor="api")
+    if req.poi_id:
+        await log_audit(db, poi_id=req.poi_id, result=result, actor="api")
     return result.to_dict()
 
 
 @router.post("/lookup/reload", dependencies=[Depends(require_admin)])
-async def reload_lookup():
-    if _db is None:
-        raise HTTPException(status_code=500, detail="geo-validator db not wired")
-    counts = await lookup.load(_db)
+async def reload_lookup(db: AsyncIOMotorDatabase = Depends(get_db)):
+    counts = await lookup.load(db)
     return {"reloaded": True, "counts": counts}
 
 
 @router.get("/suspect", dependencies=[Depends(require_admin)])
-async def list_suspect(limit: int = Query(100, ge=1, le=1000)):
-    if _db is None:
-        raise HTTPException(status_code=500, detail="geo-validator db not wired")
+async def list_suspect(
+    limit: int = Query(100, ge=1, le=1000),
+    db: AsyncIOMotorDatabase = Depends(get_db),
+):
     cursor = (
-        _db["geo_audit_log"]
+        db["geo_audit_log"]
         .find({"status": {"$in": ["suspect", "invalid"]}}, {"_id": 0})
         .sort("created_at", -1)
         .limit(limit)
@@ -120,16 +122,15 @@ async def audit_log(
     poi_id: Optional[str] = None,
     status_filter: Optional[str] = Query(None, alias="status"),
     limit: int = Query(200, ge=1, le=2000),
+    db: AsyncIOMotorDatabase = Depends(get_db),
 ):
-    if _db is None:
-        raise HTTPException(status_code=500, detail="geo-validator db not wired")
     query: dict[str, Any] = {}
     if poi_id:
         query["poi_id"] = poi_id
     if status_filter:
         query["status"] = status_filter
     cursor = (
-        _db["geo_audit_log"]
+        db["geo_audit_log"]
         .find(query, {"_id": 0})
         .sort("created_at", -1)
         .limit(limit)
@@ -141,16 +142,15 @@ async def audit_log(
 async def batch_validate(
     limit: int = Query(500, ge=1, le=5000),
     apply: bool = Query(False, description="persist snapped coordinates back to heritage_items"),
+    db: AsyncIOMotorDatabase = Depends(get_db),
 ):
     """
     Validate up to `limit` POIs. With `apply=true`, snapped coordinates are
     written back to `heritage_items.location` and the POI is marked
     `caop_validated=true`.
     """
-    if _db is None:
-        raise HTTPException(status_code=500, detail="geo-validator db not wired")
     if not lookup.is_ready:
-        await lookup.ensure_loaded(_db)
+        await lookup.ensure_loaded(db)
     if not lookup.is_ready:
         raise HTTPException(
             status_code=503,
@@ -159,7 +159,7 @@ async def batch_validate(
 
     summary = {"scanned": 0, "ok": 0, "snapped": 0, "sea_snapped": 0,
                "suspect": 0, "invalid": 0, "applied": 0}
-    cursor = _db["heritage_items"].find(
+    cursor = db["heritage_items"].find(
         {"location": {"$exists": True, "$ne": None}},
         {"id": 1, "location": 1, "freguesia_code": 1, "_id": 0},
     ).limit(limit)
@@ -177,7 +177,7 @@ async def batch_validate(
         summary["scanned"] += 1
         result = validate(lat, lng, declared_parish_code=poi.get("freguesia_code"))
         summary[result.status] = summary.get(result.status, 0) + 1
-        await log_audit(_db, poi_id=poi.get("id"), result=result, actor="batch")
+        await log_audit(db, poi_id=poi.get("id"), result=result, actor="batch")
 
         if apply and result.status in ("snapped", "sea_snapped") and result.was_modified:
             update = {
@@ -188,7 +188,7 @@ async def batch_validate(
                 update["freguesia_code"] = result.parish.parish_code
                 update["concelho_code"] = result.parish.municipality_code
                 update["nuts3_code"] = result.parish.nuts3_code
-            await _db["heritage_items"].update_one(
+            await db["heritage_items"].update_one(
                 {"id": poi.get("id")},
                 {"$set": update},
             )
@@ -200,7 +200,7 @@ async def batch_validate(
                 update["freguesia_code"] = result.parish.parish_code
                 update["concelho_code"] = result.parish.municipality_code
                 update["nuts3_code"] = result.parish.nuts3_code
-            await _db["heritage_items"].update_one(
+            await db["heritage_items"].update_one(
                 {"id": poi.get("id")}, {"$set": update},
             )
     return summary
