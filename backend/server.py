@@ -259,6 +259,12 @@ async def auth_rate_limit_middleware(request: Request, call_next):
         return await call_next(request)
 
     ip = _client_ip_for_rate_limit(request)
+    forwarded = request.headers.get("x-forwarded-for")
+    ip = (
+        forwarded.split(",")[0].strip()
+        if forwarded
+        else (request.client.host if request.client else "unknown")
+    )
     key = f"auth:{ip}:{request.url.path}"
     allowed, _remaining = await _rate_limit_is_allowed(
         key, AUTH_RATE_LIMIT, AUTH_RATE_WINDOW
