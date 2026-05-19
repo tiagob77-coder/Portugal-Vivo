@@ -7,6 +7,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import NetInfo from '@react-native-community/netinfo';
 import { Platform, Image } from 'react-native';
 import { HeritageItem } from '../types';
+import { secureStorage } from '../utils/secureStorage';
 
 // Lazy import to avoid circular dependency (api.ts imports offlineCache)
 const getApiFunctions = () => require('./api'); // eslint-disable-line @typescript-eslint/no-require-imports
@@ -284,7 +285,10 @@ class OfflineCacheService {
       return { success: 0, failed: 0 };
     }
 
-    const token = await AsyncStorage.getItem('session_token');
+    // SEC-005: session token lives in SecureStore on native. AsyncStorage
+    // was returning null and the queue never drained for logged-in users
+    // on iOS/Android.
+    const token = await secureStorage.getItem('session_token');
     if (!token) {
       console.warn('Offline sync skipped: no session token');
       return { success: 0, failed: queue.length };

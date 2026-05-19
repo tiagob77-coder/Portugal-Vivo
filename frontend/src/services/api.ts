@@ -1,9 +1,9 @@
 import axios from 'axios';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { HeritageItem, Route, Category, MainCategory, Subcategory, Region, User, Stats, ApiParams } from '../types';
 import offlineCache from './offlineCache';
 
 import { API_BASE } from '../config/api';
+import { secureStorage } from '../utils/secureStorage';
 import logger from '../utils/logger';
 
 const api = axios.create({
@@ -17,14 +17,22 @@ const api = axios.create({
 // Auto-attach Authorization header on every request (unless one is already set).
 // Without this, authenticated endpoints would 401 unless each callsite passed
 // the Bearer token manually — easy to forget (e.g. the GPX upload in mapa.tsx).
+//
+// SEC-005: reads from `secureStorage` (expo-secure-store on native, falls
+// back to AsyncStorage on web where SecureStore isn't available). The
+// previous version went straight to AsyncStorage which (a) didn't honour
+// the encrypted-keychain promise of secureStorage.ts, and (b) was *broken*
+// on native — AuthContext writes via secureStorage, so the interceptor was
+// reading an empty AsyncStorage key and shipping every request without
+// the Bearer header.
 api.interceptors.request.use(async (config) => {
   const headers = config.headers as any;
   if (!headers?.Authorization && !headers?.authorization) {
     try {
-      const token = await AsyncStorage.getItem('session_token');
+      const token = await secureStorage.getItem('session_token');
       if (token && headers) headers.Authorization = `Bearer ${token}`;
     } catch {
-      // AsyncStorage read failure — send the request unauthenticated and let
+      // Storage read failure — send the request unauthenticated and let
       // the server decide. Public endpoints will still work.
     }
   }
