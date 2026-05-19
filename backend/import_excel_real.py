@@ -21,18 +21,20 @@ import openpyxl
 from motor.motor_asyncio import AsyncIOMotorClient
 from dotenv import load_dotenv
 
+ROOT_DIR = Path(__file__).parent
+load_dotenv(ROOT_DIR / '.env')
+
 # Optional CAOP enrichment — geo_validator is best-effort: if shapely /
 # CAOP data are missing it short-circuits to a no-op and the importer
 # still works exactly as before. Set DISABLE_CAOP_ENRICH=1 to force off.
+# IMPORTANT: this block must run *after* load_dotenv so the toggle defined
+# in backend/.env is actually honoured (Codex P2 on PR #166).
 _CAOP_ENRICH = os.environ.get("DISABLE_CAOP_ENRICH", "").lower() not in ("1", "true", "yes")
 try:
     from geo_validator import enrich_poi as _enrich_poi
 except Exception:  # pragma: no cover — optional dependency chain
     _enrich_poi = None
     _CAOP_ENRICH = False
-
-ROOT_DIR = Path(__file__).parent
-load_dotenv(ROOT_DIR / '.env')
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)

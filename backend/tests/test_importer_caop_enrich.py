@@ -54,6 +54,43 @@ def test_disable_env_turns_hook_off():
     os.environ.pop("DISABLE_CAOP_ENRICH", None)
 
 
+def test_flag_is_read_after_dotenv_loads(tmp_path, monkeypatch):
+    """Regression for the Codex P2 finding on PR #166: the flag must be
+    evaluated *after* load_dotenv runs, so a DISABLE_CAOP_ENRICH=1 line in
+    backend/.env is actually honoured. We simulate that by pointing the
+    importer's .env path at a tmp file and reloading the module."""
+    fake_env = tmp_path / ".env"
+    fake_env.write_text("DISABLE_CAOP_ENRICH=1\n")
+
+    # Make absolutely sure the parent shell does NOT pre-set the flag —
+    # otherwise we wouldn't be testing the dotenv path.
+    monkeypatch.delenv("DISABLE_CAOP_ENRICH", raising=False)
+    os.environ.setdefault("MONGO_URL", "mongodb://localhost:27017")
+    os.environ.setdefault("DB_NAME", "t")
+    os.environ.setdefault("JWT_SECRET_KEY", "x" * 64)
+
+    # Patch load_dotenv to load *our* file regardless of what path the
+    # importer passes — that proves the ordering, not the path.
+    import sys as _sys
+    import dotenv as _dotenv
+
+    real_load_dotenv = _dotenv.load_dotenv
+
+    def fake_load_dotenv(_path=None, **_kw):
+        return real_load_dotenv(fake_env, override=True)
+
+    monkeypatch.setattr(_dotenv, "load_dotenv", fake_load_dotenv)
+    _sys.modules.pop("import_excel_real", None)
+    mod = importlib.import_module("import_excel_real")
+
+    assert mod._CAOP_ENRICH is False, (
+        "Hook flag must be False because backend/.env set "
+        "DISABLE_CAOP_ENRICH=1 — if this is True, the flag is being read "
+        "before load_dotenv runs and the documented toggle is broken."
+    )
+    os.environ.pop("DISABLE_CAOP_ENRICH", None)
+
+
 def test_enrich_poi_is_noop_when_caop_not_loaded():
     """The enrichment must not raise when CAOP data has not been ingested
     (lookup.is_ready is False). The POI is returned unchanged so the
