@@ -196,7 +196,12 @@ export default function AuthScreen() {
           autoCapitalize={options?.autoCapitalize || 'none'}
         />
         {options?.secureTextEntry && (
-          <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
+          <TouchableOpacity
+            onPress={() => setShowPassword(!showPassword)}
+            accessibilityRole="button"
+            accessibilityLabel={showPassword ? 'Ocultar password' : 'Mostrar password'}
+            hitSlop={10}
+          >
             <MaterialIcons name={showPassword ? 'visibility' : 'visibility-off'} size={20} color={colors.textMuted} />
           </TouchableOpacity>
         )}
@@ -223,6 +228,9 @@ export default function AuthScreen() {
             <TouchableOpacity
               style={styles.backButton}
               onPress={() => router.back()}
+              accessibilityRole="button"
+              accessibilityLabel="Voltar"
+              hitSlop={10}
             >
               <MaterialIcons name="arrow-back" size={24} color={colors.textOnPrimary} />
             </TouchableOpacity>

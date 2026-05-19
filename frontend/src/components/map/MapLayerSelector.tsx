@@ -92,6 +92,15 @@ export default function MapLayerSelector({
               }
               onLongPress={!isNative ? () => onToggleLayer(layer.id) : undefined}
               data-testid={`layer-${layer.id}`}
+              accessibilityRole={isNative ? 'switch' : 'button'}
+              accessibilityState={{
+                selected: isActive,
+                expanded: !isNative ? isExpanded : undefined,
+              }}
+              accessibilityLabel={`Camada ${layer.name}${
+                isActive ? ` (activa, ${activeCount} de ${layerSubs.length})` : ''
+              }`}
+              hitSlop={6}
             >
               <MaterialIcons
                 name={layer.icon as any}
@@ -125,6 +134,9 @@ export default function MapLayerSelector({
             <TouchableOpacity
               onPress={() => onToggleLayer(expandedLayer)}
               data-testid="toggle-all-subcats"
+              accessibilityRole="button"
+              accessibilityLabel="Selecionar ou desmarcar todas as subcategorias"
+              hitSlop={8}
             >
               <Text style={styles.toggleAllText}>
                 {getLayerSubcategories(expandedLayer).every((s) =>
@@ -172,6 +184,17 @@ export default function MapLayerSelector({
                     onToggleSubcategory(sub.id, expandedLayer);
                   }}
                   data-testid={`subcat-${sub.id}`}
+                  accessibilityRole={isComingSoon ? 'button' : 'switch'}
+                  accessibilityState={{
+                    selected: isSubActive,
+                    disabled: isComingSoon,
+                  }}
+                  accessibilityLabel={
+                    isComingSoon
+                      ? `${sub.name} (em breve)`
+                      : `Subcategoria ${sub.name}`
+                  }
+                  hitSlop={4}
                 >
                   <MaterialIcons
                     name={(isComingSoon ? 'lock-clock' : sub.icon) as any}

@@ -31,30 +31,45 @@ interface MapModeSelectorProps {
 
 export default function MapModeSelector({ activeMode, onModeChange }: MapModeSelectorProps) {
   return (
-    <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.scroll}>
+    <ScrollView
+      horizontal
+      showsHorizontalScrollIndicator={false}
+      style={styles.scroll}
+      accessibilityRole="tablist"
+      accessibilityLabel="Modos de mapa"
+    >
       <View style={styles.container}>
-        {MAP_MODES.map((mode) => (
-          <TouchableOpacity
-            key={mode.id}
-            style={[styles.btn, activeMode === mode.id && styles.btnActive]}
-            onPress={() => onModeChange(mode.id)}
-            data-testid={`map-mode-${mode.id}`}
-          >
-            <MaterialIcons
-              name={mode.icon as any}
-              size={15}
-              color={activeMode === mode.id ? palette.white : palette.gray[500]}
-            />
-            <Text
-              style={[
-                styles.btnText,
-                activeMode === mode.id && styles.btnTextActive,
-              ]}
+        {MAP_MODES.map((mode) => {
+          const isActive = activeMode === mode.id;
+          return (
+            <TouchableOpacity
+              key={mode.id}
+              style={[styles.btn, isActive && styles.btnActive]}
+              onPress={() => onModeChange(mode.id)}
+              data-testid={`map-mode-${mode.id}`}
+              accessibilityRole="tab"
+              accessibilityState={{ selected: isActive }}
+              accessibilityLabel={`Modo de mapa: ${mode.label}`}
+              // 44×44 minimum recommended by WCAG 2.5.5; the visual button
+              // stays compact because the hitSlop expands the touch area.
+              hitSlop={{ top: 12, bottom: 12, left: 6, right: 6 }}
             >
-              {mode.label}
-            </Text>
-          </TouchableOpacity>
-        ))}
+              <MaterialIcons
+                name={mode.icon as any}
+                size={15}
+                color={isActive ? palette.white : palette.gray[500]}
+              />
+              <Text
+                style={[
+                  styles.btnText,
+                  isActive && styles.btnTextActive,
+                ]}
+              >
+                {mode.label}
+              </Text>
+            </TouchableOpacity>
+          );
+        })}
       </View>
     </ScrollView>
   );

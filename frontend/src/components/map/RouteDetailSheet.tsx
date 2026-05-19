@@ -88,7 +88,14 @@ export default function RouteDetailSheet({ route, onClose, onWaypointPress }: Ro
           </View>
           <Text style={s.routeName} numberOfLines={2}>{route.name}</Text>
         </View>
-        <TouchableOpacity style={s.closeBtn} onPress={onClose} activeOpacity={0.8}>
+        <TouchableOpacity
+          style={s.closeBtn}
+          onPress={onClose}
+          activeOpacity={0.8}
+          accessibilityRole="button"
+          accessibilityLabel="Fechar detalhe da rota"
+          hitSlop={10}
+        >
           <MaterialIcons name="close" size={20} color="#9CA3AF" />
         </TouchableOpacity>
       </View>
@@ -150,6 +157,9 @@ export default function RouteDetailSheet({ route, onClose, onWaypointPress }: Ro
                   style={s.waypointRow}
                   onPress={() => onWaypointPress(wp)}
                   activeOpacity={0.7}
+                  accessibilityRole="button"
+                  accessibilityLabel={`Paragem ${wp.order}: ${wp.name}`}
+                  accessibilityHint="Abre o detalhe deste ponto da rota"
                 >
                   <View style={[s.waypointNum, { backgroundColor: typeColor }]}>
                     <Text style={s.waypointNumText}>{wp.order}</Text>
@@ -178,6 +188,9 @@ export default function RouteDetailSheet({ route, onClose, onWaypointPress }: Ro
             }
           }}
           activeOpacity={0.85}
+          accessibilityRole="button"
+          accessibilityLabel="Iniciar navegação para a rota"
+          accessibilityHint="Abre a rota no Google Maps"
         >
           <MaterialIcons name="navigation" size={16} color="#fff" />
           <Text style={s.startBtnText}>Iniciar</Text>
