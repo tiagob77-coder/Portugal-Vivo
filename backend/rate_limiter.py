@@ -107,6 +107,50 @@ ENDPOINT_LIMITS: Dict[str, Tuple[int, int]] = {
 USER_RATE_LIMIT = 120
 USER_RATE_WINDOW = 60
 
+# LLM-001: aggregate budget for expensive LLM-backed endpoints. The
+# per-endpoint limits above are *each* generous (5–15/min) — a single user
+# spreading requests across ~20 LLM endpoints could legitimately drive
+# >100 LLM calls/min if we only enforced per-endpoint buckets. This cap is
+# the umbrella over all of them and lands a 429 with a clear reason long
+# before OpenAI charges accumulate.
+LLM_USER_RATE_LIMIT = int(os.environ.get("LLM_USER_RATE_LIMIT", "30"))
+LLM_USER_RATE_WINDOW = int(os.environ.get("LLM_USER_RATE_WINDOW", "60"))
+
+# Path prefixes that route to LLM-backed endpoints. Anything matching one
+# of these prefixes counts against the LLM_USER bucket *in addition* to its
+# own per-endpoint bucket. Keep this list in sync with the LLM-flagged
+# entries in ENDPOINT_LIMITS above.
+LLM_ENDPOINT_PREFIXES: Tuple[str, ...] = (
+    "/api/iq/process-poi",
+    "/api/iq/batch-process",
+    "/api/content/depth",
+    "/api/content/micro-stories",
+    "/api/planner/smart-itinerary",
+    "/api/planner/ai-itinerary",
+    "/api/ai/itinerary",
+    "/api/ai/enrich",
+    "/api/narrative/nearby-stories",
+    "/api/narrative/route/",
+    "/api/toolkit/enrich/",
+    "/api/translations/translate/",
+    "/api/orchestrator/context",
+    "/api/orchestrator/smart-discover",
+    "/api/narratives/",
+    "/api/music/narrative",
+    "/api/maritime-culture/narrative",
+    "/api/cultural-routes/narrative",
+    "/api/cultural-routes/personalize",
+    "/api/gastronomy/pairing/",
+    "/api/flora-fauna/identify",
+    "/api/marine-biodiversity/identify",
+    "/api/narrative-layer/generate",
+    "/api/discover/hoje",
+)
+
+
+def _is_llm_path(path: str) -> bool:
+    return any(path.startswith(p) for p in LLM_ENDPOINT_PREFIXES)
+
 
 class _SlidingWindowStore:
     """In-memory sliding window counter (per key)."""
@@ -234,8 +278,17 @@ async def _is_allowed(key: str, max_requests: int, window: int) -> Tuple[bool, i
 
 
 def _client_key(request: Request) -> str:
-    """Extract a unique client identifier (user token or IP)."""
+    """Extract a unique client identifier (user token or IP).
+
+    Tokens are checked in both places the auth layer accepts them:
+      1. `Authorization: Bearer <token>` header  (mobile / API clients)
+      2. `session_token` cookie                  (web)
+    so cookie-auth users get their own bucket instead of sharing one with
+    every other visitor behind the same NAT (LLM-001).
+    """
     token = request.headers.get("authorization", "").removeprefix("Bearer ").strip()
+    if not token:
+        token = (request.cookies.get("session_token") or "").strip()
     if token:
         # Use first 16 chars of token as key (sufficient for uniqueness)
         return f"user:{token[:16]}"
@@ -271,7 +324,32 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
                     )
                 break
 
-        # 2. Check per-user global limit (only for API paths)
+        # 2. LLM-001: aggregate per-user budget for expensive LLM endpoints.
+        # Runs *before* the global cap so a 429 here is attributed to "llm",
+        # not "global", in metrics and in the response body. Identical
+        # short-circuit semantics: counted once on this request, never on
+        # the call_next path.
+        if _is_llm_path(path):
+            key = f"llm:{client}"
+            allowed, _ = await _is_allowed(
+                key, LLM_USER_RATE_LIMIT, LLM_USER_RATE_WINDOW
+            )
+            if not allowed:
+                logger.warning("LLM user rate limit hit: %s on %s", client, path)
+                _inc_trigger(path, "llm")
+                return Response(
+                    content='{"detail":"LLM rate limit exceeded for this user"}',
+                    status_code=429,
+                    media_type="application/json",
+                    headers={
+                        "Retry-After": str(LLM_USER_RATE_WINDOW),
+                        "X-RateLimit-Limit": str(LLM_USER_RATE_LIMIT),
+                        "X-RateLimit-Remaining": "0",
+                        "X-RateLimit-Scope": "llm",
+                    },
+                )
+
+        # 3. Check per-user global limit (only for API paths)
         if path.startswith("/api/"):
             key = f"global:{client}"
             allowed, remaining = await _is_allowed(key, USER_RATE_LIMIT, USER_RATE_WINDOW)
