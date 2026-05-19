@@ -21,6 +21,16 @@ import openpyxl
 from motor.motor_asyncio import AsyncIOMotorClient
 from dotenv import load_dotenv
 
+# Optional CAOP enrichment — geo_validator is best-effort: if shapely /
+# CAOP data are missing it short-circuits to a no-op and the importer
+# still works exactly as before. Set DISABLE_CAOP_ENRICH=1 to force off.
+_CAOP_ENRICH = os.environ.get("DISABLE_CAOP_ENRICH", "").lower() not in ("1", "true", "yes")
+try:
+    from geo_validator import enrich_poi as _enrich_poi
+except Exception:  # pragma: no cover — optional dependency chain
+    _enrich_poi = None
+    _CAOP_ENRICH = False
+
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
 
@@ -646,9 +656,22 @@ def parse_sheet(ws, sheet_name: str, config: Dict) -> List[Dict]:
         
         if extra:
             item["metadata"] = extra
-        
+
+        # CAOP enrichment: snap-to-parish (≤50 m), tag distrito/concelho/
+        # freguesia + NUTS hierarchy, mark caop_validated. Best-effort —
+        # if the CAOP lookup is not loaded the helper returns the item
+        # unchanged.
+        if _CAOP_ENRICH and _enrich_poi is not None:
+            try:
+                _enrich_poi(item)
+            except Exception as exc:
+                logger.warning(
+                    "CAOP enrichment failed for %r: %s — keeping raw GPS",
+                    name[:60], exc,
+                )
+
         items.append(item)
-    
+
     return items
 
 
