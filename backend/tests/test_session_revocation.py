@@ -16,10 +16,6 @@ contract — anyone who refactors the cache layer has to keep these passing.
 """
 from __future__ import annotations
 
-import asyncio
-import os
-from typing import Any
-
 import pytest
 
 
@@ -108,9 +104,15 @@ def test_cache_invalidate_is_noop_for_unknown_token():
 
 
 # ── distributed revoke / is_revoked: failure-open paths ───────────────────
+#
+# These are `async def` tests so pytest-asyncio drives them on its managed
+# event loop. They must NOT use `asyncio.run()` — that calls
+# set_event_loop(None) on cleanup, which leaves the thread with no current
+# loop and breaks the *next* async test under pytest-asyncio 1.0.x
+# (RuntimeError: There is no current event loop).
 
 
-def test_revoke_distributed_is_noop_without_redis(monkeypatch):
+async def test_revoke_distributed_is_noop_without_redis(monkeypatch):
     """If REDIS_URL is not set, rate_limiter._get_redis returns None and
     _revoke_distributed must silently no-op (not raise, not block logout)."""
     import auth_api as mod
@@ -120,10 +122,10 @@ def test_revoke_distributed_is_noop_without_redis(monkeypatch):
     monkeypatch.setattr(rate_limiter, "_redis_tried", True, raising=False)
 
     # Should complete without raising.
-    asyncio.run(mod._revoke_distributed("tok_y"))
+    await mod._revoke_distributed("tok_y")
 
 
-def test_is_revoked_returns_false_without_redis(monkeypatch):
+async def test_is_revoked_returns_false_without_redis(monkeypatch):
     """Without Redis: behaviour matches the pre-SEC-004 world (local cache
     only). The cache hit path must NOT treat a None-Redis as 'revoked' or
     every authenticated request would do an extra Mongo lookup."""
@@ -133,16 +135,16 @@ def test_is_revoked_returns_false_without_redis(monkeypatch):
     monkeypatch.setattr(rate_limiter, "_redis", None, raising=False)
     monkeypatch.setattr(rate_limiter, "_redis_tried", True, raising=False)
 
-    result = asyncio.run(mod._is_revoked_distributed("tok_z"))
+    result = await mod._is_revoked_distributed("tok_z")
     assert result is False
 
 
-def test_revoke_distributed_handles_empty_token():
+async def test_revoke_distributed_handles_empty_token():
     """Defensive: an empty token must not even reach Redis."""
     import auth_api as mod
 
-    asyncio.run(mod._revoke_distributed(""))  # no raise
-    assert asyncio.run(mod._is_revoked_distributed("")) is False
+    await mod._revoke_distributed("")  # no raise
+    assert await mod._is_revoked_distributed("") is False
 
 
 # ── distributed revoke / is_revoked: happy path with a fake Redis ─────────
@@ -163,7 +165,7 @@ class _FakeRedis:
         return 1 if key in self.store else 0
 
 
-def test_revoke_distributed_writes_to_redis(monkeypatch):
+async def test_revoke_distributed_writes_to_redis(monkeypatch):
     import auth_api as mod
     import rate_limiter
 
@@ -174,7 +176,7 @@ def test_revoke_distributed_writes_to_redis(monkeypatch):
 
     monkeypatch.setattr(rate_limiter, "_get_redis", _fake_get_redis)
 
-    asyncio.run(mod._revoke_distributed("tok_happy"))
+    await mod._revoke_distributed("tok_happy")
 
     assert fake.set_calls, "expected one Redis SET call"
     key, value, ex = fake.set_calls[0]
@@ -183,7 +185,7 @@ def test_revoke_distributed_writes_to_redis(monkeypatch):
     assert ex == mod._revocation_ttl_seconds()
 
 
-def test_is_revoked_returns_true_when_flag_present(monkeypatch):
+async def test_is_revoked_returns_true_when_flag_present(monkeypatch):
     import auth_api as mod
     import rate_limiter
 
@@ -195,11 +197,11 @@ def test_is_revoked_returns_true_when_flag_present(monkeypatch):
 
     monkeypatch.setattr(rate_limiter, "_get_redis", _fake_get_redis)
 
-    assert asyncio.run(mod._is_revoked_distributed("tok_logged_out")) is True
-    assert asyncio.run(mod._is_revoked_distributed("tok_still_alive")) is False
+    assert await mod._is_revoked_distributed("tok_logged_out") is True
+    assert await mod._is_revoked_distributed("tok_still_alive") is False
 
 
-def test_redis_set_failure_is_swallowed(monkeypatch):
+async def test_redis_set_failure_is_swallowed(monkeypatch):
     """A transient Redis SET failure (network blip, OOM, …) must not break
     logout — the local cache invalidation has already happened and we'd
     rather accept up to one TTL of staleness on other workers than 500."""
@@ -219,6 +221,6 @@ def test_redis_set_failure_is_swallowed(monkeypatch):
     monkeypatch.setattr(rate_limiter, "_get_redis", _fake_get_redis)
 
     # Must not raise:
-    asyncio.run(mod._revoke_distributed("tok_broken"))
+    await mod._revoke_distributed("tok_broken")
     # Fail-open on read too:
-    assert asyncio.run(mod._is_revoked_distributed("tok_broken")) is False
+    assert await mod._is_revoked_distributed("tok_broken") is False
