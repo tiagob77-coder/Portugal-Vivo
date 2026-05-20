@@ -7,6 +7,7 @@
 import { Platform } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { API_BASE } from '../config/api';
+import { secureStorage } from '../utils/secureStorage';
 import logger from '../utils/logger';
 
 const PUSH_TOKEN_KEY = 'push_notification_token';
@@ -139,7 +140,10 @@ class PushNotificationService {
     if (!this.pushToken) return false;
 
     try {
-      const sessionToken = await AsyncStorage.getItem('session_token');
+      // SEC-005: session_token lives in SecureStore on native (via secureStorage),
+      // not AsyncStorage. Reading from AsyncStorage returned null and the push
+      // token never made it to the backend on iOS/Android.
+      const sessionToken = await secureStorage.getItem('session_token');
       if (!sessionToken) return false;
 
       const response = await fetch(`${API_BASE}/notifications/register`, {

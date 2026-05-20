@@ -4,7 +4,7 @@ import { useRouter, Stack } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { secureStorage } from '../src/utils/secureStorage';
 import {
   getDashboardProgress,
   getDashboardBadges,
@@ -497,7 +497,11 @@ export default function DashboardScreen() {
     }
 
     try {
-      const savedToken = await AsyncStorage.getItem('session_token');
+      // SEC-005: secureStorage (SecureStore on native, AsyncStorage on web).
+      // Previously this read straight from AsyncStorage which is empty on
+      // native — dashboard always showed the login prompt for iOS/Android
+      // users even when authenticated.
+      const savedToken = await secureStorage.getItem('session_token');
       if (savedToken) {
         setToken(savedToken);
         setIsAuthenticated(true);

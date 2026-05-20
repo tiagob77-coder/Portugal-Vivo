@@ -32,6 +32,26 @@ jest.mock('@react-native-async-storage/async-storage', () => ({
   },
 }));
 
+// ─── secureStorage mock (SEC-005) ────────────────────────────────────────────
+// backgroundTasks now reads `session_token` through secureStorage rather than
+// AsyncStorage directly. Mirror the same in-memory store so tests that set
+// `mockStorage['session_token'] = ...` keep working without each test caring
+// about the platform-split inside secureStorage.ts.
+jest.mock('../../utils/secureStorage', () => ({
+  secureStorage: {
+    getItem: jest.fn((key: string) => Promise.resolve(mockStorage[key] ?? null)),
+    setItem: jest.fn((key: string, value: string) => {
+      mockStorage[key] = value;
+      return Promise.resolve();
+    }),
+    removeItem: jest.fn((key: string) => {
+      delete mockStorage[key];
+      return Promise.resolve();
+    }),
+  },
+  __esModule: true,
+}));
+
 // ─── expo-task-manager mock ───────────────────────────────────────────────────
 const mockDefineTask = jest.fn();
 const mockIsTaskRegisteredAsync = jest.fn().mockResolvedValue(false);

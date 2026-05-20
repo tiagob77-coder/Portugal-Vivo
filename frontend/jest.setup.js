@@ -26,6 +26,17 @@ jest.mock('@react-native-async-storage/async-storage', () => ({
   __esModule: true,
 }));
 
+// SEC-005: secureStorage delegates to expo-secure-store on native and to
+// AsyncStorage on web. Tests use the in-memory mock above for the AsyncStorage
+// path; we mock expo-secure-store here so importing secureStorage in a
+// non-web jest environment doesn't try to load the native module.
+jest.mock('expo-secure-store', () => ({
+  getItemAsync: jest.fn(() => Promise.resolve(null)),
+  setItemAsync: jest.fn(() => Promise.resolve()),
+  deleteItemAsync: jest.fn(() => Promise.resolve()),
+  __esModule: true,
+}));
+
 // Ensure `navigator` is defined — jest-expo runs in node env where it is absent
 if (typeof globalThis.navigator === 'undefined') {
   globalThis.navigator = {};

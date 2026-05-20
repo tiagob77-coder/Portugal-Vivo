@@ -23,10 +23,23 @@ from shared_utils import DatabaseHolder
 logger = logging.getLogger(__name__)
 
 # In-process TTL cache for get_current_user. Cuts two Mongo round-trips from
-# every authenticated request. Short TTL keeps the blast radius of a revoked
-# session small (logout still deletes the session row — we just tolerate up
-# to `_SESSION_CACHE_TTL` seconds of staleness).
-_SESSION_CACHE_TTL = 60  # seconds
+# every authenticated request. The TTL is configurable via the
+# SESSION_CACHE_TTL_SECONDS env var so ops can trade staleness for Mongo load.
+# Logout/delete-account invalidate the cache directly on this worker AND
+# broadcast a revocation flag over Redis (see _revoke_distributed below) so
+# other workers drop their cached entry on the next request.
+def _ttl_from_env(default: int = 60) -> int:
+    raw = os.environ.get("SESSION_CACHE_TTL_SECONDS", "").strip()
+    if not raw:
+        return default
+    try:
+        value = int(raw)
+    except ValueError:
+        return default
+    return max(1, min(value, 3600))  # clamp to [1s, 1h]
+
+
+_SESSION_CACHE_TTL = _ttl_from_env()
 _SESSION_CACHE_MAX = 2048
 _session_cache: dict[str, tuple[float, Optional[User]]] = {}
 
@@ -53,6 +66,65 @@ def _cache_put(token: str, user: Optional[User]) -> None:
 
 def _cache_invalidate(token: str) -> None:
     _session_cache.pop(token, None)
+
+
+# ── Distributed session revocation (SEC-004) ──────────────────────────────
+# Logout / delete-account on worker A also broadcasts the token to a Redis
+# key. On the next request, every other worker checks Redis once per cache
+# hit (~0.3 ms): if the key is set, the local cache entry is dropped and a
+# fresh Mongo lookup runs (which will find no session and deny the request).
+# Fail-open: if Redis is unreachable we behave exactly like before — local
+# cache only, blast radius bounded by _SESSION_CACHE_TTL. The Redis key TTL
+# is 2× the cache TTL (with a 60 s floor) so the flag outlives any cached
+# entry that could still be in-flight.
+
+_REVOKED_KEY_PREFIX = "auth:revoked:"
+
+
+def _revocation_ttl_seconds() -> int:
+    return max(_SESSION_CACHE_TTL * 2, 60)
+
+
+async def _revoke_distributed(token: str) -> None:
+    """Broadcast a session-revoked flag to other workers via Redis.
+
+    Best-effort: any Redis error is swallowed (debug log only) so logout
+    never fails because the cache layer is degraded.
+    """
+    if not token:
+        return
+    try:
+        from rate_limiter import _get_redis  # reuse the same pool
+
+        client = await _get_redis()
+        if client is None:
+            return
+        await client.set(
+            _REVOKED_KEY_PREFIX + token,
+            "1",
+            ex=_revocation_ttl_seconds(),
+        )
+    except Exception as exc:  # pragma: no cover — Redis transient errors
+        logger.debug("Redis revocation broadcast failed: %s", exc)
+
+
+async def _is_revoked_distributed(token: str) -> bool:
+    """Check whether another worker logged this token out.
+
+    Fail-open: any Redis error → False (we fall back to local-cache-only
+    behaviour, same as if Redis were not configured at all).
+    """
+    if not token:
+        return False
+    try:
+        from rate_limiter import _get_redis
+
+        client = await _get_redis()
+        if client is None:
+            return False
+        return bool(await client.exists(_REVOKED_KEY_PREFIX + token))
+    except Exception:
+        return False
 
 # AUTH_BACKEND_URL is only used by the legacy /auth/session exchange flow for
 # OAuth-via-Emergent. No default is provided: if the deployment does not set
@@ -83,7 +155,13 @@ async def get_current_user(request: Request) -> Optional[User]:
 
     cached = _cache_get(session_token)
     if cached is not None:
-        return cached[1]
+        # SEC-004: another worker may have logged this token out. One Redis
+        # round-trip per cache hit (~0.3 ms) buys us cluster-wide revocation
+        # without giving up the cache's benefit on the happy path.
+        if await _is_revoked_distributed(session_token):
+            _cache_invalidate(session_token)
+        else:
+            return cached[1]
 
     session = await _db_holder.db.user_sessions.find_one(
         {"session_token": session_token},
@@ -495,6 +573,7 @@ async def logout(request: Request, response: Response):
     session_token = request.cookies.get("session_token")
     if session_token:
         _cache_invalidate(session_token)
+        await _revoke_distributed(session_token)
         await _db_holder.db.user_sessions.delete_many({"session_token": session_token})
 
     response.delete_cookie(key="session_token", path="/")
@@ -664,8 +743,10 @@ async def delete_account(
         logger.warning("delete-account: audit log failed: %s", e)
 
     # Invalidate the session in the in-process cache too, otherwise
-    # subsequent requests within the next 60s would still see a "valid"
+    # subsequent requests within the cache TTL would still see a "valid"
     # user even though the row in user_sessions has been deleted above.
+    # Also broadcast over Redis so other workers drop their cached entry
+    # on the next request (SEC-004).
     session_token = request.cookies.get("session_token")
     if not session_token:
         auth_header = request.headers.get("Authorization", "")
@@ -673,6 +754,7 @@ async def delete_account(
             session_token = auth_header[7:]
     if session_token:
         _cache_invalidate(session_token)
+        await _revoke_distributed(session_token)
 
     response.delete_cookie(key="session_token", path="/")
     return {

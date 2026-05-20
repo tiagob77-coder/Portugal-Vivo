@@ -5,8 +5,8 @@
  * Web: Uses in-session interval polling when the tab is active
  */
 import { Platform } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { API_BASE } from '../config/api';
+import { secureStorage } from '../utils/secureStorage';
 import { pushNotificationService } from './pushNotifications';
 import logger from '../utils/logger';
 
@@ -39,7 +39,10 @@ async function runWebProximityCheck(): Promise<void> {
 
   navigator.geolocation.getCurrentPosition(async (pos) => {
     const { latitude, longitude } = pos.coords;
-    const sessionToken = await AsyncStorage.getItem('session_token');
+    // SEC-005: read from secureStorage (SecureStore on native, AsyncStorage
+    // on web). AsyncStorage direct read returned null on native because
+    // AuthContext writes via secureStorage.
+    const sessionToken = await secureStorage.getItem('session_token');
 
     // Proximity check now requires auth — skip when user is not logged in.
     if (!sessionToken) return;
