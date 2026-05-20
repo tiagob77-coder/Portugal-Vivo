@@ -17,76 +17,73 @@ contract — anyone who refactors the cache layer has to keep these passing.
 from __future__ import annotations
 
 import asyncio
-import importlib
 import os
 from typing import Any
 
 import pytest
 
 
-def _reload_auth_api(env: dict[str, str]) -> Any:
-    """Reimport auth_api with a controlled env so module-level constants
-    pick up the new values."""
-    for k, v in env.items():
-        os.environ[k] = v
-    os.environ.setdefault("MONGO_URL", "mongodb://localhost:27017")
-    os.environ.setdefault("DB_NAME", "t")
-    os.environ.setdefault("JWT_SECRET_KEY", "x" * 64)
-
-    import sys as _sys
-
-    _sys.modules.pop("auth_api", None)
-    return importlib.import_module("auth_api")
-
-
 # ── _ttl_from_env ─────────────────────────────────────────────────────────
+#
+# These exercise the pure helper directly. We deliberately do NOT reload the
+# auth_api module: server.py captured references to auth_api at import time,
+# and popping it from sys.modules + re-importing would leave a second module
+# object whose DatabaseHolder is empty — silently breaking any later
+# requires_db test that touches auth internals.
 
 
-def test_ttl_default_is_60_when_env_absent():
-    os.environ.pop("SESSION_CACHE_TTL_SECONDS", None)
-    mod = _reload_auth_api({})
-    assert mod._SESSION_CACHE_TTL == 60
+def test_ttl_default_is_60_when_env_absent(monkeypatch):
+    import auth_api
+
+    monkeypatch.delenv("SESSION_CACHE_TTL_SECONDS", raising=False)
+    assert auth_api._ttl_from_env() == 60
 
 
-def test_ttl_respects_env_override():
-    mod = _reload_auth_api({"SESSION_CACHE_TTL_SECONDS": "15"})
-    assert mod._SESSION_CACHE_TTL == 15
-    os.environ.pop("SESSION_CACHE_TTL_SECONDS", None)
+def test_ttl_respects_env_override(monkeypatch):
+    import auth_api
+
+    monkeypatch.setenv("SESSION_CACHE_TTL_SECONDS", "15")
+    assert auth_api._ttl_from_env() == 15
 
 
-def test_ttl_clamps_to_minimum():
+def test_ttl_clamps_to_minimum(monkeypatch):
     # 0 or negative would functionally disable the cache; clamp to 1 s.
-    mod = _reload_auth_api({"SESSION_CACHE_TTL_SECONDS": "0"})
-    assert mod._SESSION_CACHE_TTL == 1
-    os.environ.pop("SESSION_CACHE_TTL_SECONDS", None)
+    import auth_api
+
+    monkeypatch.setenv("SESSION_CACHE_TTL_SECONDS", "0")
+    assert auth_api._ttl_from_env() == 1
 
 
-def test_ttl_clamps_to_maximum():
+def test_ttl_clamps_to_maximum(monkeypatch):
     # 1 h is plenty — guards against typos like "604800" (a week).
-    mod = _reload_auth_api({"SESSION_CACHE_TTL_SECONDS": "9999999"})
-    assert mod._SESSION_CACHE_TTL == 3600
-    os.environ.pop("SESSION_CACHE_TTL_SECONDS", None)
+    import auth_api
+
+    monkeypatch.setenv("SESSION_CACHE_TTL_SECONDS", "9999999")
+    assert auth_api._ttl_from_env() == 3600
 
 
-def test_ttl_falls_back_on_garbage():
-    mod = _reload_auth_api({"SESSION_CACHE_TTL_SECONDS": "abc"})
-    assert mod._SESSION_CACHE_TTL == 60
-    os.environ.pop("SESSION_CACHE_TTL_SECONDS", None)
+def test_ttl_falls_back_on_garbage(monkeypatch):
+    import auth_api
+
+    monkeypatch.setenv("SESSION_CACHE_TTL_SECONDS", "abc")
+    assert auth_api._ttl_from_env() == 60
 
 
-def test_revocation_ttl_is_at_least_60_seconds():
+def test_revocation_ttl_is_at_least_60_seconds(monkeypatch):
     """The Redis flag MUST outlive the in-memory cache or a stale entry
     could survive past the revocation window."""
-    mod = _reload_auth_api({"SESSION_CACHE_TTL_SECONDS": "5"})
-    assert mod._revocation_ttl_seconds() >= 60
-    os.environ.pop("SESSION_CACHE_TTL_SECONDS", None)
+    import auth_api
+
+    monkeypatch.setattr(auth_api, "_SESSION_CACHE_TTL", 5)
+    assert auth_api._revocation_ttl_seconds() >= 60
 
 
-def test_revocation_ttl_doubles_cache_ttl_when_cache_is_long():
-    mod = _reload_auth_api({"SESSION_CACHE_TTL_SECONDS": "120"})
+def test_revocation_ttl_doubles_cache_ttl_when_cache_is_long(monkeypatch):
+    import auth_api
+
+    monkeypatch.setattr(auth_api, "_SESSION_CACHE_TTL", 120)
     # 2 * 120 = 240 > 60 floor
-    assert mod._revocation_ttl_seconds() == 240
-    os.environ.pop("SESSION_CACHE_TTL_SECONDS", None)
+    assert auth_api._revocation_ttl_seconds() == 240
 
 
 # ── cache invalidation (sync helper, unchanged contract) ───────────────────

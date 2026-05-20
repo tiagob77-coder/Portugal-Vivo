@@ -91,17 +91,19 @@ def test_flag_is_read_after_dotenv_loads(tmp_path, monkeypatch):
     os.environ.pop("DISABLE_CAOP_ENRICH", None)
 
 
-def test_enrich_poi_is_noop_when_caop_not_loaded():
+def test_enrich_poi_is_noop_when_caop_not_loaded(monkeypatch):
     """The enrichment must not raise when CAOP data has not been ingested
     (lookup.is_ready is False). The POI is returned unchanged so the
     importer can keep going.
     """
     from geo_validator import enrich_poi
-    from services.caop_lookup import lookup
-    assert not lookup.is_ready, (
-        "CAOP lookup was already loaded by another test — that means our "
-        "fallback path is no longer exercised"
-    )
+    from services.caop_lookup import CAOPLookup
+
+    # Force the not-ready path deterministically. A previous test in the
+    # same session (e.g. test_caop_pipeline) may have loaded the CAOP data,
+    # which would otherwise make this assertion flaky — it passes locally
+    # without Mongo but fails in CI where the lookup can be populated.
+    monkeypatch.setattr(CAOPLookup, "is_ready", property(lambda self: False))
 
     item = {
         "id": "poi_test",
@@ -129,11 +131,18 @@ def test_enrich_poi_missing_location_is_noop():
     assert "caop_validated" not in out
 
 
-def test_enrich_poi_geojson_coords_supported():
+def test_enrich_poi_geojson_coords_supported(monkeypatch):
     """The helper accepts {"coordinates": [lng, lat]} in addition to
     {"lat": ..., "lng": ...} — needed for documents that already use
     the GeoJSON Point shape."""
     from geo_validator import enrich_poi
+    from services.caop_lookup import CAOPLookup
+
+    # Pin the not-ready path: with CAOP loaded, validate() could `snap` the
+    # point and rewrite location to the {lat,lng} shape, which is a real
+    # behaviour but not what this test pins (it pins coord *parsing*).
+    monkeypatch.setattr(CAOPLookup, "is_ready", property(lambda self: False))
+
     item = {
         "id": "poi_geojson",
         "name": "GeoJSON-form",

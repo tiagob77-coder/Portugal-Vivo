@@ -32,6 +32,24 @@ jest.mock('@react-native-async-storage/async-storage', () => ({
   },
 }));
 
+// ─── expo-secure-store mock ──────────────────────────────────────────────────
+// SEC-005: pushNotifications reads session_token through `secureStorage`,
+// which picks expo-secure-store on native (jest-expo defaults to ios). Back
+// it with the SAME in-memory mockStorage so `mockStorage['session_token'] =
+// ...` in a test is visible regardless of which backend secureStorage uses.
+jest.mock('expo-secure-store', () => ({
+  getItemAsync: jest.fn((key: string) => Promise.resolve(mockStorage[key] ?? null)),
+  setItemAsync: jest.fn((key: string, value: string) => {
+    mockStorage[key] = value;
+    return Promise.resolve();
+  }),
+  deleteItemAsync: jest.fn((key: string) => {
+    delete mockStorage[key];
+    return Promise.resolve();
+  }),
+  __esModule: true,
+}));
+
 // ─── expo-notifications mock ──────────────────────────────────────────────────
 const mockGetPermissionsAsync = jest.fn().mockResolvedValue({ status: 'granted' });
 const mockRequestPermissionsAsync = jest.fn().mockResolvedValue({ status: 'granted' });
