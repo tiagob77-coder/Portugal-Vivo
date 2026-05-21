@@ -317,6 +317,9 @@ export default function PlaneadorTab() {
       onPress={() => setSelectedTool(tool.id === selectedTool ? null : tool.id)}
       activeOpacity={0.8}
       data-testid={`tool-${tool.id}`}
+      accessibilityRole="button"
+      accessibilityState={{ selected: selectedTool === tool.id }}
+      accessibilityLabel={`Ferramenta de planeamento: ${tool.title}`}
     >
       <LinearGradient
         colors={tool.gradient}
@@ -338,6 +341,8 @@ export default function PlaneadorTab() {
       onPress={() => router.push(`/route/${route.id}`)}
       activeOpacity={0.8}
       data-testid={`route-card-${route.id}`}
+      accessibilityRole="link"
+      accessibilityLabel={`Ver rota: ${route.name}`}
     >
       <View style={styles.routeIcon}>
         <MaterialIcons name="route" size={24} color={palette.terracotta[500]} />
@@ -410,6 +415,9 @@ export default function PlaneadorTab() {
                   tripDays === days && styles.durationChipActive,
                 ]}
                 onPress={() => setTripDays(days)}
+                accessibilityRole="tab"
+                accessibilityState={{ selected: tripDays === days }}
+                accessibilityLabel={`Duração: ${days} ${parseInt(days) === 1 ? 'dia' : 'dias'}`}
               >
                 <Text style={[
                   styles.durationText,
@@ -440,6 +448,9 @@ export default function PlaneadorTab() {
                   },
                 ]}
                 onPress={() => toggleInterest(interest.id)}
+                accessibilityRole="tab"
+                accessibilityState={{ selected: selectedInterests.includes(interest.id) }}
+                accessibilityLabel={`Interesse: ${interest.name}`}
               >
                 <MaterialIcons
                   name={interest.icon as any}
@@ -474,6 +485,9 @@ export default function PlaneadorTab() {
                 !selectedRegion && styles.regionChipActive,
               ]}
               onPress={() => { setSelectedRegion(null); setSelectedLocality(null); }}
+              accessibilityRole="tab"
+              accessibilityState={{ selected: !selectedRegion }}
+              accessibilityLabel="Região: Todas"
             >
               <Text style={[
                 styles.regionText,
@@ -493,6 +507,9 @@ export default function PlaneadorTab() {
                   setSelectedRegion(selectedRegion === region.id ? null : region.id);
                   setSelectedLocality(null);
                 }}
+                accessibilityRole="tab"
+                accessibilityState={{ selected: selectedRegion === region.id }}
+                accessibilityLabel={`Região: ${region.name}`}
               >
                 <Text style={[
                   styles.regionText,
@@ -524,7 +541,11 @@ export default function PlaneadorTab() {
               }}
             />
             {selectedLocality && (
-              <TouchableOpacity onPress={() => { setSelectedLocality(null); setLocalitySearch(''); }}>
+              <TouchableOpacity
+                onPress={() => { setSelectedLocality(null); setLocalitySearch(''); }}
+                accessibilityRole="button"
+                accessibilityLabel="Limpar localidade selecionada"
+              >
                 <MaterialIcons name="close" size={18} color={palette.gray[300]} />
               </TouchableOpacity>
             )}
@@ -545,6 +566,9 @@ export default function PlaneadorTab() {
                     setSelectedLocality(loc.name);
                     setLocalitySearch(loc.name);
                   }}
+                  accessibilityRole="button"
+                  accessibilityState={{ selected: selectedLocality === loc.name }}
+                  accessibilityLabel={`Selecionar localidade: ${loc.name}`}
                 >
                   <Text style={styles.localityChipText}>{loc.name}</Text>
                   <Text style={styles.localityChipCount}>{loc.poi_count} POIs</Text>
@@ -569,6 +593,9 @@ export default function PlaneadorTab() {
                   selectedPace === pace.id && styles.paceChipActive,
                 ]}
                 onPress={() => setSelectedPace(pace.id)}
+                accessibilityRole="tab"
+                accessibilityState={{ selected: selectedPace === pace.id }}
+                accessibilityLabel={`Ritmo: ${pace.name}`}
               >
                 <MaterialIcons
                   name={pace.icon as any}
@@ -601,6 +628,9 @@ export default function PlaneadorTab() {
                   selectedProfile === profile.id && styles.profileChipActive,
                 ]}
                 onPress={() => setSelectedProfile(profile.id)}
+                accessibilityRole="tab"
+                accessibilityState={{ selected: selectedProfile === profile.id }}
+                accessibilityLabel={`Perfil de viajante: ${profile.name}`}
               >
                 <MaterialIcons
                   name={profile.icon as any}
@@ -642,6 +672,9 @@ export default function PlaneadorTab() {
           activeOpacity={0.8}
           disabled={aiLoading}
           data-testid="start-planning-btn"
+          accessibilityRole="button"
+          accessibilityState={{ disabled: aiLoading }}
+          accessibilityLabel="Gerar roteiro com inteligência artificial"
         >
           <LinearGradient
             colors={[palette.terracotta[500], '#B08556']}
@@ -742,6 +775,8 @@ export default function PlaneadorTab() {
                         key={poi.id}
                         style={styles.aiPoiItem}
                         onPress={() => router.push(`/heritage/${poi.id}`)}
+                        accessibilityRole="link"
+                        accessibilityLabel={`Ver detalhes do ponto de interesse: ${poi.name}`}
                       >
                         <MaterialIcons name="place" size={16} color={PERIOD_COLORS[period.period] || palette.terracotta[500]} />
                         <View style={{ flex: 1 }}>
@@ -814,6 +849,9 @@ export default function PlaneadorTab() {
                 style={styles.saveBtn}
                 onPress={handleSaveItinerary}
                 disabled={saveLoading}
+                accessibilityRole="button"
+                accessibilityState={{ disabled: saveLoading }}
+                accessibilityLabel="Guardar roteiro nos meus planos"
               >
                 {saveLoading
                   ? <ActivityIndicator size="small" color="#FFF" />
@@ -827,6 +865,8 @@ export default function PlaneadorTab() {
             <TouchableOpacity
               style={styles.resetResultBtn}
               onPress={() => { setAiResult(null); setAiNarrative(null); }}
+              accessibilityRole="button"
+              accessibilityLabel="Criar novo roteiro"
             >
               <MaterialIcons name="refresh" size={18} color={colors.terracotta[500]} />
               <Text style={styles.resetResultText}>Novo Roteiro</Text>
@@ -844,6 +884,9 @@ export default function PlaneadorTab() {
                 setMyPlansOpen(next);
                 if (next && myPlans.length === 0) loadMyPlans();
               }}
+              accessibilityRole="button"
+              accessibilityState={{ expanded: myPlansOpen }}
+              accessibilityLabel={myPlansOpen ? 'Fechar secção Meus Planos' : 'Abrir secção Meus Planos'}
             >
               <MaterialIcons name="folder" size={20} color={palette.terracotta[500]} />
               <Text style={styles.sectionTitle}>Meus Planos</Text>
@@ -869,6 +912,8 @@ export default function PlaneadorTab() {
                       key={plan.id}
                       style={styles.planCard}
                       onPress={() => router.push(`/itinerary/${plan.id}` as any)}
+                      accessibilityRole="link"
+                      accessibilityLabel={`Abrir roteiro guardado: ${plan.title}`}
                     >
                       <View style={{ flex: 1 }}>
                         <Text style={styles.planTitle} numberOfLines={1}>{plan.title}</Text>
@@ -877,7 +922,12 @@ export default function PlaneadorTab() {
                           {plan.collaborators_count > 0 ? ` · ${plan.collaborators_count} colaborador${plan.collaborators_count > 1 ? 'es' : ''}` : ''}
                         </Text>
                       </View>
-                      <TouchableOpacity onPress={() => handleDeletePlan(plan.id)} style={{ padding: 4 }}>
+                      <TouchableOpacity
+                        onPress={() => handleDeletePlan(plan.id)}
+                        style={{ padding: 4 }}
+                        accessibilityRole="button"
+                        accessibilityLabel={`Eliminar roteiro: ${plan.title}`}
+                      >
                         <MaterialIcons name="delete-outline" size={18} color={palette.gray[300]} />
                       </TouchableOpacity>
                       <MaterialIcons name="chevron-right" size={20} color={palette.gray[300]} />
@@ -917,6 +967,8 @@ export default function PlaneadorTab() {
             style={styles.quickAction}
             onPress={() => router.push('/smart-routes')}
             data-testid="quick-action-smart-routes"
+            accessibilityRole="link"
+            accessibilityLabel="Abrir Rotas Inteligentes (IQ)"
           >
             <View style={[styles.quickActionIcon, { backgroundColor: 'rgba(230, 122, 74, 0.1)' }]}>
               <MaterialIcons name="auto-awesome" size={24} color={colors.terracotta[500]} />
@@ -928,6 +980,8 @@ export default function PlaneadorTab() {
             style={styles.quickAction}
             onPress={() => router.push('/route-planner')}
             data-testid="quick-action-route-planner"
+            accessibilityRole="link"
+            accessibilityLabel="Abrir Planear Rota A para B"
           >
             <View style={styles.quickActionIcon}>
               <MaterialIcons name="directions" size={24} color={palette.terracotta[500]} />
@@ -938,6 +992,8 @@ export default function PlaneadorTab() {
           <TouchableOpacity
             style={styles.quickAction}
             onPress={() => router.push('/nearby')}
+            accessibilityRole="link"
+            accessibilityLabel="Abrir Locais Perto de Mim"
           >
             <View style={[styles.quickActionIcon, { backgroundColor: 'rgba(34, 197, 94, 0.1)' }]}>
               <MaterialIcons name="near-me" size={24} color="#22C55E" />

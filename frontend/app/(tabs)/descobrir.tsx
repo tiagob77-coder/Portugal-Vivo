@@ -300,6 +300,8 @@ function DescobrerTab() {
               <TouchableOpacity
                 style={{ position: 'absolute', top: 12, right: 16, flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(255,255,255,0.2)', paddingHorizontal: 14, paddingVertical: 8, borderRadius: 20, gap: 6 }}
                 onPress={() => router.push('/(tabs)/profile' as any)}
+                accessibilityLabel={token ? 'Abrir perfil' : 'Iniciar sessão'}
+                accessibilityRole="button"
               >
                 <MaterialIcons name={token ? 'account-circle' : 'login'} size={18} color="#FFFFFF" />
                 <Text style={{ color: '#FFFFFF', fontSize: 13, fontWeight: '600' }}>{token ? 'Perfil' : 'Entrar'}</Text>
@@ -322,6 +324,9 @@ function DescobrerTab() {
                 if (action.route) router.push(action.route as any);
               }}
               data-testid={`action-${action.id}`}
+              accessibilityLabel={action.id === 'guia' ? 'Abrir Guia do Viajante' : `Abrir ${action.title}`}
+              accessibilityRole="button"
+              accessibilityState={action.id === 'guia' ? { expanded: guiaOpen } : undefined}
             >
               <View style={[styles.actionIcon, { backgroundColor: colors.primary + '15' }]}>
                 <MaterialIcons name={action.icon as any} size={20} color={colors.primary} />
@@ -349,7 +354,7 @@ function DescobrerTab() {
                 Feed personalizado ao seu perfil
               </Text>
             </View>
-            <TouchableOpacity onPress={() => setActivePerfil(null)} data-testid="clear-profile-btn">
+            <TouchableOpacity onPress={() => setActivePerfil(null)} data-testid="clear-profile-btn" accessibilityLabel="Remover filtro de perfil" accessibilityRole="button">
               <MaterialIcons name="close" size={18} color={colors.textMuted} />
             </TouchableOpacity>
           </View>
@@ -361,7 +366,7 @@ function DescobrerTab() {
             <View style={styles.guiaPanelHeader}>
               <MaterialIcons name="menu-book" size={18} color={colors.primary} />
               <Text style={[styles.guiaPanelTitle, { color: colors.textPrimary }]}>Guia do Viajante - Portugal</Text>
-              <TouchableOpacity onPress={() => setGuiaOpen(false)} data-testid="close-guia">
+              <TouchableOpacity onPress={() => setGuiaOpen(false)} data-testid="close-guia" accessibilityLabel="Fechar Guia do Viajante" accessibilityRole="button">
                 <MaterialIcons name="close" size={20} color={colors.textMuted} />
               </TouchableOpacity>
             </View>
@@ -513,6 +518,9 @@ function DescobrerTab() {
             onPress={() => setExpandedWidget(expandedWidget === 'weather' ? null : 'weather')}
             activeOpacity={0.7}
             data-testid="weather-chip"
+            accessibilityLabel="Ver previsão meteorológica"
+            accessibilityRole="button"
+            accessibilityState={{ expanded: expandedWidget === 'weather' }}
           >
             <View style={styles.chipRow}>
               <MaterialIcons name="wb-sunny" size={16} color={colors.accent} />
@@ -541,6 +549,9 @@ function DescobrerTab() {
             onPress={() => setExpandedWidget(expandedWidget === 'safety' ? null : 'safety')}
             activeOpacity={0.7}
             data-testid="safety-chip"
+            accessibilityLabel="Ver estado de segurança"
+            accessibilityRole="button"
+            accessibilityState={{ expanded: expandedWidget === 'safety' }}
           >
             <View style={styles.chipRow}>
               <MaterialIcons
@@ -575,6 +586,9 @@ function DescobrerTab() {
             onPress={() => setExpandedWidget(expandedWidget === 'surf' ? null : 'surf')}
             activeOpacity={0.7}
             data-testid="surf-chip"
+            accessibilityLabel="Ver condições de surf"
+            accessibilityRole="button"
+            accessibilityState={{ expanded: expandedWidget === 'surf' }}
           >
             <View style={styles.chipRow}>
               <MaterialIcons name="waves" size={16} color={colors.secondary} />
@@ -622,6 +636,8 @@ function DescobrerTab() {
               onPress={() => router.push(`/heritage/${poiDoDia.poi.id}`)}
               activeOpacity={0.85}
               data-testid="poi-do-dia-card"
+              accessibilityLabel={`Ver detalhe de ${poiDoDia.poi.name}`}
+              accessibilityRole="button"
             >
               <SmartImage
                 uri={poiDoDia.poi.image_url}
@@ -661,7 +677,7 @@ function DescobrerTab() {
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <Text style={[styles.sectionTitle, ds.textPrimary]}>Explorar por Região</Text>
-            <TouchableOpacity onPress={() => router.push('/(tabs)/mapa')}>
+            <TouchableOpacity onPress={() => router.push('/(tabs)/mapa')} accessibilityLabel="Ver mapa" accessibilityRole="link">
               <Text style={[styles.seeAll, { color: colors.accent }]}>Ver Mapa</Text>
             </TouchableOpacity>
           </View>
@@ -673,6 +689,8 @@ function DescobrerTab() {
                 onPress={() => router.push(`/(tabs)/mapa?region=${region.id}&t=${Date.now()}` as any)}
                 activeOpacity={0.9}
                 data-testid={`region-card-${region.id}`}
+                accessibilityLabel={`Explorar região ${region.name} no mapa`}
+                accessibilityRole="button"
               >
                 <ImageBackground source={{ uri: region.image }} style={styles.regionImage} imageStyle={styles.regionImageStyle}>
                   <LinearGradient colors={['transparent', 'rgba(0,0,0,0.55)']} style={styles.regionGradient}>
@@ -695,7 +713,7 @@ function DescobrerTab() {
                 <MaterialIcons name="auto-awesome" size={18} color="#8E24AA" />
                 <Text style={[styles.sectionTitle, ds.textPrimary]}>Enciclopedia Viva</Text>
               </View>
-              <TouchableOpacity onPress={() => router.push('/(tabs)/coleccoes' as any)}>
+              <TouchableOpacity onPress={() => router.push('/(tabs)/coleccoes' as any)} accessibilityLabel="Ver toda a Enciclopédia Viva" accessibilityRole="link">
                 <Text style={[styles.seeAll, { color: colors.accent }]}>Ver Todos</Text>
               </TouchableOpacity>
             </View>
@@ -707,6 +725,8 @@ function DescobrerTab() {
                   onPress={() => router.push('/(tabs)/coleccoes' as any)}
                   activeOpacity={0.8}
                   data-testid={`universe-card-${universe.id}`}
+                  accessibilityLabel={`Abrir universo ${universe.name}`}
+                  accessibilityRole="button"
                 >
                   <View style={[styles.universeIcon, { backgroundColor: universe.color || colors.primary }]}>
                     <MaterialIcons name={(universe.icon || 'place') as any} size={22} color="#FFF" />
@@ -725,6 +745,8 @@ function DescobrerTab() {
           onPress={surprisePOI ? () => router.push(`/heritage/${surprisePOI.id}`) : handleSurprise}
           activeOpacity={0.85}
           data-testid="surprise-card"
+          accessibilityLabel={surprisePOI ? `Ver detalhe de ${surprisePOI.name}` : 'Surpreende-me com um lugar escondido'}
+          accessibilityRole="button"
         >
           {surpriseLoading ? (
             <ActivityIndicator size="small" color={colors.accent} />
@@ -776,6 +798,8 @@ function DescobrerTab() {
                   onPress={() => router.push(`/heritage/${item.id}`)}
                   activeOpacity={0.8}
                   data-testid={`trending-card-${item.id}`}
+                  accessibilityLabel={`Ver detalhe de ${item.name}`}
+                  accessibilityRole="button"
                 >
                   <View style={[styles.trendingRank, { backgroundColor: colors.primary + '15' }]}>
                     <Text style={[styles.trendingRankText, { color: colors.primary }]}>{index + 1}</Text>
@@ -816,6 +840,9 @@ function DescobrerTab() {
                   { backgroundColor: activeCategory === cat.id ? colors.accent : colors.surface, borderColor: activeCategory === cat.id ? colors.accent : colors.borderLight },
                 ]}
                 onPress={() => { setActiveCategory(cat.id); setFeedPage(1); }}
+                accessibilityLabel={`Filtrar feed por ${cat.label}`}
+                accessibilityRole="tab"
+                accessibilityState={{ selected: activeCategory === cat.id }}
               >
                 <MaterialIcons name={cat.icon as any} size={14} color={activeCategory === cat.id ? '#fff' : colors.textMuted} />
                 <Text style={[styles.categoryTabText, { color: activeCategory === cat.id ? '#fff' : colors.textMuted }]}>{cat.label}</Text>
@@ -841,6 +868,8 @@ function DescobrerTab() {
                   onPress={() => router.push(`/heritage/${item.content_id}`)}
                   activeOpacity={0.8}
                   data-testid={`discovery-card-${item.content_id}`}
+                  accessibilityLabel={`Ver detalhe de ${item.content_data.name}`}
+                  accessibilityRole="button"
                 >
                   <SmartImage uri={item.content_data.image_url} name={item.content_data.name} style={styles.discoveryImage} contentFit="cover" />
                   <View style={styles.discoveryContent}>
@@ -857,6 +886,8 @@ function DescobrerTab() {
               <TouchableOpacity
                 style={[styles.loadMoreBtn, { borderColor: colors.borderLight }]}
                 onPress={() => setFeedPage(p => p + 1)}
+                accessibilityLabel="Carregar mais sugestões"
+                accessibilityRole="button"
               >
                 <Text style={[styles.loadMoreText, { color: colors.accent }]}>Carregar mais</Text>
                 <MaterialIcons name="expand-more" size={18} color={colors.accent} />
@@ -873,7 +904,7 @@ function DescobrerTab() {
                 <MaterialIcons name="auto-stories" size={18} color={colors.accent} />
                 <Text style={[styles.sectionTitle, ds.textPrimary]}>Micro-histórias</Text>
               </View>
-              <TouchableOpacity onPress={() => router.push('/search' as any)}>
+              <TouchableOpacity onPress={() => router.push('/search' as any)} accessibilityLabel="Ver mais micro-histórias" accessibilityRole="link">
                 <Text style={[styles.sectionLink, { color: colors.accent }]}>Ver mais</Text>
               </TouchableOpacity>
             </View>
@@ -907,6 +938,8 @@ function DescobrerTab() {
                 key={r.id}
                 style={[styles.timelineChip, { backgroundColor: colors.surface, borderColor: colors.borderLight }]}
                 onPress={() => router.push(`/timeline/${r.id}` as any)}
+                accessibilityLabel={`Ver linha do tempo de ${r.label}`}
+                accessibilityRole="button"
               >
                 <Text style={styles.timelineEmoji}>{r.emoji}</Text>
                 <Text style={[styles.timelineLabel, ds.textPrimary]}>{r.label}</Text>
@@ -1003,6 +1036,8 @@ function DescobrerTab() {
                       backgroundColor: mi % 2 === 0 ? (isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.02)') : 'transparent',
                     }}
                     onPress={() => router.push(mod.route as any)}
+                    accessibilityLabel={`Abrir ${mod.name}`}
+                    accessibilityRole="button"
                   >
                     <View style={{
                       width: 36, height: 36, borderRadius: 10,
@@ -1027,6 +1062,8 @@ function DescobrerTab() {
         <TouchableOpacity
           style={[styles.toolkitBanner, { backgroundColor: colors.surface, borderColor: colors.borderLight }]}
           onPress={() => router.push('/content-toolkit' as any)}
+          accessibilityLabel="Abrir Toolkit IA para Agentes Culturais"
+          accessibilityRole="button"
         >
           <View style={[styles.toolkitIcon, { backgroundColor: (colors.primary || '#4A6741') + '18' }]}>
             <MaterialIcons name="auto-awesome" size={22} color={colors.primary || '#4A6741'} />
@@ -1052,6 +1089,8 @@ function DescobrerTab() {
               style={[styles.exploreButton, { backgroundColor: colors.accent }]}
               onPress={() => router.push('/(tabs)/mapa')}
               data-testid="explore-button"
+              accessibilityLabel="Ver mapa"
+              accessibilityRole="button"
             >
               <Text style={styles.exploreButtonText}>Ver Mapa</Text>
               <MaterialIcons name="arrow-forward" size={18} color="#FFFFFF" />

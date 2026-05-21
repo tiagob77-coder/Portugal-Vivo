@@ -104,9 +104,11 @@ export default function BeachcamsScreen() {
       >
         {/* Header */}
         <View style={styles.header}>
-          <TouchableOpacity 
-            onPress={() => router.back()} 
+          <TouchableOpacity
+            onPress={() => router.back()}
             style={[styles.backBtn, { backgroundColor: tc.surfaceAlt }]}
+            accessibilityRole="button"
+            accessibilityLabel="Voltar"
           >
             <MaterialIcons name="arrow-back" size={22} color={tc.textPrimary} />
           </TouchableOpacity>
@@ -128,10 +130,13 @@ export default function BeachcamsScreen() {
         <View style={[styles.tabToggle, { backgroundColor: tc.surface, borderColor: tc.border }]}>
           <TouchableOpacity
             style={[
-              styles.tabBtn, 
+              styles.tabBtn,
               activeTab === 'webcams' && { backgroundColor: tc.accent }
             ]}
             onPress={() => setActiveTab('webcams')}
+            accessibilityRole="tab"
+            accessibilityState={{ selected: activeTab === 'webcams' }}
+            accessibilityLabel="Separador Webcams"
           >
             <MaterialIcons 
               name="videocam" 
@@ -147,10 +152,13 @@ export default function BeachcamsScreen() {
           </TouchableOpacity>
           <TouchableOpacity
             style={[
-              styles.tabBtn, 
+              styles.tabBtn,
               activeTab === 'qualidade' && { backgroundColor: tc.accent }
             ]}
             onPress={() => setActiveTab('qualidade')}
+            accessibilityRole="tab"
+            accessibilityState={{ selected: activeTab === 'qualidade' }}
+            accessibilityLabel="Separador Qualidade da água"
           >
             <MaterialIcons 
               name="water" 
@@ -186,13 +194,16 @@ export default function BeachcamsScreen() {
               <TouchableOpacity
                 key={reg.id || 'all'}
                 style={[
-                  styles.filterChip, 
-                  { 
+                  styles.filterChip,
+                  {
                     backgroundColor: isActive ? tc.accent : tc.surface,
                     borderColor: isActive ? tc.accent : tc.border,
                   }
                 ]}
                 onPress={() => setActiveRegion(isActive ? null : reg.id)}
+                accessibilityRole="tab"
+                accessibilityState={{ selected: isActive }}
+                accessibilityLabel={`Filtrar por região: ${reg.label}`}
               >
                 <Text style={[
                   styles.filterChipText, 
@@ -219,11 +230,13 @@ export default function BeachcamsScreen() {
               beachcams.map((cam: any) => {
                 const surfColor = SURF_COLORS[cam.surf_level] || tc.textMuted;
                 return (
-                  <TouchableOpacity 
-                    key={cam.id} 
+                  <TouchableOpacity
+                    key={cam.id}
                     style={[styles.camCard, { backgroundColor: tc.surface }]}
                     onPress={() => openWebcam(cam.embed_url)}
                     activeOpacity={0.9}
+                    accessibilityRole="button"
+                    accessibilityLabel={`Ver webcam ao vivo da praia ${cam.name}`}
                   >
                     {/* Image with gradient overlay */}
                     <View style={styles.camImageContainer}>
@@ -284,9 +297,11 @@ export default function BeachcamsScreen() {
                       </View>
 
                       {/* CTA */}
-                      <TouchableOpacity 
+                      <TouchableOpacity
                         style={[styles.ctaButton, { backgroundColor: tc.accent }]}
                         onPress={() => openWebcam(cam.embed_url)}
+                        accessibilityRole="button"
+                        accessibilityLabel={`Abrir webcam ao vivo da praia ${cam.name}`}
                       >
                         <MaterialIcons name="open-in-new" size={16} color="#FFF" />
                         <Text style={styles.ctaText}>Ver Webcam ao Vivo</Text>

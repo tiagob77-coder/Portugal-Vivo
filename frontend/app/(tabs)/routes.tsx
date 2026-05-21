@@ -64,6 +64,9 @@ export default function RoutesScreen() {
               selectedCategory === category.id && styles.filterChipActive,
             ]}
             onPress={() => setSelectedCategory(category.id)}
+            accessibilityLabel={`Filtrar rotas por ${category.name}`}
+            accessibilityRole="tab"
+            accessibilityState={{ selected: selectedCategory === category.id }}
           >
             <MaterialIcons
               name={category.icon as any}

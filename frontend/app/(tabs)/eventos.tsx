@@ -305,6 +305,12 @@ export default function EventosTab() {
         day.events.length > 0 && styles.calendarDayWithEvent,
       ]}
       disabled={!day.date || day.events.length === 0}
+      accessibilityLabel={
+        day.date
+          ? `Dia ${day.date.getDate()}${day.events.length > 0 ? `, ${day.events.length} ${day.events.length === 1 ? 'evento' : 'eventos'}` : ''}`
+          : undefined
+      }
+      accessibilityRole="button"
       onPress={() => {
         if (day.date && day.events.length > 0) {
           // If single event, go directly to detail; otherwise show first event
@@ -365,6 +371,8 @@ export default function EventosTab() {
         onPress={() => openEventDetail(event)}
         activeOpacity={0.8}
         data-testid={`event-card-${event.id}`}
+        accessibilityLabel={`Ver evento ${event.name}`}
+        accessibilityRole="button"
       >
         {/* Event Image */}
         <Image
@@ -416,6 +424,8 @@ export default function EventosTab() {
               style={styles.ticketButton}
               onPress={(e) => { e.stopPropagation(); Linking.openURL(event.ticket_url!); }}
               activeOpacity={0.7}
+              accessibilityLabel={`Comprar bilhetes para ${event.name}`}
+              accessibilityRole="link"
             >
               <MaterialIcons name="confirmation-number" size={14} color="#FFF" />
               <Text style={styles.ticketText}>Comprar Bilhetes</Text>
@@ -456,6 +466,9 @@ export default function EventosTab() {
           <TouchableOpacity
             style={[styles.toggleButton, viewMode === 'calendar' && [styles.toggleActive, { backgroundColor: tc.accent }]]}
             onPress={() => setViewMode('calendar')}
+            accessibilityLabel="Ver em calendário"
+            accessibilityRole="tab"
+            accessibilityState={{ selected: viewMode === 'calendar' }}
           >
             <MaterialIcons
               name="calendar-today"
@@ -469,6 +482,9 @@ export default function EventosTab() {
           <TouchableOpacity
             style={[styles.toggleButton, viewMode === 'list' && [styles.toggleActive, { backgroundColor: tc.accent }]]}
             onPress={() => setViewMode('list')}
+            accessibilityLabel="Ver em lista"
+            accessibilityRole="tab"
+            accessibilityState={{ selected: viewMode === 'list' }}
           >
             <MaterialIcons
               name="list"
@@ -494,6 +510,9 @@ export default function EventosTab() {
               !selectedCategory && [styles.filterChipActive, { borderColor: tc.accent }],
             ]}
             onPress={() => setSelectedCategory(null)}
+            accessibilityLabel="Mostrar todas as categorias"
+            accessibilityRole="tab"
+            accessibilityState={{ selected: !selectedCategory }}
           >
             <Text style={[
               styles.filterText,
@@ -514,6 +533,9 @@ export default function EventosTab() {
               onPress={() => setSelectedCategory(
                 selectedCategory === cat.id ? null : cat.id
               )}
+              accessibilityLabel={`Filtrar por categoria ${cat.name}`}
+              accessibilityRole="tab"
+              accessibilityState={{ selected: selectedCategory === cat.id }}
             >
               <MaterialIcons
                 name={cat.icon as any}
@@ -546,6 +568,9 @@ export default function EventosTab() {
                 selectedRegion === region.id && [styles.regionPillActive, { borderColor: tc.accent }],
               ]}
               onPress={() => setSelectedRegion(region.id)}
+              accessibilityLabel={`Filtrar por região ${region.name}`}
+              accessibilityRole="tab"
+              accessibilityState={{ selected: selectedRegion === region.id }}
             >
               <Text style={styles.regionEmoji}>{region.emoji}</Text>
               <Text style={[
@@ -569,6 +594,8 @@ export default function EventosTab() {
             <TouchableOpacity
               style={styles.clearFiltersButton}
               onPress={() => { setSelectedCategory(null); setSelectedRegion(null); }}
+              accessibilityLabel="Limpar filtros"
+              accessibilityRole="button"
             >
               <MaterialIcons name="close" size={14} color="#FFF" />
               <Text style={styles.clearFiltersText}>Limpar</Text>
@@ -584,6 +611,8 @@ export default function EventosTab() {
               <TouchableOpacity
                 style={styles.monthButton}
                 onPress={() => navigateMonth('prev')}
+                accessibilityLabel="Mês anterior"
+                accessibilityRole="button"
               >
                 <MaterialIcons name="chevron-left" size={28} color={tc.textPrimary} />
               </TouchableOpacity>
@@ -593,6 +622,8 @@ export default function EventosTab() {
               <TouchableOpacity
                 style={styles.monthButton}
                 onPress={() => navigateMonth('next')}
+                accessibilityLabel="Mês seguinte"
+                accessibilityRole="button"
               >
                 <MaterialIcons name="chevron-right" size={28} color={tc.textPrimary} />
               </TouchableOpacity>

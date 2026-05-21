@@ -58,7 +58,13 @@ export default function TransportesScreen() {
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
         {/* Header */}
         <View style={styles.header}>
-          <TouchableOpacity onPress={() => router.back()} style={styles.backBtn} data-testid="transport-back-btn">
+          <TouchableOpacity
+            onPress={() => router.back()}
+            style={styles.backBtn}
+            data-testid="transport-back-btn"
+            accessibilityRole="button"
+            accessibilityLabel="Voltar"
+          >
             <MaterialIcons name="arrow-back" size={22} color={colors.gray[700]} />
           </TouchableOpacity>
           <View style={styles.headerContent}>
@@ -75,6 +81,8 @@ export default function TransportesScreen() {
           onPress={() => router.push('/comboios')}
           activeOpacity={0.85}
           data-testid="transport-comboios-cta"
+          accessibilityRole="link"
+          accessibilityLabel="Abrir Comboios e Ligações: CP, Metro, Ferries e Cartões"
         >
           <View style={styles.comboiosCtaLeft}>
             <View style={styles.comboiosCtaIcon}>
@@ -94,6 +102,9 @@ export default function TransportesScreen() {
             style={[styles.filterChip, !activeSection && styles.filterChipActive]}
             onPress={() => setActiveSection(null)}
             data-testid="transport-filter-all"
+            accessibilityRole="tab"
+            accessibilityState={{ selected: !activeSection }}
+            accessibilityLabel="Filtrar transportes: Todos"
           >
             <MaterialIcons name="commute" size={16} color={!activeSection ? '#FFF' : colors.gray[600]} />
             <Text style={[styles.filterChipText, !activeSection && styles.filterChipTextActive]}>Todos</Text>
@@ -107,6 +118,9 @@ export default function TransportesScreen() {
                 style={[styles.filterChip, isActive && { backgroundColor: meta.color }]}
                 onPress={() => setActiveSection(isActive ? null : sec.id)}
                 data-testid={`transport-filter-${sec.id}`}
+                accessibilityRole="tab"
+                accessibilityState={{ selected: isActive }}
+                accessibilityLabel={`Filtrar transportes: ${meta.label}`}
               >
                 <MaterialIcons name={meta.icon as any} size={16} color={isActive ? '#FFF' : meta.color} />
                 <Text style={[styles.filterChipText, isActive && styles.filterChipTextActive]}>
@@ -147,6 +161,8 @@ export default function TransportesScreen() {
                   onPress={() => op.website && Linking.openURL(op.website)}
                   activeOpacity={0.85}
                   data-testid={`transport-operator-${idx}`}
+                  accessibilityRole="link"
+                  accessibilityLabel={`Abrir site do operador ${op.name}`}
                 >
                   <View style={styles.operatorHeader}>
                     <View style={[styles.operatorIcon, { backgroundColor: meta.color + '12' }]}>
@@ -204,6 +220,8 @@ export default function TransportesScreen() {
                 onPress={() => card.website && Linking.openURL(card.website)}
                 activeOpacity={0.85}
                 data-testid={`transport-card-${idx}`}
+                accessibilityRole="link"
+                accessibilityLabel={`Abrir site do cartão de transporte ${card.name}`}
               >
                 <View style={styles.transportCardHeader}>
                   <View style={styles.transportCardIcon}>
