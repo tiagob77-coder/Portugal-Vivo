@@ -40,8 +40,8 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-MONGO_URI = os.getenv("MONGO_URI", "mongodb://localhost:27017")
-DB_NAME = os.getenv("MONGO_DB", "portugal_vivo")
+MONGO_URL = os.getenv("MONGO_URL", "mongodb://localhost:27017")
+DB_NAME = os.getenv("DB_NAME", "portugal_vivo")
 
 
 async def enrich_all(
@@ -50,7 +50,7 @@ async def enrich_all(
     only_missing: bool = True,
     delay: float = 1.1,
 ):
-    client = AsyncIOMotorClient(MONGO_URI)
+    client = AsyncIOMotorClient(MONGO_URL)
     db = client[DB_NAME]
     geoapi = GeoAPIService()
 

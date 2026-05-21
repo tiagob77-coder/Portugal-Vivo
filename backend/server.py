@@ -423,8 +423,7 @@ set_community_auth(require_auth)
 # ========================
 # ADMIN DASHBOARD + GALLERY + SHARE + STATS (extracted to admin_dashboard_api.py)
 # ========================
-from admin_dashboard_api import router as admin_dashboard_router, set_admin_dashboard_db, set_admin_dashboard_admin
-set_admin_dashboard_db(db)
+from admin_dashboard_api import router as admin_dashboard_router, set_admin_dashboard_admin
 set_admin_dashboard_admin(require_admin)
 
 
@@ -433,8 +432,7 @@ set_admin_dashboard_admin(require_admin)
 # ========================
 # GAMIFICATION PROGRESS (extracted to gamification_progress_api.py)
 # ========================
-from gamification_progress_api import gamification_progress_router, set_gamification_progress_db
-set_gamification_progress_db(db)
+from gamification_progress_api import gamification_progress_router
 
 # ========================
 # CALENDAR (consolidated into agenda_api.py)
@@ -443,8 +441,7 @@ set_gamification_progress_db(db)
 # ========================
 # DASHBOARD (extracted to dashboard_inline_api.py)
 # ========================
-from dashboard_inline_api import dashboard_inline_router, set_dashboard_inline_db, set_dashboard_redis_lb
-set_dashboard_inline_db(db)
+from dashboard_inline_api import dashboard_inline_router, set_dashboard_redis_lb
 
 
 # ========================
@@ -465,8 +462,7 @@ set_discover_recommendation_service(recommendation_service)
 set_discover_feed_llm_key(EMERGENT_LLM_KEY)
 
 # Smart Context Orchestrator
-from context_orchestrator_api import orchestrator_router, set_orchestrator_db
-set_orchestrator_db(db)
+from context_orchestrator_api import orchestrator_router
 api_router.include_router(orchestrator_router)
 
 # ========================
@@ -490,8 +486,7 @@ set_audio_guide_db(db)
 # ========================
 # MARINE & SURF (extracted to marine_surf_api.py)
 # ========================
-from marine_surf_api import router as marine_surf_router, set_marine_surf_db
-set_marine_surf_db(db)
+from marine_surf_api import router as marine_surf_router
 
 # ========================
 # HEALTH CHECK
@@ -575,8 +570,7 @@ api_router.include_router(proximity_router)
 api_router.include_router(nearby_compat_router)
 
 # CAOP geo-validator (point-in-polygon against Carta Administrativa Oficial)
-from geo_validator_api import router as geo_validator_router, set_geo_validator_db
-set_geo_validator_db(db)
+from geo_validator_api import router as geo_validator_router
 api_router.include_router(geo_validator_router)
 
 # Include Leaderboard router (Redis-powered)
@@ -854,33 +848,28 @@ set_curated_collections_auth(require_auth)
 api_router.include_router(curated_collections_router)
 
 # ── Content Health Score + Stale Queue ────────────────────────────────────────
-from content_health_api import health_router, set_content_health_db, set_content_health_auth
-set_content_health_db(db)
+from content_health_api import health_router, set_content_health_auth
 set_content_health_auth(require_auth, require_admin)
 api_router.include_router(health_router)
 
 # ── Partner Portal (Câmaras / Museus) ─────────────────────────────────────────
-from partner_portal_api import partner_router, set_partner_db, set_partner_auth
-set_partner_db(db)
+from partner_portal_api import partner_router, set_partner_auth
 set_partner_auth(require_auth, require_admin)
 api_router.include_router(partner_router)
 
 # ── Seasonal Event Triggers ───────────────────────────────────────────────────
-from seasonal_triggers_api import seasonal_router, set_seasonal_db, set_seasonal_auth, set_seasonal_llm_key
-set_seasonal_db(db)
+from seasonal_triggers_api import seasonal_router, set_seasonal_auth, set_seasonal_llm_key
 set_seasonal_auth(require_auth, require_admin)
 set_seasonal_llm_key(EMERGENT_LLM_KEY)
 api_router.include_router(seasonal_router)
 
 # ── Community Micro Contributions ─────────────────────────────────────────────
-from micro_contributions_api import contributions_router, set_contributions_db, set_contributions_auth
-set_contributions_db(db)
+from micro_contributions_api import contributions_router, set_contributions_auth
 set_contributions_auth(require_auth, require_admin)
 api_router.include_router(contributions_router)
 
 # ── Weekly Missions (Gamification) ───────────────────────────────────────────
-from weekly_missions_api import missions_router, set_missions_db, set_missions_auth
-set_missions_db(db)
+from weekly_missions_api import missions_router, set_missions_auth
 set_missions_auth(require_auth, require_admin)
 api_router.include_router(missions_router)
 
@@ -893,8 +882,7 @@ set_encounters_auth(require_auth, require_admin)
 api_router.include_router(encounters_router)
 
 # ── Map Layers — Dynamic layer configuration ──────────────────────────────────
-from map_layers_api import router as map_layers_router, set_map_layers_db
-set_map_layers_db(db)
+from map_layers_api import router as map_layers_router
 api_router.include_router(map_layers_router)
 
 # ── Multi-tenant RBAC ─────────────────────────────────────────────────────────
@@ -908,57 +896,47 @@ set_import_db(db)
 api_router.include_router(import_router)
 
 # ── Admin Eventos ─────────────────────────────────────────────────────────────
-from admin_eventos_api import router as admin_eventos_router, set_eventos_db
-set_eventos_db(db)
+from admin_eventos_api import router as admin_eventos_router
 api_router.include_router(admin_eventos_router)
 
 logger.info("🏛️  Multi-tenant RBAC + Excel importer + Admin Eventos registered")
 
 # ── Costa API ─────────────────────────────────────────────────────────────────
-from costa_api import costa_router, set_costa_db
-set_costa_db(db)
+from costa_api import costa_router
 api_router.include_router(costa_router)
 
 # ── AI Itinerary API ──────────────────────────────────────────────────────────
-from ai_itinerary_api import ai_itinerary_router, set_ai_itinerary_db, set_ai_itinerary_auth
-set_ai_itinerary_db(db)
+from ai_itinerary_api import ai_itinerary_router, set_ai_itinerary_auth
 set_ai_itinerary_auth(require_auth)
 api_router.include_router(ai_itinerary_router)
 
 # ── Economy API ───────────────────────────────────────────────────────────────
-from economy_api import economy_router, set_economy_db
-set_economy_db(db)
+from economy_api import economy_router
 api_router.include_router(economy_router)
 
-from geo_prehistoria_api import geo_prehistoria_router, set_geo_prehistoria_db
-set_geo_prehistoria_db(db)
+from geo_prehistoria_api import geo_prehistoria_router
 api_router.include_router(geo_prehistoria_router)
 
 # ── Marine Biodiversity API ───────────────────────────────────────────────────
 from marine_biodiversity_api import (
     marine_biodiversity_router,
-    set_marine_biodiversity_db,
     set_marine_biodiversity_llm_key,
     set_marine_biodiversity_auth,
 )
-set_marine_biodiversity_db(db)
 set_marine_biodiversity_llm_key(EMERGENT_LLM_KEY)
 set_marine_biodiversity_auth(require_auth)
 api_router.include_router(marine_biodiversity_router)
 
 # ── Infrastructure API ────────────────────────────────────────────────────────
-from infrastructure_api import infrastructure_router, set_infrastructure_db
-set_infrastructure_db(db)
+from infrastructure_api import infrastructure_router
 api_router.include_router(infrastructure_router)
 
 # ── Maritime Culture API ──────────────────────────────────────────────────────
 from maritime_culture_api import (
     maritime_culture_router,
-    set_maritime_culture_db,
     set_maritime_culture_llm_key,
     set_maritime_culture_auth,
 )
-set_maritime_culture_db(db)
 set_maritime_culture_llm_key(EMERGENT_LLM_KEY)
 set_maritime_culture_auth(require_auth)
 api_router.include_router(maritime_culture_router)
@@ -966,11 +944,9 @@ api_router.include_router(maritime_culture_router)
 # ── Coastal Gastronomy API ────────────────────────────────────────────────────
 from coastal_gastronomy_api import (
     gastronomy_router,
-    set_gastronomy_db,
     set_gastronomy_llm_key,
     set_gastronomy_auth,
 )
-set_gastronomy_db(db)
 set_gastronomy_llm_key(EMERGENT_LLM_KEY)
 set_gastronomy_auth(require_auth)
 api_router.include_router(gastronomy_router)
@@ -978,11 +954,9 @@ api_router.include_router(gastronomy_router)
 # ── Flora, Fauna & Habitats API ───────────────────────────────────────────────
 from flora_fauna_api import (
     flora_fauna_router,
-    set_flora_fauna_db,
     set_flora_fauna_llm_key,
     set_flora_fauna_auth,
 )
-set_flora_fauna_db(db)
 set_flora_fauna_llm_key(EMERGENT_LLM_KEY)
 set_flora_fauna_auth(require_auth)
 api_router.include_router(flora_fauna_router)
@@ -990,8 +964,7 @@ api_router.include_router(flora_fauna_router)
 logger.info("🌿  Gastronomy+FloraFauna registered")
 
 # ── Music API ─────────────────────────────────────────────────────────────────
-from music_api import music_router, set_music_db, set_music_llm_key, set_music_auth
-set_music_db(db)
+from music_api import music_router, set_music_llm_key, set_music_auth
 set_music_llm_key(EMERGENT_LLM_KEY)
 set_music_auth(require_auth)
 api_router.include_router(music_router)
@@ -1001,12 +974,10 @@ logger.info("🎵  Music registered")
 # ── Cultural Routes API ──────────────────────────────────────────────────────
 from cultural_routes_api import (
     cultural_routes_router,
-    set_cultural_routes_db,
     set_cultural_routes_llm_key,
     set_cultural_routes_admin,
     set_cultural_routes_auth,
 )
-set_cultural_routes_db(db)
 set_cultural_routes_llm_key(EMERGENT_LLM_KEY)
 set_cultural_routes_admin(require_admin)
 set_cultural_routes_auth(require_auth)
@@ -1015,28 +986,24 @@ api_router.include_router(cultural_routes_router)
 logger.info("🧭  Cultural Routes registered")
 
 # ── Knowledge Graph Universal ─────────────────────────────────────────────────
-from knowledge_graph_api import graph_router, set_graph_db
+from knowledge_graph_api import graph_router
 
-set_graph_db(db)
 api_router.include_router(graph_router)
 logger.info("🕸️   Knowledge Graph registered")
 
 # ── Temporal Context Orchestrator ─────────────────────────────────────────────
-from temporal_context_api import temporal_router, set_temporal_db
+from temporal_context_api import temporal_router
 
-set_temporal_db(db)
 api_router.include_router(temporal_router)
 logger.info("⏱️   Temporal Context Orchestrator registered")
 
 # ── Narrative Layer Global ───────────────────────────────────────────────────
 from narrative_layer_api import (
     narrative_layer_router,
-    set_narrative_layer_db,
     set_narrative_layer_llm_key,
     set_narrative_layer_admin,
     set_narrative_layer_auth,
 )
-set_narrative_layer_db(db)
 set_narrative_layer_llm_key(EMERGENT_LLM_KEY)
 set_narrative_layer_admin(require_admin)
 set_narrative_layer_auth(require_auth)

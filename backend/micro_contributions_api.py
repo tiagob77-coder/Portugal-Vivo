@@ -51,11 +51,6 @@ _require_auth = None
 _require_admin = None
 
 
-def set_contributions_db(database) -> None:
-    """No-op shim — the module reads the DB via dependencies.get_db()."""
-    _ = database
-
-
 def _db():
     """Lazy resolver — call sites use ``_db()["coll"]``."""
     from dependencies import get_db

@@ -47,11 +47,6 @@ CACHE_TTL_DAYS = 30
 CACHE_COLLECTION = "narrative_cache"
 
 
-def set_narrative_layer_db(database) -> None:
-    """No-op shim — the module reads the DB via dependencies.get_db()."""
-    _ = database
-
-
 def set_narrative_layer_llm_key(key: Optional[str]) -> None:
     global _llm_key
     _llm_key = key

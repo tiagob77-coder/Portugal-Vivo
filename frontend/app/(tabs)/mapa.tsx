@@ -706,6 +706,8 @@ function MapaTab() {
             setSelectedInfraId(null);
           }}
           activeOpacity={0.85}
+          accessibilityLabel="Fechar rota"
+          accessibilityRole="button"
         >
           <MaterialIcons name="close" size={20} color="#fff" />
         </TouchableOpacity>
@@ -808,22 +810,37 @@ function MapaTab() {
 
           {/* Map Controls */}
           <View style={[styles.mapControls, { top: insets.top + 60 }]}>
-            <TouchableOpacity style={styles.controlButton} onPress={centerOnPortugal}>
+            <TouchableOpacity
+              style={styles.controlButton}
+              onPress={centerOnPortugal}
+              accessibilityLabel="Centrar mapa em Portugal"
+              accessibilityRole="imagebutton"
+            >
               <MaterialIcons name="my-location" size={22} color="#FFFFFF" />
             </TouchableOpacity>
-            <TouchableOpacity style={styles.controlButton} onPress={fitToMarkers}>
+            <TouchableOpacity
+              style={styles.controlButton}
+              onPress={fitToMarkers}
+              accessibilityLabel="Ajustar zoom aos locais"
+              accessibilityRole="imagebutton"
+            >
               <MaterialIcons name="zoom-out-map" size={22} color="#FFFFFF" />
             </TouchableOpacity>
-            <TouchableOpacity 
+            <TouchableOpacity
               style={styles.controlButton}
               onPress={() => router.push('/search')}
+              accessibilityLabel="Pesquisar"
+              accessibilityRole="imagebutton"
             >
               <MaterialIcons name="search" size={22} color="#FFFFFF" />
             </TouchableOpacity>
-            <TouchableOpacity 
+            <TouchableOpacity
               style={[styles.controlButton, showAccessibility && styles.controlButtonActive]}
               onPress={() => setShowAccessibility(!showAccessibility)}
               data-testid="accessibility-toggle"
+              accessibilityLabel="Filtros de acessibilidade"
+              accessibilityRole="imagebutton"
+              accessibilityState={{ expanded: showAccessibility }}
             >
               <MaterialIcons 
                 name="accessible" 
@@ -877,6 +894,9 @@ function MapaTab() {
                     ]}
                     onPress={() => toggleLayer(layer.id)}
                     data-testid={`layer-${layer.id}`}
+                    accessibilityLabel={`Camada ${layer.name}`}
+                    accessibilityRole="switch"
+                    accessibilityState={{ checked: isActive }}
                   >
                     <MaterialIcons
                       name={layer.icon as any}
@@ -915,6 +935,9 @@ function MapaTab() {
                     ]}
                     onPress={() => setRegionFilter(isActive ? null : region.id)}
                     data-testid={`native-region-${region.id}`}
+                    accessibilityLabel={`Filtrar mapa pela região ${region.name}`}
+                    accessibilityRole="button"
+                    accessibilityState={{ selected: isActive }}
                   >
                     <MaterialIcons name="place" size={14} color={isActive ? '#FFF' : '#94A3B8'} />
                     <Text style={[styles.layerText, isActive && styles.layerTextActive]}>{region.name}</Text>
@@ -930,6 +953,8 @@ function MapaTab() {
               style={[styles.selectedCard, { bottom: 180 }]}
               onPress={handleItemPress}
               activeOpacity={0.9}
+              accessibilityLabel={`Ver detalhe de ${selectedItem.name}`}
+              accessibilityRole="button"
             >
               <View style={styles.selectedCardInner}>
                 {/* Image */}
@@ -1000,6 +1025,9 @@ function MapaTab() {
                         routeTypeFilter === f.id && { backgroundColor: f.color, borderColor: f.color },
                       ]}
                       onPress={() => setRouteTypeFilter(f.id)}
+                      accessibilityLabel={`Filtrar rotas por ${f.label}`}
+                      accessibilityRole="tab"
+                      accessibilityState={{ selected: routeTypeFilter === f.id }}
                     >
                       <MaterialIcons name={f.icon as any} size={13} color={routeTypeFilter === f.id ? '#FFF' : f.color} />
                       <Text style={[styles.routeTypeChipText, routeTypeFilter === f.id && { color: '#FFF' }]}>{f.label}</Text>
@@ -1027,6 +1055,8 @@ function MapaTab() {
                       });
                       setFullscreenRoute(true);
                     }}
+                    accessibilityLabel={`Ver trilho ${trail.name}`}
+                    accessibilityRole="button"
                   >
                     <View style={[styles.routeItemDot, { backgroundColor: trail.color || '#22C55E' }]} />
                     <View style={{ flex: 1 }}>
@@ -1043,6 +1073,8 @@ function MapaTab() {
                       key={infra.id}
                       style={styles.routeListItemNative}
                       onPress={() => setSelectedInfraId(infra.id)}
+                      accessibilityLabel={`Ver percurso ${infra.name}`}
+                      accessibilityRole="button"
                     >
                       <View style={[styles.routeItemDot, { backgroundColor: '#0EA5E9' }]} />
                       <View style={{ flex: 1 }}>
@@ -1069,6 +1101,8 @@ function MapaTab() {
                       });
                       setFullscreenRoute(true);
                     }}
+                    accessibilityLabel={`Ver rota cultural ${cr.name}`}
+                    accessibilityRole="button"
                   >
                     <View style={[styles.routeItemDot, { backgroundColor: '#A855F7' }]} />
                     <View style={{ flex: 1 }}>
@@ -1099,6 +1133,8 @@ function MapaTab() {
                 style={[styles.fullscreenCloseBtn, { top: insets.top + 12 }]}
                 onPress={() => { setFullscreenRoute(false); setSelectedRoute(null); setSelectedInfraId(null); }}
                 activeOpacity={0.85}
+                accessibilityLabel="Fechar rota"
+                accessibilityRole="button"
               >
                 <MaterialIcons name="close" size={20} color="#fff" />
               </TouchableOpacity>
@@ -1110,6 +1146,8 @@ function MapaTab() {
             <TouchableOpacity
               style={styles.actionButton}
               onPress={() => router.push('/nearby')}
+              accessibilityLabel="Ver locais perto de mim"
+              accessibilityRole="button"
             >
               <LinearGradient
                 colors={['#C49A6C', '#B08556']}
@@ -1122,6 +1160,8 @@ function MapaTab() {
             <TouchableOpacity
               style={styles.actionButton}
               onPress={() => router.push('/route-planner')}
+              accessibilityLabel="Planear rota"
+              accessibilityRole="button"
             >
               <LinearGradient
                 colors={['#3FA66B', '#2E8A55']}
@@ -1160,6 +1200,8 @@ function MapaTab() {
                 style={styles.regionFilterClear}
                 onPress={() => setRegionFilter(null)}
                 data-testid="clear-region-filter"
+                accessibilityLabel="Remover filtro de região"
+                accessibilityRole="button"
               >
                 <MaterialIcons name="close" size={16} color="#FFF" />
               </TouchableOpacity>
@@ -1202,6 +1244,9 @@ function MapaTab() {
                     ]}
                     onPress={() => setRegionFilter(isActive ? null : region.id)}
                     data-testid={`region-filter-${region.id}`}
+                    accessibilityLabel={`Filtrar mapa pela região ${region.name}`}
+                    accessibilityRole="button"
+                    accessibilityState={{ selected: isActive }}
                   >
                     <MaterialIcons
                       name="place"
@@ -1222,10 +1267,13 @@ function MapaTab() {
 
           {/* Accessibility Filters Section */}
           <View style={styles.section}>
-            <TouchableOpacity 
+            <TouchableOpacity
               style={styles.sectionHeader}
               onPress={() => setShowAccessibility(!showAccessibility)}
               data-testid="accessibility-section-toggle"
+              accessibilityLabel="Turismo Inclusivo"
+              accessibilityRole="button"
+              accessibilityState={{ expanded: showAccessibility }}
             >
               <View style={styles.sectionTitleRow}>
                 <MaterialIcons name="accessible" size={20} color={colors.ocean[500]} />
@@ -1265,6 +1313,9 @@ function MapaTab() {
                     key={trail.id}
                     style={[styles.trailChip, selectedTrail === trail.id && { backgroundColor: trail.color, borderColor: trail.color }]}
                     onPress={() => setSelectedTrail(selectedTrail === trail.id ? null : trail.id)}
+                    accessibilityLabel={`Trilho ${trail.name}`}
+                    accessibilityRole="button"
+                    accessibilityState={{ selected: selectedTrail === trail.id }}
                   >
                     <MaterialIcons name="route" size={14} color={selectedTrail === trail.id ? '#FFF' : '#64748B'} />
                     <Text style={[styles.trailChipText, selectedTrail === trail.id && { color: '#FFF' }]} numberOfLines={1}>
@@ -1281,6 +1332,9 @@ function MapaTab() {
                   style={styles.gpxUploadBtn}
                   onPress={handleGpxUpload}
                   disabled={gpxUploading}
+                  accessibilityLabel="Carregar ficheiro GPX"
+                  accessibilityRole="button"
+                  accessibilityState={{ disabled: gpxUploading }}
                 >
                   {gpxUploading ? (
                     <ActivityIndicator size="small" color="#FFF" />
@@ -1303,6 +1357,9 @@ function MapaTab() {
                   onPress={() => setSelectedEpochs(prev =>
                     prev.includes(epoch.id) ? prev.filter(e => e !== epoch.id) : [...prev, epoch.id]
                   )}
+                  accessibilityLabel={`Época ${epoch.name}`}
+                  accessibilityRole="switch"
+                  accessibilityState={{ checked: selectedEpochs.includes(epoch.id) }}
                 >
                   <View style={[styles.epochDot, { backgroundColor: epoch.color }]} />
                   <Text style={[styles.trailChipText, selectedEpochs.includes(epoch.id) && { color: '#FFF' }]} numberOfLines={1}>
@@ -1462,6 +1519,9 @@ function MapaTab() {
                         routeTypeFilter === f.id && { backgroundColor: f.color, borderColor: f.color },
                       ]}
                       onPress={() => setRouteTypeFilter(f.id)}
+                      accessibilityLabel={`Filtrar rotas por ${f.label}`}
+                      accessibilityRole="tab"
+                      accessibilityState={{ selected: routeTypeFilter === f.id }}
                     >
                       <MaterialIcons name={f.icon as any} size={13} color={routeTypeFilter === f.id ? '#FFF' : f.color} />
                       <Text style={[styles.routeTypeChipText, routeTypeFilter === f.id && { color: '#FFF' }]}>{f.label}</Text>
@@ -1496,6 +1556,8 @@ function MapaTab() {
                     setFullscreenRoute(true);
                   }}
                   activeOpacity={0.8}
+                  accessibilityLabel={`Ver trilho ${trail.name}`}
+                  accessibilityRole="button"
                 >
                   <View style={[styles.routeItemDot, { backgroundColor: trail.color || '#22C55E' }]} />
                   <View style={{ flex: 1 }}>
@@ -1515,6 +1577,8 @@ function MapaTab() {
                     style={styles.routeListItem}
                     onPress={() => setSelectedInfraId(infra.id)}
                     activeOpacity={0.8}
+                    accessibilityLabel={`Ver percurso ${infra.name}`}
+                    accessibilityRole="button"
                   >
                     <View style={[styles.routeItemDot, { backgroundColor: '#0EA5E9' }]} />
                     <View style={{ flex: 1 }}>
@@ -1550,6 +1614,8 @@ function MapaTab() {
                     setFullscreenRoute(true);
                   }}
                   activeOpacity={0.8}
+                  accessibilityLabel={`Ver rota cultural ${cr.name}`}
+                  accessibilityRole="button"
                 >
                   <View style={[styles.routeItemDot, { backgroundColor: '#A855F7' }]} />
                   <View style={{ flex: 1 }}>

@@ -167,6 +167,8 @@ export default function CommunityScreen() {
           <TouchableOpacity
             style={styles.authorInfo}
             onPress={() => router.push(`/profile/${item.user_id}` as any)}
+            accessibilityRole="link"
+            accessibilityLabel={`Ver perfil de ${item.user_name}`}
           >
             <MaterialIcons name="person" size={14} color={palette.gray[500]} />
             <Text style={styles.authorName}>{item.user_name}</Text>
@@ -184,6 +186,8 @@ export default function CommunityScreen() {
           <TouchableOpacity
             style={styles.voteButton}
             onPress={() => handleVote(item.id)}
+            accessibilityRole="button"
+            accessibilityLabel={`Votar na contribuição: ${item.title}`}
           >
             <MaterialIcons name="thumb-up" size={16} color={palette.terracotta[500]} />
             <Text style={styles.voteCount}>{item.votes}</Text>
@@ -192,6 +196,8 @@ export default function CommunityScreen() {
           <TouchableOpacity
             style={[styles.voteButton, { marginLeft: 4 }]}
             onPress={() => handleReport(item.id)}
+            accessibilityRole="button"
+            accessibilityLabel={`Reportar contribuição: ${item.title}`}
           >
             <MaterialIcons name="flag" size={15} color={palette.gray[400]} />
           </TouchableOpacity>
@@ -208,9 +214,11 @@ export default function CommunityScreen() {
           <Text style={styles.headerTitle}>Comunidade</Text>
           <Text style={styles.headerSubtitle}>Partilhe o seu conhecimento</Text>
         </View>
-        <TouchableOpacity 
+        <TouchableOpacity
           style={styles.addButton}
           onPress={() => isAuthenticated ? setShowCreateModal(true) : login()}
+          accessibilityRole="button"
+          accessibilityLabel="Nova contribuição"
         >
           <MaterialIcons name="add" size={24} color={palette.forest[500]} />
         </TouchableOpacity>
@@ -242,6 +250,9 @@ export default function CommunityScreen() {
             key={tab.id}
             style={[styles.feedTab, feedTab === tab.id && styles.feedTabActive]}
             onPress={() => setFeedTab(tab.id)}
+            accessibilityRole="tab"
+            accessibilityState={{ selected: feedTab === tab.id }}
+            accessibilityLabel={`Separador ${tab.label}`}
           >
             <Text style={[styles.feedTabText, feedTab === tab.id && styles.feedTabTextActive]}>
               {tab.label}
@@ -266,16 +277,20 @@ export default function CommunityScreen() {
               <Text style={styles.emptyText}>Ainda não há contribuições</Text>
               <Text style={styles.emptySubtext}>Seja o primeiro a partilhar!</Text>
               {isAuthenticated ? (
-                <TouchableOpacity 
+                <TouchableOpacity
                   style={styles.emptyButton}
                   onPress={() => setShowCreateModal(true)}
+                  accessibilityRole="button"
+                  accessibilityLabel="Criar contribuição"
                 >
                   <Text style={styles.emptyButtonText}>Criar contribuição</Text>
                 </TouchableOpacity>
               ) : (
-                <TouchableOpacity 
+                <TouchableOpacity
                   style={styles.emptyButton}
                   onPress={login}
+                  accessibilityRole="button"
+                  accessibilityLabel="Iniciar sessão"
                 >
                   <Text style={styles.emptyButtonText}>Iniciar sessão</Text>
                 </TouchableOpacity>
@@ -296,7 +311,11 @@ export default function CommunityScreen() {
           <View style={[styles.modalContent, { paddingBottom: insets.bottom + 20 }]}>
             <View style={styles.modalHeader}>
               <Text style={styles.modalTitle}>Nova Contribuição</Text>
-              <TouchableOpacity onPress={() => setShowCreateModal(false)}>
+              <TouchableOpacity
+                onPress={() => setShowCreateModal(false)}
+                accessibilityRole="button"
+                accessibilityLabel="Fechar"
+              >
                 <MaterialIcons name="close" size={24} color={palette.gray[500]} />
               </TouchableOpacity>
             </View>
@@ -310,12 +329,15 @@ export default function CommunityScreen() {
                     key={type.id}
                     style={[
                       styles.typeSelectorItem,
-                      newContribution.type === type.id && { 
+                      newContribution.type === type.id && {
                         backgroundColor: type.color + '20',
-                        borderColor: type.color 
+                        borderColor: type.color
                       },
                     ]}
                     onPress={() => setNewContribution({ ...newContribution, type: type.id })}
+                    accessibilityRole="tab"
+                    accessibilityState={{ selected: newContribution.type === type.id }}
+                    accessibilityLabel={`Tipo de contribuição: ${type.name}`}
                   >
                     <MaterialIcons 
                       name={type.icon as any} 
@@ -343,6 +365,9 @@ export default function CommunityScreen() {
                       newContribution.region === region.id && styles.regionChipActive,
                     ]}
                     onPress={() => setNewContribution({ ...newContribution, region: region.id })}
+                    accessibilityRole="tab"
+                    accessibilityState={{ selected: newContribution.region === region.id }}
+                    accessibilityLabel={`Região: ${region.name}`}
                   >
                     <Text style={[
                       styles.regionChipText,
@@ -391,10 +416,13 @@ export default function CommunityScreen() {
               )}
 
               {/* Submit Button */}
-              <TouchableOpacity 
+              <TouchableOpacity
                 style={styles.submitButton}
                 onPress={handleCreate}
                 disabled={createMutation.isPending}
+                accessibilityRole="button"
+                accessibilityState={{ disabled: createMutation.isPending }}
+                accessibilityLabel="Submeter contribuição"
               >
                 {createMutation.isPending ? (
                   <ActivityIndicator size="small" color="#2E5E4E" />

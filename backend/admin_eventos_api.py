@@ -14,14 +14,6 @@ from tenant_middleware import TenantContext, require_tenant_write, require_tenan
 router = APIRouter(prefix="/admin/eventos", tags=["Admin Eventos"])
 
 
-def set_eventos_db(database):
-    """No-op shim — the module now reads the DB via Depends(get_db).
-    Kept so server.py's wiring loop does not need to be touched while
-    we land the DI refactor module by module.
-    """
-    _ = database
-
-
 class EventoCreate(BaseModel):
     title: str
     description: Optional[str] = None

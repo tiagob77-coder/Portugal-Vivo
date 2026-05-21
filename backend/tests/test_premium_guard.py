@@ -104,9 +104,8 @@ class TestExtractedModulesImport:
     """Verify extracted API modules export expected symbols."""
 
     def test_admin_dashboard_api(self):
-        from admin_dashboard_api import router, set_admin_dashboard_db
+        from admin_dashboard_api import router
         assert router is not None
-        assert callable(set_admin_dashboard_db)
 
     def test_audio_guide_api(self):
         from audio_guide_api import router, set_audio_guide_db
@@ -114,9 +113,8 @@ class TestExtractedModulesImport:
         assert callable(set_audio_guide_db)
 
     def test_dashboard_inline_api(self):
-        from dashboard_inline_api import dashboard_inline_router, set_dashboard_inline_db, set_dashboard_redis_lb
+        from dashboard_inline_api import dashboard_inline_router, set_dashboard_redis_lb
         assert dashboard_inline_router is not None
-        assert callable(set_dashboard_inline_db)
         assert callable(set_dashboard_redis_lb)
 
     def test_discover_feed_api(self):
@@ -132,14 +130,12 @@ class TestExtractedModulesImport:
         assert len(THEMATIC_AXES) >= 5
 
     def test_gamification_progress_api(self):
-        from gamification_progress_api import gamification_progress_router, set_gamification_progress_db
+        from gamification_progress_api import gamification_progress_router
         assert gamification_progress_router is not None
-        assert callable(set_gamification_progress_db)
 
     def test_marine_surf_api(self):
-        from marine_surf_api import router, set_marine_surf_db
+        from marine_surf_api import router
         assert router is not None
-        assert callable(set_marine_surf_db)
 
     def test_preferences_api(self):
         from preferences_api import router, set_preferences_db

@@ -176,6 +176,13 @@ function ExperienciarTab() {
           hasEvents && !today && !isSelected && { backgroundColor: colors.accent + '22' },
         ]}
         disabled={!day.date}
+        accessibilityLabel={
+          dayNumber !== null
+            ? `Dia ${dayNumber}${hasEvents ? `, ${day.events.length} ${day.events.length === 1 ? 'evento' : 'eventos'}` : ''}`
+            : undefined
+        }
+        accessibilityRole="button"
+        accessibilityState={{ selected: isSelected }}
         onPress={() => {
           if (!day.date) return;
           setSelectedDay(dayNumber);
@@ -212,6 +219,8 @@ function ExperienciarTab() {
       onPress={() => router.push(`/evento/${event.id}` as any)}
       activeOpacity={0.8}
       data-testid={`event-card-${event.id}`}
+      accessibilityLabel={`Ver evento ${event.name}`}
+      accessibilityRole="button"
     >
       <SmartImage
         uri={(event as any).image_url}
@@ -246,6 +255,8 @@ function ExperienciarTab() {
       style={[styles.popularCard, { backgroundColor: colors.card, borderColor: colors.border }]}
       onPress={() => router.push(`/evento/${event.id}` as any)}
       activeOpacity={0.85}
+      accessibilityLabel={`Ver evento ${event.name}`}
+      accessibilityRole="button"
     >
       <SmartImage
         uri={(event as any).image_url}
@@ -284,6 +295,8 @@ function ExperienciarTab() {
       style={[styles.visitCard, { backgroundColor: colors.card, borderColor: colors.border }]}
       onPress={() => router.push(`/heritage/${visit.poi_id}`)}
       activeOpacity={0.8}
+      accessibilityLabel={`Ver ${visit.poi_name}`}
+      accessibilityRole="button"
     >
       <SmartImage
         uri={(visit as any).image_url}
@@ -340,6 +353,8 @@ function ExperienciarTab() {
             activeOpacity={0.9}
             onPress={() => router.push(`/evento/${suggestionOfDay.id}` as any)}
             style={[styles.suggestionCard, { borderColor: colors.border }]}
+            accessibilityLabel={`Sugestão do dia: ${suggestionOfDay.name}`}
+            accessibilityRole="button"
           >
             <SmartImage
               uri={(suggestionOfDay as any).image_url}
@@ -379,13 +394,23 @@ function ExperienciarTab() {
         <View style={[styles.calendarContainer, { backgroundColor: colors.card, borderColor: colors.border }]}>
           {/* Month Navigation */}
           <View style={styles.monthNav}>
-            <TouchableOpacity style={styles.monthButton} onPress={() => navigateMonth('prev')}>
+            <TouchableOpacity
+              style={styles.monthButton}
+              onPress={() => navigateMonth('prev')}
+              accessibilityLabel="Mês anterior"
+              accessibilityRole="button"
+            >
               <MaterialIcons name="chevron-left" size={28} color={colors.text} />
             </TouchableOpacity>
             <Text style={[styles.monthTitle, { color: colors.text }]}>
               {MONTHS_PT[selectedDate.getMonth()]} {selectedDate.getFullYear()}
             </Text>
-            <TouchableOpacity style={styles.monthButton} onPress={() => navigateMonth('next')}>
+            <TouchableOpacity
+              style={styles.monthButton}
+              onPress={() => navigateMonth('next')}
+              accessibilityLabel="Mês seguinte"
+              accessibilityRole="button"
+            >
               <MaterialIcons name="chevron-right" size={28} color={colors.text} />
             </TouchableOpacity>
           </View>
@@ -416,6 +441,8 @@ function ExperienciarTab() {
                   key={`sel-${event.id}`}
                   style={styles.selectedDayItem}
                   onPress={() => router.push(`/evento/${event.id}` as any)}
+                  accessibilityLabel={`Ver evento ${event.name}`}
+                  accessibilityRole="button"
                 >
                   <MaterialIcons
                     name={getCategoryIcon(event.category) as any}
@@ -519,6 +546,9 @@ function ExperienciarTab() {
                     style={[styles.expandButton, { borderColor: colors.border }]}
                     onPress={() => setVisitsExpanded((v) => !v)}
                     activeOpacity={0.7}
+                    accessibilityLabel={visitsExpanded ? 'Ver menos visitas' : 'Ver mais visitas'}
+                    accessibilityRole="button"
+                    accessibilityState={{ expanded: visitsExpanded }}
                   >
                     <MaterialIcons
                       name={visitsExpanded ? 'expand-less' : 'expand-more'}
@@ -544,13 +574,23 @@ function ExperienciarTab() {
 
         {/* Quick Actions */}
         <View style={styles.quickActions}>
-          <TouchableOpacity style={styles.actionButton} onPress={() => router.push('/(tabs)/planeador')}>
+          <TouchableOpacity
+            style={styles.actionButton}
+            onPress={() => router.push('/(tabs)/planeador')}
+            accessibilityLabel="Planear viagem"
+            accessibilityRole="button"
+          >
             <LinearGradient colors={['#C49A6C', '#B08556']} style={styles.actionGradient}>
               <MaterialIcons name="edit-calendar" size={22} color="#000" />
               <Text style={styles.actionText}>Planear Viagem</Text>
             </LinearGradient>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.actionButton} onPress={() => router.push('/nearby')}>
+          <TouchableOpacity
+            style={styles.actionButton}
+            onPress={() => router.push('/nearby')}
+            accessibilityLabel="Perto de mim"
+            accessibilityRole="button"
+          >
             <LinearGradient colors={['#22C55E', '#16A34A']} style={styles.actionGradient}>
               <MaterialIcons name="near-me" size={22} color="#FFF" />
               <Text style={[styles.actionText, { color: '#FFF' }]}>Perto de Mim</Text>

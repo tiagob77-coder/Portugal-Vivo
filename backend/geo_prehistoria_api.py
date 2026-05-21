@@ -17,15 +17,6 @@ from shared_utils import apply_municipality_filter
 geo_prehistoria_router = APIRouter(prefix="/geo-prehistoria", tags=["GeoPrehistoria"])
 
 
-def set_geo_prehistoria_db(database) -> None:
-    """No-op shim — the module now reads the DB via dependencies.get_db().
-
-    Kept so server.py's wiring loop does not break while the DI refactor
-    lands one module at a time.
-    """
-    _ = database
-
-
 def _db_or_none():
     """Return the current Motor database, or None if the app has not
     initialised it yet (e.g. early in test collection)."""

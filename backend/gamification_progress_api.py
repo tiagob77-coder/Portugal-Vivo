@@ -18,11 +18,6 @@ logger = logging.getLogger(__name__)
 gamification_progress_router = APIRouter(tags=["Gamification"])
 
 
-def set_gamification_progress_db(database):
-    """No-op shim — the module reads the DB via dependencies.get_db()."""
-    _ = database
-
-
 def _db():
     """Lazy resolver for the live Motor database — kept as a function so
     every existing ``_db.coll`` call site needs only to gain a pair of

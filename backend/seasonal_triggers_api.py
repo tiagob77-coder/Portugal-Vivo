@@ -63,11 +63,6 @@ def _db():
     return get_db()
 
 
-def set_seasonal_db(database) -> None:
-    """No-op shim — the module reads the DB via dependencies.get_db()."""
-    _ = database
-
-
 def set_seasonal_auth(require_auth, require_admin) -> None:
     global _require_auth, _require_admin
     _require_auth = require_auth

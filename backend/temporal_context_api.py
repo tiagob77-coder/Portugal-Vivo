@@ -27,11 +27,6 @@ from fastapi import APIRouter, Query
 temporal_router = APIRouter(prefix="/temporal", tags=["Temporal Context"])
 
 
-def set_temporal_db(database) -> None:
-    """No-op shim — the module reads the DB via dependencies.get_db()."""
-    _ = database
-
-
 def _db_or_none():
     try:
         from dependencies import get_db

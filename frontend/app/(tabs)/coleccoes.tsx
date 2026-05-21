@@ -72,7 +72,13 @@ export default function ColeccoesScreen() {
         <ScrollView showsVerticalScrollIndicator={false}>
           {/* Detail Header */}
           <LinearGradient colors={[selectedUniverse.color, selectedUniverse.color + 'CC']} style={styles.detailHeader}>
-            <TouchableOpacity onPress={() => setSelectedUniverse(null)} style={styles.backBtn} data-testid="back-from-universe">
+            <TouchableOpacity
+              onPress={() => setSelectedUniverse(null)}
+              style={styles.backBtn}
+              data-testid="back-from-universe"
+              accessibilityLabel="Voltar aos universos"
+              accessibilityRole="button"
+            >
               <MaterialIcons name="arrow-back" size={24} color="#FFF" />
             </TouchableOpacity>
             <View style={styles.detailHeaderContent}>
@@ -97,6 +103,9 @@ export default function ColeccoesScreen() {
             <TouchableOpacity
               style={[styles.regionChip, { backgroundColor: !selectedRegion ? colors.accent : colors.surfaceAlt }]}
               onPress={() => setSelectedRegion(null)}
+              accessibilityLabel="Filtrar por todas as regiões"
+              accessibilityRole="tab"
+              accessibilityState={{ selected: !selectedRegion }}
             >
               <Text style={[styles.regionChipText, { color: !selectedRegion ? '#FFF' : colors.textSecondary }]}>Todas</Text>
             </TouchableOpacity>
@@ -105,6 +114,9 @@ export default function ColeccoesScreen() {
                 key={r}
                 style={[styles.regionChip, { backgroundColor: selectedRegion === r ? colors.accent : colors.surfaceAlt }]}
                 onPress={() => setSelectedRegion(selectedRegion === r ? null : r)}
+                accessibilityLabel={`Filtrar por região ${r}`}
+                accessibilityRole="tab"
+                accessibilityState={{ selected: selectedRegion === r }}
               >
                 <Text style={[styles.regionChipText, { color: selectedRegion === r ? '#FFF' : colors.textSecondary }]}>{r}</Text>
               </TouchableOpacity>
@@ -123,6 +135,8 @@ export default function ColeccoesScreen() {
                   onPress={() => item.id && router.push(`/heritage/${item.id}`)}
                   activeOpacity={0.8}
                   data-testid={`item-${idx}`}
+                  accessibilityLabel={`Ver ${item.name}`}
+                  accessibilityRole="button"
                 >
                   <View style={styles.itemHeader}>
                     <View style={[styles.itemIcon, { backgroundColor: selectedUniverse.color + '18' }]}>
@@ -173,7 +187,12 @@ export default function ColeccoesScreen() {
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
         {/* Header */}
         <View style={styles.mainHeader}>
-          <TouchableOpacity onPress={() => router.back()} style={styles.mainBackBtn}>
+          <TouchableOpacity
+            onPress={() => router.back()}
+            style={styles.mainBackBtn}
+            accessibilityLabel="Voltar"
+            accessibilityRole="button"
+          >
             <MaterialIcons name="arrow-back" size={24} color="#FFF" />
           </TouchableOpacity>
           <Text style={styles.mainTitle}>Enciclopédia Viva</Text>
@@ -194,7 +213,11 @@ export default function ColeccoesScreen() {
             data-testid="encyclopedia-search"
           />
           {searchQuery.length > 0 && (
-            <TouchableOpacity onPress={() => { setSearchQuery(''); setSearchResults(null); }}>
+            <TouchableOpacity
+              onPress={() => { setSearchQuery(''); setSearchResults(null); }}
+              accessibilityLabel="Limpar pesquisa"
+              accessibilityRole="button"
+            >
               <MaterialIcons name="close" size={18} color="rgba(255,255,255,0.5)" />
             </TouchableOpacity>
           )}
@@ -242,6 +265,8 @@ export default function ColeccoesScreen() {
                   onPress={() => router.push(`/encyclopedia/universe/${universe.id}` as any)}
                   activeOpacity={0.85}
                   data-testid={`universe-${universe.id}`}
+                  accessibilityLabel={`Abrir universo ${universe.name}`}
+                  accessibilityRole="button"
                 >
                   <MaterialIcons name={universe.icon} size={32} color="rgba(255,255,255,0.9)" style={styles.cardIcon} />
                   <Text style={styles.cardTitle} numberOfLines={2}>{universe.name}</Text>

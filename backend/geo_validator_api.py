@@ -31,11 +31,6 @@ log = logging.getLogger(__name__)
 router = APIRouter(prefix="/geo-validator", tags=["Geo Validator"])
 
 
-def set_geo_validator_db(database) -> None:
-    """No-op shim — the module now reads the DB via Depends(get_db)."""
-    _ = database
-
-
 # ─── Optional admin dependency ────────────────────────────────────────────────
 
 try:
@@ -206,4 +201,4 @@ async def batch_validate(
     return summary
 
 
-__all__ = ["router", "set_geo_validator_db"]
+__all__ = ["router"]

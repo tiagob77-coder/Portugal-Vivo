@@ -23,11 +23,6 @@ ai_itinerary_router = APIRouter(prefix="/ai", tags=["AI Itinerary"])
 _require_auth = None
 
 
-def set_ai_itinerary_db(database):
-    """No-op shim — the module reads the DB via dependencies.get_db()."""
-    _ = database
-
-
 def _db_or_none():
     try:
         from dependencies import get_db

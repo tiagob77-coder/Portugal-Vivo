@@ -22,11 +22,6 @@ dashboard_inline_router = APIRouter()
 _redis_lb = None
 
 
-def set_dashboard_inline_db(database):
-    """No-op shim — the module reads the DB via dependencies.get_db()."""
-    _ = database
-
-
 def _db():
     """Lazy resolver — see ARCH-002. Keeps existing `_db.coll` call sites
     intact (they only gain parentheses)."""

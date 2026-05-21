@@ -241,7 +241,12 @@ function ProfileScreen() {
             <Text style={[styles.loginSubtitle, { color: colors.textSecondary }]}>
               Aceda a sua conta para guardar favoritos, contribuir com historias e personalizar a sua experiencia.
             </Text>
-            <TouchableOpacity style={[styles.loginButton, { backgroundColor: colors.accent }]} onPress={login}>
+            <TouchableOpacity
+              style={[styles.loginButton, { backgroundColor: colors.accent }]}
+              onPress={login}
+              accessibilityLabel="Entrar com Google"
+              accessibilityRole="button"
+            >
               <MaterialIcons name="login" size={20} color="#FFFFFF" />
               <Text style={styles.loginButtonText}>Entrar com Google</Text>
             </TouchableOpacity>
@@ -277,7 +282,14 @@ function ProfileScreen() {
 
           {/* Theme Toggle - Not Authenticated */}
           <View style={{ marginHorizontal: 20, marginTop: 16, backgroundColor: colors.surface, borderRadius: 18, borderWidth: 1, borderColor: colors.borderLight }}>
-            <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 14 }} onPress={toggleTheme} testID="theme-toggle">
+            <TouchableOpacity
+              style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 14 }}
+              onPress={toggleTheme}
+              testID="theme-toggle"
+              accessibilityLabel={isDark ? 'Mudar para modo claro' : 'Mudar para modo escuro'}
+              accessibilityRole="switch"
+              accessibilityState={{ checked: isDark }}
+            >
               <View style={[styles.actionIcon, { backgroundColor: colors.secondary + '15' }]}>
                 <MaterialIcons name={isDark ? 'light-mode' : 'dark-mode'} size={24} color={colors.secondary} />
               </View>
@@ -285,7 +297,12 @@ function ProfileScreen() {
               <MaterialIcons name="chevron-right" size={20} color={colors.textMuted} />
             </TouchableOpacity>
             <View style={{ height: 1, backgroundColor: colors.borderLight, marginHorizontal: 16 }} />
-            <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 14 }} onPress={() => router.push('/settings/language' as any)}>
+            <TouchableOpacity
+              style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 14 }}
+              onPress={() => router.push('/settings/language' as any)}
+              accessibilityLabel="Mudar idioma"
+              accessibilityRole="button"
+            >
               <View style={[styles.actionIcon, { backgroundColor: colors.info + '15' }]}>
                 <MaterialIcons name="language" size={24} color={colors.info} />
               </View>
@@ -311,7 +328,12 @@ function ProfileScreen() {
                 <Text style={[styles.userEmail, { color: colors.textMuted }]}>{user?.email}</Text>
               </View>
             </View>
-            <TouchableOpacity style={[styles.logoutButton, { backgroundColor: colors.error + '12' }]} onPress={handleLogout}>
+            <TouchableOpacity
+              style={[styles.logoutButton, { backgroundColor: colors.error + '12' }]}
+              onPress={handleLogout}
+              accessibilityLabel="Terminar sessão"
+              accessibilityRole="button"
+            >
               <MaterialIcons name="logout" size={20} color={colors.error} />
             </TouchableOpacity>
           </View>
@@ -370,7 +392,14 @@ function ProfileScreen() {
 
           {/* Theme Toggle - Authenticated */}
           <View style={[styles.quickActions, { backgroundColor: colors.surface, borderColor: colors.borderLight, marginTop: 16 }]}>
-            <TouchableOpacity style={styles.actionButton} onPress={toggleTheme} testID="theme-toggle">
+            <TouchableOpacity
+              style={styles.actionButton}
+              onPress={toggleTheme}
+              testID="theme-toggle"
+              accessibilityLabel={isDark ? 'Mudar para modo claro' : 'Mudar para modo escuro'}
+              accessibilityRole="switch"
+              accessibilityState={{ checked: isDark }}
+            >
               <View style={[styles.actionIcon, { backgroundColor: colors.secondary + '15' }]}>
                 <MaterialIcons name={isDark ? 'light-mode' : 'dark-mode'} size={24} color={colors.secondary} />
               </View>
@@ -380,6 +409,8 @@ function ProfileScreen() {
             <TouchableOpacity
               style={styles.actionButton}
               onPress={() => router.push('/settings/appearance' as any)}
+              accessibilityLabel="Aparência avançada"
+              accessibilityRole="button"
             >
               <View style={[styles.actionIcon, { backgroundColor: '#A855F7' + '15' }]}>
                 <MaterialIcons name="palette" size={24} color="#A855F7" />
@@ -390,6 +421,8 @@ function ProfileScreen() {
             <TouchableOpacity
               style={[styles.actionButton, { borderBottomWidth: 0 }]}
               onPress={() => router.push('/settings/language' as any)}
+              accessibilityLabel="Mudar idioma"
+              accessibilityRole="button"
             >
               <View style={[styles.actionIcon, { backgroundColor: colors.info + '15' }]}>
                 <MaterialIcons name="language" size={24} color={colors.info} />
@@ -467,6 +500,9 @@ function ProfileScreen() {
             style={[styles.notifToggle, { backgroundColor: colors.surface, borderColor: colors.borderLight }]}
             onPress={toggleNotifications}
             data-testid="notification-toggle"
+            accessibilityLabel="Notificações push"
+            accessibilityRole="switch"
+            accessibilityState={{ checked: notificationsEnabled }}
           >
             <MaterialIcons
               name={notificationsEnabled ? 'notifications-active' : 'notifications-off'}
@@ -612,6 +648,8 @@ function ProfileScreen() {
         <TouchableOpacity
           style={[styles.premiumActive, { backgroundColor: colors.surface, borderColor: '#C49A6C' }]}
           onPress={() => router.push('/premium')}
+          accessibilityLabel="Gerir subscrição premium"
+          accessibilityRole="button"
         >
           <LinearGradient
             colors={['rgba(196,154,108,0.15)', 'rgba(196,154,108,0.05)']}
@@ -633,6 +671,8 @@ function ProfileScreen() {
         <TouchableOpacity
           style={[styles.premiumCta, { backgroundColor: colors.surface, borderColor: colors.borderLight }]}
           onPress={() => router.push('/premium')}
+          accessibilityLabel="Subscrever premium"
+          accessibilityRole="button"
         >
           <MaterialIcons name="diamond" size={24} color="#C49A6C" />
           <View style={{ flex: 1 }}>
