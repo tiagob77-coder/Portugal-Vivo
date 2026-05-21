@@ -42,11 +42,6 @@ _require_auth = None
 _require_admin = None
 
 
-def set_content_health_db(database) -> None:
-    """No-op shim — the module reads the DB via dependencies.get_db()."""
-    _ = database
-
-
 def _db_or_none():
     try:
         from dependencies import get_db

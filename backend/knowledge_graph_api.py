@@ -27,11 +27,6 @@ from fastapi import APIRouter, Query, HTTPException
 graph_router = APIRouter(prefix="/graph", tags=["Knowledge Graph"])
 
 
-def set_graph_db(database) -> None:
-    """No-op shim — the module now reads the DB via dependencies.get_db()."""
-    _ = database
-
-
 def _db_or_none():
     """Lookup the live Motor database lazily so seed fallbacks still work
     in environments where init_database() has not been called yet."""

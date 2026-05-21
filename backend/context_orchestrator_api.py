@@ -4,8 +4,6 @@ context_orchestrator_api.py — Smart Context Orchestrator
 O "cérebro" do Portugal Vivo: recebe contexto do utilizador (localização, hora,
 perfil, histórico) e retorna acções inteligentes — módulos a activar, sugestões
 contextuais e dados pré-carregados de múltiplos módulos.
-
-Padrão: set_orchestrator_db(database) + _db global (como todos os módulos).
 """
 from fastapi import APIRouter, HTTPException, Depends, Query
 from pydantic import BaseModel, Field
@@ -29,11 +27,6 @@ from workflow_chains import (
 
 orchestrator_router = APIRouter(prefix="/orchestrator", tags=["Smart Orchestrator"])
 logger = logging.getLogger("orchestrator")
-
-
-def set_orchestrator_db(database) -> None:
-    """No-op shim — the module reads the DB via dependencies.get_db()."""
-    _ = database
 
 
 def _db_or_none():

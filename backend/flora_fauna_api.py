@@ -33,11 +33,6 @@ _llm_key = ""
 _require_auth = None
 
 
-def set_flora_fauna_db(database) -> None:
-    """No-op shim — the module reads the DB via dependencies.get_db()."""
-    _ = database
-
-
 def _db_or_none():
     try:
         from dependencies import get_db
@@ -465,7 +460,6 @@ SEED_HABITATS = [
 
 
 # ─── Helpers ───────────────────────────────────────────────────────────────────
-
 
 
 async def _col_or_seed(col: str, seed: list, query: Optional[dict] = None) -> list:

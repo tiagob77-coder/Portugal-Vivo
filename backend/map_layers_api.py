@@ -20,11 +20,6 @@ from shared_utils import apply_municipality_filter
 router = APIRouter(prefix="/map", tags=["Map Layers"])
 
 
-def set_map_layers_db(database):
-    """No-op shim — the module reads the DB via dependencies.get_db()."""
-    _ = database
-
-
 def _db_or_none():
     try:
         from dependencies import get_db

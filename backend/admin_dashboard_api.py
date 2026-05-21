@@ -27,11 +27,6 @@ def _db_or_none():
         return None
 
 
-def set_admin_dashboard_db(database):
-    """No-op shim — the module reads the DB via dependencies.get_db()."""
-    _ = database
-
-
 def set_admin_dashboard_admin(admin_fn):
     global _require_admin
     _require_admin = admin_fn

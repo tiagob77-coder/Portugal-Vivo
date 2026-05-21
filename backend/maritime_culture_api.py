@@ -26,11 +26,6 @@ _llm_key: str = ""
 _require_auth = None
 
 
-def set_maritime_culture_db(database) -> None:
-    """No-op shim — the module reads the DB via dependencies.get_db()."""
-    _ = database
-
-
 def _db_or_none():
     try:
         from dependencies import get_db
@@ -335,7 +330,6 @@ SEED_EVENTS: List[Dict[str, Any]] = [
 
 
 # ─── Helpers ─────────────────────────────────────────────────────────────────
-
 
 
 def _serialize(doc: Dict) -> Dict:

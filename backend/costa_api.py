@@ -11,12 +11,6 @@ import datetime
 costa_router = APIRouter(prefix="/costa", tags=["Costa"])
 
 
-def set_costa_db(database):
-    """No-op shim — this module is currently pure-function. The setter is
-    kept so the server.py wiring loop stays uniform across modules."""
-    _ = database
-
-
 # ─── Dados das 10 zonas costeiras (Minho → Algarve) ──────────────────────────
 
 COASTAL_ZONES = [

@@ -11,15 +11,6 @@ from auth_api import require_auth
 router = APIRouter()
 
 
-def set_marine_surf_db(database):
-    """No-op shim — the module now reads the DB via dependencies.get_db().
-
-    Kept so server.py's set_X_db wiring loop does not need to be touched
-    while the DI refactor lands module by module.
-    """
-    _ = database
-
-
 def _db():
     """Lookup the live Motor database lazily so test imports do not break
     if the dependency container has not been initialised yet."""
