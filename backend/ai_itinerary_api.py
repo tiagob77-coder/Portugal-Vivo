@@ -12,7 +12,7 @@ import logging
 import datetime
 import json
 
-from llm_utils import llm_chat
+from llm_client import call_chat_completion, is_configured
 from models.api_models import User
 from shared_utils import haversine_km as _haversine_km
 
@@ -109,8 +109,13 @@ DURATION_LABELS = {"1h": "1 hora", "3h": "3 horas", "1dia": "1 dia", "2dias": "2
 # ─── Helpers ──────────────────────────────────────────────────────────────────
 
 async def _call_llm(messages: list, max_tokens: int = 800) -> Optional[str]:
-    """Thin shim kept for backwards compat — delegates to llm_utils.llm_chat."""
-    return await llm_chat(messages, max_tokens=max_tokens)
+    """Delegate to the central provider-agnostic LLM helper (llm_client)."""
+    return await call_chat_completion(
+        messages=messages,
+        max_tokens=max_tokens,
+        temperature=0.7,
+        timeout=25.0,
+    )
 
 
 def _build_fallback_itinerary(pois: list, theme: str, duration: str) -> dict:
@@ -477,7 +482,7 @@ async def get_recommendations(
         r.pop("_score", None)
 
     # Generate AI micro-descriptions if LLM available
-    if top and _get_llm_key():
+    if top and is_configured():
         names = ", ".join(r["name"] for r in top[:5])
         try:
             tip = await _call_llm([
