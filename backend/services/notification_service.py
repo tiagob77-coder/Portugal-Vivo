@@ -77,17 +77,14 @@ class SurfAlertChecker:
 
         logger.info(f"Found {len(alert_worthy_spots)} spots with good/excellent conditions")
 
-        # Get users with surf alerts enabled
-        alert_prefs = await self.db.surf_alerts.find(
-            {"enabled": True}
-        ).to_list(1000)
+        # Get users with surf alerts enabled (full cursor — no silent cap)
+        alert_prefs = [
+            pref async for pref in self.db.surf_alerts.find({"enabled": True})
+        ]
 
-        # Get users with favorite spots
-        favorite_spots = await self.db.favorite_spots.find({}).to_list(1000)
-
-        # Group favorites by user
+        # Group favorite spots by user (full cursor — no silent cap)
         user_favorites: Dict[str, List[Dict]] = {}
-        for fav in favorite_spots:
+        async for fav in self.db.favorite_spots.find({}):
             user_id = fav["user_id"]
             if user_id not in user_favorites:
                 user_favorites[user_id] = []

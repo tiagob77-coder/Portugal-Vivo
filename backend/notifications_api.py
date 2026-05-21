@@ -157,9 +157,9 @@ async def trigger_poi_do_dia_notification(admin: User = Depends(_admin_dep)):
     if not poi:
         return {"sent": 0}
 
-    tokens = await _db_holder.db.push_tokens.find({"active": True}, {"_id": 0, "token": 1}).to_list(1000)
     sent = 0
-    for t in tokens:
+    cursor = _db_holder.db.push_tokens.find({"active": True}, {"_id": 0, "token": 1})
+    async for t in cursor:
         try:
             await send_push_notification(
                 t["token"],
@@ -188,23 +188,24 @@ async def trigger_safety_alert(
     admin: User = Depends(_admin_dep),
 ):
     """Send safety alert to users in a specific region (admin only)."""
-    prefs = await _db_holder.db.user_preferences.find(
-        {"favorite_regions": region}, {"_id": 0, "user_id": 1}
-    ).to_list(500)
-    user_ids = [p["user_id"] for p in prefs]
+    user_ids = [
+        p["user_id"]
+        async for p in _db_holder.db.user_preferences.find(
+            {"favorite_regions": region}, {"_id": 0, "user_id": 1}
+        )
+    ]
 
     if not user_ids:
         return {"sent": 0}
-
-    tokens = await _db_holder.db.push_tokens.find(
-        {"user_id": {"$in": user_ids}, "active": True}, {"_id": 0, "token": 1}
-    ).to_list(1000)
 
     title = "Alerta de Seguranca" if alert_type == "fire" else "Alerta Meteorologico"
     body = message or f"Alerta ativo na regiao {region}. Consulte as recomendacoes de seguranca."
 
     sent = 0
-    for t in tokens:
+    cursor = _db_holder.db.push_tokens.find(
+        {"user_id": {"$in": user_ids}, "active": True}, {"_id": 0, "token": 1}
+    )
+    async for t in cursor:
         try:
             await send_push_notification(t["token"], title, body, {"type": "safety_alert", "region": region})
             sent += 1
