@@ -24,6 +24,8 @@ from collections import defaultdict
 from fastapi import Request, Response
 from starlette.middleware.base import BaseHTTPMiddleware
 
+from shared_utils import client_ip
+
 logger = logging.getLogger(__name__)
 
 
@@ -115,6 +117,13 @@ USER_RATE_WINDOW = 60
 # before OpenAI charges accumulate.
 LLM_USER_RATE_LIMIT = int(os.environ.get("LLM_USER_RATE_LIMIT", "30"))
 LLM_USER_RATE_WINDOW = int(os.environ.get("LLM_USER_RATE_WINDOW", "60"))
+
+# LLM-DOS: per-IP ceiling on LLM endpoints. The per-user bucket above keys on
+# the session token, which this middleware cannot validate — a caller can send
+# an arbitrary `session_token` cookie and mint a fresh per-user bucket on every
+# request. This per-IP cap (keyed on the trusted client IP) bounds the LLM
+# spend from a single source regardless of how many tokens it fabricates.
+LLM_IP_RATE_LIMIT = int(os.environ.get("LLM_IP_RATE_LIMIT", "60"))
 
 # Path prefixes that route to LLM-backed endpoints. Anything matching one
 # of these prefixes counts against the LLM_USER bucket *in addition* to its
@@ -292,9 +301,7 @@ def _client_key(request: Request) -> str:
     if token:
         # Use first 16 chars of token as key (sufficient for uniqueness)
         return f"user:{token[:16]}"
-    forwarded = request.headers.get("x-forwarded-for")
-    ip = forwarded.split(",")[0].strip() if forwarded else (request.client.host if request.client else "unknown")
-    return f"ip:{ip}"
+    return f"ip:{client_ip(request)}"
 
 
 class RateLimitMiddleware(BaseHTTPMiddleware):
@@ -324,21 +331,25 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
                     )
                 break
 
-        # 2. LLM-001: aggregate per-user budget for expensive LLM endpoints.
-        # Runs *before* the global cap so a 429 here is attributed to "llm",
-        # not "global", in metrics and in the response body. Identical
-        # short-circuit semantics: counted once on this request, never on
-        # the call_next path.
+        # 2. LLM-001 / LLM-DOS: aggregate budget for expensive LLM endpoints.
+        # Two buckets, both must pass: a per-client bucket (token-or-IP, fair
+        # per user) and a per-IP ceiling. The per-client bucket alone is not
+        # enough — a fabricated `session_token` cookie mints a fresh per-client
+        # bucket, so the per-IP cap is what actually bounds the OpenAI spend
+        # from one source. Runs *before* the global cap so a 429 here is
+        # attributed to "llm", not "global", in metrics and the response body.
         if _is_llm_path(path):
-            key = f"llm:{client}"
-            allowed, _ = await _is_allowed(
-                key, LLM_USER_RATE_LIMIT, LLM_USER_RATE_WINDOW
+            user_ok, _ = await _is_allowed(
+                f"llm:{client}", LLM_USER_RATE_LIMIT, LLM_USER_RATE_WINDOW
             )
-            if not allowed:
-                logger.warning("LLM user rate limit hit: %s on %s", client, path)
+            ip_ok, _ = await _is_allowed(
+                f"llm:ip:{client_ip(request)}", LLM_IP_RATE_LIMIT, LLM_USER_RATE_WINDOW
+            )
+            if not user_ok or not ip_ok:
+                logger.warning("LLM rate limit hit: %s on %s", client, path)
                 _inc_trigger(path, "llm")
                 return Response(
-                    content='{"detail":"LLM rate limit exceeded for this user"}',
+                    content='{"detail":"LLM rate limit exceeded"}',
                     status_code=429,
                     media_type="application/json",
                     headers={
