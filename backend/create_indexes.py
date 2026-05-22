@@ -100,6 +100,13 @@ async def create_all_indexes(db):
     await db.user_sessions.create_index("expires_at", expireAfterSeconds=0, name="idx_sessions_ttl")
     logger.info("  user_sessions: 3 indexes created (with TTL)")
 
+    # stripe_webhook_events - idempotency ledger, self-expiring (Stripe stops
+    # retrying an event well within a few days; 7 days is a safe margin)
+    await db.stripe_webhook_events.create_index(
+        "received_at", expireAfterSeconds=7 * 24 * 3600, name="idx_stripe_events_ttl"
+    )
+    logger.info("  stripe_webhook_events: 1 index created (with TTL)")
+
     # user_progress
     await db.user_progress.create_index("user_id", unique=True, name="idx_progress_userid")
     await db.user_progress.create_index("total_points", name="idx_progress_points")

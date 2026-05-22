@@ -54,6 +54,21 @@ class Trail(BaseModel):
     nearby_pois: List[str] = []
 
 
+def _first_present(*elements):
+    """Return the first element that is not None.
+
+    A plain ``a or b`` cannot be used here: an ElementTree element with no
+    sub-elements is falsy, so ``find(...) or find(...)`` skips a real
+    <name>/<desc>/<ele> node (it has text but no children) and falls
+    through. That silently dropped all elevation, name and description data
+    from standard namespaced GPX 1.1 files (TRAIL-001).
+    """
+    for el in elements:
+        if el is not None:
+            return el
+    return None
+
+
 def parse_gpx(gpx_content: str) -> dict:
     """Parse GPX XML content and extract trail data."""
     ns = {
@@ -76,11 +91,11 @@ def parse_gpx(gpx_content: str) -> dict:
 
     if tracks:
         track = tracks[0]
-        name_el = track.find('gpx:name', ns) or track.find('gpx10:name', ns) or track.find('name')
+        name_el = _first_present(track.find('gpx:name', ns), track.find('gpx10:name', ns), track.find('name'))
         if name_el is not None and name_el.text:
             name = name_el.text
 
-        desc_el = track.find('gpx:desc', ns) or track.find('gpx10:desc', ns) or track.find('desc')
+        desc_el = _first_present(track.find('gpx:desc', ns), track.find('gpx10:desc', ns), track.find('desc'))
         if desc_el is not None and desc_el.text:
             description = desc_el.text
 
@@ -89,7 +104,7 @@ def parse_gpx(gpx_content: str) -> dict:
                 lat = float(pt.get('lat', 0))
                 lng = float(pt.get('lon', 0))
                 ele = None
-                ele_el = pt.find('gpx:ele', ns) or pt.find('gpx10:ele', ns) or pt.find('ele')
+                ele_el = _first_present(pt.find('gpx:ele', ns), pt.find('gpx10:ele', ns), pt.find('ele'))
                 if ele_el is not None and ele_el.text:
                     ele = float(ele_el.text)
                 points.append({"lat": lat, "lng": lng, "ele": ele})

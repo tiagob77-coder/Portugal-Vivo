@@ -14,6 +14,7 @@ Stripe Integration:
 - Webhook handler for payment events (checkout.session.completed,
   customer.subscription.updated/deleted, invoice.payment_failed)
 """
+import asyncio
 import os
 import logging
 from datetime import datetime, timezone, timedelta
@@ -23,6 +24,7 @@ from pydantic import BaseModel
 from typing import Optional
 from shared_utils import DatabaseHolder
 from models.api_models import User
+from pymongo.errors import DuplicateKeyError
 
 logger = logging.getLogger(__name__)
 
@@ -167,7 +169,8 @@ async def _get_or_create_stripe_customer(user_id: str, email: str) -> str:
     if user and user.get("stripe_customer_id"):
         return user["stripe_customer_id"]
 
-    customer = stripe.Customer.create(
+    customer = await asyncio.to_thread(
+        stripe.Customer.create,
         email=email,
         metadata={"user_id": user_id},
     )
@@ -338,7 +341,8 @@ async def create_checkout_session(
     # For subscriptions, we use card + PayPal + SEPA as recurring methods
     payment_method_types = ["card", "paypal"]
 
-    session = stripe.checkout.Session.create(
+    session = await asyncio.to_thread(
+        stripe.checkout.Session.create,
         customer=customer_id,
         payment_method_types=payment_method_types,
         mode="subscription",
@@ -381,7 +385,8 @@ async def create_customer_portal(current_user: User = Depends(require_auth)):
     if not sub or not sub.get("stripe_customer_id"):
         raise HTTPException(status_code=404, detail="Nenhuma subscrição encontrada")
 
-    session = stripe.billing_portal.Session.create(
+    session = await asyncio.to_thread(
+        stripe.billing_portal.Session.create,
         customer=sub["stripe_customer_id"],
         return_url=f"{FRONTEND_URL}/premium",
     )
@@ -412,7 +417,8 @@ async def create_checkout_mbway(
 
     customer_id = await _get_or_create_stripe_customer(current_user.user_id, current_user.email)
 
-    session = stripe.checkout.Session.create(
+    session = await asyncio.to_thread(
+        stripe.checkout.Session.create,
         customer=customer_id,
         payment_method_types=["mb_way"],
         mode="payment",
@@ -463,7 +469,8 @@ async def create_checkout_multibanco(
 
     customer_id = await _get_or_create_stripe_customer(current_user.user_id, current_user.email)
 
-    session = stripe.checkout.Session.create(
+    session = await asyncio.to_thread(
+        stripe.checkout.Session.create,
         customer=customer_id,
         payment_method_types=["multibanco"],
         mode="payment",
@@ -499,36 +506,12 @@ async def create_checkout_multibanco(
 # STRIPE WEBHOOK
 # =============================================================================
 
-@premium_router.post("/webhook")
-async def stripe_webhook(request: Request):
-    """Handle Stripe webhook events for subscription lifecycle."""
-    if not STRIPE_ENABLED:
-        raise HTTPException(status_code=503, detail="Stripe not configured")
+async def _process_webhook_event(event_type: str, data: dict) -> None:
+    """Apply the side effects for one Stripe event.
 
-    # Refuse to process webhooks without signature verification — a forged
-    # payload could otherwise activate paid tiers free of charge.
-    if not STRIPE_WEBHOOK_SECRET:
-        logger.error("Refusing Stripe webhook: STRIPE_WEBHOOK_SECRET not configured")
-        raise HTTPException(
-            status_code=503,
-            detail="Webhook signature verification not configured",
-        )
-
-    payload = await request.body()
-    sig_header = request.headers.get("stripe-signature", "")
-
-    try:
-        event = stripe.Webhook.construct_event(payload, sig_header, STRIPE_WEBHOOK_SECRET)
-    except ValueError:
-        raise HTTPException(status_code=400, detail="Invalid payload")
-    except stripe.error.SignatureVerificationError:
-        raise HTTPException(status_code=400, detail="Invalid signature")
-
-    event_type = event["type"]
-    data = event["data"]["object"]
-
-    logger.info(f"Stripe webhook: {event_type}")
-
+    Called only after the event id has been claimed, so it runs exactly once
+    per event. Raising propagates to the caller, which releases the claim.
+    """
     if event_type in ("checkout.session.completed", "checkout.session.async_payment_succeeded"):
         user_id = data.get("metadata", {}).get("user_id")
         tier = data.get("metadata", {}).get("tier", "premium")
@@ -570,6 +553,59 @@ async def stripe_webhook(request: Request):
     elif event_type == "invoice.payment_failed":
         customer_id = data.get("customer")
         logger.warning(f"Payment failed for customer: {customer_id}")
+
+
+@premium_router.post("/webhook")
+async def stripe_webhook(request: Request):
+    """Handle Stripe webhook events for subscription lifecycle."""
+    if not STRIPE_ENABLED:
+        raise HTTPException(status_code=503, detail="Stripe not configured")
+
+    # Refuse to process webhooks without signature verification — a forged
+    # payload could otherwise activate paid tiers free of charge.
+    if not STRIPE_WEBHOOK_SECRET:
+        logger.error("Refusing Stripe webhook: STRIPE_WEBHOOK_SECRET not configured")
+        raise HTTPException(
+            status_code=503,
+            detail="Webhook signature verification not configured",
+        )
+
+    payload = await request.body()
+    sig_header = request.headers.get("stripe-signature", "")
+
+    try:
+        event = stripe.Webhook.construct_event(payload, sig_header, STRIPE_WEBHOOK_SECRET)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid payload")
+    except stripe.error.SignatureVerificationError:
+        raise HTTPException(status_code=400, detail="Invalid signature")
+
+    event_type = event["type"]
+    data = event["data"]["object"]
+    event_id = event["id"]
+
+    logger.info(f"Stripe webhook: {event_type}")
+
+    # Idempotency: atomically claim the event id before any side effect. The
+    # unique _id makes this insert the single synchronisation point — a
+    # duplicate or concurrent delivery loses the race here and is skipped, so
+    # _activate_subscription never runs twice for the same event.
+    db = _db_holder.db
+    try:
+        await db.stripe_webhook_events.insert_one(
+            {"_id": event_id, "type": event_type, "received_at": datetime.now(timezone.utc)}
+        )
+    except DuplicateKeyError:
+        logger.info("Stripe webhook %s already processed — skipping", event_id)
+        return {"received": True, "duplicate": True}
+
+    try:
+        await _process_webhook_event(event_type, data)
+    except Exception:
+        # Processing failed after the claim — release it so Stripe's retry
+        # reprocesses the event instead of it being silently dropped.
+        await db.stripe_webhook_events.delete_one({"_id": event_id})
+        raise
 
     return {"received": True}
 

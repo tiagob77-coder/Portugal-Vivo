@@ -2,6 +2,7 @@
 Cloudinary Image Upload API for Portugal Vivo
 Handles signed uploads, image management, and CDN delivery
 """
+import asyncio
 import time
 import os
 import cloudinary
@@ -12,6 +13,10 @@ from typing import Optional
 from auth_api import require_auth
 from shared_utils import DatabaseHolder
 from datetime import datetime, timezone
+
+# Reuse the hardened upload validators so this path enforces exactly the same
+# magic-byte and streaming-size checks as /api/uploads (SEC-010 / UPL-002).
+from upload_api import _validate_image_bytes, _read_with_limit
 
 cloudinary_router = APIRouter(prefix="/cloudinary", tags=["Cloudinary"])
 
@@ -27,7 +32,7 @@ cloudinary.config(
 )
 
 ALLOWED_FOLDERS = ("users/", "pois/", "reviews/", "uploads/")
-MAX_FILE_SIZE = 10 * 1024 * 1024  # 10MB
+MAX_FILE_SIZE = 5 * 1024 * 1024  # 5MB — matches /api/uploads
 
 
 def cloudinary_url(public_id: str, **transforms) -> str:
@@ -72,14 +77,19 @@ def cloudinary_fetch_url(source_url: str, context: str = "square") -> str:
 @cloudinary_router.get("/signature")
 async def generate_signature(
     folder: str = Query("uploads", description="Upload folder path"),
-    resource_type: str = Query("image", description="Resource type"),
     user: dict = Depends(require_auth),
 ):
-    """Generate a signed upload signature for direct frontend-to-Cloudinary uploads"""
+    """Generate a signed upload signature for direct frontend-to-Cloudinary uploads.
+
+    resource_type is fixed to "image": a client-chosen value could request
+    "raw", which bypasses Cloudinary's image processing and would let any
+    non-image file be signed into our Cloudinary account.
+    """
     if not any(folder.startswith(f) for f in ALLOWED_FOLDERS):
         raise HTTPException(status_code=400, detail="Pasta de upload invalida")
 
     timestamp = int(time.time())
+    resource_type = "image"
     params = {
         "timestamp": timestamp,
         "folder": folder,
@@ -110,18 +120,23 @@ async def upload_image(
     user: dict = Depends(require_auth),
 ):
     """Upload an image via backend (signed, validated)"""
-    if not file.content_type or not file.content_type.startswith("image/"):
-        raise HTTPException(status_code=400, detail="Apenas imagens sao permitidas")
-
-    contents = await file.read()
-    if len(contents) > MAX_FILE_SIZE:
-        raise HTTPException(status_code=400, detail="Imagem demasiado grande (max 10MB)")
-
     if not any(folder.startswith(f) for f in ALLOWED_FOLDERS):
         raise HTTPException(status_code=400, detail="Pasta de upload invalida")
 
+    # Cheap fast-fail on the (spoofable) header, then the authoritative
+    # checks: a streaming read with a hard size cap, and Pillow magic-byte
+    # validation. The client content-type is never trusted on its own.
+    if file.content_type and not file.content_type.startswith("image/"):
+        raise HTTPException(status_code=400, detail="Apenas imagens sao permitidas")
+
+    contents = await _read_with_limit(file, MAX_FILE_SIZE)
+    if len(contents) == 0:
+        raise HTTPException(status_code=400, detail="Ficheiro vazio")
+    _validate_image_bytes(contents)
+
     try:
-        result = cloudinary.uploader.upload(
+        result = await asyncio.to_thread(
+            cloudinary.uploader.upload,
             contents,
             folder=folder,
             resource_type="image",
@@ -194,7 +209,7 @@ async def delete_image(
         raise HTTPException(status_code=404, detail="Imagem nao encontrada ou sem permissao")
 
     try:
-        cloudinary.uploader.destroy(public_id, invalidate=True)
+        await asyncio.to_thread(cloudinary.uploader.destroy, public_id, invalidate=True)
     except Exception:
         pass
 

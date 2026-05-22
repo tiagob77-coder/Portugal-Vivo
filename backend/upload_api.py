@@ -3,6 +3,7 @@ Upload API — User image uploads via Cloudinary.
 Supports POI photo contributions, review images, and community content.
 Falls back to local MongoDB storage (base64) if Cloudinary is not configured.
 """
+import asyncio
 import os
 import io
 import uuid
@@ -71,6 +72,7 @@ else:
 # Limits
 MAX_FILE_SIZE = 5 * 1024 * 1024  # 5 MB
 ALLOWED_TYPES = {"image/jpeg", "image/png", "image/webp"}
+ALLOWED_CONTEXTS = {"poi", "review", "contribution", "general"}
 _CHUNK_SIZE = 64 * 1024  # 64 KB
 
 # Pillow's identifier per supported MIME type. Anything else returned by
@@ -160,7 +162,8 @@ async def _read_with_limit(file: UploadFile, limit: int) -> bytes:
 async def _upload_to_cloudinary(file_bytes: bytes, folder: str, public_id: str) -> str:
     """Upload to Cloudinary and return the secure URL."""
     import cloudinary.uploader
-    result = cloudinary.uploader.upload(
+    result = await asyncio.to_thread(
+        cloudinary.uploader.upload,
         io.BytesIO(file_bytes),
         folder=f"portugal-vivo/{folder}",
         public_id=public_id,
@@ -201,6 +204,15 @@ async def upload_image(
     - **context**: what the image is for (poi, review, contribution, general)
     - **item_id**: optional heritage item or contribution ID
     """
+    # ``context`` is interpolated into the storage public_id and the
+    # Cloudinary folder path, so it must be one of the known values rather
+    # than arbitrary client input.
+    if context not in ALLOWED_CONTEXTS:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Contexto inválido. Use: {', '.join(sorted(ALLOWED_CONTEXTS))}",
+        )
+
     # The content-type header is a courtesy from the client — it is NOT
     # an authority on the file's actual type. We still gate on it cheaply
     # to short-circuit obvious junk (e.g. application/octet-stream) before
