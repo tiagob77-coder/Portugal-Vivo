@@ -10,7 +10,7 @@ import logging
 import certifi
 from pathlib import Path
 from pydantic import BaseModel, Field
-from typing import List, Optional, Dict
+from typing import List, Optional
 import uuid
 from datetime import datetime, timezone, timedelta
 ROOT_DIR = Path(__file__).parent
@@ -249,9 +249,10 @@ async def auth_rate_limit_middleware(request: Request, call_next):
         )
     return await call_next(request)
 
-# Global API rate limiter — sliding window, in-memory per IP
-# Limits: 300 req/min for general API, excludes /api/health
-_global_rate_store: Dict[str, list] = {}
+# Global API rate limiter — distributed sliding window via _rate_limit_is_allowed
+# (Redis ZSET, in-memory fallback). 300 req/min per client IP; /api/health is
+# excluded. Distributed so the cap holds across uvicorn workers (SEC-016) — the
+# previous in-memory dict gave each worker its own 300/min bucket.
 GLOBAL_RATE_LIMIT = 300   # requests
 GLOBAL_RATE_WINDOW = 60   # seconds
 
@@ -261,11 +262,10 @@ async def global_api_rate_limit_middleware(request: Request, call_next):
     if not path.startswith("/api/") or path == "/api/health":
         return await call_next(request)
 
-    ip = client_ip(request)
-    now = _time.monotonic()
-    timestamps = _global_rate_store.get(ip, [])
-    timestamps = [t for t in timestamps if now - t < GLOBAL_RATE_WINDOW]
-    if len(timestamps) >= GLOBAL_RATE_LIMIT:
+    allowed, _remaining = await _rate_limit_is_allowed(
+        f"global-ip:{client_ip(request)}", GLOBAL_RATE_LIMIT, GLOBAL_RATE_WINDOW
+    )
+    if not allowed:
         return Response(
             status_code=429,
             content='{"detail":"Taxa de pedidos excedida. Tente novamente em 1 minuto."}',
@@ -274,8 +274,6 @@ async def global_api_rate_limit_middleware(request: Request, call_next):
                 "Retry-After": str(GLOBAL_RATE_WINDOW),
             },
         )
-    timestamps.append(now)
-    _global_rate_store[ip] = timestamps
     return await call_next(request)
 
 @app.middleware("http")
