@@ -28,7 +28,7 @@ def _get_poi_coords(poi: Dict) -> Optional[tuple]:
     if isinstance(loc, dict):
         lat = loc.get("lat")
         lng = loc.get("lng")
-        if lat and lng:
+        if lat is not None and lng is not None:
             return (float(lat), float(lng))
     return None
 
