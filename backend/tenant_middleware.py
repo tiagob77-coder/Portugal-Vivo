@@ -202,6 +202,15 @@ async def update_tenant_user(
 
     update: dict = {}
     if body.tenant_role is not None:
+        # Mirror the invite guard: only an admin_global may hand out the
+        # admin_global role. Without this a `municipio` tenant could PATCH any
+        # user in their municipality — including themselves — up to
+        # admin_global and gain cross-tenant access to every municipality.
+        if body.tenant_role == TenantRole.ADMIN_GLOBAL and not tenant.is_admin_global:
+            raise HTTPException(
+                status_code=403,
+                detail="Só o admin global pode atribuir o role admin_global",
+            )
         update["tenant_role"] = body.tenant_role.value
     if body.municipality_id is not None:
         if not tenant.is_admin_global:

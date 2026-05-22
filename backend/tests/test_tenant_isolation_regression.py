@@ -27,7 +27,9 @@ from conftest import requires_db
 from tenant_middleware import (
     TenantContext,
     TenantRole,
+    TenantUserUpdate,
     require_poi_access,
+    update_tenant_user,
 )
 
 
@@ -221,3 +223,81 @@ async def test_admin_write_rejects_unauthenticated(client, spec):
     assert response.status_code >= 400, (
         f"{method} {path} accepted unauthenticated write — {response.status_code}"
     )
+
+
+# ---------------------------------------------------------------------------
+# SEC-021 — privilege-escalation guard on update_tenant_user
+# ---------------------------------------------------------------------------
+
+class _FakeUsers:
+    """Minimal stand-in for the `users` collection used by update_tenant_user."""
+
+    def __init__(self, target_municipality: str | None):
+        self._target_municipality = target_municipality
+        self.update_called = False
+
+    async def find_one(self, query, projection=None):
+        return {"user_id": query.get("user_id"), "municipality_id": self._target_municipality}
+
+    async def update_one(self, query, update):
+        self.update_called = True
+
+        class _Res:
+            matched_count = 1
+
+        return _Res()
+
+
+class _FakeDB:
+    def __init__(self, target_municipality: str | None = "lisboa"):
+        self.users = _FakeUsers(target_municipality)
+
+
+class TestUpdateTenantUserEscalation:
+    """SEC-021: a non-admin-global tenant must never be able to grant the
+    admin_global role via PATCH /admin/tenants/users/{id} — doing so would
+    hand the caller cross-tenant access to every municipality."""
+
+    @pytest.mark.anyio
+    async def test_municipio_cannot_grant_admin_global(self, monkeypatch):
+        from fastapi import HTTPException
+        import tenant_middleware as _tm
+
+        fake = _FakeDB(target_municipality="lisboa")
+        monkeypatch.setattr(_tm, "_db", fake)
+
+        municipio = _ctx(TenantRole.MUNICIPIO, "lisboa")
+        body = TenantUserUpdate(tenant_role=TenantRole.ADMIN_GLOBAL)
+
+        with pytest.raises(HTTPException) as exc:
+            await update_tenant_user("u-victim", body, municipio)
+        assert exc.value.status_code == 403
+        assert fake.users.update_called is False
+
+    @pytest.mark.anyio
+    async def test_admin_global_may_grant_admin_global(self, monkeypatch):
+        import tenant_middleware as _tm
+
+        fake = _FakeDB()
+        monkeypatch.setattr(_tm, "_db", fake)
+
+        admin = _ctx(TenantRole.ADMIN_GLOBAL, None)
+        body = TenantUserUpdate(tenant_role=TenantRole.ADMIN_GLOBAL)
+
+        result = await update_tenant_user("u-target", body, admin)
+        assert result["success"] is True
+        assert fake.users.update_called is True
+
+    @pytest.mark.anyio
+    async def test_municipio_may_grant_non_admin_role(self, monkeypatch):
+        import tenant_middleware as _tm
+
+        fake = _FakeDB(target_municipality="lisboa")
+        monkeypatch.setattr(_tm, "_db", fake)
+
+        municipio = _ctx(TenantRole.MUNICIPIO, "lisboa")
+        body = TenantUserUpdate(tenant_role=TenantRole.EDITOR)
+
+        result = await update_tenant_user("u-target", body, municipio)
+        assert result["success"] is True
+        assert fake.users.update_called is True
