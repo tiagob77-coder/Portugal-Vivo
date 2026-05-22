@@ -7,9 +7,6 @@ v2: dual output
   descricao_curta ≤ 300 chars — standard description for detail pages
 """
 from typing import Optional
-import logging
-import os
-import httpx
 from iq_engine_base import (
     IQModule,
     ModuleType,
@@ -17,8 +14,8 @@ from iq_engine_base import (
     ProcessingStatus,
     POIProcessingData
 )
+from llm_client import call_chat_completion, is_configured
 
-logger = logging.getLogger(__name__)
 
 class DescriptionGenerationModule(IQModule):
     """
@@ -37,9 +34,9 @@ class DescriptionGenerationModule(IQModule):
     """
 
     def __init__(self, llm_api_key: Optional[str] = None):
+        # llm_api_key kept for backwards compatibility; the LLM provider is
+        # now resolved centrally by llm_client.
         super().__init__(ModuleType.DESCRIPTION_GENERATION)
-        self.llm_api_key = llm_api_key or os.environ.get('EMERGENT_LLM_KEY')
-        self.emergent_api_url = "https://llm.lil.re.emergentmethods.ai/v1/chat/completions"
 
     async def _process_impl(self, data: POIProcessingData) -> ProcessingResult:
         """Generate or improve POI description"""
@@ -72,7 +69,7 @@ class DescriptionGenerationModule(IQModule):
             )
 
         # Try LLM generation
-        if self.llm_api_key:
+        if is_configured():
             generated_desc = await self._generate_with_llm(data)
             if generated_desc:
                 method_used = "llm_generation"
@@ -193,21 +190,17 @@ class DescriptionGenerationModule(IQModule):
         return False, None
 
     async def _generate_with_llm(self, data: POIProcessingData) -> Optional[str]:
-        """Generate description using LLM"""
-        try:
-            # Prepare context
-            context = f"""
+        """Generate a description via the central LLM helper (llm_client)."""
+        context = f"""
 Nome: {data.name}
 Categoria: {data.category or 'desconhecida'}
 Região: {data.region or 'Portugal'}
 Tags: {', '.join(data.tags) if data.tags else 'nenhuma'}
 """
+        if data.description:
+            context += f"\nDescrição existente: {data.description[:200]}"
 
-            if data.description:
-                context += f"\nDescrição existente: {data.description[:200]}"
-
-            # Prepare prompt
-            prompt = f"""Cria uma descrição evocativa e convidativa para este ponto de interesse em Portugal.
+        prompt = f"""Cria uma descrição evocativa e convidativa para este ponto de interesse em Portugal.
 
 {context}
 
@@ -220,39 +213,20 @@ Requisitos:
 
 Descrição:"""
 
-            # Call LLM API
-            async with httpx.AsyncClient(timeout=30.0) as client:
-                response = await client.post(
-                    self.emergent_api_url,
-                    headers={
-                        "Authorization": f"Bearer {self.llm_api_key}",
-                        "Content-Type": "application/json"
-                    },
-                    json={
-                        "model": "gpt-4o-mini",
-                        "messages": [
-                            {"role": "system", "content": "És um escritor especializado em turismo e património cultural português."},
-                            {"role": "user", "content": prompt}
-                        ],
-                        "max_tokens": 150,
-                        "temperature": 0.7
-                    }
-                )
-
-                if response.status_code == 200:
-                    result = response.json()
-                    generated = result["choices"][0]["message"]["content"].strip()
-
-                    # Ensure within limit
-                    if len(generated) > 300:
-                        generated = generated[:297] + "..."
-
-                    return generated
-
-        except Exception as e:
-            logger.warning(f"LLM generation failed: {e}")
-
-        return None
+        generated = await call_chat_completion(
+            messages=[
+                {"role": "system", "content": "És um escritor especializado em turismo e património cultural português."},
+                {"role": "user", "content": prompt},
+            ],
+            max_tokens=150,
+            temperature=0.7,
+        )
+        if not generated:
+            return None
+        generated = generated.strip()
+        if len(generated) > 300:
+            generated = generated[:297] + "..."
+        return generated
 
     def _generate_with_template(self, data: POIProcessingData) -> str:
         """Generate description using category templates"""

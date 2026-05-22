@@ -10,7 +10,7 @@ import logging
 import certifi
 from pathlib import Path
 from pydantic import BaseModel, Field
-from typing import List, Optional, Dict
+from typing import List, Optional
 import uuid
 from datetime import datetime, timezone, timedelta
 ROOT_DIR = Path(__file__).parent
@@ -224,32 +224,10 @@ _AUTH_RATE_PATHS = {
     "/api/auth/reset-password",
 }
 
-# Trusted-proxy allow-list. Only requests whose immediate TCP peer is in
-# this set are allowed to override the rate-limit key via X-Forwarded-For —
-# otherwise an attacker hitting uvicorn directly could rotate the header
-# value and evade the limiter altogether (Codex r3247555951 / P1).
-_TRUSTED_PROXIES = {
-    ip.strip()
-    for ip in os.environ.get("TRUSTED_PROXIES", "127.0.0.1,::1").split(",")
-    if ip.strip()
-}
-
-
-def _client_ip_for_rate_limit(request: Request) -> str:
-    """Return the IP we should bucket the auth limiter on.
-
-    The TCP peer (``request.client.host``) is always authoritative — anyone
-    can put whatever value they like in ``X-Forwarded-For``. We only honour
-    the header when the peer itself is a trusted reverse proxy (the nginx
-    container in production), and even then we take the *first* entry, which
-    is the original client per RFC 7239.
-    """
-    peer = request.client.host if request.client else ""
-    if peer in _TRUSTED_PROXIES:
-        forwarded = request.headers.get("x-forwarded-for", "").strip()
-        if forwarded:
-            return forwarded.split(",")[0].strip() or peer or "unknown"
-    return peer or "unknown"
+# Client-IP derivation for rate limiting lives in shared_utils so the auth
+# limiter, the global limiter and RateLimitMiddleware all bucket on the same
+# spoof-resistant value (X-Forwarded-For is only honoured from trusted proxies).
+from shared_utils import client_ip
 
 
 @app.middleware("http")
@@ -258,13 +236,7 @@ async def auth_rate_limit_middleware(request: Request, call_next):
     if request.method != "POST" or request.url.path not in _AUTH_RATE_PATHS:
         return await call_next(request)
 
-    ip = _client_ip_for_rate_limit(request)
-    forwarded = request.headers.get("x-forwarded-for")
-    ip = (
-        forwarded.split(",")[0].strip()
-        if forwarded
-        else (request.client.host if request.client else "unknown")
-    )
+    ip = client_ip(request)
     key = f"auth:{ip}:{request.url.path}"
     allowed, _remaining = await _rate_limit_is_allowed(
         key, AUTH_RATE_LIMIT, AUTH_RATE_WINDOW
@@ -277,9 +249,10 @@ async def auth_rate_limit_middleware(request: Request, call_next):
         )
     return await call_next(request)
 
-# Global API rate limiter — sliding window, in-memory per IP
-# Limits: 300 req/min for general API, excludes /api/health
-_global_rate_store: Dict[str, list] = {}
+# Global API rate limiter — distributed sliding window via _rate_limit_is_allowed
+# (Redis ZSET, in-memory fallback). 300 req/min per client IP; /api/health is
+# excluded. Distributed so the cap holds across uvicorn workers (SEC-016) — the
+# previous in-memory dict gave each worker its own 300/min bucket.
 GLOBAL_RATE_LIMIT = 300   # requests
 GLOBAL_RATE_WINDOW = 60   # seconds
 
@@ -289,11 +262,10 @@ async def global_api_rate_limit_middleware(request: Request, call_next):
     if not path.startswith("/api/") or path == "/api/health":
         return await call_next(request)
 
-    ip = request.client.host if request.client else "unknown"
-    now = _time.monotonic()
-    timestamps = _global_rate_store.get(ip, [])
-    timestamps = [t for t in timestamps if now - t < GLOBAL_RATE_WINDOW]
-    if len(timestamps) >= GLOBAL_RATE_LIMIT:
+    allowed, _remaining = await _rate_limit_is_allowed(
+        f"global-ip:{client_ip(request)}", GLOBAL_RATE_LIMIT, GLOBAL_RATE_WINDOW
+    )
+    if not allowed:
         return Response(
             status_code=429,
             content='{"detail":"Taxa de pedidos excedida. Tente novamente em 1 minuto."}',
@@ -302,8 +274,6 @@ async def global_api_rate_limit_middleware(request: Request, call_next):
                 "Retry-After": str(GLOBAL_RATE_WINDOW),
             },
         )
-    timestamps.append(now)
-    _global_rate_store[ip] = timestamps
     return await call_next(request)
 
 @app.middleware("http")

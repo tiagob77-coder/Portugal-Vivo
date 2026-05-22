@@ -2,9 +2,10 @@
 Shared utilities - reusable functions for all backend modules.
 """
 import math
+import os
 from typing import Any, Dict, Optional
 
-from fastapi import HTTPException
+from fastapi import HTTPException, Request
 
 
 class DatabaseHolder:
@@ -84,3 +85,30 @@ def apply_municipality_filter(query: Dict[str, Any], user: Optional[Any]) -> Dic
         return query
     query["municipality_id"] = municipality_id
     return query
+
+
+# ── Client IP (rate-limit bucketing) ──────────────────────────────────────────
+
+_TRUSTED_PROXIES = {
+    ip.strip()
+    for ip in os.environ.get("TRUSTED_PROXIES", "127.0.0.1,::1").split(",")
+    if ip.strip()
+}
+
+
+def client_ip(request: Request) -> str:
+    """Return the client IP that rate limiters should bucket on.
+
+    The TCP peer (``request.client.host``) is authoritative — anyone can put
+    any value in ``X-Forwarded-For``. The header is only honoured when the
+    peer itself is a trusted reverse proxy (the nginx container in
+    production), and even then we take the *first* entry, the original client
+    per RFC 7239. Without this, a client hitting uvicorn directly could rotate
+    the header and evade every rate limiter.
+    """
+    peer = request.client.host if request.client else ""
+    if peer in _TRUSTED_PROXIES:
+        forwarded = request.headers.get("x-forwarded-for", "").strip()
+        if forwarded:
+            return forwarded.split(",")[0].strip() or peer or "unknown"
+    return peer or "unknown"
