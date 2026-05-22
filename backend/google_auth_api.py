@@ -43,9 +43,11 @@ async def verify_google_token(id_token: str) -> dict | None:
             )
             if resp.status_code == 200:
                 data = resp.json()
-                # Verify audience matches our client ID
-                if GOOGLE_CLIENT_ID and data.get("aud") != GOOGLE_CLIENT_ID:
-                    logger.warning("Google token audience mismatch")
+                # The audience MUST equal our client ID: a token minted for a
+                # different app must never authenticate here (token confusion),
+                # and an unset client ID means we cannot verify it at all.
+                if not GOOGLE_CLIENT_ID or data.get("aud") != GOOGLE_CLIENT_ID:
+                    logger.warning("Google token rejected: audience mismatch or client ID unset")
                     return None
                 return {
                     "google_id": data.get("sub"),
@@ -89,6 +91,14 @@ async def google_login(request: GoogleLoginRequest, response: Response):
     Login or register with Google.
     Accepts either id_token (from Google Sign-In) or access_token (from OAuth flow).
     """
+    if not GOOGLE_CLIENT_ID:
+        # Fail closed: without a client ID the token audience cannot be
+        # validated, so Google sign-in must not be accepted at all.
+        raise HTTPException(
+            status_code=503,
+            detail="Login Google indisponível: GOOGLE_CLIENT_ID não configurado",
+        )
+
     db = _get_db()
 
     # Verify Google credentials
@@ -102,6 +112,12 @@ async def google_login(request: GoogleLoginRequest, response: Response):
 
     if not google_user or not google_user.get("email"):
         raise HTTPException(status_code=401, detail="Credenciais Google inválidas")
+
+    # Only a Google-verified e-mail may match or create an account — otherwise
+    # an attacker could present a Google profile carrying a victim's
+    # unverified address and link to their existing account.
+    if not google_user.get("email_verified"):
+        raise HTTPException(status_code=401, detail="Email da conta Google não verificado")
 
     email = google_user["email"].strip().lower()
     google_id = google_user.get("google_id", "")

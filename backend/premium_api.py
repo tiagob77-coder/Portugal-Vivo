@@ -16,7 +16,7 @@ Stripe Integration:
 """
 import os
 import logging
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from fastapi import APIRouter, HTTPException, Request, Header, Depends
 from auth_api import require_auth, require_admin
 from pydantic import BaseModel
@@ -191,15 +191,22 @@ async def _activate_subscription(user_id: str, tier: str, stripe_subscription_id
     )
 
     tier_data = TIERS.get(tier, TIERS["premium"])
+    now = datetime.now(timezone.utc)
     sub = {
         "user_id": user_id,
         "tier": tier,
         "status": "active",
         "price": tier_data["price"],
-        "started_at": datetime.now(timezone.utc).isoformat(),
+        "started_at": now.isoformat(),
     }
     if stripe_subscription_id:
         sub["stripe_subscription_id"] = stripe_subscription_id
+    else:
+        # No recurring Stripe subscription (one-time MB Way / Multibanco
+        # payment, or demo mode): Stripe will never renew or expire it, so we
+        # set an explicit expiry. Without this a single one-time payment would
+        # grant premium forever.
+        sub["expires_at"] = (now + timedelta(days=365 if tier == "annual" else 30)).isoformat()
     if stripe_customer_id:
         sub["stripe_customer_id"] = stripe_customer_id
 
@@ -215,6 +222,23 @@ async def _cancel_subscription(stripe_subscription_id: str):
         {"$set": {"status": "cancelled", "cancelled_at": datetime.now(timezone.utc).isoformat()}}
     )
     logger.info(f"Subscription cancelled: stripe_sub={stripe_subscription_id}, matched={result.modified_count}")
+
+
+def _active_sub_filter(user_id: str) -> dict:
+    """Mongo filter for a user's currently-valid subscription.
+
+    A subscription counts only if its status is active AND it either has no
+    expiry (recurring Stripe subscriptions — Stripe manages their lifecycle)
+    or an expiry still in the future (one-time MB Way / Multibanco payments).
+    """
+    return {
+        "user_id": user_id,
+        "status": "active",
+        "$or": [
+            {"expires_at": {"$exists": False}},
+            {"expires_at": {"$gt": datetime.now(timezone.utc).isoformat()}},
+        ],
+    }
 
 
 # =============================================================================
@@ -247,7 +271,7 @@ async def get_subscription_status(user_id: str, current_user: User = Depends(req
             raise HTTPException(status_code=403, detail="Acesso restrito ao próprio utilizador")
     db = _db_holder.db
     sub = await db.subscriptions.find_one(
-        {"user_id": user_id, "status": "active"},
+        _active_sub_filter(user_id),
         {"_id": 0}
     )
 
@@ -505,7 +529,7 @@ async def stripe_webhook(request: Request):
 
     logger.info(f"Stripe webhook: {event_type}")
 
-    if event_type == "checkout.session.completed":
+    if event_type in ("checkout.session.completed", "checkout.session.async_payment_succeeded"):
         user_id = data.get("metadata", {}).get("user_id")
         tier = data.get("metadata", {}).get("tier", "premium")
         payment_type = data.get("metadata", {}).get("payment_type", "")
@@ -513,10 +537,18 @@ async def stripe_webhook(request: Request):
         customer_id = data.get("customer")
 
         if user_id:
-            # For MB Way / Multibanco one-time payments, activate without subscription ID
             if payment_type in ("mbway", "multibanco"):
-                await _activate_subscription(user_id, tier, stripe_customer_id=customer_id)
-                logger.info(f"One-time {payment_type} payment completed: user={user_id}, tier={tier}")
+                # One-time async payment. checkout.session.completed fires
+                # when the Multibanco reference is issued — at that point
+                # payment_status is still "unpaid", so activating would hand
+                # out premium before any money moved. Only fulfil once the
+                # payment has cleared (payment_status "paid", delivered here
+                # or on checkout.session.async_payment_succeeded).
+                if data.get("payment_status") == "paid":
+                    await _activate_subscription(user_id, tier, stripe_customer_id=customer_id)
+                    logger.info(f"One-time {payment_type} payment confirmed: user={user_id}, tier={tier}")
+                else:
+                    logger.info(f"One-time {payment_type} awaiting payment: user={user_id}")
             else:
                 await _activate_subscription(user_id, tier, subscription_id, customer_id)
 
@@ -588,7 +620,7 @@ async def my_features(current_user=Depends(require_auth)):
     """
     db = _db_holder.db
     sub = await db.subscriptions.find_one(
-        {"user_id": current_user.user_id, "status": "active"},
+        _active_sub_filter(current_user.user_id),
         {"_id": 0, "tier": 1},
     )
     user_tier = sub.get("tier", "free") if sub else "free"
@@ -623,7 +655,7 @@ async def check_feature_access(feature_id: str, current_user=Depends(require_aut
     db = _db_holder.db
     user_id = current_user.user_id
     sub = await db.subscriptions.find_one(
-        {"user_id": user_id, "status": "active"},
+        _active_sub_filter(user_id),
         {"_id": 0, "tier": 1}
     )
 

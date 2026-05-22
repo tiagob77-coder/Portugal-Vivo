@@ -224,6 +224,18 @@ def verify_password_bcrypt(password: str, hashed: str) -> bool:
     return bcrypt.checkpw(password.encode(), hashed.encode())
 
 
+# Pre-computed throwaway hash. _spend_password_verify() runs one bcrypt
+# comparison against it so a login for a missing or social-only account costs
+# the same wall-time as a wrong-password login — without it, the absence of a
+# bcrypt call leaks (via response timing) whether an e-mail is registered.
+_DUMMY_BCRYPT_HASH = bcrypt.hashpw(b"timing-equalizer", bcrypt.gensalt())
+
+
+def _spend_password_verify() -> None:
+    """Burn one bcrypt verification to equalise login timing."""
+    bcrypt.checkpw(b"x", _DUMMY_BCRYPT_HASH)
+
+
 def hash_password_legacy(password: str, salt: str = None) -> tuple[str, str]:
     """Legacy PBKDF2 hash (for backward compatibility)"""
     if salt is None:
@@ -349,6 +361,16 @@ class ForgotPasswordRequest(BaseModel):
         return validate_email(v)
 
 
+class ResetPasswordRequest(BaseModel):
+    token: str
+    new_password: str
+
+    @field_validator('new_password')
+    @classmethod
+    def check_password(cls, v):
+        return validate_password(v)
+
+
 # ========================
 # AUTH ENDPOINTS
 # ========================
@@ -357,15 +379,15 @@ class ForgotPasswordRequest(BaseModel):
 async def email_login(request: EmailLoginRequest, response: Response):
     """Login with email and password"""
     user = await _db_holder.db.users.find_one({"email": request.email}, {"_id": 0})
-    if not user:
-        raise HTTPException(status_code=401, detail="Email ou password incorretos")
-
-    # Tombstoned accounts (deleted_at set during RGPD erasure) must not be
-    # reusable. Their e-mail was unset, but a race could still occur.
-    if user.get("deleted_at") is not None:
+    # Missing account, or a tombstoned one (deleted_at set during RGPD
+    # erasure): reject. Burn a bcrypt verify first so the response time is
+    # indistinguishable from a wrong-password attempt (no e-mail enumeration).
+    if not user or user.get("deleted_at") is not None:
+        _spend_password_verify()
         raise HTTPException(status_code=401, detail="Email ou password incorretos")
 
     if "password_hash" not in user:
+        _spend_password_verify()
         raise HTTPException(status_code=401, detail="Esta conta usa login social. Use o botao Google.")
 
     if not verify_user_password(request.password, user):
@@ -449,17 +471,20 @@ async def forgot_password(request: ForgotPasswordRequest):
             "used": False
         })
 
-        logger.info("Password reset requested for %s", request.email)
+        logger.info("Password reset requested for user %s", user["user_id"])
 
     return {"message": "Se o email existir, recebera instrucoes para repor a password"}
 
 
 @auth_router.post("/auth/reset-password")
-async def reset_password(token: str, new_password: str):
-    """Reset password with token"""
-    """Reset password with token (uses bcrypt)"""
+async def reset_password(body: ResetPasswordRequest):
+    """Reset password with a one-time token (uses bcrypt).
+
+    Token and new password travel in the request body — never the query
+    string — so they cannot leak into access logs or browser history.
+    """
     reset = await _db_holder.db.password_resets.find_one({
-        "token": token,
+        "token": body.token,
         "used": False,
         "expires_at": {"$gt": datetime.now(timezone.utc)}
     })
@@ -467,8 +492,7 @@ async def reset_password(token: str, new_password: str):
     if not reset:
         raise HTTPException(status_code=400, detail="Token invalido ou expirado")
 
-    new_password = validate_password(new_password)
-    password_hash = hash_password_bcrypt(new_password)
+    password_hash = hash_password_bcrypt(body.new_password)
 
     await _db_holder.db.users.update_one(
         {"user_id": reset["user_id"]},
@@ -477,7 +501,7 @@ async def reset_password(token: str, new_password: str):
     )
 
     await _db_holder.db.password_resets.update_one(
-        {"token": token},
+        {"token": body.token},
         {"$set": {"used": True}}
     )
 

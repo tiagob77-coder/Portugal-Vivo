@@ -13,6 +13,7 @@ Usage:
         ...
 """
 import logging
+from datetime import datetime, timezone
 from fastapi import Depends, HTTPException, status
 from auth_api import require_auth
 from shared_utils import DatabaseHolder
@@ -33,13 +34,17 @@ TIER_HIERARCHY = {"free": 0, "premium": 1, "annual": 2}
 
 
 async def _get_user_tier(user_id: str) -> str:
-    """Look up the user's active subscription tier."""
+    """Look up the user's active, non-expired subscription tier."""
     db = _db_holder.db
-    if db is None:
-        # Guard not initialised — allow through (dev mode)
-        return "premium"
     sub = await db.subscriptions.find_one(
-        {"user_id": user_id, "status": "active"},
+        {
+            "user_id": user_id,
+            "status": "active",
+            "$or": [
+                {"expires_at": {"$exists": False}},
+                {"expires_at": {"$gt": datetime.now(timezone.utc).isoformat()}},
+            ],
+        },
         {"_id": 0, "tier": 1},
     )
     return sub.get("tier", "free") if sub else "free"
