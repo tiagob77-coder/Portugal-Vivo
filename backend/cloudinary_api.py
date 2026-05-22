@@ -2,6 +2,7 @@
 Cloudinary Image Upload API for Portugal Vivo
 Handles signed uploads, image management, and CDN delivery
 """
+import asyncio
 import time
 import os
 import cloudinary
@@ -134,7 +135,8 @@ async def upload_image(
     _validate_image_bytes(contents)
 
     try:
-        result = cloudinary.uploader.upload(
+        result = await asyncio.to_thread(
+            cloudinary.uploader.upload,
             contents,
             folder=folder,
             resource_type="image",
@@ -207,7 +209,7 @@ async def delete_image(
         raise HTTPException(status_code=404, detail="Imagem nao encontrada ou sem permissao")
 
     try:
-        cloudinary.uploader.destroy(public_id, invalidate=True)
+        await asyncio.to_thread(cloudinary.uploader.destroy, public_id, invalidate=True)
     except Exception:
         pass
 

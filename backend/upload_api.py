@@ -3,6 +3,7 @@ Upload API — User image uploads via Cloudinary.
 Supports POI photo contributions, review images, and community content.
 Falls back to local MongoDB storage (base64) if Cloudinary is not configured.
 """
+import asyncio
 import os
 import io
 import uuid
@@ -161,7 +162,8 @@ async def _read_with_limit(file: UploadFile, limit: int) -> bytes:
 async def _upload_to_cloudinary(file_bytes: bytes, folder: str, public_id: str) -> str:
     """Upload to Cloudinary and return the secure URL."""
     import cloudinary.uploader
-    result = cloudinary.uploader.upload(
+    result = await asyncio.to_thread(
+        cloudinary.uploader.upload,
         io.BytesIO(file_bytes),
         folder=f"portugal-vivo/{folder}",
         public_id=public_id,

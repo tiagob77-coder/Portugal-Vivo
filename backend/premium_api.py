@@ -14,6 +14,7 @@ Stripe Integration:
 - Webhook handler for payment events (checkout.session.completed,
   customer.subscription.updated/deleted, invoice.payment_failed)
 """
+import asyncio
 import os
 import logging
 from datetime import datetime, timezone, timedelta
@@ -168,7 +169,8 @@ async def _get_or_create_stripe_customer(user_id: str, email: str) -> str:
     if user and user.get("stripe_customer_id"):
         return user["stripe_customer_id"]
 
-    customer = stripe.Customer.create(
+    customer = await asyncio.to_thread(
+        stripe.Customer.create,
         email=email,
         metadata={"user_id": user_id},
     )
@@ -339,7 +341,8 @@ async def create_checkout_session(
     # For subscriptions, we use card + PayPal + SEPA as recurring methods
     payment_method_types = ["card", "paypal"]
 
-    session = stripe.checkout.Session.create(
+    session = await asyncio.to_thread(
+        stripe.checkout.Session.create,
         customer=customer_id,
         payment_method_types=payment_method_types,
         mode="subscription",
@@ -382,7 +385,8 @@ async def create_customer_portal(current_user: User = Depends(require_auth)):
     if not sub or not sub.get("stripe_customer_id"):
         raise HTTPException(status_code=404, detail="Nenhuma subscrição encontrada")
 
-    session = stripe.billing_portal.Session.create(
+    session = await asyncio.to_thread(
+        stripe.billing_portal.Session.create,
         customer=sub["stripe_customer_id"],
         return_url=f"{FRONTEND_URL}/premium",
     )
@@ -413,7 +417,8 @@ async def create_checkout_mbway(
 
     customer_id = await _get_or_create_stripe_customer(current_user.user_id, current_user.email)
 
-    session = stripe.checkout.Session.create(
+    session = await asyncio.to_thread(
+        stripe.checkout.Session.create,
         customer=customer_id,
         payment_method_types=["mb_way"],
         mode="payment",
@@ -464,7 +469,8 @@ async def create_checkout_multibanco(
 
     customer_id = await _get_or_create_stripe_customer(current_user.user_id, current_user.email)
 
-    session = stripe.checkout.Session.create(
+    session = await asyncio.to_thread(
+        stripe.checkout.Session.create,
         customer=customer_id,
         payment_method_types=["multibanco"],
         mode="payment",
