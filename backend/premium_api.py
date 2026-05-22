@@ -506,44 +506,12 @@ async def create_checkout_multibanco(
 # STRIPE WEBHOOK
 # =============================================================================
 
-@premium_router.post("/webhook")
-async def stripe_webhook(request: Request):
-    """Handle Stripe webhook events for subscription lifecycle."""
-    if not STRIPE_ENABLED:
-        raise HTTPException(status_code=503, detail="Stripe not configured")
+async def _process_webhook_event(event_type: str, data: dict) -> None:
+    """Apply the side effects for one Stripe event.
 
-    # Refuse to process webhooks without signature verification — a forged
-    # payload could otherwise activate paid tiers free of charge.
-    if not STRIPE_WEBHOOK_SECRET:
-        logger.error("Refusing Stripe webhook: STRIPE_WEBHOOK_SECRET not configured")
-        raise HTTPException(
-            status_code=503,
-            detail="Webhook signature verification not configured",
-        )
-
-    payload = await request.body()
-    sig_header = request.headers.get("stripe-signature", "")
-
-    try:
-        event = stripe.Webhook.construct_event(payload, sig_header, STRIPE_WEBHOOK_SECRET)
-    except ValueError:
-        raise HTTPException(status_code=400, detail="Invalid payload")
-    except stripe.error.SignatureVerificationError:
-        raise HTTPException(status_code=400, detail="Invalid signature")
-
-    event_type = event["type"]
-    data = event["data"]["object"]
-    event_id = event["id"]
-
-    logger.info(f"Stripe webhook: {event_type}")
-
-    # Idempotency: Stripe delivers events at least once and retries on any
-    # non-2xx response. Skip anything we have already fully processed.
-    db = _db_holder.db
-    if await db.stripe_webhook_events.find_one({"_id": event_id}):
-        logger.info("Stripe webhook %s already processed — skipping", event_id)
-        return {"received": True, "duplicate": True}
-
+    Called only after the event id has been claimed, so it runs exactly once
+    per event. Raising propagates to the caller, which releases the claim.
+    """
     if event_type in ("checkout.session.completed", "checkout.session.async_payment_succeeded"):
         user_id = data.get("metadata", {}).get("user_id")
         tier = data.get("metadata", {}).get("tier", "premium")
@@ -586,14 +554,58 @@ async def stripe_webhook(request: Request):
         customer_id = data.get("customer")
         logger.warning(f"Payment failed for customer: {customer_id}")
 
-    # Mark processed only now — a crash mid-handler leaves the event unmarked
-    # so Stripe's retry reprocesses it rather than dropping it silently.
+
+@premium_router.post("/webhook")
+async def stripe_webhook(request: Request):
+    """Handle Stripe webhook events for subscription lifecycle."""
+    if not STRIPE_ENABLED:
+        raise HTTPException(status_code=503, detail="Stripe not configured")
+
+    # Refuse to process webhooks without signature verification — a forged
+    # payload could otherwise activate paid tiers free of charge.
+    if not STRIPE_WEBHOOK_SECRET:
+        logger.error("Refusing Stripe webhook: STRIPE_WEBHOOK_SECRET not configured")
+        raise HTTPException(
+            status_code=503,
+            detail="Webhook signature verification not configured",
+        )
+
+    payload = await request.body()
+    sig_header = request.headers.get("stripe-signature", "")
+
+    try:
+        event = stripe.Webhook.construct_event(payload, sig_header, STRIPE_WEBHOOK_SECRET)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid payload")
+    except stripe.error.SignatureVerificationError:
+        raise HTTPException(status_code=400, detail="Invalid signature")
+
+    event_type = event["type"]
+    data = event["data"]["object"]
+    event_id = event["id"]
+
+    logger.info(f"Stripe webhook: {event_type}")
+
+    # Idempotency: atomically claim the event id before any side effect. The
+    # unique _id makes this insert the single synchronisation point — a
+    # duplicate or concurrent delivery loses the race here and is skipped, so
+    # _activate_subscription never runs twice for the same event.
+    db = _db_holder.db
     try:
         await db.stripe_webhook_events.insert_one(
             {"_id": event_id, "type": event_type, "received_at": datetime.now(timezone.utc)}
         )
     except DuplicateKeyError:
-        pass  # a concurrent delivery already marked it
+        logger.info("Stripe webhook %s already processed — skipping", event_id)
+        return {"received": True, "duplicate": True}
+
+    try:
+        await _process_webhook_event(event_type, data)
+    except Exception:
+        # Processing failed after the claim — release it so Stripe's retry
+        # reprocesses the event instead of it being silently dropped.
+        await db.stripe_webhook_events.delete_one({"_id": event_id})
+        raise
 
     return {"received": True}
 
