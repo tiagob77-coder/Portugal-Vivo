@@ -23,6 +23,7 @@ from pydantic import BaseModel
 from typing import Optional
 from shared_utils import DatabaseHolder
 from models.api_models import User
+from pymongo.errors import DuplicateKeyError
 
 logger = logging.getLogger(__name__)
 
@@ -526,8 +527,16 @@ async def stripe_webhook(request: Request):
 
     event_type = event["type"]
     data = event["data"]["object"]
+    event_id = event["id"]
 
     logger.info(f"Stripe webhook: {event_type}")
+
+    # Idempotency: Stripe delivers events at least once and retries on any
+    # non-2xx response. Skip anything we have already fully processed.
+    db = _db_holder.db
+    if await db.stripe_webhook_events.find_one({"_id": event_id}):
+        logger.info("Stripe webhook %s already processed — skipping", event_id)
+        return {"received": True, "duplicate": True}
 
     if event_type in ("checkout.session.completed", "checkout.session.async_payment_succeeded"):
         user_id = data.get("metadata", {}).get("user_id")
@@ -570,6 +579,15 @@ async def stripe_webhook(request: Request):
     elif event_type == "invoice.payment_failed":
         customer_id = data.get("customer")
         logger.warning(f"Payment failed for customer: {customer_id}")
+
+    # Mark processed only now — a crash mid-handler leaves the event unmarked
+    # so Stripe's retry reprocesses it rather than dropping it silently.
+    try:
+        await db.stripe_webhook_events.insert_one(
+            {"_id": event_id, "type": event_type, "received_at": datetime.now(timezone.utc)}
+        )
+    except DuplicateKeyError:
+        pass  # a concurrent delivery already marked it
 
     return {"received": True}
 
