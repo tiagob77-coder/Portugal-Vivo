@@ -11,7 +11,6 @@ from typing import Dict, Optional
 import logging
 import httpx
 import re
-from bs4 import BeautifulSoup
 from iq_engine_base import (
     IQModule,
     ModuleType,
@@ -243,7 +242,7 @@ class DataEnrichmentModule(IQModule):
             extracted["phone_from_text"] = ''.join(phones[0]).strip()
 
         # Extract email addresses
-        email_pattern = r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b'
+        email_pattern = r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}\b'  # (was [A-Z|a-z], a stray "|" in the char class)
         emails = re.findall(email_pattern, text)
         if emails:
             extracted["email_from_text"] = emails[0]
@@ -303,6 +302,7 @@ class DataEnrichmentModule(IQModule):
                 response = await client.get(wiki_url, follow_redirects=True)
 
                 if response.status_code == 200:
+                    from bs4 import BeautifulSoup  # lazy: only needed on the Wikipedia path
                     soup = BeautifulSoup(response.text, 'html.parser')
 
                     enriched = {}
