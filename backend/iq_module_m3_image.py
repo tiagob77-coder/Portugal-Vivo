@@ -11,6 +11,7 @@ Source priority: owner > curated > external > unknown
 """
 import re
 from typing import Dict, Optional
+from urllib.parse import urlparse
 import logging
 import httpx
 from iq_engine_base import (
@@ -240,7 +241,7 @@ class ImageQualityModule(IQModule):
         """Validate URL format"""
         url_pattern = re.compile(
             r'^https?://'  # http:// or https://
-            r'(?:(?:[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?\.)+[A-Z]{2,6}\.?|'  # domain...
+            r'(?:(?:[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?\.)+[A-Z]{2,63}\.?|'  # domain... (TLD up to 63 chars per RFC 1035)
             r'localhost|'  # localhost...
             r'\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})'  # ...or ip
             r'(?::\d+)?'  # optional port
@@ -249,12 +250,17 @@ class ImageQualityModule(IQModule):
         return bool(url_pattern.match(url))
 
     def _get_extension(self, url: str) -> Optional[str]:
-        """Extract file extension from URL"""
-        # Remove query parameters
-        url = url.split('?')[0]
-        parts = url.split('.')
-        if len(parts) > 1:
-            return '.' + parts[-1].lower()
+        """Extract the file extension from the URL *path* (M3-EXT-001).
+
+        The previous implementation split the whole URL on '.', so for
+        ``https://x.com/a`` it returned ``".com/a"`` — the dot in the
+        domain was treated as a file-extension delimiter. urlparse() gives
+        only the path, so the extension check sees just the filename.
+        """
+        path = urlparse(url).path
+        filename = path.rsplit('/', 1)[-1] if '/' in path else path
+        if '.' in filename:
+            return '.' + filename.rsplit('.', 1)[-1].lower()
         return None
 
     async def _fetch_image_metadata(self, url: str) -> Dict:
