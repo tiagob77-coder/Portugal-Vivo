@@ -306,8 +306,14 @@ class SemanticValidationModule(IQModule):
 
         eligible = SECONDARY_ELIGIBLE.get(primary, [])
         if not eligible:
-            # Fallback: top-2 other scored categories
-            eligible = [c for c in scores if c != primary]
+            # Fallback: top-2 other scored categories — sort by score so we
+            # genuinely pick the strongest matches, not whatever happens to
+            # come first in the scores dict (M1-SECCAT).
+            eligible = sorted(
+                (c for c in scores if c != primary),
+                key=lambda c: scores[c],
+                reverse=True,
+            )
 
         secondary = []
         for cat in eligible:
