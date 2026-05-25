@@ -141,10 +141,12 @@ def _parse_llm_json(raw: Optional[str], poi: dict, lang: str) -> Dict[str, Any]:
                     "cultural_fact", "practical_info"}
         if not required.issubset(parsed.keys()):
             raise ValueError("Missing required keys")
-        # Enforce hard length limits silently
+        # Enforce hard length limits silently — must match _fallback_content
+        # caps so the same bound applies whether the LLM succeeded or not.
         parsed["title"] = parsed["title"][:60]
         parsed["subtitle"] = parsed["subtitle"][:100]
         parsed["short_description"] = parsed["short_description"][:200]
+        parsed["full_description"] = parsed["full_description"][:500]
         return parsed
     except Exception as exc:
         logger.warning("Failed to parse LLM localization JSON: %s", exc)
