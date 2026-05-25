@@ -12,7 +12,7 @@ import {
   Alert,
 } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
-import { stateColors } from '../../../src/theme';
+import { palette, stateColors, withOpacity } from '../../theme';
 
 interface MapLayer {
   id: string;
@@ -105,7 +105,7 @@ export default function MapLayerSelector({
               <MaterialIcons
                 name={layer.icon as any}
                 size={18}
-                color={isActive ? '#FFFFFF' : '#94A3B8'}
+                color={isActive ? palette.white : palette.gray[400]}
               />
               <Text
                 style={[styles.layerText, isActive && styles.layerTextActive]}
@@ -151,7 +151,7 @@ export default function MapLayerSelector({
             {subcategories[expandedLayer].map((sub) => {
               const isSubActive = activeSubcategories.includes(sub.id);
               const layerColor =
-                layers.find((l) => l.id === expandedLayer)?.color || '#64748B';
+                layers.find((l) => l.id === expandedLayer)?.color || palette.gray[500];
               const isComingSoon = sub.comingSoon === true;
               return (
                 <TouchableOpacity
@@ -160,15 +160,15 @@ export default function MapLayerSelector({
                     styles.subcatChip,
                     {
                       backgroundColor: isComingSoon
-                        ? 'rgba(255,255,255,0.03)'
+                        ? withOpacity(palette.white, 0.03)
                         : isSubActive
                         ? layerColor
-                        : 'rgba(255,255,255,0.06)',
+                        : withOpacity(palette.white, 0.06),
                       borderColor: isComingSoon
-                        ? 'rgba(255,255,255,0.06)'
+                        ? withOpacity(palette.white, 0.06)
                         : isSubActive
                         ? layerColor
-                        : 'rgba(255,255,255,0.12)',
+                        : withOpacity(palette.white, 0.12),
                       opacity: isComingSoon ? 0.6 : 1,
                     },
                   ]}
@@ -201,10 +201,10 @@ export default function MapLayerSelector({
                     size={14}
                     color={
                       isSubActive
-                        ? '#FFFFFF'
+                        ? palette.white
                         : isComingSoon
-                        ? '#64748B'
-                        : '#94A3B8'
+                        ? palette.gray[500]
+                        : palette.gray[400]
                     }
                   />
                   <Text
@@ -212,10 +212,10 @@ export default function MapLayerSelector({
                       styles.subcatText,
                       {
                         color: isSubActive
-                          ? '#FFFFFF'
+                          ? palette.white
                           : isComingSoon
-                          ? '#64748B'
-                          : '#94A3B8',
+                          ? palette.gray[500]
+                          : palette.gray[400],
                         fontWeight: isSubActive ? '600' : '400',
                       },
                     ]}
@@ -241,12 +241,12 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   sectionTitle: {
-    color: '#E2DFD6',
+    color: palette.gray[200],
     fontSize: 16,
     fontWeight: '700',
   },
   subcatCount: {
-    color: '#64748B',
+    color: palette.gray[500],
     fontSize: 12,
     marginLeft: 8,
   },
@@ -260,30 +260,30 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     paddingVertical: 8,
     borderRadius: 20,
-    backgroundColor: 'rgba(255,255,255,0.06)',
+    backgroundColor: withOpacity(palette.white, 0.06),
     gap: 6,
   },
   layerChipExpanded: {
     borderWidth: 2,
-    borderColor: '#FFFFFF',
+    borderColor: palette.white,
   },
   layerText: {
-    color: '#94A3B8',
+    color: palette.gray[400],
     fontSize: 13,
     fontWeight: '500',
   },
   layerTextActive: {
-    color: '#FFFFFF',
+    color: palette.white,
   },
   layerBadge: {
-    backgroundColor: 'rgba(0,0,0,0.3)',
+    backgroundColor: withOpacity(palette.black, 0.3),
     borderRadius: 10,
     paddingHorizontal: 6,
     paddingVertical: 1,
     marginLeft: 2,
   },
   layerBadgeText: {
-    color: '#FFFFFF',
+    color: palette.white,
     fontSize: 10,
     fontWeight: '700',
   },
@@ -298,7 +298,7 @@ const styles = StyleSheet.create({
     marginBottom: 6,
   },
   subcatLabel: {
-    color: '#CBD5E1',
+    color: palette.gray[300],
     fontSize: 12,
     fontWeight: '600',
   },

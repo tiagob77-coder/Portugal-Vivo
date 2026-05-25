@@ -242,9 +242,10 @@ jest.mock('../../src/components/GeofenceControl', () => ({
 }));
 
 jest.mock('../../src/components/map', () => ({
+  ExplorerPanel: () => null,
+  LAYER_RESPECTING_MODES: ['markers', 'heatmap', 'explorador'],
   MapLayerSelector: () => null,
   MapModeSelector: () => null,
-  TimelineControls: () => null,
   ProximityPanel: () => null,
   NightExplorerPanel: () => null,
   NIGHT_FILTERS: [],

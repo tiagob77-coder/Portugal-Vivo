@@ -22,19 +22,24 @@ describe('MapModeSelector', () => {
     jest.clearAllMocks();
   });
 
-  it('renders all mode buttons', () => {
+  it('renders all 8 mode buttons', () => {
     render(<MapModeSelector activeMode="markers" onModeChange={onModeChange} />);
     expect(screen.getByText('Camadas')).toBeTruthy();
+    expect(screen.getByText('Rotas & Trilhos')).toBeTruthy();
     expect(screen.getByText('Explorador')).toBeTruthy();
     expect(screen.getByText('Densidade')).toBeTruthy();
     expect(screen.getByText('Trilhos')).toBeTruthy();
-    expect(screen.getByText('Épocas históricas')).toBeTruthy();
-    expect(screen.getByText('Linha do tempo')).toBeTruthy();
     expect(screen.getByText('Proximidade')).toBeTruthy();
     expect(screen.getByText('Modo noturno')).toBeTruthy();
     expect(screen.getByText('Satélite')).toBeTruthy();
-    expect(screen.getByText('Vista técnica')).toBeTruthy();
-    expect(screen.getByText('Premium')).toBeTruthy();
+  });
+
+  it('does not render the removed tecnico/premium/epochs/timeline modes', () => {
+    render(<MapModeSelector activeMode="markers" onModeChange={onModeChange} />);
+    expect(screen.queryByText('Vista técnica')).toBeNull();
+    expect(screen.queryByText('Premium')).toBeNull();
+    expect(screen.queryByText('Épocas históricas')).toBeNull();
+    expect(screen.queryByText('Linha do tempo')).toBeNull();
   });
 
   it('calls onModeChange with "explorador" when Explorador is pressed', () => {
@@ -53,12 +58,6 @@ describe('MapModeSelector', () => {
     render(<MapModeSelector activeMode="markers" onModeChange={onModeChange} />);
     fireEvent.press(screen.getByText('Trilhos'));
     expect(onModeChange).toHaveBeenCalledWith('trails');
-  });
-
-  it('calls onModeChange with "epochs" when Épocas históricas is pressed', () => {
-    render(<MapModeSelector activeMode="markers" onModeChange={onModeChange} />);
-    fireEvent.press(screen.getByText('Épocas históricas'));
-    expect(onModeChange).toHaveBeenCalledWith('epochs');
   });
 
   it('calls onModeChange with "proximity" when Proximidade is pressed', () => {
@@ -91,26 +90,12 @@ describe('MapModeSelector', () => {
     ).not.toThrow();
   });
 
-  it('renders 12 mode buttons total', () => {
+  it('renders 8 mode buttons total', () => {
     const { UNSAFE_getAllByType } = render(
       <MapModeSelector activeMode="markers" onModeChange={onModeChange} />
     );
     const { TouchableOpacity } = require('react-native'); // eslint-disable-line @typescript-eslint/no-require-imports
     const buttons = UNSAFE_getAllByType(TouchableOpacity);
-    // 12 modes: markers, explorador, heatmap, trails, epochs, timeline,
-    //           proximity, noturno, satellite, tecnico, premium, rotas
-    expect(buttons.length).toBe(12);
-  });
-
-  it('calls onModeChange with "tecnico" when Vista técnica is pressed', () => {
-    render(<MapModeSelector activeMode="markers" onModeChange={onModeChange} />);
-    fireEvent.press(screen.getByText('Vista técnica'));
-    expect(onModeChange).toHaveBeenCalledWith('tecnico');
-  });
-
-  it('calls onModeChange with "premium" when Premium is pressed', () => {
-    render(<MapModeSelector activeMode="markers" onModeChange={onModeChange} />);
-    fireEvent.press(screen.getByText('Premium'));
-    expect(onModeChange).toHaveBeenCalledWith('premium');
+    expect(buttons.length).toBe(8);
   });
 });

@@ -6,12 +6,16 @@ jest.mock('@expo/vector-icons', () => ({
   MaterialIcons: 'MaterialIcons',
 }));
 
-// The source file imports from '../../../src/theme' (which resolves to the root src/theme)
-// We mock the resolved module path instead
 jest.mock('../../../theme', () => ({
+  palette: {
+    white: '#FFFFFF',
+    black: '#000000',
+    gray: { 200: '#E5E0D5', 300: '#D1CCBF', 400: '#9A958A', 500: '#6B665C' },
+  },
   stateColors: {
     rarity: { raro: '#8B5CF6' },
   },
+  withOpacity: (color: string, _opacity: number) => color,
 }));
 
 const mockLayers = [

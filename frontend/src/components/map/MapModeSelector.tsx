@@ -7,22 +7,38 @@ import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-nati
 import { MaterialIcons } from '@expo/vector-icons';
 import { palette, withOpacity } from '../../theme';
 
+// Top-bar map modes. Held to 8 so the row fits without horizontal scroll on
+// phones ≥ 360 px.
+// Removed from earlier 12-mode lineup:
+//   - `tecnico` — duplicated the floating TEC button in NativeMap.web.tsx
+//     (terrain + coord HUD); the top-bar tab had no `mode === 'tecnico'`
+//     branch in mapa.tsx so clicking it did nothing.
+//   - `premium` — only tinted background tiles; no overlay UI was wired.
+//   - `epochs` / `timeline` — historical-discovery features whose home is
+//     /descobrir, not the map mode selector.
 const MAP_MODES = [
   { id: 'markers', icon: 'place', label: 'Camadas' },
   { id: 'rotas', icon: 'route', label: 'Rotas & Trilhos' },
   { id: 'explorador', icon: 'explore', label: 'Explorador' },
   { id: 'heatmap', icon: 'whatshot', label: 'Densidade' },
   { id: 'trails', icon: 'hiking', label: 'Trilhos' },
-  { id: 'epochs', icon: 'history', label: 'Épocas históricas' },
-  { id: 'timeline', icon: 'slow-motion-video', label: 'Linha do tempo' },
   { id: 'proximity', icon: 'near-me', label: 'Proximidade' },
   { id: 'noturno', icon: 'nightlight-round', label: 'Modo noturno' },
   { id: 'satellite', icon: 'satellite', label: 'Satélite' },
-  { id: 'tecnico', icon: 'my-location', label: 'Vista técnica' },
-  { id: 'premium', icon: 'auto-awesome', label: 'Premium' },
 ] as const;
 
 export type MapMode = typeof MAP_MODES[number]['id'];
+
+// Modes whose POI items come from the user's MapLayerSelector subcategory
+// choices. Other modes drive their items from a mode-specific data fetch
+// (trails / proximity / noturno / rotas / satellite) and ignore the layer
+// selector, so callers should hide it to avoid a "filter looks active but
+// is being ignored" UX trap.
+export const LAYER_RESPECTING_MODES: ReadonlyArray<MapMode> = [
+  'markers',
+  'heatmap',
+  'explorador',
+];
 
 interface MapModeSelectorProps {
   activeMode: string;
