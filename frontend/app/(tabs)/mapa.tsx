@@ -31,9 +31,10 @@ import { colors, typography, spacing, borders, shadows } from '../../src/theme';
 import AccessibilityFilters from '../../src/components/AccessibilityFilters';
 import MapView, { Marker, Callout, Polyline, PROVIDER_GOOGLE, isMapAvailable, LeafletMapComponent } from '../../src/components/NativeMap';
 import {
+  ExplorerPanel,
+  LAYER_RESPECTING_MODES,
   MapLayerSelector,
   MapModeSelector,
-  TimelineControls,
   ProximityPanel,
   NightExplorerPanel,
   RouteDetailSheet,
@@ -214,23 +215,9 @@ function MapaTab() {
   const [showAccessibility, setShowAccessibility] = useState(false);
   const [mapMode, setMapMode] = useState<MapMode>('markers');
   const [selectedTrail, setSelectedTrail] = useState<string | null>(null);
-  const [selectedEpochs, setSelectedEpochs] = useState<string[]>([]);
-  const [timelineIndex, setTimelineIndex] = useState(0);
-  const [timelinePlaying, setTimelinePlaying] = useState(false);
   const [gpxUploading, setGpxUploading] = useState(false);
   const [userLocation, setUserLocation] = useState<{lat: number; lng: number} | null>(null);
   const [proximityLoading, setProximityLoading] = useState(false);
-  const timelineRef = useRef<any>(null);
-
-  // Timeline epochs in chronological order
-  const TIMELINE_EPOCHS = [
-    { id: 'pre_historia', name: 'Pré-História', year: -218, color: '#8B4513', period: 'Antes de 218 a.C.' },
-    { id: 'romano', name: 'Romano', year: 0, color: '#DC2626', period: '218 a.C. - 409 d.C.' },
-    { id: 'medieval', name: 'Medieval', year: 600, color: '#7C3AED', period: '409 - 1415' },
-    { id: 'manuelino', name: 'Descobrimentos', year: 1500, color: '#2563EB', period: '1415 - 1580' },
-    { id: 'barroco', name: 'Barroco', year: 1700, color: '#B08556', period: '1580 - 1820' },
-    { id: 'contemporaneo', name: 'Contemporâneo', year: 1920, color: '#059669', period: '1820 - Presente' },
-  ];
 
   // Apply region filter from navigation params
   useEffect(() => {
@@ -260,36 +247,6 @@ function MapaTab() {
     const zoom = b.latitudeDelta > 3 ? 6 : b.latitudeDelta > 1.5 ? 7.5 : b.latitudeDelta > 0.8 ? 9 : 10;
     return { center: [b.longitude, b.latitude] as [number, number], zoom };
   }, [regionFilter]);
-
-  // Timeline animation effect
-  useEffect(() => {
-    if (timelinePlaying && mapMode === 'timeline') {
-      timelineRef.current = setInterval(() => {
-        setTimelineIndex(prev => {
-          if (prev >= TIMELINE_EPOCHS.length - 1) {
-            setTimelinePlaying(false);
-            return prev;
-          }
-          return prev + 1;
-        });
-      }, 2500);
-    }
-    return () => {
-      if (timelineRef.current) clearInterval(timelineRef.current);
-    };
-  }, [timelinePlaying, mapMode]); // eslint-disable-line react-hooks/exhaustive-deps
-  // Auto-select epoch when timeline index changes
-  const timelineEpoch = TIMELINE_EPOCHS[timelineIndex];
-
-  // Timeline map items query
-  const { data: timelineMapItems, isLoading: timelineLoading } = useQuery({
-    queryKey: ['timeline-map-items', timelineEpoch?.id],
-    queryFn: async () => {
-      const res = await api.get(`/epochs/map-items?epoch_ids=${timelineEpoch.id}`);
-      return res.data;
-    },
-    enabled: mapMode === 'timeline' && !!timelineEpoch,
-  });
 
   // GPX Upload handler — web uses <input>, native uses expo-document-picker
   const handleGpxUpload = async () => {
@@ -359,7 +316,7 @@ function MapaTab() {
       }
       return getMapItems(activeCategories, regionFilter);
     },
-    enabled: (activeCategories.length > 0 || mapMode === 'trails' || mapMode === 'heatmap' || mapMode === 'explorador') && !['epochs'].includes(mapMode),
+    enabled: activeCategories.length > 0 || mapMode === 'trails' || mapMode === 'heatmap' || mapMode === 'explorador',
   });
 
   // Trails data
@@ -400,24 +357,6 @@ function MapaTab() {
       return res.data;
     },
     enabled: !!selectedTrail,
-  });
-
-  // Epochs data
-  const { data: epochsList } = useQuery({
-    queryKey: ['epochs-list'],
-    queryFn: async () => {
-      const res = await api.get('/epochs');
-      return res.data;
-    },
-  });
-
-  const { data: epochMapItems, isLoading: epochsLoading } = useQuery({
-    queryKey: ['epoch-map-items', selectedEpochs],
-    queryFn: async () => {
-      const res = await api.get(`/epochs/map-items?epoch_ids=${selectedEpochs.join(',')}`);
-      return res.data;
-    },
-    enabled: mapMode === 'epochs' && selectedEpochs.length > 0,
   });
 
   // Proximity data
@@ -568,16 +507,11 @@ function MapaTab() {
   }, [selectedRoute]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Create stable items reference for the map component
-  // DEBUG: Using direct calculation without useMemo to debug
   let mapComponentItems: any[];
   if (mapMode === 'noturno') {
     mapComponentItems = nightItems;
   } else if (mapMode === 'proximity') {
     mapComponentItems = (proximityData?.pois?.map((p: any) => ({ ...p, location: p.location || { lat: 0, lng: 0 } })) || []);
-  } else if (mapMode === 'epochs') {
-    mapComponentItems = epochMapItems || [];
-  } else if (mapMode === 'timeline') {
-    mapComponentItems = timelineMapItems || [];
   } else {
     mapComponentItems = mapItems || [];
   }
@@ -1208,19 +1142,25 @@ function MapaTab() {
             </View>
           )}
 
-          {/* Layer Selector with Subcategories */}
-          <View style={styles.section}>
-            <MapLayerSelector
-              layers={MAP_LAYERS}
-              subcategories={SUBCATEGORIES}
-              activeSubcategories={activeSubcategories}
-              expandedLayer={expandedLayer}
-              onToggleLayer={toggleLayer}
-              onToggleSubcategory={toggleSubcategory}
-              onExpandLayer={setExpandedLayer}
-              getLayerSubcategories={getLayerSubcategories}
-            />
-          </View>
+          {/* Layer Selector with Subcategories — only shown for modes that
+              actually consume the user's selection. Other modes (trails /
+              rotas / proximity / noturno / satellite) drive their items
+              from mode-specific data fetches and would render an active
+              filter that does nothing. */}
+          {(LAYER_RESPECTING_MODES as ReadonlyArray<string>).includes(mapMode) && (
+            <View style={styles.section}>
+              <MapLayerSelector
+                layers={MAP_LAYERS}
+                subcategories={SUBCATEGORIES}
+                activeSubcategories={activeSubcategories}
+                expandedLayer={expandedLayer}
+                onToggleLayer={toggleLayer}
+                onToggleSubcategory={toggleSubcategory}
+                onExpandLayer={setExpandedLayer}
+                getLayerSubcategories={getLayerSubcategories}
+              />
+            </View>
+          )}
 
           {/* Region Filter */}
           <View style={styles.section}>
@@ -1347,48 +1287,6 @@ function MapaTab() {
             </View>
           )}
 
-          {/* Epochs Selector (shown in epochs mode) */}
-          {mapMode === 'epochs' && (
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.trailSelector}>
-              {(epochsList || []).map((epoch: any) => (
-                <TouchableOpacity
-                  key={epoch.id}
-                  style={[styles.trailChip, selectedEpochs.includes(epoch.id) && { backgroundColor: epoch.color, borderColor: epoch.color }]}
-                  onPress={() => setSelectedEpochs(prev =>
-                    prev.includes(epoch.id) ? prev.filter(e => e !== epoch.id) : [...prev, epoch.id]
-                  )}
-                  accessibilityLabel={`Época ${epoch.name}`}
-                  accessibilityRole="switch"
-                  accessibilityState={{ checked: selectedEpochs.includes(epoch.id) }}
-                >
-                  <View style={[styles.epochDot, { backgroundColor: epoch.color }]} />
-                  <Text style={[styles.trailChipText, selectedEpochs.includes(epoch.id) && { color: '#FFF' }]} numberOfLines={1}>
-                    {epoch.name}
-                  </Text>
-                  <Text style={[styles.trailChipMeta, selectedEpochs.includes(epoch.id) && { color: 'rgba(255,255,255,0.8)' }]}>
-                    {epoch.count}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </ScrollView>
-          )}
-
-          {/* Timeline Controls (shown in timeline mode) */}
-          {mapMode === 'timeline' && (
-            <TimelineControls
-              epochs={TIMELINE_EPOCHS}
-              currentIndex={timelineIndex}
-              isPlaying={timelinePlaying}
-              isLoading={timelineLoading}
-              itemCount={timelineMapItems?.length || 0}
-              onIndexChange={(i) => { setTimelineIndex(i); setTimelinePlaying(false); }}
-              onPlayToggle={() => {
-                if (timelineIndex >= TIMELINE_EPOCHS.length - 1) setTimelineIndex(0);
-                setTimelinePlaying(!timelinePlaying);
-              }}
-            />
-          )}
-
           {/* Proximity Panel (shown in proximity mode) */}
           {mapMode === 'proximity' && (
             <ProximityPanel
@@ -1413,48 +1311,13 @@ function MapaTab() {
             />
           )}
 
-          {/* Night Explorer Panel (shown in noturno mode) */}
+          {/* Explorer Panel — real-time technical overlays */}
           {mapMode === 'explorador' && (
-            <ScrollView style={{ maxHeight: 220 }} showsVerticalScrollIndicator={false}>
-              <View style={{ padding: 12, gap: 8 }}>
-                <Text style={{ color: '#FFF', fontWeight: '700', fontSize: 13, marginBottom: 4 }}>Dados Técnicos em Tempo Real</Text>
-
-                {/* Weather */}
-                {exploradorWeather?.forecasts?.[0] && (
-                  <View style={{ backgroundColor: 'rgba(255,255,255,0.1)', borderRadius: 10, padding: 10, flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-                    <MaterialIcons name="wb-sunny" size={20} color="#FCD34D" />
-                    <View>
-                      <Text style={{ color: '#FFF', fontWeight: '600', fontSize: 13 }}>Meteorologia — {exploradorWeather.location}</Text>
-                      <Text style={{ color: 'rgba(255,255,255,0.7)', fontSize: 12 }}>{exploradorWeather.forecasts[0].weather_description} · {exploradorWeather.forecasts[0].temp_max}°C max</Text>
-                    </View>
-                  </View>
-                )}
-
-                {/* Fires */}
-                <View style={{ backgroundColor: 'rgba(255,255,255,0.1)', borderRadius: 10, padding: 10, flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-                  <MaterialIcons name="local-fire-department" size={20} color={exploradorFires?.active_count > 0 ? '#EF4444' : '#4ADE80'} />
-                  <View>
-                    <Text style={{ color: '#FFF', fontWeight: '600', fontSize: 13 }}>Risco de Incêndio</Text>
-                    <Text style={{ color: 'rgba(255,255,255,0.7)', fontSize: 12 }}>
-                      {exploradorFires?.active_count != null ? `${exploradorFires.active_count} ocorrências activas` : 'A carregar...'}
-                    </Text>
-                  </View>
-                </View>
-
-                {/* Surf/Tides */}
-                {exploradorSurf?.spots?.[0] && (
-                  <View style={{ backgroundColor: 'rgba(255,255,255,0.1)', borderRadius: 10, padding: 10, flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-                    <MaterialIcons name="waves" size={20} color="#38BDF8" />
-                    <View>
-                      <Text style={{ color: '#FFF', fontWeight: '600', fontSize: 13 }}>Mar — {exploradorSurf.spots[0].spot?.name || 'Costa'}</Text>
-                      <Text style={{ color: 'rgba(255,255,255,0.7)', fontSize: 12 }}>
-                        Ondas {exploradorSurf.spots[0].wave_height_m}m · {exploradorSurf.spots[0].surf_quality || 'Bom'}
-                      </Text>
-                    </View>
-                  </View>
-                )}
-              </View>
-            </ScrollView>
+            <ExplorerPanel
+              weather={exploradorWeather}
+              fires={exploradorFires}
+              surf={exploradorSurf}
+            />
           )}
 
           {mapMode === 'noturno' && (
@@ -1468,7 +1331,7 @@ function MapaTab() {
 
           {/* Interactive Leaflet Map */}
           <View style={styles.mapContainer}>
-            {(isLoading || epochsLoading || timelineLoading || (mapMode === 'proximity' && proximityDataLoading) || (mapMode === 'noturno' && nightLoading)) && (
+            {(isLoading || (mapMode === 'proximity' && proximityDataLoading) || (mapMode === 'noturno' && nightLoading)) && (
               <View style={styles.mapLoadingOverlay}>
                 <ActivityIndicator size="small" color="#C49A6C" />
                 <Text style={styles.loadingText}>A carregar mapa...</Text>
@@ -1479,7 +1342,7 @@ function MapaTab() {
               onItemPress={(item) => setSelectedItem(item)}
               getMarkerColor={getMarkerColor}
               getLayerIcon={getLayerIcon}
-              mapMode={['trails', 'epochs', 'timeline', 'proximity', 'rotas'].includes(mapMode) ? 'markers' : mapMode}
+              mapMode={['trails', 'proximity', 'rotas'].includes(mapMode) ? 'markers' : mapMode}
               trailPoints={
                 mapMode === 'rotas' && selectedRoute
                   ? selectedRoute.waypoints.map(wp => ({ lat: wp.lat, lng: wp.lng }))
@@ -1987,11 +1850,6 @@ const styles = StyleSheet.create({
     color: '#C8C3B8',
     fontWeight: '500',
   },
-  epochDot: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-  },
   trailInfoCard: {
     marginHorizontal: 20,
     marginTop: 12,
@@ -2099,109 +1957,6 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '700',
     color: '#FFF',
-  },
-  timelineContainer: {
-    marginHorizontal: 20,
-    marginTop: 12,
-    backgroundColor: '#FFF',
-    borderRadius: 14,
-    padding: 16,
-    borderWidth: 1,
-    borderColor: '#F2EDE4',
-  },
-  timelineHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-    marginBottom: 14,
-  },
-  timelineDot: {
-    width: 14,
-    height: 14,
-    borderRadius: 7,
-  },
-  timelineEpochName: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#2E5E4E',
-  },
-  timelinePeriod: {
-    fontSize: 12,
-    color: '#64748B',
-  },
-  timelineCount: {
-    backgroundColor: '#F1F5F9',
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 8,
-  },
-  timelineCountText: {
-    fontSize: 13,
-    fontWeight: '700',
-    color: '#C49A6C',
-  },
-  timelineBar: {
-    flexDirection: 'row',
-    height: 24,
-    alignItems: 'center',
-    marginBottom: 4,
-  },
-  timelineSegment: {
-    flex: 1,
-    height: 4,
-    backgroundColor: '#F2EDE4',
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderRadius: 2,
-  },
-  timelineNode: {
-    width: 16,
-    height: 16,
-    borderRadius: 8,
-    backgroundColor: '#F2EDE4',
-    borderWidth: 2,
-    borderColor: '#C8C3B8',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  timelineNodeInner: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-  },
-  timelineLabels: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 12,
-  },
-  timelineLabelText: {
-    fontSize: 9,
-    color: '#C8C3B8',
-    fontWeight: '500',
-    textAlign: 'center',
-    flex: 1,
-  },
-  timelineControls: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    gap: 16,
-  },
-  timelineBtn: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: '#F1F5F9',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  timelinePlayBtn: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: '#C49A6C',
-    justifyContent: 'center',
-    alignItems: 'center',
   },
   mapContainer: {
     marginHorizontal: 20,

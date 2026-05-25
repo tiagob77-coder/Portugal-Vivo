@@ -23,8 +23,6 @@ const MAP_STYLES: Record<string, string> = {
   voyager:   'https://basemaps.cartocdn.com/gl/voyager-gl-style/style.json',
   dark:      'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json',
   terrain:   'https://basemaps.cartocdn.com/gl/voyager-gl-style/style.json',
-  tecnico:   'https://basemaps.cartocdn.com/gl/voyager-gl-style/style.json',
-  premium:   'https://basemaps.cartocdn.com/gl/positron-gl-style/style.json',
 };
 
 // Esri World Imagery satellite style (raster, gratuito, sem API key)
@@ -509,9 +507,7 @@ export function LeafletMapComponent(props: LeafletMapProps) {
     const map = mapRef.current;
     const newStyle = mapMode === 'satellite'
       ? SATELLITE_STYLE as any
-      : mapMode === 'premium'
-        ? MAP_STYLES.premium
-        : (MAP_STYLES[mapMode] || MAP_STYLES.light);
+      : (MAP_STYLES[mapMode] || MAP_STYLES.light);
 
     map.setStyle(newStyle);
 
@@ -527,13 +523,6 @@ export function LeafletMapComponent(props: LeafletMapProps) {
       const src = map.getSource('pois');
       if (src && itemsRef.current) {
         src.setData(toGeoJSON(itemsRef.current, getMarkerColor));
-      }
-
-      // Premium background tint
-      if (mapMode === 'premium') {
-        try {
-          map.setPaintProperty('background', 'background-color', '#F5F0E8');
-        } catch (_) {}
       }
     });
   }, [mapMode, ready]);

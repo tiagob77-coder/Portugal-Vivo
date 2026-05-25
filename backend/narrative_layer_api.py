@@ -17,11 +17,9 @@ from __future__ import annotations
 
 import hashlib
 import json
-import os
 from datetime import datetime, timezone, timedelta
 from typing import Any, Optional
 
-import httpx
 from fastapi import APIRouter, HTTPException, Query, Depends, Request
 from pydantic import BaseModel, Field
 
@@ -41,7 +39,6 @@ def _db_or_none():
     except Exception:
         return None
 
-LLM_URL = "https://llm.lil.re.emergentmethods.ai/v1/chat/completions"
 MODEL = "gpt-4o-mini"
 CACHE_TTL_DAYS = 30
 CACHE_COLLECTION = "narrative_cache"

@@ -83,7 +83,7 @@ npm run lint           # eslint
 - **Queries geo**: MongoDB `$geoWithin` / bounding box + Haversine Python para distâncias
 - **Sem PostGIS**: nunca usar PostgreSQL/PostGIS — tudo em MongoDB
 - **Clusters**: MapLibre cluster source nativo
-- **Modos de mapa (12)**: `markers`, `rotas`, `explorador`, `heatmap`, `trails`, `epochs`, `timeline`, `proximity`, `noturno`, `satellite`, `tecnico`, `premium` — ver `frontend/src/components/map/MapModeSelector.tsx`
+- **Modos de mapa (8)**: `markers`, `rotas`, `explorador`, `heatmap`, `trails`, `proximity`, `noturno`, `satellite` — ver `frontend/src/components/map/MapModeSelector.tsx`. `tecnico` continua como botão flutuante "TEC" dentro de `NativeMap.web.tsx` (terrain + coord HUD); `premium`/`epochs`/`timeline` foram retirados — `epochs`/`timeline` migrarão para `/descobrir` quando reactivados.
 - **Subcategorias de layers (44)**: ver `MapLayerSelector.tsx`. Adicionar novas requer atualizar backend + frontend em paralelo.
 - **Multi-tenant geo**: toda a query `$near` / bounding-box DEVE filtrar por `municipality_id` quando o utilizador está autenticado num município.
 
