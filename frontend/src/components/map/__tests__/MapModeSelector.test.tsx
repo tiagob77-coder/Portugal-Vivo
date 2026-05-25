@@ -1,6 +1,6 @@
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react-native';
-import MapModeSelector from '../MapModeSelector';
+import MapModeSelector, { LAYER_RESPECTING_MODES } from '../MapModeSelector';
 
 jest.mock('@expo/vector-icons', () => ({
   MaterialIcons: 'MaterialIcons',
@@ -97,5 +97,41 @@ describe('MapModeSelector', () => {
     const { TouchableOpacity } = require('react-native'); // eslint-disable-line @typescript-eslint/no-require-imports
     const buttons = UNSAFE_getAllByType(TouchableOpacity);
     expect(buttons.length).toBe(8);
+  });
+});
+
+describe('LAYER_RESPECTING_MODES', () => {
+  // The set is a UX contract — modes here keep the MapLayerSelector
+  // visible, others hide it. Codex P2 review on PR #178 caught that
+  // `satellite` was missing: its POI query falls through to
+  // getMapItems(activeCategories, …) just like `markers`, so hiding
+  // the selector left users with invisible+uneditable filters.
+
+  it('includes markers (default mode)', () => {
+    expect(LAYER_RESPECTING_MODES).toContain('markers');
+  });
+
+  it('includes heatmap (densidade)', () => {
+    expect(LAYER_RESPECTING_MODES).toContain('heatmap');
+  });
+
+  it('includes explorador (technical overlays)', () => {
+    expect(LAYER_RESPECTING_MODES).toContain('explorador');
+  });
+
+  it('includes satellite (regression guard for #178)', () => {
+    // satellite shares the POI data flow of markers — only the tiles
+    // change. Hiding the layer selector here is a UX trap.
+    expect(LAYER_RESPECTING_MODES).toContain('satellite');
+  });
+
+  it('excludes modes with their own data sources', () => {
+    // trails fetches /trails, proximity fetches /proximity/nearby,
+    // noturno fetches /map/night-explorer, rotas fetches infra +
+    // cultural-routes. Their item lists never look at active categories.
+    expect(LAYER_RESPECTING_MODES).not.toContain('trails');
+    expect(LAYER_RESPECTING_MODES).not.toContain('proximity');
+    expect(LAYER_RESPECTING_MODES).not.toContain('noturno');
+    expect(LAYER_RESPECTING_MODES).not.toContain('rotas');
   });
 });

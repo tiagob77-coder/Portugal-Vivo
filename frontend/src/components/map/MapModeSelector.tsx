@@ -30,14 +30,21 @@ const MAP_MODES = [
 export type MapMode = typeof MAP_MODES[number]['id'];
 
 // Modes whose POI items come from the user's MapLayerSelector subcategory
-// choices. Other modes drive their items from a mode-specific data fetch
-// (trails / proximity / noturno / rotas / satellite) and ignore the layer
-// selector, so callers should hide it to avoid a "filter looks active but
-// is being ignored" UX trap.
+// choices. Other modes (trails / proximity / noturno / rotas) drive their
+// items from a mode-specific data fetch and ignore the layer selector, so
+// callers should hide it to avoid a "filter looks active but is being
+// ignored" UX trap.
+//
+// `satellite` is included because it only changes the tile style — the POI
+// query in mapa.tsx falls through to `getMapItems(activeCategories,
+// regionFilter)`, identical to `markers`. Hiding the selector here would
+// leave the user with active subcategory filters they can't see or edit
+// while the map quietly drops POIs that don't match.
 export const LAYER_RESPECTING_MODES: ReadonlyArray<MapMode> = [
   'markers',
   'heatmap',
   'explorador',
+  'satellite',
 ];
 
 interface MapModeSelectorProps {
