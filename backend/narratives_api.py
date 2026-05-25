@@ -151,7 +151,9 @@ def _compute_confidence(narrative: Dict) -> float:
         score += 0.1
     if narrative.get("poi_id"):
         score += 0.1  # linked to existing POI
-    if narrative.get("credibility", {}).get("source_type") == "facto_historico":
+    # `or {}` because narrative.get("credibility", {}) returns None when the
+    # key is present but explicitly null — would crash on .get("source_type").
+    if (narrative.get("credibility") or {}).get("source_type") == "facto_historico":
         score += 0.1
     return min(1.0, round(score, 2))
 
