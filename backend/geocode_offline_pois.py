@@ -108,6 +108,34 @@ def _candidate_keys(text: Optional[str]) -> list[str]:
     return out
 
 
+_NAME_LOCALITY_RES = (
+    # 'Sopa de Cozido de Seia' → 'Seia'; 'Pão de Mafra' → 'Mafra'.
+    re.compile(r"\b(?:de|do|da|dos|das)\s+([A-ZÁÀÂÃÉÊÍÓÔÕÚÜÇ][\w\sÁÀÂÃÉÊÍÓÔÕÚÜÇçãéíóôõàáâ\-]{2,40})$"),
+    # 'Mercado de Tomar' (after the verb).
+    re.compile(r"\b(?:mercado|feira|festa|tasca|farol|miradouro|cascata|moinho|termas|estacao)\s+(?:de|do|da)\s+([A-ZÁÀÂÃÉÊÍÓÔÕÚÜÇ][\w\sÁÀÂÃÉÊÍÓÔÕÚÜÇçãéíóôõàáâ\-]{2,40})", re.IGNORECASE),
+)
+
+
+def _name_locality_candidates(name: Optional[str]) -> list[str]:
+    """Heuristically extract a locality from the POI name itself."""
+    if not name:
+        return []
+    out: list[str] = []
+    for rx in _NAME_LOCALITY_RES:
+        for m in rx.finditer(name):
+            chunk = m.group(1).strip()
+            # Cut at common closing words to drop trailing modifiers.
+            chunk = re.split(r"\s+(?:com|para|sem|à|ao|em|na|no)\s+", chunk, maxsplit=1)[0]
+            if chunk:
+                out.extend(_candidate_keys(chunk))
+    seen, dedup = set(), []
+    for k in out:
+        if k and k not in seen:
+            seen.add(k)
+            dedup.append(k)
+    return dedup
+
+
 _PT_POSTCODE_RE = re.compile(r"\b\d{4}(?:-\d{3})?\b")
 
 
@@ -170,6 +198,12 @@ def lookup(poi: dict, centroids: dict) -> Optional[dict]:
         if entry and (not poi_region or entry.get("region") == poi_region or entry["type"] == "regiao"):
             return entry
 
+    # Locality embedded in the POI name itself ('Sopa de Cozido de Seia' → Seia).
+    for key in _name_locality_candidates(poi.get("name")):
+        entry = centroids.get(key)
+        if entry and (not poi_region or entry.get("region") == poi_region or entry["type"] == "regiao"):
+            return entry
+
     # Last resort: region centroid.
     for key in _candidate_keys(poi.get("region")):
         entry = centroids.get(key)
@@ -209,12 +243,29 @@ def main() -> int:
     still_missing: list[dict] = []
     hits_by_field = {"localidade": 0, "concelho": 0, "distrito": 0, "region": 0}
 
+    # Map centroid type → precision bucket. Buckets are what the audit /
+    # frontend should rely on; coord_source keeps the granular type for
+    # debugging.
+    precision_for = {
+        "concelho": "municipality",
+        "cidade": "municipality",
+        "localidade": "municipality",
+        "parque": "municipality",
+        "natureza": "municipality",
+        "distrito": "district",
+        "ilha": "district",
+        "subregiao": "district",
+        "interregion": "district",
+        "regiao": "region",
+    }
+
     for poi in pois:
         entry = lookup(poi, centroids)
         if entry:
             poi_out = dict(poi)
             poi_out["location"] = {"lat": entry["lat"], "lng": entry["lng"]}
             poi_out["coord_source"] = f"centroid_{entry['type']}"
+            poi_out["coord_precision"] = precision_for.get(entry["type"], "region")
             poi_out["coord_approximate"] = True
             matched.append(poi_out)
             # Track which field led to the match (best-effort).

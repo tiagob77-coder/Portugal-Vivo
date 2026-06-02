@@ -458,6 +458,7 @@ def extract_sheet(sn: str, ws) -> tuple[list[dict], dict]:
             "source_id": source_id,
             "location": {"lat": coords[0], "lng": coords[1]} if coords else None,
             "coord_source": coord_source if coords else None,
+            "coord_precision": "precise" if coords else None,
         }
 
         if coords:

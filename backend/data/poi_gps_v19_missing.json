@@ -1,6 +1,6 @@
 {
   "version": "v19",
-  "generated_at": "2026-06-02T18:29:35.616162+00:00",
+  "generated_at": "2026-06-02T18:49:24.968777+00:00",
   "total_missing": 1,
   "pois": [
     {
@@ -15,7 +15,8 @@
       "localidade": null,
       "address": null,
       "source_id": null,
-      "coord_source": null
+      "coord_source": null,
+      "coord_precision": null
     }
   ]
 }
