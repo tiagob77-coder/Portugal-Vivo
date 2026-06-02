@@ -21,6 +21,8 @@ import openpyxl
 from motor.motor_asyncio import AsyncIOMotorClient
 from dotenv import load_dotenv
 
+from gps_extract import parse_coord_text, parse_coord_url
+
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
 
@@ -433,37 +435,23 @@ def detect_region_from_row(text: str) -> Optional[str]:
 
 
 def extract_gps_from_hyperlink(value: str) -> Optional[Tuple[float, float]]:
-    """Extract lat/lng from a Google Maps HYPERLINK formula."""
-    if not value or not isinstance(value, str):
-        return None
-    
-    # Pattern 1: /@lat,lng,zoom
-    m = re.search(r'@(-?\d+\.?\d*),(-?\d+\.?\d*)', value)
-    if m:
-        lat, lng = float(m.group(1)), float(m.group(2))
-        if -90 <= lat <= 90 and -180 <= lng <= 180:
-            return (lat, lng)
-    
-    # Pattern 2: ?q=lat,lng or ?q=...&ll=lat,lng
-    m = re.search(r'[?&]q=(-?\d+\.?\d*)[,%20]+(-?\d+\.?\d*)', value)
-    if m:
-        lat, lng = float(m.group(1)), float(m.group(2))
-        if -90 <= lat <= 90 and -180 <= lng <= 180:
-            return (lat, lng)
-    
-    return None
+    """Extract lat/lng from a Google Maps HYPERLINK formula.
+
+    Delegates to gps_extract.parse_coord_url so URL parsing stays in one
+    place (also covers the /dir/?destination=… form).
+    """
+    return parse_coord_url(value)
 
 
 def extract_gps_from_text(value: str) -> Optional[Tuple[float, float]]:
-    """Extract GPS from raw coordinate text like '41.276400, -8.283100'"""
-    if not value or not isinstance(value, str):
-        return None
-    m = re.search(r'(-?\d+\.?\d+)\s*[,;]\s*(-?\d+\.?\d+)', value)
-    if m:
-        lat, lng = float(m.group(1)), float(m.group(2))
-        if -90 <= lat <= 90 and -180 <= lng <= 180:
-            return (lat, lng)
-    return None
+    """Extract GPS from raw coordinate text like '41.276400, -8.283100'.
+
+    Delegates to gps_extract.parse_coord_text, which additionally handles the
+    Portuguese comma-decimal form '41,086875, -8,132567' that whole sheets
+    (e.g. Barragens e Albufeiras) use — the previous dot-only regex dropped
+    every one of those rows.
+    """
+    return parse_coord_text(value)
 
 
 def make_slug(name: str) -> str:
