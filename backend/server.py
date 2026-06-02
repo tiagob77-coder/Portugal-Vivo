@@ -1182,6 +1182,38 @@ async def auto_seed_from_excel():
         logger.warning("Auto-seed from Excel (non-critical): %s", e)
 
 @app.on_event("startup")
+async def auto_apply_gps_v19_coords():
+    """Patch heritage_items with the v19 GPS pipeline's pre-computed coordinates.
+
+    Runs after auto_seed_from_excel. Reads backend/data/poi_gps_v19.json (built
+    by extract_poi_gps_v19.py + geocode_offline_pois.py) and fills location
+    for POIs that lack it. Idempotent: POIs with valid coords are skipped.
+    """
+    if os.environ.get("ENVIRONMENT") == "production" and os.environ.get("AUTO_SEED_ENABLED") != "true":
+        return
+    try:
+        import json
+        from pathlib import Path
+        gps_json = Path(__file__).parent / "data" / "poi_gps_v19.json"
+        if not gps_json.exists():
+            logger.info("⏭  v19 GPS JSON not present — skipping coord patch")
+            return
+        from apply_poi_gps_v19 import apply as apply_v19_coords
+        payload = json.loads(gps_json.read_text())
+        pois = payload.get("pois") or []
+        if not pois:
+            return
+        stats = await apply_v19_coords(db, pois, dry_run=False, force=False)
+        logger.info(
+            "📍 v19 GPS patch: matched=%s updated=%s already_ok=%s unmatched=%s",
+            stats.get("matched"), stats.get("updated"),
+            stats.get("already_ok"), stats.get("unmatched"),
+        )
+    except Exception as e:
+        logger.warning("v19 GPS patch (non-critical): %s", e)
+
+
+@app.on_event("startup")
 async def seed_encyclopedia_data():
     """Seed encyclopedia articles from heritage_items if empty (dev/staging only)."""
     if os.environ.get("ENVIRONMENT") == "production" and os.environ.get("AUTO_SEED_ENABLED") != "true":

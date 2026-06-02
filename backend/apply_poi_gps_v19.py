@@ -31,7 +31,6 @@ from typing import Any, Optional
 
 from motor.motor_asyncio import AsyncIOMotorClient, AsyncIOMotorDatabase
 
-logging.basicConfig(level=logging.INFO, format="%(message)s")
 log = logging.getLogger(__name__)
 
 DEFAULT_JSON = Path(__file__).parent / "data" / "poi_gps_v19.json"
@@ -246,4 +245,5 @@ async def main() -> int:
 
 
 if __name__ == "__main__":
+    logging.basicConfig(level=logging.INFO, format="%(message)s")
     sys.exit(asyncio.run(main()))
