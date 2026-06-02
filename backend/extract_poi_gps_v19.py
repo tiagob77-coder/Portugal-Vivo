@@ -309,6 +309,22 @@ def _build_column_map(header: list[str]) -> dict[str, int]:
             cmap.setdefault("localidade", j)
         if "morada" in col or "endereço" in col or "endereco" in col or col == "address":
             cmap.setdefault("address", j)
+        # Geocoding anchors — observation / emblematic place columns used by
+        # the nature & gastronomy sheets that carry NO plain Localidade column
+        # (Flora "Onde Observar", Fauna "Habitat"/"Local", Pratos/Doçaria
+        # "Local Emblemático", Sopas "Restaurante Sugerido"). Mapping them to
+        # `localidade` lets the geocoder resolve a precise point instead of
+        # falling back to the region centroid. setdefault keeps a real
+        # Localidade/Localização column (handled above) as the priority.
+        if (
+            "onde observar" in col
+            or "habitat" in col
+            or "local emblemático" in col
+            or "local emblematico" in col
+            or "restaurante sug" in col
+            or col == "local"
+        ):
+            cmap.setdefault("localidade", j)
         if "descrição" in col or "descricao" in col or "description" in col:
             cmap.setdefault("description", j)
         if col == "latitude" or col.endswith(" latitude"):
