@@ -1,0 +1,22 @@
+{
+  "version": "v19",
+  "generated_at": "2026-06-02T18:49:24.968777+00:00",
+  "total_missing": 1,
+  "pois": [
+    {
+      "name": "Total: 23 barragens | 4 bacias hidrográficas | Acesso exterior gratuito em todas | Visitas técnicas: autorização EDP/Movhera | Alqueva: Centro de Interpretação EDIA (entrada paga)",
+      "name_normalised": "total 23 barragens 4 bacias hidrograficas acesso exterior gratuito em todas visitas tecnicas autorizacao edp movhera alqueva centro de interpretacao edia entrada paga",
+      "sheet": "Barragens e Albufeiras",
+      "category": "piscinas",
+      "region": "",
+      "region_original": null,
+      "concelho": null,
+      "distrito": null,
+      "localidade": null,
+      "address": null,
+      "source_id": null,
+      "coord_source": null,
+      "coord_precision": null
+    }
+  ]
+}
