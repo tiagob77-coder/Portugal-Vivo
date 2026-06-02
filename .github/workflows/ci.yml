@@ -15,8 +15,14 @@ jobs:
     runs-on: ubuntu-latest
 
     services:
+      # Imagens servidas pelo mirror oficial Docker no AWS ECR Public em vez
+      # do Docker Hub: registry-1.docker.io tem dado timeouts intermitentes
+      # nos runners ("context deadline exceeded" no pull do serviço), e o
+      # GitHub só tenta 3x antes de falhar o job. O ECR Public hospeda as
+      # mesmas Docker Official Images sem rate-limit e com melhor conectividade
+      # a partir do GitHub Actions. Tags idênticas (mongo:6 / redis:7-alpine).
       mongodb:
-        image: mongo:6
+        image: public.ecr.aws/docker/library/mongo:6
         ports:
           - 27017:27017
         options: >-
@@ -26,7 +32,7 @@ jobs:
           --health-retries 5
 
       redis:
-        image: redis:7-alpine
+        image: public.ecr.aws/docker/library/redis:7-alpine
         ports:
           - 6379:6379
         options: >-
