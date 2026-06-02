@@ -41,6 +41,7 @@ import {
   NIGHT_FILTERS,
 } from '../../src/components/map';
 import type { MapMode } from '../../src/components/map';
+import { buildTrailShellRoute, hydrateTrailWaypoints } from '../../src/components/map/routeUtils';
 import type { RouteDetail, RouteWaypoint } from '../../src/components/map/RouteDetailSheet';
 import ErrorBoundary from '../../src/components/ErrorBoundary';
 
@@ -505,6 +506,25 @@ function MapaTab() {
       animated: true,
     });
   }, [selectedRoute]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // MAP-008 fix — hydrate trail waypoints from the detail fetch. The /trails
+  // list excludes `points` (backend/trails_api.py:178), so a trail item in
+  // the Rotas list has no geometry on tap. We hold the shell selectedRoute
+  // and wait for /trails/{id} to resolve via trailData; once it does, the
+  // helper fills the waypoints so the polyline + numbered markers render.
+  useEffect(() => {
+    const hydrated = hydrateTrailWaypoints(selectedRoute, trailData?.points);
+    if (hydrated) setSelectedRoute(hydrated);
+  }, [selectedRoute, trailData]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Helper for the two onPress sites (native + web) that open a trail from
+  // the Rotas list. Sets selectedTrail (triggers the detail fetch) and a
+  // shell selectedRoute that the hydration effect above fills in.
+  const openTrailRoute = useCallback((trail: any) => {
+    setSelectedTrail(trail.id);
+    setSelectedRoute(buildTrailShellRoute(trail));
+    setFullscreenRoute(true);
+  }, []);
 
   // Create stable items reference for the map component
   let mapComponentItems: any[];
@@ -976,19 +996,7 @@ function MapaTab() {
                   <TouchableOpacity
                     key={trail.id}
                     style={styles.routeListItemNative}
-                    onPress={() => {
-                      setSelectedRoute({
-                        name: trail.name, type: 'trail',
-                        description_short: trail.description,
-                        distance_km: trail.distance_km, duration_hours: trail.estimated_hours,
-                        difficulty: trail.difficulty, elevation_gain: trail.elevation_gain,
-                        color: trail.color || '#22C55E',
-                        waypoints: (trail.waypoints || []).map((wp: any, i: number) => ({
-                          lat: wp.lat, lng: wp.lng, name: wp.name || `Ponto ${i + 1}`, order: wp.order ?? i + 1,
-                        })),
-                      });
-                      setFullscreenRoute(true);
-                    }}
+                    onPress={() => openTrailRoute(trail)}
                     accessibilityLabel={`Ver trilho ${trail.name}`}
                     accessibilityRole="button"
                   >
@@ -1398,26 +1406,7 @@ function MapaTab() {
                 <TouchableOpacity
                   key={trail.id}
                   style={styles.routeListItem}
-                  onPress={() => {
-                    setSelectedTrail(trail.id);
-                    const wps = trail.waypoints || [];
-                    setSelectedRoute({
-                      name: trail.name,
-                      type: 'trail',
-                      description_short: trail.description,
-                      distance_km: trail.distance_km,
-                      duration_hours: trail.estimated_hours,
-                      difficulty: trail.difficulty,
-                      elevation_gain: trail.elevation_gain,
-                      color: trail.color || '#22C55E',
-                      waypoints: wps.map((wp: any, i: number) => ({
-                        lat: wp.lat, lng: wp.lng,
-                        name: wp.name || `Ponto ${i + 1}`,
-                        order: wp.order ?? i + 1,
-                      })),
-                    });
-                    setFullscreenRoute(true);
-                  }}
+                  onPress={() => openTrailRoute(trail)}
                   activeOpacity={0.8}
                   accessibilityLabel={`Ver trilho ${trail.name}`}
                   accessibilityRole="button"
