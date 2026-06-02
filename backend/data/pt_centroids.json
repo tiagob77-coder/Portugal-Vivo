@@ -89,7 +89,8 @@
     "vila pouca de aguiar": {"lat": 41.5037, "lng": -7.6427, "type": "concelho", "region": "norte"},
     "tras os montes": {"lat": 41.5538, "lng": -7.2504, "type": "subregiao", "region": "norte"},
     "douro": {"lat": 41.1606, "lng": -7.7884, "type": "subregiao", "region": "norte"},
-    "minho": {"lat": 41.6918, "lng": -8.5829, "type": "subregiao", "region": "norte"}
+    "minho": {"lat": 41.6918, "lng": -8.5829, "type": "subregiao", "region": "norte"},
+    "norte": {"lat": 41.5454, "lng": -8.4265, "type": "regiao", "region": "norte"}
   },
 
   "centro": {
@@ -165,7 +166,10 @@
     "santa comba dao": {"lat": 40.3984, "lng": -8.1303, "type": "concelho", "region": "centro"},
     "sao pedro do sul": {"lat": 40.7572, "lng": -8.0654, "type": "concelho", "region": "centro"},
     "castro daire": {"lat": 40.9007, "lng": -7.9319, "type": "concelho", "region": "centro"},
-    "ribatejo": {"lat": 39.2369, "lng": -8.6857, "type": "subregiao", "region": "lisboa"}
+    "ribatejo": {"lat": 39.2369, "lng": -8.6857, "type": "subregiao", "region": "lisboa"},
+    "beira baixa": {"lat": 39.8222, "lng": -7.4906, "type": "subregiao", "region": "centro"},
+    "beira alta": {"lat": 40.6566, "lng": -7.9122, "type": "subregiao", "region": "centro"},
+    "centro": {"lat": 40.2056, "lng": -8.4196, "type": "regiao", "region": "centro"}
   },
 
   "lisboa": {
@@ -213,7 +217,8 @@
     "benavente": {"lat": 38.9821, "lng": -8.8079, "type": "concelho", "region": "lisboa"},
     "ericeira": {"lat": 38.9628, "lng": -9.4156, "type": "localidade", "region": "lisboa"},
     "sintra cascais": {"lat": 38.7491, "lng": -9.4004, "type": "parque", "region": "lisboa"},
-    "estoril": {"lat": 38.7058, "lng": -9.3979, "type": "localidade", "region": "lisboa"}
+    "estoril": {"lat": 38.7058, "lng": -9.3979, "type": "localidade", "region": "lisboa"},
+    "lisboa regiao": {"lat": 38.7223, "lng": -9.1393, "type": "regiao", "region": "lisboa"}
   },
 
   "alentejo": {
@@ -294,7 +299,8 @@
     "cacela velha": {"lat": 37.1599, "lng": -7.5536, "type": "localidade", "region": "algarve"},
     "barlavento": {"lat": 37.1500, "lng": -8.6500, "type": "subregiao", "region": "algarve"},
     "sotavento": {"lat": 37.1276, "lng": -7.6502, "type": "subregiao", "region": "algarve"},
-    "algarve interior": {"lat": 37.3163, "lng": -8.5556, "type": "subregiao", "region": "algarve"}
+    "algarve interior": {"lat": 37.3163, "lng": -8.5556, "type": "subregiao", "region": "algarve"},
+    "algarve": {"lat": 37.0193, "lng": -7.9304, "type": "regiao", "region": "algarve"}
   },
 
   "acores": {

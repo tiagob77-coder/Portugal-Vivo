@@ -39,14 +39,15 @@ distingui-los das coordenadas precisas vindas do Excel.
 
 | Origem | POIs | % |
 |---|---|---|
-| Coords reais do Excel | 3 043 | 53.9 % |
-| Geocoder offline (centroides) | 1 839 | 33.8 % |
-| **Total com coords** | **4 882** | **87.7 %** |
-| Ainda sem coords | 684 | 12.3 % |
+| Coords reais do Excel | 3 043 | 54.9 % |
+| Geocoder offline (centroides) | 2 502 | 45.1 % |
+| **Total com coords** | **5 545** | **~100 %** |
+| Ainda sem coords | 1 | 0.02 % |
 
-Os 684 restantes têm `region` parcial (p. ex. `norte (porto e norte)`)
-sem concelho nem localidade — só Nominatim ou intervenção manual os
-resolve com precisão útil.
+O 1 POI restante é uma linha-resumo da sheet Barragens ("Total: 23
+barragens…"), não um POI real. Para refinar coords aproximadas para
+locations exactas, correr `geocode_missing_pois.py` (Nominatim, lento)
+ou intervir manualmente no Excel.
 
 ## Regras
 

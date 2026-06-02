@@ -108,10 +108,46 @@ def _candidate_keys(text: Optional[str]) -> list[str]:
     return out
 
 
+_PT_POSTCODE_RE = re.compile(r"\b\d{4}(?:-\d{3})?\b")
+
+
+def _address_locality_candidates(address: Optional[str]) -> list[str]:
+    """Pull plausible locality keys out of a free-form address.
+
+    Targets the trailing token after the last comma — e.g. for
+    "Av. Horta d'El Rei, Tomar" returns ['tomar']; for
+    "R. Dom João de Castro 210, 4150-417 Porto" returns ['porto'].
+    """
+    if not address:
+        return []
+    s = address.strip()
+    candidates: list[str] = []
+    parts = [p.strip() for p in s.split(",") if p.strip()]
+    if not parts:
+        return []
+    for tail in parts[::-1]:
+        # Strip postal code if present, then keep the remainder.
+        cleaned = _PT_POSTCODE_RE.sub("", tail).strip()
+        if cleaned:
+            candidates.extend(_candidate_keys(cleaned))
+        # Also try the tail as-is.
+        candidates.extend(_candidate_keys(tail))
+    # Last word of the whole address as a final hail mary.
+    last_word = re.sub(r"[^\w\s]", " ", s).split()
+    if last_word:
+        candidates.extend(_candidate_keys(last_word[-1]))
+    seen, out = set(), []
+    for c in candidates:
+        if c and c not in seen:
+            seen.add(c)
+            out.append(c)
+    return out
+
+
 def lookup(poi: dict, centroids: dict) -> Optional[dict]:
     """Find the best centroid for this POI. Returns the centroid entry or None.
 
-    Priority: localidade > concelho > distrito > region (last resort).
+    Priority: localidade > concelho > distrito > address tail > region.
     The region constraint filters out ambiguous names (e.g. 'lagoa' in
     Algarve vs Açores).
     """
@@ -127,6 +163,12 @@ def lookup(poi: dict, centroids: dict) -> Optional[dict]:
                 entry2 = centroids.get(f"{key} {poi_region}")
                 if entry2:
                     return entry2
+
+    # Address tail (catches sheets that didn't fill concelho/localidade).
+    for key in _address_locality_candidates(poi.get("address")):
+        entry = centroids.get(key)
+        if entry and (not poi_region or entry.get("region") == poi_region or entry["type"] == "regiao"):
+            return entry
 
     # Last resort: region centroid.
     for key in _candidate_keys(poi.get("region")):
