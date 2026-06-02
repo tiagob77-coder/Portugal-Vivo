@@ -31,7 +31,6 @@ from typing import Any, Optional
 
 from motor.motor_asyncio import AsyncIOMotorClient, AsyncIOMotorDatabase
 
-logging.basicConfig(level=logging.INFO, format="%(message)s")
 log = logging.getLogger(__name__)
 
 DEFAULT_JSON = Path(__file__).parent / "data" / "poi_gps_v19.json"
@@ -92,7 +91,20 @@ def _normalise_region(r: Optional[str]) -> str:
 
 
 def match_existing(poi: dict, index: dict) -> Optional[dict]:
-    """Return the best heritage_items doc for this POI, or None."""
+    """Return the best heritage_items doc for this POI, or None.
+
+    Matching ladder (more specific first → less specific):
+      1. `poi_source_id` exact hit.
+      2. `name_normalised` + region + sheet (`folha_origem`).
+      3. `name_normalised` + region + category.
+      4. `name_normalised` + region (legacy / single-candidate cases).
+
+    Steps 2–3 stop the same heritage_items document being updated by
+    multiple Excel rows that share a name+region (e.g. "Mercado do Bolhão"
+    appearing in both *Mercados e Feiras* and *Restaurantes e Gastronomia*).
+    Without it, --apply --force walks the same row repeatedly and leaves
+    sibling duplicates stale.
+    """
     if poi.get("source_id") and poi["source_id"] in index["by_source_id"]:
         return index["by_source_id"][poi["source_id"]]
 
@@ -102,12 +114,26 @@ def match_existing(poi: dict, index: dict) -> Optional[dict]:
         return None
     if len(candidates) == 1:
         return candidates[0]
+
     target_region = _normalise_region(poi.get("region"))
-    if target_region:
-        for c in candidates:
-            if _normalise_region(c.get("region")) == target_region:
+    region_matches = [
+        c for c in candidates
+        if not target_region or _normalise_region(c.get("region")) == target_region
+    ] or candidates
+
+    target_sheet = (poi.get("sheet") or "").strip().lower()
+    if target_sheet:
+        for c in region_matches:
+            if (c.get("folha_origem") or "").strip().lower() == target_sheet:
                 return c
-    return candidates[0]
+
+    target_category = (poi.get("category") or "").strip().lower()
+    if target_category:
+        for c in region_matches:
+            if (c.get("category") or "").strip().lower() == target_category:
+                return c
+
+    return region_matches[0]
 
 
 async def apply(
@@ -246,4 +272,5 @@ async def main() -> int:
 
 
 if __name__ == "__main__":
+    logging.basicConfig(level=logging.INFO, format="%(message)s")
     sys.exit(asyncio.run(main()))
