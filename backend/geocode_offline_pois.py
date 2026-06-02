@@ -240,14 +240,24 @@ def main() -> int:
         log.info("\nℹ️  Dry-run: no files written.")
         return 0
 
-    # Append matched POIs into the output JSON, dedup by name_normalised + region.
+    # Append matched POIs into the output JSON. Dedup key has to include
+    # `sheet` (and source_id when present): the same display name + region
+    # can legitimately appear in multiple sheets — e.g. "Mercado do Bolhão"
+    # in *Mercados e Feiras* and *Restaurantes e Gastronomia*. Without
+    # `sheet` we silently dropped 76 such resolutions in the first pass.
+    def _dedup_key(p: dict) -> tuple:
+        return (
+            p["name_normalised"],
+            p.get("region", ""),
+            p.get("sheet", ""),
+            p.get("source_id") or "",
+        )
+
     out_payload = json.loads(args.out.read_text()) if args.out.exists() else {"pois": []}
-    existing_keys = {
-        (p["name_normalised"], p.get("region", "")) for p in out_payload.get("pois", [])
-    }
+    existing_keys = {_dedup_key(p) for p in out_payload.get("pois", [])}
     appended = 0
     for poi in matched:
-        k = (poi["name_normalised"], poi.get("region", ""))
+        k = _dedup_key(poi)
         if k in existing_keys:
             continue
         out_payload["pois"].append(poi)

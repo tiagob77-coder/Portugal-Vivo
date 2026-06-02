@@ -156,14 +156,21 @@ def main() -> int:
 
     save_cache(args.cache, cache)
 
-    # Merge into output JSON: append new_results to its pois list, dedup by name+region.
+    # Merge into output JSON. Include `sheet` (and source_id) in the dedup
+    # key — the same name+region may appear in multiple sheets.
+    def _dedup_key(p: dict) -> tuple:
+        return (
+            p["name_normalised"],
+            p.get("region", ""),
+            p.get("sheet", ""),
+            p.get("source_id") or "",
+        )
+
     out_payload = json.loads(args.out.read_text()) if args.out.exists() else {"pois": []}
-    existing_keys = {
-        (p["name_normalised"], p.get("region", "")) for p in out_payload.get("pois", [])
-    }
+    existing_keys = {_dedup_key(p) for p in out_payload.get("pois", [])}
     appended = 0
     for poi in new_results:
-        k = (poi["name_normalised"], poi.get("region", ""))
+        k = _dedup_key(poi)
         if k in existing_keys:
             continue
         out_payload["pois"].append(poi)
