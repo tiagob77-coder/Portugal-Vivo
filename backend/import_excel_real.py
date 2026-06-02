@@ -452,6 +452,33 @@ def extract_gps_from_text(value: str) -> Optional[Tuple[float, float]]:
     every one of those rows.
     """
     return parse_coord_text(value)
+    """Extract GPS from raw coordinate text.
+
+    Supports '41.276400, -8.283100' and the PT comma-decimal form
+    '41,276400; -8,283100' used by some Excel sheets (Barragens).
+    Returned coords are validated against the Portugal bounding box
+    (continent + Açores + Madeira).
+    """
+    if not value or not isinstance(value, str):
+        return None
+    # Comma-decimal form first ('41,276; -8,283') — needs a separator that
+    # isn't a comma so the two halves aren't ambiguous.
+    m = re.search(r'(-?\d{1,2},\d{3,8})\s*[;\s]+\s*(-?\d{1,2},\d{3,8})', value)
+    if m:
+        try:
+            lat = float(m.group(1).replace(",", "."))
+            lng = float(m.group(2).replace(",", "."))
+        except ValueError:
+            lat = lng = None
+        if lat is not None and 32 <= lat <= 43 and -32 <= lng <= -6:
+            return (lat, lng)
+    # Dot-decimal form ('41.276, -8.283' or '41.276; -8.283').
+    m = re.search(r'(-?\d+\.\d+)\s*[,;]\s*(-?\d+\.\d+)', value)
+    if m:
+        lat, lng = float(m.group(1)), float(m.group(2))
+        if 32 <= lat <= 43 and -32 <= lng <= -6:
+            return (lat, lng)
+    return None
 
 
 def make_slug(name: str) -> str:
@@ -668,8 +695,13 @@ def parse_sheet(ws, sheet_name: str, config: Dict) -> List[Dict]:
 async def import_all(db, excel_path: str = None):
     """Import all sheets from the Excel file into heritage_items."""
     if excel_path is None:
-        excel_path = str(ROOT_DIR / "PortugalVivo_BaseDados_POI_v19.xlsx")
-    
+        # Prefer data/ (canonical location), fall back to backend/ for legacy.
+        candidates = [
+            ROOT_DIR / "data" / "PortugalVivo_BaseDados_POI_v19.xlsx",
+            ROOT_DIR / "PortugalVivo_BaseDados_POI_v19.xlsx",
+        ]
+        excel_path = next((str(p) for p in candidates if p.exists()), str(candidates[0]))
+
     if not Path(excel_path).exists():
         logger.warning("Excel file not found: %s — skipping import", excel_path)
         return 0
