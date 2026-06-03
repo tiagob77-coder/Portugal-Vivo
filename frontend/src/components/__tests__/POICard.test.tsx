@@ -50,4 +50,23 @@ describe('POICard', () => {
     const { getByTestId } = render(<POICard poi={mockPOI} />, { wrapper });
     expect(() => fireEvent.press(getByTestId('poi-card'))).not.toThrow();
   });
+
+  // GEO-004 — show the approximate-location badge when the backend marks
+  // the POI's coords as centroid-derived.
+  it('renderiza badge de localização aproximada quando coord_precision="region"', () => {
+    const approxPoi = { ...mockPOI, coord_precision: 'region' };
+    const { getByTestId } = render(<POICard poi={approxPoi} />, { wrapper });
+    expect(getByTestId('approx-location-badge')).toBeTruthy();
+  });
+
+  it('NÃO renderiza badge quando coord_precision="precise"', () => {
+    const precisePoi = { ...mockPOI, coord_precision: 'precise' };
+    const { queryByTestId } = render(<POICard poi={precisePoi} />, { wrapper });
+    expect(queryByTestId('approx-location-badge')).toBeNull();
+  });
+
+  it('NÃO renderiza badge quando POI não traz proveniência (legacy)', () => {
+    const { queryByTestId } = render(<POICard poi={mockPOI} />, { wrapper });
+    expect(queryByTestId('approx-location-badge')).toBeNull();
+  });
 });

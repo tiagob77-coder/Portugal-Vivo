@@ -44,6 +44,7 @@ import type { MapMode } from '../../src/components/map';
 import { buildTrailShellRoute, hydrateTrailWaypoints } from '../../src/components/map/routeUtils';
 import type { RouteDetail, RouteWaypoint } from '../../src/components/map/RouteDetailSheet';
 import ErrorBoundary from '../../src/components/ErrorBoundary';
+import ApproxLocationBadge from '../../src/components/ApproxLocationBadge';
 
 const { width: _width, height: _height } = Dimensions.get('window');
 
@@ -711,6 +712,11 @@ function MapaTab() {
                   <View style={styles.calloutContainer}>
                     <Text style={styles.calloutTitle} numberOfLines={1}>{item.name}</Text>
                     <Text style={styles.calloutCategory}>{item.category} • {item.region}</Text>
+                    <ApproxLocationBadge
+                      precision={(item as any).coord_precision}
+                      approximate={(item as any).coord_approximate}
+                      compact
+                    />
                     <Text style={styles.calloutAction}>Toca para ver detalhes →</Text>
                   </View>
                 </Callout>
