@@ -1,6 +1,7 @@
 import React from 'react';
 import { TouchableOpacity, View, Text, StyleSheet } from 'react-native';
 import OptimizedImage from './OptimizedImage';
+import ApproxLocationBadge, { CoordPrecision } from './ApproxLocationBadge';
 
 export interface POI {
   id: string;
@@ -9,6 +10,11 @@ export interface POI {
   municipality?: string;
   distance_km?: number;
   cover_image?: string;
+  // GPS provenance — backend writes these on POIs whose coords come from a
+  // centroid (apply_poi_gps_v19 → GEO-004). Optional so legacy callers
+  // that don't pass them just render with no badge.
+  coord_precision?: CoordPrecision | string;
+  coord_approximate?: boolean;
 }
 
 interface POICardProps {
@@ -38,6 +44,11 @@ export default function POICard({ poi, onPress }: POICardProps) {
         {poi.municipality !== undefined && (
           <Text style={styles.municipality}>{poi.municipality}</Text>
         )}
+        <ApproxLocationBadge
+          precision={poi.coord_precision}
+          approximate={poi.coord_approximate}
+          compact
+        />
       </View>
     </TouchableOpacity>
   );
