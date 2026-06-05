@@ -1,3 +1,4 @@
+import { palette } from '../theme/colors';
 import React, { useEffect, useRef, useState } from 'react';
 import { Text, StyleSheet, Animated } from 'react-native';
 import NetInfo from '@react-native-community/netinfo';
@@ -69,5 +70,5 @@ const styles = StyleSheet.create({
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
     paddingBottom: 6, gap: 6,
   },
-  text: { color: '#FFF', fontSize: 13, fontWeight: '600' },
+  text: { color: palette.white, fontSize: 13, fontWeight: '600' },
 });

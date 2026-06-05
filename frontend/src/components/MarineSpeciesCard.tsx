@@ -2,6 +2,7 @@
  * MarineSpeciesCard — displays a Portuguese marine species with IUCN status,
  * season badge, activity months grid and expandable detail panel.
  */
+import { palette } from '../theme/colors';
 import React from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity,
@@ -186,7 +187,7 @@ function MarineSpeciesCard({ species, expanded = false, onPress }: MarineSpecies
                 { backgroundColor: colors.surface },
                 isActive && { backgroundColor: catColor },
                 isCurrent && styles.monthSquareCurrent,
-                isCurrent && isActive && { borderColor: '#FFFFFF' },
+                isCurrent && isActive && { borderColor: palette.white },
                 isCurrent && !isActive && { borderColor: catColor },
               ]}
             >
@@ -414,7 +415,7 @@ const styles = StyleSheet.create({
     color: '#475569',
   },
   monthLabelActive: {
-    color: '#FFFFFF',
+    color: palette.white,
   },
 
   // Expanded

@@ -1,6 +1,7 @@
 /**
  * GastronomyDishCard — rich card for Portuguese coastal gastronomy dishes
  */
+import { palette } from '../theme/colors';
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
@@ -55,7 +56,7 @@ const C = {
   textDark: '#FEF3C7',
   textMed: '#D6B896',
   textLight: '#A87D52',
-  white: '#FFFFFF',
+  white: palette.white,
 };
 
 // ─── Config Maps ──────────────────────────────────────────────────────────────

@@ -1,3 +1,4 @@
+import { palette } from '../theme/colors';
 import React from 'react';
 import { TouchableOpacity, View, Text, StyleSheet } from 'react-native';
 import OptimizedImage from './OptimizedImage';
@@ -56,12 +57,12 @@ export default function POICard({ poi, onPress }: POICardProps) {
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: '#fff',
+    backgroundColor: palette.white,
     borderRadius: 12,
     padding: 16,
     marginVertical: 6,
     marginHorizontal: 16,
-    shadowColor: '#000',
+    shadowColor: palette.black,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.08,
     shadowRadius: 4,

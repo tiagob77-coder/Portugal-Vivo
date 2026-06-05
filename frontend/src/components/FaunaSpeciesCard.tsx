@@ -1,6 +1,7 @@
 /**
  * FaunaSpeciesCard — card component for Portuguese wildlife species
  */
+import { palette } from '../theme/colors';
 import React from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity,
@@ -275,7 +276,7 @@ const styles = StyleSheet.create({
     borderLeftWidth: 4,
     padding: 14,
     marginBottom: 2,
-    shadowColor: '#000',
+    shadowColor: palette.black,
     shadowOpacity: 0.22,
     shadowRadius: 6,
     shadowOffset: { width: 0, height: 2 },
@@ -380,7 +381,7 @@ const styles = StyleSheet.create({
   goldBadgeText: {
     fontSize: 10,
     fontWeight: '700',
-    color: '#FFFFFF',
+    color: palette.white,
   },
   dangerBadge: {
     flexDirection: 'row',
@@ -394,7 +395,7 @@ const styles = StyleSheet.create({
   dangerBadgeText: {
     fontSize: 10,
     fontWeight: '700',
-    color: '#FFFFFF',
+    color: palette.white,
   },
   flagshipBadge: {
     flexDirection: 'row',
@@ -408,7 +409,7 @@ const styles = StyleSheet.create({
   flagshipBadgeText: {
     fontSize: 10,
     fontWeight: '700',
-    color: '#FFFFFF',
+    color: palette.white,
   },
   distanceBadge: {
     backgroundColor: '#D9770620',

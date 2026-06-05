@@ -146,7 +146,7 @@ export default function PremiumGate({
 
       {/* Gradient fade */}
       <LinearGradient
-        colors={[withOpacity(tc.background || '#fff', 0), tc.background || '#fff']}
+        colors={[withOpacity(tc.background || palette.white, 0), tc.background || palette.white]}
         style={[styles.fadeGradient, { height: previewHeight * 0.7 }]}
         pointerEvents="none"
       />
@@ -310,7 +310,7 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   unlockCtaText: {
-    color: '#fff',
+    color: palette.white,
     fontSize: 12,
     fontWeight: '700',
   },
@@ -442,7 +442,7 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   ctaBtnText: {
-    color: '#fff',
+    color: palette.white,
     fontSize: 16,
     fontWeight: '700',
   },

@@ -202,11 +202,11 @@ const styles = StyleSheet.create({
   },
   tabActive: { backgroundColor: stateColors.event.natureza },
   tabText: { fontSize: 13, color: '#166534', fontWeight: '600' },
-  tabTextActive: { color: '#fff' },
+  tabTextActive: { color: palette.white },
   content: { flex: 1, padding: 12 },
   card: {
-    backgroundColor: '#fff', borderRadius: 12, padding: 14, marginBottom: 10,
-    shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.08, shadowRadius: 4,
+    backgroundColor: palette.white, borderRadius: 12, padding: 14, marginBottom: 10,
+    shadowColor: palette.black, shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.08, shadowRadius: 4,
     elevation: 2,
   },
   cardHeader: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 4 },
@@ -232,7 +232,7 @@ const styles = StyleSheet.create({
   },
   scientificName: { fontSize: 13, color: stateColors.surf.flat, fontStyle: 'italic', marginBottom: 6 },
   iucnBadge: { paddingHorizontal: 8, paddingVertical: 2, borderRadius: 8 },
-  iucnText: { fontSize: 11, color: '#fff', fontWeight: '700' },
+  iucnText: { fontSize: 11, color: palette.white, fontWeight: '700' },
 });
 
 export default NatureExplorer;

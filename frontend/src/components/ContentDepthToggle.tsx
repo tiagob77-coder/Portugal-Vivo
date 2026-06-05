@@ -1,3 +1,4 @@
+import { palette } from '../theme/colors';
 import React, { useRef } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity, Animated,
@@ -87,7 +88,7 @@ export default function ContentDepthToggle({
             >
               <Text style={[
                 styles.compactLabel,
-                { color: isActive ? '#fff' : (colors.textSecondary || '#888') },
+                { color: isActive ? palette.white : (colors.textSecondary || '#888') },
               ]}>
                 {opt.label}
               </Text>
@@ -132,11 +133,11 @@ export default function ContentDepthToggle({
                 <MaterialIcons
                   name={opt.icon}
                   size={18}
-                  color={isActive ? '#fff' : (colors.textSecondary || '#888')}
+                  color={isActive ? palette.white : (colors.textSecondary || '#888')}
                 />
                 <Text style={[
                   styles.tabLabel,
-                  { color: isActive ? '#fff' : (colors.text || '#111') },
+                  { color: isActive ? palette.white : (colors.text || '#111') },
                   isActive && styles.tabLabelActive,
                 ]}>
                   {opt.label}

@@ -252,7 +252,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#FFFFFF',
+    color: palette.white,
   },
   qualityBadge: {
     backgroundColor: 'rgba(255,255,255,0.2)',
@@ -263,7 +263,7 @@ const styles = StyleSheet.create({
   qualityText: {
     fontSize: 12,
     fontWeight: '600',
-    color: '#FFFFFF',
+    color: palette.white,
   },
   spotSelector: {
     marginBottom: 16,
@@ -289,7 +289,7 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   spotChipTextSelected: {
-    color: '#FFFFFF',
+    color: palette.white,
     fontWeight: '600',
   },
   currentSection: {
@@ -307,7 +307,7 @@ const styles = StyleSheet.create({
   currentHeight: {
     fontSize: 48,
     fontWeight: '700',
-    color: '#FFFFFF',
+    color: palette.white,
   },
   currentUnit: {
     fontSize: 12,
@@ -358,7 +358,7 @@ const styles = StyleSheet.create({
   forecastHeight: {
     fontSize: 14,
     fontWeight: '700',
-    color: '#FFFFFF',
+    color: palette.white,
   },
   forecastDirection: {
     fontSize: 10,

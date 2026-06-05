@@ -13,6 +13,7 @@
  * device it appears again — that is intentional, it is the same trade-off
  * as every other consent banner on the web.
  */
+import { palette } from '../theme/colors';
 import React, { useEffect, useState } from 'react';
 import {
   View,
@@ -112,7 +113,7 @@ const styles = StyleSheet.create({
   icon: { marginRight: 4 },
   copy: { flex: 1 },
   title: {
-    color: '#FAF8F3',
+    color: palette.gray[50],
     fontSize: 13,
     fontWeight: '700',
     marginBottom: 2,
@@ -123,11 +124,11 @@ const styles = StyleSheet.create({
     lineHeight: 17,
   },
   link: {
-    color: '#C49A6C',
+    color: palette.terracotta[500],
     textDecorationLine: 'underline',
   },
   button: {
-    backgroundColor: '#C49A6C',
+    backgroundColor: palette.terracotta[500],
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 8,

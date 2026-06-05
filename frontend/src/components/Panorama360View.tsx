@@ -9,6 +9,7 @@
  *   title     — título do local
  *   onClose   — callback para fechar
  */
+import { palette } from '../theme/colors';
 import React, { useRef } from 'react';
 import {
   View, StyleSheet, TouchableOpacity, Text, Modal,
@@ -130,7 +131,7 @@ export default function Panorama360View({ imageUrl, title = 'Panorama 360°', on
   // Em web, renderizar inline (sem Modal)
   if (Platform.OS === 'web') {
     return (
-      <View style={[StyleSheet.absoluteFillObject, { zIndex: 1000, backgroundColor: '#000' }]}>
+      <View style={[StyleSheet.absoluteFillObject, { zIndex: 1000, backgroundColor: palette.black }]}>
         {content}
       </View>
     );
@@ -146,7 +147,7 @@ export default function Panorama360View({ imageUrl, title = 'Panorama 360°', on
 // ─── Estilos ─────────────────────────────────────────────────────────────────
 
 const s = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#000' },
+  container: { flex: 1, backgroundColor: palette.black },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -163,7 +164,7 @@ const s = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  title: { flex: 1, color: '#fff', fontSize: 15, fontWeight: '600' },
+  title: { flex: 1, color: palette.white, fontSize: 15, fontWeight: '600' },
   badge: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -173,14 +174,14 @@ const s = StyleSheet.create({
     paddingVertical: 4,
     borderRadius: 6,
   },
-  badgeText: { color: '#fff', fontSize: 11, fontWeight: '700' },
+  badgeText: { color: palette.white, fontSize: 11, fontWeight: '700' },
   viewer: { flex: 1, position: 'relative' },
-  webView: { flex: 1, backgroundColor: '#000' },
+  webView: { flex: 1, backgroundColor: palette.black },
   loadingOverlay: {
     ...StyleSheet.absoluteFillObject,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#000',
+    backgroundColor: palette.black,
     gap: 12,
     zIndex: 10,
   },

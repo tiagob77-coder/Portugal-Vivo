@@ -127,7 +127,7 @@ const CoastalDataCard: React.FC<CoastalDataCardProps> = ({ zone, compact = false
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: palette.white,
     borderRadius: borderRadius.lg,
     overflow: 'hidden',
     shadowColor: palette.ocean[600],

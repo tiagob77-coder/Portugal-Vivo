@@ -216,7 +216,7 @@ const styles = StyleSheet.create({
     paddingVertical: 2,
   },
   distanceText: {
-    color: '#FFF',
+    color: palette.white,
     fontSize: 10,
     fontWeight: '600',
   },

@@ -4,6 +4,7 @@
  * Loaded by Metro bundler for iOS and Android.
  * Supports: POI markers, route polylines, numbered waypoint markers, fitBounds.
  */
+import { palette } from '../theme/colors';
 import React, { useEffect } from 'react';
 import { StyleSheet, View, Text, Platform } from 'react-native';
 import MapView, { Marker, Callout, Polyline, PROVIDER_GOOGLE, PROVIDER_DEFAULT } from 'react-native-maps';
@@ -171,24 +172,24 @@ const styles = StyleSheet.create({
   markerOuter: {
     width: 28, height: 28, borderRadius: 14,
     justifyContent: 'center', alignItems: 'center',
-    shadowColor: '#000', shadowOffset: { width: 0, height: 2 },
+    shadowColor: palette.black, shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25, shadowRadius: 4, elevation: 4,
-    borderWidth: 2, borderColor: '#FFFFFF',
+    borderWidth: 2, borderColor: palette.white,
   },
-  markerInner: { width: 8, height: 8, borderRadius: 4, backgroundColor: '#FFFFFF' },
+  markerInner: { width: 8, height: 8, borderRadius: 4, backgroundColor: palette.white },
   waypointMarker: {
     width: 28, height: 28, borderRadius: 14,
     justifyContent: 'center', alignItems: 'center',
-    borderWidth: 2, borderColor: '#FFFFFF',
-    shadowColor: '#000', shadowOffset: { width: 0, height: 2 },
+    borderWidth: 2, borderColor: palette.white,
+    shadowColor: palette.black, shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.3, shadowRadius: 4, elevation: 5,
   },
-  waypointNum: { fontSize: 12, fontWeight: '700', color: '#FFFFFF' },
+  waypointNum: { fontSize: 12, fontWeight: '700', color: palette.white },
   calloutContainer: {
-    backgroundColor: '#264E41', borderRadius: 12,
+    backgroundColor: palette.forest[600], borderRadius: 12,
     padding: 12, minWidth: 180, maxWidth: 250,
   },
-  calloutTitle: { fontSize: 14, fontWeight: '600', color: '#FFFFFF', marginBottom: 4 },
+  calloutTitle: { fontSize: 14, fontWeight: '600', color: palette.white, marginBottom: 4 },
   calloutCategory: { fontSize: 12, color: '#C8C3B8', textTransform: 'capitalize', marginBottom: 6 },
-  calloutAction: { fontSize: 11, color: '#C49A6C', fontWeight: '500' },
+  calloutAction: { fontSize: 11, color: palette.terracotta[500], fontWeight: '500' },
 });

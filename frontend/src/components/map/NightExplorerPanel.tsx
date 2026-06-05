@@ -64,9 +64,9 @@ export default function NightExplorerPanel({
               <MaterialIcons
                 name={f.icon as any}
                 size={14}
-                color={isActive ? '#FFF' : f.color}
+                color={isActive ? palette.white : f.color}
               />
-              <Text style={[styles.chipText, isActive && { color: '#FFF' }]}>
+              <Text style={[styles.chipText, isActive && { color: palette.white }]}>
                 {f.label}
               </Text>
             </TouchableOpacity>

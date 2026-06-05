@@ -2,6 +2,7 @@
  * RouteDetailSheet.tsx — bottom slide-up sheet for route/trail detail
  * Shown in full-screen route mode over the map.
  */
+import { palette } from '../../theme/colors';
 import React from 'react';
 import {
   View,
@@ -67,7 +68,7 @@ const DIFFICULTY_COLORS: Record<string, string> = {
 export default function RouteDetailSheet({ route, onClose, onWaypointPress }: RouteDetailSheetProps) {
   if (!route) return null;
 
-  const typeColor = route.color || TYPE_COLORS[route.type] || '#C49A6C';
+  const typeColor = route.color || TYPE_COLORS[route.type] || palette.terracotta[500];
   const typeLabel = TYPE_LABELS[route.type] || route.type;
   const diffColor = DIFFICULTY_COLORS[route.difficulty || ''] || '#9CA3AF';
 
@@ -214,7 +215,7 @@ const s = StyleSheet.create({
     paddingTop: 10,
     paddingBottom: 16,
     zIndex: 100,
-    shadowColor: '#000',
+    shadowColor: palette.black,
     shadowOffset: { width: 0, height: -4 },
     shadowOpacity: 0.3,
     shadowRadius: 12,
@@ -295,7 +296,7 @@ const s = StyleSheet.create({
     alignItems: 'center',
     flexShrink: 0,
   },
-  waypointNumText: { fontSize: 11, fontWeight: '700', color: '#fff' },
+  waypointNumText: { fontSize: 11, fontWeight: '700', color: palette.white },
   waypointInfo: { flex: 1 },
   waypointName: { fontSize: 13, fontWeight: '600', color: '#E5E7EB' },
   waypointType: { fontSize: 11, color: '#6B7280', marginTop: 1, textTransform: 'capitalize' },
@@ -308,5 +309,5 @@ const s = StyleSheet.create({
     borderRadius: 12,
     marginTop: 10,
   },
-  startBtnText: { fontSize: 14, fontWeight: '700', color: '#fff' },
+  startBtnText: { fontSize: 14, fontWeight: '700', color: palette.white },
 });

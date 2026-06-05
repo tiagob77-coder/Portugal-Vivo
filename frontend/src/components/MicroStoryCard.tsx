@@ -1,3 +1,4 @@
+import { palette } from '../theme/colors';
 import React, { useState, useRef } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity, Animated, Pressable,
@@ -30,7 +31,7 @@ interface MicroStoryCardProps {
 const CATEGORY_COLORS: Record<string, string> = {
   castelos: '#8B4513',
   natureza: '#2E7D32',
-  gastronomia: '#C65D3B',
+  gastronomia: palette.rust[500],
   museus: '#5B5EA6',
   festas_romarias: '#E91E63',
   surf: '#0288D1',
@@ -177,7 +178,7 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     borderLeftWidth: 4,
     padding: 14,
-    shadowColor: '#000',
+    shadowColor: palette.black,
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.08,
     shadowRadius: 4,
@@ -255,7 +256,7 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   qsmText: {
-    color: '#fff',
+    color: palette.white,
     fontSize: 12,
     fontWeight: '600',
   },

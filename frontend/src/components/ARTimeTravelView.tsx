@@ -569,18 +569,18 @@ function WebTimeTravelFallback({
 // ─────────────────────────────────────────────────────────────────────────
 const styles = StyleSheet.create({
   // ── AR nativo ──
-  container: { flex: 1, backgroundColor: '#000' },
+  container: { flex: 1, backgroundColor: palette.black },
   permissionContainer: {
     flex: 1, backgroundColor: palette.gray[900],
     justifyContent: 'center', alignItems: 'center', padding: 32,
   },
-  permissionTitle: { fontSize: 22, fontWeight: '700', color: '#FFF', marginTop: 20, textAlign: 'center' },
+  permissionTitle: { fontSize: 22, fontWeight: '700', color: palette.white, marginTop: 20, textAlign: 'center' },
   permissionSubtitle: { fontSize: 15, color: palette.gray[400], marginTop: 12, textAlign: 'center', lineHeight: 22 },
   permissionBtn: {
     marginTop: 32, backgroundColor: palette.terracotta[500],
     paddingHorizontal: 28, paddingVertical: 14, borderRadius: 14,
   },
-  permissionBtnText: { color: '#FFF', fontSize: 16, fontWeight: '700' },
+  permissionBtnText: { color: palette.white, fontSize: 16, fontWeight: '700' },
 
   // Scanning
   scanOverlay: { justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(0,0,0,0.5)' },
@@ -611,14 +611,14 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0,0,0,0.55)', justifyContent: 'center', alignItems: 'center',
   },
   topInfo: { flex: 1 },
-  topTitle: { color: '#FFF', fontSize: 17, fontWeight: '700' },
+  topTitle: { color: palette.white, fontSize: 17, fontWeight: '700' },
   eraBadge: { flexDirection: 'row', alignItems: 'center', gap: 5, marginTop: 3 },
   eraBadgeText: { color: palette.terracotta[400], fontSize: 12, fontWeight: '600' },
   compassBadge: {
     flexDirection: 'row', alignItems: 'center', gap: 4,
     backgroundColor: 'rgba(0,0,0,0.5)', paddingHorizontal: 10, paddingVertical: 6, borderRadius: 12,
   },
-  compassText: { color: '#FFF', fontSize: 12, fontWeight: '600' },
+  compassText: { color: palette.white, fontSize: 12, fontWeight: '600' },
 
   // Floating facts (AR)
   factsPanel: {
@@ -628,14 +628,14 @@ const styles = StyleSheet.create({
   factsPanelBlur: { padding: 16 },
   factsTitle: { color: palette.terracotta[400], fontSize: 14, fontWeight: '700', marginBottom: 10 },
   factRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 8, marginBottom: 6 },
-  factText: { color: '#FFF', fontSize: 13, flex: 1, lineHeight: 18 },
+  factText: { color: palette.white, fontSize: 13, flex: 1, lineHeight: 18 },
 
   factsToggle: {
     position: 'absolute', top: 130, right: 16,
     flexDirection: 'row', alignItems: 'center', gap: 6,
     backgroundColor: 'rgba(0,0,0,0.55)', paddingHorizontal: 12, paddingVertical: 8, borderRadius: 20,
   },
-  factsToggleText: { color: '#FFF', fontSize: 12, fontWeight: '600' },
+  factsToggleText: { color: palette.white, fontSize: 12, fontWeight: '600' },
 
   // Era slider (AR)
   sliderContainer: {
@@ -643,7 +643,7 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: 20, borderTopRightRadius: 20, overflow: 'hidden',
   },
   sliderBlur: { padding: 20, paddingBottom: 36 },
-  sliderLabel: { color: '#FFF', fontSize: 12, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 14 },
+  sliderLabel: { color: palette.white, fontSize: 12, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 14 },
   eraChips: { flexDirection: 'row', gap: 10, flexWrap: 'wrap' },
   eraChip: {
     paddingHorizontal: 14, paddingVertical: 8, borderRadius: 20,
@@ -656,7 +656,7 @@ const styles = StyleSheet.create({
     borderColor: palette.terracotta[400],
   },
   eraChipYear: { color: 'rgba(255,255,255,0.7)', fontSize: 11, fontWeight: '700' },
-  eraChipYearActive: { color: '#FFF' },
+  eraChipYearActive: { color: palette.white },
   eraChipLabel: { color: 'rgba(255,255,255,0.5)', fontSize: 10, marginTop: 2 },
   eraChipLabelActive: { color: 'rgba(255,255,255,0.9)' },
 
@@ -676,10 +676,10 @@ const styles = StyleSheet.create({
     position: 'absolute', bottom: 0, left: 0, right: 0,
     padding: 20, paddingTop: 40,
   },
-  webHeroTitle: { color: '#FFF', fontSize: 22, fontWeight: '800', marginBottom: 6 },
+  webHeroTitle: { color: palette.white, fontSize: 22, fontWeight: '800', marginBottom: 6 },
   webFactsCard: {
     backgroundColor: palette.white, borderRadius: 16, padding: 16, marginBottom: 16,
-    shadowColor: '#000', shadowOpacity: 0.08, shadowRadius: 12, shadowOffset: { width: 0, height: 4 }, elevation: 3,
+    shadowColor: palette.black, shadowOpacity: 0.08, shadowRadius: 12, shadowOffset: { width: 0, height: 4 }, elevation: 3,
   },
   webFactsHeader: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   webFactsTitle: { flex: 1, fontSize: 14, fontWeight: '700', color: palette.gray[800] },

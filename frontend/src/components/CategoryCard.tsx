@@ -1,3 +1,4 @@
+import { palette } from '../theme/colors';
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { Image } from 'expo-image';
@@ -126,7 +127,7 @@ const styles = StyleSheet.create({
   name: {
     fontSize: 13,
     fontWeight: '700',
-    color: '#FFFFFF',
+    color: palette.white,
     marginBottom: 2,
     letterSpacing: 0.2,
   },
