@@ -8,6 +8,7 @@ import NetInfo from '@react-native-community/netinfo';
 import { Platform, Image } from 'react-native';
 import { HeritageItem } from '../types';
 import { secureStorage } from '../utils/secureStorage';
+import logger from '../utils/logger';
 
 // Lazy import to avoid circular dependency (api.ts imports offlineCache)
 const getApiFunctions = () => require('./api'); // eslint-disable-line @typescript-eslint/no-require-imports
@@ -70,7 +71,7 @@ class OfflineCacheService {
       // Auto-sync when coming back online
       if (wasOffline && this.isOnline) {
         this.syncOfflineActions().catch((err) =>
-          console.warn('[OfflineCache] Auto-sync failed:', err)
+          logger.warn('[OfflineCache] Auto-sync failed:', err)
         );
       }
     });
@@ -97,7 +98,7 @@ class OfflineCacheService {
       };
       await AsyncStorage.setItem(key, JSON.stringify(entry));
     } catch (error) {
-      console.error('Cache set error:', error);
+      logger.error('Cache set error:', error);
     }
   }
 
@@ -120,7 +121,7 @@ class OfflineCacheService {
 
       return entry.data;
     } catch (error) {
-      console.error('Cache get error:', error);
+      logger.error('Cache get error:', error);
       return null;
     }
   }
@@ -290,7 +291,7 @@ class OfflineCacheService {
     // on iOS/Android.
     const token = await secureStorage.getItem('session_token');
     if (!token) {
-      console.warn('Offline sync skipped: no session token');
+      logger.warn('Offline sync skipped: no session token');
       return { success: 0, failed: queue.length };
     }
 

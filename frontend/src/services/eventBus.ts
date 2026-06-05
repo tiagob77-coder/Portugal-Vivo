@@ -14,6 +14,8 @@
  * Zero deps, fully typed, ~1KB minified.
  */
 
+import logger from '../utils/logger';
+
 export type AppEvent =
   | 'user.login'
   | 'user.logout'
@@ -48,9 +50,7 @@ class EventBus {
         l(payload);
       } catch (err) {
         // Listeners must not break the bus
-        if (typeof console !== 'undefined') {
-          console.warn(`[eventBus] listener for "${event}" threw:`, err);
-        }
+        logger.warn(`[eventBus] listener for "${event}" threw:`, err);
       }
     });
   }

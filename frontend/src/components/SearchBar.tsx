@@ -6,7 +6,7 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, ActivityIndicator, Keyboard, Platform, ScrollView } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import { debounce } from 'lodash';
+import debounce from 'lodash/debounce';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import { API_URL } from '../config/api';

@@ -12,6 +12,7 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { View, StyleSheet, TouchableOpacity, Text } from 'react-native';
 import type { MapItem, LeafletMapProps, WaypointMarker } from './NativeMap.types';
+import logger from '../utils/logger';
 
 // Re-export types for backwards compatibility
 export type { MapItem, LeafletMapProps, WaypointMarker };
@@ -61,7 +62,7 @@ async function loadMapLibre(): Promise<any> {
   if (_mlgl) return _mlgl;
   if (typeof window === 'undefined') return null;
   if (!isWebGLSupported()) {
-    console.warn('[MapLibre] WebGL not supported in this browser');
+    logger.warn('[MapLibre] WebGL not supported in this browser');
     return null;
   }
   try {
@@ -78,7 +79,7 @@ async function loadMapLibre(): Promise<any> {
     }
     return _mlgl;
   } catch (err) {
-    console.warn('[MapLibre] Falha ao carregar:', err);
+    logger.warn('[MapLibre] Falha ao carregar:', err);
     return null;
   }
 }

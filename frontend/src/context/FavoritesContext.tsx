@@ -6,6 +6,7 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { eventBus } from '../services/eventBus';
+import logger from '../utils/logger';
 
 const STORAGE_KEY = '@portugal_vivo_favorites';
 
@@ -49,7 +50,7 @@ export function FavoritesProvider({ children }: { children: ReactNode }) {
           }
         }
       } catch (e) {
-        console.warn('Failed to load favorites:', e);
+        logger.warn('Failed to load favorites:', e);
       } finally {
         setIsLoaded(true);
       }
@@ -61,7 +62,7 @@ export function FavoritesProvider({ children }: { children: ReactNode }) {
     try {
       await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(newFavs));
     } catch (e) {
-      console.warn('Failed to save favorites:', e);
+      logger.warn('Failed to save favorites:', e);
     }
   }, []);
 

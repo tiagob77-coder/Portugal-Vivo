@@ -11,6 +11,7 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { palette } from '../theme';
 import { useTheme } from '../context/ThemeContext';
+import { PUBLIC_URL } from '../config/api';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const _CARD_WIDTH = Math.min(SCREEN_WIDTH - 48, 380);
@@ -34,15 +35,13 @@ const SHARE_TARGETS = [
   { id: 'facebook', label: 'Facebook', icon: 'facebook' as const, color: '#1877F2' },
 ];
 
-const BASE_URL = process.env.EXPO_PUBLIC_BACKEND_URL || '';
-
 export default function SocialShareCard({
   type, id, title, description, category, categoryColor, region, imageUrl, stats,
 }: SocialShareCardProps) {
   const [modalVisible, setModalVisible] = useState(false);
   const [copied, setCopied] = useState(false);
 
-  const shareUrl = `${BASE_URL}/api/share/${type === 'poi' ? 'poi' : 'route'}/${id}`;
+  const shareUrl = `${PUBLIC_URL}/${type === 'poi' ? 'heritage' : 'route'}/${id}`;
   const shortDesc = description.length > 120 ? description.slice(0, 117) + '...' : description;
 
   const handleShare = async (targetId: string) => {

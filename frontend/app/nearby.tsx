@@ -9,6 +9,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import * as Location from 'expo-location';
 import { useTheme } from '../src/context/ThemeContext';
 import { palette, categoryColors, withOpacity } from '../src/theme/colors';
+import logger from '../src/utils/logger';
 
 function makeStyles(C: Record<string, string>) {
   return StyleSheet.create({
@@ -344,7 +345,7 @@ export default function NearbyScreen() {
           longitude: currentLocation.coords.longitude,
         });
       } catch (error) {
-        console.error('Location error:', error);
+        logger.error('Location error:', error);
         setLocationError('Não foi possível obter a sua localização. Verifique se o GPS está ativo.');
       } finally {
         setIsLoadingLocation(false);
@@ -393,7 +394,7 @@ export default function NearbyScreen() {
         longitude: currentLocation.coords.longitude,
       });
     } catch (error) {
-      console.error('Error refreshing location:', error);
+      logger.error('Error refreshing location:', error);
     }
 
     await refetch();

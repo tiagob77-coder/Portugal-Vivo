@@ -9,7 +9,7 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useQuery } from '@tanstack/react-query';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { getStats, getTopScoredItems, getStories, TopScoredItem, StoryItem } from '../src/services/api';
+import api, { getStats, getTopScoredItems, getStories, TopScoredItem, StoryItem } from '../src/services/api';
 import { regionImages } from '../src/theme';
 import { useTheme } from '../src/context/ThemeContext';
 import { palette, categoryColors, withOpacity } from '../src/theme/colors';
@@ -536,12 +536,11 @@ export default function WelcomeScreen() {
                 onPress={async () => {
                   if (!email) return;
                   try {
-                    const res = await fetch(`${process.env.EXPO_PUBLIC_BACKEND_URL}/api/newsletter/subscribe`, {
-                      method: 'POST',
-                      headers: { 'Content-Type': 'application/json' },
-                      body: JSON.stringify({ email, interests: ['natureza', 'gastronomia', 'patrimonio'] }),
+                    await api.post('/newsletter/subscribe', {
+                      email,
+                      interests: ['natureza', 'gastronomia', 'patrimonio'],
                     });
-                    if (res.ok) setEmailSent(true);
+                    setEmailSent(true);
                   } catch { setEmailSent(false); }
                 }}
                 data-testid="newsletter-submit"
