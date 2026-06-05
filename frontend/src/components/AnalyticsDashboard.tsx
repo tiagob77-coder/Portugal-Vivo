@@ -2,6 +2,7 @@
  * Analytics Dashboard - Engagement metrics overview for platform admins.
  * Displays visits, retention, top POIs, top routes, user growth, and category/region engagement.
  */
+import { palette } from '../theme/colors';
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, ActivityIndicator, TouchableOpacity } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
@@ -227,7 +228,7 @@ const styles = StyleSheet.create({
   },
   periodBtnActive: { backgroundColor: '#2563EB' },
   periodBtnText: { fontSize: 13, fontWeight: '600', color: '#475569' },
-  periodBtnTextActive: { color: '#FFFFFF' },
+  periodBtnTextActive: { color: palette.white },
 
   // Section
   sectionTitle: { fontSize: 16, fontWeight: '700', color: '#1E293B', marginTop: 20, marginBottom: 12 },
@@ -235,8 +236,8 @@ const styles = StyleSheet.create({
   // Metric cards
   cardRow: { flexDirection: 'row', gap: 10 },
   metricCard: {
-    flex: 1, backgroundColor: '#FFFFFF', borderRadius: 12, padding: 14,
-    alignItems: 'center', shadowColor: '#000', shadowOpacity: 0.05,
+    flex: 1, backgroundColor: palette.white, borderRadius: 12, padding: 14,
+    alignItems: 'center', shadowColor: palette.black, shadowOpacity: 0.05,
     shadowRadius: 4, shadowOffset: { width: 0, height: 2 }, elevation: 2,
   },
   metricValue: { fontSize: 22, fontWeight: '700', marginTop: 6 },
@@ -244,8 +245,8 @@ const styles = StyleSheet.create({
 
   // Growth
   growthCard: {
-    backgroundColor: '#FFFFFF', borderRadius: 12, padding: 16,
-    shadowColor: '#000', shadowOpacity: 0.05, shadowRadius: 4,
+    backgroundColor: palette.white, borderRadius: 12, padding: 16,
+    shadowColor: palette.black, shadowOpacity: 0.05, shadowRadius: 4,
     shadowOffset: { width: 0, height: 2 }, elevation: 2,
   },
   growthHeader: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 12 },
@@ -257,9 +258,9 @@ const styles = StyleSheet.create({
 
   // List items
   listItem: {
-    flexDirection: 'row', alignItems: 'center', backgroundColor: '#FFFFFF',
+    flexDirection: 'row', alignItems: 'center', backgroundColor: palette.white,
     borderRadius: 10, padding: 12, marginBottom: 8,
-    shadowColor: '#000', shadowOpacity: 0.03, shadowRadius: 2,
+    shadowColor: palette.black, shadowOpacity: 0.03, shadowRadius: 2,
     shadowOffset: { width: 0, height: 1 }, elevation: 1,
   },
   rank: { fontSize: 14, fontWeight: '700', color: '#94A3B8', width: 30 },

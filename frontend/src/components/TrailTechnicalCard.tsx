@@ -2,6 +2,7 @@
  * TrailTechnicalCard — Cartão técnico de trilho
  * Mostra: distância, duração, elevação, dificuldade, tipo de trilho, terreno.
  */
+import { palette } from '../theme/colors';
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
@@ -55,7 +56,7 @@ export default function TrailTechnicalCard({ data }: Props) {
 
   const stats = [
     { icon: 'straighten', color: '#3B82F6', value: data.distance_km ? `${data.distance_km.toFixed(1)} km` : '—', label: 'Distância' },
-    { icon: 'schedule', color: '#C49A6C', value: fmtDuration(data.estimated_hours), label: 'Duração' },
+    { icon: 'schedule', color: palette.terracotta[500], value: fmtDuration(data.estimated_hours), label: 'Duração' },
     { icon: 'arrow-upward', color: '#22C55E', value: data.elevation_gain ? `+${data.elevation_gain}m` : '—', label: 'Subida' },
     { icon: 'terrain', color: '#8B5CF6', value: data.max_elevation ? `${data.max_elevation}m` : '—', label: 'Alt. Máx.' },
   ] as const;
@@ -98,10 +99,10 @@ export default function TrailTechnicalCard({ data }: Props) {
 
 const tc = StyleSheet.create({
   container: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: palette.white,
     borderRadius: 14,
     padding: 16,
-    shadowColor: '#000',
+    shadowColor: palette.black,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.06,
     shadowRadius: 8,

@@ -1,6 +1,7 @@
 /**
  * InfrastructureCard — card for passadiços, pontes suspensas, ecovias, miradouros, torres e vias verdes
  */
+import { palette } from '../theme/colors';
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
@@ -78,7 +79,7 @@ const C = {
   textMed:  '#57534E',
   textLight: '#78716C',
   border:   '#E7E5E4',
-  card:     '#FFFFFF',
+  card:     palette.white,
   warning:  '#FEF3C7',
   warningBorder: '#F59E0B',
 };

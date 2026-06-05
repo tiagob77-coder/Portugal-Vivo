@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * Smoke tests for admin / management screens:
  * admin, analytics, dashboard, iq-admin, iq-dashboard, iq-overview, importer, content-toolkit

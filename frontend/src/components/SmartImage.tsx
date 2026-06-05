@@ -12,6 +12,7 @@
  *
  * Built on expo-image with disk caching, blurhash placeholder, and 200ms transition.
  */
+import { palette } from '../theme/colors';
 import React, { useState, useMemo } from 'react';
 import { View, StyleSheet, StyleProp, ViewStyle } from 'react-native';
 import { Image, ImageContentFit } from 'expo-image';
@@ -180,7 +181,7 @@ type CategoryFallback = {
 const CATEGORY_FALLBACKS: Record<string, CategoryFallback> = {
   castelos: { icon: 'castle', gradient: ['#7C5832', '#3E2818'] },
   museus: { icon: 'museum', gradient: ['#5B7BA8', '#2A3E5C'] },
-  palacios_solares: { icon: 'account-balance', gradient: ['#B08556', '#6E4F2A'] },
+  palacios_solares: { icon: 'account-balance', gradient: [palette.terracotta[600], '#6E4F2A'] },
   igrejas: { icon: 'church', gradient: ['#8B6F4D', '#4E3E2A'] },
   religioso: { icon: 'church', gradient: ['#8B6F4D', '#4E3E2A'] },
   arte_urbana: { icon: 'palette', gradient: ['#C44536', '#7A2A1F'] },
@@ -222,7 +223,7 @@ const CATEGORY_FALLBACKS: Record<string, CategoryFallback> = {
 
 const DEFAULT_FALLBACK: CategoryFallback = {
   icon: 'image',
-  gradient: ['#C49A6C', '#7A5E3F'],
+  gradient: [palette.terracotta[500], '#7A5E3F'],
 };
 
 /** Deterministic string hash → number. Same input always returns same output. */

@@ -1,6 +1,7 @@
 /**
  * FloraSpeciesCard — card component for native/endemic Portuguese flora species
  */
+import { palette } from '../theme/colors';
 import React from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity,
@@ -258,7 +259,7 @@ const styles = StyleSheet.create({
     borderLeftWidth: 4,
     padding: 14,
     marginBottom: 2,
-    shadowColor: '#000',
+    shadowColor: palette.black,
     shadowOpacity: 0.18,
     shadowRadius: 6,
     shadowOffset: { width: 0, height: 2 },
@@ -331,7 +332,7 @@ const styles = StyleSheet.create({
   goldBadgeText: {
     fontSize: 10,
     fontWeight: '700',
-    color: '#FFFFFF',
+    color: palette.white,
     letterSpacing: 0.2,
   },
 
@@ -433,7 +434,7 @@ const styles = StyleSheet.create({
     color: '#4B7A52',
   },
   monthSquareTextActive: {
-    color: '#FFFFFF',
+    color: palette.white,
   },
 
   // Habitats

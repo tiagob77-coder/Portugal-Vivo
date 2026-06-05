@@ -11,7 +11,6 @@ import SkeletonCard from '../../src/components/SkeletonCard';
 import { LinearGradient } from 'expo-linear-gradient';
 
 const { width: _width, height: _height } = Dimensions.get('window');
-const GOOGLE_MAPS_API_KEY = process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY || '';
 
 // Conditional import for WebView (only on native)
 let WebView: any = null;
@@ -272,90 +271,51 @@ export default function CategoryScreen() {
       </head>
       <body>
         <div id="map"></div>
+        <link href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css" rel="stylesheet" />
+        <script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
         <script>
-          let map;
-          let markers = [];
-          let currentInfoWindow = null;
-          
-          function initMap() {
-            map = new google.maps.Map(document.getElementById('map'), {
-              center: { lat: ${mapCenter.lat}, lng: ${mapCenter.lng} },
-              zoom: ${mapZoom},
-              styles: [
-                { elementType: "geometry", stylers: [{ color: "#1e293b" }] },
-                { elementType: "labels.text.stroke", stylers: [{ color: "#0f172a" }] },
-                { elementType: "labels.text.fill", stylers: [{ color: "#94a3b8" }] },
-                { featureType: "water", elementType: "geometry", stylers: [{ color: "#0c4a6e" }] },
-                { featureType: "road", elementType: "geometry", stylers: [{ color: "#2A2F2A" }] },
-                { featureType: "poi.park", elementType: "geometry", stylers: [{ color: "#166534" }] },
-              ],
-              mapTypeControl: true,
-              mapTypeControlOptions: {
-                style: google.maps.MapTypeControlStyle.DROPDOWN_MENU,
-                position: google.maps.ControlPosition.TOP_RIGHT
-              },
-              streetViewControl: true,
-              fullscreenControl: true,
-              zoomControl: true,
-            });
-            
-            const data = [${markers}];
-            
-            data.forEach((item, index) => {
-              const marker = new google.maps.Marker({
-                position: item.position,
-                map: map,
-                title: item.title,
-                icon: {
-                  path: google.maps.SymbolPath.CIRCLE,
-                  scale: 10,
-                  fillColor: '${meta.color}',
-                  fillOpacity: 1,
-                  strokeColor: '#ffffff',
-                  strokeWeight: 2,
-                },
-                animation: google.maps.Animation.DROP,
-              });
-              
-              const infoContent = \`
-                <div class="info-window">
-                  <h3>\${item.title}</h3>
-                  <p>\${item.address || 'Portugal'}</p>
-                  <button onclick="openInMaps('\${item.title}', '\${item.address || 'Portugal'}')">
-                    Abrir no Google Maps
-                  </button>
-                </div>
-              \`;
-              
-              const infoWindow = new google.maps.InfoWindow({
-                content: infoContent,
-              });
-              
-              marker.addListener('click', () => {
-                if (currentInfoWindow) {
-                  currentInfoWindow.close();
-                }
-                infoWindow.open(map, marker);
-                currentInfoWindow = infoWindow;
-              });
-              
-              markers.push(marker);
-            });
-            
-            // Fit bounds if multiple markers
-            if (markers.length > 1) {
-              const bounds = new google.maps.LatLngBounds();
-              markers.forEach(marker => bounds.extend(marker.getPosition()));
-              map.fitBounds(bounds, { padding: 50 });
-            }
-          }
-          
           function openInMaps(name, address) {
             const query = encodeURIComponent(name + ', ' + address);
-            window.open('https://www.google.com/maps/search/?api=1&query=' + query, '_blank');
+            window.open('https://www.openstreetmap.org/search?query=' + query, '_blank');
           }
+
+          function initMap() {
+            const map = new maplibregl.Map({
+              container: 'map',
+              // CARTO Dark-Matter vector tiles — free, no API key
+              style: 'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json',
+              center: [${mapCenter.lng}, ${mapCenter.lat}],
+              zoom: ${mapZoom},
+            });
+            map.addControl(new maplibregl.NavigationControl(), 'top-right');
+            map.addControl(new maplibregl.FullscreenControl(), 'top-right');
+
+            const data = [${markers}];
+
+            map.on('load', () => {
+              const bounds = new maplibregl.LngLatBounds();
+              data.forEach((item) => {
+                const lngLat = [item.position.lng, item.position.lat];
+                const popup = new maplibregl.Popup({ offset: 24 }).setHTML(
+                  '<div class="info-window"><h3>' + item.title + '</h3>' +
+                  '<p>' + (item.address || 'Portugal') + '</p>' +
+                  '<button onclick="openInMaps(&quot;' + item.title + '&quot;, &quot;' + (item.address || 'Portugal') + '&quot;)">Abrir navega&ccedil;&atilde;o</button></div>'
+                );
+                new maplibregl.Marker({ color: '${meta.color}' })
+                  .setLngLat(lngLat)
+                  .setPopup(popup)
+                  .addTo(map);
+                bounds.extend(lngLat);
+              });
+              if (data.length > 1) {
+                map.fitBounds(bounds, { padding: 50, maxZoom: 14 });
+              }
+            });
+          }
+
+          if (window.maplibregl) { initMap(); }
+          else { window.addEventListener('load', initMap); }
         </script>
-        <script async defer src="https://maps.googleapis.com/maps/api/js?key=${GOOGLE_MAPS_API_KEY}&callback=initMap"></script>
       </body>
       </html>
     `;

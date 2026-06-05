@@ -19,8 +19,6 @@ if (Platform.OS !== 'web') {
   WebView = require('react-native-webview').WebView;
 }
 
-const GOOGLE_MAPS_API_KEY = (process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY || '').replace(/[^A-Za-z0-9_\-]/g, '');
-
 const CATEGORY_COLORS: Record<string, string> = {
   vinho: '#7C3AED',
   pao: '#B08556',
@@ -137,6 +135,120 @@ export default function RouteDetailScreen() {
     category: item.category,
     order: idx + 1,
   }));
+
+  // Interactive route map — MapLibre GL JS + CARTO tiles (free, no API key).
+  // Reused by the native WebView and the web <iframe srcDoc>.
+  const interactiveMapHtml = `<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<link href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css" rel="stylesheet" />
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%;width:100%;overflow:hidden}
+#map{height:100%;width:100%}
+.info-window{padding:4px}
+.info-title{font-size:14px;font-weight:700;color:#264E41;margin-bottom:4px}
+.info-desc{font-size:12px;color:#64748B;line-height:1.4}
+.info-order{display:inline-block;background:${color};color:white;width:20px;height:20px;border-radius:50%;text-align:center;line-height:20px;font-size:11px;font-weight:700;margin-right:6px}
+.pin{width:28px;height:28px;border-radius:50%;border:3px solid #fff;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:12px;box-shadow:0 1px 4px rgba(0,0,0,0.4)}
+</style>
+<script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
+</head>
+<body>
+<div id="map"></div>
+<script>
+const routeColor = '${color}';
+const stops = ${JSON.stringify((items || []).filter(i => i.location).map((item, idx) => ({
+  order: idx + 1,
+  name: item.name,
+  description: item.description ? item.description.slice(0, 100) + '...' : '',
+  lat: item.location?.lat,
+  lng: item.location?.lng,
+})))};
+const userLat = ${userLocation?.lat ?? 'null'};
+const userLng = ${userLocation?.lng ?? 'null'};
+const defaultLat = ${routeStartCoords.lat};
+const defaultLng = ${routeStartCoords.lng};
+const routeName = '${(route?.name || 'Rota').replace(/'/g, "\\'")}';
+const regionName = '${((route?.region || 'portugal').charAt(0).toUpperCase() + (route?.region || 'portugal').slice(1))}';
+
+function pinEl(label) {
+  const el = document.createElement('div');
+  el.className = 'pin';
+  el.style.background = routeColor;
+  if (label) el.textContent = label;
+  return el;
+}
+
+function initMap() {
+  const map = new maplibregl.Map({
+    container: 'map',
+    style: 'https://basemaps.cartocdn.com/gl/voyager-gl-style/style.json',
+    center: [defaultLng, defaultLat],
+    zoom: stops.length > 0 ? 9 : 8,
+  });
+  map.addControl(new maplibregl.NavigationControl(), 'top-right');
+
+  map.on('load', () => {
+    if (stops.length === 0) {
+      new maplibregl.Marker({ element: pinEl('') })
+        .setLngLat([defaultLng, defaultLat])
+        .setPopup(new maplibregl.Popup({ offset: 18 }).setHTML(
+          '<div class="info-window"><div class="info-title">' + routeName + '</div>' +
+          '<div class="info-desc">Regi&atilde;o: ' + regionName + '<br>Paragens em breve...</div></div>'
+        ))
+        .addTo(map)
+        .togglePopup();
+      return;
+    }
+
+    const bounds = new maplibregl.LngLatBounds();
+    const coords = [];
+
+    stops.forEach((stop) => {
+      const lngLat = [stop.lng, stop.lat];
+      coords.push(lngLat);
+      bounds.extend(lngLat);
+      const popup = new maplibregl.Popup({ offset: 18 }).setHTML(
+        '<div class="info-window"><div class="info-title">' +
+        '<span class="info-order">' + stop.order + '</span>' + stop.name + '</div>' +
+        (stop.description ? '<div class="info-desc">' + stop.description + '</div>' : '') + '</div>'
+      );
+      new maplibregl.Marker({ element: pinEl(String(stop.order)) })
+        .setLngLat(lngLat)
+        .setPopup(popup)
+        .addTo(map);
+    });
+
+    if (coords.length > 1) {
+      map.addSource('route', { type: 'geojson', data: { type: 'Feature', geometry: { type: 'LineString', coordinates: coords } } });
+      map.addLayer({
+        id: 'route-line', type: 'line', source: 'route',
+        layout: { 'line-cap': 'round', 'line-join': 'round' },
+        paint: { 'line-color': routeColor, 'line-width': 4, 'line-opacity': 0.85 },
+      });
+    }
+
+    if (userLat && userLng) {
+      const up = document.createElement('div');
+      up.className = 'pin';
+      up.style.background = '#3B82F6';
+      up.style.width = '18px';
+      up.style.height = '18px';
+      new maplibregl.Marker({ element: up }).setLngLat([userLng, userLat]).addTo(map);
+      bounds.extend([userLng, userLat]);
+    }
+
+    map.fitBounds(bounds, { padding: 50, maxZoom: 13 });
+  });
+}
+
+if (window.maplibregl) { initMap(); } else { window.addEventListener('load', initMap); }
+</script>
+</body>
+</html>`;
 
   const openNavigation = () => {
     const destination = `${routeStartCoords.lat},${routeStartCoords.lng}`;
@@ -330,179 +442,7 @@ export default function RouteDetailScreen() {
           <View style={styles.interactiveMapContainer}>
             {Platform.OS !== 'web' && WebView ? (
               <WebView
-                source={{ 
-                  html: `<!DOCTYPE html>
-<html>
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<style>
-*{margin:0;padding:0;box-sizing:border-box}
-html,body{height:100%;width:100%;overflow:hidden}
-#map{height:100%;width:100%}
-.gm-style-iw{max-width:220px!important}
-.info-window{padding:4px}
-.info-title{font-size:14px;font-weight:700;color:#264E41;margin-bottom:4px}
-.info-desc{font-size:12px;color:#64748B;line-height:1.4}
-.info-order{display:inline-block;background:${color};color:white;width:20px;height:20px;border-radius:50%;text-align:center;line-height:20px;font-size:11px;font-weight:700;margin-right:6px}
-</style>
-<script src="https://maps.googleapis.com/maps/api/js?key=${GOOGLE_MAPS_API_KEY}&libraries=geometry"></script>
-</head>
-<body>
-<div id="map"></div>
-<script>
-const routeColor = '${color}';
-const stops = ${JSON.stringify(items.filter(i => i.location).map((item, idx) => ({
-  order: idx + 1,
-  name: item.name,
-  description: item.description?.slice(0, 100) + '...' || '',
-  lat: item.location?.lat,
-  lng: item.location?.lng
-})))};
-
-const userLat = ${userLocation?.lat || 'null'};
-const userLng = ${userLocation?.lng || 'null'};
-const defaultLat = ${routeStartCoords.lat};
-const defaultLng = ${routeStartCoords.lng};
-const routeName = '${route.name.replace(/'/g, "\\'")}';
-const regionName = '${(route.region || 'portugal').charAt(0).toUpperCase() + (route.region || 'portugal').slice(1)}';
-
-function initMap() {
-  const map = new google.maps.Map(document.getElementById('map'), {
-    center: {lat: defaultLat, lng: defaultLng},
-    zoom: stops.length > 0 ? 10 : 9,
-    mapTypeId: 'roadmap',
-    disableDefaultUI: false,
-    zoomControl: true,
-    mapTypeControl: false,
-    streetViewControl: false,
-    fullscreenControl: false,
-    gestureHandling: 'greedy',
-    styles: [
-      {featureType:'poi',stylers:[{visibility:'off'}]},
-      {featureType:'transit',stylers:[{visibility:'off'}]}
-    ]
-  });
-  
-  if (stops.length === 0) {
-    // No stops - show route start region with info
-    new google.maps.Marker({
-      position: {lat: defaultLat, lng: defaultLng},
-      map: map,
-      icon: {
-        path: google.maps.SymbolPath.CIRCLE,
-        scale: 18,
-        fillColor: routeColor,
-        fillOpacity: 1,
-        strokeColor: 'white',
-        strokeWeight: 3
-      },
-      title: routeName
-    });
-    
-    const infoWindow = new google.maps.InfoWindow({
-      content: '<div class="info-window"><div class="info-title">' + routeName + '</div><div class="info-desc">Região: ' + regionName + '<br>Paragens em breve...</div></div>',
-      maxWidth: 250
-    });
-    infoWindow.setPosition({lat: defaultLat, lng: defaultLng});
-    infoWindow.open(map);
-    return;
-  }
-
-  const bounds = new google.maps.LatLngBounds();
-
-  const pathCoords = [];
-  const markers = [];
-  
-  stops.forEach((stop, index) => {
-    const position = {lat: stop.lat, lng: stop.lng};
-    pathCoords.push(position);
-    bounds.extend(position);
-    
-    const marker = new google.maps.Marker({
-      position: position,
-      map: map,
-      label: {
-        text: String(stop.order),
-        color: 'white',
-        fontSize: '12px',
-        fontWeight: '700'
-      },
-      icon: {
-        path: google.maps.SymbolPath.CIRCLE,
-        scale: 16,
-        fillColor: routeColor,
-        fillOpacity: 1,
-        strokeColor: 'white',
-        strokeWeight: 3
-      },
-      title: stop.name
-    });
-    
-    const infoContent = '<div class="info-window">' +
-      '<div class="info-title"><span class="info-order">' + stop.order + '</span>' + stop.name + '</div>' +
-      (stop.description ? '<div class="info-desc">' + stop.description + '</div>' : '') +
-      '</div>';
-    
-    const infoWindow = new google.maps.InfoWindow({
-      content: infoContent,
-      maxWidth: 250
-    });
-    
-    marker.addListener('click', () => {
-      markers.forEach(m => m.infoWindow && m.infoWindow.close());
-      infoWindow.open(map, marker);
-    });
-    
-    marker.infoWindow = infoWindow;
-    markers.push(marker);
-  });
-  
-  // Draw route path
-  if (pathCoords.length > 1) {
-    const routePath = new google.maps.Polyline({
-      path: pathCoords,
-      geodesic: true,
-      strokeColor: routeColor,
-      strokeOpacity: 0.8,
-      strokeWeight: 4
-    });
-    routePath.setMap(map);
-  }
-  
-  // User location marker
-  if (userLat && userLng) {
-    const userPosition = {lat: userLat, lng: userLng};
-    bounds.extend(userPosition);
-    
-    new google.maps.Marker({
-      position: userPosition,
-      map: map,
-      icon: {
-        path: google.maps.SymbolPath.CIRCLE,
-        scale: 10,
-        fillColor: '#3B82F6',
-        fillOpacity: 1,
-        strokeColor: 'white',
-        strokeWeight: 3
-      },
-      title: 'A sua posição'
-    });
-  }
-  
-  map.fitBounds(bounds, {top: 50, bottom: 50, left: 50, right: 50});
-  
-  // Open first marker info
-  if (markers.length > 0) {
-    setTimeout(() => markers[0].infoWindow.open(map, markers[0]), 500);
-  }
-}
-
-initMap();
-</script>
-</body>
-</html>` 
-                }}
+                source={{ html: interactiveMapHtml }}
                 style={styles.interactiveMapWebView}
                 scrollEnabled={false}
                 javaScriptEnabled={true}
@@ -520,28 +460,13 @@ initMap();
               />
             ) : Platform.OS === 'web' ? (
               <View style={styles.webMapContainer}>
-                {items.filter(i => i.location).length > 0 ? (
-                  <iframe
-                    src={`https://www.google.com/maps/embed/v1/place?key=${GOOGLE_MAPS_API_KEY}&q=${routeStartCoords.lat},${routeStartCoords.lng}&zoom=10`}
-                    style={{ width: '100%', height: '100%', borderRadius: 12, border: 'none' }}
-                    title="Route Map"
-                    loading="lazy"
-                    allowFullScreen
-                  />
-                ) : (
-                  <ImageBackground
-                    source={{ 
-                      uri: `https://maps.googleapis.com/maps/api/staticmap?center=${routeStartCoords.lat},${routeStartCoords.lng}&zoom=10&size=600x400&maptype=roadmap&markers=color:0x${color.replace('#', '')}%7C${routeStartCoords.lat},${routeStartCoords.lng}&key=${GOOGLE_MAPS_API_KEY}`
-                    }}
-                    style={styles.staticMapImage}
-                    imageStyle={{ borderRadius: 12 }}
-                  >
-                    <View style={styles.mapOverlayInfo}>
-                      <Text style={styles.mapInfoText}>{route.name}</Text>
-                      <Text style={styles.mapInfoSubtext}>Região: {(route.region || 'Portugal').charAt(0).toUpperCase() + (route.region || 'Portugal').slice(1)}</Text>
-                    </View>
-                  </ImageBackground>
-                )}
+                <iframe
+                  srcDoc={interactiveMapHtml}
+                  style={{ width: '100%', height: '100%', borderRadius: 12, border: 'none' }}
+                  title="Route Map"
+                  loading="lazy"
+                  allowFullScreen
+                />
               </View>
             ) : (
               <View style={styles.mapFallback}>

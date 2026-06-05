@@ -2,6 +2,7 @@
  * Badge/Chip component - category labels, region tags, status indicators.
  * Uses theme-aware colors and the unified color utilities.
  */
+import { palette } from '../../theme/colors';
 import React from 'react';
 import { View, Text, StyleSheet, ViewStyle } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
@@ -28,7 +29,7 @@ export default function Badge({
   const badgeColor = color || colors.primary;
 
   const variantStyles: Record<string, { bg: string; text: string; border?: string }> = {
-    filled: { bg: badgeColor, text: '#FFFFFF' },
+    filled: { bg: badgeColor, text: palette.white },
     soft: { bg: withOpacity(badgeColor, 0.12), text: badgeColor },
     outline: { bg: 'transparent', text: badgeColor, border: withOpacity(badgeColor, 0.3) },
   };

@@ -460,7 +460,7 @@ const styles = StyleSheet.create({
   dopBadgeText: {
     fontSize: 10,
     fontWeight: '800',
-    color: '#FFFFFF',
+    color: palette.white,
     letterSpacing: 0.6,
   },
 });
@@ -525,7 +525,7 @@ const subStyles = StyleSheet.create({
     letterSpacing: 0,
   },
   seasonDotLabelIn: {
-    color: '#FFFFFF',
+    color: palette.white,
   },
   seasonDotLabelOut: {
     color: C.textLight,

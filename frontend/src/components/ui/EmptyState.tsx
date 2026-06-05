@@ -4,6 +4,7 @@
  * Usage:
  *   <EmptyState icon="search-off" title="Sem resultados" subtitle="Tente outra pesquisa" />
  */
+import { palette } from '../../theme/colors';
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
@@ -84,7 +85,7 @@ const styles = StyleSheet.create({
     borderRadius: borders.radius.lg,
   },
   buttonText: {
-    color: '#FFFFFF',
+    color: palette.white,
     fontSize: typography.fontSize.base,
     fontWeight: typography.fontWeight.semibold,
   },

@@ -9,6 +9,7 @@
  *   posterUrl — imagem de pré-visualização (opcional)
  *   onClose   — callback para fechar player
  */
+import { palette } from '../theme/colors';
 import React, { useRef, useState, useCallback } from 'react';
 import {
   View, StyleSheet, TouchableOpacity, Text,
@@ -152,7 +153,7 @@ export default function PoiVideoPlayer({
 // ─── Estilos ─────────────────────────────────────────────────────────────────
 
 const s = StyleSheet.create({
-  container: { position: 'relative', backgroundColor: '#000', overflow: 'hidden' },
+  container: { position: 'relative', backgroundColor: palette.black, overflow: 'hidden' },
   containerDefault: { height: 220, borderRadius: 12 },
   containerFullscreen: { ...StyleSheet.absoluteFillObject, zIndex: 100, borderRadius: 0 },
   compact: { height: 160, borderRadius: 10 },
@@ -174,7 +175,7 @@ const s = StyleSheet.create({
   progressBar: {
     position: 'absolute', bottom: 40, left: 0, right: 0, height: 2, backgroundColor: 'rgba(255,255,255,0.3)',
   },
-  progressFill: { height: 2, backgroundColor: '#C49A6C' },
+  progressFill: { height: 2, backgroundColor: palette.terracotta[500] },
 
   controls: {
     position: 'absolute', bottom: 0, left: 0, right: 0,

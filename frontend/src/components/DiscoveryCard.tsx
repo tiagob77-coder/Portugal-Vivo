@@ -226,7 +226,7 @@ const styles = StyleSheet.create({
   geoText: { fontSize: 12, color: palette.gray[500] },
   section: {
     backgroundColor: palette.white, marginHorizontal: 12, marginTop: 10, borderRadius: 14,
-    padding: 14, shadowColor: '#000', shadowOffset: { width: 0, height: 1 },
+    padding: 14, shadowColor: palette.black, shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.06, shadowRadius: 3, elevation: 1,
   },
   sectionHeader: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 8 },

@@ -170,7 +170,7 @@ const s = StyleSheet.create({
     flexDirection: 'row', alignItems: 'center', gap: 5,
     paddingHorizontal: 12, paddingVertical: 6, borderRadius: 8,
   },
-  claimBtnText: { color: '#fff', fontSize: 12, fontWeight: '700' },
+  claimBtnText: { color: palette.white, fontSize: 12, fontWeight: '700' },
 
   inProgress: {
     paddingHorizontal: 10, paddingVertical: 5, borderRadius: 8,

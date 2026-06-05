@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * Smoke tests for all (tabs) screens.
  * Verifies each screen renders without crashing.

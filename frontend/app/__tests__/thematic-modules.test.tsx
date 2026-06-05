@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * Smoke tests for 9 thematic module screens:
  * costa, economia, flora, fauna, gastronomia,
