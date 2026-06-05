@@ -251,11 +251,11 @@ function ProfileScreen() {
               <Text style={styles.loginButtonText}>Entrar com Google</Text>
             </TouchableOpacity>
             <View style={styles.legalLinksRow}>
-              <Text style={[styles.legalLink, { color: colors.textMuted }]} onPress={() => router.push('/privacy' as any)}>
+              <Text style={[styles.legalLink, { color: colors.textMuted }]} onPress={() => router.push('/privacy')}>
                 Política de Privacidade
               </Text>
               <Text style={[styles.legalLinkSep, { color: colors.textMuted }]}>·</Text>
-              <Text style={[styles.legalLink, { color: colors.textMuted }]} onPress={() => router.push('/terms' as any)}>
+              <Text style={[styles.legalLink, { color: colors.textMuted }]} onPress={() => router.push('/terms')}>
                 Termos
               </Text>
             </View>
@@ -299,7 +299,7 @@ function ProfileScreen() {
             <View style={{ height: 1, backgroundColor: colors.borderLight, marginHorizontal: 16 }} />
             <TouchableOpacity
               style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 14 }}
-              onPress={() => router.push('/settings/language' as any)}
+              onPress={() => router.push('/settings/language')}
               accessibilityLabel="Mudar idioma"
               accessibilityRole="button"
             >
@@ -344,7 +344,7 @@ function ProfileScreen() {
               <TouchableOpacity
                 key={item.label}
                 style={[styles.actionButton, idx < primaryMenuItems.length - 1 && { borderBottomColor: colors.borderLight, borderBottomWidth: 1 }]}
-                onPress={() => router.push(item.route as any)}
+                onPress={() => router.push(item.route)}
                 accessibilityLabel={item.label}
                 accessibilityRole="button"
               >
@@ -375,7 +375,7 @@ function ProfileScreen() {
                 <TouchableOpacity
                   key={item.label}
                   style={[styles.actionButton, idx < advancedMenuItems.length - 1 && { borderBottomColor: colors.borderLight, borderBottomWidth: 1 }]}
-                  onPress={() => router.push(item.route as any)}
+                  onPress={() => router.push(item.route)}
                   data-testid={(item as any).testId}
                   accessibilityLabel={item.label}
                   accessibilityRole="button"
@@ -408,7 +408,7 @@ function ProfileScreen() {
             </TouchableOpacity>
             <TouchableOpacity
               style={styles.actionButton}
-              onPress={() => router.push('/settings/appearance' as any)}
+              onPress={() => router.push('/settings/appearance')}
               accessibilityLabel="Aparência avançada"
               accessibilityRole="button"
             >
@@ -420,7 +420,7 @@ function ProfileScreen() {
             </TouchableOpacity>
             <TouchableOpacity
               style={[styles.actionButton, { borderBottomWidth: 0 }]}
-              onPress={() => router.push('/settings/language' as any)}
+              onPress={() => router.push('/settings/language')}
               accessibilityLabel="Mudar idioma"
               accessibilityRole="button"
             >
@@ -439,7 +439,7 @@ function ProfileScreen() {
           <View style={[styles.quickActions, { backgroundColor: colors.surface, borderColor: colors.borderLight, marginTop: 16 }]}>
             <TouchableOpacity
               style={[styles.actionButton, { borderBottomColor: colors.borderLight, borderBottomWidth: 1 }]}
-              onPress={() => router.push('/privacy' as any)}
+              onPress={() => router.push('/privacy')}
               accessibilityLabel="Política de Privacidade"
               accessibilityRole="button"
             >
@@ -451,7 +451,7 @@ function ProfileScreen() {
             </TouchableOpacity>
             <TouchableOpacity
               style={[styles.actionButton, { borderBottomColor: colors.borderLight, borderBottomWidth: 1 }]}
-              onPress={() => router.push('/terms' as any)}
+              onPress={() => router.push('/terms')}
               accessibilityLabel="Termos de Utilização"
               accessibilityRole="button"
             >

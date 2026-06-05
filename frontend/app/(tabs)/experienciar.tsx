@@ -216,7 +216,7 @@ function ExperienciarTab() {
     <TouchableOpacity
       key={event.id}
       style={[styles.eventCard, { backgroundColor: colors.card, borderColor: colors.border }]}
-      onPress={() => router.push(`/evento/${event.id}` as any)}
+      onPress={() => router.push(`/evento/${event.id}`)}
       activeOpacity={0.8}
       data-testid={`event-card-${event.id}`}
       accessibilityLabel={`Ver evento ${event.name}`}
@@ -253,7 +253,7 @@ function ExperienciarTab() {
     <TouchableOpacity
       key={`pop-${event.id}`}
       style={[styles.popularCard, { backgroundColor: colors.card, borderColor: colors.border }]}
-      onPress={() => router.push(`/evento/${event.id}` as any)}
+      onPress={() => router.push(`/evento/${event.id}`)}
       activeOpacity={0.85}
       accessibilityLabel={`Ver evento ${event.name}`}
       accessibilityRole="button"
@@ -351,7 +351,7 @@ function ExperienciarTab() {
         {suggestionOfDay && (
           <TouchableOpacity
             activeOpacity={0.9}
-            onPress={() => router.push(`/evento/${suggestionOfDay.id}` as any)}
+            onPress={() => router.push(`/evento/${suggestionOfDay.id}`)}
             style={[styles.suggestionCard, { borderColor: colors.border }]}
             accessibilityLabel={`Sugestão do dia: ${suggestionOfDay.name}`}
             accessibilityRole="button"
@@ -440,7 +440,7 @@ function ExperienciarTab() {
                 <TouchableOpacity
                   key={`sel-${event.id}`}
                   style={styles.selectedDayItem}
-                  onPress={() => router.push(`/evento/${event.id}` as any)}
+                  onPress={() => router.push(`/evento/${event.id}`)}
                   accessibilityLabel={`Ver evento ${event.name}`}
                   accessibilityRole="button"
                 >

@@ -346,7 +346,7 @@ function ZoneCard({ zone, activeProfile, onPress, isExpanded }: ZoneCardProps) {
         {/* Ver detalhes button */}
         <TouchableOpacity
           style={cardStyles.detailsBtn}
-          onPress={() => router.push(`/costa/${zone.id}` as any)}
+          onPress={() => router.push(`/costa/${zone.id}`)}
           activeOpacity={0.8}
         >
           <Text style={cardStyles.detailsBtnText}>Ver detalhes</Text>

@@ -136,7 +136,7 @@ export default function TermsScreen() {
         <Section title="8. Privacidade">
           <P>
             O tratamento de dados pessoais é descrito na nossa{' '}
-            <Link onPress={() => router.push('/privacy' as any)}>Política de Privacidade</Link>,
+            <Link onPress={() => router.push('/privacy')}>Política de Privacidade</Link>,
             que faz parte integrante destes termos.
           </P>
         </Section>

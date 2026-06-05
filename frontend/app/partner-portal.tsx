@@ -361,7 +361,7 @@ export default function PartnerPortalScreen() {
           </Text>
           <TouchableOpacity
             style={[styles.registerBtn, { backgroundColor: palette.terracotta[500] }]}
-            onPress={() => router.push('/partner-register' as any)}
+            onPress={() => router.push('/partner-register')}
           >
             <Text style={styles.registerBtnText}>Registar Organização</Text>
           </TouchableOpacity>

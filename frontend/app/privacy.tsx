@@ -141,7 +141,7 @@ export default function PrivacyScreen() {
           <Bullet><B>Retificação:</B> corrigir dados incorretos no seu perfil.</Bullet>
           <Bullet>
             <B>Apagamento (&quot;direito ao esquecimento&quot;):</B> eliminar a sua
-            conta e todos os dados associados em <Link onPress={() => router.push('/profile' as any)}>Perfil → Conta</Link>.
+            conta e todos os dados associados em <Link onPress={() => router.push('/profile')}>Perfil → Conta</Link>.
           </Bullet>
           <Bullet>
             <B>Portabilidade:</B> exportar uma cópia dos seus dados em formato JSON na

@@ -134,7 +134,7 @@ export default function EncyclopediaArticlePage() {
                 <TouchableOpacity
                   key={item.id}
                   style={styles.relatedItem}
-                  onPress={() => router.push(`/heritage/${item.id}` as any)}
+                  onPress={() => router.push(`/heritage/${item.id}`)}
                 >
                   <MaterialIcons name="place" size={18} color="#6B9E78" />
                   <View style={{ flex: 1, marginLeft: 10 }}>

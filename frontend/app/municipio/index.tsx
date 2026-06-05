@@ -132,7 +132,7 @@ function PoiAttentionRow({ poi }: { poi: PoiAttention }) {
   return (
     <TouchableOpacity
       style={s.attentionRow}
-      onPress={() => router.push('/municipio/pois' as any)}
+      onPress={() => router.push('/municipio/pois')}
       activeOpacity={0.7}
     >
       <View style={[s.attentionDot, { backgroundColor: color }]} />
@@ -162,7 +162,7 @@ function NoPartnerState() {
       </Text>
       <TouchableOpacity
         style={s.emptyButton}
-        onPress={() => router.push('/partner-portal' as any)}
+        onPress={() => router.push('/partner-portal')}
         activeOpacity={0.8}
       >
         <Text style={s.emptyButtonText}>Registar organização</Text>
@@ -369,22 +369,22 @@ export default function MunicipioDashboard() {
             <QuickActionButton
               label="Adicionar POI"
               iconName="add-location"
-              onPress={() => router.push('/municipio/pois?new=1' as any)}
+              onPress={() => router.push('/municipio/pois?new=1')}
             />
             <QuickActionButton
               label="Importar Excel"
               iconName="upload-file"
-              onPress={() => router.push('/municipio/importar' as any)}
+              onPress={() => router.push('/municipio/importar')}
             />
             <QuickActionButton
               label="Ver Eventos"
               iconName="event"
-              onPress={() => router.push('/municipio/eventos' as any)}
+              onPress={() => router.push('/municipio/eventos')}
             />
             <QuickActionButton
               label="Gerir Equipa"
               iconName="group"
-              onPress={() => router.push('/municipio/utilizadores' as any)}
+              onPress={() => router.push('/municipio/utilizadores')}
             />
           </View>
         </View>
@@ -393,7 +393,7 @@ export default function MunicipioDashboard() {
         <View style={[s.card, { marginBottom: isWeb ? 32 : 16 }]}>
           <View style={s.cardTitleRow}>
             <Text style={s.cardTitle}>POIs que precisam de atenção</Text>
-            <TouchableOpacity onPress={() => router.push('/municipio/pois' as any)}>
+            <TouchableOpacity onPress={() => router.push('/municipio/pois')}>
               <Text style={s.seeAll}>Ver todos</Text>
             </TouchableOpacity>
           </View>

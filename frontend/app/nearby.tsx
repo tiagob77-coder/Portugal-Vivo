@@ -517,7 +517,7 @@ export default function NearbyScreen() {
           <View style={{ flexDirection: 'row', gap: 8 }}>
             <TouchableOpacity
               style={[s.refreshButton, { backgroundColor: withOpacity(C.accent, 0.2) }]}
-              onPress={() => router.push('/explore-around' as any)}
+              onPress={() => router.push('/explore-around')}
             >
               <MaterialIcons name="explore" size={20} color={C.accent} />
             </TouchableOpacity>

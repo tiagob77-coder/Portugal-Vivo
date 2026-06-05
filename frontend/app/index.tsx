@@ -283,7 +283,7 @@ export default function WelcomeScreen() {
           )}
           <TouchableOpacity
             style={s.profileBtn}
-            onPress={() => router.push('/(tabs)/profile' as any)}
+            onPress={() => router.push('/(tabs)/profile')}
             data-testid="connect-btn"
           >
             <MaterialIcons name="person" size={20} color={palette.white} />
@@ -357,7 +357,7 @@ export default function WelcomeScreen() {
                 key={card.id}
                 style={[s.actionCard, { width: isWide ? (width - 80) / 4 - 12 : (width - 52) / 2 }]}
                 activeOpacity={0.85}
-                onPress={() => router.push(card.route as any)}
+                onPress={() => router.push(card.route)}
                 data-testid={`action-${card.id}`}
               >
                 <ImageBackground
@@ -400,7 +400,7 @@ export default function WelcomeScreen() {
                 key={region.id}
                 style={s.regionCard}
                 activeOpacity={0.85}
-                onPress={() => router.push(`/(tabs)/mapa?region=${region.id}&t=${Date.now()}` as any)}
+                onPress={() => router.push(`/(tabs)/mapa?region=${region.id}&t=${Date.now()}`)}
                 data-testid={`landing-region-${region.id}`}
               >
                 <ImageBackground
@@ -445,7 +445,7 @@ export default function WelcomeScreen() {
                   key={item.id || i}
                   style={s.descCard}
                   activeOpacity={0.85}
-                  onPress={() => item.id ? router.push(`/heritage/${item.id}` as any) : null}
+                  onPress={() => item.id ? router.push(`/heritage/${item.id}`) : null}
                   data-testid={`descoberta-${i}`}
                 >
                   <ImageBackground
@@ -481,7 +481,7 @@ export default function WelcomeScreen() {
                   key={story.id}
                   style={s.storyCard}
                   activeOpacity={0.85}
-                  onPress={() => router.push(`/heritage/${story.id}` as any)}
+                  onPress={() => router.push(`/heritage/${story.id}`)}
                   data-testid={`story-${i}`}
                 >
                   <ImageBackground source={{ uri: story.image_url }} style={s.storyCardImg} imageStyle={{ borderTopLeftRadius: 16, borderTopRightRadius: 16 }}>

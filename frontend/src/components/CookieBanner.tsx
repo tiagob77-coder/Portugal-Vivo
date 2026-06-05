@@ -67,7 +67,7 @@ export default function CookieBanner() {
             publicidade nem de tracking.{' '}
             <Text
               style={styles.link}
-              onPress={() => router.push('/privacy' as any)}
+              onPress={() => router.push('/privacy')}
               accessibilityRole="link"
             >
               Saber mais

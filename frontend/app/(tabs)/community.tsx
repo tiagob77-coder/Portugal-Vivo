@@ -166,7 +166,7 @@ export default function CommunityScreen() {
         <View style={styles.contributionFooter}>
           <TouchableOpacity
             style={styles.authorInfo}
-            onPress={() => router.push(`/profile/${item.user_id}` as any)}
+            onPress={() => router.push(`/profile/${item.user_id}`)}
             accessibilityRole="link"
             accessibilityLabel={`Ver perfil de ${item.user_name}`}
           >
