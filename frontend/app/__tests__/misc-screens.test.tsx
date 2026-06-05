@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * Smoke tests for miscellaneous screens:
  * auth, comboios, route-planner, categories,

@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * Smoke tests for detail / dynamic-route screens.
  * Verifies each screen renders without crashing when given a mock param.

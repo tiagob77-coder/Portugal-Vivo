@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * Smoke tests for feature screens:
  * search, premium, gamification, leaderboard, achievements, onboarding,
