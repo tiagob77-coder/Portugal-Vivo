@@ -4,9 +4,98 @@ import api, { cachedGet } from './client';
 // NATURE & BIODIVERSITY
 // ========================
 
+export interface ProtectedArea {
+  id: string;
+  name: string;
+  designation?: string;
+  description?: string;
+  region?: string;
+  area_km2?: number;
+  distance_km?: number;
+  network?: string;
+  location?: { lat: number; lng: number };
+}
+
+export interface Natura2000Site {
+  id: string;
+  name: string;
+  site_type?: string;
+  region?: string;
+  area_km2?: number;
+  distance_km?: number;
+  location?: { lat: number; lng: number };
+}
+
+export interface BiodiversityStation {
+  id: string;
+  name: string;
+  habitat_type?: string;
+  species_count?: number;
+  highlights?: string[];
+  distance_km?: number;
+  location?: { lat: number; lng: number };
+}
+
+export interface NotableSpecies {
+  taxon_key: number;
+  name: string;
+  scientific?: string;
+  iucn?: string;
+  habitat?: string;
+  regions?: string[];
+  image_url?: string;
+}
+
+export interface SpeciesObservation {
+  taxon_key: number;
+  name: string;
+  scientific?: string;
+  distance_km?: number;
+  observed_at?: string;
+  location?: { lat: number; lng: number };
+}
+
+export interface SpeciesCount {
+  total: number;
+  by_kingdom?: Record<string, number>;
+  by_iucn?: Record<string, number>;
+}
+
+export interface SpeciesDetails extends NotableSpecies {
+  kingdom?: string;
+  family?: string;
+  description?: string;
+  threats?: string[];
+  conservation_status?: string;
+  wikipedia_url?: string;
+}
+
+export interface NatureMapLayer {
+  id: string;
+  name: string;
+  type?: string;
+  url?: string;
+}
+
+export interface ReverseGeocodeResult {
+  concelho?: string;
+  distrito?: string;
+  freguesia?: string;
+  region?: string;
+}
+
+export interface Municipality {
+  concelho: string;
+  distrito?: string;
+  region?: string;
+  population?: number;
+  area_km2?: number;
+  center?: { lat: number; lng: number };
+}
+
 export const getProtectedAreas = async (params?: {
   lat?: number; lng?: number; radius_km?: number; network?: string;
-}): Promise<{ areas: any[]; total: number }> => {
+}): Promise<{ areas: ProtectedArea[]; total: number }> => {
   const key = `cache_protected_areas_${JSON.stringify(params || {})}`;
   return cachedGet(key, async () => {
     const response = await api.get('/nature/protected-areas', { params });
@@ -14,14 +103,14 @@ export const getProtectedAreas = async (params?: {
   });
 };
 
-export const getNearestProtectedArea = async (lat: number, lng: number): Promise<any> => {
+export const getNearestProtectedArea = async (lat: number, lng: number): Promise<ProtectedArea | null> => {
   const response = await api.get('/nature/protected-areas/nearest', { params: { lat, lng } });
   return response.data;
 };
 
 export const getNatura2000Sites = async (params?: {
   lat?: number; lng?: number; radius_km?: number; site_type?: string;
-}): Promise<{ sites: any[]; total: number }> => {
+}): Promise<{ sites: Natura2000Site[]; total: number }> => {
   const key = `cache_natura2000_${JSON.stringify(params || {})}`;
   return cachedGet(key, async () => {
     const response = await api.get('/nature/natura2000', { params });
@@ -31,7 +120,7 @@ export const getNatura2000Sites = async (params?: {
 
 export const getBiodiversityStations = async (params?: {
   lat?: number; lng?: number; radius_km?: number;
-}): Promise<{ stations: any[]; total: number }> => {
+}): Promise<{ stations: BiodiversityStation[]; total: number }> => {
   const key = `cache_biodiversity_${JSON.stringify(params || {})}`;
   return cachedGet(key, async () => {
     const response = await api.get('/nature/biodiversity-stations', { params });
@@ -39,22 +128,24 @@ export const getBiodiversityStations = async (params?: {
   });
 };
 
-export const getNearestBiodiversityStation = async (lat: number, lng: number): Promise<any> => {
+export const getNearestBiodiversityStation = async (lat: number, lng: number): Promise<BiodiversityStation | null> => {
   const response = await api.get('/nature/biodiversity-stations/nearest', { params: { lat, lng } });
   return response.data;
 };
 
-export const getSpeciesNearby = async (lat: number, lng: number, radius_km: number = 10, limit: number = 20): Promise<{ species: any[]; total: number }> => {
+export const getSpeciesNearby = async (
+  lat: number, lng: number, radius_km: number = 10, limit: number = 20,
+): Promise<{ species: SpeciesObservation[]; total: number }> => {
   const response = await api.get('/nature/species/nearby', { params: { lat, lng, radius_km, limit } });
   return response.data;
 };
 
-export const getSpeciesCount = async (lat: number, lng: number, radius_km: number = 10): Promise<any> => {
+export const getSpeciesCount = async (lat: number, lng: number, radius_km: number = 10): Promise<SpeciesCount> => {
   const response = await api.get('/nature/species/count', { params: { lat, lng, radius_km } });
   return response.data;
 };
 
-export const getNotableSpecies = async (region?: string): Promise<{ species: any[]; total: number }> => {
+export const getNotableSpecies = async (region?: string): Promise<{ species: NotableSpecies[]; total: number }> => {
   const key = `cache_notable_species_${region || 'all'}`;
   return cachedGet(key, async () => {
     const response = await api.get('/nature/species/notable', { params: region ? { region } : {} });
@@ -62,7 +153,7 @@ export const getNotableSpecies = async (region?: string): Promise<{ species: any
   });
 };
 
-export const getSpeciesDetails = async (taxonKey: number): Promise<any> => {
+export const getSpeciesDetails = async (taxonKey: number): Promise<SpeciesDetails> => {
   const key = `cache_species_${taxonKey}`;
   return cachedGet(key, async () => {
     const response = await api.get(`/nature/species/${taxonKey}`);
@@ -70,7 +161,7 @@ export const getSpeciesDetails = async (taxonKey: number): Promise<any> => {
   });
 };
 
-export const getNatureMapLayers = async (): Promise<{ layers: any[] }> => {
+export const getNatureMapLayers = async (): Promise<{ layers: NatureMapLayer[] }> => {
   const key = 'cache_nature_map_layers';
   return cachedGet(key, async () => {
     const response = await api.get('/nature/map-layers');
@@ -78,12 +169,12 @@ export const getNatureMapLayers = async (): Promise<{ layers: any[] }> => {
   });
 };
 
-export const reverseGeocode = async (lat: number, lng: number): Promise<any> => {
+export const reverseGeocode = async (lat: number, lng: number): Promise<ReverseGeocodeResult> => {
   const response = await api.get('/nature/geo/reverse', { params: { lat, lng } });
   return response.data;
 };
 
-export const getMunicipality = async (concelho: string): Promise<any> => {
+export const getMunicipality = async (concelho: string): Promise<Municipality | null> => {
   const key = `cache_municipality_${concelho}`;
   return cachedGet(key, async () => {
     const response = await api.get(`/nature/geo/municipality/${concelho}`);

@@ -7,15 +7,19 @@ import {
   getNotableSpecies,
   getNatura2000Sites as _getNatura2000Sites,
   getNatureMapLayers,
+  type ProtectedArea,
+  type BiodiversityStation,
+  type NotableSpecies,
+  type NatureMapLayer,
 } from '../services/api';
 import { stateColors, palette } from '../theme';
 
 interface NatureExplorerProps {
   lat?: number;
   lng?: number;
-  onAreaPress?: (area: any) => void;
-  onStationPress?: (station: any) => void;
-  onSpeciesPress?: (species: any) => void;
+  onAreaPress?: (area: ProtectedArea) => void;
+  onStationPress?: (station: BiodiversityStation) => void;
+  onSpeciesPress?: (species: NotableSpecies) => void;
 }
 
 const NatureExplorer: React.FC<NatureExplorerProps> = ({
@@ -25,10 +29,10 @@ const NatureExplorer: React.FC<NatureExplorerProps> = ({
   onStationPress,
   onSpeciesPress,
 }) => {
-  const [areas, setAreas] = useState<any[]>([]);
-  const [stations, setStations] = useState<any[]>([]);
-  const [species, setSpecies] = useState<any[]>([]);
-  const [_mapLayers, setMapLayers] = useState<any[]>([]);
+  const [areas, setAreas] = useState<ProtectedArea[]>([]);
+  const [stations, setStations] = useState<BiodiversityStation[]>([]);
+  const [species, setSpecies] = useState<NotableSpecies[]>([]);
+  const [_mapLayers, setMapLayers] = useState<NatureMapLayer[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'areas' | 'stations' | 'species'>('areas');
 
@@ -178,7 +182,7 @@ const NatureExplorer: React.FC<NatureExplorerProps> = ({
   );
 };
 
-const getIUCNColor = (status: string): string => {
+const getIUCNColor = (status: string | undefined): string => {
   switch (status) {
     case 'CR': return '#DC2626';
     case 'EN': return '#EA580C';
