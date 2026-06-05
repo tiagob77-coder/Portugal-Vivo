@@ -224,7 +224,7 @@ export default function AlbumScreen() {
             <View style={s.empty}>
               <MaterialIcons name="favorite" size={40} color={colors.textMuted} />
               <Text style={s.emptyText}>Favoritos guardados no perfil</Text>
-              <TouchableOpacity style={s.emptyBtn} onPress={() => router.push('/profile' as any)}>
+              <TouchableOpacity style={s.emptyBtn} onPress={() => router.push('/profile')}>
                 <Text style={s.emptyBtnText}>Ver Perfil</Text>
               </TouchableOpacity>
             </View>

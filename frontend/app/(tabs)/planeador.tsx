@@ -911,7 +911,7 @@ export default function PlaneadorTab() {
                     <TouchableOpacity
                       key={plan.id}
                       style={styles.planCard}
-                      onPress={() => router.push(`/itinerary/${plan.id}` as any)}
+                      onPress={() => router.push(`/itinerary/${plan.id}`)}
                       accessibilityRole="link"
                       accessibilityLabel={`Abrir roteiro guardado: ${plan.title}`}
                     >

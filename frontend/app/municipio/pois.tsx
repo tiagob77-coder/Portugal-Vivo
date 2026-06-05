@@ -138,7 +138,7 @@ function NoPartnerState() {
       </Text>
       <TouchableOpacity
         style={s.emptyButton}
-        onPress={() => router.push('/partner-portal' as any)}
+        onPress={() => router.push('/partner-portal')}
         activeOpacity={0.8}
       >
         <Text style={s.emptyButtonText}>Registar organização</Text>
@@ -355,7 +355,7 @@ export default function MunicipioPois() {
   // ── Handlers ────────────────────────────────────────────────────────────────
 
   const handleEdit = useCallback((poi: Poi) => {
-    router.push(`/heritage/${poi.id}` as any);
+    router.push(`/heritage/${poi.id}`);
   }, [router]);
 
   const handleDelete = useCallback((poi: Poi) => {
@@ -442,7 +442,7 @@ export default function MunicipioPois() {
           <Text style={s.mobileHeaderTitle}>Os Meus POIs</Text>
           <TouchableOpacity
             style={s.newBtn}
-            onPress={() => router.push('/heritage/new' as any)}
+            onPress={() => router.push('/heritage/new')}
             activeOpacity={0.8}
           >
             <MaterialIcons name="add" size={18} color="#FFFFFF" />
@@ -458,7 +458,7 @@ export default function MunicipioPois() {
             <Text style={s.pageTitle}>Os Meus POIs</Text>
             <TouchableOpacity
               style={s.newBtnLarge}
-              onPress={() => router.push('/heritage/new' as any)}
+              onPress={() => router.push('/heritage/new')}
               activeOpacity={0.8}
             >
               <MaterialIcons name="add" size={18} color="#FFFFFF" />

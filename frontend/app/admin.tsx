@@ -268,7 +268,7 @@ export default function AdminDashboard() {
               <MaterialIcons name="arrow-back" size={24} color="#FFF" />
             </TouchableOpacity>
             <Text style={styles.headerTitle}>Painel de Administração</Text>
-            <TouchableOpacity onPress={() => router.push('/iq-admin' as any)}>
+            <TouchableOpacity onPress={() => router.push('/iq-admin')}>
               <MaterialIcons name="settings" size={24} color="#FFF" />
             </TouchableOpacity>
           </View>
@@ -471,7 +471,7 @@ export default function AdminDashboard() {
                   } else if (action.label === 'Narrativas') {
                     setShowNarratives(!showNarratives);
                   } else {
-                    router.push(action.route as any);
+                    router.push(action.route);
                   }
                 }}
               >

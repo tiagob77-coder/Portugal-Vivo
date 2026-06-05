@@ -105,7 +105,7 @@ export default function EncyclopediaPage() {
     <TouchableOpacity
       key={article.id}
       style={[styles.articleCard, size === 'large' && styles.articleCardLarge]}
-      onPress={() => router.push(`/encyclopedia/article/${article.slug || article.id}` as any)}
+      onPress={() => router.push(`/encyclopedia/article/${article.slug || article.id}`)}
       activeOpacity={0.8}
     >
       {article.image_url ? (

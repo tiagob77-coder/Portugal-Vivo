@@ -262,7 +262,7 @@ export default function ColeccoesScreen() {
                 <TouchableOpacity
                   key={universe.id}
                   style={[styles.universeCard, { backgroundColor: universe.color }]}
-                  onPress={() => router.push(`/encyclopedia/universe/${universe.id}` as any)}
+                  onPress={() => router.push(`/encyclopedia/universe/${universe.id}`)}
                   activeOpacity={0.85}
                   data-testid={`universe-${universe.id}`}
                   accessibilityLabel={`Abrir universo ${universe.name}`}

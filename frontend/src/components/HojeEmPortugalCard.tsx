@@ -125,7 +125,7 @@ function HojeEmPortugalCard({ data, loading, accentColor = '#10B981' }: Props) {
             <Text style={styles.nolocText}>Sem GPS</Text>
           </View>
         )}
-        <TouchableOpacity onPress={() => router.push('/nearby' as any)} style={styles.link}>
+        <TouchableOpacity onPress={() => router.push('/nearby')} style={styles.link}>
           <Text style={[styles.linkText, { color: accentColor }]}>Ver perto</Text>
           <MaterialIcons name="arrow-forward" size={12} color={accentColor} />
         </TouchableOpacity>
@@ -145,7 +145,7 @@ function HojeEmPortugalCard({ data, loading, accentColor = '#10B981' }: Props) {
 
       {/* Event count footer */}
       {events.length > 1 && (
-        <TouchableOpacity style={styles.footer} onPress={() => router.push('/(tabs)/eventos' as any)} activeOpacity={0.7}>
+        <TouchableOpacity style={styles.footer} onPress={() => router.push('/(tabs)/eventos')} activeOpacity={0.7}>
           <MaterialIcons name="event" size={12} color="#6B7280" />
           <Text style={styles.footerText}>
             {events.length} eventos em {data.month_pt} · toque para ver

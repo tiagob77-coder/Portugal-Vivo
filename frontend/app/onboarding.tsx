@@ -141,7 +141,7 @@ export default function OnboardingScreen() {
 
   const handleTryPremium = async () => {
     await saveProfile();
-    router.replace('/premium' as any);
+    router.replace('/premium');
   };
 
   const handleNext = () => {

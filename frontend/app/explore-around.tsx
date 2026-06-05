@@ -352,7 +352,7 @@ export default function ExploreAroundScreen() {
 
                     <TouchableOpacity
                       style={styles.goBtn}
-                      onPress={() => router.push(`/heritage/${poi.id}` as any)}
+                      onPress={() => router.push(`/heritage/${poi.id}`)}
                     >
                       <MaterialIcons name="place" size={16} color="#FFF" />
                       <Text style={styles.goBtnText}>Ver detalhe</Text>
@@ -379,7 +379,7 @@ export default function ExploreAroundScreen() {
             <Text style={[styles.offlineBannerText, { color: '#2E5E4E' }]}>
               Descarregue esta zona para usar offline sem internet.
             </Text>
-            <TouchableOpacity onPress={() => router.push('/settings/offline' as any)}>
+            <TouchableOpacity onPress={() => router.push('/settings/offline')}>
               <Text style={styles.offlineBannerLink}>Gerir</Text>
             </TouchableOpacity>
           </View>

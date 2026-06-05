@@ -310,7 +310,7 @@ export default function ItineraryDetailScreen() {
                         <TouchableOpacity
                           key={poi.id}
                           style={styles.poiRow}
-                          onPress={() => router.push(`/heritage/${poi.id}` as any)}
+                          onPress={() => router.push(`/heritage/${poi.id}`)}
                         >
                           <MaterialIcons name="place" size={16} color={PERIOD_COLORS[period.period] || '#C49A6C'} />
                           <View style={{ flex: 1 }}>

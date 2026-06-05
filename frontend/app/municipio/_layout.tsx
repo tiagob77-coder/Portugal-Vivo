@@ -59,7 +59,7 @@ function Sidebar({ municipioName }: { municipioName: string }) {
             <TouchableOpacity
               key={item.route}
               style={[sb.navItem, active && sb.navItemActive]}
-              onPress={() => router.push(item.route as any)}
+              onPress={() => router.push(item.route)}
             >
               <MaterialIcons
                 name={item.icon as any}
@@ -104,7 +104,7 @@ function BottomNav({ municipioName }: { municipioName: string }) {
           <TouchableOpacity
             key={item.route}
             style={bn.item}
-            onPress={() => router.push(item.route as any)}
+            onPress={() => router.push(item.route)}
           >
             <MaterialIcons
               name={item.icon as any}
@@ -131,7 +131,7 @@ export default function MunicipioLayout() {
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
-      router.replace('/login' as any);
+      router.replace('/login');
     }
   }, [isLoading, isAuthenticated]);
 

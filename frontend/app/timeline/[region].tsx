@@ -177,7 +177,7 @@ export default function TimelineScreen() {
   });
 
   const handlePoiPress = useCallback((poiId: string) => {
-    router.push(`/heritage/${poiId}` as any);
+    router.push(`/heritage/${poiId}`);
   }, [router]);
 
   const events: TimelineEvent[] = data?.events || [];

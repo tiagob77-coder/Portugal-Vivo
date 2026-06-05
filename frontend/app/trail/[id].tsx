@@ -334,7 +334,7 @@ export default function TrailDetailScreen() {
                   key={(poi as any).id || idx}
                   style={s.poiCard}
                   onPress={() => {
-                    if ((poi as any).id) router.push(`/heritage/${(poi as any).id}` as any);
+                    if ((poi).id) router.push(`/heritage/${(poi).id}`);
                   }}
                 >
                   <View style={s.poiIcon}>

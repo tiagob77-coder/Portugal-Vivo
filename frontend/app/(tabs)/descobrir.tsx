@@ -299,7 +299,7 @@ function DescobrerTab() {
               {/* Login button top-right */}
               <TouchableOpacity
                 style={{ position: 'absolute', top: 12, right: 16, flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(255,255,255,0.2)', paddingHorizontal: 14, paddingVertical: 8, borderRadius: 20, gap: 6 }}
-                onPress={() => router.push('/(tabs)/profile' as any)}
+                onPress={() => router.push('/(tabs)/profile')}
                 accessibilityLabel={token ? 'Abrir perfil' : 'Iniciar sessão'}
                 accessibilityRole="button"
               >
@@ -321,7 +321,7 @@ function DescobrerTab() {
               style={styles.actionButton}
               onPress={() => {
                 if (action.id === 'guia') { setGuiaOpen(!guiaOpen); return; }
-                if (action.route) router.push(action.route as any);
+                if (action.route) router.push(action.route);
               }}
               data-testid={`action-${action.id}`}
               accessibilityLabel={action.id === 'guia' ? 'Abrir Guia do Viajante' : `Abrir ${action.title}`}
@@ -686,7 +686,7 @@ function DescobrerTab() {
               <TouchableOpacity
                 key={region.id}
                 style={styles.regionCard}
-                onPress={() => router.push(`/(tabs)/mapa?region=${region.id}&t=${Date.now()}` as any)}
+                onPress={() => router.push(`/(tabs)/mapa?region=${region.id}&t=${Date.now()}`)}
                 activeOpacity={0.9}
                 data-testid={`region-card-${region.id}`}
                 accessibilityLabel={`Explorar região ${region.name} no mapa`}
@@ -713,7 +713,7 @@ function DescobrerTab() {
                 <MaterialIcons name="auto-awesome" size={18} color="#8E24AA" />
                 <Text style={[styles.sectionTitle, ds.textPrimary]}>Enciclopedia Viva</Text>
               </View>
-              <TouchableOpacity onPress={() => router.push('/(tabs)/coleccoes' as any)} accessibilityLabel="Ver toda a Enciclopédia Viva" accessibilityRole="link">
+              <TouchableOpacity onPress={() => router.push('/(tabs)/coleccoes')} accessibilityLabel="Ver toda a Enciclopédia Viva" accessibilityRole="link">
                 <Text style={[styles.seeAll, { color: colors.accent }]}>Ver Todos</Text>
               </TouchableOpacity>
             </View>
@@ -722,7 +722,7 @@ function DescobrerTab() {
                 <TouchableOpacity
                   key={universe.id}
                   style={[styles.universeCard, { backgroundColor: (universe.color || colors.primary) + (isDark ? '20' : '10') }]}
-                  onPress={() => router.push('/(tabs)/coleccoes' as any)}
+                  onPress={() => router.push('/(tabs)/coleccoes')}
                   activeOpacity={0.8}
                   data-testid={`universe-card-${universe.id}`}
                   accessibilityLabel={`Abrir universo ${universe.name}`}
@@ -904,7 +904,7 @@ function DescobrerTab() {
                 <MaterialIcons name="auto-stories" size={18} color={colors.accent} />
                 <Text style={[styles.sectionTitle, ds.textPrimary]}>Micro-histórias</Text>
               </View>
-              <TouchableOpacity onPress={() => router.push('/search' as any)} accessibilityLabel="Ver mais micro-histórias" accessibilityRole="link">
+              <TouchableOpacity onPress={() => router.push('/search')} accessibilityLabel="Ver mais micro-histórias" accessibilityRole="link">
                 <Text style={[styles.sectionLink, { color: colors.accent }]}>Ver mais</Text>
               </TouchableOpacity>
             </View>
@@ -912,8 +912,8 @@ function DescobrerTab() {
               <MicroStoryCard
                 key={story.poi_id}
                 story={story}
-                onPress={() => router.push(`/heritage/${story.poi_id}` as any)}
-                onQueroSaberMais={(id) => router.push(`/heritage/${id}` as any)}
+                onPress={() => router.push(`/heritage/${story.poi_id}`)}
+                onQueroSaberMais={(id) => router.push(`/heritage/${id}`)}
               />
             ))}
           </View>
@@ -937,7 +937,7 @@ function DescobrerTab() {
               <TouchableOpacity
                 key={r.id}
                 style={[styles.timelineChip, { backgroundColor: colors.surface, borderColor: colors.borderLight }]}
-                onPress={() => router.push(`/timeline/${r.id}` as any)}
+                onPress={() => router.push(`/timeline/${r.id}`)}
                 accessibilityLabel={`Ver linha do tempo de ${r.label}`}
                 accessibilityRole="button"
               >
@@ -1035,7 +1035,7 @@ function DescobrerTab() {
                       borderRadius: 12,
                       backgroundColor: mi % 2 === 0 ? (isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.02)') : 'transparent',
                     }}
-                    onPress={() => router.push(mod.route as any)}
+                    onPress={() => router.push(mod.route)}
                     accessibilityLabel={`Abrir ${mod.name}`}
                     accessibilityRole="button"
                   >
@@ -1061,7 +1061,7 @@ function DescobrerTab() {
         {/* Toolkit IA — for cultural agents */}
         <TouchableOpacity
           style={[styles.toolkitBanner, { backgroundColor: colors.surface, borderColor: colors.borderLight }]}
-          onPress={() => router.push('/content-toolkit' as any)}
+          onPress={() => router.push('/content-toolkit')}
           accessibilityLabel="Abrir Toolkit IA para Agentes Culturais"
           accessibilityRole="button"
         >

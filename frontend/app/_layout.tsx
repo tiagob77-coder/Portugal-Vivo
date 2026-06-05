@@ -139,9 +139,9 @@ function NotificationManager() {
           response?.data ||                                  // web
           {};
         if (data.poiId) {
-          router.push(`/heritage/${data.poiId}` as any);
+          router.push(`/heritage/${data.poiId}`);
         } else if (data.type === 'event_nearby' && data.eventId) {
-          router.push(`/evento/${data.eventId}` as any);
+          router.push(`/evento/${data.eventId}`);
         }
       });
 
