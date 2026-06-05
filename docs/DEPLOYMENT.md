@@ -89,8 +89,8 @@ dig +short api.portugalvivo.pt
 ```bash
 cd /opt/portugal-vivo/backend
 
-# Copiar template de produção
-cp .env.production.example .env
+# Copiar template (único — adaptar para produção a seguir)
+cp .env.example .env
 
 # Editar e preencher TODOS os valores
 nano .env
