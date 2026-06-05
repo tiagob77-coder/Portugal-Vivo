@@ -6,15 +6,15 @@
  */
 import { palette } from '../theme/colors';
 import React, { useEffect } from 'react';
-import { StyleSheet, View, Text, Platform } from 'react-native';
-import MapView, { Marker, Callout, Polyline, PROVIDER_GOOGLE, PROVIDER_DEFAULT } from 'react-native-maps';
+import { StyleSheet, View, Text } from 'react-native';
+import MapView, { Marker, Callout, Polyline, PROVIDER_DEFAULT } from 'react-native-maps';
 import type { MapItem, LeafletMapProps, WaypointMarker } from './NativeMap.types';
 
 // Re-export types
 export type { MapItem, LeafletMapProps, WaypointMarker };
 
 // Re-export components
-export { Marker, Callout, Polyline, PROVIDER_GOOGLE };
+export { Marker, Callout, Polyline, PROVIDER_DEFAULT };
 
 export const isMapAvailable = true;
 
@@ -64,7 +64,9 @@ export function LeafletMapComponent({
   );
 
   const isDark = mapMode === 'dark' || mapMode === 'noturno';
-  const provider = Platform.OS === 'android' ? PROVIDER_GOOGLE : PROVIDER_DEFAULT;
+  // Platform-default map provider (MapKit on iOS, system map on Android).
+  // Avoids the paid Google Maps SDK / API key — web uses MapLibre + CARTO.
+  const provider = PROVIDER_DEFAULT;
 
   // Auto-fitBounds to waypoints when they change
   useEffect(() => {

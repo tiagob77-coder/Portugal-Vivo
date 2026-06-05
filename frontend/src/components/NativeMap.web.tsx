@@ -660,7 +660,7 @@ export default MapViewStub;
 export const Marker: React.FC<any> = () => null;
 export const Callout: React.FC<any> = () => null;
 export const Polyline: React.FC<any> = () => null;
-export const PROVIDER_GOOGLE = null;
+export const PROVIDER_DEFAULT = undefined;
 // On web, MapView is not actually available (we use LeafletMapComponent instead)
 // So we set isMapAvailable to false to use the web fallback rendering path
 export const isMapAvailable = false;

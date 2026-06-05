@@ -17,6 +17,6 @@ export {
   Marker,
   Callout,
   Polyline,
-  PROVIDER_GOOGLE,
+  PROVIDER_DEFAULT,
   isMapAvailable
 } from './NativeMap.web';

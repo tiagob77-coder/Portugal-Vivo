@@ -23,8 +23,6 @@ import SensoryCard from '../../src/components/SensoryCard';
 
 const { width: _width } = Dimensions.get('window');
 
-const _GOOGLE_MAPS_API_KEY = process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY || '';
-
 // Helper to remove markdown formatting from AI-generated text
 const cleanMarkdown = (text: string): string => {
   if (!text) return '';

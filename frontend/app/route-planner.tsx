@@ -17,8 +17,6 @@ if (Platform.OS !== 'web') {
   WebView = require('react-native-webview').WebView;
 }
 
-const GOOGLE_MAPS_API_KEY = (process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY || '').replace(/[^A-Za-z0-9_\-]/g, '');
-
 // Popular destinations in Portugal
 const POPULAR_DESTINATIONS = [
   { name: 'Lisboa', icon: 'location-city' },
@@ -206,63 +204,64 @@ export default function RoutePlannerScreen() {
       </head>
       <body>
         <div id="map"></div>
+        <link href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css" rel="stylesheet" />
+        <script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
         <script>
           function initMap() {
-            const map = new google.maps.Map(document.getElementById('map'), {
-              zoom: 7,
-              center: { lat: 39.5, lng: -8.0 },
-              styles: [
-                { elementType: "geometry", stylers: [{ color: "#1e293b" }] },
-                { elementType: "labels.text.stroke", stylers: [{ color: "#0f172a" }] },
-                { elementType: "labels.text.fill", stylers: [{ color: "#94a3b8" }] },
-                { featureType: "water", elementType: "geometry", stylers: [{ color: "#0c4a6e" }] },
-                { featureType: "road", elementType: "geometry", stylers: [{ color: "#2A2F2A" }] },
-              ],
+            const map = new maplibregl.Map({
+              container: 'map',
+              // CARTO Dark-Matter vector tiles — free, no API key
+              style: 'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json',
+              center: [-8.0, 39.5],
+              zoom: 6.2,
             });
-            
+            map.addControl(new maplibregl.NavigationControl(), 'top-right');
+
             const data = [${markers}];
-            const bounds = new google.maps.LatLngBounds();
-            
-            data.forEach((item, index) => {
-              const marker = new google.maps.Marker({
-                position: item.position,
-                map: map,
-                title: item.title,
-                label: {
-                  text: String(item.order),
-                  color: '#2E5E4E',
-                  fontWeight: 'bold'
-                },
-                icon: {
-                  path: google.maps.SymbolPath.CIRCLE,
-                  scale: 16,
-                  fillColor: '#C49A6C',
-                  fillOpacity: 1,
-                  strokeColor: '#ffffff',
-                  strokeWeight: 2,
-                },
+
+            map.on('load', () => {
+              const bounds = new maplibregl.LngLatBounds();
+              const coords = [];
+
+              data.forEach((item) => {
+                const lngLat = [item.position.lng, item.position.lat];
+                coords.push(lngLat);
+
+                const el = document.createElement('div');
+                el.style.cssText = 'width:30px;height:30px;border-radius:50%;background:#C49A6C;'
+                  + 'border:2px solid #ffffff;color:#2E5E4E;font-weight:bold;display:flex;'
+                  + 'align-items:center;justify-content:center;font-family:sans-serif;'
+                  + 'font-size:13px;box-shadow:0 1px 4px rgba(0,0,0,0.4);';
+                el.textContent = String(item.order);
+
+                new maplibregl.Marker({ element: el })
+                  .setLngLat(lngLat)
+                  .setPopup(new maplibregl.Popup({ offset: 20 }).setText(item.title))
+                  .addTo(map);
+                bounds.extend(lngLat);
               });
-              bounds.extend(item.position);
+
+              // Draw route line through the stops
+              if (coords.length > 1) {
+                map.addSource('route', {
+                  type: 'geojson',
+                  data: { type: 'Feature', geometry: { type: 'LineString', coordinates: coords } },
+                });
+                map.addLayer({
+                  id: 'route-line', type: 'line', source: 'route',
+                  layout: { 'line-cap': 'round', 'line-join': 'round' },
+                  paint: { 'line-color': '#C49A6C', 'line-width': 3, 'line-opacity': 0.8 },
+                });
+              }
+              if (coords.length > 0) {
+                map.fitBounds(bounds, { padding: 50, maxZoom: 12 });
+              }
             });
-            
-            if (data.length > 0) {
-              map.fitBounds(bounds, { padding: 50 });
-            }
-            
-            // Draw route line
-            if (data.length > 1) {
-              const routePath = new google.maps.Polyline({
-                path: data.map(d => d.position),
-                geodesic: true,
-                strokeColor: '#C49A6C',
-                strokeOpacity: 0.8,
-                strokeWeight: 3,
-              });
-              routePath.setMap(map);
-            }
           }
+
+          if (window.maplibregl) { initMap(); }
+          else { window.addEventListener('load', initMap); }
         </script>
-        <script async defer src="https://maps.googleapis.com/maps/api/js?key=${GOOGLE_MAPS_API_KEY}&callback=initMap"></script>
       </body>
       </html>
     `;

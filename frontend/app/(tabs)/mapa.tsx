@@ -29,7 +29,7 @@ import * as DocumentPicker from 'expo-document-picker';
 import { colors, typography, spacing, borders, shadows } from '../../src/theme';
 // import { categoryColors } from '../../src/context/ThemeContext';
 import AccessibilityFilters from '../../src/components/AccessibilityFilters';
-import MapView, { Marker, Callout, Polyline, PROVIDER_GOOGLE, isMapAvailable, LeafletMapComponent } from '../../src/components/NativeMap';
+import MapView, { Marker, Callout, Polyline, PROVIDER_DEFAULT, isMapAvailable, LeafletMapComponent } from '../../src/components/NativeMap';
 import {
   ExplorerPanel,
   LAYER_RESPECTING_MODES,
@@ -678,7 +678,7 @@ function MapaTab() {
           <MapView
             ref={mapRef}
             style={styles.map}
-            provider={PROVIDER_GOOGLE}
+            provider={PROVIDER_DEFAULT}
             initialRegion={PORTUGAL_REGION}
             onMapReady={() => {
               setMapReady(true);
