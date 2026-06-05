@@ -17,6 +17,7 @@ import offlineStorage, {
 } from '../services/offlineStorage';
 import axios from 'axios';
 import { API_BASE } from '../config/api';
+import logger from '../utils/logger';
 
 // Theme colors
 const COLORS = {
@@ -76,7 +77,7 @@ export default function OfflineManager() {
         }
       }
     } catch (error) {
-      console.error('OfflineManager loadData error:', error);
+      logger.error('OfflineManager loadData error:', error);
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -119,7 +120,7 @@ export default function OfflineManager() {
           'Download Failed',
           'Could not download region data. Please check your connection and try again.'
         );
-        console.error('Download error:', error);
+        logger.error('Download error:', error);
       } finally {
         setDownloading(null);
       }

@@ -17,6 +17,7 @@ import {
 } from '../src/services/api';
 import { useTheme } from '../src/context/ThemeContext';
 import { palette, categoryColors } from '../src/theme/colors';
+import logger from '../src/utils/logger';
 
 const { width } = Dimensions.get('window');
 
@@ -508,7 +509,7 @@ export default function DashboardScreen() {
         return savedToken;
       }
     } catch (error) {
-      console.error('Error checking auth:', error);
+      logger.error('Error checking auth:', error);
     }
 
     // No token found - immediately show login prompt
@@ -537,7 +538,7 @@ export default function DashboardScreen() {
       setStats(statsData);
       setHistory(historyData);
     } catch (error) {
-      console.error('Error loading dashboard data:', error);
+      logger.error('Error loading dashboard data:', error);
       // If auth fails, clear token
       if ((error as any)?.response?.status === 401) {
         setIsAuthenticated(false);

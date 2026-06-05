@@ -9,6 +9,8 @@ import { getRoute, getRouteItems, getCategories, getMicroStories } from '../../s
 import HeritageCard from '../../src/components/HeritageCard';
 import * as Location from 'expo-location';
 import { ShareButton } from '../../src/components/ShareButton';
+import { PUBLIC_URL } from '../../src/config/api';
+import logger from '../../src/utils/logger';
 
 // Conditional import for WebView
 let WebView: any = null;
@@ -112,7 +114,7 @@ export default function RouteDetailScreen() {
           });
         }
       } catch (error) {
-        console.error('Location error:', error);
+        logger.error('Location error:', error);
       }
     })();
   }, []);
@@ -165,7 +167,7 @@ export default function RouteDetailScreen() {
     }
     
     Linking.openURL(url).catch(err => {
-      console.error('Failed to open navigation:', err);
+      logger.error('Failed to open navigation:', err);
       Alert.alert('Erro', 'Não foi possível abrir a navegação. Verifique se tem o Google Maps instalado.');
     });
   };
@@ -241,7 +243,7 @@ export default function RouteDetailScreen() {
             <ShareButton
               title={route.name}
               description={`Explora a rota ${route.name} com ${stops.length} paragens no Portugal Vivo! \u{1F5FA}\u{FE0F}`}
-              url={`https://mobile-audit-deploy.preview.emergentagent.com/route/${id}`}
+              url={`${PUBLIC_URL}/route/${id}`}
             />
           </View>
           
@@ -514,7 +516,7 @@ initMap();
                     <Text style={styles.mapLoadingText}>A carregar mapa interativo...</Text>
                   </View>
                 )}
-                onError={(e: any) => console.error('WebView error:', e.nativeEvent)}
+                onError={(e: any) => logger.error('WebView error:', e.nativeEvent)}
               />
             ) : Platform.OS === 'web' ? (
               <View style={styles.webMapContainer}>

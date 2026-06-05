@@ -12,6 +12,7 @@ import { useAuth } from '../src/context/AuthContext';
 import { useTheme, palette, spacing, borders, withOpacity } from '../src/theme';
 
 import { API_URL } from '../src/config/api';
+import logger from '../src/utils/logger';
 
 type AuthMode = 'login' | 'register' | 'forgot';
 
@@ -152,7 +153,7 @@ export default function AuthScreen() {
       await googleLogin();
       router.replace('/(tabs)/descobrir');
     } catch (error) {
-      console.error('Google login error:', error);
+      logger.error('Google login error:', error);
     }
   };
 

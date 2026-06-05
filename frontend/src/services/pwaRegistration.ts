@@ -3,6 +3,7 @@
  * Registers the service worker and handles updates
  */
 import { Platform } from 'react-native';
+import logger from '../utils/logger';
 
 export async function registerServiceWorker(): Promise<ServiceWorkerRegistration | null> {
   if (Platform.OS !== 'web' || typeof window === 'undefined') return null;
@@ -25,7 +26,7 @@ export async function registerServiceWorker(): Promise<ServiceWorkerRegistration
 
     return registration;
   } catch (error) {
-    console.warn('SW registration failed:', error);
+    logger.warn('SW registration failed:', error);
     return null;
   }
 }

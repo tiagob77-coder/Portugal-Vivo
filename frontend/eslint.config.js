@@ -1,13 +1,16 @@
 // https://docs.expo.dev/guides/using-eslint/
-const { defineConfig } = require('eslint/config');
 const expoConfig = require('eslint-config-expo/flat');
 
-module.exports = defineConfig([
-  expoConfig,
+module.exports = [
+  ...expoConfig,
   {
     ignores: ['dist/*'],
   },
   {
+    // Plugin-specific overrides must scope to the files where the plugin
+    // is registered. @typescript-eslint is registered by expo-config only
+    // for ts/tsx/d.ts, so the override must match the same files.
+    files: ['**/*.ts', '**/*.tsx', '**/*.d.ts'],
     rules: {
       '@typescript-eslint/no-unused-vars': [
         'warn',
@@ -26,6 +29,10 @@ module.exports = defineConfig([
       // codebase still has ~150 audit-tracked `any` usages. Re-enable once
       // they are migrated file-by-file:
       // '@typescript-eslint/no-explicit-any': 'warn',
+    },
+  },
+  {
+    rules: {
       'import/no-named-as-default': 'off',
     },
   },
@@ -44,4 +51,4 @@ module.exports = defineConfig([
       ],
     },
   },
-]);
+];

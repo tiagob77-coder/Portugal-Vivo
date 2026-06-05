@@ -4,6 +4,7 @@
  */
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import logger from '../utils/logger';
 
 const STORAGE_KEYS = {
   USER_PROGRESS: 'gamification_progress',
@@ -297,7 +298,7 @@ class GamificationService {
       if (badgesRaw) this.unlockedBadges = JSON.parse(badgesRaw);
       if (visitsRaw) this.visitHistory = JSON.parse(visitsRaw);
     } catch (error) {
-      console.error('Error loading gamification data:', error);
+      logger.error('Error loading gamification data:', error);
     }
   }
 
@@ -310,7 +311,7 @@ class GamificationService {
       ]);
       this.notifyListeners();
     } catch (error) {
-      console.error('Error saving gamification data:', error);
+      logger.error('Error saving gamification data:', error);
     }
   }
 

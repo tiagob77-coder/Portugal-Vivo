@@ -17,6 +17,7 @@ import { typography, shadows } from '../../src/theme';
 import { palette } from '../../src/theme/colors';
 import { useTheme } from '../../src/context/ThemeContext';
 import api, { getBeaches, getBeachBandeiraAzul } from '../../src/services/api';
+import logger from '../../src/utils/logger';
 
 const { width: screenWidth } = Dimensions.get('window');
 const CARD_WIDTH = screenWidth - 40;
@@ -89,7 +90,7 @@ export default function BeachcamsScreen() {
 
   const openWebcam = (url: string) => {
     Linking.openURL(url).catch(() => {
-      console.warn('Failed to open URL:', url);
+      logger.warn('Failed to open URL:', url);
     });
   };
 

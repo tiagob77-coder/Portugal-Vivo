@@ -19,14 +19,10 @@ import { useRouter } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import Constants from 'expo-constants';
 import { typography, spacing, borders, shadows } from '../src/theme';
 import { useTheme } from '../src/context/ThemeContext';
 import { palette, withOpacity } from '../src/theme/colors';
-
-const API_BASE = Constants.expoConfig?.extra?.EXPO_PUBLIC_BACKEND_URL
-  || process.env.EXPO_PUBLIC_BACKEND_URL
-  || '';
+import { API_URL as API_BASE } from '../src/config/api';
 
 // ============================================
 // API Functions

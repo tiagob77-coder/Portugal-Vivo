@@ -1,3 +1,4 @@
+/* global jest */
 // Stub for expo-background-fetch (not installed; mocked per-test via jest.mock)
 module.exports = {
   registerTaskAsync: jest.fn(),

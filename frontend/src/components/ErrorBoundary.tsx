@@ -1,6 +1,7 @@
 import React, { Component, ErrorInfo, ReactNode } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
 import { palette } from '../theme';
+import logger from '../utils/logger';
 
 interface Props {
   children: ReactNode;
@@ -24,7 +25,7 @@ export class ErrorBoundary extends Component<Props, State> {
   }
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    console.error('[ErrorBoundary]', error, errorInfo);
+    logger.error('[ErrorBoundary]', error, errorInfo);
     this.props.onError?.(error, errorInfo);
   }
 
@@ -67,7 +68,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     padding: 24,
-    backgroundColor: '#1a0f0a',
+    backgroundColor: palette.gray[900],
   },
   emoji: {
     fontSize: 48,
@@ -76,12 +77,12 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 22,
     fontWeight: '700',
-    color: '#fff',
+    color: palette.white,
     marginBottom: 8,
   },
   message: {
     fontSize: 14,
-    color: '#999',
+    color: palette.gray[400],
     textAlign: 'center',
     marginBottom: 24,
     maxWidth: 300,
@@ -93,7 +94,7 @@ const styles = StyleSheet.create({
     backgroundColor: palette.rust[500],
   },
   buttonText: {
-    color: '#fff',
+    color: palette.white,
     fontSize: 14,
     fontWeight: '600',
   },
@@ -101,13 +102,13 @@ const styles = StyleSheet.create({
     marginTop: 24,
     maxHeight: 200,
     width: '100%',
-    backgroundColor: '#0d0d0d',
+    backgroundColor: palette.black,
     borderRadius: 8,
     padding: 12,
   },
   debugText: {
     fontSize: 10,
-    color: '#ff6b6b',
+    color: palette.rust[300],
     fontFamily: 'monospace',
   },
 });

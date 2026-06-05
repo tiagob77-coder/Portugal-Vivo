@@ -13,6 +13,7 @@ import { Category } from '../../src/types';
 import { Audio } from 'expo-av';
 import * as Speech from 'expo-speech';
 import { offlineCache } from '../../src/services/offlineCache';
+import { PUBLIC_URL } from '../../src/config/api';
 import { ReviewsSection } from '../../src/components/ReviewsSection';
 import { ShareButton } from '../../src/components/ShareButton';
 import ImageUpload from '../../src/components/ImageUpload';
@@ -763,7 +764,7 @@ export default function HeritageDetailScreen() {
               <ShareButton
                 title={item.name}
                 description={`Descobre ${item.name} no Portugal Vivo! \u{1F1F5}\u{1F1F9}`}
-                url={`https://mobile-audit-deploy.preview.emergentagent.com/heritage/${id}`}
+                url={`${PUBLIC_URL}/heritage/${id}`}
               />
               <TouchableOpacity 
                 style={[styles.favoriteButton, isFavorite && styles.favoriteButtonActive]} 

@@ -4,8 +4,10 @@ import * as Linking from 'expo-linking';
 import { secureStorage } from '../utils/secureStorage';
 import { Platform } from 'react-native';
 import { exchangeSession, getCurrentUser, logout as apiLogout, getSubscriptionStatus } from '../services/api';
+import { API_URL, AUTH_URL } from '../config/api';
 import { User } from '../types';
 import { eventBus } from '../services/eventBus';
+import logger from '../utils/logger';
 
 interface AuthSessionData extends User {
   session_token?: string;
@@ -27,8 +29,6 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-const BACKEND_URL = process.env.EXPO_PUBLIC_BACKEND_URL || '';
-const AUTH_URL = 'https://auth.emergentagent.com';
 const DEV_MODE = process.env.EXPO_PUBLIC_DEV_MODE === 'true' || process.env.NODE_ENV === 'development';
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
@@ -62,7 +62,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         eventBus.emit('user.login', { userId: uid });
       }
     } catch (error) {
-      console.error('Error processing session:', error);
+      logger.error('Error processing session:', error);
     } finally {
       setIsLoading(false);
     }
@@ -130,10 +130,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       
       // Platform-specific redirect URL
       const redirectUrl = Platform.OS === 'web'
-        ? `${BACKEND_URL}/`
+        ? `${API_URL}/`
         : Linking.createURL('/');
 
-      const authUrl = `${AUTH_URL}/?redirect=${encodeURIComponent(redirectUrl)}`;
+      const authUrl = `${AUTH_URL}?redirect=${encodeURIComponent(redirectUrl)}`;
 
       if (Platform.OS === 'web') {
         window.location.href = authUrl;
@@ -145,7 +145,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
       }
     } catch (error) {
-      console.error('Login error:', error);
+      logger.error('Login error:', error);
     } finally {
       setIsLoading(false);
     }
@@ -189,7 +189,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           } catch (_e) { /* ignore */ }
         }
       } catch (error) {
-        console.error('Error refreshing user:', error);
+        logger.error('Error refreshing user:', error);
       }
     }
   };

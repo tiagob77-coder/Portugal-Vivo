@@ -23,6 +23,7 @@ import { getMapItems, getCategories, getStats } from '../src/services/api';
 import { FavoritesProvider } from '../src/context/FavoritesContext';
 import { SmartContextProvider } from '../src/context/SmartContext';
 import logger from '../src/utils/logger';
+import { palette } from '../src/theme/colors';
 import {
   registerBackgroundTasks,
   startWebProximityPolling,
@@ -276,9 +277,9 @@ export default function RootLayout() {
 
   if (!isI18nReady) {
     return (
-      <View style={{ flex: 1, backgroundColor: '#1a0f0a', alignItems: 'center', justifyContent: 'center', gap: 24 }}>
+      <View style={{ flex: 1, backgroundColor: palette.gray[900], alignItems: 'center', justifyContent: 'center', gap: 24 }}>
         <BrandLogo height={180} />
-        <ActivityIndicator size="small" color="#C49A6C" />
+        <ActivityIndicator size="small" color={palette.terracotta[500]} />
       </View>
     );
   }

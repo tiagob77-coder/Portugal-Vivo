@@ -47,7 +47,7 @@ if (__DEV__) {
       return config;
     },
     (error) => {
-      console.error('[API Request Error]', error);
+      logger.error('[API Request Error]', error);
       return Promise.reject(error);
     }
   );
@@ -58,7 +58,7 @@ if (__DEV__) {
       return response;
     },
     (error) => {
-      console.error(`[API Response Error] ${error.config?.url}:`, error.message);
+      logger.error(`[API Response Error] ${error.config?.url}:`, error.message);
       return Promise.reject(error);
     }
   );
@@ -2283,7 +2283,7 @@ export const logPaywallIntent = async (payload: {
     await api.post('/premium/intent', payload);
   } catch {
     // Non-blocking: log locally if backend not ready
-    console.info('[paywall_intent]', JSON.stringify(payload));
+    logger.info('[paywall_intent]', JSON.stringify(payload));
   }
 };
 

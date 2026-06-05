@@ -60,7 +60,7 @@ class AudioGuideService {
         this.settings = { ...DEFAULT_SETTINGS, ...JSON.parse(raw) };
       }
     } catch (error) {
-      console.error('Error loading audio settings:', error);
+      logger.error('Error loading audio settings:', error);
     }
   }
 
@@ -71,7 +71,7 @@ class AudioGuideService {
     try {
       await AsyncStorage.setItem(STORAGE_KEYS.AUDIO_SETTINGS, JSON.stringify(this.settings));
     } catch (error) {
-      console.error('Error saving audio settings:', error);
+      logger.error('Error saving audio settings:', error);
     }
   }
 
@@ -89,7 +89,7 @@ class AudioGuideService {
         narratives.forEach(n => this.cachedNarratives.set(n.poiId, n));
       }
     } catch (error) {
-      console.error('Error loading cached narratives:', error);
+      logger.error('Error loading cached narratives:', error);
     }
   }
 
@@ -101,7 +101,7 @@ class AudioGuideService {
       const narratives = Array.from(this.cachedNarratives.values());
       await AsyncStorage.setItem(STORAGE_KEYS.CACHED_NARRATIVES, JSON.stringify(narratives));
     } catch (error) {
-      console.error('Error saving cached narratives:', error);
+      logger.error('Error saving cached narratives:', error);
     }
   }
 
@@ -118,7 +118,7 @@ class AudioGuideService {
       );
       return ptVoices.length > 0 ? ptVoices : voices;
     } catch (error) {
-      console.error('Error getting voices:', error);
+      logger.error('Error getting voices:', error);
       return [];
     }
   }
@@ -248,7 +248,7 @@ class AudioGuideService {
       logger.debug('[TTS] No Portuguese voice found, using system default');
       return undefined;
     } catch (error) {
-      console.error('[TTS] Error finding voice:', error);
+      logger.error('[TTS] Error finding voice:', error);
       return undefined;
     }
   }
@@ -352,7 +352,7 @@ class AudioGuideService {
     try {
       await Speech.stop();
     } catch (error) {
-      console.error('Error stopping speech:', error);
+      logger.error('Error stopping speech:', error);
     }
     this.isPlaying = false;
     this.currentPoiId = null;

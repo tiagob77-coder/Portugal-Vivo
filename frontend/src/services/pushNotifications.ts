@@ -61,7 +61,7 @@ class PushNotificationService {
 
       return this.pushToken;
     } catch (error) {
-      console.warn('Web push init failed:', error);
+      logger.warn('Web push init failed:', error);
       return null;
     }
   }
