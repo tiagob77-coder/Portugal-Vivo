@@ -18,6 +18,21 @@ if (Platform.OS !== 'web') {
 const ALERT_COOLDOWN_MS = 30 * 60 * 1000; // 30 min per POI
 const POSITION_CHECK_MS = 15000; // Check every 15s
 const MODULE_ALERT_RADIUS_M = 1200; // fire a module-interest alert within this range
+const MIN_MOVE_M = 75; // min displacement before re-querying the backend
+const MIN_CHECK_INTERVAL_MS = 30000; // …unless this long has passed
+
+/** Haversine distance in metres between two coordinates. */
+function distanceMeters(lat1: number, lng1: number, lat2: number, lng2: number): number {
+  const R = 6371000;
+  const dLat = ((lat2 - lat1) * Math.PI) / 180;
+  const dLng = ((lng2 - lng1) * Math.PI) / 180;
+  const a =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos((lat1 * Math.PI) / 180) *
+      Math.cos((lat2 * Math.PI) / 180) *
+      Math.sin(dLng / 2) ** 2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
 
 export interface ProximityAlert {
   poi_id: string;
@@ -104,6 +119,9 @@ class GeofenceService {
   private alertHistory: ProximityAlert[] = [];
   private nearbyPois: NearbyPOI[] = [];
   private enabledModules: string[] = [];
+  private lastCheckLat = 0;
+  private lastCheckLng = 0;
+  private lastCheckTime = 0;
 
   /** Update the user's interest modules live (e.g. from settings). */
   setEnabledModules(modules: string[]) {
@@ -138,6 +156,10 @@ class GeofenceService {
     this.onLocationCallback = callbacks?.onLocation || null;
     this.onNearbyCallback = callbacks?.onNearby || null;
     this.enabledModules = await loadInterestModules();
+    // Reset throttle so the first position after start always triggers a check.
+    this.lastCheckLat = 0;
+    this.lastCheckLng = 0;
+    this.lastCheckTime = 0;
     this.isActive = true;
 
     if (Platform.OS === 'web') {
@@ -189,10 +211,12 @@ class GeofenceService {
       { enableHighAccuracy: true },
     );
 
+    // Continuous watch uses coarse accuracy + a longer maximumAge: ~50-100 m is
+    // plenty for 500 m / 1200 m alert rings and avoids waking the GPS every tick.
     this.watchId = navigator.geolocation.watchPosition(
       (pos) => this.handlePosition(pos.coords.latitude, pos.coords.longitude),
       () => {},
-      { enableHighAccuracy: true, maximumAge: POSITION_CHECK_MS, timeout: 20000 },
+      { enableHighAccuracy: false, maximumAge: 60000, timeout: 20000 },
     );
   }
 
@@ -201,6 +225,22 @@ class GeofenceService {
     this.lastLat = lat;
     this.lastLng = lng;
     this.onLocationCallback?.(lat, lng);
+
+    // Throttle network checks: skip when the user has barely moved and we
+    // checked recently — saves mobile data and battery while stationary.
+    const now = Date.now();
+    const moved = distanceMeters(this.lastCheckLat, this.lastCheckLng, lat, lng);
+    if (
+      this.lastCheckTime > 0 &&
+      moved < MIN_MOVE_M &&
+      now - this.lastCheckTime < MIN_CHECK_INTERVAL_MS
+    ) {
+      return;
+    }
+    this.lastCheckLat = lat;
+    this.lastCheckLng = lng;
+    this.lastCheckTime = now;
+
     await Promise.all([
       this.checkAlerts(lat, lng),
       this.fetchNearby(lat, lng),

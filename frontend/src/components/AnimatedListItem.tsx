@@ -13,7 +13,10 @@ function AnimatedListItem({ children, index, stagger = 50, style }: AnimatedList
   const translateY = useRef(new Animated.Value(18)).current;
 
   useEffect(() => {
-    const delay = index * stagger;
+    // Cap the stagger to the first visible batch. With virtualized lists `index`
+    // is absolute, so an uncapped delay leaves items scrolled into view blank
+    // for seconds (e.g. index 50 * 40ms = 2s) before they fade in.
+    const delay = Math.min(index, 8) * stagger;
     Animated.parallel([
       Animated.timing(opacity, {
         toValue: 1,

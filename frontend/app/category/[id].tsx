@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator, RefreshControl, ImageBackground, ScrollView, Dimensions, Platform, Linking } from 'react-native';
 import { useLocalSearchParams, useRouter, Stack } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
@@ -203,6 +203,21 @@ export default function CategoryScreen() {
     await refetch();
     setRefreshing(false);
   };
+
+  // Stable FlatList callbacks so rows aren't remounted on every parent render.
+  const keyExtractor = useCallback((item: any) => item.id, []);
+  const renderListItem = useCallback(
+    ({ item, index }: { item: any; index: number }) => (
+      <AnimatedListItem index={index} stagger={40}>
+        <HeritageCard
+          item={item}
+          categories={categories}
+          onPress={() => router.push(`/heritage/${item.id}`)}
+        />
+      </AnimatedListItem>
+    ),
+    [categories, router],
+  );
 
   // Open Google Maps with location name for full features
   const openInGoogleMaps = (item: any) => {
@@ -451,9 +466,13 @@ export default function CategoryScreen() {
       ) : viewMode === 'list' ? (
         <FlatList
           data={filteredItems}
-          keyExtractor={(item) => item.id}
+          keyExtractor={keyExtractor}
           contentContainerStyle={styles.listContent}
           showsVerticalScrollIndicator={false}
+          initialNumToRender={8}
+          maxToRenderPerBatch={8}
+          windowSize={7}
+          removeClippedSubviews={Platform.OS !== 'web'}
           refreshControl={
             <RefreshControl
               refreshing={refreshing}
@@ -462,15 +481,7 @@ export default function CategoryScreen() {
               colors={['#C49A6C']}
             />
           }
-          renderItem={({ item, index }) => (
-            <AnimatedListItem index={index} stagger={40}>
-              <HeritageCard
-                item={item}
-                categories={categories}
-                onPress={() => router.push(`/heritage/${item.id}`)}
-              />
-            </AnimatedListItem>
-          )}
+          renderItem={renderListItem}
         />
       ) : (
         /* Map View */

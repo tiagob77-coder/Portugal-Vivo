@@ -150,7 +150,15 @@ async def get_events(
 @agenda_router.get("/calendar")
 async def get_calendar():
     """Get events grouped by month for calendar view."""
-    events = await _db_holder.db.events.find({}, {"_id": 0}).to_list(500)
+    # Project only the fields the calendar view consumes — avoids shipping long
+    # descriptions/arrays for every event just to build month counts.
+    events = await _db_holder.db.events.find(
+        {},
+        {
+            "_id": 0, "id": 1, "name": 1, "type": 1, "month": 1, "date_text": 1,
+            "region": 1, "rarity": 1, "source": 1, "price": 1,
+        },
+    ).to_list(500)
 
     calendar = {}
     for i in range(1, 13):

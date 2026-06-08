@@ -87,7 +87,13 @@ async def create_all_indexes(db):
         sparse=True,
         name="idx_heritage_name_normalised",
     )
-    logger.info("  heritage_items: 17 indexes created")
+    # Concelho filter — heritage_api search/list filter by municipality name.
+    await db.heritage_items.create_index(
+        "concelho",
+        sparse=True,
+        name="idx_heritage_concelho",
+    )
+    logger.info("  heritage_items: 18 indexes created")
 
     # users
     await db.users.create_index("user_id", unique=True, name="idx_users_userid")
@@ -305,7 +311,8 @@ async def create_all_indexes(db):
         sparse=True,
         name="idx_events_location",
     )
-    logger.info("  events: 8 indexes created")
+    await db.events.create_index("concelho", sparse=True, name="idx_events_concelho")
+    logger.info("  events: 9 indexes created")
 
     # --- maritime_events (maritime culture narratives) ---
     await db.maritime_events.create_index("id", unique=True, sparse=True, name="idx_maritime_id")
