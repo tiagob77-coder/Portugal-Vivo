@@ -7,7 +7,7 @@
  * Usage:
  *   const { actions, activeModules, smartDiscover } = useSmartContext();
  */
-import React, { createContext, useContext, useState, useCallback, useEffect, useRef } from 'react';
+import React, { createContext, useContext, useState, useCallback, useMemo, useEffect, useRef } from 'react';
 import { Platform } from 'react-native';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { API_BASE } from '../config/api';
@@ -212,20 +212,25 @@ export function SmartContextProvider({ children }: { children: React.ReactNode }
     return () => offs.forEach((off) => off());
   }, [refetch, queryClient]);
 
+  // Memoize the context value so consumers don't re-render on every parent
+  // render — only when the orchestrator data or stable callbacks actually change.
+  const value = useMemo(
+    () => ({
+      actions: data?.actions ?? [],
+      activeModules: data?.active_modules ?? [],
+      preloaded: data?.preloaded ?? {},
+      contextLabel: data?.context_label ?? '',
+      isLoading,
+      refreshContext: refetch,
+      smartDiscover,
+      updateLocation,
+      updateTab,
+    }),
+    [data, isLoading, refetch, smartDiscover, updateLocation, updateTab],
+  );
+
   return (
-    <SmartContextCtx.Provider
-      value={{
-        actions: data?.actions ?? [],
-        activeModules: data?.active_modules ?? [],
-        preloaded: data?.preloaded ?? {},
-        contextLabel: data?.context_label ?? '',
-        isLoading,
-        refreshContext: refetch,
-        smartDiscover,
-        updateLocation,
-        updateTab,
-      }}
-    >
+    <SmartContextCtx.Provider value={value}>
       {children}
     </SmartContextCtx.Provider>
   );

@@ -14,7 +14,9 @@ const ShimmerBar = ({ w, h, style, shimmerBg, shimmerHighlight }: { w: number | 
 
   useEffect(() => {
     const loop = Animated.loop(
-      Animated.timing(anim, { toValue: 1, duration: 1200, useNativeDriver: false })
+      // translateX is a transform → native-driver safe; keeps the shimmer off
+      // the JS thread so it doesn't compete with data loading.
+      Animated.timing(anim, { toValue: 1, duration: 1200, useNativeDriver: true })
     );
     loop.start();
     return () => loop.stop();
