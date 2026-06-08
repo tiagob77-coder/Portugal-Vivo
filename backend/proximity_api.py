@@ -36,13 +36,14 @@ async def get_nearby_pois(
     min_iq: float = Query(0, ge=0),
     limit: int = Query(20, ge=1, le=100),
     category: Optional[str] = None,
+    module: Optional[str] = Query(None, description="Restrict to a thematic module slug"),
     municipality_id: Optional[str] = Query(None, description="Restrict to a specific municipality"),
     current_user: Optional[User] = Depends(get_current_user),
 ):
     """Get POIs near a GPS position, sorted by distance."""
     projection = {
         "_id": 0, "id": 1, "name": 1, "category": 1, "region": 1,
-        "location": 1, "iq_score": 1, "image_url": 1, "description": 1,
+        "location": 1, "iq_score": 1, "image_url": 1, "description": 1, "module": 1,
     }
 
     db = _get_db()
@@ -61,6 +62,8 @@ async def get_nearby_pois(
         }
         if category:
             query["category"] = category
+        if module:
+            query["module"] = module
         if min_iq > 0:
             query["iq_score"] = {"$gte": min_iq}
         if muni:
@@ -88,6 +91,8 @@ async def get_nearby_pois(
         }
         if category:
             query["category"] = category
+        if module:
+            query["module"] = module
         if muni:
             query["municipality_id"] = muni
         query = apply_municipality_filter(query, current_user)
