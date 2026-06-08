@@ -363,7 +363,8 @@ async def get_live_events(
         ]
     db_events = [_enrich_with_ticket(e) for e in db_events]
 
-    # --- Viral Agenda RSS ---
+    # --- Viral Agenda RSS (with MongoDB fallback) ---
+    viralagenda_service.set_db(_db_holder.db)
     va_events = await viralagenda_service.get_events(region=region, event_type=type, limit=100)
     if month:
         va_events = [e for e in va_events if e.get("month") == month]
@@ -381,6 +382,7 @@ async def get_live_events(
         "sources": {
             "database": len(db_events),
             "viralagenda": len(new_va),
+            "viralagenda_available": viralagenda_service.available,
         },
     }
 
@@ -396,11 +398,13 @@ async def get_viralagenda_events(
     Cache de 30 minutos.
     """
     from services.viralagenda_service import viralagenda_service
+    viralagenda_service.set_db(_db_holder.db)
     events = await viralagenda_service.get_events(region=region, event_type=type, limit=limit)
     return {
         "events": events,
         "total": len(events),
         "source": "viralagenda.com",
+        "available": viralagenda_service.available,
         "cache_ttl_minutes": 30,
     }
 
