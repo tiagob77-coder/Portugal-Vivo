@@ -16,8 +16,10 @@ import {
 import { MaterialIcons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { palette, withOpacity } from '../theme/colors';
+import { MODULES, NOTIFICATION_PREFS_KEY } from '../config/modules';
+import geofenceService from '../services/geofencing';
 
-const STORAGE_KEY = '@portugal_vivo_notification_prefs';
+const STORAGE_KEY = NOTIFICATION_PREFS_KEY;
 const ACCENT = palette.terracotta[500];
 const CARD_BG = '#1E293B';
 const TEXT_PRIMARY = palette.gray[50];
@@ -45,6 +47,7 @@ interface NotificationPrefs {
   quietHoursStart: string;
   quietHoursEnd: string;
   favoriteRegions: Region[];
+  interestModules: string[];
 }
 
 const DEFAULT_PREFS: NotificationPrefs = {
@@ -54,6 +57,7 @@ const DEFAULT_PREFS: NotificationPrefs = {
   quietHoursStart: '22:00',
   quietHoursEnd: '08:00',
   favoriteRegions: [],
+  interestModules: [],
 };
 
 const HOURS = Array.from({ length: 24 }, (_, i) =>
@@ -77,7 +81,9 @@ export default function NotificationSettings({ onSave }: Props) {
       const raw = await AsyncStorage.getItem(STORAGE_KEY);
       if (raw) {
         const saved = JSON.parse(raw) as Partial<NotificationPrefs>;
-        setPrefs({ ...DEFAULT_PREFS, ...saved });
+        const merged = { ...DEFAULT_PREFS, ...saved };
+        setPrefs(merged);
+        geofenceService.setEnabledModules(merged.interestModules);
       }
     } catch {
       // Use defaults
@@ -88,6 +94,8 @@ export default function NotificationSettings({ onSave }: Props) {
   const persist = useCallback(
     async (updated: NotificationPrefs) => {
       setPrefs(updated);
+      // Push interest modules to the live geofencing service immediately.
+      geofenceService.setEnabledModules(updated.interestModules);
       try {
         await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
       } catch {
@@ -109,6 +117,14 @@ export default function NotificationSettings({ onSave }: Props) {
       ? current.filter((r) => r !== region)
       : [...current, region];
     persist({ ...prefs, favoriteRegions: updated });
+  };
+
+  const toggleModule = (slug: string) => {
+    const current = prefs.interestModules;
+    const updated = current.includes(slug)
+      ? current.filter((m) => m !== slug)
+      : [...current, slug];
+    persist({ ...prefs, interestModules: updated });
   };
 
   const cycleHour = (key: 'quietHoursStart' | 'quietHoursEnd', direction: 1 | -1) => {
@@ -205,6 +221,43 @@ export default function NotificationSettings({ onSave }: Props) {
                 {selected && (
                   <MaterialIcons name="check" size={14} color={CARD_BG} style={{ marginLeft: 4 }} />
                 )}
+              </TouchableOpacity>
+            );
+          })}
+        </View>
+      </View>
+
+      {/* ── Interest modules ─────────────────────────────────── */}
+      <View style={styles.card}>
+        <View style={styles.sectionHeader}>
+          <MaterialIcons name="interests" size={20} color={ACCENT} />
+          <Text style={styles.sectionTitle}>Módulos de interesse</Text>
+        </View>
+        <Text style={styles.sectionSubtitle}>
+          Receba alertas de proximidade só destes temas. Sem seleção = todos.
+        </Text>
+        <View style={styles.chipContainer}>
+          {MODULES.map((mod) => {
+            const selected = prefs.interestModules.includes(mod.slug);
+            return (
+              <TouchableOpacity
+                key={mod.slug}
+                style={[
+                  styles.chip,
+                  selected && { backgroundColor: mod.color, borderColor: mod.color },
+                ]}
+                onPress={() => toggleModule(mod.slug)}
+                activeOpacity={0.7}
+              >
+                <MaterialIcons
+                  name={mod.icon as React.ComponentProps<typeof MaterialIcons>['name']}
+                  size={14}
+                  color={selected ? CARD_BG : TEXT_SECONDARY}
+                  style={{ marginRight: 6 }}
+                />
+                <Text style={[styles.chipText, selected && styles.chipTextSelected]}>
+                  {mod.label}
+                </Text>
               </TouchableOpacity>
             );
           })}
