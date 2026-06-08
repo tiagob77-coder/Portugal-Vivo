@@ -526,7 +526,7 @@ async def get_environmental_data(
 
     # ── Moon phase ───────────────────────────────────────────────────────────
     # Days since known new moon (Jan 6 2000 = JD 2451549.5)
-    jd = 2451545.0 + (now - datetime.datetime(2000, 1, 1, 12, 0, 0)).total_seconds() / 86400
+    jd = 2451545.0 + (now - datetime.datetime(2000, 1, 1, 12, 0, 0, tzinfo=datetime.timezone.utc)).total_seconds() / 86400
     moon_age = (jd - 2451549.5) % 29.53058867
     if moon_age < 1.85:
         moon_phase = "Lua Nova"
