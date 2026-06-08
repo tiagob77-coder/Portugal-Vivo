@@ -151,6 +151,7 @@ export function SmartContextProvider({ children }: { children: React.ReactNode }
     },
     staleTime: 60_000, // Refresh every 60s
     refetchInterval: 120_000, // Auto-refresh every 2min
+    refetchIntervalInBackground: false, // don't poll when app is backgrounded (battery/data)
     retry: 1,
     enabled: !!API_BASE, // Only if backend URL configured
   });
