@@ -16,6 +16,7 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { typography, spacing, borders, shadows, palette, withOpacity } from '../theme';
 import { ProximityAlert } from '../services/geofencing';
+import { getModuleConfig } from '../config/modules';
 
 const { width: _width } = Dimensions.get('window');
 
@@ -87,9 +88,11 @@ export default function ProximityAlertBanner({ alerts, onDismiss }: Props) {
   if (!alert) return null;
 
   const isRare = alert.alert_type === 'rare';
+  const mod = alert.module ? getModuleConfig(alert.module) : null;
   // Purple '#7C3AED' is a brand color for rare proximity alerts - kept as-is
   const bgColor = isRare ? '#7C3AED' : palette.forest[500];
-  const iconName = isRare ? 'star' : 'place';
+  const iconName = isRare ? 'star' : ((mod?.icon as any) || 'place');
+  const accentColor = isRare ? '#A78BFA' : (mod?.color || palette.forest[400]);
 
   return (
     <Animated.View
@@ -114,7 +117,7 @@ export default function ProximityAlertBanner({ alerts, onDismiss }: Props) {
       >
         <View style={styles.iconContainer}>
           {/* Purple '#A78BFA' is a brand color for rare proximity alerts - kept as-is */}
-          <View style={[styles.iconCircle, { backgroundColor: isRare ? '#A78BFA' : palette.forest[400] }]}>
+          <View style={[styles.iconCircle, { backgroundColor: accentColor }]}>
             <MaterialIcons name={iconName} size={20} color={palette.white} />
           </View>
           {isRare && (
@@ -136,6 +139,11 @@ export default function ProximityAlertBanner({ alerts, onDismiss }: Props) {
               <MaterialIcons name="near-me" size={10} color={palette.white} />
               <Text style={styles.distanceText}>{alert.distance_m}m</Text>
             </View>
+            {mod && (
+              <View style={[styles.iqBadge, { backgroundColor: accentColor }]}>
+                <Text style={styles.iqText}>{mod.label}</Text>
+              </View>
+            )}
             {alert.iq_score && (
               <View style={[styles.iqBadge, { backgroundColor: isRare ? '#A78BFA' : palette.forest[400] }]}>
                 <Text style={styles.iqText}>IQ {alert.iq_score.toFixed(0)}</Text>

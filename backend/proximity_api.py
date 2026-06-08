@@ -123,18 +123,20 @@ async def get_proximity_alerts(
     request: Request,
     lat: float = Query(..., ge=-90, le=90),
     lng: float = Query(..., ge=-180, le=180),
+    modules: Optional[str] = Query(None, description="Comma-separated module slugs to restrict alerts to"),
     municipality_id: Optional[str] = Query(None),
     current_user: Optional[User] = Depends(get_current_user),
 ):
     """Get special alerts for nearby rare/high-IQ POIs (within 500m)."""
     projection = {
         "_id": 0, "id": 1, "name": 1, "category": 1, "region": 1,
-        "location": 1, "iq_score": 1,
+        "location": 1, "iq_score": 1, "module": 1,
     }
 
     db = _get_db()
     candidates = []
     muni = _tenant_filter(request, municipality_id)
+    module_list = [m.strip() for m in modules.split(",") if m.strip()] if modules else None
 
     try:
         query = {
@@ -146,6 +148,8 @@ async def get_proximity_alerts(
             },
             "iq_score": {"$gte": 55},
         }
+        if module_list:
+            query["module"] = {"$in": module_list}
         if muni:
             query["municipality_id"] = muni
         query = apply_municipality_filter(query, current_user)
@@ -158,6 +162,8 @@ async def get_proximity_alerts(
             "location.lng": {"$gte": lng - lng_delta, "$lte": lng + lng_delta},
             "iq_score": {"$gte": 55},
         }
+        if module_list:
+            query["module"] = {"$in": module_list}
         if muni:
             query["municipality_id"] = muni
         query = apply_municipality_filter(query, current_user)
@@ -173,6 +179,7 @@ async def get_proximity_alerts(
                 "poi_id": poi["id"],
                 "poi_name": poi["name"],
                 "category": poi["category"],
+                "module": poi.get("module"),
                 "iq_score": poi.get("iq_score"),
                 "distance_m": round(dist_m),
                 "alert_type": alert_type,

@@ -7,6 +7,7 @@
 import { Platform } from 'react-native';
 
 import { API_URL as API_BASE } from '../config/api';
+import { loadInterestModules } from '../config/modules';
 
 let ExpoLocation: any = null;
 if (Platform.OS !== 'web') {
@@ -16,11 +17,13 @@ if (Platform.OS !== 'web') {
 }
 const ALERT_COOLDOWN_MS = 30 * 60 * 1000; // 30 min per POI
 const POSITION_CHECK_MS = 15000; // Check every 15s
+const MODULE_ALERT_RADIUS_M = 1200; // fire a module-interest alert within this range
 
 export interface ProximityAlert {
   poi_id: string;
   poi_name: string;
   category: string;
+  module?: string;
   iq_score: number | null;
   distance_m: number;
   alert_type: string;
@@ -32,12 +35,49 @@ export interface NearbyPOI {
   id: string;
   name: string;
   category: string;
+  module?: string;
   region: string;
   iq_score: number | null;
   distance_km: number;
   distance_m: number;
   image_url?: string;
   description?: string;
+}
+
+/**
+ * Pure helper: derive module-interest alerts from nearby POIs. A POI fires an
+ * alert when its `module` is in the user's interest set, it is within
+ * `radiusM`, and it is past the per-POI cooldown. Exported for testing.
+ */
+export function buildModuleAlerts(
+  pois: NearbyPOI[],
+  enabledModules: string[],
+  radiusM: number,
+  cooldowns: Map<string, number>,
+  cooldownMs: number,
+  now: number,
+): ProximityAlert[] {
+  if (!enabledModules.length) return [];
+  const wanted = new Set(enabledModules);
+  const out: ProximityAlert[] = [];
+  for (const poi of pois) {
+    if (!poi.module || !wanted.has(poi.module)) continue;
+    if (poi.distance_m > radiusM) continue;
+    const last = cooldowns.get(poi.id) || 0;
+    if (now - last <= cooldownMs) continue;
+    out.push({
+      poi_id: poi.id,
+      poi_name: poi.name,
+      category: poi.category,
+      module: poi.module,
+      iq_score: poi.iq_score ?? null,
+      distance_m: poi.distance_m,
+      alert_type: 'module',
+      message: `${poi.name} a ${poi.distance_m} m`,
+      timestamp: now,
+    });
+  }
+  return out;
 }
 
 interface NearbyResult {
@@ -62,6 +102,16 @@ class GeofenceService {
   private notificationPermission: NotificationPermission | 'unsupported' = 'unsupported';
   private alertHistory: ProximityAlert[] = [];
   private nearbyPois: NearbyPOI[] = [];
+  private enabledModules: string[] = [];
+
+  /** Update the user's interest modules live (e.g. from settings). */
+  setEnabledModules(modules: string[]) {
+    this.enabledModules = Array.isArray(modules) ? modules.filter(Boolean) : [];
+  }
+
+  getEnabledModules(): string[] {
+    return this.enabledModules;
+  }
 
   async requestNotificationPermission(): Promise<boolean> {
     if (Platform.OS === 'web') {
@@ -86,6 +136,7 @@ class GeofenceService {
     this.onAlertCallback = callbacks?.onAlert || null;
     this.onLocationCallback = callbacks?.onLocation || null;
     this.onNearbyCallback = callbacks?.onNearby || null;
+    this.enabledModules = await loadInterestModules();
     this.isActive = true;
 
     if (Platform.OS === 'web') {
@@ -157,7 +208,12 @@ class GeofenceService {
 
   private async checkAlerts(lat: number, lng: number) {
     try {
-      const res = await fetch(`${API_BASE}/api/proximity/alerts?lat=${lat}&lng=${lng}`);
+      const modulesParam = this.enabledModules.length
+        ? `&modules=${encodeURIComponent(this.enabledModules.join(','))}`
+        : '';
+      const res = await fetch(
+        `${API_BASE}/api/proximity/alerts?lat=${lat}&lng=${lng}${modulesParam}`,
+      );
       if (!res.ok) return;
       const data = await res.json();
 
@@ -180,7 +236,7 @@ class GeofenceService {
       }
 
       if (newAlerts.length > 0) {
-        this.showBrowserNotifications(newAlerts);
+        this.dispatchNotifications(newAlerts);
         this.onAlertCallback?.(newAlerts);
       }
     } catch {}
@@ -189,12 +245,57 @@ class GeofenceService {
   private async fetchNearby(lat: number, lng: number) {
     try {
       const res = await fetch(
-        `${API_BASE}/api/proximity/nearby?lat=${lat}&lng=${lng}&radius_km=3&limit=10`
+        `${API_BASE}/api/proximity/nearby?lat=${lat}&lng=${lng}&radius_km=3&limit=25`
       );
       if (!res.ok) return;
       const data = await res.json();
       this.nearbyPois = data.pois || [];
       this.onNearbyCallback?.(this.nearbyPois, data.total || 0);
+      this.emitModuleAlerts();
+    } catch {}
+  }
+
+  /** Generate and dispatch alerts for POIs in the user's interest modules. */
+  private emitModuleAlerts() {
+    const now = Date.now();
+    const moduleAlerts = buildModuleAlerts(
+      this.nearbyPois,
+      this.enabledModules,
+      MODULE_ALERT_RADIUS_M,
+      this.alertCooldowns,
+      ALERT_COOLDOWN_MS,
+      now,
+    );
+    if (moduleAlerts.length === 0) return;
+
+    for (const alert of moduleAlerts) {
+      this.alertCooldowns.set(alert.poi_id, now);
+      this.alertHistory.unshift(alert);
+    }
+    if (this.alertHistory.length > 50) {
+      this.alertHistory = this.alertHistory.slice(0, 50);
+    }
+    this.dispatchNotifications(moduleAlerts);
+    this.onAlertCallback?.(moduleAlerts);
+  }
+
+  /** Route notifications to the right channel per platform (mobile-first). */
+  private dispatchNotifications(alerts: ProximityAlert[]) {
+    if (Platform.OS === 'web') {
+      this.showBrowserNotifications(alerts);
+      return;
+    }
+    // Native: schedule local notifications via expo-notifications (degrades to
+    // no-op in Expo Go). Lazy require avoids load-time coupling in tests.
+    try {
+      const { pushNotificationService } = require('./pushNotifications'); // eslint-disable-line @typescript-eslint/no-require-imports
+      for (const alert of alerts.slice(0, 3)) {
+        pushNotificationService.scheduleLocalNotification(
+          alert.poi_name,
+          alert.message,
+          { type: 'geofence_nearby', poiId: alert.poi_id },
+        );
+      }
     } catch {}
   }
 
