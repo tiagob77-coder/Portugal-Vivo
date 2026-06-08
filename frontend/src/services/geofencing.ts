@@ -63,8 +63,9 @@ export function buildModuleAlerts(
   for (const poi of pois) {
     if (!poi.module || !wanted.has(poi.module)) continue;
     if (poi.distance_m > radiusM) continue;
-    const last = cooldowns.get(poi.id) || 0;
-    if (now - last <= cooldownMs) continue;
+    // last falsy → never alerted, always allow; otherwise honour the cooldown.
+    const last = cooldowns.get(poi.id);
+    if (last && now - last <= cooldownMs) continue;
     out.push({
       poi_id: poi.id,
       poi_name: poi.name,

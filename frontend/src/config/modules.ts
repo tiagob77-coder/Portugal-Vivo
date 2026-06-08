@@ -21,7 +21,7 @@ export interface ModuleConfig {
 // notification prefs blob so there is a single persisted source.
 export const NOTIFICATION_PREFS_KEY = '@portugal_vivo_notification_prefs';
 
-const c = (slug: string, fallback: string) => categoryColors[slug] || fallback;
+const c = (slug: string, fallback: string) => categoryColors?.[slug] || fallback;
 
 export const MODULES: ModuleConfig[] = [
   { slug: 'gastronomia', label: 'Gastronomia', icon: 'restaurant', color: c('gastronomia', '#E8B649') },
