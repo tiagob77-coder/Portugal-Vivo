@@ -68,27 +68,27 @@ describe('SmartImage', () => {
     expect(getByTestId('expo-image')).toBeTruthy();
   });
 
-  it('renders gradient fallback when stage reaches 2', () => {
-    const { UNSAFE_queryByType } = render(
+  it('renders gradient fallback when stage reaches 2 (no expo-image)', () => {
+    const { queryByTestId } = render(
       <SmartImage uri="https://broken.example.com/img.jpg" category="castelos" name="Teste" />
     );
-    // stage 0 → 1 → 2
+    // stage 0 → 1 → 2: after two errors, expo-image is gone, gradient shown
     act(() => { capturedOnError?.(); });
     act(() => { capturedOnError?.(); });
-    expect(UNSAFE_queryByType('LinearGradient')).toBeTruthy();
+    expect(queryByTestId('expo-image')).toBeNull();
   });
 
-  it('renders gradient fallback immediately when no URI', () => {
+  it('renders gradient fallback immediately when no URI (after one error)', () => {
     // No URI means stage starts at 1; first onError takes to stage 2
-    const { UNSAFE_queryByType } = render(
+    const { queryByTestId } = render(
       <SmartImage category="miradouros" name="Sintra" />
     );
     act(() => { capturedOnError?.(); });
-    expect(UNSAFE_queryByType('LinearGradient')).toBeTruthy();
+    expect(queryByTestId('expo-image')).toBeNull();
   });
 
-  it('renders fallback icon with alwaysShowIcon=true', () => {
-    const { getByTestId, queryByType } = render(
+  it('renders image in stage 0 with alwaysShowIcon=true', () => {
+    const { getByTestId } = render(
       <SmartImage
         uri="https://example.com/img.jpg"
         category="gastronomia"
@@ -96,7 +96,7 @@ describe('SmartImage', () => {
         alwaysShowIcon
       />
     );
-    // Image exists (stage 0)
+    // Image still exists in stage 0 even with alwaysShowIcon
     expect(getByTestId('expo-image')).toBeTruthy();
   });
 
