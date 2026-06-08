@@ -122,7 +122,7 @@ const getUpcomingEvents = async (
 const fetchLiveEvents = async (
   month?: number,
   region?: string | null,
-): Promise<{ events: CalendarEvent[]; sources: { database: number; viralagenda: number } }> => {
+): Promise<{ events: CalendarEvent[]; sources: { database: number; viralagenda: number; viralagenda_available?: boolean } }> => {
   try {
     const params: Record<string, string | number> = { limit: 150 };
     if (month) params.month = month;
@@ -155,9 +155,9 @@ const fetchLiveEvents = async (
         month: m,
       };
     });
-    return { events, sources: result.sources || { database: 0, viralagenda: 0 } };
+    return { events, sources: result.sources || { database: 0, viralagenda: 0, viralagenda_available: true } };
   } catch {
-    return { events: [], sources: { database: 0, viralagenda: 0 } };
+    return { events: [], sources: { database: 0, viralagenda: 0, viralagenda_available: false } };
   }
 };
 
@@ -219,7 +219,8 @@ export default function EventosTab() {
     queryFn: () => getUpcomingEvents(100, selectedCategory, selectedRegion),
   });
 
-  const liveSources = liveData?.sources || { database: 0, viralagenda: 0 };
+  const liveSources = liveData?.sources || { database: 0, viralagenda: 0, viralagenda_available: true };
+  const vaAvailable = liveSources.viralagenda_available !== false;
 
   const onRefresh = async () => {
     setRefreshing(true);
@@ -679,14 +680,21 @@ export default function EventosTab() {
 
         {/* Live Sources Banner */}
         <View style={styles.agendaViralBanner}>
-          <View style={styles.liveDot} />
+          <View style={[styles.liveDot, !vaAvailable && { backgroundColor: '#EF4444' }]} />
           <View style={{ flex: 1 }}>
             <Text style={styles.agendaViralTitle}>Eventos em Tempo Real</Text>
             <Text style={styles.agendaViralSubtitle}>
-              {liveSources.database} da base de dados · {liveSources.viralagenda} do Viral Agenda RSS
+              {liveSources.database} da base de dados
+              {vaAvailable
+                ? ` · ${liveSources.viralagenda} do Viral Agenda RSS`
+                : ' · Viral Agenda RSS indisponível'}
             </Text>
           </View>
-          <MaterialIcons name="rss-feed" size={18} color={palette.terracotta[500]} />
+          <MaterialIcons
+            name="rss-feed"
+            size={18}
+            color={vaAvailable ? palette.terracotta[500] : '#EF4444'}
+          />
         </View>
 
         {/* Quick Stats */}

@@ -1,7 +1,7 @@
 """
 Viral Agenda Service — Cultural events from viralagenda.com RSS
 Feed: https://viralagenda.com/pt/rss
-Cache TTL: 30 minutos (eventos mudam frequentemente)
+Cache TTL: 30 minutos (in-memory) + MongoDB persistence (fallback when RSS unavailable)
 """
 import httpx
 import logging
@@ -15,6 +15,9 @@ logger = logging.getLogger(__name__)
 
 RSS_URL = "https://viralagenda.com/pt/rss"
 CACHE_TTL = timedelta(minutes=30)
+# When RSS is blocked/unavailable, retry less frequently to avoid hammering
+BLOCKED_RETRY_TTL = timedelta(hours=2)
+MONGO_COLLECTION = "viralagenda_cache"
 
 # Portuguese month names for date parsing
 _PT_MONTHS = {
@@ -59,11 +62,27 @@ class ViralAgendaService:
     Fetches and parses cultural events from viralagenda.com RSS feed.
     Returns events in the same schema used by agenda_api.py
     so they can be merged without frontend changes.
+
+    Resilience layers:
+    1. In-memory cache (30 min TTL on success, 2h TTL on failure to avoid hammering)
+    2. MongoDB persistence (survives server restarts; used when RSS is unavailable)
     """
 
     def __init__(self):
         self._cache: Optional[List[Dict[str, Any]]] = None
         self._cache_ts: Optional[datetime] = None
+        self._last_failed: Optional[datetime] = None
+        self._db = None
+
+    def set_db(self, db) -> None:
+        self._db = db
+
+    @property
+    def available(self) -> bool:
+        """True if the last RSS fetch succeeded."""
+        return self._last_failed is None or (
+            self._cache_ts is not None and self._cache_ts > self._last_failed
+        )
 
     async def get_events(
         self,
@@ -80,20 +99,40 @@ class ViralAgendaService:
 
     async def _fetch_with_cache(self) -> List[Dict[str, Any]]:
         now = datetime.now(timezone.utc)
+
+        # Use in-memory cache if still fresh
         if self._cache is not None and self._cache_ts is not None:
-            if now - self._cache_ts < CACHE_TTL:
+            ttl = CACHE_TTL if self.available else BLOCKED_RETRY_TTL
+            if now - self._cache_ts < ttl:
                 return self._cache
 
+        # Attempt RSS fetch
         events = await self._fetch_rss()
+
         if events:
             self._cache = events
             self._cache_ts = now
+            self._last_failed = None
             logger.info(f"ViralAgenda: {len(events)} events cached from RSS")
-        elif self._cache:
-            logger.warning("ViralAgenda RSS unavailable, serving stale cache")
+            # Persist to MongoDB for future fallback
+            await self._persist_to_mongo(events, now)
         else:
-            logger.warning("ViralAgenda RSS unavailable and no cache")
-            return []
+            self._last_failed = now
+            # Try stale in-memory cache first
+            if self._cache:
+                logger.warning("ViralAgenda RSS unavailable, serving stale in-memory cache")
+                return self._cache
+            # Fall back to MongoDB persistence
+            mongo_events = await self._load_from_mongo()
+            if mongo_events:
+                self._cache = mongo_events
+                self._cache_ts = now
+                logger.warning(
+                    f"ViralAgenda RSS unavailable, serving {len(mongo_events)} events from MongoDB cache"
+                )
+            else:
+                logger.warning("ViralAgenda RSS unavailable and no cache available")
+                return []
 
         return self._cache or []
 
@@ -102,9 +141,19 @@ class ViralAgendaService:
             async with httpx.AsyncClient(timeout=10.0) as client:
                 resp = await client.get(
                     RSS_URL,
-                    headers={"User-Agent": "PortugalVivo/3.0 (+https://portugalvivo.pt)"},
+                    headers={
+                        "User-Agent": "Mozilla/5.0 (compatible; PortugalVivo/3.0; +https://portugalvivo.pt)",
+                        "Accept": "application/rss+xml, application/xml, text/xml, */*",
+                        "Accept-Language": "pt-PT,pt;q=0.9",
+                    },
                     follow_redirects=True,
                 )
+                if resp.status_code == 403:
+                    logger.warning(
+                        "ViralAgenda RSS blocked (403) — IP not in allowlist. "
+                        "Will use MongoDB cache as fallback."
+                    )
+                    return []
                 if resp.status_code != 200:
                     logger.warning(f"ViralAgenda RSS returned {resp.status_code}")
                     return []
@@ -115,6 +164,31 @@ class ViralAgendaService:
         except Exception as e:
             logger.error(f"ViralAgenda RSS error: {e}")
             return []
+
+    async def _persist_to_mongo(self, events: List[Dict[str, Any]], ts: datetime) -> None:
+        if self._db is None:
+            return
+        try:
+            await self._db[MONGO_COLLECTION].replace_one(
+                {"_id": "latest"},
+                {"_id": "latest", "events": events, "cached_at": ts},
+                upsert=True,
+            )
+        except Exception as e:
+            logger.warning(f"ViralAgenda: failed to persist to MongoDB: {e}")
+
+    async def _load_from_mongo(self) -> List[Dict[str, Any]]:
+        if self._db is None:
+            return []
+        try:
+            doc = await self._db[MONGO_COLLECTION].find_one({"_id": "latest"})
+            if doc and doc.get("events"):
+                age_hours = (datetime.now(timezone.utc) - doc["cached_at"]).total_seconds() / 3600
+                logger.info(f"ViralAgenda: loaded {len(doc['events'])} events from MongoDB (age: {age_hours:.1f}h)")
+                return doc["events"]
+        except Exception as e:
+            logger.warning(f"ViralAgenda: failed to load from MongoDB: {e}")
+        return []
 
     def _parse_rss(self, xml_text: str) -> List[Dict[str, Any]]:
         events = []
