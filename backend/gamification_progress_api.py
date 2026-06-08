@@ -7,6 +7,7 @@ from fastapi import APIRouter, HTTPException, Depends
 from pydantic import BaseModel
 from typing import List
 from datetime import datetime, timezone
+from collections import Counter
 import logging
 
 from models.api_models import User
@@ -68,7 +69,23 @@ async def get_gamification_progress(current_user: User = Depends(require_auth)):
     # Calculate badges
     earned_badges = []
     favorites_count = len(current_user.favorites)
-    visits_count = len(progress.get("visits", []))
+    visit_ids = progress.get("visits", [])
+    visits_count = len(visit_ids)
+
+    # Batch-fetch visited POIs once (region/category only) instead of issuing one
+    # query per region/category badge — collapses an N+1 into a single round-trip.
+    region_counts: Counter = Counter()
+    category_counts: Counter = Counter()
+    if visit_ids:
+        visited_items = await _db().heritage_items.find(
+            {"id": {"$in": visit_ids}},
+            {"_id": 0, "region": 1, "category": 1},
+        ).to_list(len(visit_ids))
+        for item in visited_items:
+            if item.get("region"):
+                region_counts[item["region"]] += 1
+            if item.get("category"):
+                category_counts[item["category"]] += 1
 
     for badge in GAMIFICATION_BADGES:
         badge_id = badge["id"]
@@ -83,17 +100,9 @@ async def get_gamification_progress(current_user: User = Depends(require_auth)):
         if badge_type == "checkins":
             current_progress = visits_count
         elif badge_type == "region":
-            region = badge.get("region", "")
-            items_in_region = await _db().heritage_items.find(
-                {"id": {"$in": progress.get("visits", [])}, "region": region}
-            ).to_list(100)
-            current_progress = len(items_in_region)
+            current_progress = region_counts.get(badge.get("region", ""), 0)
         elif badge_type == "category":
-            category = badge.get("category", "")
-            items_in_cat = await _db().heritage_items.find(
-                {"id": {"$in": progress.get("visits", [])}, "category": category}
-            ).to_list(100)
-            current_progress = len(items_in_cat)
+            current_progress = category_counts.get(badge.get("category", ""), 0)
 
         progress_percent = min(100, int((current_progress / threshold) * 100)) if threshold else 0
         earned_badges.append({
