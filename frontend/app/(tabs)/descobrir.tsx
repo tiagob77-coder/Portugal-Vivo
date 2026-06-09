@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import {
   View, Text, StyleSheet, ScrollView, RefreshControl,
   TouchableOpacity, Dimensions, ActivityIndicator,
-  ImageBackground, Animated, Platform,
+  ImageBackground, Animated, Platform, InteractionManager,
 } from 'react-native';
 import SmartImage from '../../src/components/SmartImage';
 import { useRouter } from 'expo-router';
@@ -82,6 +82,18 @@ function DescobrerTab() {
   const [activePerfil, setActivePerfil] = useState<string | null>(null);
   const [activeCategory, setActiveCategory] = useState<string>('todos');
   const [feedPage, setFeedPage] = useState(1);
+  // Defer heavy below-the-fold sections until after first paint to cut TTI.
+  const [deferredReady, setDeferredReady] = useState(false);
+  useEffect(() => {
+    const task = InteractionManager.runAfterInteractions(() => setDeferredReady(true));
+    // Fallback so the sections always appear even if the interaction handle
+    // doesn't fire in a given environment.
+    const fallback = setTimeout(() => setDeferredReady(true), 800);
+    return () => {
+      task.cancel?.();
+      clearTimeout(fallback);
+    };
+  }, []);
   const { data: missionsData } = useQuery({
     queryKey: ['missions-badge'],
     queryFn: async () => {
@@ -949,7 +961,9 @@ function DescobrerTab() {
           </ScrollView>
         </View>
 
-        {/* ─── Explorar em Profundidade ─── */}
+        {/* ─── Explorar em Profundidade ─── (deferred: below the fold) */}
+        {deferredReady && (
+        <>
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <View style={styles.sectionTitleRow}>
@@ -1076,6 +1090,8 @@ function DescobrerTab() {
           </View>
           <MaterialIcons name="arrow-forward-ios" size={14} color={colors.textMuted} />
         </TouchableOpacity>
+        </>
+        )}
 
         {/* Empty State */}
         {(!feedData?.items || feedData.items.length === 0) && !feedLoading && (
