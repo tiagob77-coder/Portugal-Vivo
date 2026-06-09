@@ -7,7 +7,7 @@ import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-nati
 import { MaterialIcons } from '@expo/vector-icons';
 import { palette, withOpacity } from '../../theme';
 
-// Top-bar map modes. Held to 8 so the row fits without horizontal scroll on
+// Top-bar map modes. Held to 7 so the row fits without horizontal scroll on
 // phones ≥ 360 px.
 // Removed from earlier 12-mode lineup:
 //   - `tecnico` — duplicated the floating TEC button in NativeMap.web.tsx
@@ -16,6 +16,10 @@ import { palette, withOpacity } from '../../theme';
 //   - `premium` — only tinted background tiles; no overlay UI was wired.
 //   - `epochs` / `timeline` — historical-discovery features whose home is
 //     /descobrir, not the map mode selector.
+//   - `satellite` — only swapped the basemap tiles (Esri imagery) while
+//     sharing the markers POI flow; it is orthogonal to the visualization
+//     mode, so it now lives as a basemap toggle (the "SAT" floating button
+//     in NativeMap.web.tsx) that can overlay any mode.
 // `rotas` (narrative + cultural routes, infra) and `trails` (hiking trails
 // from /trails) are distinct data sources — the labels stay distinct too
 // ("Rotas" vs "Trilhos") to avoid the earlier "Rotas & Trilhos" overlap
@@ -28,7 +32,6 @@ const MAP_MODES = [
   { id: 'trails', icon: 'hiking', label: 'Trilhos' },
   { id: 'proximity', icon: 'near-me', label: 'Proximidade' },
   { id: 'noturno', icon: 'nightlight-round', label: 'Modo noturno' },
-  { id: 'satellite', icon: 'satellite', label: 'Satélite' },
 ] as const;
 
 export type MapMode = typeof MAP_MODES[number]['id'];
@@ -39,16 +42,13 @@ export type MapMode = typeof MAP_MODES[number]['id'];
 // callers should hide it to avoid a "filter looks active but is being
 // ignored" UX trap.
 //
-// `satellite` is included because it only changes the tile style — the POI
-// query in mapa.tsx falls through to `getMapItems(activeCategories,
-// regionFilter)`, identical to `markers`. Hiding the selector here would
-// leave the user with active subcategory filters they can't see or edit
-// while the map quietly drops POIs that don't match.
+// Satellite is no longer a mode — it is a basemap toggle handled inside
+// NativeMap.web.tsx, so it never appears here. The layer selector's
+// visibility is governed purely by the active visualization mode.
 export const LAYER_RESPECTING_MODES: ReadonlyArray<MapMode> = [
   'markers',
   'heatmap',
   'explorador',
-  'satellite',
 ];
 
 interface MapModeSelectorProps {

@@ -1212,9 +1212,9 @@ function MapaTab() {
 
           {/* Layer Selector with Subcategories — only shown for modes that
               actually consume the user's selection. Other modes (trails /
-              rotas / proximity / noturno / satellite) drive their items
-              from mode-specific data fetches and would render an active
-              filter that does nothing. */}
+              rotas / proximity / noturno) drive their items from
+              mode-specific data fetches and would render an active filter
+              that does nothing. Satellite is a basemap toggle, not a mode. */}
           {(LAYER_RESPECTING_MODES as ReadonlyArray<string>).includes(mapMode) && (
             <View style={styles.section}>
               <MapLayerSelector

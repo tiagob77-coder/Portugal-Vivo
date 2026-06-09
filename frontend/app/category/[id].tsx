@@ -69,7 +69,6 @@ const CATEGORY_META: Record<string, { icon: string; color: string; image: string
   festas_romarias: { icon: 'celebration', color: '#F59E0B', image: 'https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?w=800&q=80' },
   // Praias & Mar
   surf: { icon: 'surfing', color: '#0EA5E9', image: 'https://images.unsplash.com/photo-1502680390548-bdbac40b3e1a?w=800&q=80' },
-  praias_fluviais_mar: { icon: 'waves', color: '#06B6D4', image: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&q=80' },
   praias_bandeira_azul: { icon: 'beach-access', color: '#2563EB', image: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&q=80' },
   // Experiencias & Rotas
   rotas_tematicas: { icon: 'route', color: '#EC4899', image: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&q=80' },
