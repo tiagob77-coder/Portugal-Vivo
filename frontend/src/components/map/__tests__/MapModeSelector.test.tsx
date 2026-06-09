@@ -22,7 +22,7 @@ describe('MapModeSelector', () => {
     jest.clearAllMocks();
   });
 
-  it('renders all 8 mode buttons', () => {
+  it('renders all 7 mode buttons', () => {
     render(<MapModeSelector activeMode="markers" onModeChange={onModeChange} />);
     expect(screen.getByText('Camadas')).toBeTruthy();
     expect(screen.getByText('Rotas')).toBeTruthy();
@@ -31,15 +31,16 @@ describe('MapModeSelector', () => {
     expect(screen.getByText('Trilhos')).toBeTruthy();
     expect(screen.getByText('Proximidade')).toBeTruthy();
     expect(screen.getByText('Modo noturno')).toBeTruthy();
-    expect(screen.getByText('Satélite')).toBeTruthy();
   });
 
-  it('does not render the removed tecnico/premium/epochs/timeline modes', () => {
+  it('does not render removed modes (tecnico/premium/epochs/timeline/satellite)', () => {
     render(<MapModeSelector activeMode="markers" onModeChange={onModeChange} />);
     expect(screen.queryByText('Vista técnica')).toBeNull();
     expect(screen.queryByText('Premium')).toBeNull();
     expect(screen.queryByText('Épocas históricas')).toBeNull();
     expect(screen.queryByText('Linha do tempo')).toBeNull();
+    // Satellite became a basemap toggle in NativeMap.web.tsx, not a mode.
+    expect(screen.queryByText('Satélite')).toBeNull();
   });
 
   it('calls onModeChange with "explorador" when Explorador is pressed', () => {
@@ -72,12 +73,6 @@ describe('MapModeSelector', () => {
     expect(onModeChange).toHaveBeenCalledWith('noturno');
   });
 
-  it('calls onModeChange with "satellite" when Satélite is pressed', () => {
-    render(<MapModeSelector activeMode="markers" onModeChange={onModeChange} />);
-    fireEvent.press(screen.getByText('Satélite'));
-    expect(onModeChange).toHaveBeenCalledWith('satellite');
-  });
-
   it('renders without crashing with "heatmap" as active mode', () => {
     expect(() =>
       render(<MapModeSelector activeMode="heatmap" onModeChange={onModeChange} />)
@@ -90,22 +85,19 @@ describe('MapModeSelector', () => {
     ).not.toThrow();
   });
 
-  it('renders 8 mode buttons total', () => {
+  it('renders 7 mode buttons total', () => {
     const { UNSAFE_getAllByType } = render(
       <MapModeSelector activeMode="markers" onModeChange={onModeChange} />
     );
     const { TouchableOpacity } = require('react-native'); // eslint-disable-line @typescript-eslint/no-require-imports
     const buttons = UNSAFE_getAllByType(TouchableOpacity);
-    expect(buttons.length).toBe(8);
+    expect(buttons.length).toBe(7);
   });
 });
 
 describe('LAYER_RESPECTING_MODES', () => {
   // The set is a UX contract — modes here keep the MapLayerSelector
-  // visible, others hide it. Codex P2 review on PR #178 caught that
-  // `satellite` was missing: its POI query falls through to
-  // getMapItems(activeCategories, …) just like `markers`, so hiding
-  // the selector left users with invisible+uneditable filters.
+  // visible, others hide it.
 
   it('includes markers (default mode)', () => {
     expect(LAYER_RESPECTING_MODES).toContain('markers');
@@ -119,10 +111,12 @@ describe('LAYER_RESPECTING_MODES', () => {
     expect(LAYER_RESPECTING_MODES).toContain('explorador');
   });
 
-  it('includes satellite (regression guard for #178)', () => {
-    // satellite shares the POI data flow of markers — only the tiles
-    // change. Hiding the layer selector here is a UX trap.
-    expect(LAYER_RESPECTING_MODES).toContain('satellite');
+  it('does not list satellite — it is a basemap toggle, not a mode', () => {
+    // Satellite moved out of the mode lineup (NativeMap.web.tsx "SAT"
+    // button). The layer selector now follows the underlying mode, so
+    // satellite imagery can overlay markers/heatmap/explorador with the
+    // selector still visible.
+    expect(LAYER_RESPECTING_MODES).not.toContain('satellite' as never);
   });
 
   it('excludes modes with their own data sources', () => {

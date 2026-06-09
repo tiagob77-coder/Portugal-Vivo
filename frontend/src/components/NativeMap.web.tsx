@@ -137,6 +137,12 @@ export function LeafletMapComponent(props: LeafletMapProps) {
   const [mapError, setMapError] = useState<string | null>(null);
   const [coords, setCoords] = useState<{lng: number; lat: number} | null>(null);
   const [isTecnico, setIsTecnico] = useState(false);
+  // Satellite is a basemap toggle orthogonal to mapMode (markers/heatmap/…),
+  // so any visualization mode can be viewed over Esri imagery. Legacy callers
+  // may still pass mapMode='satellite'; both paths are honoured below.
+  const [satellite, setSatellite] = useState(false);
+  const satelliteRef = useRef(satellite);
+  satelliteRef.current = satellite;
 
   // Keep refs in sync
   itemsRef.current = items;
@@ -156,7 +162,7 @@ export function LeafletMapComponent(props: LeafletMapProps) {
 
       map = new ml.Map({
         container: containerRef.current,
-        style: mapMode === 'satellite' ? SATELLITE_STYLE as any : (MAP_STYLES[mapMode] || MAP_STYLES.light),
+        style: (satelliteRef.current || mapMode === 'satellite') ? SATELLITE_STYLE as any : (MAP_STYLES[mapMode] || MAP_STYLES.light),
         center: PT_CENTER,
         zoom: PT_ZOOM,
         pitch: 0,
@@ -506,7 +512,7 @@ export function LeafletMapComponent(props: LeafletMapProps) {
     }
 
     const map = mapRef.current;
-    const newStyle = mapMode === 'satellite'
+    const newStyle = (satellite || mapMode === 'satellite')
       ? SATELLITE_STYLE as any
       : (MAP_STYLES[mapMode] || MAP_STYLES.light);
 
@@ -526,7 +532,7 @@ export function LeafletMapComponent(props: LeafletMapProps) {
         src.setData(toGeoJSON(itemsRef.current, getMarkerColor));
       }
     });
-  }, [mapMode, ready]);
+  }, [mapMode, satellite, ready]);
 
   // ── Navigate to region (prop-driven) ────────────────────────────────────
   const prevRegionRef = useRef<typeof navigateToRegion>(undefined);
@@ -636,6 +642,20 @@ export function LeafletMapComponent(props: LeafletMapProps) {
       >
         <Text style={[s.btn3dText, isTecnico && { color: '#fff' }]}>
           {isTecnico ? '◎ TEC' : '◎ TEC'}
+        </Text>
+      </TouchableOpacity>
+
+      {/* Botão Satélite (basemap toggle) */}
+      <TouchableOpacity
+        style={[s.btn3d, { top: 130 }, satellite && s.btn3dActive]}
+        onPress={() => setSatellite((v) => !v)}
+        activeOpacity={0.85}
+        accessibilityRole="switch"
+        accessibilityState={{ checked: satellite }}
+        accessibilityLabel="Vista de satélite"
+      >
+        <Text style={[s.btn3dText, satellite && { color: '#fff' }]}>
+          {'\u{1F6F0} SAT'}
         </Text>
       </TouchableOpacity>
 

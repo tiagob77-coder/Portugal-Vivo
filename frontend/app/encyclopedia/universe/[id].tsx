@@ -56,7 +56,7 @@ const SUBCAT_NAMES: Record<string, string> = {
   agroturismo_enoturismo: 'Agroturismo e Enoturismo', pratos_tipicos: 'Pratos Típicos',
   docaria_regional: 'Doçaria Regional', musica_tradicional: 'Música Tradicional',
   festivais_musica: 'Festivais de Música', festas_romarias: 'Festas e Romarias',
-  surf: 'Surf', praias_fluviais_mar: 'Praias Fluviais (Mar)', praias_bandeira_azul: 'Praias Bandeira Azul',
+  surf: 'Surf', praias_bandeira_azul: 'Praias Bandeira Azul',
   rotas_tematicas: 'Rotas Temáticas', grande_expedicao: 'Grande Expedição 2026',
   perolas_portugal: 'Pérolas de Portugal', alojamentos_rurais: 'Alojamentos Rurais',
   parques_campismo: 'Parques de Campismo', pousadas_juventude: 'Pousadas de Juventude',
