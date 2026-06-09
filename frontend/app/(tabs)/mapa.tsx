@@ -59,7 +59,11 @@ const MAP_LAYERS = [
   { id: 'experiencias_rotas', name: 'Experiências', icon: 'hiking', color: '#84CC16' },
 ];
 
-// All 44 subcategories grouped by main category
+// Subcategory taxonomy — kept aligned with backend shared_constants.py
+// (6 main categories → 43 leaves). `comingSoon` mirrors the backend
+// `coming_soon` flag: those leaves have no POI data yet, so they render
+// disabled and are excluded from the default-active set (see
+// getLayerSubcategories) to avoid empty map queries.
 const SUBCATEGORIES: Record<string, { id: string; name: string; icon: string; comingSoon?: boolean }[]> = {
   territorio_natureza: [
     { id: 'percursos_pedestres', name: 'Percursos Pedestres', icon: 'hiking' },
@@ -102,20 +106,19 @@ const SUBCATEGORIES: Record<string, { id: string; name: string; icon: string; co
   ],
   praias_mar: [
     { id: 'surf', name: 'Surf', icon: 'surfing' },
-    { id: 'praias_fluviais_mar', name: 'Praias Fluviais', icon: 'pool' },
     { id: 'praias_bandeira_azul', name: 'Praias Bandeira Azul', icon: 'flag' },
   ],
   experiencias_rotas: [
     { id: 'rotas_tematicas', name: 'Rotas Temáticas', icon: 'route' },
-    { id: 'grande_expedicao', name: 'Grande Expedição 2026', icon: 'explore' },
+    { id: 'grande_expedicao', name: 'Grande Expedição 2026', icon: 'explore', comingSoon: true },
     { id: 'perolas_portugal', name: 'Pérolas de Portugal', icon: 'star' },
     { id: 'alojamentos_rurais', name: 'Alojamentos Rurais', icon: 'cottage', comingSoon: true },
     { id: 'parques_campismo', name: 'Parques de Campismo', icon: 'holiday-village' },
     { id: 'pousadas_juventude', name: 'Pousadas de Juventude', icon: 'hotel' },
     { id: 'agentes_turisticos', name: 'Agentes Turísticos', icon: 'support-agent', comingSoon: true },
     { id: 'entidades_operadores', name: 'Entidades e Operadores', icon: 'business', comingSoon: true },
-    { id: 'guia_viajante', name: 'Guia do Viajante', icon: 'menu-book' },
-    { id: 'transportes', name: 'Transportes', icon: 'directions-bus' },
+    { id: 'guia_viajante', name: 'Guia do Viajante', icon: 'menu-book', comingSoon: true },
+    { id: 'transportes', name: 'Transportes', icon: 'directions-bus', comingSoon: true },
   ],
 };
 
@@ -150,9 +153,11 @@ const getLayerColor = (categoryId: string): string => {
   return '#64748B';
 };
 
-// All subcategory IDs for a layer
+// Selectable subcategory IDs for a layer — excludes `comingSoon` leaves,
+// which have no POI data and would only produce empty map queries. This
+// drives the default-active set, "select all" and the layer badge counts.
 const getLayerSubcategories = (layerId: string): string[] => {
-  return (SUBCATEGORIES[layerId] || []).map(s => s.id);
+  return (SUBCATEGORIES[layerId] || []).filter(s => !s.comingSoon).map(s => s.id);
 };
 
 interface MapItem {
