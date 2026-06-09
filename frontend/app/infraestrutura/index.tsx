@@ -8,8 +8,10 @@ import {
 import { MaterialIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useQuery } from '@tanstack/react-query';
 import InfrastructureCard, { Infrastructure } from '../../src/components/InfrastructureCard';
 import { getModuleTheme, withOpacity } from '../../src/theme/colors';
+import { API_BASE } from '../../src/config/api';
 
 // ─── Colors (from centralized theme) ─────────────────────────────────────────
 
@@ -314,8 +316,19 @@ export default function InfraestruturaScreen() {
     setExpandedId(expandedId === id ? null : id);
   };
 
+  // Data-driven with static fallback — backend serves curated infra first
+  // (order_enriched_first), then sparse ingested rows; INFRA_DATA on failure.
+  const { data: infraData } = useQuery({
+    queryKey: ['infrastructure-list'],
+    queryFn: async () => {
+      const res = await fetch(`${API_BASE}/infrastructure/list?limit=200`);
+      return res.json();
+    },
+  });
+  const allInfra: Infrastructure[] = infraData?.results ?? INFRA_DATA;
+
   // Filter logic
-  const filtered = INFRA_DATA.filter((item) => {
+  const filtered = allInfra.filter((item) => {
     const typeMatch = activeType === 'todos' || item.type === activeType;
     const accessMatch =
       accessFilter === 'todos'    ? true :
