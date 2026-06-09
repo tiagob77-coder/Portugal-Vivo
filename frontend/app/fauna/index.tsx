@@ -8,8 +8,10 @@ import {
 import { MaterialIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useQuery } from '@tanstack/react-query';
 import FaunaSpeciesCard, { FaunaSpecies } from '../../src/components/FaunaSpeciesCard';
 import { getModuleTheme, withOpacity } from '../../src/theme/colors';
+import { API_BASE } from '../../src/config/api';
 
 // ─── Colors (from centralized theme) ─────────────────────────────────────────
 
@@ -369,9 +371,20 @@ export default function FaunaScreen() {
     setExpandedId(expandedId === id ? null : id);
   };
 
-  const tabFiltered     = filterByTab(FAUNA_DATA, activeTab);
+  // Data-driven with static fallback (mirrors the flora screen): the backend
+  // serves curated + ingested fauna; FAUNA_DATA is used only if the call fails.
+  const { data: faunaData } = useQuery({
+    queryKey: ['fauna-species'],
+    queryFn: async () => {
+      const res = await fetch(`${API_BASE}/flora-fauna/fauna?limit=200`);
+      return res.json();
+    },
+  });
+  const allFauna: FaunaSpecies[] = faunaData?.fauna ?? FAUNA_DATA;
+
+  const tabFiltered     = filterByTab(allFauna, activeTab);
   const filtered        = filterByHabitat(tabFiltered, activeHabitat);
-  const flagshipCount   = FAUNA_DATA.filter((s) => s.is_flagship).length;
+  const flagshipCount   = allFauna.filter((s) => s.is_flagship).length;
 
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>

@@ -9,8 +9,10 @@ import {
 import { MaterialIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useQuery } from '@tanstack/react-query';
 import MarineSpeciesCard, { MarineSpecies } from '../../src/components/MarineSpeciesCard';
 import { getModuleTheme, withOpacity } from '../../src/theme/colors';
+import { API_BASE } from '../../src/config/api';
 
 // ─── Colors (from centralized theme) ─────────────────────────────────────────
 
@@ -327,13 +329,23 @@ export default function BiodiversidadeScreen() {
     setExpandedId(expandedId === id ? null : id);
   };
 
-  const filtered = SPECIES_DATA.filter((s) => {
+  // Data-driven with static fallback — serves curated species from the backend.
+  const { data: speciesData } = useQuery({
+    queryKey: ['biodiversity-species'],
+    queryFn: async () => {
+      const res = await fetch(`${API_BASE}/biodiversity/species?limit=200`);
+      return res.json();
+    },
+  });
+  const allSpecies: MarineSpecies[] = speciesData?.results ?? SPECIES_DATA;
+
+  const filtered = allSpecies.filter((s) => {
     const catOk = categoryFilter === 'all' || s.category === categoryFilter;
     const seaOk = seasonFilter === 'all' || s.season === seasonFilter || s.season === 'year-round';
     return catOk && seaOk;
   });
 
-  const currentSeasonCount = SPECIES_DATA.filter(
+  const currentSeasonCount = allSpecies.filter(
     (s) => s.season === currentSeason || s.season === 'year-round' || s.season === 'migration',
   ).length;
 
