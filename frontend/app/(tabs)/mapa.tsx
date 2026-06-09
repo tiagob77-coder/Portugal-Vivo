@@ -537,6 +537,18 @@ function MapaTab() {
     mapComponentItems = mapItems || [];
   }
 
+  // Native MapView renders one <Marker> per item with no clustering, so dense
+  // categories (1000s of POIs) jank/crash it. Cap the native marker set,
+  // keeping the highest-IQ items first. The web map (NativeMap/MapLibre)
+  // clusters natively and keeps the full set, so this only affects native.
+  const NATIVE_MARKER_CAP = 500;
+  const nativeMarkerItems = useMemo(() => {
+    if (mapComponentItems.length <= NATIVE_MARKER_CAP) return mapComponentItems;
+    return [...mapComponentItems]
+      .sort((a, b) => (b?.iq_score || 0) - (a?.iq_score || 0))
+      .slice(0, NATIVE_MARKER_CAP);
+  }, [mapComponentItems]);
+
   const toggleLayer = (layerId: string) => {
     const layerSubs = getLayerSubcategories(layerId);
     const allActive = layerSubs.every(s => activeSubcategories.includes(s));
@@ -690,8 +702,9 @@ function MapaTab() {
             customMapStyle={darkMapStyle}
             mapPadding={{ top: 0, right: 0, bottom: 180, left: 0 }}
           >
-            {/* POI markers — hidden in rotas mode to keep focus on the route */}
-            {mapMode !== 'rotas' && mapComponentItems?.map((item) => (
+            {/* POI markers — hidden in rotas mode to keep focus on the route.
+                Capped on native (no clustering) — see nativeMarkerItems. */}
+            {mapMode !== 'rotas' && nativeMarkerItems?.map((item) => (
               <Marker
                 key={item.id}
                 coordinate={{
