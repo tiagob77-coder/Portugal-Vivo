@@ -1,7 +1,7 @@
 /**
  * Economia Local — markets, artisans, and regional products explorer
  */
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity,
   Dimensions, ActivityIndicator,
@@ -131,6 +131,11 @@ export default function EconomiaScreen() {
   const [activeTab, setActiveTab] = useState<TabKey>('mercados');
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [seasonFilter, setSeasonFilter] = useState<number | null>(null);
+  // Bound the initial render — these lists can hold ~100 cards inside a plain
+  // ScrollView (no virtualization). Reset the window when the tab changes.
+  const PAGE = 24;
+  const [visibleCount, setVisibleCount] = useState(PAGE);
+  useEffect(() => setVisibleCount(PAGE), [activeTab, seasonFilter]);
 
   const currentMonth = new Date().getMonth() + 1;
 
@@ -188,6 +193,8 @@ export default function EconomiaScreen() {
     : produtos;
 
   const activeTabConf = TABS.find((t) => t.key === activeTab)!;
+  const activeList =
+    activeTab === 'mercados' ? mercados : activeTab === 'artesaos' ? artesaos : filteredProdutos;
 
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
@@ -325,7 +332,7 @@ export default function EconomiaScreen() {
 
           {/* Mercados */}
           {!isLoading && activeTab === 'mercados' &&
-            mercados.map((item: any) => (
+            mercados.slice(0, visibleCount).map((item: any) => (
               <EconomyMarketCard
                 key={item.id}
                 item={item}
@@ -337,7 +344,7 @@ export default function EconomiaScreen() {
 
           {/* Artesãos */}
           {!isLoading && activeTab === 'artesaos' &&
-            artesaos.map((item: any) => (
+            artesaos.slice(0, visibleCount).map((item: any) => (
               <EconomyMarketCard
                 key={item.id}
                 item={item}
@@ -349,7 +356,7 @@ export default function EconomiaScreen() {
 
           {/* Produtos */}
           {!isLoading && activeTab === 'produtos' &&
-            filteredProdutos.map((item: any) => (
+            filteredProdutos.slice(0, visibleCount).map((item: any) => (
               <EconomyMarketCard
                 key={item.id}
                 item={item}
@@ -368,6 +375,20 @@ export default function EconomiaScreen() {
                 Tente outro mês ou selecione &quot;Todos&quot;.
               </Text>
             </View>
+          )}
+
+          {!isLoading && activeList.length > visibleCount && (
+            <TouchableOpacity
+              style={styles.loadMoreBtn}
+              onPress={() => setVisibleCount((v) => v + PAGE)}
+              accessibilityRole="button"
+              accessibilityLabel="Ver mais resultados"
+            >
+              <Text style={styles.loadMoreText}>
+                Ver mais ({activeList.length - visibleCount})
+              </Text>
+              <MaterialIcons name="expand-more" size={18} color={activeTabConf.color} />
+            </TouchableOpacity>
           )}
         </View>
 
@@ -548,6 +569,19 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingVertical: 48,
     gap: 10,
+  },
+  loadMoreBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 4,
+    paddingVertical: 12,
+    marginTop: 4,
+  },
+  loadMoreText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: C.textLight,
   },
   emptyStateTitle: {
     fontSize: 15,
