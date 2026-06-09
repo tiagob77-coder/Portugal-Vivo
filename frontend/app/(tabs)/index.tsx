@@ -83,7 +83,7 @@ const SUPER_CATEGORIES: SuperCategory[] = [
     icon: 'waves',
     color: palette.ocean[500],
     categoryIds: [
-      'surf', 'praias_fluviais_mar', 'praias_bandeira_azul',
+      'surf', 'praias_bandeira_azul',
     ],
   },
   {

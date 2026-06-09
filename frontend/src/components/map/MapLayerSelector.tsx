@@ -51,6 +51,11 @@ export default function MapLayerSelector({
   getLayerSubcategories,
   isNative = false,
 }: MapLayerSelectorProps) {
+  // Total selectable subcategories (excludes `comingSoon` placeholders) —
+  // derived from props so the counter never drifts from the taxonomy.
+  const totalSelectable = Object.values(subcategories)
+    .flat()
+    .filter((s) => !s.comingSoon).length;
   return (
     <View>
       {!isNative && (
@@ -58,7 +63,7 @@ export default function MapLayerSelector({
           <MaterialIcons name="layers" size={20} color={stateColors.rarity.raro} />
           <Text style={styles.sectionTitle}>Camadas</Text>
           <Text style={styles.subcatCount}>
-            {activeSubcategories.length} de 44
+            {activeSubcategories.length} de {totalSelectable}
           </Text>
         </View>
       )}

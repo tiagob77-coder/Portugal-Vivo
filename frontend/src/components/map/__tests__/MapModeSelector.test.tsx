@@ -25,7 +25,7 @@ describe('MapModeSelector', () => {
   it('renders all 8 mode buttons', () => {
     render(<MapModeSelector activeMode="markers" onModeChange={onModeChange} />);
     expect(screen.getByText('Camadas')).toBeTruthy();
-    expect(screen.getByText('Rotas & Trilhos')).toBeTruthy();
+    expect(screen.getByText('Rotas')).toBeTruthy();
     expect(screen.getByText('Explorador')).toBeTruthy();
     expect(screen.getByText('Densidade')).toBeTruthy();
     expect(screen.getByText('Trilhos')).toBeTruthy();

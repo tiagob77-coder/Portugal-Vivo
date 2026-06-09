@@ -16,9 +16,13 @@ import { palette, withOpacity } from '../../theme';
 //   - `premium` — only tinted background tiles; no overlay UI was wired.
 //   - `epochs` / `timeline` — historical-discovery features whose home is
 //     /descobrir, not the map mode selector.
+// `rotas` (narrative + cultural routes, infra) and `trails` (hiking trails
+// from /trails) are distinct data sources — the labels stay distinct too
+// ("Rotas" vs "Trilhos") to avoid the earlier "Rotas & Trilhos" overlap
+// that read as a duplicate of the adjacent Trilhos tab.
 const MAP_MODES = [
   { id: 'markers', icon: 'place', label: 'Camadas' },
-  { id: 'rotas', icon: 'route', label: 'Rotas & Trilhos' },
+  { id: 'rotas', icon: 'route', label: 'Rotas' },
   { id: 'explorador', icon: 'explore', label: 'Explorador' },
   { id: 'heatmap', icon: 'whatshot', label: 'Densidade' },
   { id: 'trails', icon: 'hiking', label: 'Trilhos' },
