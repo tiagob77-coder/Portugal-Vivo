@@ -8,8 +8,10 @@ import {
 import { MaterialIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useQuery } from '@tanstack/react-query';
 import PrehistoriaCard, { PrehistoriaSite } from '../../src/components/PrehistoriaCard';
 import { getModuleTheme } from '../../src/theme/colors';
+import { API_BASE } from '../../src/config/api';
 
 // ─── Colors (from centralized theme) ─────────────────────────────────────────
 
@@ -259,8 +261,18 @@ export default function PrehistoriaScreen() {
     setExpandedId(expandedId === id ? null : id);
   };
 
+  // Data-driven with static fallback — serves curated sites from the backend.
+  const { data: sitesData } = useQuery({
+    queryKey: ['prehistoria-sites'],
+    queryFn: async () => {
+      const res = await fetch(`${API_BASE}/geo-prehistoria/sites?limit=200`);
+      return res.json();
+    },
+  });
+  const allSites: PrehistoriaSite[] = sitesData?.results ?? PREHISTORIA_DATA;
+
   // Filter sites
-  const filteredSites = PREHISTORIA_DATA.filter((site) => {
+  const filteredSites = allSites.filter((site) => {
     if (activeCategory === 'astronomia' && !site.astronomical_type) return false;
     if (activeCategory !== 'todos' && activeCategory !== 'astronomia' && site.category !== activeCategory) return false;
     if (activePeriod !== 'todos' && site.period !== activePeriod) return false;

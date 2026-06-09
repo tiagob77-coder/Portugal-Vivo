@@ -8,8 +8,10 @@ import {
 import { MaterialIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useQuery } from '@tanstack/react-query';
 import MaritimeCultureCard, { MaritimeEvent } from '../../src/components/MaritimeCultureCard';
 import { getModuleTheme, withOpacity } from '../../src/theme/colors';
+import { API_BASE } from '../../src/config/api';
 
 // ─── Colors (from centralized theme) ─────────────────────────────────────────
 
@@ -341,8 +343,18 @@ export default function CulturaMaritima() {
   const [regionFilter, setRegionFilter] = useState<string>('Todos');
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
+  // Data-driven with static fallback — serves curated events from the backend.
+  const { data: eventsData } = useQuery({
+    queryKey: ['maritime-events'],
+    queryFn: async () => {
+      const res = await fetch(`${API_BASE}/maritime-culture/events?limit=200`);
+      return res.json();
+    },
+  });
+  const allEvents: MaritimeEvent[] = eventsData?.results ?? EVENTS_DATA;
+
   // Compute upcoming events and mark them
-  const eventsWithUpcoming: MaritimeEvent[] = EVENTS_DATA.map((e) => ({
+  const eventsWithUpcoming: MaritimeEvent[] = allEvents.map((e) => ({
     ...e,
     is_upcoming: isEventUpcoming(e),
   }));
