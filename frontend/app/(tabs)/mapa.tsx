@@ -45,6 +45,7 @@ import { buildTrailShellRoute, hydrateTrailWaypoints } from '../../src/component
 import type { RouteDetail, RouteWaypoint } from '../../src/components/map/RouteDetailSheet';
 import ErrorBoundary from '../../src/components/ErrorBoundary';
 import ApproxLocationBadge from '../../src/components/ApproxLocationBadge';
+import { clusterMarkers } from '../../src/utils/clusterMarkers';
 
 const { width: _width, height: _height } = Dimensions.get('window');
 
@@ -211,6 +212,7 @@ function MapaTab() {
   );
   const [expandedLayer, setExpandedLayer] = useState<string | null>(null);
   const [regionFilter, setRegionFilter] = useState<string | null>(null);
+  const [mapRegion, setMapRegion] = useState(PORTUGAL_REGION); // tracks zoom for clustering
   const [selectedItem, setSelectedItem] = useState<MapItem | null>(null);
   const [_mapReady, setMapReady] = useState(false);
   const [accessibilityFilters, setAccessibilityFilters] = useState<string[]>([]);
@@ -537,6 +539,22 @@ function MapaTab() {
     mapComponentItems = mapItems || [];
   }
 
+  // Native MapView has no clustering, so dense categories (1000s of POIs)
+  // jank/crash it. We cluster on a grid that scales with zoom (mapRegion), so
+  // the rendered marker count stays small. The input is capped only as a cheap
+  // safety bound on the JS pass. The web map (MapLibre) clusters natively.
+  const CLUSTER_INPUT_CAP = 4000;
+  const clusterInput = useMemo(() => {
+    if (mapComponentItems.length <= CLUSTER_INPUT_CAP) return mapComponentItems;
+    return [...mapComponentItems]
+      .sort((a, b) => (b?.iq_score || 0) - (a?.iq_score || 0))
+      .slice(0, CLUSTER_INPUT_CAP);
+  }, [mapComponentItems]);
+  const mapClusters = useMemo(
+    () => clusterMarkers(clusterInput, mapRegion.latitudeDelta, mapRegion.longitudeDelta),
+    [clusterInput, mapRegion.latitudeDelta, mapRegion.longitudeDelta],
+  );
+
   const toggleLayer = (layerId: string) => {
     const layerSubs = getLayerSubcategories(layerId);
     const allActive = layerSubs.every(s => activeSubcategories.includes(s));
@@ -684,44 +702,75 @@ function MapaTab() {
               setMapReady(true);
               setTimeout(fitToMarkers, 500);
             }}
+            onRegionChangeComplete={setMapRegion}
             showsUserLocation
             showsMyLocationButton={false}
             showsCompass={false}
             customMapStyle={darkMapStyle}
             mapPadding={{ top: 0, right: 0, bottom: 180, left: 0 }}
           >
-            {/* POI markers — hidden in rotas mode to keep focus on the route */}
-            {mapMode !== 'rotas' && mapComponentItems?.map((item) => (
-              <Marker
-                key={item.id}
-                coordinate={{
-                  latitude: item.location.lat,
-                  longitude: item.location.lng,
-                }}
-                onPress={() => handleMarkerPress(item)}
-                tracksViewChanges={false}
-              >
-                <View style={[styles.markerContainer, { backgroundColor: getMarkerColor(item.category) }]}>
-                  <MaterialIcons
-                    name={getLayerIcon(item.category) as any}
-                    size={16}
-                    color="#FFFFFF"
-                  />
-                </View>
-                <Callout tooltip onPress={handleItemPress}>
-                  <View style={styles.calloutContainer}>
-                    <Text style={styles.calloutTitle} numberOfLines={1}>{item.name}</Text>
-                    <Text style={styles.calloutCategory}>{item.category} • {item.region}</Text>
-                    <ApproxLocationBadge
-                      precision={(item as any).coord_precision}
-                      approximate={(item as any).coord_approximate}
-                      compact
+            {/* POI markers — grid-clustered by zoom; hidden in rotas mode.
+                Clusters (count>1) zoom in on press; singles behave as before. */}
+            {mapMode !== 'rotas' && mapClusters.map((cluster) => {
+              if (cluster.count > 1) {
+                return (
+                  <Marker
+                    key={cluster.id}
+                    coordinate={{ latitude: cluster.lat, longitude: cluster.lng }}
+                    onPress={() =>
+                      mapRef.current?.animateToRegion(
+                        {
+                          latitude: cluster.lat,
+                          longitude: cluster.lng,
+                          latitudeDelta: Math.max(mapRegion.latitudeDelta / 2.5, 0.01),
+                          longitudeDelta: Math.max(mapRegion.longitudeDelta / 2.5, 0.01),
+                        },
+                        350,
+                      )
+                    }
+                    tracksViewChanges={false}
+                  >
+                    <View style={styles.clusterMarker}>
+                      <Text style={styles.clusterMarkerText}>
+                        {cluster.count > 99 ? '99+' : cluster.count}
+                      </Text>
+                    </View>
+                  </Marker>
+                );
+              }
+              const item = cluster.items[0];
+              return (
+                <Marker
+                  key={item.id}
+                  coordinate={{
+                    latitude: item.location.lat,
+                    longitude: item.location.lng,
+                  }}
+                  onPress={() => handleMarkerPress(item)}
+                  tracksViewChanges={false}
+                >
+                  <View style={[styles.markerContainer, { backgroundColor: getMarkerColor(item.category) }]}>
+                    <MaterialIcons
+                      name={getLayerIcon(item.category) as any}
+                      size={16}
+                      color="#FFFFFF"
                     />
-                    <Text style={styles.calloutAction}>Toca para ver detalhes →</Text>
                   </View>
-                </Callout>
-              </Marker>
-            ))}
+                  <Callout tooltip onPress={handleItemPress}>
+                    <View style={styles.calloutContainer}>
+                      <Text style={styles.calloutTitle} numberOfLines={1}>{item.name}</Text>
+                      <Text style={styles.calloutCategory}>{item.category} • {item.region}</Text>
+                      <ApproxLocationBadge
+                        precision={(item as any).coord_precision}
+                        approximate={(item as any).coord_approximate}
+                        compact
+                      />
+                      <Text style={styles.calloutAction}>Toca para ver detalhes →</Text>
+                    </View>
+                  </Callout>
+                </Marker>
+              );
+            })}
 
             {/* Trail polyline (trails mode without selected route) */}
             {mapMode === 'trails' && !selectedRoute && trailData?.points && trailData.points.length > 1 && (
@@ -1569,6 +1618,27 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.25,
     shadowRadius: 4,
     elevation: 4,
+  },
+  clusterMarker: {
+    minWidth: 38,
+    height: 38,
+    paddingHorizontal: 6,
+    borderRadius: 19,
+    backgroundColor: '#4A6741',
+    borderWidth: 2,
+    borderColor: '#FFFFFF',
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 5,
+  },
+  clusterMarkerText: {
+    color: '#FFFFFF',
+    fontWeight: '700',
+    fontSize: 13,
   },
   calloutContainer: {
     backgroundColor: '#264E41',
