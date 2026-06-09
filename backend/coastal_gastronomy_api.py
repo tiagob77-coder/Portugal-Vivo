@@ -13,7 +13,7 @@ from pydantic import BaseModel, Field
 
 from models.api_models import User
 from auth_api import get_current_user
-from shared_utils import apply_municipality_filter
+from shared_utils import apply_municipality_filter, order_enriched_first
 from llm_cache import build_cache_key, cache_get, cache_set, record_llm_call
 from llm_client import call_chat_completion
 
@@ -260,6 +260,7 @@ async def list_items(
         pat = re.compile(search, re.IGNORECASE)
         items = [i for i in items if pat.search(i.get("name","") + " " + i.get("description",""))]
     total = len(items)
+    items = order_enriched_first(items)
     return {"total": total, "offset": offset, "limit": limit, "results": items[offset:offset+limit]}
 
 
