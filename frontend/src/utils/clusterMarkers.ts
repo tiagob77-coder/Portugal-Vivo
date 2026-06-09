@@ -36,7 +36,8 @@ export function clusterMarkers<T extends ClusterableItem>(
   const buckets = new Map<string, T[]>();
   for (const item of items) {
     const loc = item.location;
-    if (!loc || typeof loc.lat !== 'number' || typeof loc.lng !== 'number') continue;
+    // Number.isFinite also rejects NaN (typeof NaN === 'number' would pass).
+    if (!loc || !Number.isFinite(loc.lat) || !Number.isFinite(loc.lng)) continue;
     const cy = Math.floor(loc.lat / cellLat);
     const cx = Math.floor(loc.lng / cellLng);
     const key = `${cy}:${cx}`;

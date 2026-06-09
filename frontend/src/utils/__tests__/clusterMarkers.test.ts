@@ -16,18 +16,20 @@ describe('clusterMarkers', () => {
   });
 
   it('groups nearby points into one cluster at low zoom', () => {
+    // cell size = 6/12 = 0.5; these three sit well inside one cell (not on a
+    // 0.5 boundary) so they group together.
     const items = [
-      p('a', 41.000, -8.000),
-      p('b', 41.001, -8.001),
-      p('c', 41.002, -8.002),
+      p('a', 41.10, -8.10),
+      p('b', 41.11, -8.11),
+      p('c', 41.12, -8.12),
     ];
     const clusters = clusterMarkers(items, 6, 6, 12); // big cells
     expect(clusters).toHaveLength(1);
     expect(clusters[0].count).toBe(3);
     expect(clusters[0].id).toContain('cluster_');
     // centroid is the average position
-    expect(clusters[0].lat).toBeCloseTo(41.001, 3);
-    expect(clusters[0].lng).toBeCloseTo(-8.001, 3);
+    expect(clusters[0].lat).toBeCloseTo(41.11, 3);
+    expect(clusters[0].lng).toBeCloseTo(-8.11, 3);
   });
 
   it('separates the same points into individual markers at high zoom', () => {
