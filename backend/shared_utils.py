@@ -51,6 +51,27 @@ def clamp_pagination(skip: int, limit: int, max_limit: int = 2000) -> tuple:
     return safe_skip, safe_limit
 
 
+LITE_SOURCE = "thematic_v19"  # bulk-ingested rows (sparse: name + coords only)
+
+
+def order_enriched_first(items: list, lite_source: str = LITE_SOURCE) -> list:
+    """Surface curated content before bulk-ingested 'lite' rows.
+
+    The thematic ingest (ingest_thematic_pois.py) adds sparse rows tagged
+    ``source == lite_source`` alongside curated seeds in the same collection.
+    This annotates each item with an ``enriched`` flag (True = curated/admin,
+    not a lite row) and returns enriched items first, preserving relative order
+    so pagination shows the good content up front.
+    """
+    enriched: list = []
+    lite: list = []
+    for item in items:
+        is_enriched = item.get("source") != lite_source
+        item["enriched"] = is_enriched
+        (enriched if is_enriched else lite).append(item)
+    return enriched + lite
+
+
 def apply_municipality_filter(query: Dict[str, Any], user: Optional[Any]) -> Dict[str, Any]:
     """Restrict a Mongo query to a single municipality when the caller has one.
 

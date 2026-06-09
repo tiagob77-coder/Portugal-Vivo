@@ -14,7 +14,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, Field
 from auth_api import get_current_user
 from models.api_models import User
-from shared_utils import apply_municipality_filter
+from shared_utils import apply_municipality_filter, order_enriched_first
 
 infrastructure_router = APIRouter(prefix="/infrastructure", tags=["Infrastructure"])
 
@@ -391,6 +391,7 @@ async def list_infrastructure(
         items = [i for i in items if pat.search(i.get("name", "") + " " + i.get("description_short", ""))]
 
     total = len(items)
+    items = order_enriched_first(items)
     return {"total": total, "offset": offset, "limit": limit, "results": items[offset: offset + limit]}
 
 

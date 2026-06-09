@@ -16,7 +16,35 @@ from shared_utils import (
     clamp_pagination,
     haversine_km,
     haversine_meters,
+    order_enriched_first,
 )
+
+
+class TestOrderEnrichedFirst:
+    def test_curated_before_lite_preserving_order(self):
+        items = [
+            {"id": "lite1", "source": "thematic_v19"},
+            {"id": "cur1"},  # no source -> curated
+            {"id": "lite2", "source": "thematic_v19"},
+            {"id": "cur2", "source": "curated_seed"},
+        ]
+        out = order_enriched_first(items)
+        assert [i["id"] for i in out] == ["cur1", "cur2", "lite1", "lite2"]
+
+    def test_annotates_enriched_flag(self):
+        out = order_enriched_first([
+            {"id": "a"},
+            {"id": "b", "source": "thematic_v19"},
+        ])
+        flags = {i["id"]: i["enriched"] for i in out}
+        assert flags == {"a": True, "b": False}
+
+    def test_empty_and_all_curated(self):
+        assert order_enriched_first([]) == []
+        items = [{"id": "x"}, {"id": "y", "source": "admin"}]
+        out = order_enriched_first(items)
+        assert all(i["enriched"] for i in out)
+        assert [i["id"] for i in out] == ["x", "y"]
 
 
 # ---------------------------------------------------------------------------

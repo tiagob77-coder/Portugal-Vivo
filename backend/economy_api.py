@@ -15,7 +15,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, Field
 from auth_api import get_current_user
 from models.api_models import User
-from shared_utils import apply_municipality_filter
+from shared_utils import apply_municipality_filter, order_enriched_first
 
 economy_router = APIRouter(prefix="/economy", tags=["Economy"])
 
@@ -402,6 +402,7 @@ async def get_markets(
         items = [i for i in items if pat.search(i.get("name", "") + " " + i.get("description", ""))]
 
     total = len(items)
+    items = order_enriched_first(items)
     items = items[offset: offset + limit]
     return {"total": total, "offset": offset, "limit": limit, "results": items}
 
