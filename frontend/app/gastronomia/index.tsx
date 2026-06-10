@@ -8,8 +8,11 @@ import {
 import { MaterialIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useQuery } from '@tanstack/react-query';
 import GastronomyDishCard, { CoastalDish } from '../../src/components/GastronomyDishCard';
 import { getModuleTheme, withOpacity } from '../../src/theme/colors';
+import { API_BASE } from '../../src/config/api';
+import { mergeDishes } from '../../src/utils/gastronomyAdapter';
 
 // ─── Colors (from centralized theme) ─────────────────────────────────────────
 
@@ -318,15 +321,27 @@ export default function GastronomiaScreen() {
     setExpandedId(expandedId === id ? null : id);
   };
 
+  // Curated static dishes stay as the rich base; enriched backend items that
+  // aren't already present are appended via the adapter (lite rows excluded).
+  // On fetch failure mergeDishes returns the static list unchanged.
+  const { data: gastroData } = useQuery({
+    queryKey: ['gastronomy-items'],
+    queryFn: async () => {
+      const res = await fetch(`${API_BASE}/gastronomy/items?limit=100`);
+      return res.json();
+    },
+  });
+  const allDishes = mergeDishes(DISHES_DATA, gastroData?.results);
+
   // Filter dishes
-  const filteredDishes = DISHES_DATA.filter((d) => {
+  const filteredDishes = allDishes.filter((d) => {
     const catMatch = activeCategory === 'todos' || d.type === activeCategory;
     const regMatch = activeRegion === 'Todos' || d.region.toLowerCase().includes(activeRegion.toLowerCase());
     return catMatch && regMatch;
   });
 
   // Count dishes in season this month
-  const inSeasonCount = DISHES_DATA.filter((d) => isInSeason(d, currentMonth)).length;
+  const inSeasonCount = allDishes.filter((d) => isInSeason(d, currentMonth)).length;
 
   const activeCatConf = CATEGORY_TABS.find((c) => c.key === activeCategory)!;
 
