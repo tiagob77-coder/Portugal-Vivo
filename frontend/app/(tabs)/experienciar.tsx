@@ -7,7 +7,6 @@ import {
   TouchableOpacity,
   RefreshControl,
   ActivityIndicator,
-  Dimensions,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
@@ -26,9 +25,7 @@ import {
 import { useTheme } from '../../src/theme';
 import SmartImage from '../../src/components/SmartImage';
 import ErrorBoundary from '../../src/components/ErrorBoundary';
-
-const { width } = Dimensions.get('window');
-const POPULAR_CARD_WIDTH = Math.min(260, width * 0.7);
+import { useResponsive } from '../../src/hooks/useResponsive';
 
 const MONTHS_PT = [
   'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
@@ -66,6 +63,8 @@ function ExperienciarTab() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { colors } = useTheme();
+  const { width } = useResponsive();
+  const popularCardWidth = Math.min(260, width * 0.7);
   const [token, setToken] = useState<string | null>(null);
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [selectedDay, setSelectedDay] = useState<number | null>(null);
@@ -252,7 +251,7 @@ function ExperienciarTab() {
   const renderPopularCard = (event: CalendarEvent) => (
     <TouchableOpacity
       key={`pop-${event.id}`}
-      style={[styles.popularCard, { backgroundColor: colors.card, borderColor: colors.border }]}
+      style={[styles.popularCard, { width: popularCardWidth, backgroundColor: colors.card, borderColor: colors.border }]}
       onPress={() => router.push(`/evento/${event.id}`)}
       activeOpacity={0.85}
       accessibilityLabel={`Ver evento ${event.name}`}
@@ -701,7 +700,6 @@ const styles = StyleSheet.create({
   // Popular cards (horizontal)
   popularList: { paddingHorizontal: 20, gap: 12 },
   popularCard: {
-    width: POPULAR_CARD_WIDTH,
     height: 180,
     borderRadius: 14,
     overflow: 'hidden',

@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import {
   View, Text, StyleSheet, ScrollView, RefreshControl,
-  TouchableOpacity, Dimensions, ActivityIndicator,
+  TouchableOpacity, ActivityIndicator,
   ImageBackground, Animated, Platform, InteractionManager,
 } from 'react-native';
 import SmartImage from '../../src/components/SmartImage';
@@ -27,9 +27,10 @@ import { API_BASE } from '../../src/config/api';
 import { typography, shadows, regionImages } from '../../src/theme';
 import { palette } from '../../src/theme/colors';
 import { useTheme } from '../../src/context/ThemeContext';
+import { useResponsive } from '../../src/hooks/useResponsive';
+import { CONTENT_MAX_WIDTH } from '../../src/theme/breakpoints';
 // OnboardingModal removed — handled by /onboarding screen
 
-const { width } = Dimensions.get('window');
 const serif = Platform.OS === 'web' ? 'Cormorant Garamond, Georgia, serif' : undefined;
 
 const getGreeting = () => {
@@ -75,6 +76,13 @@ function DescobrerTab() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { colors, isDark } = useTheme();
+  const { width, contentMaxWidth } = useResponsive();
+  // Largura útil da coluna (limitada para se manter "phone-shaped" em web/tablet).
+  const colWidth = Math.min(width, contentMaxWidth);
+  // Reflui as quick actions: 4 por linha em telemóveis pequenos, 6 caso contrário.
+  const actionsPerRow = width < 360 ? 4 : 6;
+  const actionButtonWidth = (colWidth - 56) / actionsPerRow;
+  const discoveryCardWidth = Math.min(colWidth * 0.58, 280);
   const [token, setToken] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
   const [expandedWidget, setExpandedWidget] = useState<string | null>(null);
@@ -330,7 +338,7 @@ function DescobrerTab() {
           {QUICK_ACTIONS.map((action) => (
             <TouchableOpacity
               key={action.id}
-              style={styles.actionButton}
+              style={[styles.actionButton, { width: actionButtonWidth }]}
               onPress={() => {
                 if (action.id === 'guia') { setGuiaOpen(!guiaOpen); return; }
                 if (action.route) router.push(action.route);
@@ -876,7 +884,7 @@ function DescobrerTab() {
               {groupedFeed['for_you'].slice(0, 6 * feedPage).map((item: DiscoveryFeedItem) => (
                 <TouchableOpacity
                   key={item.id}
-                  style={[styles.discoveryCard, { backgroundColor: colors.surface, borderColor: colors.borderLight }]}
+                  style={[styles.discoveryCard, { width: discoveryCardWidth, backgroundColor: colors.surface, borderColor: colors.borderLight }]}
                   onPress={() => router.push(`/heritage/${item.content_id}`)}
                   activeOpacity={0.8}
                   data-testid={`discovery-card-${item.content_id}`}
@@ -1124,7 +1132,8 @@ const styles = StyleSheet.create({
   container: { flex: 1 },
   loadingText: { marginTop: 12, fontSize: typography.fontSize.base },
   scrollView: { flex: 1 },
-  scrollContent: { paddingBottom: 20 },
+  // Mobile-first: centra o feed e limita a largura em tablet/web.
+  scrollContent: { paddingBottom: 20, width: '100%', maxWidth: CONTENT_MAX_WIDTH, alignSelf: 'center' },
 
   // Pull-to-refresh indicator
   refreshIndicator: {
@@ -1150,7 +1159,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     ...shadows.lg,
   },
-  actionButton: { alignItems: 'center', width: (width - 64) / 6, paddingVertical: 8 },
+  actionButton: { alignItems: 'center', paddingVertical: 8 },
   actionIcon: { width: 44, height: 44, borderRadius: 14, justifyContent: 'center', alignItems: 'center' },
   actionText: { fontSize: 10, fontWeight: '600', marginTop: 4, textAlign: 'center' },
 
@@ -1224,7 +1233,7 @@ const styles = StyleSheet.create({
 
   // Discovery Cards
   horizontalScroll: { paddingHorizontal: 16, gap: 12 },
-  discoveryCard: { width: width * 0.58, borderRadius: 18, overflow: 'hidden', borderWidth: 1, ...shadows.md },
+  discoveryCard: { borderRadius: 18, overflow: 'hidden', borderWidth: 1, ...shadows.md },
   discoveryImage: { width: '100%', height: 130 },
   discoveryContent: { padding: 12, gap: 8 },
   discoveryTitle: { fontSize: 14, fontWeight: '600' },
