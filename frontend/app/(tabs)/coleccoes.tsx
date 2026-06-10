@@ -5,7 +5,7 @@
 import React, { useState } from 'react';
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity,
-  ActivityIndicator, TextInput, Dimensions,
+  ActivityIndicator, TextInput,
 } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
@@ -14,17 +14,21 @@ import { useQuery } from '@tanstack/react-query';
 import { LinearGradient } from 'expo-linear-gradient';
 import { palette } from '../../src/theme/colors';
 import { useTheme } from '../../src/context/ThemeContext';
+import { useResponsive } from '../../src/hooks/useResponsive';
+import { CONTENT_MAX_WIDTH_WIDE } from '../../src/theme/breakpoints';
 import api from '../../src/services/api';
 
-const { width } = Dimensions.get('window');
 const CARD_GAP = 12;
-const CARD_WIDTH = (width - 20 * 2 - CARD_GAP) / 2;
 const REGIONS = ['Norte', 'Centro', 'Lisboa', 'Alentejo', 'Algarve'];
 
 export default function ColeccoesScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { colors } = useTheme();
+  const { contentMaxWidthWide, columns } = useResponsive();
+  // Grid adaptativa: 2 colunas no telemóvel, mais em tablet/web (mobile-first).
+  const numColumns = columns(160, CARD_GAP, 4);
+  const cardWidth = (contentMaxWidthWide - 20 * 2 - CARD_GAP * (numColumns - 1)) / numColumns;
   const [selectedUniverse, setSelectedUniverse] = useState<any>(null);
   const [selectedRegion, setSelectedRegion] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
@@ -261,7 +265,7 @@ export default function ColeccoesScreen() {
               {(universes || []).map((universe: any) => (
                 <TouchableOpacity
                   key={universe.id}
-                  style={[styles.universeCard, { backgroundColor: universe.color }]}
+                  style={[styles.universeCard, { backgroundColor: universe.color, width: cardWidth }]}
                   onPress={() => router.push(`/encyclopedia/universe/${universe.id}`)}
                   activeOpacity={0.85}
                   data-testid={`universe-${universe.id}`}
@@ -328,9 +332,12 @@ const styles = StyleSheet.create({
   sectionTitle: { fontSize: 18, fontWeight: '700', color: '#FFFFFF' },
 
   // Cards Grid
-  cardsGrid: { flexDirection: 'row', flexWrap: 'wrap', paddingHorizontal: 20, gap: CARD_GAP },
+  cardsGrid: {
+    flexDirection: 'row', flexWrap: 'wrap', paddingHorizontal: 20, gap: CARD_GAP,
+    alignSelf: 'center', width: '100%', maxWidth: CONTENT_MAX_WIDTH_WIDE,
+  },
   universeCard: {
-    width: CARD_WIDTH, borderRadius: 20, padding: 18,
+    borderRadius: 20, padding: 18,
     minHeight: 200, justifyContent: 'space-between',
   },
   cardIcon: { marginBottom: 10 },
