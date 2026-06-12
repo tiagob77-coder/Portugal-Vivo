@@ -4,7 +4,7 @@
 import React, { useState, useEffect } from 'react';
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity,
-  Dimensions, ActivityIndicator,
+  ActivityIndicator,
 } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
@@ -13,8 +13,6 @@ import { useQuery } from '@tanstack/react-query';
 import EconomyMarketCard from '../../src/components/EconomyMarketCard';
 import { getModuleTheme } from '../../src/theme/colors';
 import { API_BASE } from '../../src/config/api';
-
-const { width: _SCREEN_WIDTH } = Dimensions.get('window');
 
 // ─── Colors (from centralized theme) ─────────────────────────────────────────
 

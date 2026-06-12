@@ -14,6 +14,7 @@ import { useQuery } from '@tanstack/react-query';
 import { LinearGradient } from 'expo-linear-gradient';
 import { getGamificationProfile, GamificationProfile } from '../src/services/api';
 import { shadows } from '../src/theme';
+import { HIT_SLOP } from '../src/theme/spacing';
 import { useTheme } from '../src/context/ThemeContext';
 import { palette } from '../src/theme/colors';
 
@@ -126,7 +127,7 @@ export default function AlbumScreen() {
       <Stack.Screen options={{ headerShown: false }} />
 
       <LinearGradient colors={['#1E3A5F', '#2A5F6B']} style={[s.header, { paddingTop: insets.top + 8 }]}>
-        <TouchableOpacity style={s.backBtn} onPress={() => router.back()}>
+        <TouchableOpacity style={s.backBtn} onPress={() => router.back()} hitSlop={HIT_SLOP}>
           <MaterialIcons name="arrow-back" size={22} color="#FFF" />
         </TouchableOpacity>
         <View style={s.headerCenter}>

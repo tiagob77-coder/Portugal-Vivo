@@ -12,7 +12,6 @@ import {
   ActivityIndicator,
   Alert,
   Image,
-  Dimensions,
   TextInput,
 } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
@@ -25,8 +24,6 @@ import api, {
   EncyclopediaArticle,
 } from '../../../src/services/api';
 import { HeritageItem } from '../../../src/types';
-
-const { width: _width } = Dimensions.get('window');
 
 const REGIONS = [
   { id: 'todas', name: 'Todas' },

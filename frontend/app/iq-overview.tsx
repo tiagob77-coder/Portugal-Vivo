@@ -5,7 +5,7 @@
 import React from 'react';
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity,
-  ActivityIndicator, Dimensions, Platform, RefreshControl,
+  ActivityIndicator, Platform, RefreshControl,
 } from 'react-native';
 import { useRouter, Stack } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
@@ -14,8 +14,6 @@ import { useQuery } from '@tanstack/react-query';
 import { LinearGradient } from 'expo-linear-gradient';
 import { getIQOverview } from '../src/services/api';
 import { colors, shadows } from '../src/theme';
-
-const { width } = Dimensions.get('window');
 
 const CATEGORY_ICONS: Record<string, string> = {
   arte: 'palette', percursos: 'hiking', gastronomia: 'restaurant',
@@ -324,7 +322,7 @@ const s = StyleSheet.create({
   // Regions
   regGrid: { flexDirection: 'row', flexWrap: 'wrap', paddingHorizontal: 16, gap: 8 },
   regCard: {
-    width: (width - 48) / 3, backgroundColor: colors.background.secondary, borderRadius: 12,
+    width: '31%', backgroundColor: colors.background.secondary, borderRadius: 12,
     padding: 10, alignItems: 'center', ...shadows.sm,
   },
   regName: { fontSize: 12, fontWeight: '600', color: colors.gray[700], textTransform: 'capitalize' },

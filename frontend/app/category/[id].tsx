@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useCallback } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator, RefreshControl, ImageBackground, ScrollView, Dimensions, Platform, Linking } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator, RefreshControl, ImageBackground, ScrollView, Platform, Linking } from 'react-native';
 import { useLocalSearchParams, useRouter, Stack } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -9,8 +9,6 @@ import HeritageCard from '../../src/components/HeritageCard';
 import AnimatedListItem from '../../src/components/AnimatedListItem';
 import SkeletonCard from '../../src/components/SkeletonCard';
 import { LinearGradient } from 'expo-linear-gradient';
-
-const { width: _width, height: _height } = Dimensions.get('window');
 
 // Conditional import for WebView (only on native)
 let WebView: any = null;

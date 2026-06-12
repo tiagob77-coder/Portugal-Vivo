@@ -12,7 +12,6 @@ import {
   ScrollView,
   TouchableOpacity,
   ActivityIndicator,
-  Dimensions,
   Platform,
 } from 'react-native';
 import { useRouter } from 'expo-router';
@@ -26,8 +25,7 @@ import {
   IQModuleResult,
 } from '../src/services/api';
 import { colors, typography, spacing, borders, shadows } from '../src/theme';
-
-const { width } = Dimensions.get('window');
+import { useResponsive } from '../src/hooks/useResponsive';
 const TENANT_ID = 'braga'; // Default tenant for demo
 
 // Module display names and icons
@@ -241,6 +239,7 @@ function ModuleResultCard({ result }: { result: IQModuleResult }) {
 export default function IQDashboard() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const { width } = useResponsive();
   const _queryClient = useQueryClient();
   const [selectedPOI, setSelectedPOI] = useState<string | null>(null);
   const [processResult, setProcessResult] = useState<IQProcessResult | null>(null);
@@ -362,7 +361,7 @@ export default function IQDashboard() {
               <View style={styles.poiCardLeft}>
                 <View style={[styles.categoryDot, { backgroundColor: colors.categories.patrimonio }]} />
                 <View>
-                  <Text style={styles.poiName} numberOfLines={1}>{poi.name}</Text>
+                  <Text style={[styles.poiName, { maxWidth: width - 140 }]} numberOfLines={1}>{poi.name}</Text>
                   <Text style={styles.poiCategory}>{poi.category} · Braga</Text>
                 </View>
               </View>
@@ -616,7 +615,6 @@ const styles = StyleSheet.create({
     fontSize: typography.fontSize.base,
     fontWeight: '600' as const,
     color: colors.gray[800],
-    maxWidth: width - 140,
   },
   poiCategory: {
     fontSize: typography.fontSize.xs,

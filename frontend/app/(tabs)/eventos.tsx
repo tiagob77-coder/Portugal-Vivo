@@ -14,7 +14,6 @@ import {
   TouchableOpacity,
   RefreshControl,
   ActivityIndicator,
-  Dimensions,
   Linking,
   Platform,
 } from 'react-native';
@@ -28,9 +27,9 @@ import api, { getAgendaLive, AgendaEvent } from '../../src/services/api';
 import { colors, shadows } from '../../src/theme';
 import { palette } from '../../src/theme/colors';
 import { useTheme } from '../../src/context/ThemeContext';
+import { CONTENT_MAX_WIDTH } from '../../src/theme/breakpoints';
 import EmptyState from '../../src/components/EmptyState';
 
-const { width: _width } = Dimensions.get('window');
 const serif = Platform.OS === 'web' ? 'Cormorant Garamond, Georgia, serif' : undefined;
 
 const MONTHS_PT = [
@@ -740,6 +739,9 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     paddingBottom: 20,
+    width: '100%',
+    maxWidth: CONTENT_MAX_WIDTH,
+    alignSelf: 'center',
   },
   header: {
     paddingHorizontal: 20,

@@ -10,15 +10,12 @@ import {
   TouchableOpacity,
   Animated,
   Platform,
-  Dimensions,
 } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { typography, spacing, borders, shadows, palette, withOpacity } from '../theme';
 import { ProximityAlert } from '../services/geofencing';
 import { getModuleConfig } from '../config/modules';
-
-const { width: _width } = Dimensions.get('window');
 
 interface Props {
   alerts: ProximityAlert[];

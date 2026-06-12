@@ -13,6 +13,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useQuery } from '@tanstack/react-query';
 import { colors, typography, borders, shadows } from '../../src/theme';
 import { palette } from '../../src/theme/colors';
+import { HIT_SLOP } from '../../src/theme/spacing';
 import { useTheme } from '../../src/context/ThemeContext';
 import api from '../../src/services/api';
 
@@ -61,6 +62,7 @@ export default function TransportesScreen() {
           <TouchableOpacity
             onPress={() => router.back()}
             style={styles.backBtn}
+            hitSlop={HIT_SLOP}
             data-testid="transport-back-btn"
             accessibilityRole="button"
             accessibilityLabel="Voltar"

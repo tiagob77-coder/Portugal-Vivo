@@ -5,7 +5,7 @@
 import React, { useState } from 'react';
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity,
-  Dimensions, Linking, RefreshControl,
+  Linking, RefreshControl,
 } from 'react-native';
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -18,9 +18,6 @@ import { palette } from '../../src/theme/colors';
 import { useTheme } from '../../src/context/ThemeContext';
 import api, { getBeaches, getBeachBandeiraAzul } from '../../src/services/api';
 import logger from '../../src/utils/logger';
-
-const { width: screenWidth } = Dimensions.get('window');
-const CARD_WIDTH = screenWidth - 40;
 
 const REGIONS = [
   { id: null, label: 'Todas' },

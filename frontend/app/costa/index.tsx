@@ -4,7 +4,7 @@
 import React, { useState, useRef } from 'react';
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity,
-  Animated, Dimensions, ActivityIndicator,
+  Animated, ActivityIndicator,
 } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
@@ -13,8 +13,6 @@ import { API_BASE } from '../../src/config/api';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import CoastalDataCard from '../../src/components/CoastalDataCard';
 import { getModuleTheme } from '../../src/theme/colors';
-
-const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 const MT = getModuleTheme('costa');
 const C = {

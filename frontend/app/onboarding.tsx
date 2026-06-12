@@ -10,7 +10,6 @@ import {
   Text,
   StyleSheet,
   TouchableOpacity,
-  Dimensions,
   ScrollView,
   StatusBar,
   Image,
@@ -20,8 +19,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-
-const { width, height } = Dimensions.get('window');
+import { useResponsive } from '../src/hooks/useResponsive';
 
 export const ONBOARDING_KEY = 'onboarding_complete';
 export const PROFILE_TRAVELER_KEY = 'profile_traveler_type';
@@ -109,6 +107,7 @@ const TIME_OPTIONS = [
 export default function OnboardingScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const { width, height } = useResponsive();
   const scrollRef = useRef<ScrollView>(null);
   const [currentIndex, setCurrentIndex] = useState(0);
 
@@ -616,7 +615,7 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   typeCard: {
-    width: (width - 24 * 2 - 10) / 2,
+    width: '48%',
     backgroundColor: 'rgba(255,255,255,0.08)',
     borderRadius: 14,
     borderWidth: 1.5,

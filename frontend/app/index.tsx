@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import {
-  View, Text, StyleSheet, TouchableOpacity, Dimensions, ScrollView,
+  View, Text, StyleSheet, TouchableOpacity, ScrollView,
   ImageBackground, Animated, TextInput, StatusBar, Platform,
 } from 'react-native';
 import { useRouter } from 'expo-router';
@@ -13,8 +13,7 @@ import api, { getStats, getTopScoredItems, getStories, TopScoredItem, StoryItem 
 import { regionImages } from '../src/theme';
 import { useTheme } from '../src/context/ThemeContext';
 import { palette, categoryColors, withOpacity } from '../src/theme/colors';
-
-const { width } = Dimensions.get('window');
+import { useResponsive } from '../src/hooks/useResponsive';
 
 if (Platform.OS === 'web' && typeof document !== 'undefined') {
   const link = document.createElement('link');
@@ -198,6 +197,7 @@ function makeStyles(C: Record<string, string>) {
 export default function WelcomeScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const { width, isPhone } = useResponsive();
   const [searchQuery, setSearchQuery] = useState('');
   const [email, setEmail] = useState('');
   const [emailSent, setEmailSent] = useState(false);
@@ -245,7 +245,7 @@ export default function WelcomeScreen() {
     ]).start();
   }, [fadeAnim, slideAnim]);
 
-  const isWide = width > 768;
+  const isWide = !isPhone;
   const greeting = getGreeting();
 
   const descobertas = topScored && topScored.length > 0

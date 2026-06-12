@@ -12,6 +12,7 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import api from '../../src/services/api';
 import { colors, shadows } from '../../src/theme';
+import { HIT_SLOP } from '../../src/theme/spacing';
 
 const ACCENT = '#2E5E4E';
 
@@ -93,7 +94,7 @@ export default function ImportarScreen() {
       {/* Header */}
       <View style={s.header}>
         {Platform.OS !== 'web' && (
-          <TouchableOpacity onPress={() => router.back()} style={s.backBtn}>
+          <TouchableOpacity onPress={() => router.back()} style={s.backBtn} hitSlop={HIT_SLOP}>
             <MaterialIcons name="arrow-back" size={22} color="#1E293B" />
           </TouchableOpacity>
         )}

@@ -164,13 +164,22 @@ export const iconSizes = {
 export const touchTargets = {
   /** Minimum touch target iOS */
   iosMin: 44,
-  
+
   /** Minimum touch target Android */
   androidMin: 48,
-  
+
   /** Recommended comfortable touch target */
   comfortable: 56,
 } as const;
+
+/**
+ * hitSlop padrão para expandir a área tocável de botões com ícone pequenos
+ * (36-40px) até ao mínimo recomendado de 44px, sem alterar o layout visual.
+ *
+ * Usage:
+ *   <TouchableOpacity hitSlop={HIT_SLOP} ...>
+ */
+export const HIT_SLOP = { top: 8, bottom: 8, left: 8, right: 8 } as const;
 
 /**
  * Elevation/Shadow depths

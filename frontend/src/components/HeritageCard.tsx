@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, Dimensions, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import OptimizedImage from './OptimizedImage';
 import { MaterialIcons } from '@expo/vector-icons';
 import { HeritageItem, Category } from '../types';
@@ -12,8 +12,6 @@ import { useFavorites } from '../context/FavoritesContext';
 import { getCategoryImage } from '../theme/categoryImages';
 import { getCulturalIcon, getIQScoreColor, getIQScoreLabel } from '../theme/culturalIcons';
 import { hapticLight, onFavoriteToggle } from '../utils/microInteractions';
-
-const { width: _width } = Dimensions.get('window');
 
 interface HeritageCardProps {
   item: HeritageItem;

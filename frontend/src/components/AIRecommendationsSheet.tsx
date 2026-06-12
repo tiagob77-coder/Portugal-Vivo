@@ -5,7 +5,6 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  Dimensions,
 } from 'react-native';
 import OptimizedImage from './OptimizedImage';
 import { MaterialIcons } from '@expo/vector-icons';
@@ -49,8 +48,6 @@ type InterestId = 'natureza' | 'historia' | 'foto' | 'surf' | 'gastronomia';
 // ========================
 
 import { palette } from '../theme';
-
-const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 
 const C = {
   bg: palette.gray[900],
@@ -336,7 +333,7 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     right: 0,
-    maxHeight: SCREEN_HEIGHT * 0.7,
+    maxHeight: '70%',
     backgroundColor: C.bg,
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,

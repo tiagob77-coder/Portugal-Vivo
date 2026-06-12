@@ -6,7 +6,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity,
-  ActivityIndicator, Dimensions, Animated,
+  ActivityIndicator, Animated,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
@@ -15,8 +15,6 @@ import * as Location from 'expo-location';
 import { useQuery } from '@tanstack/react-query';
 import api from '../src/services/api';
 import { useTheme } from '../src/context/ThemeContext';
-
-const { width: _width } = Dimensions.get('window');
 
 // ========================
 // TYPES

@@ -1,9 +1,8 @@
 import React, { useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, Animated, Modal, Dimensions } from 'react-native';
+import { View, Text, StyleSheet, Animated, Modal } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { palette } from '../theme/colors';
 
-const { width: _SCREEN_W, height: _SCREEN_H } = Dimensions.get('window');
 const PARTICLE_COUNT = 18;
 const COLORS = [palette.terracotta[500], '#22C55E', '#8B5CF6', '#EF4444', '#0EA5E9', '#F59E0B', '#EC4899'];
 

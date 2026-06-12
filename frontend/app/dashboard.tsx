@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, RefreshControl, Dimensions, ActivityIndicator, DimensionValue } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, RefreshControl, ActivityIndicator, DimensionValue } from 'react-native';
 import { useRouter, Stack } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -17,9 +17,8 @@ import {
 } from '../src/services/api';
 import { useTheme } from '../src/context/ThemeContext';
 import { palette, categoryColors } from '../src/theme/colors';
+import { useResponsive } from '../src/hooks/useResponsive';
 import logger from '../src/utils/logger';
-
-const { width } = Dimensions.get('window');
 
 // Region names
 const REGION_NAMES: Record<string, string> = {
@@ -63,7 +62,7 @@ const CATEGORY_NAMES: Record<string, string> = {
   aventura: 'Aventura',
 };
 
-function makeStyles(C: Record<string, string>) {
+function makeStyles(C: Record<string, string>, width: number) {
   return StyleSheet.create({
     container: {
       flex: 1,
@@ -476,6 +475,7 @@ export default function DashboardScreen() {
   const [selectedTab, setSelectedTab] = useState<'stats' | 'badges' | 'history'>('stats');
 
   const { colors, isDark } = useTheme();
+  const { contentMaxWidth } = useResponsive();
   const C = {
     bg:       palette.forest[500],
     card:     palette.forest[600],
@@ -488,7 +488,7 @@ export default function DashboardScreen() {
     highlight: palette.forest[400],
     progress: palette.ocean[400],
   };
-  const styles = makeStyles(C);
+  const styles = makeStyles(C, contentMaxWidth);
 
   const checkAuth = useCallback(async (): Promise<string | null> => {
     // In SSR context, skip auth check and show login prompt
