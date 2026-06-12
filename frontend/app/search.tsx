@@ -15,6 +15,7 @@ import SkeletonCard from '../src/components/SkeletonCard';
 import EmptyState from '../src/components/EmptyState';
 import { useTheme } from '../src/context/ThemeContext';
 import { palette, withOpacity } from '../src/theme/colors';
+import { HIT_SLOP } from '../src/theme/spacing';
 
 import { API_URL } from '../src/config/api';
 const serif = Platform.OS === 'web' ? 'Cormorant Garamond, Georgia, serif' : undefined;
@@ -162,7 +163,7 @@ export default function SearchPage() {
     <View style={[styles.container, { paddingTop: insets.top }]} data-testid="search-page">
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+        <TouchableOpacity onPress={() => router.back()} style={styles.backButton} hitSlop={HIT_SLOP}>
           <MaterialIcons name="arrow-back" size={24} color={C.text} />
         </TouchableOpacity>
         <View style={{ flex: 1 }}>

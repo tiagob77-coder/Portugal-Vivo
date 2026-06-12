@@ -12,6 +12,7 @@ import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useQuery } from '@tanstack/react-query';
 import { colors, typography, borders, shadows } from '../src/theme';
+import { HIT_SLOP } from '../src/theme/spacing';
 import { useTheme } from '../src/context/ThemeContext';
 import api from '../src/services/api';
 
@@ -548,7 +549,7 @@ export default function ComboiosScreen() {
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
         {/* Header */}
         <View style={styles.header}>
-          <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
+          <TouchableOpacity onPress={() => router.back()} style={styles.backBtn} hitSlop={HIT_SLOP}>
             <MaterialIcons name="arrow-back" size={22} color={colors.gray[700]} />
           </TouchableOpacity>
           <View style={styles.headerContent}>

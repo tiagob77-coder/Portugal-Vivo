@@ -9,6 +9,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { API_BASE } from '../src/config/api';
 import { useTheme } from '../src/context/ThemeContext';
 import { palette, withOpacity } from '../src/theme/colors';
+import { HIT_SLOP } from '../src/theme/spacing';
 
 const BASE_URL = API_BASE.replace('/api', '');
 
@@ -162,7 +163,7 @@ export default function ApiDocsScreen() {
 
       {/* Header */}
       <View style={[s.header, { paddingTop: insets.top + 8 }]}>
-        <TouchableOpacity style={s.backBtn} onPress={() => router.back()}>
+        <TouchableOpacity style={s.backBtn} onPress={() => router.back()} hitSlop={HIT_SLOP}>
           <MaterialIcons name="arrow-back" size={22} color={palette.white} />
         </TouchableOpacity>
         <View style={{ flex: 1 }}>

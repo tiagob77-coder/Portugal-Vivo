@@ -16,6 +16,7 @@ import { palette } from '../../src/theme/colors';
 import { useTheme } from '../../src/context/ThemeContext';
 import { useResponsive } from '../../src/hooks/useResponsive';
 import { CONTENT_MAX_WIDTH_WIDE } from '../../src/theme/breakpoints';
+import { HIT_SLOP } from '../../src/theme/spacing';
 import api from '../../src/services/api';
 
 const CARD_GAP = 12;
@@ -79,6 +80,7 @@ export default function ColeccoesScreen() {
             <TouchableOpacity
               onPress={() => setSelectedUniverse(null)}
               style={styles.backBtn}
+              hitSlop={HIT_SLOP}
               data-testid="back-from-universe"
               accessibilityLabel="Voltar aos universos"
               accessibilityRole="button"
@@ -194,6 +196,7 @@ export default function ColeccoesScreen() {
           <TouchableOpacity
             onPress={() => router.back()}
             style={styles.mainBackBtn}
+            hitSlop={HIT_SLOP}
             accessibilityLabel="Voltar"
             accessibilityRole="button"
           >
