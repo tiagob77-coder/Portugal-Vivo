@@ -1,8 +1,7 @@
 import React, { useEffect, useRef } from 'react';
-import { View, StyleSheet, Animated, Dimensions } from 'react-native';
+import { View, StyleSheet, Animated } from 'react-native';
 import { useTheme, withOpacity } from '../theme';
-
-const { width } = Dimensions.get('window');
+import { useResponsive } from '../hooks/useResponsive';
 
 interface SkeletonCardProps {
   variant?: 'heritage' | 'discovery' | 'category' | 'compact';
@@ -34,7 +33,7 @@ const ShimmerBar = ({ w, h, style, shimmerBg, shimmerHighlight }: { w: number | 
   );
 };
 
-function SkeletonContent({ variant, cardBg, borderColor, shimmerBg, shimmerHighlight }: { variant: string; cardBg: string; borderColor: string; shimmerBg: string; shimmerHighlight: string }) {
+function SkeletonContent({ variant, cardBg, borderColor, shimmerBg, shimmerHighlight, categoryWidth }: { variant: string; cardBg: string; borderColor: string; shimmerBg: string; shimmerHighlight: string; categoryWidth: number }) {
   if (variant === 'heritage') {
     return (
       <View style={[sk.heritageCard, { backgroundColor: cardBg, borderColor }]}>
@@ -61,7 +60,7 @@ function SkeletonContent({ variant, cardBg, borderColor, shimmerBg, shimmerHighl
   }
   if (variant === 'category') {
     return (
-      <View style={sk.categoryCard}>
+      <View style={[sk.categoryCard, { width: categoryWidth }]}>
         <ShimmerBar w="100%" h={160} style={{ borderRadius: 16 }} shimmerBg={shimmerBg} shimmerHighlight={shimmerHighlight} />
       </View>
     );
@@ -81,15 +80,18 @@ function SkeletonContent({ variant, cardBg, borderColor, shimmerBg, shimmerHighl
 
 export default function SkeletonCard({ variant = 'heritage', count = 3 }: SkeletonCardProps) {
   const { colors, isDark } = useTheme();
+  const { contentMaxWidth } = useResponsive();
   const cardBg = isDark ? colors.surface : colors.surfaceAlt;
   const borderColor = colors.border;
   const shimmerBg = withOpacity(colors.primary, 0.15);
   const shimmerHighlight = withOpacity(colors.primary, 0.08);
+  // 2-up category grid, reativo à largura útil.
+  const categoryWidth = (contentMaxWidth - 48) / 2;
 
   return (
     <View data-testid="skeleton-loader">
       {Array.from({ length: count }).map((_, i) => (
-        <SkeletonContent key={i} variant={variant} cardBg={cardBg} borderColor={borderColor} shimmerBg={shimmerBg} shimmerHighlight={shimmerHighlight} />
+        <SkeletonContent key={i} variant={variant} cardBg={cardBg} borderColor={borderColor} shimmerBg={shimmerBg} shimmerHighlight={shimmerHighlight} categoryWidth={categoryWidth} />
       ))}
     </View>
   );
@@ -115,7 +117,6 @@ const sk = StyleSheet.create({
     borderWidth: 1,
   },
   categoryCard: {
-    width: (width - 48) / 2,
     height: 160,
     marginBottom: 12,
   },

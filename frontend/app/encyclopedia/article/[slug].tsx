@@ -11,7 +11,6 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   Image,
-  Dimensions,
   Platform,
 } from 'react-native';
 import { useRouter, useLocalSearchParams, Stack } from 'expo-router';
@@ -19,8 +18,6 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useQuery } from '@tanstack/react-query';
 import { getEncyclopediaArticle, EncyclopediaArticleDetail } from '../../../src/services/api';
-
-const { width } = Dimensions.get('window');
 
 export default function EncyclopediaArticlePage() {
   const router = useRouter();
@@ -220,7 +217,7 @@ const styles = StyleSheet.create({
     paddingBottom: 40,
   },
   heroImage: {
-    width: width,
+    width: '100%',
     height: 220,
     backgroundColor: '#E8E3DC',
   },

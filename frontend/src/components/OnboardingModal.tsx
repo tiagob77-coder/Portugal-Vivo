@@ -1,12 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
 import {
-  View, Text, StyleSheet, TouchableOpacity, Dimensions, Animated, Modal,
+  View, Text, StyleSheet, TouchableOpacity, Animated, Modal,
 } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { palette, withOpacity } from '../theme/colors';
-
-const { width } = Dimensions.get('window');
 
 const ONBOARDING_KEY = 'onboarding_seen_v1';
 
@@ -154,7 +152,8 @@ const styles = StyleSheet.create({
     padding: 24,
   },
   card: {
-    width: Math.min(width - 48, 400),
+    width: '90%',
+    maxWidth: 400,
     backgroundColor: '#1E293B',
     borderRadius: 24,
     padding: 32,

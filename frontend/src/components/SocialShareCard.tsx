@@ -5,16 +5,13 @@
 import React, { useState } from 'react';
 import {
   View, Text, TouchableOpacity, StyleSheet, Share, Platform,
-  ImageBackground, Modal, Dimensions,
+  ImageBackground, Modal,
 } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { palette } from '../theme';
 import { useTheme } from '../context/ThemeContext';
 import { PUBLIC_URL } from '../config/api';
-
-const { width: SCREEN_WIDTH } = Dimensions.get('window');
-const _CARD_WIDTH = Math.min(SCREEN_WIDTH - 48, 380);
 
 interface SocialShareCardProps {
   type: 'poi' | 'route';

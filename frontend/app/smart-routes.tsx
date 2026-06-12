@@ -5,7 +5,7 @@
 import React, { useState, useCallback } from 'react';
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity,
-  ActivityIndicator, Dimensions, Platform, Linking,
+  ActivityIndicator, Platform, Linking,
 } from 'react-native';
 import { useRouter, Stack } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
@@ -17,8 +17,6 @@ import {
   generateSmartRoute, SmartRouteRequest, SmartRouteResponse, SmartRoutePOI,
 } from '../src/services/api';
 import { colors, shadows } from '../src/theme';
-
-const { width } = Dimensions.get('window');
 
 const DIFFICULTIES = [
   { id: 'facil', label: 'Fácil', icon: 'child-care', color: '#22C55E' },
@@ -682,7 +680,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   profileCard: {
-    width: (width - 48) / 3,
+    width: '31%',
     backgroundColor: colors.background.secondary,
     borderRadius: 12,
     paddingVertical: 12,

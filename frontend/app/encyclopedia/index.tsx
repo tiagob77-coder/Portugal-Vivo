@@ -12,7 +12,6 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   TextInput,
-  Dimensions,
   Image,
 } from 'react-native';
 import { useRouter } from 'expo-router';
@@ -27,12 +26,14 @@ import {
   EncyclopediaUniverse,
   EncyclopediaArticle,
 } from '../../src/services/api';
-
-const { width } = Dimensions.get('window');
+import { useResponsive } from '../../src/hooks/useResponsive';
 
 export default function EncyclopediaPage() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const { contentMaxWidth } = useResponsive();
+  // Grid 2-up reativa.
+  const universeCardWidth = (contentMaxWidth - 48) / 2;
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearching, setIsSearching] = useState(false);
 
@@ -67,7 +68,7 @@ export default function EncyclopediaPage() {
   const renderUniverseCard = (universe: EncyclopediaUniverse) => (
     <TouchableOpacity
       key={universe.id}
-      style={styles.universeCard}
+      style={[styles.universeCard, { width: universeCardWidth }]}
       onPress={() => router.push(`/encyclopedia/universe/${universe.id}`)}
       activeOpacity={0.8}
       data-testid={`universe-${universe.id}`}
@@ -405,7 +406,6 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   universeCard: {
-    width: (width - 48) / 2,
     borderRadius: 16,
     overflow: 'hidden',
     marginBottom: 8,
