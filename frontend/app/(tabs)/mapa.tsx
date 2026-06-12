@@ -14,7 +14,6 @@ import {
   TouchableOpacity,
   ScrollView,
   ActivityIndicator,
-  Dimensions,
   Platform,
   Alert,
 } from 'react-native';
@@ -46,8 +45,7 @@ import type { RouteDetail, RouteWaypoint } from '../../src/components/map/RouteD
 import ErrorBoundary from '../../src/components/ErrorBoundary';
 import ApproxLocationBadge from '../../src/components/ApproxLocationBadge';
 import { clusterMarkers } from '../../src/utils/clusterMarkers';
-
-const { width: _width, height: _height } = Dimensions.get('window');
+import { useResponsive } from '../../src/hooks/useResponsive';
 
 // Map layers based on strategic report
 const MAP_LAYERS = [
@@ -210,6 +208,7 @@ function MapaTab() {
   const router = useRouter();
   const { region: regionParam, t: navTimestamp } = useLocalSearchParams<{ region?: string; t?: string }>();
   const insets = useSafeAreaInsets();
+  const { height: winHeight } = useResponsive();
   const mapRef = useRef<any>(null);
   const [activeLayers, setActiveLayers] = useState<string[]>(MAP_LAYERS.map(l => l.id));
   const [activeSubcategories, setActiveSubcategories] = useState<string[]>(
@@ -1398,7 +1397,7 @@ function MapaTab() {
           )}
 
           {/* Interactive Leaflet Map */}
-          <View style={styles.mapContainer}>
+          <View style={[styles.mapContainer, { height: Math.round(winHeight * 0.58) }]}>
             {(isLoading || (mapMode === 'proximity' && proximityDataLoading) || (mapMode === 'noturno' && nightLoading)) && (
               <View style={styles.mapLoadingOverlay}>
                 <ActivityIndicator size="small" color="#C49A6C" />
@@ -2033,7 +2032,6 @@ const styles = StyleSheet.create({
     marginTop: 12,
     borderRadius: 16,
     overflow: 'hidden' as any,
-    height: Math.round(Dimensions.get('window').height * 0.58),
     backgroundColor: '#2E5E4E',
     position: 'relative' as any,
   },

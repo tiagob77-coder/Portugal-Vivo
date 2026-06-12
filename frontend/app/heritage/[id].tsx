@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, Platform, Dimensions, ImageBackground, Linking, Share, Alert } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, Platform, ImageBackground, Linking, Share, Alert } from 'react-native';
 import OptimizedImage from '../../src/components/OptimizedImage';
 import { useLocalSearchParams, useRouter, Stack } from 'expo-router';
 import Head from 'expo-router/head';
@@ -20,8 +20,6 @@ import ImageUpload from '../../src/components/ImageUpload';
 import PoiVideoPlayer from '../../src/components/PoiVideoPlayer';
 import Panorama360View from '../../src/components/Panorama360View';
 import SensoryCard from '../../src/components/SensoryCard';
-
-const { width: _width } = Dimensions.get('window');
 
 // Helper to remove markdown formatting from AI-generated text
 const cleanMarkdown = (text: string): string => {

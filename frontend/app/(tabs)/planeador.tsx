@@ -11,7 +11,6 @@ import {
   ScrollView,
   TouchableOpacity,
   ActivityIndicator,
-  Dimensions,
   Platform,
   TextInput,
   Switch,
@@ -39,7 +38,6 @@ import { palette } from '../../src/theme/colors';
 import { useTheme } from '../../src/context/ThemeContext';
 import { useAuth } from '../../src/context/AuthContext';
 
-const { width } = Dimensions.get('window');
 const serif = Platform.OS === 'web' ? 'Cormorant Garamond, Georgia, serif' : undefined;
 
 // Planning tools based on strategic report
@@ -1059,7 +1057,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   toolCard: {
-    width: (width - 48) / 2,
+    width: '48%',
     borderRadius: 16,
     overflow: 'hidden',
   },

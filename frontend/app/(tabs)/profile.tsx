@@ -27,6 +27,7 @@ import ErrorBoundary from '../../src/components/ErrorBoundary';
 import { LinearGradient } from 'expo-linear-gradient';
 import { shadows } from '../../src/theme';
 import { useTheme } from '../../src/context/ThemeContext';
+import { CONTENT_MAX_WIDTH } from '../../src/theme/breakpoints';
 
 const serif = Platform.OS === 'web' ? 'Cormorant Garamond, Georgia, serif' : undefined;
 
@@ -226,7 +227,7 @@ function ProfileScreen() {
   ];
 
   return (
-    <ScrollView style={[styles.container, { backgroundColor: colors.background, paddingTop: insets.top }]} showsVerticalScrollIndicator={false}>
+    <ScrollView style={[styles.container, { backgroundColor: colors.background, paddingTop: insets.top }]} contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
       {/* Header */}
       <View style={styles.header}>
         <Text style={[styles.headerTitle, { color: colors.textPrimary }]}>Perfil</Text>
@@ -696,6 +697,8 @@ function ProfileScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
+  // Mobile-first: centra o conteúdo e limita a largura em tablet/web.
+  scrollContent: { width: '100%', maxWidth: CONTENT_MAX_WIDTH, alignSelf: 'center' },
   header: { paddingHorizontal: 20, paddingTop: 8, paddingBottom: 16 },
   headerTitle: { fontSize: 28, fontWeight: '800', fontFamily: serif },
   loginContainer: { alignItems: 'center', paddingHorizontal: 32, paddingTop: 40 },
