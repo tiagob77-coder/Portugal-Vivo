@@ -152,11 +152,23 @@ const getLayerColor = (categoryId: string): string => {
   return '#64748B';
 };
 
-// Map modes the native (mobile) map supports end-to-end. heatmap stays
-// web-only: the native MapView uses PROVIDER_DEFAULT (Apple/system, no
-// Google), where react-native-maps' Heatmap does not render, and showing
-// the same clustered markers as `markers` would be a UX trap.
-const NATIVE_MAP_MODES: MapMode[] = ['markers', 'rotas', 'explorador', 'trails', 'proximity', 'noturno'];
+// Map modes the native (mobile) map supports end-to-end. heatmap renders a
+// density visualization built on the existing grid clusters (see heatStyle)
+// rather than react-native-maps' Heatmap, which needs the Google provider
+// (unavailable under PROVIDER_DEFAULT / Apple maps).
+const NATIVE_MAP_MODES: MapMode[] = ['markers', 'rotas', 'explorador', 'heatmap', 'trails', 'proximity', 'noturno'];
+
+// Density style for a cluster on the native heatmap: warmer + larger as the
+// point count grows. Used only in heatmap mode, where grid clusters stand in
+// for a continuous heat layer.
+function heatStyle(count: number): { size: number; color: string } {
+  const size = Math.min(28 + count * 2.5, 96);
+  let color = 'rgba(34, 197, 94, 0.50)';   // cool — sparse
+  if (count >= 16) color = 'rgba(239, 68, 68, 0.62)';      // hot
+  else if (count >= 6) color = 'rgba(249, 115, 22, 0.58)'; // warm
+  else if (count >= 3) color = 'rgba(234, 179, 8, 0.55)';  // mild
+  return { size, color };
+}
 
 // Selectable subcategory IDs for a layer — excludes `comingSoon` leaves,
 // which have no POI data and would only produce empty map queries. This
@@ -751,6 +763,32 @@ function MapaTab() {
             {/* POI markers — grid-clustered by zoom; hidden in rotas mode.
                 Clusters (count>1) zoom in on press; singles behave as before. */}
             {mapMode !== 'rotas' && mapClusters.map((cluster) => {
+              // Heatmap mode — density blobs sized/coloured by cluster count.
+              if (mapMode === 'heatmap') {
+                const hs = heatStyle(cluster.count);
+                return (
+                  <Marker
+                    key={`heat-${cluster.id}`}
+                    coordinate={{ latitude: cluster.lat, longitude: cluster.lng }}
+                    tracksViewChanges={false}
+                    anchor={{ x: 0.5, y: 0.5 }}
+                    onPress={() =>
+                      cluster.count > 1 &&
+                      mapRef.current?.animateToRegion(
+                        {
+                          latitude: cluster.lat,
+                          longitude: cluster.lng,
+                          latitudeDelta: Math.max(mapRegion.latitudeDelta / 2.5, 0.01),
+                          longitudeDelta: Math.max(mapRegion.longitudeDelta / 2.5, 0.01),
+                        },
+                        350,
+                      )
+                    }
+                  >
+                    <View style={{ width: hs.size, height: hs.size, borderRadius: hs.size / 2, backgroundColor: hs.color }} />
+                  </Marker>
+                );
+              }
               if (cluster.count > 1) {
                 return (
                   <Marker
