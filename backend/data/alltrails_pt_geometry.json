@@ -1,0 +1,8 @@
+{
+  "_meta": {
+    "description": "Validated OSM (Overpass) GPS polylines for the curated AllTrails trails, keyed by stringified AllTrails id. Populated by scripts/fetch_alltrails_geometry.py in an environment with outbound network access (the dev sandbox blocks egress). Merged into featured trails by trails_quality.alltrails_to_trail so they render as lines on the map without a runtime backfill.",
+    "source": "OpenStreetMap via Overpass API",
+    "validation": "trails_quality.validate_trail_geometry (in PT bounds, >=8 points, no >2km gaps, length within 0.5x-2.0x of AllTrails distance)"
+  },
+  "geometry": {}
+}

@@ -192,6 +192,36 @@ def load_alltrails_reference() -> List[Dict[str, Any]]:
     return _ALLTRAILS_CACHE
 
 
+# Validated OSM geometry baked into the repo (populated by
+# scripts/fetch_alltrails_geometry.py where network is available), keyed by
+# stringified AllTrails id. Lets featured trails render as lines without a
+# runtime backfill.
+_GEOM_PATH = Path(__file__).parent / "data" / "alltrails_pt_geometry.json"
+_GEOM_CACHE: Optional[Dict[str, Any]] = None
+
+
+def load_alltrails_geometry() -> Dict[str, Any]:
+    """Load baked, validated trail geometry (cached). Empty on missing/bad file."""
+    global _GEOM_CACHE
+    if _GEOM_CACHE is None:
+        try:
+            with open(_GEOM_PATH, "r", encoding="utf-8") as fh:
+                _GEOM_CACHE = dict(json.load(fh).get("geometry", {}))
+        except (OSError, ValueError):
+            _GEOM_CACHE = {}
+    return _GEOM_CACHE
+
+
+def downsample_points(points: List[Dict[str, Any]], max_points: int = 200):
+    """Evenly reduce a polyline to at most ``max_points``, keeping the endpoints."""
+    n = len(points or [])
+    if n <= max_points or max_points < 2:
+        return list(points or [])
+    step = (n - 1) / (max_points - 1)
+    idx = sorted({int(round(i * step)) for i in range(max_points)} | {0, n - 1})
+    return [points[i] for i in idx]
+
+
 def alltrails_to_trail(record: Dict[str, Any]) -> Dict[str, Any]:
     """Convert an AllTrails reference record into the platform Trail shape.
 
@@ -204,6 +234,10 @@ def alltrails_to_trail(record: Dict[str, Any]) -> Dict[str, Any]:
     difficulty = normalize_difficulty(record.get("difficulty"), elevation_gain)
     max_elev = record.get("elevation_max_m")
     at_id = record.get("alltrails_id")
+
+    # Prefer baked, validated OSM geometry; fall back to any inline points.
+    baked = load_alltrails_geometry().get(str(at_id))
+    points = baked if baked else (record.get("points") or [])
 
     return {
         "id": f"at-{at_id}",
@@ -219,7 +253,9 @@ def alltrails_to_trail(record: Dict[str, Any]) -> Dict[str, Any]:
         "max_elevation": int(round(float(max_elev))) if max_elev else 0,
         "estimated_hours": naismith_hours(distance_km, elevation_gain),
         "trail_type": normalize_route_type(record.get("route_type")),
-        "points": [],
+        "points": points,
+        "needs_geometry": not bool(points),
+        "geometry_source": "osm" if points else None,
         "color": difficulty_color(difficulty),
         "tags": features_to_tags(record.get("features")),
         "activities": record.get("activities", []),

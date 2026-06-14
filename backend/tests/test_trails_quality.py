@@ -25,6 +25,8 @@ from trails_quality import (
     bbox_for_trail,
     overpass_name_regex,
     validate_trail_geometry,
+    downsample_points,
+    load_alltrails_geometry,
     DIFFICULTIES,
     ROUTE_TYPES,
     DIFFICULTY_COLORS,
@@ -388,6 +390,41 @@ class TestValidateGeometry:
         t = parse_overpass_geometry(elements)[0]
         ok, issues, _ = validate_trail_geometry(t["points"], t["distance_km"])
         assert ok is True, issues
+
+
+class TestBakedGeometry:
+    def test_downsample_reduces_and_keeps_endpoints(self):
+        pts = [{"lat": 41.0 + i * 0.001, "lng": -8.0} for i in range(500)]
+        out = downsample_points(pts, 200)
+        assert len(out) <= 200
+        assert out[0] == pts[0] and out[-1] == pts[-1]
+
+    def test_downsample_noop_when_small(self):
+        pts = [{"lat": 41.0, "lng": -8.0}, {"lat": 41.1, "lng": -8.1}]
+        assert downsample_points(pts, 200) == pts
+
+    def test_geometry_loader_returns_dict(self):
+        geom = load_alltrails_geometry()
+        assert isinstance(geom, dict)
+
+    def test_inline_points_make_trail_renderable(self):
+        rec = {
+            "alltrails_id": 1, "name": "X", "difficulty": "Moderado",
+            "route_type": "Circuito", "distance_km": 5, "elevation_gain_m": 200,
+            "points": [{"lat": 41.70, "lng": -8.20}, {"lat": 41.71, "lng": -8.21}],
+        }
+        t = alltrails_to_trail(rec)
+        assert t["points"] == rec["points"]
+        assert t["needs_geometry"] is False
+        assert t["geometry_source"] == "osm"
+        assert assess_trail(t)["map_renderable"] is True
+
+    def test_no_geometry_flags_needs_geometry(self):
+        rec = {"alltrails_id": 999999, "name": "Y", "difficulty": "Fácil",
+               "route_type": "Circuito", "distance_km": 3, "elevation_gain_m": 100}
+        t = alltrails_to_trail(rec)
+        assert t["points"] == []
+        assert t["needs_geometry"] is True
 
 
 # ─── /trails/featured endpoint (no DB) ───────────────────────────────────────

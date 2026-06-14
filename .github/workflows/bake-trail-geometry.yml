@@ -1,0 +1,60 @@
+name: Bake Trail Geometry into Dataset (OSM)
+
+# Manual job: fetches + validates OSM geometry for the curated AllTrails trails
+# and produces backend/data/alltrails_pt_geometry.json, so featured trails ship
+# with real polylines and render without a runtime backfill. Unlike the
+# "Trail Geometry Backfill" workflow (which writes to MongoDB), this bakes the
+# geometry into the repo. It does NOT need a database, only Overpass network
+# (GitHub runners have it; the dev sandbox does not).
+#
+# The result is uploaded as an artifact — download it and commit the file, or
+# wire an auto-PR step later.
+
+on:
+  workflow_dispatch:
+    inputs:
+      max_points:
+        description: "Downsample each polyline to at most N points"
+        type: string
+        default: "200"
+      min_score:
+        description: "Minimum match score 0..1 to accept an OSM route"
+        type: string
+        default: "0.45"
+
+permissions:
+  contents: read
+
+jobs:
+  bake:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Setup Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: backend/requirements.txt
+
+      - name: Instalar dependências
+        working-directory: backend
+        run: pip install -r requirements.txt || (sleep 5 && pip install -r requirements.txt)
+
+      - name: Gerar geometria validada (OSM/Overpass)
+        working-directory: backend
+        env:
+          PYTHONPATH: .
+        run: |
+          python scripts/fetch_alltrails_geometry.py --write \
+            --max-points "${{ inputs.max_points }}" \
+            --min-score "${{ inputs.min_score }}"
+
+      - name: Publicar geometria como artefacto
+        uses: actions/upload-artifact@v4
+        with:
+          name: alltrails-geometry
+          path: backend/data/alltrails_pt_geometry.json
+          if-no-files-found: error
