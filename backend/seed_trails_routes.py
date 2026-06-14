@@ -1,13 +1,64 @@
 """
-Seed Trails and Cultural Routes from existing POIs
+Seed Trails and Cultural Routes from existing POIs.
+
+Trail stats are derived deterministically: when a "percurso pedestre" POI name
+matches a curated AllTrails reference trail (data/alltrails_pt.json) its real
+difficulty / distance / elevation / route type are used; otherwise a stable
+hash-based estimate is applied (flagged ``stats_estimated``). Difficulty always
+uses the canonical unaccented enum so the map difficulty filter works.
 """
 import asyncio
+import hashlib
 import os
-import random
 from motor.motor_asyncio import AsyncIOMotorClient
 from dotenv import load_dotenv
 
+from trails_quality import (
+    normalize_difficulty,
+    normalize_route_type,
+    naismith_hours,
+    difficulty_color,
+    difficulty_from_elevation,
+    featured_trails,
+    load_alltrails_reference,
+)
+
 load_dotenv()
+
+
+def _strip(text: str) -> str:
+    import unicodedata
+    return "".join(
+        c for c in unicodedata.normalize("NFKD", (text or "").lower())
+        if not unicodedata.combining(c)
+    ).strip()
+
+
+def _stable_unit(seed: str) -> float:
+    """Deterministic float in [0, 1) from a string (replaces random for repeatable seeds)."""
+    digest = hashlib.md5(seed.encode("utf-8")).hexdigest()
+    return int(digest[:8], 16) / 0xFFFFFFFF
+
+
+def _build_alltrails_index() -> dict:
+    """Index curated AllTrails reference trails by normalised name for matching."""
+    index = {}
+    for rec in load_alltrails_reference():
+        index[_strip(rec.get("name", ""))] = rec
+    return index
+
+
+def _match_alltrails(name: str, index: dict) -> dict | None:
+    """Find a curated AllTrails trail whose name matches the POI name."""
+    key = _strip(name)
+    if not key:
+        return None
+    if key in index:
+        return index[key]
+    for ref_key, rec in index.items():
+        if key in ref_key or ref_key in key:
+            return rec
+    return None
 
 # Cultural Routes (Rotas Temáticas) definitions
 CULTURAL_ROUTES = [
@@ -140,38 +191,74 @@ async def seed_all():
             "location.lat": {"$exists": True, "$ne": None}
         }).to_list(500)
         
+        at_index = _build_alltrails_index()
         trails_to_insert = []
         for p in percursos:
-            # Extract distance from name if possible (e.g., "PR1" = ~5km, "GR" = longer)
             name = p.get("name", "")
-            is_gr = "GR" in name.upper()
-            estimated_km = random.uniform(15, 50) if is_gr else random.uniform(3, 15)
-            
+            loc = p.get("location", {}) or {}
+            point = {"lat": loc.get("lat"), "lng": loc.get("lng"), "ele": loc.get("ele")}
+            has_point = point["lat"] is not None and point["lng"] is not None
+
+            ref = _match_alltrails(name, at_index)
+            if ref:
+                distance_km = round(float(ref.get("distance_km") or 0), 1)
+                elevation_gain = int(round(float(ref.get("elevation_gain_m") or 0)))
+                difficulty = normalize_difficulty(ref.get("difficulty"), elevation_gain)
+                trail_type = normalize_route_type(ref.get("route_type"))
+                rating = ref.get("rating")
+                external_url = ref.get("url", "")
+                stats_estimated = False
+            else:
+                # Deterministic estimate (stable across re-seeds) — flagged, not random.
+                is_gr = "GR" in name.upper()
+                u = _stable_unit(p.get("id", name))
+                distance_km = round((15 + u * 35) if is_gr else (3 + u * 12), 1)
+                elevation_gain = int(round(100 + u * 700))
+                difficulty = difficulty_from_elevation(elevation_gain)
+                trail_type = "linear" if is_gr else "circular"
+                rating = None
+                external_url = ""
+                stats_estimated = True
+
             trail = {
                 "id": p["id"],
-                "name": p["name"],
+                "name": name,
                 "description": p.get("description", ""),
                 "municipality_id": p.get("concelho", p.get("region", "")).lower().replace(" ", "_"),
                 "region": p.get("region", "Norte"),
-                "difficulty": random.choice(["fácil", "moderado", "difícil"]),
-                "distance_km": round(estimated_km, 1),
-                "duration_hours": round(estimated_km / 4, 1),  # ~4km/h walking pace
-                "elevation_gain": random.randint(100, 800),
-                "trail_type": "grande_rota" if is_gr else "pequena_rota",
-                "surface": random.choice(["terra batida", "misto", "calcetado", "floresta"]),
-                "start_point": p.get("location", {}),
-                "points": [p.get("location", {})],  # Simplified - just start point
+                "difficulty": difficulty,
+                "distance_km": distance_km,
+                "elevation_gain": elevation_gain,
+                "estimated_hours": naismith_hours(distance_km, elevation_gain),
+                "trail_type": trail_type,
+                "color": difficulty_color(difficulty),
+                "start_point": loc,
+                "points": [point] if has_point else [],  # single trailhead — backfill geometry
                 "image_url": p.get("image_url", ""),
                 "tags": p.get("tags", []),
-                "featured": random.random() < 0.1,  # 10% featured
+                "rating": rating,
+                "external_url": external_url,
+                "source": "alltrails+heritage" if ref else "heritage",
+                "stats_estimated": stats_estimated,
+                "needs_geometry": True,  # only a trailhead point until GPX/OSM backfill
+                "featured": bool(ref),
             }
             trails_to_insert.append(trail)
-        
+
         if trails_to_insert:
             await db.trails.insert_many(trails_to_insert)
-            print(f"✅ Inserted {len(trails_to_insert)} trails from percursos pedestres")
+            matched = sum(1 for t in trails_to_insert if not t["stats_estimated"])
+            print(f"✅ Inserted {len(trails_to_insert)} trails from percursos pedestres "
+                  f"({matched} enriched with real AllTrails stats)")
     else:
         print(f"ℹ️ Trails already exist: {existing_trails}")
+
+    # 2b. Upsert curated AllTrails featured trails (real stats; geometry to backfill)
+    featured = featured_trails()
+    for ft in featured:
+        doc = {**ft, "featured": True, "needs_geometry": True}
+        await db.trails.update_one({"id": doc["id"]}, {"$set": doc}, upsert=True)
+    print(f"✅ Upserted {len(featured)} AllTrails featured trails")
     
     # 3. Verify Grande Expedição
     exp_count = await db.grande_expedicao.count_documents({})
