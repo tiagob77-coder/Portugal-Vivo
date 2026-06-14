@@ -329,6 +329,46 @@ def pick_best_osm_match(
     return None, 0.0
 
 
+# Bounding boxes (south, west, north, east) per park, used to find OSM geometry
+# for curated trails that have no trailhead coordinate (AllTrails exposes none).
+PARK_BBOX = {
+    "Parque Nacional da Peneda-Gerês": (41.65, -8.30, 41.95, -7.85),
+    "Parque Natural da Serra da Estrela": (40.20, -7.75, 40.45, -7.45),
+    "Parque Natural da Madeira": (32.70, -17.05, 32.82, -16.85),
+    "Açores - São Miguel": (37.70, -25.85, 37.90, -25.15),
+    "Paisagem Protegida das Sete Cidades": (37.70, -25.85, 37.90, -25.15),
+    "Paisagem Protegida das Furnas": (37.70, -25.85, 37.90, -25.15),
+    "Reserva Natural da Lagoa do Fogo": (37.70, -25.85, 37.90, -25.15),
+    "Parque Natural de Sintra-Cascais": (38.72, -9.50, 38.82, -9.36),
+    "Parque Natural da Arrábida": (38.45, -9.05, 38.52, -8.85),
+    "Parque Natural do Sudoeste Alentejano e Costa Vicentina": (37.45, -8.85, 37.85, -8.68),
+    "Parque Natural das Serras de Aire e Candeeiros": (39.40, -8.85, 39.62, -8.60),
+    "Alto Douro Vinhateiro": (41.05, -7.80, 41.30, -7.35),
+}
+
+
+def bbox_for_trail(trail: Dict[str, Any]):
+    """Return (south, west, north, east) for a trail's park, or None."""
+    return PARK_BBOX.get(trail.get("park", ""))
+
+
+def overpass_name_regex(name: Optional[str]):
+    """Build an Overpass name regex from a trail name's distinctive tokens.
+
+    Keeps accents (OSM names are accented), drops short/stopword tokens, and
+    OR-joins the two longest tokens so recall stays high; precision is then
+    enforced by ``pick_best_osm_match``. Returns None when nothing is usable.
+    """
+    raw = str(name or "").lower()
+    cleaned = "".join(c if c.isalnum() else " " for c in raw)
+    toks = [
+        t for t in cleaned.split()
+        if len(t) >= 4 and _strip_accents(t) not in _NAME_STOPWORDS
+    ]
+    toks = sorted(set(toks), key=len, reverse=True)[:2]
+    return "|".join(toks) if toks else None
+
+
 # ─── Map-quality assessment ──────────────────────────────────────────────────
 
 def _in_pt_bounds(lat: float, lng: float) -> bool:

@@ -68,10 +68,10 @@ const ACTION_CARDS = [
   {
     id: 'trails',
     title: 'Trilhos & Natureza',
-    desc: 'Percursos entre serras e rios',
+    desc: 'Percursos selecionados entre serras e rios',
     icon: 'terrain',
     image: regionImages.acores,
-    route: '/(tabs)/mapa',
+    route: '/trilhos',
     color: categoryColors.trilhos,
   },
 ];

@@ -1,0 +1,74 @@
+name: Trail Geometry Backfill (OSM)
+
+# Manual job: fetches real GPS polylines from OpenStreetMap (Overpass) and writes
+# them onto trails that only have a trailhead point (needs_geometry), so they
+# render as a line on the map instead of a single marker.
+#
+# Run it from the Actions tab → "Trail Geometry Backfill (OSM)" → Run workflow.
+# Start with apply=false (dry-run, only prints matches); re-run with apply=true
+# to persist. Requires the MONGO_URL secret; GitHub runners already have the
+# outbound network access to https://overpass-api.de that the dev sandbox lacks.
+
+on:
+  workflow_dispatch:
+    inputs:
+      apply:
+        description: "Write geometry to MongoDB (false = dry-run, only prints matches)"
+        type: boolean
+        default: false
+      limit:
+        description: "Max trails to process"
+        type: string
+        default: "200"
+      radius:
+        description: "Overpass search radius around each trailhead (metres)"
+        type: string
+        default: "6000"
+      min_score:
+        description: "Minimum match score 0..1 to accept an OSM route"
+        type: string
+        default: "0.45"
+
+permissions:
+  contents: read
+
+jobs:
+  backfill:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Setup Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: backend/requirements.txt
+
+      - name: Instalar dependências
+        working-directory: backend
+        run: pip install -r requirements.txt || (sleep 5 && pip install -r requirements.txt)
+
+      - name: Backfill de geometria (OSM/Overpass)
+        working-directory: backend
+        env:
+          MONGO_URL: ${{ secrets.MONGO_URL }}
+          DB_NAME: ${{ secrets.DB_NAME }}
+          APPLY: ${{ inputs.apply }}
+          LIMIT: ${{ inputs.limit }}
+          RADIUS: ${{ inputs.radius }}
+          MIN_SCORE: ${{ inputs.min_score }}
+          PYTHONPATH: .
+        run: |
+          if [ -z "$MONGO_URL" ]; then
+            echo "::error::Falta o secret MONGO_URL. Adiciona-o em Settings → Secrets and variables → Actions."
+            exit 1
+          fi
+          APPLY_FLAG=""
+          if [ "$APPLY" = "true" ]; then APPLY_FLAG="--apply"; fi
+          echo "Backfill apply=$APPLY limit=$LIMIT radius=$RADIUS min_score=$MIN_SCORE"
+          python backfill_trail_geometry.py $APPLY_FLAG \
+            --limit "$LIMIT" \
+            --radius "$RADIUS" \
+            --min-score "$MIN_SCORE"
