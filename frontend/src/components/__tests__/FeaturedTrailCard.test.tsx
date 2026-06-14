@@ -1,8 +1,9 @@
 import React from 'react';
 import { render } from '@testing-library/react-native';
 import FeaturedTrailCard from '../FeaturedTrailCard';
+import type { FeaturedTrail } from '../../services/api/routes';
 
-const mockTrail = {
+const mockTrail: FeaturedTrail = {
   id: 'at-10746073',
   name: 'Rota de Xertelo e as 7 Lagoas',
   region: 'Norte',
