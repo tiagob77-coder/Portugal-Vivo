@@ -82,6 +82,23 @@ function FeaturedTrailCard({ trail }: FeaturedTrailCardProps) {
         )}
       </View>
 
+      {/* ── Geometry status (distinguishes mapped trails from pending ones) ─── */}
+      <View style={styles.statusRow}>
+        {trail.needs_geometry ? (
+          <View style={[styles.statusChip, styles.statusPending]}>
+            <MaterialIcons name="help-outline" size={12} color="#92400E" />
+            <Text style={[styles.statusText, styles.statusPendingText]}>
+              Geometria por confirmar
+            </Text>
+          </View>
+        ) : (
+          <View style={[styles.statusChip, styles.statusReady]}>
+            <MaterialIcons name="timeline" size={12} color="#166534" />
+            <Text style={[styles.statusText, styles.statusReadyText]}>No mapa</Text>
+          </View>
+        )}
+      </View>
+
       {/* ── External link ───────────────────────────────────────────────────── */}
       {trail.external_url ? (
         <TouchableOpacity
@@ -163,6 +180,34 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: '600',
     color: '#374151',
+  },
+  statusRow: {
+    marginBottom: 12,
+  },
+  statusChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    alignSelf: 'flex-start',
+    gap: 4,
+    borderRadius: 8,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+  },
+  statusPending: {
+    backgroundColor: '#FEF3C7',
+  },
+  statusReady: {
+    backgroundColor: '#DCFCE7',
+  },
+  statusText: {
+    fontSize: 11,
+    fontWeight: '600',
+  },
+  statusPendingText: {
+    color: '#92400E',
+  },
+  statusReadyText: {
+    color: '#166534',
   },
   linkBtn: {
     flexDirection: 'row',
