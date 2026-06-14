@@ -19,6 +19,9 @@ from trails_quality import (
     summarize_quality,
     featured_trails,
     load_alltrails_reference,
+    name_similarity,
+    osm_match_score,
+    pick_best_osm_match,
     DIFFICULTIES,
     ROUTE_TYPES,
     DIFFICULTY_COLORS,
@@ -254,6 +257,58 @@ class TestOverpassGeometry:
             {"type": "node", "id": 3, "lat": 41.7, "lon": -8.2},
         ]
         assert parse_overpass_geometry(elements) == []
+
+
+# ─── OSM geometry matching (backfill selection) ──────────────────────────────
+
+class TestOsmMatch:
+    def test_name_similarity(self):
+        assert name_similarity("Levada do Caldeirão Verde",
+                               "Levada do Caldeirao Verde") == 1.0
+        assert name_similarity("Trilho dos Currais", "Rota do Poço Azul") == 0.0
+        # Stopwords (trilho/rota/de/do) are ignored, so partial overlap scores.
+        assert name_similarity("Trilho da Cascata do Arado",
+                               "Cascata do Arado") > 0.5
+
+    def _osm(self, name, points, distance_km):
+        return {"name": name, "points": points, "distance_km": distance_km,
+                "point_count": len(points), "osm_id": 1}
+
+    def test_pick_best_by_name(self):
+        trail = {"name": "Trilho da Cascata do Arado",
+                 "distance_km": 10.3, "points": [{"lat": 41.72, "lng": -8.18}]}
+        good = self._osm("Cascata do Arado",
+                         [{"lat": 41.72, "lng": -8.18}, {"lat": 41.73, "lng": -8.19}], 10.0)
+        bad = self._osm("Outro Caminho Qualquer",
+                        [{"lat": 41.0, "lng": -8.0}, {"lat": 41.1, "lng": -8.1}], 3.0)
+        best, score = pick_best_osm_match(trail, [bad, good])
+        assert best is good
+        assert score >= 0.45
+
+    def test_no_match_below_threshold(self):
+        trail = {"name": "Trilho Alpha", "distance_km": 10,
+                 "points": [{"lat": 41.0, "lng": -8.0}]}
+        unrelated = self._osm("Beta Caminho",
+                              [{"lat": 38.0, "lng": -9.0}, {"lat": 38.1, "lng": -9.1}], 2.0)
+        best, score = pick_best_osm_match(trail, [unrelated])
+        assert best is None
+        assert score == 0.0
+
+    def test_single_point_candidates_ignored(self):
+        trail = {"name": "Trilho da Cascata", "distance_km": 5,
+                 "points": [{"lat": 41.0, "lng": -8.0}]}
+        degenerate = self._osm("Trilho da Cascata", [{"lat": 41.0, "lng": -8.0}], 5.0)
+        best, _ = pick_best_osm_match(trail, [degenerate])
+        assert best is None
+
+    def test_proximity_breaks_ties(self):
+        trail = {"name": "Cascata", "distance_km": 5.0,
+                 "points": [{"lat": 41.700, "lng": -8.200}]}
+        near = self._osm("Cascata",
+                         [{"lat": 41.701, "lng": -8.201}, {"lat": 41.702, "lng": -8.202}], 5.0)
+        far = self._osm("Cascata",
+                        [{"lat": 41.900, "lng": -8.400}, {"lat": 41.910, "lng": -8.410}], 5.0)
+        assert osm_match_score(trail, near) > osm_match_score(trail, far)
 
 
 # ─── /trails/featured endpoint (no DB) ───────────────────────────────────────
