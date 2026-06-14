@@ -25,6 +25,7 @@ import { useQuery } from '@tanstack/react-query';
 import { LinearGradient } from 'expo-linear-gradient';
 import api from '../../src/services/api';
 import * as DocumentPicker from 'expo-document-picker';
+import * as Location from 'expo-location';
 import { colors, typography, spacing, borders, shadows } from '../../src/theme';
 // import { categoryColors } from '../../src/context/ThemeContext';
 import AccessibilityFilters from '../../src/components/AccessibilityFilters';
@@ -151,11 +152,11 @@ const getLayerColor = (categoryId: string): string => {
   return '#64748B';
 };
 
-// Map modes the native (mobile) map supports end-to-end. Kept a subset of
-// the web lineup: proximity needs native geolocation, trails needs native
-// polyline rendering, and heatmap has no native heat layer — those remain
-// web-only until their mobile data paths land.
-const NATIVE_MAP_MODES: MapMode[] = ['markers', 'rotas', 'explorador', 'noturno'];
+// Map modes the native (mobile) map supports end-to-end. heatmap stays
+// web-only: the native MapView uses PROVIDER_DEFAULT (Apple/system, no
+// Google), where react-native-maps' Heatmap does not render, and showing
+// the same clustered markers as `markers` would be a UX trap.
+const NATIVE_MAP_MODES: MapMode[] = ['markers', 'rotas', 'explorador', 'trails', 'proximity', 'noturno'];
 
 // Selectable subcategory IDs for a layer — excludes `comingSoon` leaves,
 // which have no POI data and would only produce empty map queries. This
@@ -386,22 +387,46 @@ function MapaTab() {
     enabled: mapMode === 'proximity' && !!userLocation,
   });
 
+  // Acquire the user's location for proximity mode. Web uses the browser
+  // Geolocation API; native uses expo-location. Falls back to Lisbon on
+  // denial/failure so the proximity query still returns something.
+  const acquireUserLocation = useCallback(async () => {
+    setProximityLoading(true);
+    try {
+      if (Platform.OS === 'web') {
+        await new Promise<void>((resolve) => {
+          navigator.geolocation?.getCurrentPosition(
+            (pos) => {
+              setUserLocation({ lat: pos.coords.latitude, lng: pos.coords.longitude });
+              resolve();
+            },
+            () => {
+              setUserLocation({ lat: 38.7223, lng: -9.1393 });
+              resolve();
+            },
+            { enableHighAccuracy: true, timeout: 10000 },
+          );
+        });
+      } else {
+        const { status } = await Location.requestForegroundPermissionsAsync();
+        if (status === 'granted') {
+          const loc = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
+          setUserLocation({ lat: loc.coords.latitude, lng: loc.coords.longitude });
+        } else {
+          setUserLocation({ lat: 38.7223, lng: -9.1393 });
+        }
+      }
+    } catch {
+      setUserLocation({ lat: 38.7223, lng: -9.1393 });
+    } finally {
+      setProximityLoading(false);
+    }
+  }, []);
+
   // Get user location when proximity mode is selected
   useEffect(() => {
-    if (mapMode === 'proximity' && Platform.OS === 'web' && !userLocation) {
-      setProximityLoading(true);
-      navigator.geolocation?.getCurrentPosition(
-        (pos) => {
-          setUserLocation({ lat: pos.coords.latitude, lng: pos.coords.longitude });
-          setProximityLoading(false);
-        },
-        () => {
-          // Default to Lisbon if geolocation fails
-          setUserLocation({ lat: 38.7223, lng: -9.1393 });
-          setProximityLoading(false);
-        },
-        { enableHighAccuracy: true, timeout: 10000 },
-      );
+    if (mapMode === 'proximity' && !userLocation) {
+      acquireUserLocation();
     }
   }, [mapMode]); // eslint-disable-line react-hooks/exhaustive-deps
   // Rotas mode — infrastructure (passadiços + ecovias) list
@@ -863,6 +888,53 @@ function MapaTab() {
                 activeFilter={nightFilter}
                 onFilterChange={setNightFilter}
               />
+            </View>
+          )}
+
+          {/* Proximity panel */}
+          {mapMode === 'proximity' && (
+            <View style={[styles.nativeModePanel, { top: insets.top + 96 }]}>
+              <ProximityPanel
+                isLoading={proximityDataLoading || proximityLoading}
+                total={proximityData?.total || 0}
+                pois={proximityData?.pois || []}
+                getMarkerColor={getMarkerColor}
+                getLayerIcon={getLayerIcon}
+                onPoiPress={(poiId) => router.push(`/heritage/${poiId}`)}
+                onRefresh={acquireUserLocation}
+              />
+            </View>
+          )}
+
+          {/* Trails selector — pick which trail's polyline to show. The
+              first trail auto-selects on entering the mode (see effect). */}
+          {mapMode === 'trails' && (trailsList || []).length > 0 && (
+            <View style={[styles.nativeModePanel, { top: insets.top + 96 }]}>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                <View style={{ flexDirection: 'row', gap: 8, paddingHorizontal: 2 }}>
+                  {(trailsList || []).map((trail: any) => {
+                    const active = selectedTrail === trail.id;
+                    return (
+                      <TouchableOpacity
+                        key={trail.id}
+                        style={[styles.trailChip, active && { backgroundColor: trail.color || '#22C55E', borderColor: trail.color || '#22C55E' }]}
+                        onPress={() => setSelectedTrail(active ? null : trail.id)}
+                        accessibilityLabel={`Trilho ${trail.name}`}
+                        accessibilityRole="button"
+                        accessibilityState={{ selected: active }}
+                      >
+                        <MaterialIcons name="route" size={14} color={active ? '#FFF' : '#94A3B8'} />
+                        <Text style={[styles.trailChipText, active && { color: '#FFF' }]} numberOfLines={1}>
+                          {trail.name.split(' - ')[0]}
+                        </Text>
+                        <Text style={[styles.trailChipMeta, active && { color: 'rgba(255,255,255,0.8)' }]}>
+                          {trail.distance_km}km
+                        </Text>
+                      </TouchableOpacity>
+                    );
+                  })}
+                </View>
+              </ScrollView>
             </View>
           )}
 
