@@ -25,6 +25,7 @@ import { useQuery } from '@tanstack/react-query';
 import { LinearGradient } from 'expo-linear-gradient';
 import api from '../../src/services/api';
 import * as DocumentPicker from 'expo-document-picker';
+import * as Location from 'expo-location';
 import { colors, typography, spacing, borders, shadows } from '../../src/theme';
 // import { categoryColors } from '../../src/context/ThemeContext';
 import AccessibilityFilters from '../../src/components/AccessibilityFilters';
@@ -150,6 +151,24 @@ const getLayerColor = (categoryId: string): string => {
   }
   return '#64748B';
 };
+
+// Map modes the native (mobile) map supports end-to-end. heatmap renders a
+// density visualization built on the existing grid clusters (see heatStyle)
+// rather than react-native-maps' Heatmap, which needs the Google provider
+// (unavailable under PROVIDER_DEFAULT / Apple maps).
+const NATIVE_MAP_MODES: MapMode[] = ['markers', 'rotas', 'explorador', 'heatmap', 'trails', 'proximity', 'noturno'];
+
+// Density style for a cluster on the native heatmap: warmer + larger as the
+// point count grows. Used only in heatmap mode, where grid clusters stand in
+// for a continuous heat layer.
+function heatStyle(count: number): { size: number; color: string } {
+  const size = Math.min(28 + count * 2.5, 96);
+  let color = 'rgba(34, 197, 94, 0.50)';   // cool — sparse
+  if (count >= 16) color = 'rgba(239, 68, 68, 0.62)';      // hot
+  else if (count >= 6) color = 'rgba(249, 115, 22, 0.58)'; // warm
+  else if (count >= 3) color = 'rgba(234, 179, 8, 0.55)';  // mild
+  return { size, color };
+}
 
 // Selectable subcategory IDs for a layer — excludes `comingSoon` leaves,
 // which have no POI data and would only produce empty map queries. This
@@ -380,22 +399,46 @@ function MapaTab() {
     enabled: mapMode === 'proximity' && !!userLocation,
   });
 
+  // Acquire the user's location for proximity mode. Web uses the browser
+  // Geolocation API; native uses expo-location. Falls back to Lisbon on
+  // denial/failure so the proximity query still returns something.
+  const acquireUserLocation = useCallback(async () => {
+    setProximityLoading(true);
+    try {
+      if (Platform.OS === 'web') {
+        await new Promise<void>((resolve) => {
+          navigator.geolocation?.getCurrentPosition(
+            (pos) => {
+              setUserLocation({ lat: pos.coords.latitude, lng: pos.coords.longitude });
+              resolve();
+            },
+            () => {
+              setUserLocation({ lat: 38.7223, lng: -9.1393 });
+              resolve();
+            },
+            { enableHighAccuracy: true, timeout: 10000 },
+          );
+        });
+      } else {
+        const { status } = await Location.requestForegroundPermissionsAsync();
+        if (status === 'granted') {
+          const loc = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
+          setUserLocation({ lat: loc.coords.latitude, lng: loc.coords.longitude });
+        } else {
+          setUserLocation({ lat: 38.7223, lng: -9.1393 });
+        }
+      }
+    } catch {
+      setUserLocation({ lat: 38.7223, lng: -9.1393 });
+    } finally {
+      setProximityLoading(false);
+    }
+  }, []);
+
   // Get user location when proximity mode is selected
   useEffect(() => {
-    if (mapMode === 'proximity' && Platform.OS === 'web' && !userLocation) {
-      setProximityLoading(true);
-      navigator.geolocation?.getCurrentPosition(
-        (pos) => {
-          setUserLocation({ lat: pos.coords.latitude, lng: pos.coords.longitude });
-          setProximityLoading(false);
-        },
-        () => {
-          // Default to Lisbon if geolocation fails
-          setUserLocation({ lat: 38.7223, lng: -9.1393 });
-          setProximityLoading(false);
-        },
-        { enableHighAccuracy: true, timeout: 10000 },
-      );
+    if (mapMode === 'proximity' && !userLocation) {
+      acquireUserLocation();
     }
   }, [mapMode]); // eslint-disable-line react-hooks/exhaustive-deps
   // Rotas mode — infrastructure (passadiços + ecovias) list
@@ -720,6 +763,32 @@ function MapaTab() {
             {/* POI markers — grid-clustered by zoom; hidden in rotas mode.
                 Clusters (count>1) zoom in on press; singles behave as before. */}
             {mapMode !== 'rotas' && mapClusters.map((cluster) => {
+              // Heatmap mode — density blobs sized/coloured by cluster count.
+              if (mapMode === 'heatmap') {
+                const hs = heatStyle(cluster.count);
+                return (
+                  <Marker
+                    key={`heat-${cluster.id}`}
+                    coordinate={{ latitude: cluster.lat, longitude: cluster.lng }}
+                    tracksViewChanges={false}
+                    anchor={{ x: 0.5, y: 0.5 }}
+                    onPress={() =>
+                      cluster.count > 1 &&
+                      mapRef.current?.animateToRegion(
+                        {
+                          latitude: cluster.lat,
+                          longitude: cluster.lng,
+                          latitudeDelta: Math.max(mapRegion.latitudeDelta / 2.5, 0.01),
+                          longitudeDelta: Math.max(mapRegion.longitudeDelta / 2.5, 0.01),
+                        },
+                        350,
+                      )
+                    }
+                  >
+                    <View style={{ width: hs.size, height: hs.size, borderRadius: hs.size / 2, backgroundColor: hs.color }} />
+                  </Marker>
+                );
+              }
               if (cluster.count > 1) {
                 return (
                   <Marker
@@ -824,6 +893,88 @@ function MapaTab() {
               <Text style={styles.headerStatsText}>{mapComponentItems?.length || 0} locais</Text>
             </View>
           </View>
+
+          {/* Mode Switcher — native subset (modes that work end-to-end on
+              mobile). proximity/trails/heatmap stay web-only until their
+              native data paths land. Right inset leaves room for the
+              vertical control stack. */}
+          <View style={[styles.nativeModeBar, { top: insets.top + 50 }]}>
+            <MapModeSelector
+              activeMode={mapMode}
+              onModeChange={setMapMode}
+              modes={NATIVE_MAP_MODES}
+            />
+          </View>
+
+          {/* Explorador panel — real-time technical overlays */}
+          {mapMode === 'explorador' && (
+            <View style={[styles.nativeModePanel, { top: insets.top + 96 }]}>
+              <ExplorerPanel
+                weather={exploradorWeather}
+                fires={exploradorFires}
+                surf={exploradorSurf}
+              />
+            </View>
+          )}
+
+          {/* Noturno panel */}
+          {mapMode === 'noturno' && (
+            <View style={[styles.nativeModePanel, { top: insets.top + 96 }]}>
+              <NightExplorerPanel
+                isLoading={nightLoading}
+                itemCount={nightItems.length}
+                activeFilter={nightFilter}
+                onFilterChange={setNightFilter}
+              />
+            </View>
+          )}
+
+          {/* Proximity panel */}
+          {mapMode === 'proximity' && (
+            <View style={[styles.nativeModePanel, { top: insets.top + 96 }]}>
+              <ProximityPanel
+                isLoading={proximityDataLoading || proximityLoading}
+                total={proximityData?.total || 0}
+                pois={proximityData?.pois || []}
+                getMarkerColor={getMarkerColor}
+                getLayerIcon={getLayerIcon}
+                onPoiPress={(poiId) => router.push(`/heritage/${poiId}`)}
+                onRefresh={acquireUserLocation}
+              />
+            </View>
+          )}
+
+          {/* Trails selector — pick which trail's polyline to show. The
+              first trail auto-selects on entering the mode (see effect). */}
+          {mapMode === 'trails' && (trailsList || []).length > 0 && (
+            <View style={[styles.nativeModePanel, { top: insets.top + 96 }]}>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                <View style={{ flexDirection: 'row', gap: 8, paddingHorizontal: 2 }}>
+                  {(trailsList || []).map((trail: any) => {
+                    const active = selectedTrail === trail.id;
+                    return (
+                      <TouchableOpacity
+                        key={trail.id}
+                        style={[styles.trailChip, active && { backgroundColor: trail.color || '#22C55E', borderColor: trail.color || '#22C55E' }]}
+                        onPress={() => setSelectedTrail(active ? null : trail.id)}
+                        accessibilityLabel={`Trilho ${trail.name}`}
+                        accessibilityRole="button"
+                        accessibilityState={{ selected: active }}
+                      >
+                        <MaterialIcons name="route" size={14} color={active ? '#FFF' : '#94A3B8'} />
+                        <Text style={[styles.trailChipText, active && { color: '#FFF' }]} numberOfLines={1}>
+                          {trail.name.split(' - ')[0]}
+                        </Text>
+                        <Text style={[styles.trailChipMeta, active && { color: 'rgba(255,255,255,0.8)' }]}>
+                          {trail.distance_km}km
+                        </Text>
+                      </TouchableOpacity>
+                    );
+                  })}
+                </View>
+              </ScrollView>
+            </View>
+          )}
 
           {/* Map Controls */}
           <View style={[styles.mapControls, { top: insets.top + 60 }]}>
@@ -1713,6 +1864,23 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#FFFFFF',
     fontWeight: '500',
+  },
+  nativeModeBar: {
+    position: 'absolute',
+    left: 12,
+    // Clear the vertical control stack (right: 16, 44px wide).
+    right: 68,
+    backgroundColor: 'rgba(13, 17, 23, 0.72)',
+    borderRadius: 16,
+    paddingHorizontal: 4,
+    paddingTop: 4,
+    zIndex: 6,
+  },
+  nativeModePanel: {
+    position: 'absolute',
+    left: 12,
+    right: 12,
+    zIndex: 5,
   },
   mapControls: {
     position: 'absolute',
