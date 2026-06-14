@@ -226,6 +226,9 @@ function MapaTab() {
   const [gpxUploading, setGpxUploading] = useState(false);
   const [userLocation, setUserLocation] = useState<{lat: number; lng: number} | null>(null);
   const [proximityLoading, setProximityLoading] = useState(false);
+  // Satellite basemap toggle for the native map (mobile). Orthogonal to
+  // mapMode, mirroring the web "SAT" button in NativeMap.web.tsx.
+  const [satelliteBasemap, setSatelliteBasemap] = useState(false);
 
   // Apply region filter from navigation params
   useEffect(() => {
@@ -710,7 +713,8 @@ function MapaTab() {
             showsUserLocation
             showsMyLocationButton={false}
             showsCompass={false}
-            customMapStyle={darkMapStyle}
+            mapType={satelliteBasemap ? 'hybrid' : 'standard'}
+            customMapStyle={satelliteBasemap ? undefined : darkMapStyle}
             mapPadding={{ top: 0, right: 0, bottom: 180, left: 0 }}
           >
             {/* POI markers — grid-clustered by zoom; hidden in rotas mode.
@@ -865,6 +869,19 @@ function MapaTab() {
                   <Text style={styles.filterBadgeText}>{accessibilityFilters.length}</Text>
                 </View>
               )}
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.controlButton, satelliteBasemap && styles.controlButtonActive]}
+              onPress={() => setSatelliteBasemap(v => !v)}
+              accessibilityLabel="Vista de satélite"
+              accessibilityRole="switch"
+              accessibilityState={{ checked: satelliteBasemap }}
+            >
+              <MaterialIcons
+                name="satellite"
+                size={22}
+                color={satelliteBasemap ? colors.ocean[500] : '#FFFFFF'}
+              />
             </TouchableOpacity>
           </View>
 
