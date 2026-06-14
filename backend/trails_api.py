@@ -11,6 +11,13 @@ from datetime import datetime, timezone
 from shared_utils import haversine_km as _haversine_km, DatabaseHolder, apply_municipality_filter
 from models.api_models import User
 from auth_api import get_current_user
+from trails_quality import (
+    assess_trail,
+    summarize_quality,
+    featured_trails,
+    PT_LAT_RANGE,
+    PT_LNG_RANGE,
+)
 
 trails_router = APIRouter(prefix="/trails", tags=["trails"])
 _db_holder = DatabaseHolder("trails")
@@ -224,55 +231,110 @@ async def get_nearby_trails(
     return {"trails": results[:limit], "total": len(results[:limit]), "center": {"lat": lat, "lng": lon}, "radius_km": dist_km}
 
 
-_PT_LAT = (32.0, 42.5)
-_PT_LNG = (-31.5, -6.0)
+# Kept for backward compatibility — canonical bounds now live in trails_quality.
+_PT_LAT = PT_LAT_RANGE
+_PT_LNG = PT_LNG_RANGE
+
+# Geometry issues that prevent a trail from being drawn as a polyline on the map.
+_GEOMETRY_ISSUES = {"no_gps", "single_point", "few_points", "out_of_bounds"}
 
 
 @trails_router.get("/audit")
 async def audit_trails_gps():
-    """GPS quality audit for all trails in the database."""
+    """GPS / map-quality audit for all trails in the database.
+
+    Flags why trails do not render on the map: missing GPS, a single point
+    (the polyline layer needs >1 point), too few points, or coordinates
+    outside Portugal. Each entry carries a per-trail ``quality_score``.
+    """
     trails = await _db_holder.db.trails.find(
-        {}, {"_id": 0, "id": 1, "name": 1, "region": 1, "difficulty": 1, "distance_km": 1, "points": 1}
+        {}, {"_id": 0, "id": 1, "name": 1, "region": 1, "difficulty": 1,
+             "distance_km": 1, "elevation_gain": 1, "points": 1}
     ).to_list(5000)
 
     no_gps: list = []
+    single_point: list = []
     few_points: list = []
     out_of_bounds: list = []
     ok_count = 0
+    not_renderable = 0
+    score_sum = 0
 
     for t in trails:
-        pts = t.get("points", [])
-        trail_id = t.get("id", "")
-        trail_name = t.get("name", "")
-        base = {"id": trail_id, "name": trail_name, "region": t.get("region", ""), "difficulty": t.get("difficulty", "")}
-        if not pts:
+        a = assess_trail(t)
+        score_sum += a["quality_score"]
+        base = {
+            "id": a["id"], "name": a["name"], "region": a["region"],
+            "difficulty": a["difficulty"], "point_count": a["point_count"],
+            "quality_score": a["quality_score"], "issues": a["issues"],
+        }
+        if "no_gps" in a["issues"]:
             no_gps.append(base)
-        elif len(pts) < 3:
-            few_points.append({**base, "point_count": len(pts)})
-        else:
-            bad = [
-                p for p in pts
-                if not (_PT_LAT[0] <= p.get("lat", 0) <= _PT_LAT[1]
-                        and _PT_LNG[0] <= p.get("lng", 0) <= _PT_LNG[1])
-            ]
-            if bad:
-                out_of_bounds.append({**base, "total_points": len(pts), "bad_points": len(bad),
-                                       "sample_bad": bad[:3]})
-            else:
+        elif "single_point" in a["issues"]:
+            single_point.append(base)
+        elif "few_points" in a["issues"]:
+            few_points.append(base)
+        if "out_of_bounds" in a["issues"]:
+            out_of_bounds.append(base)
+        if a["map_renderable"]:
+            if not (set(a["issues"]) & _GEOMETRY_ISSUES):
                 ok_count += 1
+        else:
+            not_renderable += 1
+
+    total = len(trails)
 
     return {
         "summary": {
-            "total": len(trails),
+            "total": total,
             "ok": ok_count,
             "no_gps": len(no_gps),
+            "single_point": len(single_point),
             "few_points": len(few_points),
             "out_of_bounds": len(out_of_bounds),
+            "not_map_renderable": not_renderable,
+            "avg_quality_score": round(score_sum / total, 1) if total else 0,
         },
         "no_gps": no_gps,
+        "single_point": single_point,
         "few_points": few_points,
         "out_of_bounds": out_of_bounds,
     }
+
+
+@trails_router.get("/featured")
+async def get_featured_trails(
+    region: Optional[str] = None,
+    difficulty: Optional[str] = None,
+    limit: int = 50,
+):
+    """Curated, real trails sourced from AllTrails (no DB required).
+
+    Stats (difficulty, distance, elevation, route type, rating) are real;
+    geometry must be backfilled via GPX upload or OSM before these render as
+    polylines on the map.
+    """
+    trails = featured_trails()
+    if region:
+        trails = [t for t in trails if t.get("region", "").lower() == region.lower()]
+    if difficulty:
+        trails = [t for t in trails if t.get("difficulty") == difficulty]
+    return {
+        "trails": trails[:limit],
+        "total": len(trails),
+        "source": "alltrails",
+        "attribution": "Trail metadata © AllTrails",
+    }
+
+
+@trails_router.get("/quality")
+async def get_trails_quality():
+    """Aggregate map-quality summary across all trails in the database."""
+    trails = await _db_holder.db.trails.find(
+        {}, {"_id": 0, "id": 1, "name": 1, "region": 1, "difficulty": 1,
+             "distance_km": 1, "elevation_gain": 1, "points": 1}
+    ).to_list(5000)
+    return summarize_quality(trails)
 
 
 @trails_router.get("/{trail_id}")

@@ -20,6 +20,79 @@ def _haversine_km(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
     return R * 2 * atan2(sqrt(a), sqrt(1 - a))
 
 
+# OSM SAC mountain-hiking scale → platform difficulty enum.
+_SAC_DIFFICULTY = {
+    "hiking": "facil",
+    "mountain_hiking": "moderado",
+    "demanding_mountain_hiking": "dificil",
+    "alpine_hiking": "muito_dificil",
+    "demanding_alpine_hiking": "muito_dificil",
+    "difficult_alpine_hiking": "muito_dificil",
+}
+
+
+def _sac_to_difficulty(sac_scale: Optional[str]) -> str:
+    return _SAC_DIFFICULTY.get((sac_scale or "").strip().lower(), "moderado")
+
+
+def _points_from_geometry(geometry: Optional[List[Dict]]) -> List[Dict]:
+    """Extract ``{lat, lng, ele}`` points from an Overpass ``out geom`` array."""
+    pts: List[Dict] = []
+    for g in geometry or []:
+        lat, lon = g.get("lat"), g.get("lon")
+        if lat is not None and lon is not None:
+            pts.append({"lat": lat, "lng": lon, "ele": None})
+    return pts
+
+
+def parse_overpass_geometry(elements: List[Dict]) -> List[Dict]:
+    """Parse Overpass ``out geom;`` elements into trails with GPS polylines.
+
+    Handles ``way`` elements (own geometry) and ``route=hiking`` ``relation``
+    elements (geometry concatenated across member ways). Unlike
+    ``_parse_trail_elements`` this yields a ``points`` list ready for the map
+    polyline layer plus a Haversine ``distance_km``. AllTrails provides the
+    authoritative metadata; OSM provides the geometry AllTrails does not.
+    """
+    trails: List[Dict] = []
+    for el in elements:
+        etype = el.get("type")
+        tags = el.get("tags", {})
+        if etype == "way":
+            pts = _points_from_geometry(el.get("geometry"))
+        elif etype == "relation":
+            pts = []
+            for member in el.get("members", []):
+                if member.get("type") == "way":
+                    pts.extend(_points_from_geometry(member.get("geometry")))
+        else:
+            continue
+
+        if len(pts) < 2:
+            continue
+
+        dist = 0.0
+        for i in range(1, len(pts)):
+            dist += _haversine_km(pts[i - 1]["lat"], pts[i - 1]["lng"],
+                                  pts[i]["lat"], pts[i]["lng"])
+
+        trails.append({
+            "osm_id": el.get("id"),
+            "osm_type": etype,
+            "name": tags.get("name", "Trilho sem nome"),
+            "ref": tags.get("ref", ""),
+            "network": tags.get("network", ""),
+            "operator": tags.get("operator", ""),
+            "difficulty": _sac_to_difficulty(tags.get("sac_scale", "")),
+            "sac_scale": tags.get("sac_scale", ""),
+            "distance_km": round(dist, 1),
+            "points": pts,
+            "point_count": len(pts),
+            "source": "OSM",
+        })
+    return trails
+
+
 # EuroVelo routes in Portugal
 EUROVELO_PT = [
     {"id": "ev1", "name": "EuroVelo 1 - Rota da Costa Atlântica",
@@ -114,6 +187,40 @@ class OverpassService:
                     return trails
         except Exception as e:
             logger.warning(f"Overpass hiking query failed: {e}")
+
+        return []
+
+    async def find_hiking_trails_with_geometry(self, lat: float, lng: float,
+                                               radius_m: int = 10000) -> List[Dict]:
+        """Find hiking trails near coordinates WITH full GPS geometry.
+
+        Uses ``out geom;`` so each trail carries a ``points`` polyline the map
+        can draw — the piece AllTrails metadata alone cannot provide.
+        """
+        cache_key = f"hikegeom_{lat:.2f}_{lng:.2f}_{radius_m}"
+        if self._is_cache_valid(cache_key) and cache_key in self._cache:
+            return self._cache[cache_key]
+
+        query = f"""
+        [out:json][timeout:30];
+        (
+          relation["route"="hiking"](around:{radius_m},{lat},{lng});
+          way["highway"="path"]["name"](around:{radius_m},{lat},{lng});
+        );
+        out geom;
+        """
+
+        try:
+            async with httpx.AsyncClient(timeout=35.0) as client:
+                resp = await client.post(self.BASE_URL, data={"data": query})
+                if resp.status_code == 200:
+                    data = resp.json()
+                    trails = parse_overpass_geometry(data.get("elements", []))
+                    self._cache[cache_key] = trails
+                    self._last_fetch[cache_key] = datetime.now(timezone.utc)
+                    return trails
+        except Exception as e:
+            logger.warning(f"Overpass hiking-geometry query failed: {e}")
 
         return []
 
