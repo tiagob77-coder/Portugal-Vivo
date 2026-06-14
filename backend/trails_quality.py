@@ -22,6 +22,7 @@ adds geometry. ``assess_trail`` makes that gap explicit instead of silent.
 from __future__ import annotations
 
 import json
+import math
 import unicodedata
 from pathlib import Path
 from typing import Any, Dict, List, Optional
@@ -234,6 +235,98 @@ def featured_trails() -> List[Dict[str, Any]]:
     trails = [alltrails_to_trail(r) for r in load_alltrails_reference()]
     trails.sort(key=lambda t: (t.get("rating") or 0), reverse=True)
     return trails
+
+
+# ─── OSM geometry matching (backfill the polylines AllTrails lacks) ──────────
+
+_NAME_STOPWORDS = {
+    "de", "da", "do", "das", "dos", "e", "a", "o", "trilho", "rota", "via",
+    "percurso", "pr", "gr", "the", "of",
+}
+
+
+def _haversine_km(lat1: float, lng1: float, lat2: float, lng2: float) -> float:
+    R = 6371.0
+    p1, p2 = math.radians(lat1), math.radians(lat2)
+    dp = math.radians(lat2 - lat1)
+    dl = math.radians(lng2 - lng1)
+    a = math.sin(dp / 2) ** 2 + math.cos(p1) * math.cos(p2) * math.sin(dl / 2) ** 2
+    return R * 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
+
+
+def _name_tokens(name: Optional[str]) -> set:
+    raw = _strip_accents(str(name or "")).lower()
+    cleaned = "".join(c if c.isalnum() else " " for c in raw)
+    return {
+        tok for tok in cleaned.split()
+        if len(tok) > 1 and tok not in _NAME_STOPWORDS
+    }
+
+
+def name_similarity(a: Optional[str], b: Optional[str]) -> float:
+    """Jaccard similarity over significant name tokens (0..1)."""
+    ta, tb = _name_tokens(a), _name_tokens(b)
+    if not ta or not tb:
+        return 0.0
+    return len(ta & tb) / len(ta | tb)
+
+
+def osm_match_score(trail: Dict[str, Any], candidate: Dict[str, Any]) -> float:
+    """Score how well an OSM candidate matches a platform trail (0..1).
+
+    Blends name similarity, distance agreement and trailhead proximity over
+    whichever signals are available (name is always weighted; distance and
+    proximity only when both sides expose the data).
+    """
+    name_sim = name_similarity(trail.get("name"), candidate.get("name"))
+
+    dist_score = None
+    td = trail.get("distance_km") or 0
+    cd = candidate.get("distance_km") or 0
+    if td > 0 and cd > 0:
+        dist_score = max(0.0, 1.0 - abs(td - cd) / max(td, cd))
+
+    prox_score = None
+    tpts = trail.get("points") or []
+    cpts = candidate.get("points") or []
+    if (tpts and cpts and tpts[0].get("lat") is not None
+            and cpts[0].get("lat") is not None):
+        d = _haversine_km(tpts[0]["lat"], tpts[0]["lng"],
+                          cpts[0]["lat"], cpts[0]["lng"])
+        prox_score = max(0.0, 1.0 - d / 5.0)  # 0 km → 1.0, ≥5 km → 0.0
+
+    weights = {"name": 0.5, "dist": 0.2, "prox": 0.3}
+    score = weights["name"] * name_sim
+    total_w = weights["name"]
+    if dist_score is not None:
+        score += weights["dist"] * dist_score
+        total_w += weights["dist"]
+    if prox_score is not None:
+        score += weights["prox"] * prox_score
+        total_w += weights["prox"]
+    return score / total_w if total_w else 0.0
+
+
+def pick_best_osm_match(
+    trail: Dict[str, Any],
+    candidates: List[Dict[str, Any]],
+    min_score: float = 0.45,
+):
+    """Best OSM candidate (with ≥2 points) above ``min_score``.
+
+    Returns ``(candidate, score)`` or ``(None, 0.0)`` when nothing qualifies.
+    """
+    best = None
+    best_score = 0.0
+    for c in candidates:
+        if len(c.get("points") or []) < 2:
+            continue
+        s = osm_match_score(trail, c)
+        if s > best_score:
+            best, best_score = c, s
+    if best is not None and best_score >= min_score:
+        return best, round(best_score, 3)
+    return None, 0.0
 
 
 # ─── Map-quality assessment ──────────────────────────────────────────────────

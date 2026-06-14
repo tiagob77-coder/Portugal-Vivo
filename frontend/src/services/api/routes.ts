@@ -44,6 +44,22 @@ export interface Trail {
   points?: { lat: number; lng: number; ele?: number }[];
 }
 
+export interface FeaturedTrail extends Trail {
+  park?: string;
+  trail_type?: 'linear' | 'circular' | 'ida_volta';
+  activities?: string[];
+  rating?: number;
+  source?: string;
+  external_url?: string;
+}
+
+export interface FeaturedTrailsResponse {
+  trails: FeaturedTrail[];
+  total: number;
+  source: string;
+  attribution: string;
+}
+
 export interface ElevationProfilePoint {
   distance_km: number;
   elevation: number;
@@ -61,6 +77,18 @@ export const getTrails = async (region?: string): Promise<Trail[]> => {
 export const getTrail = async (id: string): Promise<Trail> => {
   const response = await api.get(`/trails/${id}`);
   return response.data;
+};
+
+// Featured trails (curated, sourced from AllTrails)
+export const getFeaturedTrails = async (params?: {
+  region?: string;
+  difficulty?: string;
+}): Promise<FeaturedTrailsResponse> => {
+  const key = `cache_featured_trails_${JSON.stringify(params || {})}`;
+  return cachedGet(key, async () => {
+    const response = await api.get('/trails/featured', { params });
+    return response.data;
+  });
 };
 
 export const getTrailElevation = async (id: string): Promise<{ trail_name: string; profile: ElevationProfilePoint[] }> => {
