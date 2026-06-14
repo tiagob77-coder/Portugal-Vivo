@@ -23,7 +23,8 @@ on:
         default: "0.45"
 
 permissions:
-  contents: read
+  contents: write
+  pull-requests: write
 
 jobs:
   bake:
@@ -58,3 +59,22 @@ jobs:
           name: alltrails-geometry
           path: backend/data/alltrails_pt_geometry.json
           if-no-files-found: error
+
+      - name: Abrir PR com a geometria atualizada
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if git diff --quiet -- backend/data/alltrails_pt_geometry.json; then
+            echo "Sem alterações na geometria — nenhum PR criado."
+            exit 0
+          fi
+          BRANCH="auto/trail-geometry-$(date +%Y%m%d-%H%M%S)"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git checkout -b "$BRANCH"
+          git add backend/data/alltrails_pt_geometry.json
+          git commit -m "chore(trails): bake validated OSM geometry into dataset"
+          git push -u origin "$BRANCH"
+          gh pr create --base main --head "$BRANCH" --draft \
+            --title "chore(trails): bake validated OSM geometry into dataset" \
+            --body "Geometria OSM validada gerada por \`scripts/fetch_alltrails_geometry.py\` (workflow *Bake Trail Geometry*). Os trilhos em destaque passam a desenhar como linha no mapa sem backfill em runtime."
