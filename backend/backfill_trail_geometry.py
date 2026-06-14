@@ -21,7 +21,7 @@ from motor.motor_asyncio import AsyncIOMotorClient
 from dotenv import load_dotenv
 
 from services.overpass_service import OverpassService
-from trails_quality import pick_best_osm_match
+from trails_quality import pick_best_osm_match, bbox_for_trail, overpass_name_regex
 
 load_dotenv()
 
@@ -39,12 +39,19 @@ async def backfill(apply: bool, limit: int, radius_m: int, min_score: float) -> 
     matched = 0
     for t in trails:
         pts = t.get("points") or []
-        if not pts or pts[0].get("lat") is None:
-            print(f"  · {t.get('name', '?')[:48]:48}  skipped (no trailhead)")
-            continue
+        if pts and pts[0].get("lat") is not None:
+            # Trail with a trailhead point (heritage seed): search around it.
+            candidates = await overpass.find_hiking_trails_with_geometry(
+                pts[0]["lat"], pts[0]["lng"], radius_m)
+        else:
+            # No coordinate (AllTrails set): search the park bbox by name.
+            bbox = bbox_for_trail(t)
+            regex = overpass_name_regex(t.get("name"))
+            if not bbox or not regex:
+                print(f"  · {t.get('name', '?')[:48]:48}  skipped (no trailhead / bbox)")
+                continue
+            candidates = await overpass.find_named_hiking_trails(*bbox, regex)
 
-        lat, lng = pts[0]["lat"], pts[0]["lng"]
-        candidates = await overpass.find_hiking_trails_with_geometry(lat, lng, radius_m)
         best, score = pick_best_osm_match(t, candidates, min_score)
 
         if not best:

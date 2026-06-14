@@ -224,6 +224,39 @@ class OverpassService:
 
         return []
 
+    async def find_named_hiking_trails(self, south: float, west: float,
+                                       north: float, east: float,
+                                       name_regex: str) -> List[Dict]:
+        """Find hiking routes by name within a bounding box, WITH geometry.
+
+        Used for curated trails that have no trailhead coordinate (e.g. the
+        AllTrails set): we search the park's bbox by name instead of around a
+        point. ``name_regex`` should be Overpass-safe (alphanumerics and ``|``).
+        """
+        cache_key = f"named_{south:.2f}_{west:.2f}_{north:.2f}_{east:.2f}_{name_regex}"
+        if self._is_cache_valid(cache_key) and cache_key in self._cache:
+            return self._cache[cache_key]
+
+        query = f"""
+        [out:json][timeout:40];
+        relation["route"="hiking"]["name"~"{name_regex}",i]({south},{west},{north},{east});
+        out geom;
+        """
+
+        try:
+            async with httpx.AsyncClient(timeout=45.0) as client:
+                resp = await client.post(self.BASE_URL, data={"data": query})
+                if resp.status_code == 200:
+                    data = resp.json()
+                    trails = parse_overpass_geometry(data.get("elements", []))
+                    self._cache[cache_key] = trails
+                    self._last_fetch[cache_key] = datetime.now(timezone.utc)
+                    return trails
+        except Exception as e:
+            logger.warning(f"Overpass named-trail query failed: {e}")
+
+        return []
+
     async def find_cycling_routes(self, lat: float, lng: float,
                                    radius_m: int = 15000) -> List[Dict]:
         """Find cycling routes near coordinates (including EuroVelo)"""

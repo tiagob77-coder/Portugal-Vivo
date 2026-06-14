@@ -22,6 +22,8 @@ from trails_quality import (
     name_similarity,
     osm_match_score,
     pick_best_osm_match,
+    bbox_for_trail,
+    overpass_name_regex,
     DIFFICULTIES,
     ROUTE_TYPES,
     DIFFICULTY_COLORS,
@@ -309,6 +311,37 @@ class TestOsmMatch:
         far = self._osm("Cascata",
                         [{"lat": 41.900, "lng": -8.400}, {"lat": 41.910, "lng": -8.410}], 5.0)
         assert osm_match_score(trail, near) > osm_match_score(trail, far)
+
+
+class TestBboxAndNameQuery:
+    def test_bbox_for_known_park(self):
+        bbox = bbox_for_trail({"park": "Parque Natural da Madeira"})
+        assert bbox is not None
+        south, west, north, east = bbox
+        assert south < north and west < east
+        # Madeira is around 32.7N / -17W.
+        assert 32.0 < south < 33.0 and -18.0 < west < -16.0
+
+    def test_bbox_unknown_park(self):
+        assert bbox_for_trail({"park": "Inexistente"}) is None
+        assert bbox_for_trail({}) is None
+
+    def test_every_featured_trail_has_a_bbox(self):
+        # Curated AllTrails trails have no coordinate; each must resolve a bbox
+        # so the backfill can search OSM by name within the park.
+        for t in featured_trails():
+            assert bbox_for_trail(t) is not None, t.get("park")
+
+    def test_name_regex_keeps_accents_and_picks_distinctive_tokens(self):
+        rgx = overpass_name_regex("PR9 - Levada do Caldeirão Verde")
+        assert rgx is not None
+        parts = rgx.split("|")
+        assert "caldeirão" in parts  # accents preserved for OSM matching
+        assert "do" not in parts and "pr9" not in parts  # stopwords/short dropped
+
+    def test_name_regex_empty(self):
+        assert overpass_name_regex("") is None
+        assert overpass_name_regex("de do a o") is None
 
 
 # ─── /trails/featured endpoint (no DB) ───────────────────────────────────────
