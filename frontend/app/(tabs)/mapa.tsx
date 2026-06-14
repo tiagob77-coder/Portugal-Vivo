@@ -151,6 +151,12 @@ const getLayerColor = (categoryId: string): string => {
   return '#64748B';
 };
 
+// Map modes the native (mobile) map supports end-to-end. Kept a subset of
+// the web lineup: proximity needs native geolocation, trails needs native
+// polyline rendering, and heatmap has no native heat layer — those remain
+// web-only until their mobile data paths land.
+const NATIVE_MAP_MODES: MapMode[] = ['markers', 'rotas', 'explorador', 'noturno'];
+
 // Selectable subcategory IDs for a layer — excludes `comingSoon` leaves,
 // which have no POI data and would only produce empty map queries. This
 // drives the default-active set, "select all" and the layer badge counts.
@@ -824,6 +830,41 @@ function MapaTab() {
               <Text style={styles.headerStatsText}>{mapComponentItems?.length || 0} locais</Text>
             </View>
           </View>
+
+          {/* Mode Switcher — native subset (modes that work end-to-end on
+              mobile). proximity/trails/heatmap stay web-only until their
+              native data paths land. Right inset leaves room for the
+              vertical control stack. */}
+          <View style={[styles.nativeModeBar, { top: insets.top + 50 }]}>
+            <MapModeSelector
+              activeMode={mapMode}
+              onModeChange={setMapMode}
+              modes={NATIVE_MAP_MODES}
+            />
+          </View>
+
+          {/* Explorador panel — real-time technical overlays */}
+          {mapMode === 'explorador' && (
+            <View style={[styles.nativeModePanel, { top: insets.top + 96 }]}>
+              <ExplorerPanel
+                weather={exploradorWeather}
+                fires={exploradorFires}
+                surf={exploradorSurf}
+              />
+            </View>
+          )}
+
+          {/* Noturno panel */}
+          {mapMode === 'noturno' && (
+            <View style={[styles.nativeModePanel, { top: insets.top + 96 }]}>
+              <NightExplorerPanel
+                isLoading={nightLoading}
+                itemCount={nightItems.length}
+                activeFilter={nightFilter}
+                onFilterChange={setNightFilter}
+              />
+            </View>
+          )}
 
           {/* Map Controls */}
           <View style={[styles.mapControls, { top: insets.top + 60 }]}>
@@ -1713,6 +1754,23 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#FFFFFF',
     fontWeight: '500',
+  },
+  nativeModeBar: {
+    position: 'absolute',
+    left: 12,
+    // Clear the vertical control stack (right: 16, 44px wide).
+    right: 68,
+    backgroundColor: 'rgba(13, 17, 23, 0.72)',
+    borderRadius: 16,
+    paddingHorizontal: 4,
+    paddingTop: 4,
+    zIndex: 6,
+  },
+  nativeModePanel: {
+    position: 'absolute',
+    left: 12,
+    right: 12,
+    zIndex: 5,
   },
   mapControls: {
     position: 'absolute',

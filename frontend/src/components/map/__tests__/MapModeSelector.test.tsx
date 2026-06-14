@@ -85,6 +85,24 @@ describe('MapModeSelector', () => {
     ).not.toThrow();
   });
 
+  it('renders only the subset passed via `modes` (native map)', () => {
+    render(
+      <MapModeSelector
+        activeMode="markers"
+        onModeChange={onModeChange}
+        modes={['markers', 'rotas', 'explorador', 'noturno']}
+      />
+    );
+    expect(screen.getByText('Camadas')).toBeTruthy();
+    expect(screen.getByText('Rotas')).toBeTruthy();
+    expect(screen.getByText('Explorador')).toBeTruthy();
+    expect(screen.getByText('Modo noturno')).toBeTruthy();
+    // Excluded from the native subset
+    expect(screen.queryByText('Densidade')).toBeNull();
+    expect(screen.queryByText('Trilhos')).toBeNull();
+    expect(screen.queryByText('Proximidade')).toBeNull();
+  });
+
   it('renders 7 mode buttons total', () => {
     const { UNSAFE_getAllByType } = render(
       <MapModeSelector activeMode="markers" onModeChange={onModeChange} />

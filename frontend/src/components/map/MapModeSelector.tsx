@@ -54,9 +54,14 @@ export const LAYER_RESPECTING_MODES: ReadonlyArray<MapMode> = [
 interface MapModeSelectorProps {
   activeMode: string;
   onModeChange: (mode: MapMode) => void;
+  // Optional subset of modes to show, in MAP_MODES order. The native map
+  // (mobile) passes the modes it supports end-to-end; web omits it to show
+  // the full lineup. Unknown ids are ignored.
+  modes?: ReadonlyArray<MapMode>;
 }
 
-export default function MapModeSelector({ activeMode, onModeChange }: MapModeSelectorProps) {
+export default function MapModeSelector({ activeMode, onModeChange, modes }: MapModeSelectorProps) {
+  const items = modes ? MAP_MODES.filter((m) => modes.includes(m.id)) : MAP_MODES;
   return (
     <ScrollView
       horizontal
@@ -66,7 +71,7 @@ export default function MapModeSelector({ activeMode, onModeChange }: MapModeSel
       accessibilityLabel="Modos de mapa"
     >
       <View style={styles.container}>
-        {MAP_MODES.map((mode) => {
+        {items.map((mode) => {
           const isActive = activeMode === mode.id;
           return (
             <TouchableOpacity
