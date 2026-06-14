@@ -24,6 +24,7 @@ from trails_quality import (
     pick_best_osm_match,
     bbox_for_trail,
     overpass_name_regex,
+    validate_trail_geometry,
     DIFFICULTIES,
     ROUTE_TYPES,
     DIFFICULTY_COLORS,
@@ -342,6 +343,51 @@ class TestBboxAndNameQuery:
     def test_name_regex_empty(self):
         assert overpass_name_regex("") is None
         assert overpass_name_regex("de do a o") is None
+
+
+class TestValidateGeometry:
+    def _line(self, n=12, lat0=41.70, lng0=-8.20, step=0.002):
+        return [{"lat": lat0 + step * i, "lng": lng0, "ele": None} for i in range(n)]
+
+    def test_valid_geometry(self):
+        pts = self._line(12)  # ~2.4 km
+        ok, issues, stats = validate_trail_geometry(pts, expected_distance_km=2.4)
+        assert ok is True
+        assert issues == []
+        assert stats["points"] == 12 and stats["length_km"] > 0
+
+    def test_too_few_points(self):
+        ok, issues, _ = validate_trail_geometry(self._line(3))
+        assert ok is False
+        assert any(i.startswith("too_few_points") for i in issues)
+
+    def test_out_of_bounds(self):
+        pts = self._line(10) + [{"lat": 51.5, "lng": -0.12}]  # London
+        ok, issues, _ = validate_trail_geometry(pts)
+        assert ok is False
+        assert any(i.startswith("out_of_bounds") for i in issues)
+
+    def test_gap_rejected(self):
+        pts = self._line(9) + [{"lat": 41.95, "lng": -8.60}]  # big jump
+        ok, issues, _ = validate_trail_geometry(pts)
+        assert ok is False
+        assert any(i.startswith("gap") for i in issues)
+
+    def test_distance_mismatch(self):
+        pts = self._line(12)  # ~2.4 km
+        ok, issues, _ = validate_trail_geometry(pts, expected_distance_km=20.0)
+        assert ok is False
+        assert any(i.startswith("distance_mismatch") for i in issues)
+
+    def test_osm_parsed_geometry_validates(self):
+        # An OSM way parsed by parse_overpass_geometry should validate as real.
+        elements = [{
+            "type": "way", "id": 1, "tags": {"name": "X", "sac_scale": "hiking"},
+            "geometry": [{"lat": 41.70 + 0.001 * i, "lon": -8.20} for i in range(20)],
+        }]
+        t = parse_overpass_geometry(elements)[0]
+        ok, issues, _ = validate_trail_geometry(t["points"], t["distance_km"])
+        assert ok is True, issues
 
 
 # ─── /trails/featured endpoint (no DB) ───────────────────────────────────────

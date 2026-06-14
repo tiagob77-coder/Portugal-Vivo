@@ -378,6 +378,68 @@ def _in_pt_bounds(lat: float, lng: float) -> bool:
     )
 
 
+# Geometry must clear these gates before a trail is accepted as map-renderable
+# "real" (i.e. before the backfill clears needs_geometry).
+GEOMETRY_MIN_POINTS = 8
+GEOMETRY_MAX_JUMP_KM = 2.0
+GEOMETRY_DIST_TOLERANCE = (0.5, 2.0)  # accepted total length vs expected distance
+
+
+def validate_trail_geometry(
+    points: List[Dict[str, Any]],
+    expected_distance_km: Optional[float] = None,
+    min_points: int = GEOMETRY_MIN_POINTS,
+    max_jump_km: float = GEOMETRY_MAX_JUMP_KM,
+    dist_tolerance=GEOMETRY_DIST_TOLERANCE,
+):
+    """Validate a candidate polyline before it becomes a trail's real geometry.
+
+    Gates: enough points, all inside Portugal, no implausible gap between
+    consecutive points (disjoint/garbage geometry), and — when an expected
+    distance is known — a total length within tolerance of it. Returns
+    ``(is_valid, issues, stats)``.
+    """
+    issues: List[str] = []
+    pts = points or []
+    n = len(pts)
+    if n < min_points:
+        issues.append(f"too_few_points({n})")
+
+    out_of_bounds = 0
+    total_km = 0.0
+    max_jump = 0.0
+    prev = None
+    for p in pts:
+        lat, lng = p.get("lat"), p.get("lng")
+        if lat is None or lng is None or not _in_pt_bounds(lat, lng):
+            out_of_bounds += 1
+            prev = None
+            continue
+        if prev is not None:
+            d = _haversine_km(prev[0], prev[1], lat, lng)
+            total_km += d
+            max_jump = max(max_jump, d)
+        prev = (lat, lng)
+
+    if out_of_bounds:
+        issues.append(f"out_of_bounds({out_of_bounds})")
+    if max_jump > max_jump_km:
+        issues.append(f"gap({round(max_jump, 2)}km)")
+    if expected_distance_km and total_km > 0:
+        lo, hi = dist_tolerance
+        if not (expected_distance_km * lo <= total_km <= expected_distance_km * hi):
+            issues.append(
+                f"distance_mismatch({round(total_km, 1)}km_vs_{expected_distance_km}km)"
+            )
+
+    stats = {
+        "points": n,
+        "length_km": round(total_km, 2),
+        "max_jump_km": round(max_jump, 2),
+    }
+    return (len(issues) == 0, issues, stats)
+
+
 def assess_trail(trail: Dict[str, Any]) -> Dict[str, Any]:
     """Score a trail's map-readiness and list concrete quality issues.
 
