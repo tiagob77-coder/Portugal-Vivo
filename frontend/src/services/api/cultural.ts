@@ -13,13 +13,18 @@ export interface CulturalRouteEnriched {
   unesco?: boolean;
   unesco_label?: string;
   description_short?: string;
+  description_long?: string;
   duration_days?: number;
   best_months?: number[];
+  music_genres?: string[];
   instruments?: string[];
   dances?: string[];
   gastronomy?: string[];
   costumes?: string[];
   festivals?: string[];
+  voices_orality?: string[];
+  tags?: string[];
+  premium?: boolean;
   iq_score?: number;
   dynamic_iq_score?: number;
   connections_count?: number;
@@ -50,6 +55,13 @@ export interface CulturalRoutesDiscover {
 
 export const getCulturalRoutesHub = async (): Promise<CulturalRoutesHubData> => {
   const response = await api.get('/cultural-routes/hub');
+  return response.data;
+};
+
+export const getCulturalRoute = async (
+  routeId: string,
+): Promise<CulturalRouteEnriched> => {
+  const response = await api.get(`/cultural-routes/routes/${routeId}`);
   return response.data;
 };
 
