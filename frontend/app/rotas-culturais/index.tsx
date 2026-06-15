@@ -4,7 +4,7 @@
  */
 import React, { useState } from 'react';
 import {
-  View, Text, StyleSheet, ScrollView, TouchableOpacity,
+  View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput,
 } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
@@ -228,6 +228,7 @@ export default function RotasCulturais() {
 
   const [familyFilter, setFamilyFilter] = useState<FamilyFilter>('todos');
   const [regionFilter, setRegionFilter] = useState<string>('Todas');
+  const [search, setSearch] = useState('');
 
   const [mapLayers, setMapLayers] = useState<HubMapLayer[]>([
     { id: 'routes',    label: 'Rotas',     icon: 'route',          color: '#A855F7', active: true  },
@@ -262,11 +263,19 @@ export default function RotasCulturais() {
 
   const unescoCount = ROUTES_DATA.filter((r) => r.unesco).length;
 
+  const q = search.trim().toLowerCase();
   const filtered = ROUTES_DATA.filter((r) => {
     const matchFamily = familyFilter === 'todos' || r.family === familyFilter;
     const matchRegion = regionFilter === 'Todas' || r.region.includes(regionFilter) ||
       r.municipalities.some((m) => m.toLowerCase().includes(regionFilter.toLowerCase()));
-    return matchFamily && matchRegion;
+    const matchSearch = !q ||
+      r.name.toLowerCase().includes(q) ||
+      r.region.toLowerCase().includes(q) ||
+      r.municipalities.some((m) => m.toLowerCase().includes(q)) ||
+      (r.instruments ?? []).some((i) => i.toLowerCase().includes(q)) ||
+      (r.dances ?? []).some((d) => d.toLowerCase().includes(q)) ||
+      (r.tags ?? []).some((t) => t.toLowerCase().includes(q));
+    return matchFamily && matchRegion && matchSearch;
   });
 
   const handleCardPress = (id: string) => {
@@ -308,6 +317,25 @@ export default function RotasCulturais() {
           <Text style={styles.premiumBannerText}>
             {ROUTES_DATA.length} rotas premium &middot; {unescoCount} UNESCO &middot; 6 fam&iacute;lias culturais
           </Text>
+        </View>
+
+        {/* Search */}
+        <View style={styles.searchBar}>
+          <MaterialIcons name="search" size={20} color={C.textMed} />
+          <TextInput
+            style={styles.searchInput}
+            placeholder="Procurar rota, instrumento, região…"
+            placeholderTextColor={C.textMed}
+            value={search}
+            onChangeText={setSearch}
+            returnKeyType="search"
+            autoCorrect={false}
+          />
+          {search ? (
+            <TouchableOpacity onPress={() => setSearch('')} accessibilityRole="button" accessibilityLabel="Limpar pesquisa">
+              <MaterialIcons name="close" size={18} color={C.textMed} />
+            </TouchableOpacity>
+          ) : null}
         </View>
 
         {/* Hub Map */}
@@ -453,6 +481,21 @@ const styles = StyleSheet.create({
     backgroundColor: '#78350F20', borderWidth: 1, borderColor: '#F59E0B30',
   },
   premiumBannerText: { fontSize: 13, fontWeight: '600', color: '#FCD34D', flex: 1 },
+
+  searchBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginHorizontal: 16,
+    marginTop: 12,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    backgroundColor: C.card,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: C.border,
+  },
+  searchInput: { flex: 1, fontSize: 14, color: C.textDark, padding: 0 },
 
   hubMapWrap: { marginHorizontal: 16, marginBottom: 16 },
   tabsScroll: { marginBottom: 4 },
