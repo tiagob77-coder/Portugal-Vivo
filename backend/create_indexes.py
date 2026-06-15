@@ -113,6 +113,17 @@ async def create_all_indexes(db):
     )
     logger.info("  stripe_webhook_events: 1 index created (with TTL)")
 
+    # subscriptions - hit on every premium/feature check (_active_sub_filter),
+    # plus webhook lookups by stripe id and admin tier counts
+    await db.subscriptions.create_index([("user_id", 1), ("status", 1)], name="idx_subs_user_status")
+    await db.subscriptions.create_index("stripe_subscription_id", name="idx_subs_stripe_sub")
+    await db.subscriptions.create_index("stripe_customer_id", name="idx_subs_stripe_cust")
+    logger.info("  subscriptions: 3 indexes created")
+
+    # paywall_intents - monetization validation signal (admin stats counts)
+    await db.paywall_intents.create_index("created_at", name="idx_intents_created")
+    logger.info("  paywall_intents: 1 index created")
+
     # user_progress
     await db.user_progress.create_index("user_id", unique=True, name="idx_progress_userid")
     await db.user_progress.create_index("total_points", name="idx_progress_points")
