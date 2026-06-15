@@ -699,11 +699,16 @@ async def subscribe(
     request: SubscriptionRequest,
     current_user: User = Depends(require_auth),
 ):
-    """Create or upgrade a subscription (demo mode when Stripe not configured)."""
+    """Create or upgrade a subscription (demo mode when Stripe not configured).
+
+    Demo-only: grants a tier without taking payment, so it is hard-blocked in
+    production and only runs when Stripe is not configured. Real subscriptions
+    must go through /premium/create-checkout.
+    """
     if request.tier not in ("premium", "annual"):
         raise HTTPException(status_code=400, detail="Tier inválido")
 
-    if STRIPE_ENABLED:
+    if _IS_PRODUCTION or STRIPE_ENABLED:
         raise HTTPException(
             status_code=400,
             detail="Use /premium/create-checkout para subscrições com pagamento"
