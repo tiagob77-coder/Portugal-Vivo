@@ -1,11 +1,12 @@
 /**
  * Trilhos em destaque — curated trails sourced from AllTrails (real difficulty,
- * distance, elevation and rating). Consumes GET /api/trails/featured, with
- * difficulty + region filters (server-side via query params).
+ * distance, elevation and rating). Consumes GET /api/trails/featured, with a
+ * name search (client-side) plus difficulty + region filters (server-side).
  */
 import React, { useState } from 'react';
 import {
-  View, Text, StyleSheet, FlatList, ScrollView, ActivityIndicator, TouchableOpacity,
+  View, Text, StyleSheet, FlatList, ScrollView, ActivityIndicator,
+  TouchableOpacity, TextInput,
 } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
@@ -36,6 +37,7 @@ export default function FeaturedTrailsScreen() {
 
   const [difficulty, setDifficulty] = useState('');
   const [region, setRegion] = useState('');
+  const [search, setSearch] = useState('');
 
   const { data, isLoading } = useQuery({
     queryKey: ['featured-trails', difficulty, region],
@@ -46,7 +48,9 @@ export default function FeaturedTrailsScreen() {
   });
 
   const trails: FeaturedTrail[] = data?.trails ?? [];
-  const hasFilters = !!(difficulty || region);
+  const q = search.trim().toLowerCase();
+  const visible = q ? trails.filter((t) => t.name.toLowerCase().includes(q)) : trails;
+  const hasFilters = !!(difficulty || region || q);
 
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
@@ -60,6 +64,24 @@ export default function FeaturedTrailsScreen() {
         </TouchableOpacity>
         <Text style={styles.title}>Trilhos em destaque</Text>
         <View style={styles.headerSpacer} />
+      </View>
+
+      <View style={styles.searchBar}>
+        <MaterialIcons name="search" size={20} color={C.textMed} />
+        <TextInput
+          style={styles.searchInput}
+          placeholder="Procurar trilho…"
+          placeholderTextColor={C.textMed}
+          value={search}
+          onChangeText={setSearch}
+          returnKeyType="search"
+          autoCorrect={false}
+        />
+        {search ? (
+          <TouchableOpacity onPress={() => setSearch('')} accessibilityRole="button" accessibilityLabel="Limpar pesquisa">
+            <MaterialIcons name="close" size={18} color={C.textMed} />
+          </TouchableOpacity>
+        ) : null}
       </View>
 
       <View style={styles.filters}>
@@ -101,17 +123,18 @@ export default function FeaturedTrailsScreen() {
         <View style={styles.center}>
           <ActivityIndicator size="large" color={C.accent} />
         </View>
-      ) : trails.length === 0 ? (
+      ) : visible.length === 0 ? (
         <View style={styles.center}>
           <MaterialIcons name="hiking" size={40} color={C.textMed} />
           <Text style={styles.emptyText}>
-            {hasFilters ? 'Sem trilhos para este filtro.' : 'Sem trilhos disponíveis.'}
+            {hasFilters ? 'Sem trilhos para esta pesquisa.' : 'Sem trilhos disponíveis.'}
           </Text>
         </View>
       ) : (
         <FlatList
-          data={trails}
+          data={visible}
           keyExtractor={(t) => t.id}
+          keyboardShouldPersistTaps="handled"
           renderItem={({ item }) => (
             <FeaturedTrailCard
               trail={item}
@@ -145,11 +168,27 @@ const styles = StyleSheet.create({
   },
   headerSpacer: { width: 24 },
   title: { fontSize: 18, fontWeight: '700', color: C.textDark },
+  searchBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginHorizontal: 16,
+    marginTop: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: C.border,
+  },
+  searchInput: { flex: 1, fontSize: 14, color: C.textDark, padding: 0 },
   filters: {
     backgroundColor: '#FFFFFF',
     paddingVertical: 6,
+    marginTop: 10,
+    borderTopWidth: StyleSheet.hairlineWidth,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: C.border,
+    borderColor: C.border,
   },
   chipsRow: { paddingHorizontal: 12, gap: 8, paddingVertical: 4 },
   chip: {
