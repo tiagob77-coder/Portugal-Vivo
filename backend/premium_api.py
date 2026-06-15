@@ -19,7 +19,7 @@ import os
 import logging
 from datetime import datetime, timezone, timedelta
 from fastapi import APIRouter, HTTPException, Request, Header, Depends
-from auth_api import require_auth, require_admin
+from auth_api import require_auth, require_admin, get_current_user
 from pydantic import BaseModel
 from typing import Optional
 from shared_utils import DatabaseHolder
@@ -158,6 +158,13 @@ class SubscriptionRequest(BaseModel):
     payment_method: Optional[str] = None
 
 
+class PaywallIntentRequest(BaseModel):
+    tier: str
+    payment_method: str
+    source: str  # "premium_screen" | "premium_gate"
+    feature: Optional[str] = None
+
+
 # =============================================================================
 # HELPER FUNCTIONS
 # =============================================================================
@@ -183,9 +190,37 @@ async def _get_or_create_stripe_customer(user_id: str, email: str) -> str:
     return customer.id
 
 
-async def _activate_subscription(user_id: str, tier: str, stripe_subscription_id: str = None, stripe_customer_id: str = None):
-    """Activate a subscription for a user in the database."""
+async def _activate_subscription(
+    user_id: str,
+    tier: str,
+    stripe_subscription_id: str = None,
+    stripe_customer_id: str = None,
+    payment_method: str = None,
+):
+    """Activate a subscription for a user in the database.
+
+    Idempotent for recurring Stripe subscriptions: if an active row already
+    exists for the same ``stripe_subscription_id`` and ``tier``, the call is a
+    no-op. This keeps ``customer.subscription.updated`` events (which fire on
+    every change — trial→active, renewals, etc.) from churning out duplicate
+    ``replaced`` rows and resetting ``started_at`` on each delivery.
+    """
     db = _db_holder.db
+
+    if stripe_subscription_id:
+        existing = await db.subscriptions.find_one(
+            {
+                "stripe_subscription_id": stripe_subscription_id,
+                "status": "active",
+            },
+            {"_id": 0, "tier": 1},
+        )
+        if existing and existing.get("tier") == tier:
+            logger.info(
+                "Subscription already active (no-op): user=%s, stripe_sub=%s",
+                user_id, stripe_subscription_id,
+            )
+            return
 
     # Deactivate existing subscriptions
     await db.subscriptions.update_many(
@@ -202,6 +237,8 @@ async def _activate_subscription(user_id: str, tier: str, stripe_subscription_id
         "price": tier_data["price"],
         "started_at": now.isoformat(),
     }
+    if payment_method:
+        sub["payment_method"] = payment_method
     if stripe_subscription_id:
         sub["stripe_subscription_id"] = stripe_subscription_id
     else:
@@ -312,6 +349,38 @@ async def get_subscription_status(user_id: str, current_user: User = Depends(req
         "features": TIERS["free"]["features"],
         "requires_manual_renewal": False,
     }
+
+
+# =============================================================================
+# PAYWALL INTENT (pre-Stripe validation signal)
+# =============================================================================
+
+@premium_router.post("/intent")
+async def log_paywall_intent(
+    request: PaywallIntentRequest,
+    current_user: Optional[User] = Depends(get_current_user),
+):
+    """Record a paywall intent (user reached checkout but did not pay yet).
+
+    Used to measure real purchase intent before/independently of completed
+    payments. Auth is optional so anonymous paywall hits are still captured.
+    """
+    if request.tier not in ("premium", "annual"):
+        raise HTTPException(status_code=400, detail="Tier inválido")
+
+    doc = {
+        "tier": request.tier,
+        "payment_method": request.payment_method,
+        "source": request.source,
+        "feature": request.feature,
+        "user_id": current_user.user_id if current_user else None,
+        "created_at": datetime.now(timezone.utc),
+    }
+    try:
+        await _db_holder.db.paywall_intents.insert_one(doc)
+    except Exception:
+        logger.exception("Failed to persist paywall intent")
+    return {"recorded": True}
 
 
 # =============================================================================
@@ -528,12 +597,23 @@ async def _process_webhook_event(event_type: str, data: dict) -> None:
                 # payment has cleared (payment_status "paid", delivered here
                 # or on checkout.session.async_payment_succeeded).
                 if data.get("payment_status") == "paid":
-                    await _activate_subscription(user_id, tier, stripe_customer_id=customer_id)
+                    # Normalise to the method id the frontend expects
+                    # ("mbway" → "mb_way") so requires_manual_renewal and the
+                    # renewal warning resolve correctly on /status.
+                    method = "mb_way" if payment_type == "mbway" else "multibanco"
+                    await _activate_subscription(
+                        user_id, tier,
+                        stripe_customer_id=customer_id,
+                        payment_method=method,
+                    )
                     logger.info(f"One-time {payment_type} payment confirmed: user={user_id}, tier={tier}")
                 else:
                     logger.info(f"One-time {payment_type} awaiting payment: user={user_id}")
             else:
-                await _activate_subscription(user_id, tier, subscription_id, customer_id)
+                await _activate_subscription(
+                    user_id, tier, subscription_id, customer_id,
+                    payment_method="card",
+                )
 
     elif event_type == "customer.subscription.updated":
         subscription_id = data.get("id")
@@ -619,11 +699,16 @@ async def subscribe(
     request: SubscriptionRequest,
     current_user: User = Depends(require_auth),
 ):
-    """Create or upgrade a subscription (demo mode when Stripe not configured)."""
+    """Create or upgrade a subscription (demo mode when Stripe not configured).
+
+    Demo-only: grants a tier without taking payment, so it is hard-blocked in
+    production and only runs when Stripe is not configured. Real subscriptions
+    must go through /premium/create-checkout.
+    """
     if request.tier not in ("premium", "annual"):
         raise HTTPException(status_code=400, detail="Tier inválido")
 
-    if STRIPE_ENABLED:
+    if _IS_PRODUCTION or STRIPE_ENABLED:
         raise HTTPException(
             status_code=400,
             detail="Use /premium/create-checkout para subscrições com pagamento"
@@ -724,11 +809,14 @@ async def get_premium_stats(_: User = Depends(require_admin)):
     total = await db.subscriptions.count_documents({"status": "active"})
     premium = await db.subscriptions.count_documents({"status": "active", "tier": "premium"})
     annual = await db.subscriptions.count_documents({"status": "active", "tier": "annual"})
+    intents_total = await db.paywall_intents.count_documents({})
 
     return {
         "total_active": total,
         "premium": premium,
         "annual": annual,
-        "mrr_estimate": premium * 4.99 + annual * (39.99 / 12),
+        "mrr_estimate": round(premium * 4.99 + annual * (39.99 / 12), 2),
+        "paywall_intents": intents_total,
+        "conversion_rate": round(total / intents_total, 4) if intents_total else None,
         "stripe_enabled": STRIPE_ENABLED,
     }

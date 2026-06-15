@@ -81,6 +81,29 @@ class TestAuthGuards:
         assert resp.status_code in (401, 403, 422)
 
 
+# ─── Paywall intent endpoint ─────────────────────────────────────────────────
+
+class TestPaywallIntent:
+    async def test_intent_anonymous_accepted(self, client):
+        resp = await client.post(
+            "/api/premium/intent",
+            json={"tier": "premium", "payment_method": "card", "source": "premium_screen"},
+        )
+        assert resp.status_code == 200
+        assert resp.json()["recorded"] is True
+
+    async def test_intent_invalid_tier_rejected(self, client):
+        resp = await client.post(
+            "/api/premium/intent",
+            json={"tier": "bogus", "payment_method": "card", "source": "premium_gate"},
+        )
+        assert resp.status_code == 400
+
+    async def test_intent_requires_fields(self, client):
+        resp = await client.post("/api/premium/intent", json={"tier": "premium"})
+        assert resp.status_code == 422
+
+
 # ─── Webhook endpoint validation ─────────────────────────────────────────────
 
 class TestWebhook:
