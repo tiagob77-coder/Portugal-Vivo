@@ -18,6 +18,7 @@ from pydantic import BaseModel, Field
 from llm_cache import build_cache_key, cache_get, cache_set, record_llm_call
 from llm_client import call_chat_completion
 from models.api_models import User
+from cultural_routes_quality import assess_cultural_route, summarize_cultural_routes
 
 cultural_routes_router = APIRouter(prefix="/cultural-routes", tags=["Cultural Routes"])
 
@@ -817,6 +818,14 @@ async def list_families():
 async def list_regions():
     """List all Portuguese regions for filtering."""
     return {"regions": REGIONS_PT}
+
+
+@cultural_routes_router.get("/audit")
+async def audit_cultural_routes():
+    """Data-quality audit: stops inside Portugal, ordered, known family, etc."""
+    items = await _col_or_seed("cultural_routes", SEED_ROUTES)
+    problems = [a for a in (assess_cultural_route(r) for r in items) if a["issues"]]
+    return {"summary": summarize_cultural_routes(items), "problems": problems}
 
 
 @cultural_routes_router.get("/routes")
