@@ -192,6 +192,36 @@ def load_alltrails_reference() -> List[Dict[str, Any]]:
     return _ALLTRAILS_CACHE
 
 
+# Validated OSM geometry baked into the repo (populated by
+# scripts/fetch_alltrails_geometry.py where network is available), keyed by
+# stringified AllTrails id. Lets featured trails render as lines without a
+# runtime backfill.
+_GEOM_PATH = Path(__file__).parent / "data" / "alltrails_pt_geometry.json"
+_GEOM_CACHE: Optional[Dict[str, Any]] = None
+
+
+def load_alltrails_geometry() -> Dict[str, Any]:
+    """Load baked, validated trail geometry (cached). Empty on missing/bad file."""
+    global _GEOM_CACHE
+    if _GEOM_CACHE is None:
+        try:
+            with open(_GEOM_PATH, "r", encoding="utf-8") as fh:
+                _GEOM_CACHE = dict(json.load(fh).get("geometry", {}))
+        except (OSError, ValueError):
+            _GEOM_CACHE = {}
+    return _GEOM_CACHE
+
+
+def downsample_points(points: List[Dict[str, Any]], max_points: int = 200):
+    """Evenly reduce a polyline to at most ``max_points``, keeping the endpoints."""
+    n = len(points or [])
+    if n <= max_points or max_points < 2:
+        return list(points or [])
+    step = (n - 1) / (max_points - 1)
+    idx = sorted({int(round(i * step)) for i in range(max_points)} | {0, n - 1})
+    return [points[i] for i in idx]
+
+
 def alltrails_to_trail(record: Dict[str, Any]) -> Dict[str, Any]:
     """Convert an AllTrails reference record into the platform Trail shape.
 
@@ -204,6 +234,10 @@ def alltrails_to_trail(record: Dict[str, Any]) -> Dict[str, Any]:
     difficulty = normalize_difficulty(record.get("difficulty"), elevation_gain)
     max_elev = record.get("elevation_max_m")
     at_id = record.get("alltrails_id")
+
+    # Prefer baked, validated OSM geometry; fall back to any inline points.
+    baked = load_alltrails_geometry().get(str(at_id))
+    points = baked if baked else (record.get("points") or [])
 
     return {
         "id": f"at-{at_id}",
@@ -219,7 +253,9 @@ def alltrails_to_trail(record: Dict[str, Any]) -> Dict[str, Any]:
         "max_elevation": int(round(float(max_elev))) if max_elev else 0,
         "estimated_hours": naismith_hours(distance_km, elevation_gain),
         "trail_type": normalize_route_type(record.get("route_type")),
-        "points": [],
+        "points": points,
+        "needs_geometry": not bool(points),
+        "geometry_source": "osm" if points else None,
         "color": difficulty_color(difficulty),
         "tags": features_to_tags(record.get("features")),
         "activities": record.get("activities", []),
@@ -376,6 +412,68 @@ def _in_pt_bounds(lat: float, lng: float) -> bool:
         PT_LAT_RANGE[0] <= lat <= PT_LAT_RANGE[1]
         and PT_LNG_RANGE[0] <= lng <= PT_LNG_RANGE[1]
     )
+
+
+# Geometry must clear these gates before a trail is accepted as map-renderable
+# "real" (i.e. before the backfill clears needs_geometry).
+GEOMETRY_MIN_POINTS = 8
+GEOMETRY_MAX_JUMP_KM = 2.0
+GEOMETRY_DIST_TOLERANCE = (0.5, 2.0)  # accepted total length vs expected distance
+
+
+def validate_trail_geometry(
+    points: List[Dict[str, Any]],
+    expected_distance_km: Optional[float] = None,
+    min_points: int = GEOMETRY_MIN_POINTS,
+    max_jump_km: float = GEOMETRY_MAX_JUMP_KM,
+    dist_tolerance=GEOMETRY_DIST_TOLERANCE,
+):
+    """Validate a candidate polyline before it becomes a trail's real geometry.
+
+    Gates: enough points, all inside Portugal, no implausible gap between
+    consecutive points (disjoint/garbage geometry), and — when an expected
+    distance is known — a total length within tolerance of it. Returns
+    ``(is_valid, issues, stats)``.
+    """
+    issues: List[str] = []
+    pts = points or []
+    n = len(pts)
+    if n < min_points:
+        issues.append(f"too_few_points({n})")
+
+    out_of_bounds = 0
+    total_km = 0.0
+    max_jump = 0.0
+    prev = None
+    for p in pts:
+        lat, lng = p.get("lat"), p.get("lng")
+        if lat is None or lng is None or not _in_pt_bounds(lat, lng):
+            out_of_bounds += 1
+            prev = None
+            continue
+        if prev is not None:
+            d = _haversine_km(prev[0], prev[1], lat, lng)
+            total_km += d
+            max_jump = max(max_jump, d)
+        prev = (lat, lng)
+
+    if out_of_bounds:
+        issues.append(f"out_of_bounds({out_of_bounds})")
+    if max_jump > max_jump_km:
+        issues.append(f"gap({round(max_jump, 2)}km)")
+    if expected_distance_km and total_km > 0:
+        lo, hi = dist_tolerance
+        if not (expected_distance_km * lo <= total_km <= expected_distance_km * hi):
+            issues.append(
+                f"distance_mismatch({round(total_km, 1)}km_vs_{expected_distance_km}km)"
+            )
+
+    stats = {
+        "points": n,
+        "length_km": round(total_km, 2),
+        "max_jump_km": round(max_jump, 2),
+    }
+    return (len(issues) == 0, issues, stats)
 
 
 def assess_trail(trail: Dict[str, Any]) -> Dict[str, Any]:

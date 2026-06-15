@@ -21,7 +21,12 @@ from motor.motor_asyncio import AsyncIOMotorClient
 from dotenv import load_dotenv
 
 from services.overpass_service import OverpassService
-from trails_quality import pick_best_osm_match, bbox_for_trail, overpass_name_regex
+from trails_quality import (
+    pick_best_osm_match,
+    bbox_for_trail,
+    overpass_name_regex,
+    validate_trail_geometry,
+)
 
 load_dotenv()
 
@@ -37,6 +42,7 @@ async def backfill(apply: bool, limit: int, radius_m: int, min_score: float) -> 
     print(f"Trails needing geometry: {len(trails)}")
 
     matched = 0
+    rejected = 0
     for t in trails:
         pts = t.get("points") or []
         if pts and pts[0].get("lat") is not None:
@@ -59,9 +65,17 @@ async def backfill(apply: bool, limit: int, radius_m: int, min_score: float) -> 
                   f"({len(candidates)} candidates)")
             continue
 
+        # Only accept geometry that passes validation; otherwise keep it flagged.
+        ok, issues, stats = validate_trail_geometry(best["points"], t.get("distance_km"))
+        if not ok:
+            rejected += 1
+            print(f"  ⚠ {t.get('name', '?')[:48]:48}  match REJEITADO "
+                  f"(score={score}): {', '.join(issues)} {stats}")
+            continue
+
         matched += 1
-        print(f"  ✓ {t.get('name', '?')[:48]:48}  ← OSM '{best['name'][:36]}' "
-              f"score={score} pts={best['point_count']}")
+        print(f"  ✓ {t.get('name', '?')[:48]:48}  ← OSM '{best['name'][:32]}' "
+              f"score={score} pts={stats['points']} len={stats['length_km']}km")
         if apply:
             await db.trails.update_one(
                 {"id": t["id"]},
@@ -69,14 +83,17 @@ async def backfill(apply: bool, limit: int, radius_m: int, min_score: float) -> 
                     "points": best["points"],
                     "needs_geometry": False,
                     "geometry_source": "osm",
+                    "geometry_validated": True,
                     "osm_id": best.get("osm_id"),
-                    "gps_distance_km": best.get("distance_km"),
+                    "gps_distance_km": stats["length_km"],
                 }},
             )
 
-    print(f"\n{'Applied' if apply else 'Dry-run'}: {matched}/{len(trails)} matched.")
+    print(f"\n{'Applied' if apply else 'Dry-run'}: {matched}/{len(trails)} validated"
+          f" & matched, {rejected} rejected by validation.")
     client.close()
-    return {"total": len(trails), "matched": matched, "applied": apply}
+    return {"total": len(trails), "matched": matched,
+            "rejected": rejected, "applied": apply}
 
 
 def main() -> None:

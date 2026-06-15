@@ -31,4 +31,18 @@ describe('FeaturedTrailCard', () => {
     const { getByText } = render(<FeaturedTrailCard trail={mockTrail} />);
     expect(getByText(/10 km/)).toBeTruthy();
   });
+
+  it('marca "No mapa" quando o trilho tem geometria', () => {
+    const { getByText } = render(
+      <FeaturedTrailCard trail={{ ...mockTrail, needs_geometry: false }} />,
+    );
+    expect(getByText('No mapa')).toBeTruthy();
+  });
+
+  it('marca "Geometria por confirmar" quando falta geometria', () => {
+    const { getByText } = render(
+      <FeaturedTrailCard trail={{ ...mockTrail, needs_geometry: true }} />,
+    );
+    expect(getByText('Geometria por confirmar')).toBeTruthy();
+  });
 });

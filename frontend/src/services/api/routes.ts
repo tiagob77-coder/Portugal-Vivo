@@ -51,6 +51,8 @@ export interface FeaturedTrail extends Trail {
   rating?: number;
   source?: string;
   external_url?: string;
+  needs_geometry?: boolean;
+  geometry_source?: string | null;
 }
 
 export interface FeaturedTrailsResponse {
