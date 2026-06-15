@@ -1008,7 +1008,7 @@ function DescobrerTab() {
               icon: 'account-balance' as const,
               color: '#B45309',
               modules: [
-                { name: 'Rotas Culturais', route: '/rotas-culturais', icon: 'auto-awesome' as const, count: '11 rotas' },
+                { name: 'Rotas Culturais', route: '/rotas-culturais', icon: 'auto-awesome' as const, count: '22 rotas' },
                 { name: 'Música Tradicional', route: '/musica', icon: 'music-note' as const, count: '14 tradições' },
                 { name: 'Pré-História & Astronomia', route: '/prehistoria', icon: 'public' as const, count: '12 sítios' },
                 { name: 'Economia Local', route: '/economia', icon: 'storefront' as const, count: '5 mercados' },

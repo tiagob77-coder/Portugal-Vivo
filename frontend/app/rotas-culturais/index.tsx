@@ -4,12 +4,14 @@
  */
 import React, { useState } from 'react';
 import {
-  View, Text, StyleSheet, ScrollView, TouchableOpacity,
+  View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput,
 } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useQuery } from '@tanstack/react-query';
 import CulturalRouteCard, { CulturalRoute } from '../../src/components/CulturalRouteCard';
+import { listCulturalRoutes } from '../../src/services/api/cultural';
 import { getModuleTheme, withOpacity } from '../../src/theme/colors';
 import CulturalHubMap, { HubMapLayer, HubStop } from '../../src/components/CulturalHubMap';
 import CulturalHubTimeline, { buildTimelineMonths } from '../../src/components/CulturalHubTimeline';
@@ -228,6 +230,7 @@ export default function RotasCulturais() {
 
   const [familyFilter, setFamilyFilter] = useState<FamilyFilter>('todos');
   const [regionFilter, setRegionFilter] = useState<string>('Todas');
+  const [search, setSearch] = useState('');
 
   const [mapLayers, setMapLayers] = useState<HubMapLayer[]>([
     { id: 'routes',    label: 'Rotas',     icon: 'route',          color: '#A855F7', active: true  },
@@ -238,7 +241,14 @@ export default function RotasCulturais() {
     { id: 'gastronomy',label: 'Gastronomia',icon: 'restaurant',      color: '#EF4444', active: false },
   ]);
 
-  const mapStops: HubStop[] = ROUTES_DATA.flatMap((r) =>
+  const { data: apiRoutes } = useQuery({
+    queryKey: ['cultural-routes-list'],
+    queryFn: listCulturalRoutes,
+  });
+  // Prefer the full API list (all families); fall back to the bundled subset.
+  const routes: CulturalRoute[] = (apiRoutes && apiRoutes.length > 0) ? apiRoutes : ROUTES_DATA;
+
+  const mapStops: HubStop[] = routes.flatMap((r) =>
     (r.stops ?? []).map((s) => ({
       name: s.name,
       lat: s.lat,
@@ -250,7 +260,7 @@ export default function RotasCulturais() {
     }))
   );
 
-  const timelineMonths = buildTimelineMonths(ROUTES_DATA.map((r) => r.best_months));
+  const timelineMonths = buildTimelineMonths(routes.map((r) => r.best_months));
 
   const handleLayerToggle = (id: string) =>
     setMapLayers((prev) => prev.map((l) => l.id === id ? { ...l, active: !l.active } : l));
@@ -260,13 +270,21 @@ export default function RotasCulturais() {
     setRegionFilter('Todas');
   };
 
-  const unescoCount = ROUTES_DATA.filter((r) => r.unesco).length;
+  const unescoCount = routes.filter((r) => r.unesco).length;
 
-  const filtered = ROUTES_DATA.filter((r) => {
+  const q = search.trim().toLowerCase();
+  const filtered = routes.filter((r) => {
     const matchFamily = familyFilter === 'todos' || r.family === familyFilter;
     const matchRegion = regionFilter === 'Todas' || r.region.includes(regionFilter) ||
       r.municipalities.some((m) => m.toLowerCase().includes(regionFilter.toLowerCase()));
-    return matchFamily && matchRegion;
+    const matchSearch = !q ||
+      r.name.toLowerCase().includes(q) ||
+      r.region.toLowerCase().includes(q) ||
+      r.municipalities.some((m) => m.toLowerCase().includes(q)) ||
+      (r.instruments ?? []).some((i) => i.toLowerCase().includes(q)) ||
+      (r.dances ?? []).some((d) => d.toLowerCase().includes(q)) ||
+      (r.tags ?? []).some((t) => t.toLowerCase().includes(q));
+    return matchFamily && matchRegion && matchSearch;
   });
 
   const handleCardPress = (id: string) => {
@@ -306,8 +324,27 @@ export default function RotasCulturais() {
         <View style={styles.premiumBanner}>
           <MaterialIcons name="star" size={18} color="#FCD34D" />
           <Text style={styles.premiumBannerText}>
-            {ROUTES_DATA.length} rotas premium &middot; {unescoCount} UNESCO &middot; 6 fam&iacute;lias culturais
+            {routes.length} rotas premium &middot; {unescoCount} UNESCO &middot; 6 fam&iacute;lias culturais
           </Text>
+        </View>
+
+        {/* Search */}
+        <View style={styles.searchBar}>
+          <MaterialIcons name="search" size={20} color={C.textMed} />
+          <TextInput
+            style={styles.searchInput}
+            placeholder="Procurar rota, instrumento, região…"
+            placeholderTextColor={C.textMed}
+            value={search}
+            onChangeText={setSearch}
+            returnKeyType="search"
+            autoCorrect={false}
+          />
+          {search ? (
+            <TouchableOpacity onPress={() => setSearch('')} accessibilityRole="button" accessibilityLabel="Limpar pesquisa">
+              <MaterialIcons name="close" size={18} color={C.textMed} />
+            </TouchableOpacity>
+          ) : null}
         </View>
 
         {/* Hub Map */}
@@ -453,6 +490,21 @@ const styles = StyleSheet.create({
     backgroundColor: '#78350F20', borderWidth: 1, borderColor: '#F59E0B30',
   },
   premiumBannerText: { fontSize: 13, fontWeight: '600', color: '#FCD34D', flex: 1 },
+
+  searchBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginHorizontal: 16,
+    marginTop: 12,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    backgroundColor: C.card,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: C.border,
+  },
+  searchInput: { flex: 1, fontSize: 14, color: C.textDark, padding: 0 },
 
   hubMapWrap: { marginHorizontal: 16, marginBottom: 16 },
   tabsScroll: { marginBottom: 4 },
