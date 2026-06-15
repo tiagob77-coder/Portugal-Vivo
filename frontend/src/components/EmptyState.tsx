@@ -2,6 +2,7 @@ import React, { useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Animated } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useTheme, withOpacity, palette } from '../theme';
+import PatternBackground from './PatternBackground';
 
 // --- Types ---
 
@@ -52,6 +53,8 @@ interface EmptyStateProps {
   actions?: ActionItem[];
   /** Compact mode for inline empty states. */
   compact?: boolean;
+  /** Subtle azulejo texture behind the content (non-compact only). Default true. */
+  textured?: boolean;
 }
 
 // --- Variant Presets ---
@@ -190,6 +193,7 @@ export default function EmptyState({
   illustration,
   actions,
   compact,
+  textured = true,
 }: EmptyStateProps) {
   const { colors } = useTheme();
   const resolvedIconColor = iconColor ?? colors.textMuted;
@@ -228,6 +232,11 @@ export default function EmptyState({
         { opacity: fadeAnim },
       ]}
     >
+      {/* Subtle azulejo texture (decorative, behind content) */}
+      {!compact && textured && (
+        <PatternBackground pattern="azulejo" color={colors.secondary} opacity={0.05} />
+      )}
+
       {/* Optional multi-icon illustration */}
       {illustration && illustrationIcons && !compact && (
         <Illustration icons={illustrationIcons} />
