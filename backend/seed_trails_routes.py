@@ -174,13 +174,21 @@ async def seed_all():
     client = AsyncIOMotorClient(mongo_url)
     db = client['portugal_vivo']
     
-    # 1. Seed Cultural Routes
-    existing_routes = await db.cultural_routes.count_documents({})
+    # 1. Seed Thematic Routes into their OWN collection. The premium
+    #    /cultural-routes system owns `cultural_routes` (family + geo stops);
+    #    seeding these simpler routes there collided with its schema and broke
+    #    /families and /routes/{id}/stops. Difficulty is normalised to the
+    #    canonical unaccented enum.
+    existing_routes = await db.thematic_routes.count_documents({})
     if existing_routes == 0:
-        await db.cultural_routes.insert_many(CULTURAL_ROUTES)
-        print(f"✅ Inserted {len(CULTURAL_ROUTES)} cultural routes")
+        routes = [
+            {**r, "difficulty": normalize_difficulty(r.get("difficulty"))}
+            for r in CULTURAL_ROUTES
+        ]
+        await db.thematic_routes.insert_many(routes)
+        print(f"✅ Inserted {len(routes)} thematic routes")
     else:
-        print(f"ℹ️ Cultural routes already exist: {existing_routes}")
+        print(f"ℹ️ Thematic routes already exist: {existing_routes}")
     
     # 2. Seed Trails from Percursos Pedestres
     existing_trails = await db.trails.count_documents({})
@@ -266,7 +274,7 @@ async def seed_all():
     
     # Summary
     print("\n📊 Final counts:")
-    print(f"  - Cultural Routes: {await db.cultural_routes.count_documents({})}")
+    print(f"  - Thematic Routes: {await db.thematic_routes.count_documents({})}")
     print(f"  - Trails: {await db.trails.count_documents({})}")
     print(f"  - Grande Expedição: {await db.grande_expedicao.count_documents({})}")
 
