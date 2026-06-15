@@ -9,7 +9,9 @@ import {
 import { MaterialIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useQuery } from '@tanstack/react-query';
 import CulturalRouteCard, { CulturalRoute } from '../../src/components/CulturalRouteCard';
+import { listCulturalRoutes } from '../../src/services/api/cultural';
 import { getModuleTheme, withOpacity } from '../../src/theme/colors';
 import CulturalHubMap, { HubMapLayer, HubStop } from '../../src/components/CulturalHubMap';
 import CulturalHubTimeline, { buildTimelineMonths } from '../../src/components/CulturalHubTimeline';
@@ -239,7 +241,14 @@ export default function RotasCulturais() {
     { id: 'gastronomy',label: 'Gastronomia',icon: 'restaurant',      color: '#EF4444', active: false },
   ]);
 
-  const mapStops: HubStop[] = ROUTES_DATA.flatMap((r) =>
+  const { data: apiRoutes } = useQuery({
+    queryKey: ['cultural-routes-list'],
+    queryFn: listCulturalRoutes,
+  });
+  // Prefer the full API list (all families); fall back to the bundled subset.
+  const routes: CulturalRoute[] = (apiRoutes && apiRoutes.length > 0) ? apiRoutes : ROUTES_DATA;
+
+  const mapStops: HubStop[] = routes.flatMap((r) =>
     (r.stops ?? []).map((s) => ({
       name: s.name,
       lat: s.lat,
@@ -251,7 +260,7 @@ export default function RotasCulturais() {
     }))
   );
 
-  const timelineMonths = buildTimelineMonths(ROUTES_DATA.map((r) => r.best_months));
+  const timelineMonths = buildTimelineMonths(routes.map((r) => r.best_months));
 
   const handleLayerToggle = (id: string) =>
     setMapLayers((prev) => prev.map((l) => l.id === id ? { ...l, active: !l.active } : l));
@@ -261,10 +270,10 @@ export default function RotasCulturais() {
     setRegionFilter('Todas');
   };
 
-  const unescoCount = ROUTES_DATA.filter((r) => r.unesco).length;
+  const unescoCount = routes.filter((r) => r.unesco).length;
 
   const q = search.trim().toLowerCase();
-  const filtered = ROUTES_DATA.filter((r) => {
+  const filtered = routes.filter((r) => {
     const matchFamily = familyFilter === 'todos' || r.family === familyFilter;
     const matchRegion = regionFilter === 'Todas' || r.region.includes(regionFilter) ||
       r.municipalities.some((m) => m.toLowerCase().includes(regionFilter.toLowerCase()));
@@ -315,7 +324,7 @@ export default function RotasCulturais() {
         <View style={styles.premiumBanner}>
           <MaterialIcons name="star" size={18} color="#FCD34D" />
           <Text style={styles.premiumBannerText}>
-            {ROUTES_DATA.length} rotas premium &middot; {unescoCount} UNESCO &middot; 6 fam&iacute;lias culturais
+            {routes.length} rotas premium &middot; {unescoCount} UNESCO &middot; 6 fam&iacute;lias culturais
           </Text>
         </View>
 

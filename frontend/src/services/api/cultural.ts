@@ -1,4 +1,5 @@
 import api from './client';
+import type { CulturalRoute } from '../../components/CulturalRouteCard';
 
 // ─── Cultural Routes Hub ──────────────────────────────────────────────────────
 
@@ -63,6 +64,13 @@ export const getCulturalRoute = async (
 ): Promise<CulturalRouteEnriched> => {
   const response = await api.get(`/cultural-routes/routes/${routeId}`);
   return response.data;
+};
+
+/** Full premium routes list from the API (all families), id-normalised. */
+export const listCulturalRoutes = async (): Promise<CulturalRoute[]> => {
+  const response = await api.get('/cultural-routes/routes', { params: { limit: 50 } });
+  const results: CulturalRouteEnriched[] = response.data?.results ?? [];
+  return results.map((r) => ({ ...r, id: r._id ?? r.id })) as CulturalRoute[];
 };
 
 export const getCulturalRoutesSpotlight = async (): Promise<CulturalRouteEnriched> => {
