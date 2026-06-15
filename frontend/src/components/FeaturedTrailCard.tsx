@@ -25,11 +25,12 @@ const FALLBACK_COLOR = '#3F6F4A';
 
 interface FeaturedTrailCardProps {
   trail: FeaturedTrail;
+  onPress?: (id: string) => void;
 }
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
-function FeaturedTrailCard({ trail }: FeaturedTrailCardProps) {
+function FeaturedTrailCard({ trail, onPress }: FeaturedTrailCardProps) {
   const chipColor = trail.color || FALLBACK_COLOR;
   const difficultyLabel =
     (trail.difficulty && DIFFICULTY_LABEL[trail.difficulty as Difficulty]) || trail.difficulty || '—';
@@ -40,8 +41,8 @@ function FeaturedTrailCard({ trail }: FeaturedTrailCardProps) {
     }
   };
 
-  return (
-    <View style={[styles.card, { borderLeftColor: chipColor }]}>
+  const body = (
+    <>
       {/* ── Header: name + difficulty chip ──────────────────────────────────── */}
       <View style={styles.header}>
         <Text style={styles.name} numberOfLines={2}>{trail.name}</Text>
@@ -112,6 +113,27 @@ function FeaturedTrailCard({ trail }: FeaturedTrailCardProps) {
           <Text style={styles.linkBtnText}>Ver no AllTrails</Text>
         </TouchableOpacity>
       ) : null}
+    </>
+  );
+
+  if (onPress) {
+    return (
+      <TouchableOpacity
+        style={[styles.card, { borderLeftColor: chipColor }]}
+        activeOpacity={0.92}
+        onPress={() => onPress(trail.id)}
+        accessibilityRole="button"
+        accessibilityLabel={`Abrir ${trail.name}`}
+        testID="featured-trail-card"
+      >
+        {body}
+      </TouchableOpacity>
+    );
+  }
+
+  return (
+    <View style={[styles.card, { borderLeftColor: chipColor }]} testID="featured-trail-card">
+      {body}
     </View>
   );
 }

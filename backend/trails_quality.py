@@ -222,6 +222,24 @@ def downsample_points(points: List[Dict[str, Any]], max_points: int = 200):
     return [points[i] for i in idx]
 
 
+# Editorial content (curated description, review highlights, max elevation,
+# average time) sourced from AllTrails, keyed by stringified id.
+_CONTENT_PATH = Path(__file__).parent / "data" / "alltrails_pt_content.json"
+_CONTENT_CACHE: Optional[Dict[str, Any]] = None
+
+
+def load_alltrails_content() -> Dict[str, Any]:
+    """Load baked AllTrails editorial content (cached). Empty on missing/bad file."""
+    global _CONTENT_CACHE
+    if _CONTENT_CACHE is None:
+        try:
+            with open(_CONTENT_PATH, "r", encoding="utf-8") as fh:
+                _CONTENT_CACHE = dict(json.load(fh).get("content", {}))
+        except (OSError, ValueError):
+            _CONTENT_CACHE = {}
+    return _CONTENT_CACHE
+
+
 def alltrails_to_trail(record: Dict[str, Any]) -> Dict[str, Any]:
     """Convert an AllTrails reference record into the platform Trail shape.
 
@@ -232,8 +250,14 @@ def alltrails_to_trail(record: Dict[str, Any]) -> Dict[str, Any]:
     distance_km = round(float(record.get("distance_km") or 0), 1)
     elevation_gain = int(round(float(record.get("elevation_gain_m") or 0)))
     difficulty = normalize_difficulty(record.get("difficulty"), elevation_gain)
-    max_elev = record.get("elevation_max_m")
     at_id = record.get("alltrails_id")
+
+    # Merge baked editorial content (description, review highlights, etc.).
+    content = load_alltrails_content().get(str(at_id), {})
+    description = content.get("description") or record.get("description", "")
+    review_summary = content.get("review_summary")
+    avg_time = content.get("avg_time")
+    max_elev = content.get("max_elevation_m") or record.get("elevation_max_m")
 
     # Prefer baked, validated OSM geometry; fall back to any inline points.
     baked = load_alltrails_geometry().get(str(at_id))
@@ -242,7 +266,9 @@ def alltrails_to_trail(record: Dict[str, Any]) -> Dict[str, Any]:
     return {
         "id": f"at-{at_id}",
         "name": record.get("name", ""),
-        "description": record.get("description", ""),
+        "description": description,
+        "review_summary": review_summary,
+        "avg_time": avg_time,
         "region": record.get("region", ""),
         "park": record.get("park", ""),
         "difficulty": difficulty,

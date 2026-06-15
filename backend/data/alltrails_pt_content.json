@@ -1,0 +1,60 @@
+{
+  "_meta": {
+    "description": "Real editorial content for the curated AllTrails trails, keyed by stringified AllTrails id: trimmed curated description, review highlights, max elevation and average time. Source: AllTrails (get_trail_details). Merged into featured trails by trails_quality.alltrails_to_trail. No photos/keys are stored.",
+    "source": "AllTrails",
+    "attribution": "Editorial content © AllTrails"
+  },
+  "content": {
+    "10746073": {
+      "description": "Trilho espetacular no Parque Nacional Peneda-Gerês até às sete lagoas — pequenas poças de água transparente formadas no rio Cabril, que desaguam em magníficas quedas de água. Atravessa paisagens idílicas e aldeias pitorescas; as lagoas convidam a um mergulho nas águas límpidas e frescas da serra.",
+      "review_summary": "Os destaques incluem vistas deslumbrantes, belas lagoas e fácil acessibilidade. Os desafios são as subidas iniciais íngremes e a pouca sombra. Traga muita água e considere começar cedo.",
+      "max_elevation_m": 851
+    },
+    "10285651": {
+      "description": "Um verdadeiro conto de fadas num paraíso verde, da Casa das Queimadas até à majestosa cascata do Caldeirão Verde, entre vistas sobre São Jorge e montanhas imponentes. O percurso atravessa vários túneis — leve lanterna e proteja a cabeça. No final, a queda de água cai numa lagoa de águas cristalinas. (Nota: trilho sujeito a encerramentos — confirme antes de ir.)",
+      "review_summary": "Os pontos altos incluem belas paisagens, natureza exuberante e cascatas pitorescas. Os desafios consistem em trilhos estreitos e muita gente. Recomenda-se partir cedo e levar uma lanterna para os túneis.",
+      "max_elevation_m": 1092,
+      "avg_time": "7,5–8,5 h"
+    },
+    "11038970": {
+      "description": "Na freguesia do Faial da Terra, na costa sudoeste de São Miguel, este trilho segue por estrada de terra entre vegetação típica dos Açores, riachos e pomares de famílias locais. Tem inclinações, degraus e pontes de madeira, e a recompensa é a bela cascata Salto do Prego, escondida no meio da floresta.",
+      "review_summary": "Os destaques incluem belas cascatas, paisagens da selva e uma encantadora aldeia com um bar. Os desafios são as descidas íngremes e secções lamacentas. Comece cedo e use bom calçado.",
+      "max_elevation_m": 230,
+      "avg_time": "1–1,5 h"
+    },
+    "11232808": {
+      "description": "Percurso encantador no coração do Vale do Douro, de um deslumbrante miradouro a Casal de Loivos e ao charmoso Museu do Azeite, com vistas espetaculares sobre o Pinhão e o serpenteante rio Douro. Pelo caminho conhece a história da produção de azeite e os vinhedos em socalcos, Património Mundial da UNESCO.",
+      "review_summary": "Os destaques incluem vistas deslumbrantes das vinhas e caminhos bem marcados. Os desafios envolvem secções íngremes e cães a ladrar. Recomenda-se uma visita ao museu do azeite para uma degustação.",
+      "max_elevation_m": 475,
+      "avg_time": "1,5–2 h"
+    },
+    "10613837": {
+      "description": "Percurso curto mas enganador: zonas de rocha e subidas/descidas acentuadas tornam-no um desafio — mas a praia selvagem da Ursa é absolutamente espetacular. Os grandes destaques são as vistas contrastantes do verde da serra e do azul do oceano, e a tranquilidade de uma praia quase sempre deserta. Leve calçado de montanha e corta-vento.",
+      "review_summary": "Os pontos altos incluem vistas deslumbrantes, uma bela praia no final e paisagens floridas. Atenção a descidas íngremes e zonas escorregadias. Use calçado adequado e parta cedo.",
+      "max_elevation_m": 144
+    },
+    "10491673": {
+      "description": "Trilho maioritariamente em cascalho até à Lagoa Comprida e ao Covão dos Conchos, na Serra da Estrela. À chegada, atravessa-se uma pequena represa para ver melhor o famoso \"buraco\" — uma estrutura para nivelar a água, construída em 1955, hoje um espetáculo único. Natureza bonita e intocada, com experiências distintas no verão e no inverno.",
+      "review_summary": "Os pontos altos incluem belas vistas da lagoa e da área circundante. Os desafios são o terreno rochoso e a falta de sombra. Use botas resistentes e impermeáveis e leve água em abundância.",
+      "max_elevation_m": 1709,
+      "avg_time": "2,5–3 h"
+    },
+    "10333916": {
+      "description": "Etapa do Trilho dos Pescadores, ao longo da Costa Vicentina: de Zambujeira do Mar por falésias imponentes e praias selvagens (Alteirinhos, Carvalhal), passando pela aldeia piscatória da Azenha do Mar até à espetacular Praia de Odeceixe — praia de rio e mar ao mesmo tempo, fronteira natural entre Alentejo e Algarve. Não há água fiável no percurso: leve pelo menos dois litros.",
+      "review_summary": "Vistas deslumbrantes, variedade de terreno e beleza natural são os pontos altos. Os desafios incluem subidas íngremes, caminhos arenosos e zonas lamacentas. Parta cedo e use bastões.",
+      "max_elevation_m": 70
+    },
+    "11152251": {
+      "description": "Curto percurso à beira-mar até ao emblemático Portinho da Arrábida e a Alpertuche, atravessando várias ocupações humanas da Arrábida: a Estação Arqueológica do Creiro (da romana Cetóbriga), a Lapa de Santa Margarida (com capela do séc. XVII, após 250 degraus) e o Forte de Santa Maria, hoje Museu Oceanográfico. Termina numa praia naturalizada de águas límpidas.",
+      "review_summary": "Os pontos altos incluem vistas deslumbrantes e paisagens pitorescas. Os desafios prendem-se com falta de manutenção e trechos junto a estradas movimentadas. Evite o calor intenso, parta cedo e use calçado resistente.",
+      "max_elevation_m": 67,
+      "avg_time": "1,5–2 h"
+    },
+    "11075353": {
+      "description": "Antiga linha férrea do carvão das minas da Bezerra, transformada numa bela Ecopista para caminhar, pedalar ou correr. Vistas panorâmicas da serra a partir dos miradouros, caminhos entre rochas e túneis antigos, e parques de merendas ao longo do percurso. Não perca os antigos moinhos no topo norte da serra.",
+      "review_summary": "Destacam-se um trilho bem conservado e belas paisagens. Os desafios são a escassez de sombra e as subidas íngremes. Tenha em conta o horário para evitar o calor.",
+      "max_elevation_m": 397,
+      "avg_time": "3,5–4 h"
+    }
+  }
+}

@@ -59,7 +59,12 @@ export default function FeaturedTrailsScreen() {
         <FlatList
           data={trails}
           keyExtractor={(t) => t.id}
-          renderItem={({ item }) => <FeaturedTrailCard trail={item} />}
+          renderItem={({ item }) => (
+            <FeaturedTrailCard
+              trail={item}
+              onPress={(id) => router.push(`/trilhos/${id}`)}
+            />
+          )}
           contentContainerStyle={styles.list}
           ItemSeparatorComponent={() => <View style={styles.separator} />}
           ListFooterComponent={
