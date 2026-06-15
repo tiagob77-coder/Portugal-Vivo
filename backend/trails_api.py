@@ -327,6 +327,15 @@ async def get_featured_trails(
     }
 
 
+@trails_router.get("/featured/{trail_id}")
+async def get_featured_trail(trail_id: str):
+    """A single curated AllTrails trail (real stats + editorial content), no DB."""
+    for t in featured_trails():
+        if t["id"] == trail_id:
+            return t
+    raise HTTPException(status_code=404, detail="Trilho não encontrado")
+
+
 @trails_router.get("/quality")
 async def get_trails_quality():
     """Aggregate map-quality summary across all trails in the database."""

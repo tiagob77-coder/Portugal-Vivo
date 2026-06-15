@@ -27,6 +27,7 @@ from trails_quality import (
     validate_trail_geometry,
     downsample_points,
     load_alltrails_geometry,
+    load_alltrails_content,
     DIFFICULTIES,
     ROUTE_TYPES,
     DIFFICULTY_COLORS,
@@ -427,6 +428,24 @@ class TestBakedGeometry:
         assert t["needs_geometry"] is True
 
 
+class TestEditorialContent:
+    def test_content_loader_returns_dict(self):
+        assert isinstance(load_alltrails_content(), dict)
+
+    def test_enriched_trail_has_description_and_reviews(self):
+        trails = {t["id"]: t for t in featured_trails()}
+        t = trails["at-10746073"]  # Rota de Xertelo e as 7 Lagoas
+        assert t["description"] and len(t["description"]) > 40
+        assert t["review_summary"]
+        assert t["max_elevation"] > 0
+
+    def test_unenriched_trail_keeps_empty_content(self):
+        t = alltrails_to_trail({"alltrails_id": 1, "name": "Z", "difficulty": "Fácil",
+                                "route_type": "Circuito", "distance_km": 3})
+        assert t["description"] == ""
+        assert t["review_summary"] is None
+
+
 # ─── /trails/featured endpoint (no DB) ───────────────────────────────────────
 
 pytestmark = pytest.mark.anyio
@@ -453,3 +472,14 @@ class TestFeaturedEndpoint:
         assert resp.status_code == 200
         for t in resp.json()["trails"]:
             assert t["region"] == "Madeira"
+
+    async def test_featured_detail(self, client):
+        resp = await client.get("/api/trails/featured/at-10746073")
+        assert resp.status_code == 200
+        data = resp.json()
+        assert data["id"] == "at-10746073"
+        assert data["review_summary"]
+
+    async def test_featured_detail_404(self, client):
+        resp = await client.get("/api/trails/featured/at-does-not-exist")
+        assert resp.status_code == 404

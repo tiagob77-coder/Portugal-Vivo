@@ -53,6 +53,9 @@ export interface FeaturedTrail extends Trail {
   external_url?: string;
   needs_geometry?: boolean;
   geometry_source?: string | null;
+  review_summary?: string | null;
+  avg_time?: string | null;
+  max_elevation?: number;
 }
 
 export interface FeaturedTrailsResponse {
@@ -89,6 +92,14 @@ export const getFeaturedTrails = async (params?: {
   const key = `cache_featured_trails_${JSON.stringify(params || {})}`;
   return cachedGet(key, async () => {
     const response = await api.get('/trails/featured', { params });
+    return response.data;
+  });
+};
+
+export const getFeaturedTrail = async (id: string): Promise<FeaturedTrail> => {
+  const key = `cache_featured_trail_${id}`;
+  return cachedGet(key, async () => {
+    const response = await api.get(`/trails/featured/${id}`);
     return response.data;
   });
 };

@@ -1,5 +1,5 @@
 import React from 'react';
-import { render } from '@testing-library/react-native';
+import { render, fireEvent } from '@testing-library/react-native';
 import FeaturedTrailCard from '../FeaturedTrailCard';
 import type { FeaturedTrail } from '../../services/api/routes';
 
@@ -44,5 +44,14 @@ describe('FeaturedTrailCard', () => {
       <FeaturedTrailCard trail={{ ...mockTrail, needs_geometry: true }} />,
     );
     expect(getByText('Geometria por confirmar')).toBeTruthy();
+  });
+
+  it('chama onPress com o id ao tocar no card', () => {
+    const onPress = jest.fn();
+    const { getByTestId } = render(
+      <FeaturedTrailCard trail={mockTrail} onPress={onPress} />,
+    );
+    fireEvent.press(getByTestId('featured-trail-card'));
+    expect(onPress).toHaveBeenCalledWith(mockTrail.id);
   });
 });
