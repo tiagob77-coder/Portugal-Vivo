@@ -59,9 +59,11 @@ export default function CulturalRouteDetailScreen() {
 
   const fam = (route && FAMILY[route.family]) || FAMILY.integradas;
   const stops = route?.stops ?? [];
-  const points = stops
-    .filter((s) => s.lat != null && s.lng != null)
-    .map((s) => ({ lat: s.lat, lng: s.lng }));
+  const geoStops = stops.filter((s) => s.lat != null && s.lng != null);
+  const points = geoStops.map((s) => ({ lat: s.lat, lng: s.lng }));
+  const waypoints = geoStops.map((s, i) => ({
+    lat: s.lat, lng: s.lng, name: s.name, order: i + 1,
+  }));
 
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
@@ -119,7 +121,7 @@ export default function CulturalRouteDetailScreen() {
           {points.length > 1 ? (
             <>
               <Text style={styles.sectionTitle}>Traçado da rota</Text>
-              <TrailMiniMap points={points} color={fam.color} height={200} />
+              <TrailMiniMap points={points} waypoints={waypoints} color={fam.color} height={220} />
             </>
           ) : null}
 
