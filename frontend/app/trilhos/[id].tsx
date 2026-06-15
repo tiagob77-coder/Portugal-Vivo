@@ -11,6 +11,7 @@ import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useQuery } from '@tanstack/react-query';
 import { getFeaturedTrail } from '../../src/services/api/routes';
+import TrailMiniMap from '../../src/components/TrailMiniMap';
 
 const C = {
   bg: '#F3F4F6',
@@ -115,6 +116,14 @@ export default function TrailDetailScreen() {
               {trail.needs_geometry ? 'Geometria por confirmar' : 'Traçado no mapa'}
             </Text>
           </View>
+
+          {/* Route preview (renders once real geometry is available) */}
+          {trail.points && trail.points.length > 1 ? (
+            <>
+              <Text style={styles.sectionTitle}>Traçado do percurso</Text>
+              <TrailMiniMap points={trail.points} color={chipColor} height={200} />
+            </>
+          ) : null}
 
           {/* Description */}
           {trail.description ? (
