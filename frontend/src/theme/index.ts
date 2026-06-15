@@ -29,6 +29,11 @@ export {
 } from './colors';
 export type { SemanticColors, ModuleTheme } from './colors';
 
+// Re-export gradient + serif typography helpers
+export { gradients, heroPeriods } from './gradients';
+export type { GradientPreset, HeroPeriod } from './gradients';
+export { fontFamilies } from './typography';
+
 // Re-export ThemeContext (runtime light/dark)
 export { useTheme, ThemeProvider } from '../context/ThemeContext';
 export type { ThemeMode } from '../context/ThemeContext';

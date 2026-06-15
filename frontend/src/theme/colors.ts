@@ -71,6 +71,45 @@ export const palette = {
     800: '#6C2E1E',
     900: '#4E1F14',
   },
+  // Azul cobalto do azulejo — assinatura cultural portuguesa
+  azulejo: {
+    50: '#EAF1F7',
+    100: '#D5E3EF',
+    200: '#ABC7DF',
+    300: '#7BA7C9',
+    400: '#4A82AE',
+    500: '#1B5E91',
+    600: '#164E79',
+    700: '#134567',
+    800: '#0F3852',
+    900: '#0B2C44',
+  },
+  // Dourado da ourivesaria de Viana — luz, premium, conquistas
+  filigrana: {
+    50: '#FBF6E9',
+    100: '#F5ECCF',
+    200: '#EBD9A0',
+    300: '#E0C778',
+    400: '#D4B25F',
+    500: '#C9A24B',
+    600: '#B08B3C',
+    700: '#9A7A32',
+    800: '#6F5824',
+    900: '#5E4A1E',
+  },
+  // Encarnado vivo (bandeira/festa) — CTAs e destaques de energia
+  encarnado: {
+    50: '#FCEAEC',
+    100: '#F8CFD4',
+    200: '#F09AA4',
+    300: '#E86677',
+    400: '#DD3A50',
+    500: '#C8102E',
+    600: '#A60E26',
+    700: '#94121F',
+    800: '#6E0D17',
+    900: '#5E0B14',
+  },
   gray: {
     50: '#FAF8F3',
     100: '#F2EDE4',
@@ -98,6 +137,10 @@ export interface SemanticColors {
   secondary: string;
   accent: string;
   accentMuted: string;
+  /** Encarnado vivo (bandeira/festa) — CTAs principais e destaques de energia */
+  accentStrong: string;
+  /** Dourado filigrana — premium, conquistas, destaques editoriais */
+  premium: string;
   // Surfaces
   background: string;
   backgroundAlt: string;
@@ -128,9 +171,11 @@ export interface SemanticColors {
 export const lightColors: SemanticColors = {
   primary: palette.forest[500],
   primaryMuted: palette.forest[50],
-  secondary: palette.ocean[500],
+  secondary: palette.azulejo[500],
   accent: palette.terracotta[500],
   accentMuted: palette.terracotta[50],
+  accentStrong: palette.encarnado[500],
+  premium: palette.filigrana[700],
   background: palette.gray[50],
   backgroundAlt: palette.gray[100],
   surface: palette.white,
@@ -154,9 +199,11 @@ export const lightColors: SemanticColors = {
 export const darkColors: SemanticColors = {
   primary: palette.forest[400],
   primaryMuted: palette.forest[800],
-  secondary: palette.ocean[300],
+  secondary: palette.azulejo[300],
   accent: palette.terracotta[400],
   accentMuted: palette.terracotta[900],
+  accentStrong: palette.encarnado[500],
+  premium: palette.filigrana[300],
   background: palette.gray[900],
   backgroundAlt: palette.gray[800],
   surface: palette.forest[800],

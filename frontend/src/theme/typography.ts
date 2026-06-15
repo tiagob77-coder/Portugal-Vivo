@@ -9,7 +9,23 @@
  *   <Text style={[typography.h2, { color: colors.textPrimary }]}>Título</Text>
  */
 
-import { TextStyle } from 'react-native';
+import { Platform, TextStyle } from 'react-native';
+
+/**
+ * Famílias tipográficas.
+ * Serif (Cormorant Garamond) dá voz editorial/histórica aos títulos — é
+ * carregada em web via <link> no _layout; em nativo cai num serif do sistema.
+ * Corpo e UI mantêm-se no humanista do sistema para legibilidade.
+ */
+export const fontFamilies = {
+  serif: Platform.select({
+    web: '"Cormorant Garamond", Georgia, serif',
+    ios: 'Georgia',
+    android: 'serif',
+    default: 'serif',
+  }) as string,
+  sans: 'System',
+};
 
 export interface TypographyScale {
   // Display (Hero sections)
@@ -46,21 +62,24 @@ export interface TypographyScale {
 export const typography: TypographyScale = {
   // Display - Hero sections, landing pages
   display: {
+    fontFamily: fontFamilies.serif,
     fontSize: 40,
     lineHeight: 48,
     fontWeight: '800',
     letterSpacing: -0.8,
   },
-  
+
   // Headings - Hierarquia clara
   h1: {
+    fontFamily: fontFamilies.serif,
     fontSize: 32,
     lineHeight: 40,
     fontWeight: '700',
     letterSpacing: -0.5,
   },
-  
+
   h2: {
+    fontFamily: fontFamilies.serif,
     fontSize: 24,
     lineHeight: 32,
     fontWeight: '600',
@@ -157,6 +176,7 @@ export const typography: TypographyScale = {
   },
   
   quote: {
+    fontFamily: fontFamilies.serif,
     fontSize: 18,
     lineHeight: 28,
     fontWeight: '400',

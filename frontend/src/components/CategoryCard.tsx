@@ -6,7 +6,7 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Category } from '../types';
 import PressableScale from './PressableScale';
-import { useTheme, withOpacity } from '../theme';
+import { withOpacity, gradients } from '../theme';
 import { getCategoryImage } from '../theme/categoryImages';
 import { getCulturalIcon } from '../theme/culturalIcons';
 import { hapticLight } from '../utils/microInteractions';
@@ -18,7 +18,6 @@ interface CategoryCardProps {
 }
 
 function CategoryCard({ category, onPress }: CategoryCardProps) {
-  const { colors } = useTheme();
   const imageUrl = getCategoryImage(category.id);
   const culturalIcon = getCulturalIcon(category.id);
   
@@ -48,20 +47,13 @@ function CategoryCard({ category, onPress }: CategoryCardProps) {
         transition={200}
       />
       
-      {/* Gradient Overlay - only at bottom */}
+      {/* Gradient Overlay — warm pine scrim (shared preset) */}
       <LinearGradient
-        colors={['transparent', 'rgba(0,0,0,0.6)', 'rgba(0,0,0,0.85)']}
-        locations={[0, 0.5, 1]}
+        colors={[...gradients.cardScrim.colors]}
+        locations={[...gradients.cardScrim.locations]}
         style={styles.gradient}
       />
-      
-      {/* Emoji badge in top-right corner */}
-      {culturalIcon.emoji && (
-        <View style={styles.emojiBadge}>
-          <Text style={styles.emoji}>{culturalIcon.emoji}</Text>
-        </View>
-      )}
-      
+
       {/* Content at bottom */}
       <View style={styles.content}>
         <View style={[styles.iconContainer, { backgroundColor: withOpacity(iconColor, 0.3) }]}>
@@ -94,20 +86,6 @@ const styles = StyleSheet.create({
   },
   gradient: {
     ...StyleSheet.absoluteFillObject,
-  },
-  emojiBadge: {
-    position: 'absolute',
-    top: 8,
-    right: 8,
-    backgroundColor: 'rgba(255,255,255,0.9)',
-    borderRadius: 12,
-    width: 28,
-    height: 28,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  emoji: {
-    fontSize: 14,
   },
   content: {
     position: 'absolute',

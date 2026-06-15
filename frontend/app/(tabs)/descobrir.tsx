@@ -24,7 +24,8 @@ import {
 import HojeEmPortugalCard, { HojeData } from '../../src/components/HojeEmPortugalCard';
 import ErrorBoundary from '../../src/components/ErrorBoundary';
 import { API_BASE } from '../../src/config/api';
-import { typography, shadows, regionImages } from '../../src/theme';
+import { typography, shadows, regionImages, gradients, heroPeriods } from '../../src/theme';
+import type { HeroPeriod } from '../../src/theme';
 import { palette } from '../../src/theme/colors';
 import { useTheme } from '../../src/context/ThemeContext';
 import { useResponsive } from '../../src/hooks/useResponsive';
@@ -33,7 +34,7 @@ import { CONTENT_MAX_WIDTH } from '../../src/theme/breakpoints';
 
 const serif = Platform.OS === 'web' ? 'Cormorant Garamond, Georgia, serif' : undefined;
 
-const getGreeting = () => {
+const getGreeting = (): { greeting: string; period: HeroPeriod } => {
   const hour = new Date().getHours();
   if (hour >= 5 && hour < 12) return { greeting: 'Bom dia', period: 'morning' };
   if (hour >= 12 && hour < 19) return { greeting: 'Boa tarde', period: 'afternoon' };
@@ -227,7 +228,7 @@ function DescobrerTab() {
   });
 
   const onRefresh = async () => { setRefreshing(true); await refetchFeed(); setRefreshing(false); };
-  const { greeting } = getGreeting();
+  const { greeting, period } = getGreeting();
 
   const groupedFeed = React.useMemo(() => {
     if (!feedData?.items) return {};
@@ -313,7 +314,8 @@ function DescobrerTab() {
         <View style={styles.header}>
           <ImageBackground source={{ uri: regionImages.hero }} style={styles.heroImage} imageStyle={styles.heroImageStyle}>
             <LinearGradient
-              colors={isDark ? ['rgba(28,31,28,0.8)', 'rgba(28,31,28,0.5)', 'transparent'] : ['rgba(46,94,78,0.75)', 'rgba(46,94,78,0.4)', 'transparent']}
+              colors={isDark ? [...gradients.heroDark.colors] : [...heroPeriods[period].colors]}
+              locations={isDark ? [...gradients.heroDark.locations] : [...heroPeriods[period].locations]}
               style={styles.heroGradient}
             >
               {/* Login button top-right */}
@@ -668,9 +670,9 @@ function DescobrerTab() {
               />
               <View style={styles.poiDiaContent}>
                 <View style={styles.poiDiaTop}>
-                  <View style={[styles.poiDiaBadge, { backgroundColor: colors.accent + '18' }]}>
-                    <MaterialIcons name="auto-awesome" size={12} color={colors.accent} />
-                    <Text style={[styles.poiDiaBadgeText, { color: colors.accent }]}>Destaque IQ</Text>
+                  <View style={[styles.poiDiaBadge, { backgroundColor: colors.premium + '18' }]}>
+                    <MaterialIcons name="auto-awesome" size={12} color={colors.premium} />
+                    <Text style={[styles.poiDiaBadgeText, { color: colors.premium }]}>Destaque IQ</Text>
                   </View>
                   <View style={[styles.poiDiaScoreBadge, { backgroundColor: colors.primary + '15' }]}>
                     <Text style={[styles.poiDiaScoreVal, { color: colors.primary }]}>{poiDoDia.poi.iq_score}</Text>
