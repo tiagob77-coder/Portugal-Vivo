@@ -12,7 +12,7 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useQuery } from '@tanstack/react-query';
-import { getCulturalRoute } from '../../src/services/api/cultural';
+import { getCulturalRoute, getRouteLiveCalendar } from '../../src/services/api/cultural';
 import TrailMiniMap from '../../src/components/TrailMiniMap';
 
 type IconName = React.ComponentProps<typeof MaterialIcons>['name'];
@@ -28,6 +28,13 @@ const FAMILY: Record<string, { color: string; label: string; icon: IconName }> =
 
 const MONTHS = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
 
+function formatDate(s?: string): string {
+  if (!s) return '';
+  const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(s);
+  if (m) return `${m[3]} ${MONTHS[parseInt(m[2], 10) - 1]}`;
+  return s.slice(0, 10);
+}
+
 const C = {
   bg: '#F3F4F6', card: '#FFFFFF', textDark: '#1F2937', textMed: '#6B7280', border: '#E5E7EB',
 };
@@ -42,6 +49,13 @@ export default function CulturalRouteDetailScreen() {
     queryFn: () => getCulturalRoute(String(id)),
     enabled: !!id,
   });
+
+  const { data: calendar } = useQuery({
+    queryKey: ['cultural-route-events', id],
+    queryFn: () => getRouteLiveCalendar(String(id)),
+    enabled: !!id,
+  });
+  const events = calendar?.events ?? [];
 
   const fam = (route && FAMILY[route.family]) || FAMILY.integradas;
   const stops = route?.stops ?? [];
@@ -121,6 +135,23 @@ export default function CulturalRouteDetailScreen() {
               <MaterialIcons name="verified" size={16} color="#B45309" />
               <Text style={styles.unescoLabel}>{route.unesco_label}</Text>
             </View>
+          ) : null}
+
+          {events.length ? (
+            <>
+              <Text style={styles.sectionTitle}>Eventos a acontecer</Text>
+              {events.map((ev) => (
+                <View key={ev.id ?? ev.name} style={styles.eventRow}>
+                  <MaterialIcons name="event-available" size={18} color={fam.color} />
+                  <View style={styles.eventBody}>
+                    <Text style={styles.eventName} numberOfLines={2}>{ev.name}</Text>
+                    <Text style={styles.eventMeta} numberOfLines={1}>
+                      {[formatDate(ev.date_start), ev.region, ev.category].filter(Boolean).join(' · ')}
+                    </Text>
+                  </View>
+                </View>
+              ))}
+            </>
           ) : null}
 
           {stops.length ? (
@@ -240,6 +271,10 @@ const styles = StyleSheet.create({
   stopBody: { flex: 1 },
   stopName: { fontSize: 14, fontWeight: '600', color: C.textDark },
   stopMun: { fontSize: 12, color: C.textMed },
+  eventRow: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 6 },
+  eventBody: { flex: 1 },
+  eventName: { fontSize: 14, fontWeight: '600', color: C.textDark },
+  eventMeta: { fontSize: 12, color: C.textMed, marginTop: 1 },
   tagsWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   tag: { borderRadius: 8, borderWidth: 1, paddingHorizontal: 10, paddingVertical: 5 },
   tagText: { fontSize: 12, fontWeight: '600' },
