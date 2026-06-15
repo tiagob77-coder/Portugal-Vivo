@@ -13,13 +13,18 @@ export interface CulturalRouteEnriched {
   unesco?: boolean;
   unesco_label?: string;
   description_short?: string;
+  description_long?: string;
   duration_days?: number;
   best_months?: number[];
+  music_genres?: string[];
   instruments?: string[];
   dances?: string[];
   gastronomy?: string[];
   costumes?: string[];
   festivals?: string[];
+  voices_orality?: string[];
+  tags?: string[];
+  premium?: boolean;
   iq_score?: number;
   dynamic_iq_score?: number;
   connections_count?: number;
@@ -53,6 +58,13 @@ export const getCulturalRoutesHub = async (): Promise<CulturalRoutesHubData> => 
   return response.data;
 };
 
+export const getCulturalRoute = async (
+  routeId: string,
+): Promise<CulturalRouteEnriched> => {
+  const response = await api.get(`/cultural-routes/routes/${routeId}`);
+  return response.data;
+};
+
 export const getCulturalRoutesSpotlight = async (): Promise<CulturalRouteEnriched> => {
   const response = await api.get('/cultural-routes/spotlight');
   return response.data;
@@ -69,10 +81,30 @@ export const discoverCulturalRoutes = async (params?: {
   return response.data;
 };
 
+export interface CulturalEvent {
+  id?: string;
+  name: string;
+  date_start?: string;
+  date_end?: string;
+  category?: string;
+  region?: string;
+  description?: string;
+  month?: number;
+  score?: number;
+}
+
+export interface RouteLiveCalendar {
+  route_id: string;
+  route_name?: string;
+  region?: string;
+  events: CulturalEvent[];
+  total: number;
+}
+
 export const getRouteLiveCalendar = async (
   routeId: string,
   limit = 12,
-): Promise<{ route_id: string; events: any[]; total: number }> => {
+): Promise<RouteLiveCalendar> => {
   const response = await api.get(`/cultural-routes/routes/${routeId}/live-calendar`, {
     params: { limit },
   });

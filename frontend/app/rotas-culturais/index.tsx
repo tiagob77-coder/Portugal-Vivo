@@ -228,7 +228,6 @@ export default function RotasCulturais() {
 
   const [familyFilter, setFamilyFilter] = useState<FamilyFilter>('todos');
   const [regionFilter, setRegionFilter] = useState<string>('Todas');
-  const [expandedId, setExpandedId] = useState<string | null>(null);
 
   const [mapLayers, setMapLayers] = useState<HubMapLayer[]>([
     { id: 'routes',    label: 'Rotas',     icon: 'route',          color: '#A855F7', active: true  },
@@ -271,12 +270,11 @@ export default function RotasCulturais() {
   });
 
   const handleCardPress = (id: string) => {
-    setExpandedId(expandedId === id ? null : id);
+    router.push(`/rotas-culturais/${id}`);
   };
 
   const handleFamilyTab = (key: FamilyFilter) => {
     setFamilyFilter(key);
-    setExpandedId(null);
   };
 
   const activeTab = FAMILY_TABS.find((t) => t.key === familyFilter);
@@ -398,7 +396,7 @@ export default function RotasCulturais() {
             <CulturalRouteCard
               key={route.id}
               route={route}
-              expanded={expandedId === route.id}
+              expanded={false}
               onPress={() => handleCardPress(route.id!)}
             />
           ))}

@@ -16,13 +16,22 @@ interface TrailPoint {
   ele?: number;
 }
 
+interface Waypoint {
+  lat: number;
+  lng: number;
+  name: string;
+  order: number;
+}
+
 interface TrailMiniMapProps {
   points?: TrailPoint[];
+  /** Optional numbered stops (e.g. cultural-route paragens) — rendered as pins. */
+  waypoints?: Waypoint[];
   color?: string;
   height?: number;
 }
 
-function TrailMiniMap({ points, color = '#22C55E', height = 200 }: TrailMiniMapProps) {
+function TrailMiniMap({ points, waypoints, color = '#22C55E', height = 200 }: TrailMiniMapProps) {
   if (!points || points.length < 2) return null;
 
   const lats = points.map((p) => p.lat);
@@ -47,6 +56,7 @@ function TrailMiniMap({ points, color = '#22C55E', height = 200 }: TrailMiniMapP
         getMarkerColor={() => color}
         trailPoints={points}
         trailColor={color}
+        waypoints={waypoints}
         initialRegion={region}
         scrollEnabled={false}
         zoomEnabled={false}
