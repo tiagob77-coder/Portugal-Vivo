@@ -101,6 +101,50 @@
       "review_summary": "Belas vistas sobre as vinhas, paisagens maravilhosas e terreno na maioria fácil. Os desafios são o calor e eventuais encerramentos. Leve água em abundância e verifique as condições.",
       "max_elevation_m": 617,
       "avg_time": "4,5–5 h"
+    },
+    "10310329": {
+      "description": "A PR1 - Vereda do Areeiro liga o Pico do Areeiro ao Pico Ruivo, os dois pontos mais altos da Madeira, com vistas panorâmicas de tirar o fôlego e túneis escavados na rocha vulcânica. De momento só é possível caminhar até ao miradouro da Pedra Rija (o resto até ao Pico Ruivo está encerrado). Requer pagamento de taxa via portal SIMplifica; confirme as condições antes de ir.",
+      "review_summary": "As vistas deslumbrantes e os trilhos bem conservados são os pontos altos. Os desafios incluem subidas íngremes e grandes multidões. Chegue cedo, traga água e planeie com antecedência a obtenção de licenças.",
+      "max_elevation_m": 1814
+    },
+    "10415782": {
+      "description": "O Caminho Real da Encumeada (PR12) leva ao majestoso Pico Grande, um dos pontos mais emblemáticos da Madeira, seguindo parte de uma antiga via real cheia de história. Só recomendado a caminhantes experientes — inclui secções técnicas sobre rocha exposta — com paisagens montanhosas dramáticas e vistas que se estendem até ao mar. Requer taxa via SIMplifica.",
+      "review_summary": "Entre os destaques, vistas deslumbrantes e um trilho bem conservado. A subida final íngreme é o principal desafio. Parta cedo e leve água em abundância.",
+      "max_elevation_m": 1608
+    },
+    "10323904": {
+      "description": "Pequeno trilho de fácil acesso até duas pérolas de São Miguel: a Lagoa do Canário e o Miradouro da Boca do Inferno, no Parque Florestal da Mata do Canário. Do alto (cerca de 1000 m), sobranceiro à Caldeira das Sete Cidades, descortinam-se as lagoas do Canário, das Sete Cidades e Rasa, e parte da Serra Devassa — uma das vistas mais espantosas da ilha.",
+      "review_summary": "Os pontos altos incluem vistas deslumbrantes e um trilho bonito e bem cuidado. Os desafios incluem nevoeiro e subidas íngremes. Chegue cedo para evitar multidões e verifique a meteorologia.",
+      "max_elevation_m": 795,
+      "avg_time": "0,5–1 h"
+    },
+    "10333952": {
+      "description": "Etapa do Trilho dos Pescadores que parte de Almograve seguindo a costa por cima de falésias imponentes, por praias e enseadas como a do Queimado, com formações rochosas únicas. Um dos pontos altos é o Cabo Sardão, promontório com vistas panorâmicas sobre o oceano, até chegar à animada Zambujeira do Mar. Não há água no percurso — leve mantimentos.",
+      "review_summary": "Falésias impressionantes, belas vistas da costa e agradáveis locais de descanso. Os desafios são os troços arenosos e um trecho final monótono junto à estrada. Parta cedo e mantenha-se hidratado.",
+      "max_elevation_m": 81,
+      "avg_time": "5–5,5 h"
+    },
+    "11032842": {
+      "description": "Circuito no Parque Natural da Arrábida até ao Alto (Pico) Formosinho, o ponto mais alto da serra (501 m), assinalado por um marco geodésico. Do topo, vistas espetaculares sobre o estuário do Sado, a Península de Tróia, Azeitão, Lisboa e as serras de Sintra e Montejunto, com passagem pelo miradouro do Portinho da Arrábida — perfeito para uma fotografia do contraste serra e mar.",
+      "review_summary": "Os avaliadores destacam as belas vistas e os vales verdejantes. Os desafios incluem subidas íngremes e áreas com vegetação. Comece cedo e leve água.",
+      "max_elevation_m": 496
+    },
+    "10566682": {
+      "description": "Descida deslumbrante de Casal de Loivos até à icónica vila do Pinhão, com início junto ao Miradouro de Casal de Loivos — eleito pela BBC uma das paisagens mais bonitas do mundo. Por caminhos rurais e calçadas de pedra entre as vinhas em socalcos de famosas quintas do Vinho do Porto, no Alto Douro Vinhateiro, Património Mundial da UNESCO.",
+      "review_summary": "Os pontos altos incluem vistas deslumbrantes e trilhos bem sinalizados. Os desafios são as subidas íngremes e a falta de sombra. Leve bastante água e comece cedo nos dias quentes.",
+      "max_elevation_m": 423,
+      "avg_time": "2–2,5 h"
+    },
+    "10411282": {
+      "description": "Percurso até ao Miradouro da Pedra Bela (829 m), talvez o mais conhecido do Gerês: um autêntico anfiteatro natural com vista sobre o rio Caldo e a albufeira da Caniçada. No miradouro há sombra de cedros e bétulas, uma pequena fonte e mesas para merendar. Mais agradável na primavera e no verão.",
+      "review_summary": "Vistas deslumbrantes, paisagens variadas e locais encantadores para nadar. Os desafios são trilhos difíceis de seguir, trepadas e subidas íngremes. Leve água e calçado resistente.",
+      "max_elevation_m": 1055
+    },
+    "10632519": {
+      "description": "Percurso sinalizado pela encosta sul da serra de Sintra, a partir da Malveira da Serra — tão serrana como marítima. De grande interesse geológico (a serra é um maciço eruptivo granítico), passa pela pitoresca aldeia de Juso e pelas almoinhas velhas, pequenas hortas muradas de raiz árabe e medieval, antes de regressar ao ponto de partida.",
+      "review_summary": "Paisagens deslumbrantes, terreno diversificado e belas vistas do oceano. Os desafios incluem secções com vegetação e partes junto a estradas movimentadas. Comece em áreas urbanas e faça desvios.",
+      "max_elevation_m": 181,
+      "avg_time": "2,5–3 h"
     }
   }
 }
