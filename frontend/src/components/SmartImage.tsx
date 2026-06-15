@@ -18,6 +18,7 @@ import { View, StyleSheet, StyleProp, ViewStyle } from 'react-native';
 import { Image, ImageContentFit } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { MaterialIcons } from '@expo/vector-icons';
+import { cdnImage } from '../utils/cdnImage';
 
 const DEFAULT_BLURHASH = 'L6PZfSi_.AyE_3t7t7R**0o#DgR4';
 
@@ -292,7 +293,7 @@ export default function SmartImage({
   return (
     <View style={[styles.imageContainer, style]}>
       <Image
-        source={{ uri: currentUri }}
+        source={{ uri: cdnImage(currentUri, { look: 'warm' }) }}
         style={StyleSheet.absoluteFill}
         contentFit={contentFit}
         placeholder={{ blurhash }}

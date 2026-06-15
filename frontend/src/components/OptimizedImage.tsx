@@ -6,6 +6,7 @@
 import React from 'react';
 import { Image, ImageStyle, ImageContentFit } from 'expo-image';
 import { StyleProp, View } from 'react-native';
+import { cdnImage } from '../utils/cdnImage';
 
 // Low-contrast neutral blurhash used as placeholder while loading
 const DEFAULT_BLURHASH = 'L6PZfSi_.AyE_3t7t7R**0o#DgR4';
@@ -38,11 +39,12 @@ export default function OptimizedImage({
   accessibilityLabel,
 }: OptimizedImageProps) {
   const source = uri && uri.trim() ? uri : FALLBACK_URI;
+  const delivered = cdnImage(source, { look: 'warm' }) || source;
 
   return (
     <View style={style as any} accessible accessibilityLabel={accessibilityLabel}>
       <Image
-        source={{ uri: source }}
+        source={{ uri: delivered }}
         style={{ width: '100%', height: '100%' }}
         contentFit={contentFit}
         placeholder={{ blurhash }}
