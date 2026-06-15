@@ -1,4 +1,4 @@
-import api from './client';
+import api, { cachedGet } from './client';
 import type { CulturalRoute } from '../../components/CulturalRouteCard';
 
 // ─── Cultural Routes Hub ──────────────────────────────────────────────────────
@@ -54,29 +54,35 @@ export interface CulturalRoutesDiscover {
   results: CulturalRouteEnriched[];
 }
 
-export const getCulturalRoutesHub = async (): Promise<CulturalRoutesHubData> => {
-  const response = await api.get('/cultural-routes/hub');
-  return response.data;
-};
+// All cultural-routes reads go through cachedGet: network-first, with an
+// AsyncStorage fallback so the screens keep working offline (24h TTL).
+export const getCulturalRoutesHub = async (): Promise<CulturalRoutesHubData> =>
+  cachedGet('cache_cultural_hub', async () => {
+    const response = await api.get('/cultural-routes/hub');
+    return response.data;
+  });
 
 export const getCulturalRoute = async (
   routeId: string,
-): Promise<CulturalRouteEnriched> => {
-  const response = await api.get(`/cultural-routes/routes/${routeId}`);
-  return response.data;
-};
+): Promise<CulturalRouteEnriched> =>
+  cachedGet(`cache_cultural_route_${routeId}`, async () => {
+    const response = await api.get(`/cultural-routes/routes/${routeId}`);
+    return response.data;
+  });
 
 /** Full premium routes list from the API (all families), id-normalised. */
-export const listCulturalRoutes = async (): Promise<CulturalRoute[]> => {
-  const response = await api.get('/cultural-routes/routes', { params: { limit: 50 } });
-  const results: CulturalRouteEnriched[] = response.data?.results ?? [];
-  return results.map((r) => ({ ...r, id: r._id ?? r.id })) as CulturalRoute[];
-};
+export const listCulturalRoutes = async (): Promise<CulturalRoute[]> =>
+  cachedGet('cache_cultural_routes_list', async () => {
+    const response = await api.get('/cultural-routes/routes', { params: { limit: 50 } });
+    const results: CulturalRouteEnriched[] = response.data?.results ?? [];
+    return results.map((r) => ({ ...r, id: r._id ?? r.id })) as CulturalRoute[];
+  });
 
-export const getCulturalRoutesSpotlight = async (): Promise<CulturalRouteEnriched> => {
-  const response = await api.get('/cultural-routes/spotlight');
-  return response.data;
-};
+export const getCulturalRoutesSpotlight = async (): Promise<CulturalRouteEnriched> =>
+  cachedGet('cache_cultural_spotlight', async () => {
+    const response = await api.get('/cultural-routes/spotlight');
+    return response.data;
+  });
 
 export const discoverCulturalRoutes = async (params?: {
   mood?: string;
@@ -84,10 +90,11 @@ export const discoverCulturalRoutes = async (params?: {
   lng?: number;
   month?: number;
   limit?: number;
-}): Promise<CulturalRoutesDiscover> => {
-  const response = await api.get('/cultural-routes/discover', { params });
-  return response.data;
-};
+}): Promise<CulturalRoutesDiscover> =>
+  cachedGet(`cache_cultural_discover_${JSON.stringify(params || {})}`, async () => {
+    const response = await api.get('/cultural-routes/discover', { params });
+    return response.data;
+  });
 
 export interface CulturalEvent {
   id?: string;
@@ -112,9 +119,10 @@ export interface RouteLiveCalendar {
 export const getRouteLiveCalendar = async (
   routeId: string,
   limit = 12,
-): Promise<RouteLiveCalendar> => {
-  const response = await api.get(`/cultural-routes/routes/${routeId}/live-calendar`, {
-    params: { limit },
-  });
-  return response.data;
-};
+): Promise<RouteLiveCalendar> =>
+  cachedGet(`cache_cultural_events_${routeId}`, async () => {
+    const response = await api.get(`/cultural-routes/routes/${routeId}/live-calendar`, {
+      params: { limit },
+    });
+    return response.data;
+  }, 6 * 60 * 60 * 1000);
