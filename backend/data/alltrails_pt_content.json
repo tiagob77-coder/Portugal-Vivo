@@ -55,6 +55,52 @@
       "review_summary": "Destacam-se um trilho bem conservado e belas paisagens. Os desafios são a escassez de sombra e as subidas íngremes. Tenha em conta o horário para evitar o calor.",
       "max_elevation_m": 397,
       "avg_time": "3,5–4 h"
+    },
+    "10442633": {
+      "description": "Considerado por muitos o melhor trilho da Madeira e o mais popular: uma travessia deslumbrante entre dois dos picos mais icónicos da ilha, com vistas espetaculares sobre vales verdejantes e montanhas imponentes. Comece cedo — de manhã a visibilidade é melhor, pois à tarde as nuvens acumulam-se nos cumes. (Parte da PR1 pode estar temporariamente encerrada; confirme antes de ir.)",
+      "review_summary": "Os utilizadores destacam as vistas deslumbrantes, as excelentes condições do trilho e um percurso bem conservado. Os desafios incluem trechos íngremes, controlos de autorizações e a possibilidade de multidões. Parta cedo e use calçado resistente.",
+      "max_elevation_m": 1819,
+      "avg_time": "4,5–5 h"
+    },
+    "11050327": {
+      "description": "A Praia da Ursa é um paraíso bruto emoldurado por magníficas formações rochosas — considerada pelo Guia Michelin uma das praias mais bonitas do mundo. Só se chega a pé, por um trilho sinuoso com vista panorâmica, e o percurso inclui o Cabo da Roca, o ponto mais ocidental da Europa continental.",
+      "review_summary": "Vistas deslumbrantes sobre o oceano, uma praia tranquila e oportunidade de observar vida selvagem. Atenção a rochas escorregadias e trechos íngremes (com corda). Use calçado adequado, leve água e parta cedo.",
+      "max_elevation_m": 155
+    },
+    "11084895": {
+      "description": "Pequeno trilho circular no Faial da Terra, acessível a todos os níveis, que combina a popular cascata Salto do Prego com a encantadora aldeia do Sanguinho — uma antiga povoação recuperada como aldeamento turístico, no meio de vegetação densa e pequenas fazendas locais.",
+      "review_summary": "As avaliações recentes destacam vistas deslumbrantes, belas cascatas e uma aldeia encantadora. Os desafios incluem descidas íngremes e escorregadias e zonas lamacentas. Use calçado resistente e parta cedo.",
+      "max_elevation_m": 230,
+      "avg_time": "1,5–2 h"
+    },
+    "10923215": {
+      "description": "No coração do Parque Nacional da Peneda-Gerês, à procura de dois tesouros escondidos: a cascata do Arado, a cerca de 900 m de altitude, com uma sucessão de quedas de água entre as rochas; e o famoso Poço Azul, uma piscina natural de água cristalina perfeita para um mergulho no verão. O percurso obriga a atravessar o rio — só aconselhável em tempo seco.",
+      "review_summary": "Belas vistas, um incrível buraco para nadar e uma mistura de secções fáceis e moderadas. Os desafios são as zonas rochosas e a má sinalização. Comece cedo e leve bastante água.",
+      "max_elevation_m": 847
+    },
+    "10283175": {
+      "description": "Da Achada do Teixeira ao Pico Ruivo, o ponto mais alto da Madeira (1862 m), por um trilho espetacular que passa pela formação basáltica do Homem em Pé. Esteja atento às rápidas mudanças de tempo e leve equipamento adequado. (Requer taxa de visita via portal SIMplifica.)",
+      "review_summary": "Vistas incríveis, trilho bem conservado e a experiência única de caminhar ao nascer do sol. Entre os desafios, a afluência e os ventos frios no cume. Chegue cedo e traga água e casaco impermeável.",
+      "max_elevation_m": 1820,
+      "avg_time": "3–3,5 h"
+    },
+    "11084088": {
+      "description": "Trilho de ida e volta até à margem da Lagoa do Fogo, uma das paisagens mais belas e naturais de São Miguel. Passa por campos e pastagens, pelas ruínas de uma antiga fábrica e por flora endémica dos Açores, com magníficas vistas sobre a costa sul no regresso. Use calçado adequado — há troços enlameados.",
+      "review_summary": "Vistas deslumbrantes, paisagens variadas e belos trilhos ao longo de um aqueduto. Os desafios incluem subidas íngremes e obras na zona. Parta cedo e escolha bem o estacionamento.",
+      "max_elevation_m": 594,
+      "avg_time": "4–4,5 h"
+    },
+    "10722604": {
+      "description": "Percurso circular por um caminho florestal encantador no Parque Natural de Sintra-Cascais, com subidas desafiantes e o sossego da serra. O ponto alto é a mística Pedra Amarela, envolta numa história popular que explica a cor amarela da rocha.",
+      "review_summary": "Vistas deslumbrantes, caminhos largos e trilhos bem conservados. Os desafios são ventos fortes, subidas íngremes e trechos escorregadios. Use roupa em camadas e mantenha os animais com trela.",
+      "max_elevation_m": 390,
+      "avg_time": "2–2,5 h"
+    },
+    "11169545": {
+      "description": "Trilho linear que parte de Provesende, uma das seis Aldeias Vinhateiras do Douro, passando pelo Miradouro Torguiano de São Cristóvão e descendo até à foz do rio Pinhão por entre vinhas em socalcos — paisagem classificada como Património Mundial da UNESCO, com tonalidades que mudam ao longo do ano. (Parte do percurso pode estar encerrada por tempestades; confirme antes.)",
+      "review_summary": "Belas vistas sobre as vinhas, paisagens maravilhosas e terreno na maioria fácil. Os desafios são o calor e eventuais encerramentos. Leve água em abundância e verifique as condições.",
+      "max_elevation_m": 617,
+      "avg_time": "4,5–5 h"
     }
   }
 }
