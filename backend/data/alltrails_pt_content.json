@@ -145,6 +145,51 @@
       "review_summary": "Paisagens deslumbrantes, terreno diversificado e belas vistas do oceano. Os desafios incluem secções com vegetação e partes junto a estradas movimentadas. Comece em áreas urbanas e faça desvios.",
       "max_elevation_m": 181,
       "avg_time": "2,5–3 h"
+    },
+    "10378220": {
+      "description": "Trilho encantador ao longo da Levada do Rei, envolto na vegetação exuberante das terras altas da Madeira. Começa numa floresta exótica com vistas sobre as paisagens agrícolas de São Jorge e Santana e atravessa túneis de vegetação, culminando no Ribeiro Bonito — um santuário natural isolado de floresta Laurissilva. No final, vale a pena visitar o Moinho de Água de São Jorge, com três séculos de história. Leve lanterna para os túneis.",
+      "review_summary": "Os pontos altos incluem vistas deslumbrantes e um ambiente tranquilo, com uma cascata pelo caminho. Os desafios são as zonas lamacentas e os caminhos estreitos, onde é frequente haver aglomeração. Use equipamento impermeável e parta cedo.",
+      "max_elevation_m": 703,
+      "avg_time": "4,5–5 h"
+    },
+    "11038766": {
+      "description": "Percurso fácil em redor da bonita Lagoa das Furnas, em São Miguel, com abundante vegetação e paisagens floridas. A lagoa é rodeada de manifestações vulcânicas — nas margens prepara-se o tradicional Cozido das Furnas, cozinhado no calor das fumarolas debaixo da terra. Um trilho espetacular que pode culminar com um prato gastronómico.",
+      "review_summary": "Belas vistas para o lago, um ambiente tranquilo e terreno fácil. Os desafios são os troços junto a estradas movimentadas. Parta cedo para evitar as multidões.",
+      "max_elevation_m": 319,
+      "avg_time": "1,5–2 h"
+    },
+    "10333123": {
+      "description": "Etapa do Trilho dos Pescadores entre Vila Nova de Milfontes e Almograve, por paisagens únicas de falésias de areia avermelhada formadas ao longo de milhões de anos. A areia solta torna a caminhada exigente — leve calçado apropriado. Termina em Almograve, pequena aldeia piscatória com praia de areia avermelhada. Não há água no percurso.",
+      "review_summary": "Vistas deslumbrantes e variedade de terrenos. Os desafios incluem caminhos arenosos e trechos íngremes. Apanhe o ferry e parta cedo.",
+      "max_elevation_m": 57
+    },
+    "11152248": {
+      "description": "Rota linear emblemática que percorre as encostas norte e sul da Serra da Arrábida até ao Portinho, passando pelo ponto mais alto da cordilheira, o Alto do Formosinho (501 m). Ligada aos primeiros povoados da Arrábida e aos antigos círios de devoção a Nossa Senhora da Arrábida, com vegetação densa, zonas de escalada em pedra e paisagens que ligam o estuário do Sado ao do Tejo. A não perder: o Convento da Arrábida (séc. XVI).",
+      "review_summary": "Os pontos altos incluem vistas deslumbrantes e vegetação exuberante. Os desafios são subidas íngremes e vegetação densa. Use bastões e calças compridas.",
+      "max_elevation_m": 497
+    },
+    "10557349": {
+      "description": "Rota circular no Parque Natural da Serra da Estrela que percorre seis lagos de dimensões variadas (Ribeira da Lagoa, Covão do Forno, Covão do Curral, Lagoa Seca, Lagoa Redonda e Conchas). Cenário espetacular para explorar a alta montanha da Estrela. Evite em mau tempo ou depois de chuvas fortes.",
+      "review_summary": "Vistas deslumbrantes, ambiente tranquilo e bom para exercício. Os desafios são caminhos com vegetação e troços sem sinalização. Leve GPS e use calças compridas e calçado resistente.",
+      "max_elevation_m": 1709
+    },
+    "10521994": {
+      "description": "Trilho circular temático sobre as tradições comunitárias do Gerês, que percorre três currais históricos do Baldio de Vilar da Veiga (Espinheira, Carvalha das Éguas e Lomba do Vidoeiro). Liga-se à vezeira — prática silvopastoril em que, de maio a setembro, o gado da comunidade é encaminhado para a serra alta. Um percurso cultural e paisagístico no Parque Nacional da Peneda-Gerês.",
+      "review_summary": "Vistas deslumbrantes, ambiente sereno e grande variedade de paisagens. Os desafios são subidas íngremes e sinalização pouco clara nas secções mais profundas. Use mapa descarregado e considere um guia.",
+      "max_elevation_m": 934,
+      "avg_time": "4–4,5 h"
+    },
+    "10736623": {
+      "description": "Rota circular no Parque Natural de Sintra-Cascais, parte da paisagem cultural classificada pela UNESCO, que liga monumentos emblemáticos: o Convento dos Capuchos, o Dólmen de Adrenunes, o Santuário da Peninha, o Monge-Pé e o Memorial dos Soldados. Uma experiência exploratória por monumentos arquitetónicos e naturais de um lugar mítico.",
+      "review_summary": "Vistas deslumbrantes, paisagens variadas e um percurso acessível. Os desafios são trechos com árvores caídas e alguns troços em estrada. Faça-o no sentido inverso e mantenha-se hidratado.",
+      "max_elevation_m": 488,
+      "avg_time": "3,5–4 h"
+    },
+    "11104260": {
+      "description": "Percurso até à Fórnea, um estranho fenómeno geológico que parece um enorme anfiteatro natural — um abatimento da crosta entre Chão das Pias e Alcaria. Na várzea há um vale de oliveiras e, em redor, duas cascatas e duas nascentes; no interior fica a Cova da Velha, cavidade com uma nascente que alimenta o Ribeiro da Fórnea.",
+      "review_summary": "Percurso panorâmico, belas formações rochosas e ambiente agradável. Os desafios são a escassez de sombra e cursos de água por vezes secos. Leve água e proteção solar.",
+      "max_elevation_m": 374,
+      "avg_time": "1–1,5 h"
     }
   }
 }
