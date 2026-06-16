@@ -15,7 +15,6 @@ import {
   RefreshControl,
   ActivityIndicator,
   Linking,
-  Platform,
 } from 'react-native';
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -24,13 +23,13 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useQuery } from '@tanstack/react-query';
 import api, { getAgendaLive, AgendaEvent } from '../../src/services/api';
-import { colors, shadows } from '../../src/theme';
+import { colors, shadows, fontFamilies } from '../../src/theme';
 import { palette } from '../../src/theme/colors';
 import { useTheme } from '../../src/context/ThemeContext';
 import { CONTENT_MAX_WIDTH } from '../../src/theme/breakpoints';
 import EmptyState from '../../src/components/EmptyState';
 
-const serif = Platform.OS === 'web' ? 'Cormorant Garamond, Georgia, serif' : undefined;
+const serif = fontFamilies.serif;
 
 const MONTHS_PT = [
   'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',

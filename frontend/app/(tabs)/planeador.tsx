@@ -11,7 +11,6 @@ import {
   ScrollView,
   TouchableOpacity,
   ActivityIndicator,
-  Platform,
   TextInput,
   Switch,
   Alert,
@@ -33,12 +32,12 @@ import api, {
   AiItineraryResponse,
   SavedItinerary,
 } from '../../src/services/api';
-import { colors, shadows } from '../../src/theme';
+import { colors, shadows, fontFamilies } from '../../src/theme';
 import { palette } from '../../src/theme/colors';
 import { useTheme } from '../../src/context/ThemeContext';
 import { useAuth } from '../../src/context/AuthContext';
 
-const serif = Platform.OS === 'web' ? 'Cormorant Garamond, Georgia, serif' : undefined;
+const serif = fontFamilies.serif;
 
 // Planning tools based on strategic report
 const PLANNING_TOOLS = [

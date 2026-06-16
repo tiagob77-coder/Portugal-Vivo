@@ -16,9 +16,9 @@ import api from '../src/services/api';
 import { useTheme } from '../src/context/ThemeContext';
 import { useAuth } from '../src/context/AuthContext';
 import { palette, withOpacity } from '../src/theme/colors';
-import { shadows } from '../src/theme';
+import { shadows, fontFamilies } from '../src/theme';
 
-const serif = Platform.OS === 'web' ? 'Cormorant Garamond, Georgia, serif' : undefined;
+const serif = fontFamilies.serif;
 
 interface AdminData {
   overview: {

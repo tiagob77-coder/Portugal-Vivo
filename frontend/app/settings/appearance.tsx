@@ -8,16 +8,16 @@
  */
 import React from 'react';
 import {
-  View, Text, StyleSheet, ScrollView, TouchableOpacity, Platform,
+  View, Text, StyleSheet, ScrollView, TouchableOpacity,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme, COLOR_VISION_LABELS, REGION_ACCENT_NAMES } from '../../src/context/ThemeContext';
 import type { ColorVisionMode, ThemeMode } from '../../src/context/ThemeContext';
-import { shadows } from '../../src/theme';
+import { shadows, fontFamilies } from '../../src/theme';
 
-const serif = Platform.OS === 'web' ? 'Cormorant Garamond, Georgia, serif' : undefined;
+const serif = fontFamilies.serif;
 
 // ─── Cores de preview para daltonismo ────────────────────────────────────────
 
