@@ -20,6 +20,8 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useResponsive } from '../src/hooks/useResponsive';
+import { fontFamilies, palette } from '../src/theme';
+import PatternBackground from '../src/components/PatternBackground';
 
 export const ONBOARDING_KEY = 'onboarding_complete';
 export const PROFILE_TRAVELER_KEY = 'profile_traveler_type';
@@ -212,6 +214,9 @@ export default function OnboardingScreen() {
         style={[styles.contentWrap, { paddingBottom: insets.bottom + 24, paddingTop: insets.top + 56 }]}
         pointerEvents="box-none"
       >
+        {isPremiumSlide && (
+          <PatternBackground pattern="azulejo" color={palette.filigrana[500]} opacity={0.07} />
+        )}
         {slide.id === 'welcome' && <WelcomeContent />}
         {slide.id === 'traveler' && (
           <TravelerStep selected={travelerType} onSelect={setTravelerType} />
@@ -240,7 +245,7 @@ export default function OnboardingScreen() {
         {isPremiumSlide ? (
           <View style={styles.premiumBtnCol}>
             <TouchableOpacity
-              style={[styles.nextBtn, { backgroundColor: '#C49A6C' }]}
+              style={[styles.nextBtn, { backgroundColor: palette.filigrana[500] }]}
               onPress={handleTryPremium}
               activeOpacity={0.85}
             >
@@ -467,9 +472,9 @@ function PremiumContent() {
   return (
     <>
       <View
-        style={[styles.iconBadge, { backgroundColor: 'rgba(196,154,108,0.2)', borderColor: 'rgba(196,154,108,0.4)' }]}
+        style={[styles.iconBadge, { backgroundColor: 'rgba(201,162,75,0.2)', borderColor: 'rgba(201,162,75,0.4)' }]}
       >
-        <MaterialIcons name="diamond" size={36} color="#C49A6C" />
+        <MaterialIcons name="diamond" size={36} color={palette.filigrana[500]} />
       </View>
       <Text style={styles.slideLabel}>DESCOBRIDOR</Text>
       <Text style={styles.slideTitle}>{'Desbloqueia\nPortugal Completo'}</Text>
@@ -485,7 +490,7 @@ function PremiumContent() {
         ].map((b) => (
           <View key={b.text} style={styles.premiumRow}>
             <View style={styles.premiumIconWrap}>
-              <MaterialIcons name={b.icon} size={16} color="#C49A6C" />
+              <MaterialIcons name={b.icon} size={16} color={palette.filigrana[500]} />
             </View>
             <Text style={styles.bulletText}>{b.text}</Text>
           </View>
@@ -497,7 +502,7 @@ function PremiumContent() {
             <Text style={styles.pricePer}>/mês</Text>
           </View>
           <View style={[styles.priceCard, styles.priceCardHighlight]}>
-            <Text style={[styles.priceLabel, { color: '#C49A6C' }]}>Anual</Text>
+            <Text style={[styles.priceLabel, { color: palette.filigrana[500] }]}>Anual</Text>
             <Text style={[styles.priceAmount, { color: '#FFF' }]}>€39.99</Text>
             <Text style={[styles.pricePer, { color: 'rgba(255,255,255,0.6)' }]}>/ano · -33%</Text>
           </View>
@@ -558,6 +563,7 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   slideTitle: {
+    fontFamily: fontFamilies.serif,
     fontSize: 34,
     fontWeight: '800',
     color: '#FFFFFF',
@@ -596,6 +602,7 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   qualQuestion: {
+    fontFamily: fontFamilies.serif,
     fontSize: 26,
     fontWeight: '800',
     color: '#FFFFFF',
@@ -766,7 +773,7 @@ const styles = StyleSheet.create({
     width: 28,
     height: 28,
     borderRadius: 8,
-    backgroundColor: 'rgba(196,154,108,0.2)',
+    backgroundColor: 'rgba(201,162,75,0.2)',
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -785,8 +792,8 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(255,255,255,0.12)',
   },
   priceCardHighlight: {
-    backgroundColor: 'rgba(196,154,108,0.18)',
-    borderColor: 'rgba(196,154,108,0.5)',
+    backgroundColor: 'rgba(201,162,75,0.18)',
+    borderColor: 'rgba(201,162,75,0.5)',
   },
   priceLabel: {
     fontSize: 11,
