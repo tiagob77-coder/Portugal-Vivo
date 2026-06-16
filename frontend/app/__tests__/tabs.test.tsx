@@ -109,6 +109,17 @@ jest.mock('../../src/theme', () => ({
   categoryColors: {},
   stateColors: {},
   mapColors: {},
+  fontFamilies: { serif: 'serif', sans: 'System' },
+  gradients: {
+    cardScrim: { colors: ['transparent', 'rgba(0,0,0,0.45)', 'rgba(0,0,0,0.88)'], locations: [0, 0.5, 1] },
+    cardScrimSoft: { colors: ['transparent', 'rgba(0,0,0,0.25)', 'rgba(0,0,0,0.7)'], locations: [0, 0.55, 1] },
+    heroDark: { colors: ['rgba(0,0,0,0.85)', 'rgba(0,0,0,0.5)', 'transparent'], locations: [0, 0.5, 1] },
+  },
+  heroPeriods: {
+    morning: { colors: ['rgba(0,0,0,0.8)', 'rgba(0,0,0,0.4)', 'transparent'], locations: [0, 0.55, 1] },
+    afternoon: { colors: ['rgba(0,0,0,0.8)', 'rgba(0,0,0,0.4)', 'transparent'], locations: [0, 0.55, 1] },
+    evening: { colors: ['rgba(0,0,0,0.8)', 'rgba(0,0,0,0.4)', 'transparent'], locations: [0, 0.55, 1] },
+  },
 }));
 
 // ─── API services ─────────────────────────────────────────────────────────────

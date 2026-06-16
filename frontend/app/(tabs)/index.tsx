@@ -11,7 +11,7 @@ import HeritageCard from '../../src/components/HeritageCard';
 import BrandLogo from '../../src/components/BrandLogo';
 import ErrorState from '../../src/components/ui/ErrorState';
 import { Category, HeritageItem, Region } from '../../src/types';
-import { useTheme, palette, withOpacity } from '../../src/theme';
+import { useTheme, palette, withOpacity, fontFamilies } from '../../src/theme';
 
 const ALL_REGION: Region = { id: 'all', name: 'Todas', color: '' };
 
@@ -433,7 +433,7 @@ const styles = StyleSheet.create({
   container: { flex: 1 },
   header: { paddingHorizontal: 20, paddingTop: 8, paddingBottom: 12 },
   brandRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
-  headerTitle: { fontSize: 28, fontWeight: '800' },
+  headerTitle: { fontSize: 28, fontWeight: '800', fontFamily: fontFamilies.serif },
   headerSubtitle: { fontSize: 14, marginTop: 2 },
   searchContainer: { paddingHorizontal: 20, marginBottom: 10 },
   searchBar: {

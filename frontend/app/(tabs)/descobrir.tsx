@@ -24,7 +24,7 @@ import {
 import HojeEmPortugalCard, { HojeData } from '../../src/components/HojeEmPortugalCard';
 import ErrorBoundary from '../../src/components/ErrorBoundary';
 import { API_BASE } from '../../src/config/api';
-import { typography, shadows, regionImages, gradients, heroPeriods } from '../../src/theme';
+import { typography, shadows, regionImages, gradients, heroPeriods, fontFamilies } from '../../src/theme';
 import type { HeroPeriod } from '../../src/theme';
 import { palette } from '../../src/theme/colors';
 import { useTheme } from '../../src/context/ThemeContext';
@@ -32,7 +32,7 @@ import { useResponsive } from '../../src/hooks/useResponsive';
 import { CONTENT_MAX_WIDTH } from '../../src/theme/breakpoints';
 // OnboardingModal removed — handled by /onboarding screen
 
-const serif = Platform.OS === 'web' ? 'Cormorant Garamond, Georgia, serif' : undefined;
+const serif = fontFamilies.serif;
 
 const getGreeting = (): { greeting: string; period: HeroPeriod } => {
   const hour = new Date().getHours();

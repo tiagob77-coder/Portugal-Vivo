@@ -20,6 +20,7 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useResponsive } from '../src/hooks/useResponsive';
+import { fontFamilies } from '../src/theme';
 
 export const ONBOARDING_KEY = 'onboarding_complete';
 export const PROFILE_TRAVELER_KEY = 'profile_traveler_type';
@@ -558,6 +559,7 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   slideTitle: {
+    fontFamily: fontFamilies.serif,
     fontSize: 34,
     fontWeight: '800',
     color: '#FFFFFF',
@@ -596,6 +598,7 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   qualQuestion: {
+    fontFamily: fontFamilies.serif,
     fontSize: 26,
     fontWeight: '800',
     color: '#FFFFFF',
