@@ -20,7 +20,7 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useQuery } from '@tanstack/react-query';
 import { LinearGradient } from 'expo-linear-gradient';
-import { shadows } from '../src/theme';
+import { shadows, fontFamilies } from '../src/theme';
 import { useTheme } from '../src/context/ThemeContext';
 import { useAuth } from '../src/context/AuthContext';
 import {
@@ -33,7 +33,7 @@ import {
   logPaywallIntent,
 } from '../src/services/api';
 
-const serif = Platform.OS === 'web' ? 'Cormorant Garamond, Georgia, serif' : undefined;
+const serif = fontFamilies.serif;
 
 const PAYMENT_METHODS = [
   { id: 'card', name: 'Cartão', icon: 'credit-card', description: 'Visa, Mastercard, Amex' },
@@ -151,7 +151,7 @@ export default function PremiumScreen() {
   if (isLoading) {
     return (
       <View style={[styles.container, { paddingTop: insets.top, backgroundColor: tc.background }]}>
-        <ActivityIndicator size="large" color="#C49A6C" style={{ marginTop: 100 }} />
+        <ActivityIndicator size="large" color="#C9A24B" style={{ marginTop: 100 }} />
       </View>
     );
   }
@@ -172,7 +172,7 @@ export default function PremiumScreen() {
           colors={['#1E3A3F', '#2A5F6B']}
           style={styles.hero}
         >
-          <MaterialIcons name="diamond" size={48} color="#C49A6C" />
+          <MaterialIcons name="diamond" size={48} color="#C9A24B" />
           <Text style={styles.heroTitle}>Portugal Vivo Premium</Text>
           <Text style={styles.heroSubtitle}>
             Desbloqueie roteiros IA, áudio guias, modo offline e muito mais
@@ -195,7 +195,7 @@ export default function PremiumScreen() {
         {/* Already Subscribed */}
         {isSubscribed && (
           <View style={[styles.subscribedCard, { backgroundColor: tc.surface }]}>
-            <MaterialIcons name="verified" size={28} color="#C49A6C" />
+            <MaterialIcons name="verified" size={28} color="#C9A24B" />
             <View style={{ flex: 1 }}>
               <Text style={[styles.subscribedTitle, { color: tc.textPrimary }]}>
                 Plano {subStatus.tier_name} ativo
@@ -285,11 +285,11 @@ export default function PremiumScreen() {
                     <MaterialIcons
                       name={pm.icon as any}
                       size={24}
-                      color={selectedPayment === pm.id ? '#C49A6C' : tc.textMuted}
+                      color={selectedPayment === pm.id ? '#C9A24B' : tc.textMuted}
                     />
                     <Text style={[
                       styles.paymentName,
-                      { color: selectedPayment === pm.id ? '#C49A6C' : tc.textPrimary },
+                      { color: selectedPayment === pm.id ? '#C9A24B' : tc.textPrimary },
                     ]}>
                       {pm.name}
                     </Text>
@@ -298,7 +298,7 @@ export default function PremiumScreen() {
                     </Text>
                     {selectedPayment === pm.id && (
                       <View style={styles.paymentCheck}>
-                        <MaterialIcons name="check-circle" size={18} color="#C49A6C" />
+                        <MaterialIcons name="check-circle" size={18} color="#C9A24B" />
                       </View>
                     )}
                   </TouchableOpacity>
@@ -326,7 +326,7 @@ export default function PremiumScreen() {
             <View style={styles.featureInfo} />
             <View style={styles.featureChecks}>
               <Text style={styles.headerLabel}>Grátis</Text>
-              <Text style={[styles.headerLabel, { color: '#C49A6C', fontWeight: '700' }]}>Premium</Text>
+              <Text style={[styles.headerLabel, { color: '#C9A24B', fontWeight: '700' }]}>Premium</Text>
             </View>
           </View>
 
@@ -354,7 +354,7 @@ export default function PremiumScreen() {
                     <MaterialIcons
                       name={premiumFeature?.included ? 'check-circle' : 'cancel'}
                       size={20}
-                      color={premiumFeature?.included ? '#C49A6C' : '#CBD5E1'}
+                      color={premiumFeature?.included ? '#C9A24B' : '#CBD5E1'}
                     />
                   </View>
                 </View>
@@ -373,7 +373,7 @@ export default function PremiumScreen() {
               disabled={checkoutLoading}
             >
               <LinearGradient
-                colors={['#C49A6C', '#B08556']}
+                colors={['#C9A24B', '#B08B3C']}
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 0 }}
                 style={styles.ctaGradient}
@@ -443,7 +443,7 @@ const styles = StyleSheet.create({
     lineHeight: 22,
   },
   trialBadge: {
-    backgroundColor: '#C49A6C',
+    backgroundColor: '#C9A24B',
     paddingHorizontal: 16,
     paddingVertical: 6,
     borderRadius: 20,
@@ -474,7 +474,7 @@ const styles = StyleSheet.create({
   subscribedTitle: { fontSize: 16, fontWeight: '700' },
   subscribedDesc: { fontSize: 12, marginTop: 2 },
   manageBtn: {
-    backgroundColor: '#C49A6C',
+    backgroundColor: '#C9A24B',
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 8,
@@ -535,9 +535,9 @@ const styles = StyleSheet.create({
     position: 'relative',
   },
   paymentCardActive: {
-    borderColor: '#C49A6C',
+    borderColor: '#C9A24B',
     borderWidth: 2,
-    backgroundColor: 'rgba(196,154,108,0.05)',
+    backgroundColor: 'rgba(201,162,75,0.05)',
   },
   paymentName: { fontSize: 14, fontWeight: '700' },
   paymentDesc: { fontSize: 10, textAlign: 'center' },
@@ -566,7 +566,7 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: '#F1F5F9',
   },
-  featureRowHighlight: { backgroundColor: 'rgba(196,154,108,0.06)', marginHorizontal: -8, paddingHorizontal: 8, borderRadius: 8 },
+  featureRowHighlight: { backgroundColor: 'rgba(201,162,75,0.06)', marginHorizontal: -8, paddingHorizontal: 8, borderRadius: 8 },
   featureInfo: { flex: 1 },
   featureName: { fontSize: 14, fontWeight: '600' },
   featureDesc: { fontSize: 11, marginTop: 2 },

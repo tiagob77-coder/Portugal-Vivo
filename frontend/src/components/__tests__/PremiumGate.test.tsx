@@ -40,7 +40,13 @@ jest.mock('../../theme', () => ({
       400: '#DFAF7F',
       500: '#C49A6C',
     },
+    filigrana: {
+      400: '#D4B25F',
+      500: '#C9A24B',
+    },
+    white: '#FFFFFF',
   },
+  fontFamilies: { serif: 'serif', sans: 'System' },
   withOpacity: (_hex: string, opacity: number) => `rgba(0,0,0,${opacity})`,
 }));
 
