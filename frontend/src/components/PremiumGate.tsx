@@ -18,7 +18,6 @@ import {
   TouchableOpacity,
   Modal,
   Pressable,
-  Platform,
 } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
@@ -26,9 +25,9 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
-import { shadows, palette, withOpacity } from '../theme';
+import { shadows, palette, withOpacity, fontFamilies } from '../theme';
 
-const serif = Platform.OS === 'web' ? 'Cormorant Garamond, Georgia, serif' : undefined;
+const serif = fontFamilies.serif;
 
 const FEATURE_LABELS: Record<string, { title: string; desc: string; icon: string; bullets: string[] }> = {
   ai_itinerary: {
@@ -119,12 +118,12 @@ export default function PremiumGate({
         onPress={() => setSheetVisible(true)}
         activeOpacity={0.7}
       >
-        <MaterialIcons name="lock" size={16} color={palette.terracotta[500]} />
+        <MaterialIcons name="lock" size={16} color={palette.filigrana[500]} />
         <Text style={[styles.inlineText, { color: tc.textMuted }]}>
           {info.title} —{' '}
-          <Text style={{ color: palette.terracotta[500], fontWeight: '700' }}>Premium</Text>
+          <Text style={{ color: palette.filigrana[500], fontWeight: '700' }}>Premium</Text>
         </Text>
-        <MaterialIcons name="arrow-forward-ios" size={12} color={palette.terracotta[500]} />
+        <MaterialIcons name="arrow-forward-ios" size={12} color={palette.filigrana[500]} />
         <PaywallSheet
           visible={sheetVisible}
           onClose={() => setSheetVisible(false)}
@@ -157,7 +156,7 @@ export default function PremiumGate({
         onPress={() => setSheetVisible(true)}
         activeOpacity={0.85}
       >
-        <MaterialIcons name="lock" size={14} color={palette.terracotta[500]} />
+        <MaterialIcons name="lock" size={14} color={palette.filigrana[500]} />
         <Text style={[styles.unlockText, { color: tc.textPrimary }]}>{info.title}</Text>
         <View style={styles.unlockCta}>
           <Text style={styles.unlockCtaText}>Desbloquear</Text>
@@ -210,7 +209,7 @@ function PaywallSheet({ visible, onClose, onUpgrade, info, insets, tc }: SheetPr
         {/* Header */}
         <View style={styles.sheetHeader}>
           <View style={styles.sheetIconWrap}>
-            <MaterialIcons name={info.icon as any} size={28} color={palette.terracotta[500]} />
+            <MaterialIcons name={info.icon as any} size={28} color={palette.filigrana[500]} />
           </View>
           <View style={{ flex: 1 }}>
             <Text style={[styles.sheetTitle, { color: tc.textPrimary }]}>{info.title}</Text>
@@ -225,7 +224,7 @@ function PaywallSheet({ visible, onClose, onUpgrade, info, insets, tc }: SheetPr
         <View style={styles.sheetBullets}>
           {info.bullets.map((b) => (
             <View key={b} style={styles.sheetBulletRow}>
-              <MaterialIcons name="check-circle" size={16} color={palette.terracotta[500]} />
+              <MaterialIcons name="check-circle" size={16} color={palette.filigrana[500]} />
               <Text style={[styles.sheetBulletText, { color: tc.textSecondary }]}>{b}</Text>
             </View>
           ))}
@@ -242,12 +241,12 @@ function PaywallSheet({ visible, onClose, onUpgrade, info, insets, tc }: SheetPr
             style={[
               styles.priceCard,
               styles.priceCardHighlight,
-              { borderColor: palette.terracotta[500] },
+              { borderColor: palette.filigrana[500] },
             ]}
           >
-            <Text style={[styles.priceLabel, { color: palette.terracotta[500] }]}>ANUAL</Text>
+            <Text style={[styles.priceLabel, { color: palette.filigrana[500] }]}>ANUAL</Text>
             <Text style={[styles.priceAmount, { color: tc.textPrimary }]}>€39.99</Text>
-            <Text style={[styles.pricePer, { color: palette.terracotta[400] }]}>/ano · -33%</Text>
+            <Text style={[styles.pricePer, { color: palette.filigrana[400] }]}>/ano · -33%</Text>
           </View>
         </View>
 
@@ -303,7 +302,7 @@ const styles = StyleSheet.create({
   unlockCta: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: palette.terracotta[500],
+    backgroundColor: palette.filigrana[500],
     paddingHorizontal: 10,
     paddingVertical: 5,
     borderRadius: 8,
@@ -365,7 +364,7 @@ const styles = StyleSheet.create({
     width: 52,
     height: 52,
     borderRadius: 16,
-    backgroundColor: withOpacity(palette.terracotta[500], 0.12),
+    backgroundColor: withOpacity(palette.filigrana[500], 0.12),
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -407,7 +406,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   priceCardHighlight: {
-    backgroundColor: withOpacity(palette.terracotta[500], 0.06),
+    backgroundColor: withOpacity(palette.filigrana[500], 0.06),
   },
   priceLabel: {
     fontSize: 10,
@@ -436,7 +435,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: palette.terracotta[500],
+    backgroundColor: palette.filigrana[500],
     paddingVertical: 14,
     borderRadius: 14,
     gap: 10,
