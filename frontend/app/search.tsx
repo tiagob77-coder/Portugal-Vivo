@@ -3,7 +3,7 @@
  * Results grouped by type with region chips and counters
  */
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Platform } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import OptimizedImage from '../src/components/OptimizedImage';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
@@ -16,9 +16,10 @@ import EmptyState from '../src/components/EmptyState';
 import { useTheme } from '../src/context/ThemeContext';
 import { palette, withOpacity } from '../src/theme/colors';
 import { HIT_SLOP } from '../src/theme/spacing';
+import { fontFamilies } from '../src/theme';
 
 import { API_URL } from '../src/config/api';
-const serif = Platform.OS === 'web' ? 'Cormorant Garamond, Georgia, serif' : undefined;
+const serif = fontFamilies.serif;
 
 interface SearchResult {
   id: string;

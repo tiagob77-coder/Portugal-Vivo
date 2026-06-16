@@ -25,11 +25,11 @@ import { LANGUAGES } from '../../src/i18n';
 import { GeofenceControl } from '../../src/components/GeofenceControl';
 import ErrorBoundary from '../../src/components/ErrorBoundary';
 import { LinearGradient } from 'expo-linear-gradient';
-import { shadows } from '../../src/theme';
+import { shadows, fontFamilies } from '../../src/theme';
 import { useTheme } from '../../src/context/ThemeContext';
 import { CONTENT_MAX_WIDTH } from '../../src/theme/breakpoints';
 
-const serif = Platform.OS === 'web' ? 'Cormorant Garamond, Georgia, serif' : undefined;
+const serif = fontFamilies.serif;
 
 function ProfileScreen() {
   const router = useRouter();

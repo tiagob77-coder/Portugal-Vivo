@@ -20,10 +20,10 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useQuery } from '@tanstack/react-query';
 import api, { getAgendaEventDetail } from '../../src/services/api';
-import { colors, shadows } from '../../src/theme';
+import { colors, shadows, fontFamilies } from '../../src/theme';
 import { useTheme } from '../../src/context/ThemeContext';
 
-const serif = Platform.OS === 'web' ? 'Cormorant Garamond, Georgia, serif' : undefined;
+const serif = fontFamilies.serif;
 
 const CATEGORY_CONFIG: Record<string, { icon: string; color: string; label: string }> = {
   festas: { icon: 'celebration', color: '#C49A6C', label: 'Festas' },

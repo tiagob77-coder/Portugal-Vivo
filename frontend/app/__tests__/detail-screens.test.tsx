@@ -98,6 +98,7 @@ const mockTheme = {
   shadows: mockShadows,
   spacing: { 0: 0, 1: 4, 2: 8, 3: 12, 4: 16, 5: 20, 6: 24, 8: 32, 10: 40, 12: 48, 16: 64, 20: 80 },
   borders: mockBorders,
+  fontFamilies: { serif: 'serif', sans: 'System' },
   regionImages: { hero: '', norte: '', centro: '', lisboa: '', alentejo: '', algarve: '', acores: '', madeira: '' },
   withOpacity: (color: string) => color,
   getCategoryColor: jest.fn(() => '#000'),

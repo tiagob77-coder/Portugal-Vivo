@@ -6,7 +6,7 @@
 import React, { useState } from 'react';
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity,
-  ActivityIndicator, Image, Platform,
+  ActivityIndicator, Image,
 } from 'react-native';
 import { useRouter, Stack } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
@@ -15,10 +15,10 @@ import { useQuery } from '@tanstack/react-query';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useTheme } from '../src/context/ThemeContext';
 import { palette, withOpacity } from '../src/theme/colors';
-import { shadows } from '../src/theme';
+import { shadows, fontFamilies } from '../src/theme';
 import { getAnalyticsDashboard, getAnalyticsTrends } from '../src/services/api';
 
-const serif = Platform.OS === 'web' ? 'Cormorant Garamond, Georgia, serif' : undefined;
+const serif = fontFamilies.serif;
 
 const PERIODS = [
   { label: '7 dias', days: 7 },
