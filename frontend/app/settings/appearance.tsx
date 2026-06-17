@@ -15,9 +15,8 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme, COLOR_VISION_LABELS, REGION_ACCENT_NAMES } from '../../src/context/ThemeContext';
 import type { ColorVisionMode, ThemeMode } from '../../src/context/ThemeContext';
-import { shadows, fontFamilies } from '../../src/theme';
-
-const serif = fontFamilies.serif;
+import { shadows } from '../../src/theme';
+import { ScreenHeader } from '../../src/components/ui';
 
 // ─── Cores de preview para daltonismo ────────────────────────────────────────
 
@@ -58,12 +57,7 @@ export default function AppearanceScreen() {
   return (
     <View style={[s.container, { paddingTop: insets.top, backgroundColor: colors.background }]}>
       {/* Header */}
-      <View style={s.header}>
-        <TouchableOpacity onPress={() => router.back()} style={s.backBtn}>
-          <MaterialIcons name="arrow-back" size={22} color={colors.textPrimary} />
-        </TouchableOpacity>
-        <Text style={[s.headerTitle, { color: colors.textPrimary }]}>Aparência</Text>
-      </View>
+      <ScreenHeader title="Aparência" onBack={() => router.back()} />
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 40 }}>
         {/* ── Tema ──────────────────────────────────────────────────────────── */}
@@ -153,10 +147,6 @@ export default function AppearanceScreen() {
 
 const s = StyleSheet.create({
   container: { flex: 1 },
-  header: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 14, gap: 12 },
-  backBtn: { padding: 4 },
-  headerTitle: { fontSize: 20, fontWeight: '800', fontFamily: serif },
-
   sectionTitle: { fontSize: 11, fontWeight: '700', letterSpacing: 0.8, marginHorizontal: 16, marginTop: 20, marginBottom: 6 },
   hint: { fontSize: 12, marginHorizontal: 16, marginBottom: 8, lineHeight: 18 },
   group: { marginHorizontal: 16, gap: 6 },

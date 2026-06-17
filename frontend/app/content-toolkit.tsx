@@ -12,6 +12,7 @@ import { useRouter } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../src/theme';
+import { ScreenHeader } from '../src/components/ui';
 import { useAuth } from '../src/context/AuthContext';
 import { API_BASE } from '../src/config/api';
 
@@ -238,16 +239,18 @@ export default function ContentToolkitScreen() {
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
       {/* Header */}
-      <View style={[styles.header, { paddingTop: insets.top + 8, backgroundColor: colors.surface }]}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.backBtn} accessibilityLabel="Voltar">
-          <MaterialIcons name="arrow-back" size={24} color={colors.text} />
-        </TouchableOpacity>
-        <View style={{ flex: 1 }}>
-          <Text style={[styles.headerTitle, { color: colors.text }]}>Toolkit de Conteúdo</Text>
-          <Text style={[styles.headerSub, { color: colors.textSecondary }]}>Para agentes culturais</Text>
-        </View>
-        <MaterialIcons name="auto-awesome" size={24} color={accentColor} />
-      </View>
+      <ScreenHeader
+        title="Toolkit de Conteúdo"
+        subtitle="Para agentes culturais"
+        onBack={() => router.back()}
+        right={<MaterialIcons name="auto-awesome" size={24} color={accentColor} />}
+        style={{
+          paddingTop: insets.top + 8,
+          backgroundColor: colors.surface,
+          borderBottomWidth: StyleSheet.hairlineWidth,
+          borderBottomColor: 'rgba(0,0,0,0.08)',
+        }}
+      />
 
       {/* Step indicator */}
       <StepBar current={step} />
@@ -554,18 +557,6 @@ export default function ContentToolkitScreen() {
 // ─── Styles ───────────────────────────────────────────────────────────────────
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingBottom: 12,
-    gap: 12,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: 'rgba(0,0,0,0.08)',
-  },
-  backBtn: { padding: 4 },
-  headerTitle: { fontSize: 17, fontWeight: '700' },
-  headerSub: { fontSize: 12, marginTop: 1 },
   scrollContent: { padding: 16 },
   errorBanner: {
     flexDirection: 'row',
