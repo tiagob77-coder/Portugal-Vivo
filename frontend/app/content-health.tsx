@@ -14,10 +14,9 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useQuery } from '@tanstack/react-query';
 import { useTheme } from '../src/context/ThemeContext';
-import { shadows, palette, fontFamilies } from '../src/theme';
+import { shadows, palette } from '../src/theme';
+import { ScreenHeader } from '../src/components/ui';
 import { API_BASE } from '../src/config/api';
-
-const serif = fontFamilies.serif;
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -148,24 +147,20 @@ export default function ContentHealthScreen() {
         contentContainerStyle={{ paddingBottom: 40 }}
       >
         {/* Header */}
-        <View style={styles.header}>
-          <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
-            <MaterialIcons name="arrow-back" size={22} color={tc.textPrimary} />
-          </TouchableOpacity>
-          <View style={{ flex: 1 }}>
-            <Text style={[styles.title, { color: tc.textPrimary }]}>Saúde Editorial</Text>
-            <Text style={[styles.subtitle, { color: tc.textMuted }]}>
-              {total > 0 ? `${total} POIs analisados` : 'A carregar…'}
-            </Text>
-          </View>
-          <TouchableOpacity
-            onPress={() => fetch(`${API_BASE}/content-health/recompute`, { method: 'POST' })}
-            style={[styles.recomputeBtn, { borderColor: tc.borderLight }]}
-          >
-            <MaterialIcons name="refresh" size={18} color={tc.textMuted} />
-            <Text style={[styles.recomputeText, { color: tc.textMuted }]}>Recomputar</Text>
-          </TouchableOpacity>
-        </View>
+        <ScreenHeader
+          title="Saúde Editorial"
+          subtitle={total > 0 ? `${total} POIs analisados` : 'A carregar…'}
+          onBack={() => router.back()}
+          right={
+            <TouchableOpacity
+              onPress={() => fetch(`${API_BASE}/content-health/recompute`, { method: 'POST' })}
+              style={[styles.recomputeBtn, { borderColor: tc.borderLight }]}
+            >
+              <MaterialIcons name="refresh" size={18} color={tc.textMuted} />
+              <Text style={[styles.recomputeText, { color: tc.textMuted }]}>Recomputar</Text>
+            </TouchableOpacity>
+          }
+        />
 
         {/* Resumo global */}
         {loadingSum ? (
@@ -322,16 +317,6 @@ export default function ContentHealthScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    gap: 12,
-  },
-  backBtn: { padding: 4 },
-  title: { fontSize: 20, fontWeight: '800', fontFamily: serif },
-  subtitle: { fontSize: 12, marginTop: 2 },
   recomputeBtn: {
     flexDirection: 'row',
     alignItems: 'center',
