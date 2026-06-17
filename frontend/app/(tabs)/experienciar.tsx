@@ -22,7 +22,7 @@ import {
   CalendarEvent,
   VisitRecord,
 } from '../../src/services/api';
-import { useTheme } from '../../src/theme';
+import { useTheme, scrimPine } from '../../src/theme';
 import SmartImage from '../../src/components/SmartImage';
 import ErrorBoundary from '../../src/components/ErrorBoundary';
 import { useResponsive } from '../../src/hooks/useResponsive';
@@ -264,7 +264,7 @@ function ExperienciarTab() {
         style={styles.popularImage}
       />
       <LinearGradient
-        colors={['transparent', 'rgba(0,0,0,0.75)']}
+        colors={['transparent', scrimPine(0.75)]}
         style={styles.popularGradient}
       />
       <View style={styles.popularContent}>
@@ -362,7 +362,7 @@ function ExperienciarTab() {
               style={styles.suggestionImage}
             />
             <LinearGradient
-              colors={['transparent', 'rgba(0,0,0,0.85)']}
+              colors={['transparent', scrimPine(0.85)]}
               style={styles.suggestionGradient}
             />
             <View style={styles.suggestionOverlay}>

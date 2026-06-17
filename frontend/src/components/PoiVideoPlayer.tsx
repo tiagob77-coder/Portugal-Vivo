@@ -10,6 +10,7 @@
  *   onClose   — callback para fechar player
  */
 import { palette } from '../theme/colors';
+import { scrimPine } from '../theme';
 import React, { useRef, useState, useCallback } from 'react';
 import {
   View, StyleSheet, TouchableOpacity, Text,
@@ -104,7 +105,7 @@ export default function PoiVideoPlayer({
 
       {/* Gradient overlay */}
       <LinearGradient
-        colors={['transparent', 'rgba(0,0,0,0.6)']}
+        colors={['transparent', scrimPine(0.6)]}
         style={s.gradient}
         pointerEvents="none"
       />

@@ -26,7 +26,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import api from '../../src/services/api';
 import * as DocumentPicker from 'expo-document-picker';
 import * as Location from 'expo-location';
-import { colors, typography, spacing, borders, shadows } from '../../src/theme';
+import { colors, typography, spacing, borders, shadows, scrimPine } from '../../src/theme';
 // import { categoryColors } from '../../src/context/ThemeContext';
 import AccessibilityFilters from '../../src/components/AccessibilityFilters';
 import MapView, { Marker, Callout, Polyline, PROVIDER_DEFAULT, isMapAvailable, LeafletMapComponent } from '../../src/components/NativeMap';
@@ -1156,7 +1156,7 @@ function MapaTab() {
                 )}
                 {/* Content */}
                 <LinearGradient
-                  colors={['transparent', 'rgba(0,0,0,0.8)']}
+                  colors={['transparent', scrimPine(0.8)]}
                   style={styles.selectedCardGradient}
                 >
                   <View style={styles.selectedContent}>
