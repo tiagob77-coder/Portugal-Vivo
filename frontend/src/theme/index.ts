@@ -30,7 +30,7 @@ export {
 export type { SemanticColors, ModuleTheme } from './colors';
 
 // Re-export gradient + serif typography helpers
-export { gradients, heroPeriods } from './gradients';
+export { gradients, heroPeriods, scrimPine } from './gradients';
 export type { GradientPreset, HeroPeriod } from './gradients';
 export { fontFamilies } from './typography';
 

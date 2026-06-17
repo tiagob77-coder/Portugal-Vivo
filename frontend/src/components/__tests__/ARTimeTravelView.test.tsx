@@ -21,7 +21,7 @@ jest.mock('../../theme', () => {
     gray: { 400: '#9A958A', 600: '#6B665C', 700: '#5A554C', 800: '#43403A', 900: '#2C2A26' },
     white: '#FFFFFF',
   };
-  return { palette };
+  return { palette, scrimPine: (o: number) => `rgba(14,30,26,${o})` };
 });
 
 // Ensure Platform.OS is 'web' so the camera branch is skipped in test env

@@ -23,7 +23,7 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useQuery } from '@tanstack/react-query';
 import api, { getAgendaLive, AgendaEvent } from '../../src/services/api';
-import { colors, shadows, fontFamilies } from '../../src/theme';
+import { colors, shadows, fontFamilies, scrimPine } from '../../src/theme';
 import { palette } from '../../src/theme/colors';
 import { useTheme } from '../../src/context/ThemeContext';
 import { CONTENT_MAX_WIDTH } from '../../src/theme/breakpoints';
@@ -380,7 +380,7 @@ export default function EventosTab() {
           contentFit="cover"
         />
         <LinearGradient
-          colors={['transparent', 'rgba(0,0,0,0.85)']}
+          colors={['transparent', scrimPine(0.85)]}
           style={styles.eventGradient}
         />
         

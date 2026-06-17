@@ -10,7 +10,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useQuery } from '@tanstack/react-query';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import api, { getStats, getTopScoredItems, getStories, TopScoredItem, StoryItem } from '../src/services/api';
-import { regionImages } from '../src/theme';
+import { regionImages, scrimPine } from '../src/theme';
 import { useTheme } from '../src/context/ThemeContext';
 import { palette, categoryColors, withOpacity } from '../src/theme/colors';
 import { useResponsive } from '../src/hooks/useResponsive';
@@ -366,7 +366,7 @@ export default function WelcomeScreen() {
                   imageStyle={{ borderRadius: 16 }}
                 >
                   <LinearGradient
-                    colors={['transparent', 'rgba(0,0,0,0.55)', 'rgba(0,0,0,0.8)']}
+                    colors={['transparent', scrimPine(0.55), scrimPine(0.8)]}
                     locations={[0.2, 0.6, 1]}
                     style={s.actionCardGrad}
                   >
@@ -409,7 +409,7 @@ export default function WelcomeScreen() {
                   imageStyle={{ borderRadius: 16 }}
                 >
                   <LinearGradient
-                    colors={['transparent', 'rgba(0,0,0,0.6)', 'rgba(0,0,0,0.85)']}
+                    colors={['transparent', scrimPine(0.6), scrimPine(0.85)]}
                     locations={[0.3, 0.65, 1]}
                     style={s.regionCardGrad}
                   >
@@ -454,7 +454,7 @@ export default function WelcomeScreen() {
                     imageStyle={{ borderRadius: 14 }}
                   >
                     <LinearGradient
-                      colors={['transparent', 'rgba(0,0,0,0.7)']}
+                      colors={['transparent', scrimPine(0.7)]}
                       style={s.descCardGrad}
                     >
                       <View style={s.descBadge}>
@@ -485,7 +485,7 @@ export default function WelcomeScreen() {
                   data-testid={`story-${i}`}
                 >
                   <ImageBackground source={{ uri: story.image_url }} style={s.storyCardImg} imageStyle={{ borderTopLeftRadius: 16, borderTopRightRadius: 16 }}>
-                    <LinearGradient colors={['transparent', 'rgba(0,0,0,0.6)']} style={s.storyCardImgGrad}>
+                    <LinearGradient colors={['transparent', scrimPine(0.6)]} style={s.storyCardImgGrad}>
                       <View style={s.storyBadgeRow}>
                         <View style={s.storyRegionBadge}>
                           <Text style={s.storyRegionText}>{story.region}</Text>

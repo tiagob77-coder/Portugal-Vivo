@@ -61,4 +61,13 @@ export const heroPeriods = {
 
 export type HeroPeriod = keyof typeof heroPeriods;
 
+/**
+ * Cor de scrim verde-pinhal a uma dada opacidade. Substitui os scrims pretos
+ * planos (`rgba(0,0,0,X)`) usados em overlays de cartões/heros, preservando a
+ * opacidade original mas dando a temperatura quente da marca (coeso com cardScrim).
+ *
+ * @example <LinearGradient colors={['transparent', scrimPine(0.85)]} />
+ */
+export const scrimPine = (opacity: number): string => `rgba(${PINE},${opacity})`;
+
 export default gradients;

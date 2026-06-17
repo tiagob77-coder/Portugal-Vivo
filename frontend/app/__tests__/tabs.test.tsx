@@ -110,6 +110,7 @@ jest.mock('../../src/theme', () => ({
   stateColors: {},
   mapColors: {},
   fontFamilies: { serif: 'serif', sans: 'System' },
+  scrimPine: (o: number) => `rgba(14,30,26,${o})`,
   gradients: {
     cardScrim: { colors: ['transparent', 'rgba(0,0,0,0.45)', 'rgba(0,0,0,0.88)'], locations: [0, 0.5, 1] },
     cardScrimSoft: { colors: ['transparent', 'rgba(0,0,0,0.25)', 'rgba(0,0,0,0.7)'], locations: [0, 0.55, 1] },

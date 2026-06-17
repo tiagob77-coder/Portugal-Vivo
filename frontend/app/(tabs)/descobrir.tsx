@@ -24,7 +24,7 @@ import {
 import HojeEmPortugalCard, { HojeData } from '../../src/components/HojeEmPortugalCard';
 import ErrorBoundary from '../../src/components/ErrorBoundary';
 import { API_BASE } from '../../src/config/api';
-import { typography, shadows, regionImages, gradients, heroPeriods, fontFamilies } from '../../src/theme';
+import { typography, shadows, regionImages, gradients, heroPeriods, fontFamilies, scrimPine } from '../../src/theme';
 import type { HeroPeriod } from '../../src/theme';
 import { palette } from '../../src/theme/colors';
 import { useTheme } from '../../src/context/ThemeContext';
@@ -715,7 +715,7 @@ function DescobrerTab() {
                 accessibilityRole="button"
               >
                 <ImageBackground source={{ uri: region.image }} style={styles.regionImage} imageStyle={styles.regionImageStyle}>
-                  <LinearGradient colors={['transparent', 'rgba(0,0,0,0.55)']} style={styles.regionGradient}>
+                  <LinearGradient colors={['transparent', scrimPine(0.55)]} style={styles.regionGradient}>
                     <View style={styles.regionContent}>
                       <Text style={styles.regionName}>{region.name}</Text>
                       <Text style={styles.regionSubtitle}>{region.subtitle}</Text>

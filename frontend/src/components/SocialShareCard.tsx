@@ -9,7 +9,7 @@ import {
 } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
-import { palette } from '../theme';
+import { palette, scrimPine } from '../theme';
 import { useTheme } from '../context/ThemeContext';
 import { PUBLIC_URL } from '../config/api';
 
@@ -112,7 +112,7 @@ export default function SocialShareCard({
                 imageStyle={styles.cardImageStyle}
               >
                 <LinearGradient
-                  colors={['transparent', 'rgba(0,0,0,0.85)']}
+                  colors={['transparent', scrimPine(0.85)]}
                   style={styles.cardGradient}
                 >
                   {category && (

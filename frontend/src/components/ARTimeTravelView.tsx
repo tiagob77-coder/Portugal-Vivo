@@ -18,7 +18,7 @@ import {
 import { LinearGradient } from 'expo-linear-gradient';
 import { MaterialIcons } from '@expo/vector-icons';
 import { BlurView } from 'expo-blur';
-import { palette } from '../theme';
+import { palette, scrimPine } from '../theme';
 
 const { width: SW, height: SH } = Dimensions.get('window');
 
@@ -504,7 +504,7 @@ function WebTimeTravelFallback({
 
         {/* Item name + era */}
         <LinearGradient
-          colors={['transparent', 'rgba(0,0,0,0.85)']}
+          colors={['transparent', scrimPine(0.85)]}
           style={styles.webHeroGradient}
         >
           <Text style={styles.webHeroTitle}>{itemName}</Text>

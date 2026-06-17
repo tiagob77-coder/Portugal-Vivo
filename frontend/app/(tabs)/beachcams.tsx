@@ -13,7 +13,7 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useQuery } from '@tanstack/react-query';
-import { typography, shadows } from '../../src/theme';
+import { typography, shadows, scrimPine } from '../../src/theme';
 import { palette } from '../../src/theme/colors';
 import { useTheme } from '../../src/context/ThemeContext';
 import api, { getBeaches, getBeachBandeiraAzul } from '../../src/services/api';
@@ -246,7 +246,7 @@ export default function BeachcamsScreen() {
                         transition={300}
                       />
                       <LinearGradient
-                        colors={['transparent', 'rgba(0,0,0,0.8)']}
+                        colors={['transparent', scrimPine(0.8)]}
                         style={styles.camGradient}
                       />
                       
