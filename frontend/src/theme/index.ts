@@ -46,9 +46,9 @@ export const colors = {
     tertiary: '#F7F4EE',
     dark: palette.forest[500],       // #2E5E4E
   },
-  success: '#3FA66B',
-  warning: '#E8A23A',
-  error: '#C44536',
+  success: '#22C55E',
+  warning: '#F59E0B',
+  error: '#EF4444',
   info: '#2A6F97',
   categories: categoryColors,
 } as const;

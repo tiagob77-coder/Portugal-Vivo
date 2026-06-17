@@ -190,9 +190,9 @@ export const lightColors: SemanticColors = {
   border: palette.gray[200],
   borderLight: palette.gray[100],
   overlay: 'rgba(28, 31, 28, 0.5)',
-  success: '#3FA66B',
-  warning: '#E8A23A',
-  error: '#C44536',
+  success: '#22C55E',
+  warning: '#F59E0B',
+  error: '#EF4444',
   info: '#2A6F97',
 };
 
@@ -218,9 +218,9 @@ export const darkColors: SemanticColors = {
   border: palette.forest[600],
   borderLight: palette.forest[700],
   overlay: 'rgba(0, 0, 0, 0.6)',
-  success: '#3CB371',
-  warning: '#D4A574',
-  error: '#D65A4A',
+  success: '#4ADE80',
+  warning: '#FBBF24',
+  error: '#F87171',
   info: '#7EC8E3',
 };
 
