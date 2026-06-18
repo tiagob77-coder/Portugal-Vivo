@@ -12,9 +12,10 @@ import json
 from typing import Optional
 
 import yaml
-from fastapi import APIRouter, Query
+from fastapi import APIRouter, Depends, Query
 from fastapi.responses import PlainTextResponse, JSONResponse
 from shared_utils import DatabaseHolder
+from auth_api import require_admin
 
 iq_monitor_router = APIRouter(prefix="/iq-monitor", tags=["IQ Monitor"])
 
@@ -102,7 +103,7 @@ async def get_iq_overview():
 
 
 @iq_monitor_router.get("/admin")
-async def get_iq_admin():
+async def get_iq_admin(admin: dict = Depends(require_admin)):
     """Detailed IQ Engine stats for admin/developer panel"""
     db = _get_db()
     c = db.heritage_items
@@ -246,7 +247,7 @@ async def get_reliability_stats():
 
 
 @iq_monitor_router.get("/export/yaml/{poi_id}", response_class=PlainTextResponse)
-async def export_poi_yaml(poi_id: str):
+async def export_poi_yaml(poi_id: str, admin: dict = Depends(require_admin)):
     """
     Export a single POI as YAML — includes all IQ Engine fields.
     """
@@ -271,6 +272,7 @@ async def export_poi_yaml(poi_id: str):
 
 @iq_monitor_router.get("/export/geojson")
 async def export_geojson(
+    admin: dict = Depends(require_admin),
     min_lat: float = Query(..., description="Bounding box south latitude"),
     max_lat: float = Query(..., description="Bounding box north latitude"),
     min_lng: float = Query(..., description="Bounding box west longitude"),

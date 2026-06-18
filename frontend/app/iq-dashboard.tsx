@@ -4,7 +4,7 @@
  * Painel de controlo do motor IQ para visualização de scores,
  * processamento de POIs e gestão da qualidade dos dados.
  */
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -26,6 +26,7 @@ import {
 } from '../src/services/api';
 import { colors, typography, spacing, borders, shadows } from '../src/theme';
 import { useResponsive } from '../src/hooks/useResponsive';
+import { useAuth } from '../src/context/AuthContext';
 const TENANT_ID = 'braga'; // Default tenant for demo
 
 // Module display names and icons
@@ -241,6 +242,13 @@ export default function IQDashboard() {
   const insets = useSafeAreaInsets();
   const { width } = useResponsive();
   const _queryClient = useQueryClient();
+  const { user, isLoading: authLoading } = useAuth();
+
+  useEffect(() => {
+    if (!authLoading && (!user || (user.role !== 'admin' && !user.is_admin))) {
+      router.replace('/');
+    }
+  }, [user, authLoading, router]);
   const [selectedPOI, setSelectedPOI] = useState<string | null>(null);
   const [processResult, setProcessResult] = useState<IQProcessResult | null>(null);
 

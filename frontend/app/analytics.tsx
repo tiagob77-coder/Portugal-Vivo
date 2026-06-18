@@ -3,7 +3,7 @@
  * Engagement metrics: visits, retention, user growth, top POIs/routes,
  * category & region breakdown with configurable time period.
  */
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity,
   ActivityIndicator, Image,
@@ -14,6 +14,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useQuery } from '@tanstack/react-query';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useTheme } from '../src/context/ThemeContext';
+import { useAuth } from '../src/context/AuthContext';
 import { palette, withOpacity } from '../src/theme/colors';
 import { shadows, fontFamilies } from '../src/theme';
 import { getAnalyticsDashboard, getAnalyticsTrends } from '../src/services/api';
@@ -144,6 +145,13 @@ export default function AnalyticsScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { colors } = useTheme();
+  const { user, isLoading: authLoading } = useAuth();
+
+  useEffect(() => {
+    if (!authLoading && (!user || (user.role !== 'admin' && !user.is_admin))) {
+      router.replace('/');
+    }
+  }, [user, authLoading, router]);
   const [period, setPeriod] = useState(30);
   const [trendMetric, setTrendMetric] = useState<'visits' | 'new_users'>('visits');
 
