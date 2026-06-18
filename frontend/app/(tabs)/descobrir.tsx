@@ -68,9 +68,9 @@ const QUICK_ACTIONS = [
 
 const PROFILE_LABELS: Record<string, { label: string; icon: string; color: string }> = {
   aventureiro: { label: 'Aventureiro', icon: 'terrain', color: palette.forest[500] },
-  gastronomo: { label: 'Gastrónomo', icon: 'restaurant', color: '#C65D3B' },
-  cultural: { label: 'Cultural', icon: 'account-balance', color: '#8B6914' },
-  familia: { label: 'Família', icon: 'family-restroom', color: '#5B8C5A' },
+  gastronomo: { label: 'Gastrónomo', icon: 'restaurant', color: palette.rust[500] },
+  cultural: { label: 'Cultural', icon: 'account-balance', color: palette.filigrana[700] },
+  familia: { label: 'Família', icon: 'family-restroom', color: palette.mint[600] },
 };
 
 function DescobrerTab() {
@@ -732,7 +732,7 @@ function DescobrerTab() {
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
               <View style={styles.sectionTitleRow}>
-                <MaterialIcons name="auto-awesome" size={18} color="#8E24AA" />
+                <MaterialIcons name="auto-awesome" size={18} color={colors.accent} />
                 <Text style={[styles.sectionTitle, ds.textPrimary]}>Enciclopedia Viva</Text>
               </View>
               <TouchableOpacity onPress={() => router.push('/(tabs)/coleccoes')} accessibilityLabel="Ver toda a Enciclopédia Viva" accessibilityRole="link">
@@ -986,7 +986,7 @@ function DescobrerTab() {
               title: 'Mar & Costa',
               subtitle: 'Zonas costeiras, biodiversidade marinha e cultura do mar',
               icon: 'sailing' as const,
-              color: '#0891B2',
+              color: palette.ocean[500],
               modules: [
                 { name: 'Costa de Portugal', route: '/costa', icon: 'waves' as const, count: '10 zonas' },
                 { name: 'Biodiversidade Marinha', route: '/biodiversidade', icon: 'water' as const, count: '10 spots' },
@@ -997,7 +997,7 @@ function DescobrerTab() {
               title: 'Natureza Viva',
               subtitle: 'Flora endémica, fauna e infraestruturas naturais',
               icon: 'eco' as const,
-              color: '#059669',
+              color: palette.forest[500],
               modules: [
                 { name: 'Flora Endémica', route: '/flora', icon: 'local-florist' as const, count: '8 espécies' },
                 { name: 'Fauna & Habitats', route: '/fauna', icon: 'pets' as const, count: '8 espécies' },
@@ -1008,7 +1008,7 @@ function DescobrerTab() {
               title: 'Património & Cultura',
               subtitle: 'Música, pré-história, astronomia e economia local',
               icon: 'account-balance' as const,
-              color: '#B45309',
+              color: palette.terracotta[600],
               modules: [
                 { name: 'Rotas Culturais', route: '/rotas-culturais', icon: 'auto-awesome' as const, count: '22 rotas' },
                 { name: 'Música Tradicional', route: '/musica', icon: 'music-note' as const, count: '14 tradições' },
@@ -1281,7 +1281,7 @@ const styles = StyleSheet.create({
   // Mission badge on quick action
   actionBadge: {
     position: 'absolute', top: -4, right: -4,
-    backgroundColor: '#EF4444', borderRadius: 8,
+    backgroundColor: palette.encarnado[500], borderRadius: 8,
     minWidth: 16, height: 16, alignItems: 'center', justifyContent: 'center',
   },
   actionBadgeText: { color: '#FFF', fontSize: 9, fontWeight: '800', paddingHorizontal: 2 },

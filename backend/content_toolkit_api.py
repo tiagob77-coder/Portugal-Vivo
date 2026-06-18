@@ -611,7 +611,7 @@ async def publish_draft(
 
 
 @toolkit_router.get("/guidelines")
-async def get_guidelines():
+async def get_guidelines(current_user: dict = Depends(require_auth)):
     """Return style guide, authenticity principles, and writing tips for cultural agents."""
     return {
         "style_guide": STYLE_GUIDELINES,

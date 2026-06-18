@@ -204,7 +204,7 @@ async def get_iq_admin(admin: dict = Depends(require_admin)):
 # ──────────────────────────────────────────────────────────────────────────────
 
 @iq_monitor_router.get("/reliability-stats")
-async def get_reliability_stats():
+async def get_reliability_stats(admin: dict = Depends(require_admin)):
     """
     Returns breakdown of POIs by reliability level (A / B / C).
     Also includes avg iq_score per level and list of sources responsible
