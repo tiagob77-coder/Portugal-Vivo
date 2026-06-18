@@ -4,11 +4,12 @@ Provides aggregate analytics: visits, retention, most shared routes,
 most favorited POIs, and user growth over configurable periods.
 """
 import asyncio
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
 from typing import Optional
 from datetime import datetime, timezone, timedelta
 
 from shared_utils import DatabaseHolder, clamp_pagination
+from auth_api import require_admin
 
 import logging
 logger = logging.getLogger(__name__)
@@ -20,7 +21,7 @@ set_analytics_db = _db_holder.set
 
 
 @analytics_router.get("/analytics/dashboard")
-async def analytics_dashboard(period_days: int = 30):
+async def analytics_dashboard(period_days: int = 30, admin: dict = Depends(require_admin)):
     """
     Engagement analytics dashboard.
 
@@ -194,7 +195,7 @@ async def analytics_dashboard(period_days: int = 30):
 
 
 @analytics_router.get("/analytics/trends")
-async def analytics_trends(metric: str = "visits", days: int = 30):
+async def analytics_trends(metric: str = "visits", days: int = 30, admin: dict = Depends(require_admin)):
     """
     Get daily trend data for a specific metric.
     Metrics: visits, new_users, favorites

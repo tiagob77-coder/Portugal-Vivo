@@ -2,7 +2,7 @@
  * IQ Admin Panel - Painel de Monitorização Detalhado (Dev/Admin)
  * Mostra módulos, batches, top/bottom POIs, fontes, processamento recente
  */
-import React from 'react';
+import React, { useEffect } from 'react';
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity,
   ActivityIndicator, RefreshControl,
@@ -12,6 +12,7 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useQuery } from '@tanstack/react-query';
 import { getIQAdmin } from '../src/services/api';
+import { useAuth } from '../src/context/AuthContext';
 import { colors } from '../src/theme';
 import { palette, withOpacity } from '../src/theme/colors';
 
@@ -39,6 +40,13 @@ const MODULE_DISPLAY: Record<string, { name: string; icon: string; color: string
 export default function IQAdminScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const { user, isLoading: authLoading } = useAuth();
+
+  useEffect(() => {
+    if (!authLoading && (!user || (user.role !== 'admin' && !user.is_admin))) {
+      router.replace('/');
+    }
+  }, [user, authLoading, router]);
 
   const { data, isLoading, refetch, isRefetching } = useQuery({
     queryKey: ['iq-admin'],

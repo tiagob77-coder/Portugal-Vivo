@@ -28,6 +28,7 @@ from datetime import datetime, timezone, timedelta
 from typing import Any, Dict, List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query
+from auth_api import require_admin
 from pydantic import BaseModel
 
 logger = logging.getLogger(__name__)
@@ -291,6 +292,7 @@ async def get_poi_health_score(poi_id: str):
 
 @health_router.get("/stale", response_model=StaleQueueResponse)
 async def get_stale_queue(
+    admin: dict = Depends(require_admin),
     page: int = Query(1, ge=1),
     page_size: int = Query(30, ge=1, le=100),
     tier: Optional[str] = Query(None, description="critical | stale | attention | healthy"),
@@ -366,6 +368,7 @@ async def get_stale_queue(
 @health_router.get("/summary", response_model=HealthSummaryResponse)
 async def get_health_summary(
     region: Optional[str] = Query(None),
+    admin: dict = Depends(require_admin),
 ):
     """Distribuição de saúde editorial agregada — para o dashboard de admin."""
     if _db_or_none() is None:
@@ -409,7 +412,7 @@ async def get_health_summary(
 
 
 @health_router.post("/recompute")
-async def recompute_scores(current_user: dict = Depends(lambda: None)):
+async def recompute_scores(admin: dict = Depends(require_admin)):
     """
     Recomputa e persiste health scores em 'heritage_items' (campo content_health_score).
     Operação pesada — chamar em off-peak ou via cron.

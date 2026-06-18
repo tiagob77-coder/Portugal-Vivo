@@ -4,7 +4,7 @@
  * Mostra a distribuição de saúde editorial dos POIs e a fila de trabalho
  * ordenada pelos mais críticos. Liga directamente ao Content Toolkit.
  */
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity,
   ActivityIndicator, RefreshControl,
@@ -14,6 +14,7 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useQuery } from '@tanstack/react-query';
 import { useTheme } from '../src/context/ThemeContext';
+import { useAuth } from '../src/context/AuthContext';
 import { shadows, palette } from '../src/theme';
 import { ScreenHeader } from '../src/components/ui';
 import { API_BASE } from '../src/config/api';
@@ -121,6 +122,13 @@ export default function ContentHealthScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { colors: tc } = useTheme();
+  const { user, isLoading: authLoading } = useAuth();
+
+  useEffect(() => {
+    if (!authLoading && (!user || (user.role !== 'admin' && !user.is_admin))) {
+      router.replace('/');
+    }
+  }, [user, authLoading, router]);
   const [activeTier, setActiveTier] = useState<string | undefined>(undefined);
   const [activeFlag, setActiveFlag] = useState<string | undefined>(undefined);
 
