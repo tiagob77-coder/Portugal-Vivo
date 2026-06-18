@@ -37,24 +37,72 @@ class AudioGuideService:
     """Service for generating audio guides using OpenAI TTS"""
 
     def __init__(self):
-        self.api_key = os.getenv("EMERGENT_LLM_KEY")
+        # Mirror llm_client's auto-select: prefer direct OpenAI, fall back to
+        # the Emergent proxy (legacy), else no remote provider at all. This
+        # keeps the audio guide aligned with the rest of the app instead of
+        # hard-requiring EMERGENT_LLM_KEY.
+        self.openai_key = os.getenv("OPENAI_API_KEY", "").strip()
+        self.emergent_key = os.getenv("EMERGENT_LLM_KEY", "").strip()
+        forced = os.getenv("LLM_PROVIDER", "").strip().lower()
+        if forced == "openai":
+            self.provider = "openai" if self.openai_key else None
+        elif forced == "emergent":
+            self.provider = "emergent" if self.emergent_key else None
+        elif self.openai_key:
+            self.provider = "openai"
+        elif self.emergent_key:
+            self.provider = "emergent"
+        else:
+            self.provider = None
+
+        # Persist the cache outside /tmp when AUDIO_CACHE_DIR points at a volume.
+        self._cache_dir = Path(os.getenv("AUDIO_CACHE_DIR", "/tmp/audio_guides"))
+        self._cache_dir.mkdir(parents=True, exist_ok=True)
         self._tts_client = None
-        self._cache_dir = Path("/tmp/audio_guides")
-        self._cache_dir.mkdir(exist_ok=True)
 
-        if not self.api_key:
-            logger.warning("EMERGENT_LLM_KEY not found - TTS will not be available")
+        if not self.provider:
+            logger.warning(
+                "No TTS provider configured (OPENAI_API_KEY / EMERGENT_LLM_KEY); "
+                "audio guides fall back to on-device speech"
+            )
 
-    async def _get_tts_client(self):
-        """Lazy initialization of TTS client"""
+    async def _get_emergent_client(self):
+        """Lazy init of the Emergent TTS client (legacy path)."""
         if self._tts_client is None:
-            try:
-                from emergentintegrations.llm.openai import OpenAITextToSpeech
-                self._tts_client = OpenAITextToSpeech(api_key=self.api_key)
-            except ImportError:
-                logger.error("emergentintegrations not installed")
-                raise ImportError("emergentintegrations library not available")
+            from emergentintegrations.llm.openai import OpenAITextToSpeech
+            self._tts_client = OpenAITextToSpeech(api_key=self.emergent_key)
         return self._tts_client
+
+    async def _synthesize(self, text: str, model: str, voice: str, speed: float) -> bytes:
+        """Synthesize mp3 speech bytes using the active provider."""
+        if self.provider == "openai":
+            return await self._synthesize_openai(text, model, voice, speed)
+        client = await self._get_emergent_client()
+        return await client.generate_speech(
+            text=text, model=model, voice=voice, speed=speed, response_format="mp3",
+        )
+
+    async def _synthesize_openai(self, text: str, model: str, voice: str, speed: float) -> bytes:
+        """Call OpenAI's /v1/audio/speech directly — no extra dependency needed."""
+        import httpx
+
+        async with httpx.AsyncClient(timeout=30.0) as client:
+            resp = await client.post(
+                "https://api.openai.com/v1/audio/speech",
+                headers={
+                    "Authorization": f"Bearer {self.openai_key}",
+                    "Content-Type": "application/json",
+                },
+                json={
+                    "model": model,
+                    "voice": voice,
+                    "input": text,
+                    "speed": speed,
+                    "response_format": "mp3",
+                },
+            )
+        resp.raise_for_status()
+        return resp.content
 
     def _get_cache_key(self, text: str, voice: str, speed: float) -> str:
         """Generate cache key for audio"""
@@ -113,6 +161,12 @@ class AudioGuideService:
 
         return pt_hint + intro + cleaned
 
+    def _device_text(self, text: str, poi_name: str) -> str:
+        """Plain narration text for on-device TTS — no engine hints, trimmed."""
+        intro = f"Bem-vindo a {poi_name}. "
+        cleaned = text.strip().replace("...", ". ")
+        return (intro + cleaned)[:1500]
+
     async def generate_audio_guide(
         self,
         text: str,
@@ -138,19 +192,31 @@ class AudioGuideService:
         Returns:
             Dict with audio_url, audio_base64, duration_estimate, voice, etc.
         """
-        if not self.api_key:
+        # Voice/speed and a device-fallback payload are computed up front so we
+        # can always return readable text for on-device TTS — the client never
+        # shows a dead "Ouvir" button.
+        voice = self._select_voice(category, None)
+        speed_value = SPEED_PROFILES.get(speed, 1.0)
+        device_text = self._device_text(text, poi_name)
+
+        def _device_fallback(reason: str) -> Dict[str, Any]:
             return {
                 "success": False,
-                "error": "TTS service not configured",
-                "audio_available": False
+                "audio_available": False,
+                "fallback": "device",
+                "tts_provider": None,
+                "text": device_text,
+                "voice": voice,
+                "language": language,
+                "poi_id": poi_id,
+                "poi_name": poi_name,
+                "error": reason,
             }
 
-        try:
-            # Select voice and speed
-            voice = self._select_voice(category, None)
-            speed_value = SPEED_PROFILES.get(speed, 1.0)
+        if not self.provider:
+            return _device_fallback("TTS remoto não configurado; usar voz do dispositivo")
 
-            # Prepare text
+        try:
             prepared_text = self._prepare_text_for_tts(text, poi_name, language)
 
             # Check cache
@@ -167,24 +233,15 @@ class AudioGuideService:
                     "speed": speed_value,
                     "model": "tts-1-hd" if use_hd else "tts-1",
                     "cached": True,
+                    "tts_provider": self.provider,
                     "duration_estimate_seconds": len(prepared_text) / 15,  # Rough estimate
                     "poi_id": poi_id,
                     "poi_name": poi_name,
                     "language": language
                 }
 
-            # Generate new audio
-            tts = await self._get_tts_client()
-
             model = "tts-1-hd" if use_hd else "tts-1"
-
-            audio_bytes = await tts.generate_speech(
-                text=prepared_text,
-                model=model,
-                voice=voice,
-                speed=speed_value,
-                response_format="mp3"
-            )
+            audio_bytes = await self._synthesize(prepared_text, model, voice, speed_value)
 
             # Cache the audio
             self._cache_audio(cache_key, audio_bytes)
@@ -196,7 +253,7 @@ class AudioGuideService:
             word_count = len(prepared_text.split())
             duration_estimate = (word_count / 150) * 60 / speed_value
 
-            logger.info(f"Generated audio guide for {poi_name} ({len(audio_bytes)} bytes)")
+            logger.info(f"Generated audio guide for {poi_name} ({len(audio_bytes)} bytes, provider={self.provider})")
 
             return {
                 "success": True,
@@ -206,6 +263,7 @@ class AudioGuideService:
                 "speed": speed_value,
                 "model": model,
                 "cached": False,
+                "tts_provider": self.provider,
                 "duration_estimate_seconds": round(duration_estimate, 1),
                 "text_length": len(prepared_text),
                 "poi_id": poi_id,
@@ -215,19 +273,11 @@ class AudioGuideService:
             }
 
         except ImportError as e:
-            logger.error(f"TTS library not available: {e}")
-            return {
-                "success": False,
-                "error": "TTS library not installed",
-                "audio_available": False
-            }
+            logger.error(f"TTS library not available ({e}); falling back to on-device speech")
+            return _device_fallback("Biblioteca TTS indisponível; usar voz do dispositivo")
         except Exception as e:
-            logger.error(f"TTS generation error: {e}")
-            return {
-                "success": False,
-                "error": str(e),
-                "audio_available": False
-            }
+            logger.error(f"TTS generation error ({e}); falling back to on-device speech")
+            return _device_fallback("Falha no TTS remoto; usar voz do dispositivo")
 
     async def get_available_voices(self) -> Dict[str, Any]:
         """Get list of available voices with descriptions"""
