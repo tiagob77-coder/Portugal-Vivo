@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, Platform, ImageBackground, Linking, Share, Alert } from 'react-native';
 import OptimizedImage from '../../src/components/OptimizedImage';
 import { useLocalSearchParams, useRouter, Stack } from 'expo-router';
@@ -499,19 +499,31 @@ export default function HeritageDetailScreen() {
       if (sound) {
         sound.unloadAsync();
       }
+      Speech.stop();
     };
   }, [sound]);
 
-  // Handle audio guide - using REAL TTS from backend (Premium feature)
+  // Tracks whether the active playback is remote (mp3 Sound) or on-device
+  // (expo-speech fallback) so the stop toggle hits the right engine.
+  const audioModeRef = useRef<'remote' | 'device' | null>(null);
+
+  // Handle audio guide — real TTS from backend, with a graceful on-device
+  // fallback so the "Ouvir" button is never dead (Premium feature).
   const handlePlayAudio = async () => {
     if (!isPremium) {
       router.push('/premium');
       return;
     }
-    if (isPlayingAudio && sound) {
-      await sound.stopAsync();
-      await sound.unloadAsync();
-      setSound(null);
+    // Toggle: stop whatever is currently playing.
+    if (isPlayingAudio) {
+      if (audioModeRef.current === 'device') {
+        Speech.stop();
+      } else if (sound) {
+        await sound.stopAsync();
+        await sound.unloadAsync();
+        setSound(null);
+      }
+      audioModeRef.current = null;
       setIsPlayingAudio(false);
       return;
     }
@@ -522,32 +534,41 @@ export default function HeritageDetailScreen() {
     setAudioError(null);
 
     try {
-      // Get audio from backend TTS service
       const audioResult = await getAudioGuideForItem(item.id);
-      
-      if (!audioResult.success || !audioResult.audio_base64) {
+
+      if (audioResult.success && audioResult.audio_base64) {
+        // Remote TTS available — play the generated mp3.
+        const audioUri = `data:audio/mp3;base64,${audioResult.audio_base64}`;
+        const { sound: newSound } = await Audio.Sound.createAsync(
+          { uri: audioUri },
+          { shouldPlay: true },
+          (status) => {
+            if (status.isLoaded && status.didJustFinish) {
+              setIsPlayingAudio(false);
+              newSound.unloadAsync();
+              setSound(null);
+              audioModeRef.current = null;
+            }
+          }
+        );
+        setSound(newSound);
+        audioModeRef.current = 'remote';
+        setIsPlayingAudio(true);
+      } else if (audioResult.text) {
+        // No remote provider / TTS failed — read the narration with the
+        // on-device voice so the experience still works in the pilot.
+        audioModeRef.current = 'device';
+        setIsPlayingAudio(true);
+        Speech.speak(audioResult.text, {
+          language: 'pt-PT',
+          rate: 0.9,
+          onDone: () => { setIsPlayingAudio(false); audioModeRef.current = null; },
+          onError: () => { setIsPlayingAudio(false); audioModeRef.current = null; },
+          onStopped: () => { setIsPlayingAudio(false); audioModeRef.current = null; },
+        });
+      } else {
         throw new Error(audioResult.error || 'Não foi possível gerar áudio');
       }
-
-      // Convert base64 to audio file and play
-      const audioUri = `data:audio/mp3;base64,${audioResult.audio_base64}`;
-      
-      // Load and play audio
-      const { sound: newSound } = await Audio.Sound.createAsync(
-        { uri: audioUri },
-        { shouldPlay: true },
-        (status) => {
-          if (status.isLoaded && status.didJustFinish) {
-            setIsPlayingAudio(false);
-            newSound.unloadAsync();
-            setSound(null);
-          }
-        }
-      );
-      
-      setSound(newSound);
-      setIsPlayingAudio(true);
-      
     } catch (error: any) {
       const status = error?.response?.status;
       if (status === 401 || status === 403) {

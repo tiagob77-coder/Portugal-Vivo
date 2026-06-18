@@ -18,6 +18,11 @@ export interface AudioGuideResult {
   language?: string;
   error?: string;
   audio_available?: boolean;
+  // Graceful fallback: when no remote TTS provider is configured the backend
+  // returns the narration text so the client can read it with on-device speech.
+  text?: string;
+  fallback?: string;
+  tts_provider?: string | null;
 }
 
 export interface AudioVoice {
