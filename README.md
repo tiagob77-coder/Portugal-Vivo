@@ -500,6 +500,12 @@ Os builds iOS / Android correm na cloud da Expo via GitHub Action — não é pr
 
 Pré-build sanity check local: `./scripts/eas_prebuild_check.sh production`.
 
+### Validar no telemóvel
+
+Guia passo-a-passo em **[README-validar.md](./README-validar.md)** — Expo Go (dev server), build EAS `preview` (APK instalável sem dev server) e EAS Update OTA.
+
+Canais EAS Update configurados em `eas.json` (`development` / `preview` / `production`) com `runtimeVersion` por `appVersion` (`app.json`). Iterar sem rebuild: `eas update --branch preview`.
+
 ### Privacy Manifest (App Store mandatory desde Maio 2024)
 
 `frontend/PrivacyInfo.xcprivacy` declara required-reason API uses (UserDefaults, FileTimestamp, DiskSpace, SystemBootTime) e collected data types (email, location, crash data — todos não-tracking). É copiado para `ios/<AppName>/PrivacyInfo.xcprivacy` durante prebuild via plugin `frontend/plugins/withPrivacyManifest.js`.
