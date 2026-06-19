@@ -10,6 +10,8 @@ Events are cached in MongoDB with TTL to avoid excessive external calls.
 """
 import httpx
 import logging
+import re
+import unicodedata
 from datetime import datetime, timezone, timedelta
 from typing import List, Optional, Dict, Any
 import hashlib
@@ -19,6 +21,44 @@ logger = logging.getLogger(__name__)
 
 # Cache TTL: refresh external data every 6 hours
 CACHE_TTL_HOURS = 6
+
+# ------------------------------------------------------------
+# DEDUPLICATION
+# Curated and Excel sources describe the same real-world events with slightly
+# different ids/names, so id-only dedup leaves visible duplicate cards. We dedup
+# by (a) a year-stripped slug with a manual alias map for divergent names and
+# (b) a normalized (month, name) key that catches identical/near-identical names
+# automatically. Curated events are appended first and therefore win (they carry
+# real start/end days, while Excel rows use placeholder day 1–15).
+# ------------------------------------------------------------
+
+# Excel slug-base -> curated slug-base, for pairs whose display names differ.
+_DUP_ALIASES = {
+    "festa-da-flor": "festa-flor-madeira",
+    "senhora-da-agonia": "romaria-agonia",
+    "queima-das-fitas": "queima-fitas",
+    "vilar-de-mouros": "vilar-mouros",
+    "vodafone-paredes-de-coura": "paredes-coura",
+    "meo-sudoeste": "festival-sudoeste",
+    "caretos-de-podence": "caretos-podence",
+    "feira-de-sao-mateus": "feira-sao-mateus",
+}
+
+
+def _strip_year(event_id: str) -> str:
+    return re.sub(r"-?\d{4}$", "", event_id or "")
+
+
+def _norm_name(name: str) -> str:
+    n = unicodedata.normalize("NFD", (name or "").lower()).encode("ascii", "ignore").decode("ascii")
+    return re.sub(r"[^a-z0-9]+", " ", n).strip()
+
+
+def _dedup_keys(evt: Dict[str, Any]):
+    """Return (slug_key, name_key) used to detect duplicate events."""
+    base = _strip_year(evt.get("id", ""))
+    base = _DUP_ALIASES.get(base, base)
+    return base, (evt.get("month"), _norm_name(evt.get("name", "")))
 
 # ============================================================
 # COMPREHENSIVE PORTUGUESE CULTURAL EVENTS DATABASE (2026)
@@ -518,13 +558,21 @@ class PublicEventsService:
         except Exception as e:
             logger.warning(f"Failed to fetch dados.gov.pt events: {e}")
 
-        # Deduplicate by id
-        seen = set()
+        # Deduplicate by id, then by slug-alias and normalized (month, name).
+        seen_ids = set()
+        seen_slugs = set()
+        seen_names = set()
         unique = []
         for evt in all_events:
-            if evt["id"] not in seen:
-                seen.add(evt["id"])
-                unique.append(evt)
+            if evt["id"] in seen_ids:
+                continue
+            slug_key, name_key = _dedup_keys(evt)
+            if slug_key in seen_slugs or (name_key[1] and name_key in seen_names):
+                continue
+            seen_ids.add(evt["id"])
+            seen_slugs.add(slug_key)
+            seen_names.add(name_key)
+            unique.append(evt)
 
         # Cache in MongoDB
         if self._db is not None:

@@ -8,6 +8,8 @@ from shared_constants import sanitize_regex
 from shared_utils import DatabaseHolder
 from models.api_models import User
 from datetime import datetime, timezone
+import re
+import unicodedata
 import logging
 
 logger = logging.getLogger(__name__)
@@ -107,6 +109,26 @@ def detect_month(date_text: str) -> list:
     return sorted(set(months))
 
 
+# Accent-insensitive region matching. The frontend sends region ids without
+# diacritics (e.g. "acores"), while the database stores "Açores" — a plain
+# regex never matches. Expand each base letter to a class covering its accents.
+_ACCENT_CLASSES = {
+    "a": "[aàáâãä]", "c": "[cç]", "e": "[eèéêë]",
+    "i": "[iìíîï]", "o": "[oòóôõö]", "u": "[uùúûü]",
+}
+
+
+def region_regex(region: str) -> str:
+    """Build an accent-insensitive (with $options 'i') regex for a region term."""
+    return "".join(_ACCENT_CLASSES.get(ch, re.escape(ch)) for ch in (region or "").lower())
+
+
+# Public listings must hide unpublished municipal events. Curated/Excel events
+# lack the field entirely, so {"$ne": False} keeps them visible while excluding
+# only explicit drafts (is_published == False) created via the admin panel.
+PUBLISHED_FILTER = {"is_published": {"$ne": False}}
+
+
 @agenda_router.get("/events")
 async def get_events(
     type: Optional[str] = Query(None, description="festa or festival"),
@@ -117,11 +139,11 @@ async def get_events(
     limit: int = Query(50, ge=1, le=200),
     offset: int = Query(0, ge=0),
 ):
-    query = {}
+    query = dict(PUBLISHED_FILTER)
     if type:
         query["type"] = type
     if region:
-        query["region"] = {"$regex": sanitize_regex(region), "$options": "i"}
+        query["region"] = {"$regex": region_regex(region), "$options": "i"}
     if rarity:
         query["rarity"] = rarity
     if search:
@@ -153,7 +175,7 @@ async def get_calendar():
     # Project only the fields the calendar view consumes — avoids shipping long
     # descriptions/arrays for every event just to build month counts.
     events = await _db_holder.db.events.find(
-        {},
+        dict(PUBLISHED_FILTER),
         {
             "_id": 0, "id": 1, "name": 1, "type": 1, "month": 1, "date_text": 1,
             "region": 1, "rarity": 1, "source": 1, "price": 1,
@@ -206,18 +228,21 @@ async def get_calendar():
 @agenda_router.get("/stats")
 async def get_agenda_stats():
     """Get event statistics including source breakdown."""
-    pipeline_type = [{"$group": {"_id": "$type", "count": {"$sum": 1}}}]
-    pipeline_region = [{"$group": {"_id": "$region", "count": {"$sum": 1}}}, {"$sort": {"count": -1}}]
-    pipeline_rarity = [{"$group": {"_id": "$rarity", "count": {"$sum": 1}}}]
-    pipeline_source = [{"$group": {"_id": "$source", "count": {"$sum": 1}}}]
+    match = {"$match": dict(PUBLISHED_FILTER)}
+    pipeline_type = [match, {"$group": {"_id": "$type", "count": {"$sum": 1}}}]
+    pipeline_region = [match, {"$group": {"_id": "$region", "count": {"$sum": 1}}}, {"$sort": {"count": -1}}]
+    pipeline_rarity = [match, {"$group": {"_id": "$rarity", "count": {"$sum": 1}}}]
+    pipeline_source = [match, {"$group": {"_id": "$source", "count": {"$sum": 1}}}]
 
     by_type = {r["_id"]: r["count"] for r in await _db_holder.db.events.aggregate(pipeline_type).to_list(10)}
     by_region = [{"region": r["_id"], "count": r["count"]} for r in await _db_holder.db.events.aggregate(pipeline_region).to_list(50)]
     by_rarity = {r["_id"]: r["count"] for r in await _db_holder.db.events.aggregate(pipeline_rarity).to_list(10)}
     by_source = {r["_id"]: r["count"] for r in await _db_holder.db.events.aggregate(pipeline_source).to_list(10)}
 
-    total = await _db_holder.db.events.count_documents({})
-    with_tickets = await _db_holder.db.events.count_documents({"$or": [{"price": {"$exists": True}}, {"has_tickets": True}]})
+    total = await _db_holder.db.events.count_documents(dict(PUBLISHED_FILTER))
+    with_tickets = await _db_holder.db.events.count_documents(
+        {"$and": [dict(PUBLISHED_FILTER), {"$or": [{"price": {"$exists": True}}, {"has_tickets": True}]}]}
+    )
 
     return {
         "total": total,
@@ -337,7 +362,7 @@ async def sync_public_events(admin: User = Depends(_admin_dep)):
 @agenda_router.get("/event/{event_id}")
 async def get_event_detail(event_id: str):
     """Get detailed info for a single event, including ticket link."""
-    event = await _db_holder.db.events.find_one({"id": event_id}, {"_id": 0})
+    event = await _db_holder.db.events.find_one({"id": event_id, **PUBLISHED_FILTER}, {"_id": 0})
     if not event:
         raise HTTPException(status_code=404, detail="Evento não encontrado")
     return _enrich_with_ticket(event)
@@ -357,11 +382,11 @@ async def get_live_events(
     from services.viralagenda_service import viralagenda_service
 
     # --- DB events ---
-    query: dict = {}
+    query: dict = dict(PUBLISHED_FILTER)
     if type:
         query["type"] = type
     if region:
-        query["region"] = {"$regex": sanitize_regex(region), "$options": "i"}
+        query["region"] = {"$regex": region_regex(region), "$options": "i"}
 
     db_events = await _db_holder.db.events.find(query, {"_id": 0}).limit(200).to_list(200)
     if month:
@@ -428,11 +453,11 @@ async def get_upcoming_events(
     current_month = today.month
     current_day = today.day
 
-    query: dict = {}
+    query: dict = dict(PUBLISHED_FILTER)
     if type:
         query["type"] = type
     if region:
-        query["region"] = {"$regex": sanitize_regex(region), "$options": "i"}
+        query["region"] = {"$regex": region_regex(region), "$options": "i"}
 
     all_events = await _db_holder.db.events.find(query, {"_id": 0}).to_list(500)
     all_events = [_enrich_with_ticket(e) for e in all_events]
@@ -468,7 +493,6 @@ async def _get_last_sync_time() -> Optional[str]:
 # BACKWARD-COMPATIBLE /calendar ALIASES
 # These keep old tests and any external integrations working.
 # ============================================================
-import unicodedata
 
 calendar_compat_router = APIRouter(tags=["Calendar"])
 
@@ -501,7 +525,7 @@ async def compat_calendar_events(
     category: Optional[str] = None,
     region: Optional[str] = None,
 ):
-    query: dict = {}
+    query: dict = dict(PUBLISHED_FILTER)
     if month:
         query["month"] = month
     if category:
@@ -524,7 +548,7 @@ async def compat_upcoming_events(
     today = datetime.now(timezone.utc)
     cm, cd = today.month, today.day
 
-    query: dict = {}
+    query: dict = dict(PUBLISHED_FILTER)
     if category:
         query["type"] = category
     events = await _db_holder.db.events.find(query, {"_id": 0}).to_list(500)
