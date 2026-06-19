@@ -3,6 +3,9 @@
     "name": "Portugal Vivo",
     "slug": "portugal-vivo",
     "version": "1.0.0",
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "portugalvivo",
