@@ -947,9 +947,8 @@ async def _generate_itinerary_narrative(
     daily_plans: list,
     events: list,
 ) -> dict:
-    """Generate AI narrative for the itinerary using GPT-4o."""
-    from emergentintegrations.llm.chat import LlmChat, UserMessage
-
+    """Generate AI narrative for the itinerary via the central llm_client.
+    Falls back to a minimal static structure when no provider is configured."""
     profile_labels = {
         "familia": "família com crianças",
         "casal": "casal",
@@ -1001,23 +1000,47 @@ Responde APENAS com JSON válido neste formato:
   "closing_note": "nota final inspiradora (1-2 frases)"
 }}"""
 
-    chat = LlmChat(
-        api_key=EMERGENT_LLM_KEY,
-        session_id=f"planner_{region}_{days}d",
-        system_message=system_message,
-    ).with_model("openai", "gpt-4o")
+    from llm_client import call_chat_completion
+    response = await call_chat_completion(
+        messages=[
+            {"role": "system", "content": system_message},
+            {"role": "user", "content": user_prompt},
+        ],
+        model="gpt-4o",
+        response_format={"type": "json_object"},
+    )
 
-    response = await chat.send_message(UserMessage(text=user_prompt))
+    def _fallback() -> dict:
+        return {
+            "title": f"Itinerário de {days} dias em {region}",
+            "subtitle": "Uma viagem à descoberta de Portugal",
+            "daily_narratives": [
+                {
+                    "day": p.get("day"),
+                    "title": p.get("theme", f"Dia {p.get('day')}"),
+                    "morning_narrative": "",
+                    "afternoon_narrative": "",
+                    "dining_tip": "",
+                }
+                for p in daily_plans
+            ],
+            "closing_note": "Boa viagem!",
+        }
 
-    # Parse JSON from response
+    if not response:
+        return _fallback()
+
+    # Parse JSON from response (tolerate markdown code fences)
     import json
     text = response.strip()
-    # Remove markdown code fences if present
     if text.startswith("```"):
         text = text.split("\n", 1)[1] if "\n" in text else text[3:]
     if text.endswith("```"):
         text = text[:-3]
     if text.startswith("json"):
         text = text[4:]
-
-    return json.loads(text.strip())
+    try:
+        return json.loads(text.strip())
+    except Exception as e:
+        logger.warning("Itinerary narrative JSON parse failed: %s", e)
+        return _fallback()

@@ -366,9 +366,6 @@ class SemanticValidationModule(IQModule):
         Use Emergent LLM to classify a POI into one of the 26 categories.
         Returns {"category": str, "confidence": float} or None.
         """
-        if not EMERGENT_LLM_KEY:
-            return None
-
         name = data.name or ""
         description = data.description or ""
         if not name and not description:
@@ -379,30 +376,27 @@ class SemanticValidationModule(IQModule):
             return _ai_classify_cache[cache_key]
 
         try:
-            from emergentintegrations.llm.chat import LlmChat, UserMessage
+            from llm_client import call_chat_completion
 
             categories_list = ", ".join(VALID_CATEGORY_IDS)
-
-            chat = LlmChat(
-                api_key=EMERGENT_LLM_KEY,
-                session_id=f"classify_{cache_key}",
-                system_message=(
-                    "És um classificador de pontos de interesse do património português. "
-                    "Responde APENAS com o ID da categoria, sem explicação."
-                )
-            ).with_model("openai", "gpt-4o")
-
-            msg = UserMessage(
-                text=(
-                    f"Classifica este POI numa das categorias: {categories_list}\n\n"
-                    f"Nome: {name}\nDescrição: {description}\n\n"
-                    "Responde só com o ID da categoria."
-                )
+            content = await call_chat_completion(
+                messages=[
+                    {"role": "system", "content": (
+                        "És um classificador de pontos de interesse do património português. "
+                        "Responde APENAS com o ID da categoria, sem explicação."
+                    )},
+                    {"role": "user", "content": (
+                        f"Classifica este POI numa das categorias: {categories_list}\n\n"
+                        f"Nome: {name}\nDescrição: {description}\n\n"
+                        "Responde só com o ID da categoria."
+                    )},
+                ],
+                model="gpt-4o",
             )
+            if not content:
+                return None
 
-            response = await chat.send_message(msg)
-            raw = str(response).strip().lower().replace('"', '').replace("'", "")
-
+            raw = content.strip().lower().replace('"', '').replace("'", "")
             if raw in VALID_CATEGORY_IDS:
                 result = {"category": raw, "confidence": 0.85}
                 _ai_classify_cache[cache_key] = result
