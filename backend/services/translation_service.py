@@ -55,26 +55,21 @@ class TranslationService:
 
         await _check_rate_limit()
 
-        try:
-            from emergentintegrations.llm.chat import LlmChat, UserMessage
-            llm_key = os.environ.get("EMERGENT_LLM_KEY", "")
-            if not llm_key:
-                raise ValueError("EMERGENT_LLM_KEY not configured")
-
-            chat = LlmChat(
-                api_key=llm_key,
-                system_message=SYSTEM_PROMPT,
-            ).with_model("openai", "gpt-4o-mini")
-
-            prompt = (
-                f"Translate the following text from {source_lang} to {target_lang}. "
-                f"Return ONLY the translated text, no explanations.\n\n{text}"
-            )
-            response = await chat.send_message(UserMessage(text=prompt))
-            return str(response).strip()
-        except Exception as e:
-            logger.error(f"Emergent LLM translation failed: {e}")
+        from llm_client import call_chat_completion
+        prompt = (
+            f"Translate the following text from {source_lang} to {target_lang}. "
+            f"Return ONLY the translated text, no explanations.\n\n{text}"
+        )
+        translated = await call_chat_completion(
+            messages=[
+                {"role": "system", "content": SYSTEM_PROMPT},
+                {"role": "user", "content": prompt},
+            ],
+            model="gpt-4o-mini",
+        )
+        if not translated:
             raise RuntimeError(f"Translation failed for text: {text[:50]}...")
+        return translated.strip()
 
     async def _estimate_tokens(self, text: str) -> int:
         """Rough token estimation (4 chars per token approximation)."""

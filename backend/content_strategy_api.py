@@ -262,10 +262,9 @@ async def _generate_with_llm(
     profile: Optional[str],
     context_trigger: Optional[str] = None,
 ) -> Optional[str]:
-    """Call Emergent LLM (gpt-4o-mini) to generate depth-adapted, profile-aware content."""
-    if not _llm_key:
-        return None
-
+    """Generate depth-adapted, profile-aware content via the central llm_client
+    (OpenAI direct → Emergent → None). Returns None when no provider is
+    configured or the call fails — the caller falls back to templates."""
     profile_cfg = COGNITIVE_PROFILES.get(profile or "") or {}
     tone_addendum = profile_cfg.get("narrative_tone", "")
     depth_addendum = DEPTH_SYSTEM_ADDENDUM.get(depth, "")
@@ -295,20 +294,15 @@ async def _generate_with_llm(
         f"Gera o conteúdo de nível '{depth}' para este POI:"
     )
 
-    try:
-        from emergentintegrations.llm.chat import LlmChat, UserMessage
-        session_id = _cache_key(poi.get("id", "?"), depth, profile)
-        chat = LlmChat(
-            api_key=_llm_key,
-            session_id=session_id,
-            system_message=system_msg,
-        ).with_model("openai", "gpt-4o-mini")
-        response = await chat.send_message(UserMessage(text=user_msg))
-        return str(response).strip()
-    except Exception as e:
-        logger.warning(f"Emergent LLM content generation failed: {e}")
-
-    return None
+    from llm_client import call_chat_completion
+    content = await call_chat_completion(
+        messages=[
+            {"role": "system", "content": system_msg},
+            {"role": "user", "content": user_msg},
+        ],
+        model="gpt-4o-mini",
+    )
+    return content.strip() if content else None
 
 
 def _template_snackable(poi: Dict, profile: Optional[str]) -> str:
@@ -477,17 +471,16 @@ async def get_micro_stories(request: MicroStoryRequest):
         )
         sys_msg = "És um guia cultural português conciso e fascinante."
 
-        if _llm_key:
-            try:
-                from emergentintegrations.llm.chat import LlmChat, UserMessage
-                chat = LlmChat(
-                    api_key=_llm_key,
-                    session_id=f"micro_{poi_id}_{request.cognitive_profile}",
-                    system_message=sys_msg,
-                ).with_model("openai", "gpt-4o-mini")
-                llm_text = str(await chat.send_message(UserMessage(text=mini_prompt))).strip()
-            except Exception:
-                pass
+        from llm_client import call_chat_completion
+        _mini = await call_chat_completion(
+            messages=[
+                {"role": "system", "content": sys_msg},
+                {"role": "user", "content": mini_prompt},
+            ],
+            model="gpt-4o-mini",
+        )
+        if _mini:
+            llm_text = _mini.strip()
 
         if llm_text and len(llm_text) > 200:
             llm_text = llm_text[:197] + "…"
