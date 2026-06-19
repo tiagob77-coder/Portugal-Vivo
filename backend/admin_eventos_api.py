@@ -1,6 +1,7 @@
 """
 admin_eventos_api.py — CRUD de eventos para o painel municipal
 """
+import re
 import uuid
 import datetime
 from typing import Optional
@@ -12,6 +13,53 @@ from dependencies import get_db
 from tenant_middleware import TenantContext, require_tenant_write, require_tenant_delete
 
 router = APIRouter(prefix="/admin/eventos", tags=["Admin Eventos"])
+
+# Map the municipal `category` to the `type` the public agenda understands
+# (see EVENT_CATEGORIES in frontend app/(tabs)/eventos.tsx).
+_CAT_TO_TYPE = {
+    "religioso": "religioso",
+    "gastronómico": "gastronomia", "gastronomico": "gastronomia",
+    "natureza": "natureza",
+    "cultural": "cultural", "histórico": "cultural", "historico": "cultural",
+    "musical": "festival",
+    "desportivo": "festa", "artesanato": "festa", "outro": "festa",
+}
+
+
+def _parse_date(value) -> tuple[Optional[int], Optional[int]]:
+    """Extract (month, day) from 'YYYY-MM-DD' or 'DD/MM/YYYY' strings."""
+    if not value:
+        return None, None
+    s = str(value).strip()
+    m = re.match(r"^(\d{4})-(\d{1,2})-(\d{1,2})", s)
+    if m:
+        return int(m.group(2)), int(m.group(3))
+    m = re.match(r"^(\d{1,2})[/-](\d{1,2})[/-](\d{4})", s)
+    if m:
+        return int(m.group(2)), int(m.group(1))
+    return None, None
+
+
+def _agenda_fields(doc: dict) -> dict:
+    """Derive agenda/calendar-readable fields from the municipal schema so an
+    event created in the admin panel surfaces in the public Eventos tab. The
+    agenda reads `name`/`type`/`month`/`day_start`/`day_end`/`concelho`, while
+    the municipal form stores `title`/`category`/`start_date`/`location`."""
+    out: dict = {}
+    if doc.get("title") is not None:
+        out["name"] = doc["title"]
+    out["type"] = _CAT_TO_TYPE.get((doc.get("category") or "").strip().lower(), "festa")
+    month, day_start = _parse_date(doc.get("start_date"))
+    _, day_end = _parse_date(doc.get("end_date"))
+    if month:
+        out["month"] = month
+        out["day_start"] = day_start or 1
+        out["day_end"] = day_end or day_start or 1
+    out["date_text"] = doc.get("start_date") or ""
+    if doc.get("location"):
+        out["concelho"] = doc["location"]
+    out["rarity"] = "comum"
+    return out
 
 
 class EventoCreate(BaseModel):
@@ -64,6 +112,7 @@ async def create_evento(
         "is_published": False,
         "source": "municipio",
     })
+    doc.update(_agenda_fields(doc))
     await db.events.insert_one(doc)
     doc.pop("_id", None)
     return doc
@@ -85,6 +134,10 @@ async def update_evento(
 
     update = {k: v for k, v in body.model_dump(exclude_none=True).items()}
     update["updated_at"] = datetime.datetime.utcnow().isoformat()
+
+    # Recompute agenda fields from the merged view so title/category/date edits
+    # stay in sync with what the public Eventos tab reads.
+    update.update(_agenda_fields({**existing, **update}))
 
     await db.events.update_one({"id": evento_id}, {"$set": update})
     return {**existing, **update}
