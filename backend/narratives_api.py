@@ -170,10 +170,9 @@ async def _check_duplicate(db, title: str, region: Optional[str]) -> Optional[Di
 
 
 async def _enrich_with_llm(narrative: Dict) -> Dict[str, Any]:
-    """Use Emergent LLM (gpt-4o-mini) to auto-generate summary, keywords, related themes."""
-    if not _llm_key:
-        return {}
-
+    """Auto-generate summary, keywords and related themes via the central
+    llm_client (OpenAI direct → Emergent → None). Returns {} when no provider
+    is configured or the call/parse fails."""
     text = narrative.get("story_text", "")[:800]
     title = narrative.get("title", "")
     prompt = (
@@ -182,20 +181,23 @@ async def _enrich_with_llm(narrative: Dict) -> Dict[str, Any]:
         "\"related_themes\": [\"temas\", \"relacionados\"], \"suggested_pois\": [\"nomes de locais mencionados\"]}"
     )
 
+    from llm_client import call_chat_completion
+    content = await call_chat_completion(
+        messages=[
+            {"role": "system", "content": "És um curador cultural português. Responde apenas em JSON válido."},
+            {"role": "user", "content": prompt},
+        ],
+        model="gpt-4o-mini",
+        response_format={"type": "json_object"},
+    )
+    if not content:
+        return {}
     try:
-        from emergentintegrations.llm.chat import LlmChat, UserMessage
         import json
-        chat = LlmChat(
-            api_key=_llm_key,
-            session_id=f"enrich_{narrative.get('id', '')}",
-            system_message="És um curador cultural português. Responde apenas em JSON válido.",
-        ).with_model("openai", "gpt-4o-mini")
-        raw = str(await chat.send_message(UserMessage(text=prompt))).strip()
-        return json.loads(raw)
+        return json.loads(content)
     except Exception as e:
-        logger.warning(f"Emergent LLM enrichment failed: {e}")
-
-    return {}
+        logger.warning("Narrative enrichment JSON parse failed: %s", e)
+        return {}
 
 
 # ──────────────────────────────────────────────────────────────────────────────

@@ -56,20 +56,16 @@ def set_toolkit_llm_key(key: str) -> None:
 
 
 async def _call_llm(system_prompt: str, user_prompt: str, max_tokens: int = 800) -> str:
-    if not _llm_key:
-        return ""
-    try:
-        from emergentintegrations.llm.chat import LlmChat, UserMessage
-        chat = LlmChat(
-            api_key=_llm_key,
-            session_id=f"toolkit-{uuid.uuid4().hex[:8]}",
-            system_message=system_prompt,
-        ).with_model("openai", "gpt-4o-mini").with_max_tokens(max_tokens)
-        resp = await chat.send_message(UserMessage(content=user_prompt))
-        return resp.strip() if resp else ""
-    except Exception as exc:
-        logger.warning("LLM call failed in toolkit: %s", exc)
-        return ""
+    from llm_client import call_chat_completion
+    content = await call_chat_completion(
+        messages=[
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": user_prompt},
+        ],
+        model="gpt-4o-mini",
+        max_tokens=max_tokens,
+    )
+    return content or ""
 
 
 # ──────────────────────────────────────────────────────────────────────────────

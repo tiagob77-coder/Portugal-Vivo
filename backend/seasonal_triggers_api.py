@@ -81,24 +81,16 @@ async def _admin_dep(request: Request) -> User:
 # ─── LLM helper ──────────────────────────────────────────────────────────────
 
 async def _call_llm(system: str, user: str, max_tokens: int = 600) -> str:
-    if not _llm_key:
-        return ""
-    try:
-        from emergentintegrations.llm.chat import LlmChat, UserMessage
-        chat = (
-            LlmChat(
-                api_key=_llm_key,
-                session_id=f"seasonal-{uuid.uuid4().hex[:8]}",
-                system_message=system,
-            )
-            .with_model("openai", "gpt-4o-mini")
-            .with_max_tokens(max_tokens)
-        )
-        resp = await chat.send_message(UserMessage(content=user))
-        return resp.strip() if resp else ""
-    except Exception as exc:
-        logger.warning("[seasonal] LLM call failed: %s", exc)
-        return ""
+    from llm_client import call_chat_completion
+    content = await call_chat_completion(
+        messages=[
+            {"role": "system", "content": system},
+            {"role": "user", "content": user},
+        ],
+        model="gpt-4o-mini",
+        max_tokens=max_tokens,
+    )
+    return content or ""
 
 
 # ─── Helpers ─────────────────────────────────────────────────────────────────
