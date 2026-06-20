@@ -115,6 +115,43 @@ NATIONAL: Coord = (39.5, -8.0)
 _KEYS_BY_LEN = sorted(MUNICIPIO_COORDS.keys(), key=len, reverse=True)
 
 
+def _to_float(value) -> Optional[float]:
+    if value is None:
+        return None
+    try:
+        return float(str(value).replace(",", ".").strip())
+    except (ValueError, TypeError):
+        return None
+
+
+def in_portugal(lat: Optional[float], lng: Optional[float]) -> bool:
+    """Bounds covering mainland + Madeira + Azores."""
+    return (
+        lat is not None and lng is not None
+        and 32.0 <= lat <= 43.0 and -32.0 <= lng <= -6.0
+    )
+
+
+def coords_from_event(evt: dict) -> Tuple[Optional[float], Optional[float]]:
+    """Read explicit coordinates supplied with an event (e.g. an Excel with GPS).
+
+    Accepts numeric/string `latitude`+`longitude`, or a `gps`/`coordinates`/
+    `coords` value as a "lat,lng" string or a [lat, lng] pair. Returns
+    (None, None) when absent or outside Portugal.
+    """
+    lat = _to_float(evt.get("latitude"))
+    lng = _to_float(evt.get("longitude"))
+    if lat is None or lng is None:
+        raw = evt.get("gps") or evt.get("coordinates") or evt.get("coords")
+        if isinstance(raw, str) and "," in raw:
+            parts = raw.split(",")
+            if len(parts) == 2:
+                lat, lng = _to_float(parts[0]), _to_float(parts[1])
+        elif isinstance(raw, (list, tuple)) and len(raw) == 2:
+            lat, lng = _to_float(raw[0]), _to_float(raw[1])
+    return (lat, lng) if in_portugal(lat, lng) else (None, None)
+
+
 def geocode(concelho: str, region: str = "") -> Tuple[Optional[float], Optional[float], str]:
     """Return (lat, lng, precision) for an event location.
 

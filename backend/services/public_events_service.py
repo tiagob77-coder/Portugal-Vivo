@@ -60,6 +60,23 @@ def _dedup_keys(evt: Dict[str, Any]):
     base = _DUP_ALIASES.get(base, base)
     return base, (evt.get("month"), _norm_name(evt.get("name", "")))
 
+
+# The auto-generated Excel descriptions all share one boilerplate sentence.
+# Strip it so each event keeps only its specific lead + capacity/ticket info.
+_DESC_FILLER = [
+    "Um dos maiores eventos culturais de Portugal, com alinhamentos de artistas "
+    "nacionais e internacionais que definem a cena musical contemporânea.",
+]
+
+
+def clean_event_description(desc: str) -> str:
+    if not desc:
+        return desc
+    out = desc
+    for filler in _DESC_FILLER:
+        out = out.replace(filler, " ")
+    return re.sub(r"\s{2,}", " ", out).strip()
+
 # ============================================================
 # COMPREHENSIVE PORTUGUESE CULTURAL EVENTS DATABASE (2026)
 # Real events with actual dates, locations, and descriptions
@@ -618,16 +635,23 @@ class PublicEventsService:
 
     async def sync_to_events_collection(self):
         """Sync curated + public events into the main events collection."""
-        from event_geocode import geocode
+        from event_geocode import geocode, coords_from_event
 
         all_events = await self.get_all_events(force_refresh=True)
 
         synced = 0
         for evt in all_events:
-            # Geocode so events can be placed on the map and cross-referenced
-            # with nearby transport/nature (discovery_api). Skip if already set.
-            if not evt.get("location_geo") and evt.get("latitude") is None:
-                lat, lng, precision = geocode(evt.get("concelho", ""), evt.get("region", ""))
+            # De-duplicate the templated Excel descriptions.
+            if str(evt.get("source", "")).startswith("excel") and evt.get("description"):
+                evt["description"] = clean_event_description(evt["description"])
+            # Geocode so events can be placed on the map and cross-referenced with
+            # nearby transport/nature (discovery_api). Prefer explicit coordinates
+            # (e.g. an Excel with GPS); fall back to the offline concelho geocoder.
+            if not evt.get("location_geo"):
+                lat, lng = coords_from_event(evt)
+                precision = "exact"
+                if lat is None:
+                    lat, lng, precision = geocode(evt.get("concelho", ""), evt.get("region", ""))
                 if lat is not None:
                     evt["latitude"] = lat
                     evt["longitude"] = lng
