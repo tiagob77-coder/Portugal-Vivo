@@ -19,7 +19,7 @@ import Head from 'expo-router/head';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useQuery } from '@tanstack/react-query';
-import api, { getAgendaEventDetail, getAgendaEventNearby } from '../../src/services/api';
+import api, { getAgendaEventDetail, getAgendaEventNearby, discoverNearby } from '../../src/services/api';
 import { colors, shadows, fontFamilies } from '../../src/theme';
 import { useTheme } from '../../src/context/ThemeContext';
 
@@ -51,6 +51,39 @@ const REGION_NAMES: Record<string, string> = {
   acores: 'Açores',
   madeira: 'Madeira',
 };
+
+// Icons for nearby POI categories ("Explorar à volta")
+const CATEGORY_ICONS: Record<string, string> = {
+  miradouros: 'landscape',
+  castelos: 'history-edu',
+  palacios_solares: 'account-balance',
+  museus: 'museum',
+  praias_bandeira_azul: 'beach-access',
+  praias_fluviais: 'pool',
+  cascatas_pocos: 'water-drop',
+  arte_urbana: 'brush',
+  fauna_autoctone: 'pets',
+  flora_botanica: 'local-florist',
+  percursos_pedestres: 'hiking',
+  mercados_feiras: 'storefront',
+  igrejas_santuarios: 'church',
+  barragens_albufeiras: 'waves',
+};
+
+const prettyCategory = (cat: string): string =>
+  (cat || '')
+    .replace(/_/g, ' ')
+    .replace(/\b\w/g, (c) => c.toUpperCase());
+
+// Thematic modules to deep-link from an event
+const THEMATIC_MODULES: { route: string; label: string; icon: string }[] = [
+  { route: '/costa', label: 'Costa', icon: 'beach-access' },
+  { route: '/gastronomia', label: 'Gastronomia', icon: 'restaurant' },
+  { route: '/flora', label: 'Flora', icon: 'local-florist' },
+  { route: '/fauna', label: 'Fauna', icon: 'pets' },
+  { route: '/prehistoria', label: 'Pré-História', icon: 'history-edu' },
+  { route: '/biodiversidade', label: 'Biodiversidade', icon: 'waves' },
+];
 
 export default function EventDetailPage() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -88,6 +121,16 @@ export default function EventDetailPage() {
   });
   const transportStops = nearby?.available ? nearby.transport_stops : [];
   const transportOperators = nearby?.available ? nearby.operators : [];
+
+  // "Explorar à volta" — thematic POIs near the event (reuses explore-nearby engine)
+  const coords = nearby?.coordinates;
+  const { data: around } = useQuery({
+    queryKey: ['event-around', coords?.lat, coords?.lng],
+    queryFn: () => discoverNearby(coords!.lat, coords!.lng, 15, 12),
+    enabled: !!coords,
+    staleTime: 1000 * 60 * 30,
+  });
+  const aroundPois = around?.pois || [];
 
   if (isLoading) {
     return (
@@ -313,6 +356,51 @@ export default function EventDetailPage() {
             )}
           </View>
         )}
+
+        {/* Explorar à volta — nearby thematic POIs */}
+        {aroundPois.length > 0 && (
+          <View style={styles.descriptionSection}>
+            <Text style={styles.sectionTitle}>Explorar à volta</Text>
+            <Text style={styles.aroundSubtitle}>Pontos de interesse perto deste evento</Text>
+            {aroundPois.slice(0, 6).map((poi) => (
+              <TouchableOpacity
+                key={poi.id}
+                style={styles.infoCard}
+                onPress={() => router.push(`/heritage/${poi.id}`)}
+                activeOpacity={0.7}
+              >
+                <View style={[styles.infoIcon, { backgroundColor: '#2E5E4E20' }]}>
+                  <MaterialIcons name={(CATEGORY_ICONS[poi.category] || 'place') as any} size={22} color="#2E5E4E" />
+                </View>
+                <View style={styles.infoContent}>
+                  <Text style={styles.infoValue} numberOfLines={1}>{poi.name}</Text>
+                  <Text style={styles.transportSub}>{prettyCategory(poi.category)}</Text>
+                </View>
+                <Text style={styles.transportDistance}>
+                  {poi.distance_km < 1 ? `${poi.distance_m} m` : `${poi.distance_km} km`}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        )}
+
+        {/* Temas para explorar — thematic module shortcuts */}
+        <View style={styles.descriptionSection}>
+          <Text style={styles.sectionTitle}>Temas para explorar</Text>
+          <View style={styles.operatorChips}>
+            {THEMATIC_MODULES.map((m) => (
+              <TouchableOpacity
+                key={m.route}
+                style={styles.themeChip}
+                onPress={() => router.push(m.route as any)}
+                activeOpacity={0.7}
+              >
+                <MaterialIcons name={m.icon as any} size={14} color="#2E5E4E" />
+                <Text style={styles.themeChipText}>{m.label}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        </View>
 
         {/* Actions */}
         <View style={styles.actionsSection}>
@@ -557,6 +645,26 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '600',
     color: '#C49A6C',
+  },
+  aroundSubtitle: {
+    fontSize: 13,
+    color: colors.gray[500],
+    marginTop: -4,
+    marginBottom: 10,
+  },
+  themeChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    backgroundColor: 'rgba(46,94,78,0.10)',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 16,
+  },
+  themeChipText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#2E5E4E',
   },
   actionsSection: {
     paddingHorizontal: 20,

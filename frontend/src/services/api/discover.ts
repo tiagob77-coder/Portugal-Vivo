@@ -47,6 +47,40 @@ export const getDiscoveryFeed = async (
   return response.data;
 };
 
+// "Explorar à volta" — nearby thematic POIs (heritage_items) for a coordinate.
+export interface NearbyPoi {
+  id: string;
+  name: string;
+  category: string;
+  region?: string;
+  image_url?: string;
+  description?: string;
+  distance_km: number;
+  distance_m: number;
+  walking_minutes?: number;
+  location?: { lat: number; lng: number };
+}
+
+export interface DiscoverNearbyResponse {
+  pois: NearbyPoi[];
+  grouped_by_category: Record<string, NearbyPoi[]>;
+  summary: { total_found: number; returned: number; categories_breakdown: Record<string, number> };
+  center: { lat: number; lng: number };
+  radius_km: number;
+}
+
+export const discoverNearby = async (
+  lat: number,
+  lng: number,
+  radiusKm = 15,
+  limit = 12,
+): Promise<DiscoverNearbyResponse> => {
+  const response = await api.get('/explore-nearby/discover', {
+    params: { lat, lng, radius_km: radiusKm, limit, sort_by: 'distance' },
+  });
+  return response.data;
+};
+
 export const getHojeFeed = async (lat?: number, lng?: number, date?: string) => {
   const params: Record<string, any> = {};
   if (lat != null) params.lat = lat;
