@@ -618,16 +618,35 @@ class PublicEventsService:
 
     async def sync_to_events_collection(self):
         """Sync curated + public events into the main events collection."""
+        from event_geocode import geocode
+
         all_events = await self.get_all_events(force_refresh=True)
 
         synced = 0
         for evt in all_events:
+            # Geocode so events can be placed on the map and cross-referenced
+            # with nearby transport/nature (discovery_api). Skip if already set.
+            if not evt.get("location_geo") and evt.get("latitude") is None:
+                lat, lng, precision = geocode(evt.get("concelho", ""), evt.get("region", ""))
+                if lat is not None:
+                    evt["latitude"] = lat
+                    evt["longitude"] = lng
+                    evt["location_geo"] = {"type": "Point", "coordinates": [lng, lat]}
+                    evt["geo_precision"] = precision
             await self._db.events.update_one(
                 {"id": evt["id"]},
                 {"$set": evt},
                 upsert=True,
             )
             synced += 1
+
+        # Geospatial index for $near / $geoWithin queries on events. Note the
+        # field is `location_geo` (not `location`) because municipal events store
+        # a free-text venue in `location`, which a 2dsphere index would reject.
+        try:
+            await self._db.events.create_index([("location_geo", "2dsphere")], sparse=True)
+        except Exception as e:
+            logger.warning(f"events 2dsphere index creation failed: {e}")
 
         logger.info(f"Synced {synced} public events to events collection")
         return synced

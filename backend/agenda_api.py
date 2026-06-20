@@ -368,6 +368,64 @@ async def get_event_detail(event_id: str):
     return _enrich_with_ticket(event)
 
 
+@agenda_router.get("/event/{event_id}/nearby")
+async def get_event_nearby(
+    event_id: str,
+    radius_km: float = Query(12.0, ge=0.5, le=50),
+):
+    """
+    Transportes próximos de um evento ("Como chegar").
+
+    Requer que o evento tenha coordenadas (atribuídas no sync via event_geocode).
+    Devolve estações Metro/CP próximas (GTFS) e operadores da região.
+    """
+    event = await _db_holder.db.events.find_one({"id": event_id, **PUBLISHED_FILTER}, {"_id": 0})
+    if not event:
+        raise HTTPException(status_code=404, detail="Evento não encontrado")
+
+    lat = event.get("latitude")
+    lng = event.get("longitude")
+    if lat is None and isinstance(event.get("location_geo"), dict):
+        coords = event["location_geo"].get("coordinates") or []
+        if len(coords) == 2:
+            lng, lat = coords[0], coords[1]
+
+    if lat is None or lng is None:
+        return {
+            "event_id": event_id,
+            "available": False,
+            "reason": "Evento sem coordenadas",
+            "transport_stops": [],
+            "operators": [],
+        }
+
+    from services.gtfs_service import GTFSTransportService
+    stops = GTFSTransportService().find_nearest_stops(float(lat), float(lng), radius_km)
+
+    operators = []
+    region = event.get("region")
+    if region:
+        operators = await _db_holder.db.transport_operators.find(
+            {"$or": [
+                {"section": region.lower()},
+                {"section": "nacional"},
+                {"geographic_zone": {"$regex": region_regex(region), "$options": "i"}},
+            ]},
+            {"_id": 0, "name": 1, "transport_type": 1, "website": 1, "tip": 1},
+        ).limit(6).to_list(6)
+
+    return {
+        "event_id": event_id,
+        "available": True,
+        "coordinates": {"lat": float(lat), "lng": float(lng)},
+        "geo_precision": event.get("geo_precision"),
+        "radius_km": radius_km,
+        "transport_stops": stops[:8],
+        "operators": operators,
+        "region": region,
+    }
+
+
 @agenda_router.get("/live")
 async def get_live_events(
     region: Optional[str] = Query(None),
