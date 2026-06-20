@@ -75,7 +75,9 @@ export const getAgendaEventDetail = async (eventId: string): Promise<AgendaEvent
 };
 
 // Nearby transport for an event ("Como chegar") — needs geocoded coordinates.
-export interface TransportStop {
+// Named EventTransportStop to avoid clashing with mobility.ts' TransportStop
+// (both are re-exported via the api barrel's `export *`).
+export interface EventTransportStop {
   id: string;
   name: string;
   line?: string;
@@ -93,7 +95,7 @@ export interface EventNearby {
   coordinates?: { lat: number; lng: number };
   geo_precision?: string;
   radius_km?: number;
-  transport_stops: TransportStop[];
+  transport_stops: EventTransportStop[];
   operators: { name: string; transport_type?: string; website?: string; tip?: string }[];
   region?: string;
 }
