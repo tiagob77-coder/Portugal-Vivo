@@ -322,8 +322,11 @@ async def create_all_indexes(db):
         sparse=True,
         name="idx_events_location",
     )
+    await db.events.create_index(
+        [("location_geo", "2dsphere")], sparse=True, name="idx_events_location_geo"
+    )
     await db.events.create_index("concelho", sparse=True, name="idx_events_concelho")
-    logger.info("  events: 9 indexes created")
+    logger.info("  events: 10 indexes created")
 
     # --- maritime_events (maritime culture narratives) ---
     await db.maritime_events.create_index("id", unique=True, sparse=True, name="idx_maritime_id")

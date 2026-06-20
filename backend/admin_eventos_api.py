@@ -59,6 +59,11 @@ def _agenda_fields(doc: dict) -> dict:
     if doc.get("location"):
         out["concelho"] = doc["location"]
     out["rarity"] = "comum"
+    # GeoJSON point for map placement / nearby-transport when admin supplied coords.
+    lat, lng = doc.get("latitude"), doc.get("longitude")
+    if lat is not None and lng is not None:
+        out["location_geo"] = {"type": "Point", "coordinates": [lng, lat]}
+        out["geo_precision"] = "exact"
     return out
 
 

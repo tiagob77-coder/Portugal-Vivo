@@ -74,6 +74,35 @@ export const getAgendaEventDetail = async (eventId: string): Promise<AgendaEvent
   return response.data;
 };
 
+// Nearby transport for an event ("Como chegar") — needs geocoded coordinates.
+export interface TransportStop {
+  id: string;
+  name: string;
+  line?: string;
+  lines?: string[];
+  operator: string;
+  transport_type: string;
+  distance_km: number;
+  distance_m: number;
+}
+
+export interface EventNearby {
+  event_id: string;
+  available: boolean;
+  reason?: string;
+  coordinates?: { lat: number; lng: number };
+  geo_precision?: string;
+  radius_km?: number;
+  transport_stops: TransportStop[];
+  operators: { name: string; transport_type?: string; website?: string; tip?: string }[];
+  region?: string;
+}
+
+export const getAgendaEventNearby = async (eventId: string, radiusKm = 12): Promise<EventNearby> => {
+  const response = await api.get(`/agenda/event/${eventId}/nearby`, { params: { radius_km: radiusKm } });
+  return response.data;
+};
+
 export const getAgendaCalendar = async (): Promise<any> => {
   const response = await api.get('/agenda/calendar');
   return response.data;

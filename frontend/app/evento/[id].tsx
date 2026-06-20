@@ -19,7 +19,7 @@ import Head from 'expo-router/head';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useQuery } from '@tanstack/react-query';
-import api, { getAgendaEventDetail } from '../../src/services/api';
+import api, { getAgendaEventDetail, getAgendaEventNearby } from '../../src/services/api';
 import { colors, shadows, fontFamilies } from '../../src/theme';
 import { useTheme } from '../../src/context/ThemeContext';
 
@@ -78,6 +78,16 @@ export default function EventDetailPage() {
 
   const isLoading = agendaLoading && calendarLoading;
   const event = agendaEvent || calendarEvents;
+
+  // "Como chegar" — nearby public transport (only for agenda events with coords)
+  const { data: nearby } = useQuery({
+    queryKey: ['agenda-event-nearby', id],
+    queryFn: () => getAgendaEventNearby(id!),
+    enabled: !!id && !!agendaEvent,
+    staleTime: 1000 * 60 * 30,
+  });
+  const transportStops = nearby?.available ? nearby.transport_stops : [];
+  const transportOperators = nearby?.available ? nearby.operators : [];
 
   if (isLoading) {
     return (
@@ -260,6 +270,49 @@ export default function EventDetailPage() {
             {event.description || 'Sem descrição disponível.'}
           </Text>
         </View>
+
+        {/* Como chegar */}
+        {(transportStops.length > 0 || transportOperators.length > 0) && (
+          <View style={styles.descriptionSection}>
+            <Text style={styles.sectionTitle}>Como chegar</Text>
+            {transportStops.map((stop) => {
+              const isTrain = stop.transport_type === 'train';
+              const tint = isTrain ? '#22C55E' : '#06B6D4';
+              return (
+                <View key={stop.id} style={styles.infoCard}>
+                  <View style={[styles.infoIcon, { backgroundColor: tint + '20' }]}>
+                    <MaterialIcons name={isTrain ? 'train' : 'subway'} size={22} color={tint} />
+                  </View>
+                  <View style={styles.infoContent}>
+                    <Text style={styles.infoValue}>{stop.name}</Text>
+                    <Text style={styles.transportSub}>
+                      {stop.operator}{stop.line ? ` · ${stop.line}` : ''}
+                    </Text>
+                  </View>
+                  <Text style={styles.transportDistance}>
+                    {stop.distance_m < 1000 ? `${stop.distance_m} m` : `${stop.distance_km} km`}
+                  </Text>
+                </View>
+              );
+            })}
+            {transportOperators.length > 0 && (
+              <View style={styles.operatorChips}>
+                {transportOperators.map((op, i) => (
+                  <TouchableOpacity
+                    key={`${op.name}-${i}`}
+                    style={styles.operatorChip}
+                    disabled={!op.website}
+                    onPress={() => op.website && Linking.openURL(op.website)}
+                    activeOpacity={0.7}
+                  >
+                    <MaterialIcons name="directions-bus" size={13} color="#C49A6C" />
+                    <Text style={styles.operatorChipText}>{op.name}</Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            )}
+          </View>
+        )}
 
         {/* Actions */}
         <View style={styles.actionsSection}>
@@ -474,6 +527,36 @@ const styles = StyleSheet.create({
     fontSize: 15,
     lineHeight: 24,
     color: colors.gray[600],
+  },
+  transportSub: {
+    fontSize: 12,
+    color: colors.gray[500],
+    marginTop: 2,
+  },
+  transportDistance: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#C49A6C',
+  },
+  operatorChips: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    marginTop: 10,
+  },
+  operatorChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: 'rgba(196,154,108,0.12)',
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 14,
+  },
+  operatorChipText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#C49A6C',
   },
   actionsSection: {
     paddingHorizontal: 20,
