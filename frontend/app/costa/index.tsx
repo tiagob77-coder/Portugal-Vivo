@@ -1,7 +1,7 @@
 /**
  * Linha de Costa - Portugal's coastal zones explorer (Minho → Algarve)
  */
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useMemo } from 'react';
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity,
   Animated, ActivityIndicator,
@@ -13,6 +13,9 @@ import { API_BASE } from '../../src/config/api';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import CoastalDataCard from '../../src/components/CoastalDataCard';
 import { getModuleTheme } from '../../src/theme/colors';
+import { useRegionParam } from '../../src/hooks/useRegionParam';
+import { matchesRegion } from '../../src/utils/regionMatch';
+import RegionFilterBanner from '../../src/components/RegionFilterBanner';
 
 const MT = getModuleTheme('costa');
 const C = {
@@ -391,6 +394,7 @@ function ZoneCard({ zone, activeProfile, onPress, isExpanded }: ZoneCardProps) {
 export default function CostaScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const { regionId, clear } = useRegionParam();
   const [activeProfile, setActiveProfile] = useState<ProfileKey | null>(null);
   const [expandedZone, setExpandedZone] = useState<string | null>(null);
 
@@ -409,6 +413,14 @@ export default function CostaScreen() {
   const filteredZones = activeProfile
     ? allZones.filter((z) => z.perfis[activeProfile] >= 4)
     : allZones;
+
+  // Optional region pre-filter from an event deep-link (?region=). Falls back to
+  // the full list if the region matches nothing, so it never looks empty.
+  const displayedZones = useMemo(() => {
+    if (!regionId) return filteredZones;
+    const f = filteredZones.filter((z) => matchesRegion(z.regiao, regionId));
+    return f.length ? f : filteredZones;
+  }, [filteredZones, regionId]);
 
   const handleZonePress = (zoneId: string) => {
     setExpandedZone(expandedZone === zoneId ? null : zoneId);
@@ -516,12 +528,14 @@ export default function CostaScreen() {
           </View>
         )}
 
+        {regionId && <RegionFilterBanner regionId={regionId} onClear={clear} accent={C.ocean} />}
+
         {/* Zone Cards */}
         <View style={styles.zoneList}>
           {isLoading && (
             <ActivityIndicator size="large" color={C.ocean} style={{ marginVertical: 32 }} />
           )}
-          {!isLoading && filteredZones.map((zone) => (
+          {!isLoading && displayedZones.map((zone) => (
             <ZoneCard
               key={zone.id}
               zone={zone}

@@ -19,7 +19,8 @@ import Head from 'expo-router/head';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useQuery } from '@tanstack/react-query';
-import api, { getAgendaEventDetail, getAgendaEventNearby, discoverNearby } from '../../src/services/api';
+import api, { getAgendaEventDetail, getAgendaEventNearby, discoverNearby, getEventToNatureItinerary } from '../../src/services/api';
+import { toTourismRegion } from '../../src/utils/regionMatch';
 import { colors, shadows, fontFamilies } from '../../src/theme';
 import { useTheme } from '../../src/context/ThemeContext';
 
@@ -132,6 +133,17 @@ export default function EventDetailPage() {
   });
   const aroundPois = around?.pois || [];
 
+  // "Plano de 2 dias" — event + next-day nature itinerary (discovery engine).
+  const { data: nature } = useQuery({
+    queryKey: ['event-to-nature', coords?.lat, coords?.lng],
+    queryFn: () => getEventToNatureItinerary(coords!.lat, coords!.lng, event?.name || ''),
+    enabled: !!coords,
+    staleTime: 1000 * 60 * 60,
+    retry: false,
+  });
+  const natureDest = nature?.day_2_morning?.nature_destination;
+  const natureTips: string[] = nature?.sustainability_tips || [];
+
   if (isLoading) {
     return (
       <View style={[styles.container, styles.loadingContainer, { backgroundColor: tc.background }]}>
@@ -162,6 +174,7 @@ export default function EventDetailPage() {
   const rarity = event.rarity || 'comum';
   const rarityConfig = RARITY_CONFIG[rarity] || RARITY_CONFIG.comum;
   const regionName = REGION_NAMES[(event.region || '').toLowerCase()] || event.region || '';
+  const eventRegionId = toTourismRegion(event.region);
 
   const eventCanonical = `https://portugal-vivo.app/evento/${id}`;
   const eventDesc = event.description ? event.description.slice(0, 160) : `${catConfig.label} — ${event.name} em ${regionName || 'Portugal'}`;
@@ -384,6 +397,45 @@ export default function EventDetailPage() {
           </View>
         )}
 
+        {/* Plano de 2 dias — event + next-day nature */}
+        {natureDest && (
+          <View style={styles.descriptionSection}>
+            <Text style={styles.sectionTitle}>Plano de 2 dias</Text>
+            <Text style={styles.aroundSubtitle}>Estende o evento com um dia de natureza por perto</Text>
+            <View style={styles.natureCard}>
+              <View style={styles.natureHeader}>
+                <MaterialIcons name="park" size={18} color="#16A34A" />
+                <Text style={styles.natureDay}>Dia 2 · Manhã</Text>
+                {typeof natureDest.distance_from_event_km === 'number' && (
+                  <Text style={styles.natureDist}>{Math.round(natureDest.distance_from_event_km)} km</Text>
+                )}
+              </View>
+              <Text style={styles.natureName}>{natureDest.name}</Text>
+              {!!(natureDest.designation || natureDest.habitat) && (
+                <Text style={styles.natureMeta}>{natureDest.designation || natureDest.habitat}</Text>
+              )}
+              {!!natureDest.description && (
+                <Text style={styles.natureDesc} numberOfLines={3}>{natureDest.description}</Text>
+              )}
+              {Array.isArray(natureDest.highlights) && natureDest.highlights.length > 0 && (
+                <View style={styles.natureChips}>
+                  {natureDest.highlights.slice(0, 4).map((h: string, i: number) => (
+                    <View key={i} style={styles.natureChip}>
+                      <Text style={styles.natureChipText}>{h}</Text>
+                    </View>
+                  ))}
+                </View>
+              )}
+            </View>
+            {natureTips.slice(0, 3).map((t, i) => (
+              <View key={i} style={styles.tipRow}>
+                <MaterialIcons name="eco" size={14} color="#16A34A" />
+                <Text style={styles.tipText}>{t}</Text>
+              </View>
+            ))}
+          </View>
+        )}
+
         {/* Temas para explorar — thematic module shortcuts */}
         <View style={styles.descriptionSection}>
           <Text style={styles.sectionTitle}>Temas para explorar</Text>
@@ -392,7 +444,7 @@ export default function EventDetailPage() {
               <TouchableOpacity
                 key={m.route}
                 style={styles.themeChip}
-                onPress={() => router.push(m.route as any)}
+                onPress={() => router.push((eventRegionId ? `${m.route}?region=${eventRegionId}` : m.route) as any)}
                 activeOpacity={0.7}
               >
                 <MaterialIcons name={m.icon as any} size={14} color="#2E5E4E" />
@@ -665,6 +717,78 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: '600',
     color: '#2E5E4E',
+  },
+  natureCard: {
+    backgroundColor: 'rgba(22,163,74,0.08)',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(22,163,74,0.20)',
+    padding: 14,
+  },
+  natureHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginBottom: 6,
+  },
+  natureDay: {
+    flex: 1,
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#16A34A',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  natureDist: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#16A34A',
+  },
+  natureName: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: colors.gray[800],
+  },
+  natureMeta: {
+    fontSize: 12,
+    color: colors.gray[500],
+    marginTop: 2,
+  },
+  natureDesc: {
+    fontSize: 13,
+    lineHeight: 19,
+    color: colors.gray[600],
+    marginTop: 8,
+  },
+  natureChips: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 6,
+    marginTop: 10,
+  },
+  natureChip: {
+    backgroundColor: 'rgba(22,163,74,0.14)',
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 12,
+  },
+  natureChipText: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: '#15803D',
+  },
+  tipRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 6,
+    marginTop: 8,
+    paddingHorizontal: 2,
+  },
+  tipText: {
+    flex: 1,
+    fontSize: 12,
+    lineHeight: 17,
+    color: colors.gray[600],
   },
   actionsSection: {
     paddingHorizontal: 20,
