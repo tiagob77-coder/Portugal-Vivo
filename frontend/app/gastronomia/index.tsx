@@ -2,6 +2,9 @@
  * Gastronomia Costeira — pratos, tradições e sabores do mar português
  */
 import React, { useState } from 'react';
+import { useRegionParam } from '../../src/hooks/useRegionParam';
+import { filterByRegion } from '../../src/utils/regionMatch';
+import RegionFilterBanner from '../../src/components/RegionFilterBanner';
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity,
 } from 'react-native';
@@ -311,6 +314,7 @@ export default function GastronomiaScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
 
+  const { regionId, clear } = useRegionParam();
   const [activeCategory, setActiveCategory] = useState<CategoryTab>('todos');
   const [activeRegion, setActiveRegion]   = useState('Todos');
   const [expandedId, setExpandedId]       = useState<string | null>(null);
@@ -440,9 +444,11 @@ export default function GastronomiaScreen() {
           </Text>
         </View>
 
+        {regionId && <RegionFilterBanner regionId={regionId} onClear={clear} />}
+
         {/* ── Dish List ───────────────────────────────────────────────────── */}
         <View style={styles.listContainer}>
-          {filteredDishes.map((dish) => (
+          {filterByRegion(filteredDishes, regionId, (d) => d.region).map((dish) => (
             <GastronomyDishCard
               key={dish.id}
               dish={dish}

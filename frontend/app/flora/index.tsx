@@ -2,6 +2,9 @@
  * Atlas de Flora — native flora, endemisms and flowering calendar explorer
  */
 import React, { useState } from 'react';
+import { useRegionParam } from '../../src/hooks/useRegionParam';
+import { filterByRegion } from '../../src/utils/regionMatch';
+import RegionFilterBanner from '../../src/components/RegionFilterBanner';
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator,
 } from 'react-native';
@@ -306,6 +309,7 @@ export default function FloraScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
 
+  const { regionId, clear } = useRegionParam();
   const [activeTab, setActiveTab]   = useState<TabKey>('todos');
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [monthFilter, setMonthFilter] = useState<number | null>(null);
@@ -451,12 +455,14 @@ export default function FloraScreen() {
           </Text>
         </View>
 
+        {regionId && <RegionFilterBanner regionId={regionId} onClear={clear} />}
+
         {/* ── Species list ────────────────────────────────────────────────── */}
         <View style={styles.listContainer}>
           {isLoading && (
             <ActivityIndicator size="large" color={C.accent} style={{ marginVertical: 32 }} />
           )}
-          {!isLoading && filtered.map((species) => (
+          {!isLoading && filterByRegion(filtered, regionId, (s) => s.region_main).map((species) => (
             <FloraSpeciesCard
               key={species.id}
               species={species}

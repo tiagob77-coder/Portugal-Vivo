@@ -2,6 +2,9 @@
  * Pré-História — Geossítios · Megalitos · Arte Rupestre · Astronomia
  */
 import React, { useState } from 'react';
+import { useRegionParam } from '../../src/hooks/useRegionParam';
+import { filterByRegion } from '../../src/utils/regionMatch';
+import RegionFilterBanner from '../../src/components/RegionFilterBanner';
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity,
 } from 'react-native';
@@ -247,6 +250,7 @@ export default function PrehistoriaScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
 
+  const { regionId, clear } = useRegionParam();
   const [activeCategory, setActiveCategory] = useState<CategoryTab>('todos');
   const [activePeriod, setActivePeriod] = useState<PeriodFilter>('todos');
   const [expandedId, setExpandedId] = useState<string | null>(null);
@@ -386,9 +390,11 @@ export default function PrehistoriaScreen() {
           </Text>
         </View>
 
+        {regionId && <RegionFilterBanner regionId={regionId} onClear={clear} />}
+
         {/* ── Site Cards ─────────────────────────────────────────────────── */}
         <View style={styles.listContainer}>
-          {filteredSites.map((site) => (
+          {filterByRegion(filteredSites, regionId, (s) => s.region).map((site) => (
             <PrehistoriaCard
               key={site.id}
               site={site}

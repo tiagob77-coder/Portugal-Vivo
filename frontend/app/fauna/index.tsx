@@ -2,6 +2,9 @@
  * Atlas de Fauna — Portuguese wildlife, endemisms and observation routes explorer
  */
 import React, { useState } from 'react';
+import { useRegionParam } from '../../src/hooks/useRegionParam';
+import { filterByRegion } from '../../src/utils/regionMatch';
+import RegionFilterBanner from '../../src/components/RegionFilterBanner';
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity,
 } from 'react-native';
@@ -358,6 +361,7 @@ export default function FaunaScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
 
+  const { regionId, clear } = useRegionParam();
   const [activeTab, setActiveTab]         = useState<TabKey>('todos');
   const [activeHabitat, setActiveHabitat] = useState<HabitatKey>('todos');
   const [expandedId, setExpandedId]       = useState<string | null>(null);
@@ -483,9 +487,11 @@ export default function FaunaScreen() {
           </Text>
         </View>
 
+        {regionId && <RegionFilterBanner regionId={regionId} onClear={clear} />}
+
         {/* ── Species list ────────────────────────────────────────────────── */}
         <View style={styles.listContainer}>
-          {filtered.map((species) => (
+          {filterByRegion(filtered, regionId, (s) => s.region_main).map((species) => (
             <FaunaSpeciesCard
               key={species.id}
               species={species}

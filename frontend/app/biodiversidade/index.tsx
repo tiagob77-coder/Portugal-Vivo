@@ -3,6 +3,9 @@
  * Oceanic dark palette: bg #071828, card #0A2236, accent cyan #06B6D4
  */
 import React, { useState } from 'react';
+import { useRegionParam } from '../../src/hooks/useRegionParam';
+import { filterByRegion } from '../../src/utils/regionMatch';
+import RegionFilterBanner from '../../src/components/RegionFilterBanner';
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity,
 } from 'react-native';
@@ -319,6 +322,7 @@ export default function BiodiversidadeScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
 
+  const { regionId, clear } = useRegionParam();
   const [categoryFilter, setCategoryFilter] = useState<CategoryFilter>('all');
   const [seasonFilter, setSeasonFilter]     = useState<SeasonFilter>('all');
   const [expandedId, setExpandedId]         = useState<string | null>(null);
@@ -457,9 +461,11 @@ export default function BiodiversidadeScreen() {
           </Text>
         </View>
 
+        {regionId && <RegionFilterBanner regionId={regionId} onClear={clear} />}
+
         {/* ── Species list ────────────────────────────────────────────────── */}
         <View style={styles.listContainer}>
-          {filtered.map((species) => (
+          {filterByRegion(filtered, regionId, (s) => s.region).map((species) => (
             <MarineSpeciesCard
               key={species.id}
               species={species}

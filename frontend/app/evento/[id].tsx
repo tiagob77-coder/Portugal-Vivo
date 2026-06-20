@@ -20,6 +20,7 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useQuery } from '@tanstack/react-query';
 import api, { getAgendaEventDetail, getAgendaEventNearby, discoverNearby } from '../../src/services/api';
+import { toTourismRegion } from '../../src/utils/regionMatch';
 import { colors, shadows, fontFamilies } from '../../src/theme';
 import { useTheme } from '../../src/context/ThemeContext';
 
@@ -162,6 +163,7 @@ export default function EventDetailPage() {
   const rarity = event.rarity || 'comum';
   const rarityConfig = RARITY_CONFIG[rarity] || RARITY_CONFIG.comum;
   const regionName = REGION_NAMES[(event.region || '').toLowerCase()] || event.region || '';
+  const eventRegionId = toTourismRegion(event.region);
 
   const eventCanonical = `https://portugal-vivo.app/evento/${id}`;
   const eventDesc = event.description ? event.description.slice(0, 160) : `${catConfig.label} — ${event.name} em ${regionName || 'Portugal'}`;
@@ -392,7 +394,7 @@ export default function EventDetailPage() {
               <TouchableOpacity
                 key={m.route}
                 style={styles.themeChip}
-                onPress={() => router.push(m.route as any)}
+                onPress={() => router.push((eventRegionId ? `${m.route}?region=${eventRegionId}` : m.route) as any)}
                 activeOpacity={0.7}
               >
                 <MaterialIcons name={m.icon as any} size={14} color="#2E5E4E" />
