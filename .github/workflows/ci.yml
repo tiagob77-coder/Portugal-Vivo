@@ -5,6 +5,10 @@ on:
     branches: [main, master, "claude/**", "feature/**", "fix/**"]
   pull_request:
     branches: [main, master]
+  # Permite ser invocado como workflow reutilizável pelo deploy.yml
+  # (job check-ci). Sem isto o GitHub rejeita o deploy.yml inteiro na
+  # validação — falha instantânea com 0 jobs.
+  workflow_call:
 
 jobs:
   # ──────────────────────────────────────────────
