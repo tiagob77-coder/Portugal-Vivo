@@ -86,6 +86,22 @@ dig +short api.portugalvivo.pt
 
 ### 4.1. Configurar variáveis de ambiente
 
+**Caminho rápido (recomendado)** — gera `backend/.env` e `.env` (raiz) com
+secrets fortes, `ENVIRONMENT=production`, `MONGO_URL` com auth e CORS de
+produção num só passo:
+
+```bash
+cd /opt/portugal-vivo
+DOMAIN=portugalvivo.pt ./scripts/generate-prod-env.sh
+# Depois rever backend/.env e preencher as chaves opcionais
+# (OPENAI_API_KEY, STRIPE_*, CLOUDINARY_*, SENTRY_DSN, ...)
+```
+
+Com o script, as secções 4.1 (manual) e 4.2 abaixo ficam feitas — saltar
+para a 4.3.
+
+**Caminho manual:**
+
 ```bash
 cd /opt/portugal-vivo/backend
 
@@ -615,6 +631,34 @@ docker stats --no-stream
 | `EXPO_PUBLIC_SENTRY_DSN` | ❌ (opcional) | frontend/.env |
 
 ✅ = Obrigatória | ⚠️ = Funcionalidade degradada sem ela | ❌ = Opcional
+
+---
+
+## Secrets do GitHub Actions (CD)
+
+O workflow `deploy.yml` (Actions → "CD — Deploy para Produção" →
+*Run workflow*) valida estes secrets num job de preflight e falha logo
+com a lista do que falta. Configurar em **Settings → Secrets and
+variables → Actions**:
+
+| Secret | Obrigatório | Descrição |
+|--------|-------------|-----------|
+| `DOCKERHUB_USERNAME` | ✅ | Username do Docker Hub (push da imagem backend) |
+| `DOCKERHUB_TOKEN` | ✅ | Access token do Docker Hub (Account Settings → Security) |
+| `DEPLOY_HOST` | ✅ | IP ou hostname do VPS de produção |
+| `DEPLOY_USER` | ✅ | Utilizador SSH no VPS (com acesso a Docker e sudo p/ rsync) |
+| `DEPLOY_SSH_KEY` | ✅ | Chave privada SSH (conteúdo completo, formato PEM/OpenSSH) |
+| `DEPLOY_PORT` | ❌ | Porta SSH (default: 22) |
+| `DEPLOY_PATH` | ❌ | Caminho do repo no VPS (default: `/opt/portugal-vivo`) |
+| `EXPO_PUBLIC_GOOGLE_MAPS_API_KEY` | ❌ | Legado — mapas usam MapLibre, deixar vazio |
+| `EXPO_PUBLIC_SENTRY_DSN` | ❌ | DSN Sentry do frontend web |
+
+Pré-requisitos no VPS antes do primeiro deploy via Actions:
+repo clonado em `DEPLOY_PATH`, `backend/.env` + `.env` criados
+(`./scripts/generate-prod-env.sh`), SSL inicializado (`./ops/ssl-init.sh`)
+e stack arrancada uma vez (`docker compose -f docker-compose.prod.yml up -d`).
+O deploy usa sempre a tag imutável `commit-<sha>` da imagem, e em caso de
+falha no health check faz rollback automático para a imagem anterior.
 
 ---
 

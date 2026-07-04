@@ -53,7 +53,9 @@ services:
         max-file: "3"
 
   backend:
-    image: ${DOCKERHUB_USERNAME:-tiagob77}/portugal-vivo-backend:latest
+    # BACKEND_IMAGE_TAG é definida pelo workflow de deploy (tag exata da
+    # release) e pelo rollback; arranques manuais sem a variável usam :latest.
+    image: ${DOCKERHUB_USERNAME:-tiagob77}/portugal-vivo-backend:${BACKEND_IMAGE_TAG:-latest}
     # Ou usar build local:
     # build:
     #   context: ./backend
