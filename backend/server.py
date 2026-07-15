@@ -765,6 +765,10 @@ set_geo_db(db)
 set_geo_admin(require_admin)
 api_router.include_router(geo_router)
 
+# Geo Verification — cross-validation of GPS coordinates vs declared admin data
+from geo_verification_api import geo_verification_router
+api_router.include_router(geo_verification_router)
+
 # Ambassador Program
 from ambassador_api import ambassador_router, set_ambassador_db, set_ambassador_auth
 set_ambassador_db(db)

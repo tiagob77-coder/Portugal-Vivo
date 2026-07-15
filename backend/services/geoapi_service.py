@@ -9,6 +9,8 @@ from datetime import datetime, timezone, timedelta
 from typing import Optional, Dict, Any
 from pydantic import BaseModel
 
+from services.geo_cache import build_geo_key, geo_cache_get, geo_cache_set
+
 logger = logging.getLogger(__name__)
 
 
@@ -54,6 +56,18 @@ class GeoAPIService:
         if self._is_cache_valid(cache_key) and cache_key in self._cache:
             return self._cache[cache_key]
 
+        # Shared Redis cache — survives restarts and is shared across workers
+        redis_key = build_geo_key("geoapi_reverse", f"{lat:.4f}", f"{lng:.4f}")
+        cached = await geo_cache_get(redis_key)
+        if isinstance(cached, dict):
+            try:
+                result = GeoLocation.model_validate(cached)
+                self._cache[cache_key] = result
+                self._last_fetch[cache_key] = datetime.now(timezone.utc)
+                return result
+            except Exception:
+                pass  # stale/invalid entry — fall through to the API
+
         try:
             async with httpx.AsyncClient(timeout=10.0) as client:
                 resp = await client.get(
@@ -74,6 +88,7 @@ class GeoAPIService:
                     )
                     self._cache[cache_key] = result
                     self._last_fetch[cache_key] = datetime.now(timezone.utc)
+                    await geo_cache_set(redis_key, result.model_dump())
                     return result
         except Exception as e:
             logger.warning(f"GeoAPI reverse geocode failed: {e}")
