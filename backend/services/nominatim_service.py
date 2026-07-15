@@ -11,6 +11,8 @@ import logging
 from datetime import datetime, timezone, timedelta
 from typing import Optional, Dict, Any, List
 
+from services.geo_cache import build_geo_key, geo_cache_get, geo_cache_set
+
 logger = logging.getLogger(__name__)
 
 
@@ -70,6 +72,13 @@ class NominatimService:
         if self._is_cache_valid(cache_key) and cache_key in self._cache:
             return self._cache[cache_key]
 
+        # Shared Redis cache — survives restarts and is shared across workers
+        redis_key = build_geo_key("nominatim_reverse", f"{lat:.5f}", f"{lng:.5f}")
+        cached = await geo_cache_get(redis_key)
+        if cached is not None:
+            self._set_cache(cache_key, cached)
+            return cached
+
         try:
             await self._rate_limit()
             async with httpx.AsyncClient(timeout=10.0) as client:
@@ -115,6 +124,7 @@ class NominatimService:
                         "raw_address": addr,
                     }
                     self._set_cache(cache_key, result)
+                    await geo_cache_set(redis_key, result)
                     return result
                 else:
                     logger.warning(
@@ -141,6 +151,14 @@ class NominatimService:
         cache_key = f"nom_fgeo_{query.lower().strip()}_{country_code}_{limit}"
         if self._is_cache_valid(cache_key) and cache_key in self._cache:
             return self._cache[cache_key]
+
+        redis_key = build_geo_key(
+            "nominatim_forward", query.lower().strip(), country_code, limit
+        )
+        cached = await geo_cache_get(redis_key)
+        if cached is not None:
+            self._set_cache(cache_key, cached)
+            return cached
 
         try:
             await self._rate_limit()
@@ -198,6 +216,7 @@ class NominatimService:
                             }
                         )
                     self._set_cache(cache_key, results)
+                    await geo_cache_set(redis_key, results)
                     return results
                 else:
                     logger.warning(

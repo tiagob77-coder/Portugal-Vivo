@@ -82,6 +82,15 @@ export interface ReverseGeocodeResult {
   distrito?: string;
   freguesia?: string;
   region?: string;
+  // Street-level fields from the unified geocoding cascade (Nominatim + GeoAPI.pt)
+  address?: string;
+  display_name?: string;
+  city?: string;
+  postal_code?: string;
+  codigo_postal?: string;
+  nuts_ii?: string;
+  nuts_iii?: string;
+  source?: string;
 }
 
 export interface Municipality {

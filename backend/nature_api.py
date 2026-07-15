@@ -8,6 +8,7 @@ from typing import Optional
 from services.icnf_service import ICNFService
 from services.gbif_service import GBIFService
 from services.geoapi_service import GeoAPIService
+from services.geocoding_service import geocoding_service
 
 nature_router = APIRouter(prefix="/nature", tags=["Natureza e Biodiversidade"])
 
@@ -222,17 +223,26 @@ async def get_map_layer_urls():
 
 @nature_router.get("/geo/reverse")
 async def reverse_geocode(
-    lat: float = Query(...),
-    lng: float = Query(...),
+    lat: float = Query(..., ge=-90, le=90),
+    lng: float = Query(..., ge=-180, le=180),
 ):
     """
-    Geocodificação reversa: coordenadas -> freguesia, concelho, distrito.
-    Fonte: GeoAPI.pt
+    Geocodificação reversa: coordenadas -> morada (rua, cidade, CP) +
+    hierarquia administrativa (freguesia, concelho, distrito).
+    Fonte: cascata Nominatim (OSM) -> GeoAPI.pt -> Google (se configurado).
     """
-    result = await geoapi_service.reverse_geocode(lat, lng)
+    result = await geocoding_service.reverse_geocode(lat, lng)
     if not result:
         raise HTTPException(status_code=404, detail="Localização não encontrada")
-    return result.model_dump()
+
+    # Chaves administrativas sempre presentes para compatibilidade com o
+    # frontend (ReverseGeocodeResult), mesmo quando só o Nominatim responde.
+    result.setdefault("freguesia", result.get("suburb", ""))
+    result.setdefault("concelho", result.get("city", ""))
+    result.setdefault("distrito_pt", result.get("district", ""))
+    result.setdefault("distrito", result.get("distrito_pt") or result.get("district", ""))
+    result.setdefault("codigo_postal", result.get("postal_code", ""))
+    return result
 
 
 @nature_router.get("/geo/municipality/{concelho}")
