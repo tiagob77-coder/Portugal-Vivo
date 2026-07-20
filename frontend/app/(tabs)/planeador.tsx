@@ -33,7 +33,7 @@ import api, {
   SavedItinerary,
 } from '../../src/services/api';
 import { colors, shadows, fontFamilies } from '../../src/theme';
-import { palette } from '../../src/theme/colors';
+import { palette, withOpacity } from '../../src/theme/colors';
 import { useTheme } from '../../src/context/ThemeContext';
 import { useAuth } from '../../src/context/AuthContext';
 
@@ -840,6 +840,22 @@ export default function PlaneadorTab() {
               </View>
             )}
 
+            {/* Ver Roteiro no Mapa */}
+            <TouchableOpacity
+              style={styles.showOnMapBtn}
+              onPress={() =>
+                router.push({
+                  pathname: '/mapa',
+                  params: { region: aiResult.region, t: String(Date.now()) },
+                })
+              }
+              accessibilityRole="button"
+              accessibilityLabel="Ver roteiro no mapa"
+            >
+              <MaterialIcons name="map" size={18} color={palette.terracotta[500]} />
+              <Text style={styles.showOnMapText}>Ver Roteiro no Mapa</Text>
+            </TouchableOpacity>
+
             {/* Save button */}
             {isPremium && (
               <TouchableOpacity
@@ -1553,6 +1569,20 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   saveBtnText: { color: '#FFF', fontSize: 14, fontWeight: '700' },
+  showOnMapBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: withOpacity(palette.terracotta[500], 0.12),
+    borderWidth: 1,
+    borderColor: withOpacity(palette.terracotta[500], 0.4),
+    marginHorizontal: 20,
+    marginTop: 8,
+    borderRadius: 12,
+    paddingVertical: 12,
+    gap: 8,
+  },
+  showOnMapText: { color: palette.terracotta[500], fontSize: 14, fontWeight: '700' },
   // My Plans
   myPlansHeader: {
     flexDirection: 'row',

@@ -340,9 +340,10 @@ export function LeafletMapComponent(props: LeafletMapProps) {
               <div style="padding:10px 12px 12px">
                 <p style="font-weight:700;font-size:13px;margin:0 0 2px;color:#111827;line-height:1.3">${p.name}</p>
                 <p style="font-size:11px;color:#6B7280;margin:0 0 8px">${p.region}</p>
-                <div style="display:flex;align-items:center;justify-content:space-between">
-                  ${p.iq_score > 0 ? `<span style="font-size:10px;background:#F0FDF4;border-radius:6px;padding:2px 7px;color:#15803D;font-weight:700">IQ ${p.iq_score}</span>` : '<span></span>'}
-                  <span style="font-size:11px;font-weight:700;color:#2E5E4E;background:#F0FDF4;padding:4px 10px;border-radius:6px;display:inline-block">Ver detalhe →</span>
+                ${p.iq_score > 0 ? `<span style="font-size:10px;background:#F0FDF4;border-radius:6px;padding:2px 7px;color:#15803D;font-weight:700;display:inline-block;margin-bottom:8px">IQ ${p.iq_score}</span>` : ''}
+                <div style="display:flex;gap:6px">
+                  <span data-nav="${p.id}" style="flex:1;text-align:center;font-size:11px;font-weight:700;color:#fff;background:#1B5E91;padding:6px 8px;border-radius:8px;display:inline-block">⌖ Navegar</span>
+                  <span style="flex:1;text-align:center;font-size:11px;font-weight:700;color:#fff;background:#C49A6C;padding:6px 8px;border-radius:8px;display:inline-block">Ver Detalhe</span>
                 </div>
               </div>
             </div>
@@ -351,6 +352,12 @@ export function LeafletMapComponent(props: LeafletMapProps) {
 
         setTimeout(() => {
           const root = document.querySelector(`[data-pid="${p.id}"]`);
+          const navBtn = document.querySelector(`[data-nav="${p.id}"]`);
+          navBtn?.addEventListener('click', ev => {
+            ev.preventDefault();
+            ev.stopPropagation();
+            window.open(`https://www.google.com/maps/dir/?api=1&destination=${coords[1]},${coords[0]}`, '_blank', 'noopener');
+          });
           root?.addEventListener('click', ev => {
             ev.preventDefault();
             onItemPress?.({
@@ -657,6 +664,26 @@ export function LeafletMapComponent(props: LeafletMapProps) {
         <Text style={[s.btn3dText, satellite && { color: '#fff' }]}>
           {'\u{1F6F0} SAT'}
         </Text>
+      </TouchableOpacity>
+
+      {/* Botão Street View (abre Google Street View no centro do mapa) */}
+      <TouchableOpacity
+        style={[s.btn3d, { top: 165 }]}
+        onPress={() => {
+          const map = mapRef.current;
+          if (!map) return;
+          const c = map.getCenter();
+          window.open(
+            `https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=${c.lat.toFixed(6)},${c.lng.toFixed(6)}`,
+            '_blank',
+            'noopener',
+          );
+        }}
+        activeOpacity={0.85}
+        accessibilityRole="button"
+        accessibilityLabel="Abrir Street View no centro do mapa"
+      >
+        <Text style={s.btn3dText}>{'⤡ SV'}</Text>
       </TouchableOpacity>
 
       {/* Coordinate HUD (Technical mode) */}
