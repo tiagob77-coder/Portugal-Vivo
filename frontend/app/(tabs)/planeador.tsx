@@ -139,6 +139,14 @@ const REGION_MAP: Record<string, string> = {
   alentejo: 'Alentejo', algarve: 'Algarve', acores: 'Açores', madeira: 'Madeira',
 };
 
+// Map/backend expect lowercase, accent-free region IDs (norte, acores…).
+// Itinerary responses can carry the display value ("Norte", "Açores"), so
+// normalize before handing the region to MapaTab.
+const toRegionId = (region?: string | null): string | undefined => {
+  if (!region) return undefined;
+  return region.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+};
+
 const PACE_OPTIONS = [
   { id: 'relaxado', name: 'Relaxado', icon: 'spa' },
   { id: 'moderado', name: 'Moderado', icon: 'directions-walk' },
@@ -846,7 +854,7 @@ export default function PlaneadorTab() {
               onPress={() =>
                 router.push({
                   pathname: '/mapa',
-                  params: { region: aiResult.region, t: String(Date.now()) },
+                  params: { region: toRegionId(aiResult.region), t: String(Date.now()) },
                 })
               }
               accessibilityRole="button"
