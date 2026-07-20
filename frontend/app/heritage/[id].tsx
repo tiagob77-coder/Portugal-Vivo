@@ -20,6 +20,7 @@ import ImageUpload from '../../src/components/ImageUpload';
 import PoiVideoPlayer from '../../src/components/PoiVideoPlayer';
 import Panorama360View from '../../src/components/Panorama360View';
 import SensoryCard from '../../src/components/SensoryCard';
+import NavigationChooser from '../../src/components/NavigationChooser';
 
 // Helper to remove markdown formatting from AI-generated text
 const cleanMarkdown = (text: string): string => {
@@ -310,6 +311,7 @@ export default function HeritageDetailScreen() {
   const [isSpeakingNarrative, setIsSpeakingNarrative] = useState(false);
   const [isSpeakingDesc, setIsSpeakingDesc] = useState(false);
   const [showPanorama, setShowPanorama] = useState(false);
+  const [showNavChooser, setShowNavChooser] = useState(false);
 
   // Get user location for check-in
   useEffect(() => {
@@ -1025,12 +1027,28 @@ export default function HeritageDetailScreen() {
                 </Text>
               </View>
             )}
+            <TouchableOpacity
+              style={styles.navigateButton}
+              onPress={() => setShowNavChooser(true)}
+              accessibilityRole="button"
+              accessibilityLabel="Navegar para o local"
+            >
+              <MaterialIcons name="navigation" size={15} color="#FFF" />
+              <Text style={styles.navigateButtonText}>Navegar para o local</Text>
+            </TouchableOpacity>
             <View style={styles.coordsRow}>
               <MaterialIcons name="gps-fixed" size={14} color="#64748B" />
               <Text style={styles.coordsText}>
                 {item.location?.lat.toFixed(6)}, {item.location?.lng.toFixed(6)}
               </Text>
             </View>
+            <NavigationChooser
+              visible={showNavChooser}
+              onClose={() => setShowNavChooser(false)}
+              name={item.name}
+              lat={item.location.lat}
+              lng={item.location.lng}
+            />
           </View>
         )}
 
@@ -1564,6 +1582,23 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
     borderRadius: 16,
     gap: 4,
+  },
+  navigateButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    alignSelf: 'center',
+    backgroundColor: '#1B5E91',
+    borderRadius: 18,
+    paddingVertical: 9,
+    paddingHorizontal: 18,
+    marginTop: 10,
+  },
+  navigateButtonText: {
+    fontSize: 12.5,
+    fontWeight: '700',
+    color: '#FFF',
   },
   openMapsButtonText: {
     fontSize: 12,

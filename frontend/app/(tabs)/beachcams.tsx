@@ -2,10 +2,10 @@
  * Beachcams - Live beach webcams from Portugal's coast
  * Design System Applied + Functional Links
  */
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity,
-  Linking, RefreshControl,
+  Linking, RefreshControl, Modal, Platform,
 } from 'react-native';
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -17,7 +17,6 @@ import { typography, shadows, scrimPine } from '../../src/theme';
 import { palette } from '../../src/theme/colors';
 import { useTheme } from '../../src/context/ThemeContext';
 import api, { getBeaches, getBeachBandeiraAzul } from '../../src/services/api';
-import logger from '../../src/utils/logger';
 
 const REGIONS = [
   { id: null, label: 'Todas' },
@@ -48,6 +47,100 @@ const QUALITY_COLORS: Record<string, string> = {
   'Proibida': '#DC2626',
 };
 
+// WebView só existe em builds nativos
+let _WebView: any = null;
+if (Platform.OS !== 'web') {
+  _WebView = require('react-native-webview').WebView; // eslint-disable-line @typescript-eslint/no-require-imports
+}
+
+/** Overlay imersivo de webcam ao vivo (stream in-app + stats da praia). */
+function WebcamLiveOverlay({ cam, onClose }: { cam: any; onClose: () => void }) {
+  const [clock, setClock] = useState(() => new Date());
+
+  useEffect(() => {
+    const t = setInterval(() => setClock(new Date()), 1000);
+    return () => clearInterval(t);
+  }, []);
+
+  const timeLabel = clock.toLocaleTimeString('pt-PT', {
+    hour: '2-digit', minute: '2-digit', second: '2-digit',
+  });
+
+  const stats = [
+    { icon: 'waves' as const, value: cam.surf_level || '—', label: 'Surf' },
+    { icon: 'wb-sunny' as const, value: cam.best_season || '—', label: 'Melhor época' },
+    { icon: 'place' as const, value: cam.region || '—', label: 'Região' },
+  ];
+
+  return (
+    <Modal visible transparent={false} animationType="fade" onRequestClose={onClose}>
+      <View style={styles.liveContainer}>
+        <View style={styles.liveStage}>
+          {Platform.OS === 'web' ? (
+            <iframe
+              src={cam.embed_url}
+              style={{ width: '100%', height: '100%', border: 'none' } as any}
+              title={`Webcam ao vivo — ${cam.name}`}
+              allow="autoplay; fullscreen"
+              loading="lazy"
+            />
+          ) : _WebView ? (
+            <_WebView
+              style={{ flex: 1, backgroundColor: '#0B1E2D' }}
+              source={{ uri: cam.embed_url }}
+              javaScriptEnabled
+              domStorageEnabled
+              allowsFullscreenVideo
+              mediaPlaybackRequiresUserAction={false}
+              originWhitelist={['*']}
+            />
+          ) : (
+            <Image source={{ uri: cam.image_url }} style={{ flex: 1 }} contentFit="cover" />
+          )}
+          <View style={styles.liveRecBadge} pointerEvents="none">
+            <View style={styles.liveRecDot} />
+            <Text style={styles.liveRecText}>REC · AO VIVO</Text>
+          </View>
+          <TouchableOpacity
+            style={styles.liveCloseButton}
+            onPress={onClose}
+            accessibilityRole="button"
+            accessibilityLabel="Fechar webcam ao vivo"
+          >
+            <MaterialIcons name="close" size={20} color="#FFF" />
+          </TouchableOpacity>
+          <View style={styles.liveTitleBlock} pointerEvents="none">
+            <Text style={styles.liveName}>{cam.name}</Text>
+            <Text style={styles.liveMeta}>{cam.region} · em direto</Text>
+          </View>
+          <Text style={styles.liveClock} pointerEvents="none">{timeLabel}</Text>
+        </View>
+        <View style={styles.liveStatsRow}>
+          {stats.map((s) => (
+            <View key={s.label} style={styles.liveStat}>
+              <MaterialIcons name={s.icon} size={18} color="#06B6D4" />
+              <Text style={styles.liveStatValue} numberOfLines={1}>{s.value}</Text>
+              <Text style={styles.liveStatLabel}>{s.label}</Text>
+            </View>
+          ))}
+          <TouchableOpacity
+            style={styles.liveStat}
+            onPress={() => {
+              Linking.openURL(cam.embed_url).catch(() => {});
+            }}
+            accessibilityRole="button"
+            accessibilityLabel="Abrir webcam no browser"
+          >
+            <MaterialIcons name="open-in-new" size={18} color="#06B6D4" />
+            <Text style={styles.liveStatValue}>Browser</Text>
+            <Text style={styles.liveStatLabel}>Abrir fonte</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    </Modal>
+  );
+}
+
 export default function BeachcamsScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
@@ -55,6 +148,7 @@ export default function BeachcamsScreen() {
   const [activeRegion, setActiveRegion] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'webcams' | 'qualidade'>('webcams');
   const [refreshing, setRefreshing] = useState(false);
+  const [liveCam, setLiveCam] = useState<any | null>(null);
 
   const { data, refetch } = useQuery({
     queryKey: ['beachcams', activeRegion],
@@ -83,12 +177,6 @@ export default function BeachcamsScreen() {
     setRefreshing(true);
     await refetch();
     setRefreshing(false);
-  };
-
-  const openWebcam = (url: string) => {
-    Linking.openURL(url).catch(() => {
-      logger.warn('Failed to open URL:', url);
-    });
   };
 
   return (
@@ -231,7 +319,7 @@ export default function BeachcamsScreen() {
                   <TouchableOpacity
                     key={cam.id}
                     style={[styles.camCard, { backgroundColor: tc.surface }]}
-                    onPress={() => openWebcam(cam.embed_url)}
+                    onPress={() => setLiveCam(cam)}
                     activeOpacity={0.9}
                     accessibilityRole="button"
                     accessibilityLabel={`Ver webcam ao vivo da praia ${cam.name}`}
@@ -297,11 +385,11 @@ export default function BeachcamsScreen() {
                       {/* CTA */}
                       <TouchableOpacity
                         style={[styles.ctaButton, { backgroundColor: tc.accent }]}
-                        onPress={() => openWebcam(cam.embed_url)}
+                        onPress={() => setLiveCam(cam)}
                         accessibilityRole="button"
                         accessibilityLabel={`Abrir webcam ao vivo da praia ${cam.name}`}
                       >
-                        <MaterialIcons name="open-in-new" size={16} color="#FFF" />
+                        <MaterialIcons name="play-arrow" size={16} color="#FFF" />
                         <Text style={styles.ctaText}>Ver Webcam ao Vivo</Text>
                       </TouchableOpacity>
                     </View>
@@ -366,11 +454,105 @@ export default function BeachcamsScreen() {
 
         <View style={{ height: 100 }} />
       </ScrollView>
+
+      {liveCam && <WebcamLiveOverlay cam={liveCam} onClose={() => setLiveCam(null)} />}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
+  // Webcam ao vivo (overlay)
+  liveContainer: {
+    flex: 1,
+    backgroundColor: '#0B1E2D',
+  },
+  liveStage: {
+    flex: 1,
+    position: 'relative',
+    backgroundColor: '#0B1E2D',
+  },
+  liveRecBadge: {
+    position: 'absolute',
+    top: 14,
+    left: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: 'rgba(220,38,38,0.9)',
+    borderRadius: 12,
+    paddingVertical: 5,
+    paddingHorizontal: 11,
+  },
+  liveRecDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: '#FFF',
+  },
+  liveRecText: {
+    fontSize: 10,
+    fontWeight: '800',
+    letterSpacing: 1,
+    color: '#FFF',
+  },
+  liveCloseButton: {
+    position: 'absolute',
+    top: 12,
+    right: 14,
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    backgroundColor: 'rgba(11,30,45,0.7)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  liveTitleBlock: {
+    position: 'absolute',
+    bottom: 14,
+    left: 16,
+    right: 90,
+  },
+  liveName: {
+    fontSize: 20,
+    fontWeight: '800',
+    color: '#FFF',
+  },
+  liveMeta: {
+    fontSize: 12,
+    color: 'rgba(255,255,255,0.75)',
+    marginTop: 2,
+  },
+  liveClock: {
+    position: 'absolute',
+    bottom: 16,
+    right: 16,
+    fontSize: 11,
+    fontWeight: '700',
+    color: 'rgba(255,255,255,0.85)',
+    fontVariant: ['tabular-nums'],
+  },
+  liveStatsRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    backgroundColor: '#0B1E2D',
+    paddingTop: 16,
+    paddingBottom: 20,
+    paddingHorizontal: 12,
+  },
+  liveStat: {
+    alignItems: 'center',
+    gap: 3,
+    maxWidth: 96,
+  },
+  liveStatValue: {
+    fontSize: 13,
+    fontWeight: '800',
+    color: '#E0F2FE',
+  },
+  liveStatLabel: {
+    fontSize: 10,
+    color: '#5F87AF',
+  },
   container: { flex: 1 },
   scrollContent: { paddingBottom: 40 },
   

@@ -49,6 +49,20 @@ const getCategoryIcon = (category: string): string => {
   return icons[category] || 'event';
 };
 
+// Módulos temáticos da app — grid 2 colunas no tab Viver
+const THEMATIC_MODULES: { title: string; sub: string; icon: string; color: string; route: string }[] = [
+  { title: 'Costa', sub: 'Praias, marés e surf', icon: 'waves', color: '#1F4E79', route: '/costa' },
+  { title: 'Biodiversidade Marinha', sub: 'Espécies do Atlântico', icon: 'water', color: '#06B6D4', route: '/biodiversidade' },
+  { title: 'Flora Endémica', sub: 'Espécies botânicas', icon: 'local-florist', color: '#3F6F4A', route: '/flora' },
+  { title: 'Fauna & Habitats', sub: 'Vida selvagem', icon: 'pets', color: '#C65D3B', route: '/fauna' },
+  { title: 'Gastronomia', sub: 'Atlas de sabores', icon: 'restaurant', color: '#E8B649', route: '/gastronomia' },
+  { title: 'Cultura Marítima', sub: 'Tradições do mar', icon: 'sailing', color: '#1B5E91', route: '/cultura-maritima' },
+  { title: 'Pré-História', sub: 'Megálitos e céu noturno', icon: 'history-edu', color: '#8C7A6B', route: '/prehistoria' },
+  { title: 'Infraestrutura Natural', sub: 'Parques e passadiços', icon: 'park', color: '#22C55E', route: '/infraestrutura' },
+  { title: 'Economia Local', sub: 'Mercados e produtores', icon: 'storefront', color: '#C49A6C', route: '/economia' },
+  { title: 'Música', sub: 'Tradições musicais', icon: 'music-note', color: '#EC4899', route: '/musica' },
+];
+
 const parseEventDay = (event: CalendarEvent): { day: number; month: number } | null => {
   // date_start is "MM-DD" (see api.ts mapping)
   const parts = event.date_start?.split('-');
@@ -340,9 +354,9 @@ function ExperienciarTab() {
       >
         {/* Header */}
         <View style={styles.header}>
-          <Text style={[styles.headerTitle, { color: colors.text }]}>Viver</Text>
+          <Text style={[styles.headerTitle, { color: colors.text }]}>Experienciar Portugal</Text>
           <Text style={[styles.headerSubtitle, { color: colors.textMuted }]}>
-            O que experimentar hoje
+            Eventos, módulos temáticos e experiências perto de si
           </Text>
         </View>
 
@@ -388,6 +402,37 @@ function ExperienciarTab() {
             </View>
           </TouchableOpacity>
         )}
+
+        {/* Módulos Temáticos */}
+        <View style={styles.section}>
+          <View style={styles.sectionHeader}>
+            <Text style={[styles.sectionTitle, { color: colors.text }]}>Módulos Temáticos</Text>
+            <Text style={[styles.modulesCount, { color: colors.textMuted }]}>
+              {THEMATIC_MODULES.length} módulos
+            </Text>
+          </View>
+          <View style={styles.modulesGrid}>
+            {THEMATIC_MODULES.map((mod) => (
+              <TouchableOpacity
+                key={mod.route}
+                style={[styles.moduleCard, { backgroundColor: colors.surface, borderColor: colors.border }]}
+                onPress={() => router.push(mod.route as any)}
+                accessibilityRole="button"
+                accessibilityLabel={`Abrir módulo ${mod.title}`}
+              >
+                <View style={[styles.moduleIcon, { backgroundColor: mod.color + '18' }]}>
+                  <MaterialIcons name={mod.icon as any} size={20} color={mod.color} />
+                </View>
+                <Text style={[styles.moduleTitle, { color: colors.text }]} numberOfLines={2}>
+                  {mod.title}
+                </Text>
+                <Text style={[styles.moduleSub, { color: colors.textMuted }]} numberOfLines={1}>
+                  {mod.sub}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        </View>
 
         {/* Calendar Section */}
         <View style={[styles.calendarContainer, { backgroundColor: colors.card, borderColor: colors.border }]}>
@@ -696,6 +741,38 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   sectionTitle: { fontSize: 18, fontWeight: '600' },
+  // Módulos Temáticos
+  modulesCount: { fontSize: 11, fontWeight: '700', marginLeft: 'auto' },
+  modulesGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+    rowGap: 10,
+    paddingHorizontal: 20,
+  },
+  moduleCard: {
+    width: '48.5%',
+    borderWidth: 1,
+    borderRadius: 14,
+    padding: 13,
+    gap: 7,
+    alignItems: 'flex-start',
+  },
+  moduleIcon: {
+    width: 38,
+    height: 38,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  moduleTitle: {
+    fontSize: 13,
+    fontWeight: '700',
+    lineHeight: 16,
+  },
+  moduleSub: {
+    fontSize: 10.5,
+  },
 
   // Popular cards (horizontal)
   popularList: { paddingHorizontal: 20, gap: 12 },
