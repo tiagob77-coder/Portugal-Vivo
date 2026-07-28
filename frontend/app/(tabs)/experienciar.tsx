@@ -23,6 +23,7 @@ import {
   VisitRecord,
 } from '../../src/services/api';
 import { useTheme, scrimPine } from '../../src/theme';
+import { getModuleTheme, withOpacity } from '../../src/theme/colors';
 import SmartImage from '../../src/components/SmartImage';
 import ErrorBoundary from '../../src/components/ErrorBoundary';
 import { useResponsive } from '../../src/hooks/useResponsive';
@@ -50,17 +51,24 @@ const getCategoryIcon = (category: string): string => {
 };
 
 // Módulos temáticos da app — grid 2 colunas no tab Viver
-const THEMATIC_MODULES: { title: string; sub: string; icon: string; color: string; route: string }[] = [
-  { title: 'Costa', sub: 'Praias, marés e surf', icon: 'waves', color: '#1F4E79', route: '/costa' },
-  { title: 'Biodiversidade Marinha', sub: 'Espécies do Atlântico', icon: 'water', color: '#06B6D4', route: '/biodiversidade' },
-  { title: 'Flora Endémica', sub: 'Espécies botânicas', icon: 'local-florist', color: '#3F6F4A', route: '/flora' },
-  { title: 'Fauna & Habitats', sub: 'Vida selvagem', icon: 'pets', color: '#C65D3B', route: '/fauna' },
-  { title: 'Gastronomia', sub: 'Atlas de sabores', icon: 'restaurant', color: '#E8B649', route: '/gastronomia' },
-  { title: 'Cultura Marítima', sub: 'Tradições do mar', icon: 'sailing', color: '#1B5E91', route: '/cultura-maritima' },
-  { title: 'Pré-História', sub: 'Megálitos e céu noturno', icon: 'history-edu', color: '#8C7A6B', route: '/prehistoria' },
-  { title: 'Infraestrutura Natural', sub: 'Parques e passadiços', icon: 'park', color: '#22C55E', route: '/infraestrutura' },
-  { title: 'Economia Local', sub: 'Mercados e produtores', icon: 'storefront', color: '#C49A6C', route: '/economia' },
-  { title: 'Música', sub: 'Tradições musicais', icon: 'music-note', color: '#EC4899', route: '/musica' },
+/**
+ * Os 12 módulos temáticos. `slug` liga cada cartão à paleta real do módulo
+ * (getModuleTheme), para que a grelha mostre a identidade de cada um — cartões
+ * escuros nos temas escuros, com faixa de acento no topo.
+ */
+const THEMATIC_MODULES: { title: string; sub: string; icon: string; slug: string; route: string }[] = [
+  { title: 'Costa', sub: 'Praias, marés e surf', icon: 'waves', slug: 'costa', route: '/costa' },
+  { title: 'Biodiversidade Marinha', sub: 'Espécies do Atlântico', icon: 'water', slug: 'biodiversidade', route: '/biodiversidade' },
+  { title: 'Flora Endémica', sub: 'Espécies botânicas', icon: 'local-florist', slug: 'flora', route: '/flora' },
+  { title: 'Fauna & Habitats', sub: 'Vida selvagem', icon: 'pets', slug: 'fauna', route: '/fauna' },
+  { title: 'Gastronomia', sub: 'Atlas de sabores', icon: 'restaurant', slug: 'gastronomia', route: '/gastronomia' },
+  { title: 'Cultura Marítima', sub: 'Tradições do mar', icon: 'sailing', slug: 'cultura-maritima', route: '/cultura-maritima' },
+  { title: 'Pré-História', sub: 'Megálitos e céu noturno', icon: 'history-edu', slug: 'prehistoria', route: '/prehistoria' },
+  { title: 'Infraestrutura Natural', sub: 'Parques e passadiços', icon: 'park', slug: 'infraestrutura', route: '/infraestrutura' },
+  { title: 'Economia Local', sub: 'Mercados e produtores', icon: 'storefront', slug: 'economia', route: '/economia' },
+  { title: 'Música', sub: 'Tradições musicais', icon: 'music-note', slug: 'musica', route: '/musica' },
+  { title: 'Rotas Culturais', sub: 'Festas, fado e danças', icon: 'route', slug: 'rotas-culturais', route: '/rotas-culturais' },
+  { title: 'Turismo Inclusivo', sub: 'Portugal para todos', icon: 'accessible', slug: 'inclusivo', route: '/inclusivo' },
 ];
 
 const parseEventDay = (event: CalendarEvent): { day: number; month: number } | null => {
@@ -412,25 +420,30 @@ function ExperienciarTab() {
             </Text>
           </View>
           <View style={styles.modulesGrid}>
-            {THEMATIC_MODULES.map((mod) => (
-              <TouchableOpacity
-                key={mod.route}
-                style={[styles.moduleCard, { backgroundColor: colors.surface, borderColor: colors.border }]}
-                onPress={() => router.push(mod.route as any)}
-                accessibilityRole="button"
-                accessibilityLabel={`Abrir módulo ${mod.title}`}
-              >
-                <View style={[styles.moduleIcon, { backgroundColor: mod.color + '18' }]}>
-                  <MaterialIcons name={mod.icon as any} size={20} color={mod.color} />
-                </View>
-                <Text style={[styles.moduleTitle, { color: colors.text }]} numberOfLines={2}>
-                  {mod.title}
-                </Text>
-                <Text style={[styles.moduleSub, { color: colors.textMuted }]} numberOfLines={1}>
-                  {mod.sub}
-                </Text>
-              </TouchableOpacity>
-            ))}
+            {THEMATIC_MODULES.map((mod) => {
+              // Cada cartão veste a paleta do próprio módulo
+              const mt = getModuleTheme(mod.slug);
+              return (
+                <TouchableOpacity
+                  key={mod.route}
+                  style={[styles.moduleCard, { backgroundColor: mt.card, borderColor: withOpacity(mt.accent, 0.25) }]}
+                  onPress={() => router.push(mod.route as any)}
+                  accessibilityRole="button"
+                  accessibilityLabel={`Abrir módulo ${mod.title}`}
+                >
+                  <View style={[styles.moduleAccentBar, { backgroundColor: mt.accent }]} />
+                  <View style={[styles.moduleIcon, { backgroundColor: mt.accentMuted }]}>
+                    <MaterialIcons name={mod.icon as any} size={20} color={mt.accent} />
+                  </View>
+                  <Text style={[styles.moduleTitle, { color: mt.textPrimary }]} numberOfLines={2}>
+                    {mod.title}
+                  </Text>
+                  <Text style={[styles.moduleSub, { color: mt.textMuted }]} numberOfLines={1}>
+                    {mod.sub}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
           </View>
         </View>
 
@@ -757,6 +770,15 @@ const styles = StyleSheet.create({
     padding: 13,
     gap: 7,
     alignItems: 'flex-start',
+    overflow: 'hidden',
+  },
+  // Faixa de acento no topo, a identificar o módulo
+  moduleAccentBar: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    height: 3,
   },
   moduleIcon: {
     width: 38,

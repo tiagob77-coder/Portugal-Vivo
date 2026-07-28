@@ -10,6 +10,9 @@ import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import MusicCard, { MusicItem } from '../../src/components/MusicCard';
 import { getModuleTheme, withOpacity } from '../../src/theme/colors';
+import ModuleHighlights from '../../src/components/module/ModuleHighlights';
+import ModuleHistory from '../../src/components/module/ModuleHistory';
+import ModuleLinks from '../../src/components/module/ModuleLinks';
 
 // ─── Colors (from centralized theme) ─────────────────────────────────────────
 
@@ -394,6 +397,11 @@ export default function MusicaTradicional() {
             Dados: DGPC &middot; UNESCO &middot; Associações Culturais
           </Text>
         </View>
+
+        {/* ── História e Ligações (módulo temático) ─────────────────────── */}
+        <ModuleHistory module="musica" />
+        <ModuleHighlights module="musica" />
+        <ModuleLinks module="musica" />
 
         <View style={{ height: 100 }} />
       </ScrollView>

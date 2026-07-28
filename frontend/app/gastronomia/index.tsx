@@ -16,6 +16,9 @@ import GastronomyDishCard, { CoastalDish } from '../../src/components/Gastronomy
 import { getModuleTheme, withOpacity } from '../../src/theme/colors';
 import { API_BASE } from '../../src/config/api';
 import { mergeDishes } from '../../src/utils/gastronomyAdapter';
+import ModuleHighlights from '../../src/components/module/ModuleHighlights';
+import ModuleHistory from '../../src/components/module/ModuleHistory';
+import ModuleLinks from '../../src/components/module/ModuleLinks';
 
 // ─── Colors (from centralized theme) ─────────────────────────────────────────
 
@@ -476,6 +479,11 @@ export default function GastronomiaScreen() {
             Dados: DGPC · DGRM · Associações de Pescadores
           </Text>
         </View>
+
+        {/* ── História e Ligações (módulo temático) ─────────────────────── */}
+        <ModuleHistory module="gastronomia" />
+        <ModuleHighlights module="gastronomia" />
+        <ModuleLinks module="gastronomia" />
 
         <View style={{ height: 100 }} />
       </ScrollView>

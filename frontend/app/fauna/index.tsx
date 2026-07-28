@@ -15,6 +15,9 @@ import { useQuery } from '@tanstack/react-query';
 import FaunaSpeciesCard, { FaunaSpecies } from '../../src/components/FaunaSpeciesCard';
 import { getModuleTheme, withOpacity } from '../../src/theme/colors';
 import { API_BASE } from '../../src/config/api';
+import ModuleHighlights from '../../src/components/module/ModuleHighlights';
+import ModuleHistory from '../../src/components/module/ModuleHistory';
+import ModuleLinks from '../../src/components/module/ModuleLinks';
 
 // ─── Colors (from centralized theme) ─────────────────────────────────────────
 
@@ -519,6 +522,11 @@ export default function FaunaScreen() {
             Dados: ICNF · IUCN · Atlas das Aves · SEO/BirdLife
           </Text>
         </View>
+
+        {/* ── História e Ligações (módulo temático) ─────────────────────── */}
+        <ModuleHistory module="fauna" />
+        <ModuleHighlights module="fauna" />
+        <ModuleLinks module="fauna" />
 
         <View style={{ height: 100 }} />
       </ScrollView>

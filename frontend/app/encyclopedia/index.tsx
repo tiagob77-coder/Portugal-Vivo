@@ -14,7 +14,7 @@ import {
   TextInput,
   Image,
 } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useRouter, useLocalSearchParams } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useQuery } from '@tanstack/react-query';
@@ -34,8 +34,10 @@ export default function EncyclopediaPage() {
   const { contentMaxWidth } = useResponsive();
   // Grid 2-up reativa.
   const universeCardWidth = (contentMaxWidth - 48) / 2;
-  const [searchQuery, setSearchQuery] = useState('');
-  const [isSearching, setIsSearching] = useState(false);
+  // `q` permite entrar já filtrado (ex.: a partir de um módulo temático)
+  const { q: initialQuery } = useLocalSearchParams<{ q?: string }>();
+  const [searchQuery, setSearchQuery] = useState(initialQuery ?? '');
+  const [isSearching, setIsSearching] = useState((initialQuery?.length ?? 0) > 2);
 
   const { data: universes, isLoading: universesLoading } = useQuery({
     queryKey: ['encyclopedia-universes'],

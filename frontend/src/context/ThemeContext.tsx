@@ -1,10 +1,11 @@
 /**
- * ThemeContext — Light/Dark + Daltonismo + Packs visuais por Região
+ * ThemeContext — Light/Dark + Daltonismo + Packs visuais por Região + Luz de Portugal
  *
- * Três camadas de personalização:
+ * Quatro camadas de personalização:
  *   1. mode:        light | dark | system
  *   2. colorVision: normal | deuteranopia | protanopia | tritanopia
  *   3. regionAccent: sobreescreve a cor de accent com a paleta da região activa
+ *   4. luz:         película de luz natural por período do dia (Luz de Portugal)
  */
 import React, { createContext, useContext, useState, useEffect, useMemo } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -14,6 +15,8 @@ import {
   darkColors as darkSemanticColors,
 } from '../theme/colors';
 import type { SemanticColors } from '../theme/colors';
+import { LUZ_PERIODS, resolveLuz } from '../theme/luz';
+import type { LuzMode, LuzPeriod } from '../theme/luz';
 
 // ─── Tipos ───────────────────────────────────────────────────────────────────
 
@@ -33,6 +36,11 @@ interface ThemeContextType {
   // Tema regional
   regionAccent: string | null;
   setRegionAccent: (region: string | null) => void;
+  // Luz de Portugal
+  luz: LuzMode;
+  /** Período efectivamente pintado ('off' quando desligada) */
+  luzActive: LuzPeriod | 'off';
+  setLuz: (mode: LuzMode) => void;
 }
 
 // ─── Overrides de daltonismo ──────────────────────────────────────────────────
@@ -90,11 +98,19 @@ const ThemeContext = createContext<ThemeContextType>({
   setColorVision: () => {},
   regionAccent: null,
   setRegionAccent: () => {},
+  luz: 'auto',
+  luzActive: 'tarde',
+  setLuz: () => {},
 });
 
 const THEME_KEY         = '@portugal_vivo_theme';
 const COLOR_VISION_KEY  = '@portugal_vivo_color_vision';
 const REGION_ACCENT_KEY = '@portugal_vivo_region_accent';
+const LUZ_KEY           = '@portugal_vivo_luz';
+
+const LUZ_MODES: LuzMode[] = ['auto', 'off', ...LUZ_PERIODS.map((p) => p.id)];
+const isLuzMode = (v: unknown): v is LuzMode =>
+  typeof v === 'string' && (LUZ_MODES as string[]).includes(v);
 
 // ─── Provider ─────────────────────────────────────────────────────────────────
 
@@ -103,6 +119,9 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [mode, setModeState] = useState<ThemeMode>('light');
   const [colorVision, setColorVisionState] = useState<ColorVisionMode>('normal');
   const [regionAccent, setRegionAccentState] = useState<string | null>(null);
+  const [luz, setLuzState] = useState<LuzMode>('auto');
+  // Recalculado a cada minuto para a luz acompanhar a passagem das horas
+  const [luzTick, setLuzTick] = useState(() => Date.now());
 
   // Carregar preferências persistidas
   useEffect(() => {
@@ -110,14 +129,23 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
       AsyncStorage.getItem(THEME_KEY),
       AsyncStorage.getItem(COLOR_VISION_KEY),
       AsyncStorage.getItem(REGION_ACCENT_KEY),
-    ]).then(([theme, cv, region]) => {
+      AsyncStorage.getItem(LUZ_KEY),
+    ]).then(([theme, cv, region, storedLuz]) => {
       if (theme === 'light' || theme === 'dark' || theme === 'system') setModeState(theme);
       if (cv === 'normal' || cv === 'deuteranopia' || cv === 'protanopia' || cv === 'tritanopia') {
         setColorVisionState(cv as ColorVisionMode);
       }
       if (region && REGION_ACCENTS[region]) setRegionAccentState(region);
+      if (isLuzMode(storedLuz)) setLuzState(storedLuz);
     });
   }, []);
+
+  // Só é preciso o relógio quando a luz está em automático
+  useEffect(() => {
+    if (luz !== 'auto') return;
+    const timer = setInterval(() => setLuzTick(Date.now()), 60_000);
+    return () => clearInterval(timer);
+  }, [luz]);
 
   const setMode = (newMode: ThemeMode) => {
     setModeState(newMode);
@@ -135,7 +163,15 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     else AsyncStorage.removeItem(REGION_ACCENT_KEY);
   };
 
+  const setLuz = (newLuz: LuzMode) => {
+    setLuzState(newLuz);
+    AsyncStorage.setItem(LUZ_KEY, newLuz);
+  };
+
   const isDark = mode === 'dark' || (mode === 'system' && systemScheme === 'dark');
+
+  // luzTick força o recálculo quando o minuto avança em modo automático
+  const luzActive = useMemo(() => resolveLuz(luz, new Date(luzTick)), [luz, luzTick]);
 
   const colors = useMemo<SemanticColors>(() => {
     const base = isDark ? darkSemanticColors : lightSemanticColors;
@@ -163,6 +199,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
       mode, isDark, colors, setMode, toggleTheme,
       colorVision, setColorVision,
       regionAccent, setRegionAccent,
+      luz, luzActive, setLuz,
     }}>
       {children}
     </ThemeContext.Provider>
