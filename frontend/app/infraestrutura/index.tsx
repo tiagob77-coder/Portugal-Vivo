@@ -12,6 +12,9 @@ import { useQuery } from '@tanstack/react-query';
 import InfrastructureCard, { Infrastructure } from '../../src/components/InfrastructureCard';
 import { getModuleTheme, withOpacity } from '../../src/theme/colors';
 import { API_BASE } from '../../src/config/api';
+import ModuleHighlights from '../../src/components/module/ModuleHighlights';
+import ModuleHistory from '../../src/components/module/ModuleHistory';
+import ModuleLinks from '../../src/components/module/ModuleLinks';
 
 // ─── Colors (from centralized theme) ─────────────────────────────────────────
 
@@ -458,6 +461,11 @@ export default function InfraestruturaScreen() {
             Dados: ICNF · Municípios · Turismo de Portugal
           </Text>
         </View>
+
+        {/* ── História e Ligações (módulo temático) ─────────────────────── */}
+        <ModuleHistory module="infraestrutura" />
+        <ModuleHighlights module="infraestrutura" />
+        <ModuleLinks module="infraestrutura" />
 
         <View style={{ height: 100 }} />
       </ScrollView>

@@ -39,6 +39,8 @@ jest.mock('../../src/context/ThemeContext', () => ({
 }));
 
 jest.mock('../../src/theme/colors', () => ({
+  // Estende o módulo real para que novos exports não partam o mock
+  ...jest.requireActual('../../src/theme/colors'),
   getModuleTheme: () => ({
     bg: '#040F07', card: '#071A0C', accent: '#22C55E',
     accentMuted: '#16A34A20', textPrimary: '#F0FDF4',
@@ -79,6 +81,21 @@ jest.mock('../../src/components/InfrastructureCard', () => ({
     const { Text } = require('react-native');
     return <Text>{item.name}</Text>;
   },
+}));
+
+// ─── Blocos editoriais do módulo ─────────────────────────────────────────────
+// História / Destaques / Ligações são presentacionais e partilhados por todos os
+// módulos (testados em src/data/__tests__). Mockados aqui para que os textos que
+// trazem — nomes de destaques, marcos da timeline — não colidam com as
+// asserções sobre a lista deste ecrã.
+jest.mock('../../src/components/module/ModuleHighlights', () => ({
+  __esModule: true, default: () => null,
+}));
+jest.mock('../../src/components/module/ModuleHistory', () => ({
+  __esModule: true, default: () => null,
+}));
+jest.mock('../../src/components/module/ModuleLinks', () => ({
+  __esModule: true, default: () => null,
 }));
 
 // ─── Tests ────────────────────────────────────────────────────────────────────

@@ -76,6 +76,21 @@ jest.mock('../../src/components/CoastalDataCard', () => ({
   default: () => null,
 }));
 
+// ─── Blocos editoriais do módulo ─────────────────────────────────────────────
+// História / Destaques / Ligações são presentacionais e partilhados por todos os
+// módulos (testados em src/data/__tests__). Mockados aqui para que os textos que
+// trazem — nomes de destaques, marcos da timeline — não colidam com as
+// asserções sobre a lista deste ecrã.
+jest.mock('../../src/components/module/ModuleHighlights', () => ({
+  __esModule: true, default: () => null,
+}));
+jest.mock('../../src/components/module/ModuleHistory', () => ({
+  __esModule: true, default: () => null,
+}));
+jest.mock('../../src/components/module/ModuleLinks', () => ({
+  __esModule: true, default: () => null,
+}));
+
 // ─── Tests ────────────────────────────────────────────────────────────────────
 
 describe('costa/index', () => {

@@ -16,6 +16,9 @@ import { getModuleTheme, withOpacity, onColor } from '../../src/theme/colors';
 import { useRegionParam } from '../../src/hooks/useRegionParam';
 import { matchesRegion } from '../../src/utils/regionMatch';
 import RegionFilterBanner from '../../src/components/RegionFilterBanner';
+import ModuleHighlights from '../../src/components/module/ModuleHighlights';
+import ModuleHistory from '../../src/components/module/ModuleHistory';
+import ModuleLinks from '../../src/components/module/ModuleLinks';
 
 const MT = getModuleTheme('costa');
 const C = {
@@ -549,6 +552,11 @@ export default function CostaScreen() {
             />
           ))}
         </View>
+
+        {/* ── História e Ligações (módulo temático) ─────────────────────── */}
+        <ModuleHistory module="costa" />
+        <ModuleHighlights module="costa" />
+        <ModuleLinks module="costa" />
 
         <View style={{ height: 100 }} />
       </ScrollView>
