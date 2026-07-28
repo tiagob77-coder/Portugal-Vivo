@@ -12,7 +12,7 @@ import { useQuery } from '@tanstack/react-query';
 import { API_BASE } from '../../src/config/api';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import CoastalDataCard from '../../src/components/CoastalDataCard';
-import { getModuleTheme } from '../../src/theme/colors';
+import { getModuleTheme, withOpacity, onColor } from '../../src/theme/colors';
 import { useRegionParam } from '../../src/hooks/useRegionParam';
 import { matchesRegion } from '../../src/utils/regionMatch';
 import RegionFilterBanner from '../../src/components/RegionFilterBanner';
@@ -25,12 +25,16 @@ const C = {
   oceanLight: '#0891B2',
   sand: '#D97706',
   sandLight: '#FEF3C7',
-  foam: '#E0F2FE',
+  // Fundo suave para medalhões e linhas de info. Deriva do accent do módulo
+  // para acompanhar o tema escuro — um pastel fixo brilharia sobre o fundo.
+  foam: MT.accentMuted,
   mint: '#D1FAE5',
   textDark: MT.textPrimary,
   textMed: MT.textSecondary,
   textLight: MT.textMuted,
-  border: '#E2E8F0',
+  border: withOpacity(MT.textPrimary, 0.12),
+  // Texto sobre o accent — o accent é claro, logo pede texto escuro
+  onOcean: onColor(MT.accent),
   accent: '#F97316',
   danger: '#DC2626',
   safe: '#16A34A',
@@ -850,7 +854,7 @@ const styles = StyleSheet.create({
     width: 8,
     height: 8,
     borderRadius: 4,
-    backgroundColor: '#FFF',
+    backgroundColor: C.onOcean,
   },
   progressHint: {
     fontSize: 11,
@@ -890,7 +894,7 @@ const styles = StyleSheet.create({
     color: C.textMed,
   },
   profileChipLabelActive: {
-    color: '#FFF',
+    color: C.onOcean,
   },
 
   // Empty state

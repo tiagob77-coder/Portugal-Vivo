@@ -46,6 +46,7 @@ jest.mock('../../src/theme/colors', () => ({
     textSecondary: '#FCD34D', textMuted: '#92400E',
   }),
   withOpacity: (color: string) => color,
+  onColor: () => '#0E1E1A',
 }));
 
 // ─── API ──────────────────────────────────────────────────────────────────────

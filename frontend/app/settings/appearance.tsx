@@ -3,6 +3,7 @@
  *
  * Controla:
  *   • Tema: claro / escuro / automático
+ *   • Luz de Portugal (película de luz natural por período do dia)
  *   • Visão de cores (daltonismo)
  *   • Pack visual por região
  */
@@ -17,6 +18,8 @@ import { useTheme, COLOR_VISION_LABELS, REGION_ACCENT_NAMES } from '../../src/co
 import type { ColorVisionMode, ThemeMode } from '../../src/context/ThemeContext';
 import { shadows } from '../../src/theme';
 import { ScreenHeader } from '../../src/components/ui';
+import { LUZ_OPTIONS, luzHint, luzDefinition } from '../../src/theme/luz';
+import type { LuzPeriod } from '../../src/theme/luz';
 
 // ─── Cores de preview para daltonismo ────────────────────────────────────────
 
@@ -32,7 +35,10 @@ const CV_PREVIEW: Record<ColorVisionMode, { success: string; error: string; acce
 export default function AppearanceScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const { colors, isDark, mode, setMode, colorVision, setColorVision, regionAccent, setRegionAccent } = useTheme();
+  const {
+    colors, isDark, mode, setMode, colorVision, setColorVision,
+    regionAccent, setRegionAccent, luz, luzActive, setLuz,
+  } = useTheme();
 
   const Section = ({ title }: { title: string }) => (
     <Text style={[s.sectionTitle, { color: colors.textMuted }]}>{title.toUpperCase()}</Text>
@@ -77,6 +83,47 @@ export default function AppearanceScreen() {
             />
           ))}
         </View>
+
+        {/* ── Luz de Portugal ───────────────────────────────────────────────── */}
+        <Section title="Luz de Portugal" />
+        <Text style={[s.hint, { color: colors.textMuted }]}>
+          {luzHint(luz)}
+        </Text>
+        <View style={s.luzChips}>
+          {LUZ_OPTIONS.map(opt => {
+            const on = luz === opt.id;
+            // A amostra usa a cor central do gradiente do período
+            const swatch = opt.id === 'auto' || opt.id === 'off'
+              ? null
+              : luzDefinition(opt.id as LuzPeriod).colors[1];
+            return (
+              <TouchableOpacity
+                key={opt.id}
+                style={[s.luzChip, {
+                  backgroundColor: on ? colors.accent : colors.surface,
+                  borderColor: on ? colors.accent : colors.border,
+                }]}
+                onPress={() => setLuz(opt.id)}
+                activeOpacity={0.75}
+                accessibilityRole="button"
+                accessibilityState={{ selected: on }}
+                accessibilityLabel={`Luz de Portugal: ${opt.label}`}
+              >
+                {swatch
+                  ? <View style={[s.luzSwatch, { backgroundColor: swatch }]} />
+                  : <MaterialIcons name={opt.icon as never} size={15} color={on ? '#FFF' : colors.textSecondary} />}
+                <Text style={[s.luzChipText, { color: on ? '#FFF' : colors.textSecondary }]}>
+                  {opt.label}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
+        </View>
+        {luzActive !== 'off' && (
+          <Text style={[s.hint, { color: colors.textMuted, marginTop: 8 }]}>
+            A luz acompanha a hora do dia e suaviza-se sobre fotografias e mapas.
+          </Text>
+        )}
 
         {/* ── Visão de cores ────────────────────────────────────────────────── */}
         <Section title="Modo de visão de cores" />
@@ -160,4 +207,13 @@ const s = StyleSheet.create({
 
   cvPreview: { flexDirection: 'row', gap: 4 },
   cvDot: { width: 14, height: 14, borderRadius: 7 },
+
+  luzChips: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginHorizontal: 16 },
+  luzChip: {
+    flexDirection: 'row', alignItems: 'center', gap: 6,
+    paddingVertical: 8, paddingHorizontal: 13,
+    borderRadius: 16, borderWidth: 1,
+  },
+  luzChipText: { fontSize: 12, fontWeight: '600' },
+  luzSwatch: { width: 14, height: 14, borderRadius: 7 },
 });
