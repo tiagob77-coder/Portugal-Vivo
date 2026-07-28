@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Stack, useRouter } from 'expo-router';
+import { Stack, useRouter, usePathname } from 'expo-router';
 import Head from 'expo-router/head';
 import { StatusBar } from 'expo-status-bar';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -22,6 +22,7 @@ import { offlineCache } from '../src/services/offlineCache';
 import { getMapItems, getCategories, getStats } from '../src/services/api';
 import { FavoritesProvider } from '../src/context/FavoritesContext';
 import { SmartContextProvider } from '../src/context/SmartContext';
+import LuzDePortugal from '../src/components/LuzDePortugal';
 import logger from '../src/utils/logger';
 import { palette } from '../src/theme/colors';
 import {
@@ -162,6 +163,16 @@ function NotificationManager() {
   }, [isAuthenticated, sessionToken, router]);
 
   return null;
+}
+
+/**
+ * Luz de Portugal — aplicada globalmente, excepto no onboarding, cujas
+ * fotografias já trazem a sua própria luz e perderiam contraste.
+ */
+function LuzLayer() {
+  const pathname = usePathname();
+  if (pathname?.startsWith('/onboarding')) return null;
+  return <LuzDePortugal />;
 }
 
 function ThemedStack() {
@@ -308,6 +319,7 @@ export default function RootLayout() {
                   <FavoritesProvider>
                     <SmartContextProvider>
                       <ThemedStack />
+                      <LuzLayer />
                       <NotificationManager />
                       <CacheWarmer />
                       <POIPrefetcher />

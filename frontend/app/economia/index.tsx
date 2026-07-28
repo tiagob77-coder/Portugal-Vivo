@@ -11,7 +11,7 @@ import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useQuery } from '@tanstack/react-query';
 import EconomyMarketCard from '../../src/components/EconomyMarketCard';
-import { getModuleTheme } from '../../src/theme/colors';
+import { getModuleTheme, withOpacity, onColor } from '../../src/theme/colors';
 import { API_BASE } from '../../src/config/api';
 
 // ─── Colors (from centralized theme) ─────────────────────────────────────────
@@ -21,7 +21,8 @@ const C = {
   bg: MT.bg,
   card: MT.card,
   market: MT.accent,
-  marketLight: '#FEF3C7',
+  // Deriva do accent do módulo para acompanhar o tema escuro
+  marketLight: MT.accentMuted,
   artisan: '#7C3AED',
   artisanLight: '#EDE9FE',
   fish: '#0369A1',
@@ -31,7 +32,9 @@ const C = {
   textDark: MT.textPrimary,
   textMed: MT.textSecondary,
   textLight: MT.textMuted,
-  border: '#E7E5E4',
+  border: withOpacity(MT.textPrimary, 0.12),
+  // Texto sobre o accent — o accent é claro, logo pede texto escuro
+  onMarket: onColor(MT.accent),
   accent: '#C2410C',
 };
 
@@ -239,7 +242,7 @@ export default function EconomiaScreen() {
                 <MaterialIcons
                   name={tab.icon}
                   size={15}
-                  color={isActive ? '#FFFFFF' : C.textMed}
+                  color={isActive ? C.onMarket : C.textMed}
                 />
                 <Text
                   style={[
@@ -481,7 +484,7 @@ const styles = StyleSheet.create({
     color: C.textMed,
   },
   tabChipLabelActive: {
-    color: '#FFFFFF',
+    color: C.onMarket,
   },
 
   // Season filter
@@ -528,7 +531,7 @@ const styles = StyleSheet.create({
     color: C.textMed,
   },
   seasonChipTextActive: {
-    color: '#FFFFFF',
+    color: C.onMarket,
   },
   seasonChipTextCurrent: {
     color: C.accent,
