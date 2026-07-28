@@ -13,6 +13,9 @@ import { useQuery } from '@tanstack/react-query';
 import EconomyMarketCard from '../../src/components/EconomyMarketCard';
 import { getModuleTheme, withOpacity, onColor } from '../../src/theme/colors';
 import { API_BASE } from '../../src/config/api';
+import ModuleHighlights from '../../src/components/module/ModuleHighlights';
+import ModuleHistory from '../../src/components/module/ModuleHistory';
+import ModuleLinks from '../../src/components/module/ModuleLinks';
 
 // ─── Colors (from centralized theme) ─────────────────────────────────────────
 
@@ -400,6 +403,11 @@ export default function EconomiaScreen() {
             Dados curados com base em fontes regionais e tradição oral.
           </Text>
         </View>
+
+        {/* ── História e Ligações (módulo temático) ─────────────────────── */}
+        <ModuleHistory module="economia" />
+        <ModuleHighlights module="economia" />
+        <ModuleLinks module="economia" />
 
         <View style={{ height: 100 }} />
       </ScrollView>
