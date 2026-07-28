@@ -37,13 +37,13 @@ export function ModuleLinks({ module }: Props) {
         <TouchableOpacity
           key={m.slug}
           style={[s.row, { backgroundColor: t.card, borderColor: withOpacity(t.accent, 0.2) }]}
-          onPress={() => router.push(m.route)}
+          onPress={() => router.push(m.route as never)}
           activeOpacity={0.75}
           accessibilityRole="button"
           accessibilityLabel={`Abrir módulo ${m.label}`}
         >
           <View style={[s.rowIcon, { backgroundColor: withOpacity(t.accent, 0.15) }]}>
-            <MaterialIcons name={m.icon} size={19} color={t.accent} />
+            <MaterialIcons name={m.icon as never} size={19} color={t.accent} />
           </View>
           <View style={s.rowBody}>
             <Text style={[s.rowTitle, { color: t.textPrimary }]}>{m.label}</Text>
@@ -58,7 +58,7 @@ export function ModuleLinks({ module }: Props) {
       <View style={s.ctaRow}>
         <TouchableOpacity
           style={[s.cta, { backgroundColor: t.accent }]}
-          onPress={() => router.push({ pathname: '/encyclopedia', params: { q: encyclopediaQuery } })}
+          onPress={() => router.push(`/encyclopedia?q=${encodeURIComponent(encyclopediaQuery)}` as never)}
           activeOpacity={0.85}
           accessibilityRole="button"
         >
@@ -68,7 +68,7 @@ export function ModuleLinks({ module }: Props) {
 
         <TouchableOpacity
           style={[s.cta, s.ctaGhost, { borderColor: t.accent }]}
-          onPress={() => router.push('/(tabs)/mapa')}
+          onPress={() => router.push('/(tabs)/mapa' as never)}
           activeOpacity={0.85}
           accessibilityRole="button"
         >

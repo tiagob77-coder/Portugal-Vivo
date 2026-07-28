@@ -14,7 +14,6 @@ import EconomyMarketCard from '../../src/components/EconomyMarketCard';
 import { getModuleTheme, withOpacity, onColor } from '../../src/theme/colors';
 import { API_BASE } from '../../src/config/api';
 import ModuleHighlights from '../../src/components/module/ModuleHighlights';
-import ModuleGuideCta from '../../src/components/module/ModuleGuideCta';
 import ModuleHistory from '../../src/components/module/ModuleHistory';
 import ModuleLinks from '../../src/components/module/ModuleLinks';
 

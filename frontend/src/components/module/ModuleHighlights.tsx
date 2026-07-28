@@ -35,10 +35,9 @@ export function ModuleHighlights({ module }: Props) {
             key={h.name}
             style={[s.card, { backgroundColor: t.card, borderColor: withOpacity(t.accent, 0.2) }]}
             onPress={() =>
-              router.push({
-                pathname: '/modulo/[module]/destaque/[name]',
-                params: { module, name: h.name },
-              })
+              router.push(
+                `/modulo/${module}/destaque/${encodeURIComponent(h.name)}` as never,
+              )
             }
             activeOpacity={0.8}
             accessibilityRole="button"

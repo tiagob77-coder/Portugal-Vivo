@@ -14,7 +14,6 @@ import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { getModuleTheme, withOpacity, onColor } from '../../src/theme/colors';
 import ModuleHighlights from '../../src/components/module/ModuleHighlights';
-import ModuleGuideCta from '../../src/components/module/ModuleGuideCta';
 import ModuleHistory from '../../src/components/module/ModuleHistory';
 import ModuleLinks from '../../src/components/module/ModuleLinks';
 
@@ -121,8 +120,6 @@ export default function InclusivoScreen() {
         </Text>
 
         <ModuleHighlights module="inclusivo" />
-        <ModuleGuideCta module="inclusivo" />
-
 
         {/* ── Leitura por região ─────────────────────────────────────────── */}
         <Text style={styles.sectionLabel}>REGIÃO</Text>

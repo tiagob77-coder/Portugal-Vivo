@@ -17,7 +17,6 @@ import CulturalHubMap, { HubMapLayer, HubStop } from '../../src/components/Cultu
 import CulturalHubTimeline, { buildTimelineMonths } from '../../src/components/CulturalHubTimeline';
 import CulturalHubPlaylists, { DEFAULT_PLAYLISTS, Playlist } from '../../src/components/CulturalHubPlaylists';
 import ModuleHighlights from '../../src/components/module/ModuleHighlights';
-import ModuleGuideCta from '../../src/components/module/ModuleGuideCta';
 import ModuleHistory from '../../src/components/module/ModuleHistory';
 import ModuleLinks from '../../src/components/module/ModuleLinks';
 

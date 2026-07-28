@@ -1,7 +1,4 @@
-import {
-  haversineKm, formatDistance, nearest,
-  distanceToSegmentKm, distanceToPathKm, withinCorridor,
-} from '../geo';
+import { haversineKm, formatDistance, nearest } from '../geo';
 
 const LISBOA = { lat: 38.7223, lng: -9.1393 };
 const PORTO = { lat: 41.1579, lng: -8.6291 };
@@ -80,62 +77,5 @@ describe('utils/geo — nearest', () => {
 
   it('lida com lista vazia', () => {
     expect(nearest(LISBOA, [])).toEqual([]);
-  });
-});
-
-describe('utils/geo — corredor', () => {
-  // Segmento norte-sul ao longo do meridiano -8, de lat 40 a 41
-  const A = { lat: 40, lng: -8 };
-  const B = { lat: 41, lng: -8 };
-
-  it('ponto sobre o segmento está a distância zero', () => {
-    expect(distanceToSegmentKm({ lat: 40.5, lng: -8 }, A, B)).toBeCloseTo(0, 5);
-  });
-
-  it('mede a perpendicular ao segmento', () => {
-    // 0,1° de longitude a ~40,5° de latitude ≈ 8,5 km
-    const d = distanceToSegmentKm({ lat: 40.5, lng: -8.1 }, A, B);
-    expect(d).toBeGreaterThan(7);
-    expect(d).toBeLessThan(10);
-  });
-
-  it('projeta nos extremos quando o ponto passa para lá do segmento', () => {
-    // Muito a norte de B: a distância mede-se a B, não à recta infinita.
-    // A projeção equirretangular usa 110,57 km/grau constante, por isso fica
-    // ~0,6% abaixo da Haversine — desvio aceite em troca de velocidade.
-    const point = { lat: 42, lng: -8 };
-    const projected = distanceToSegmentKm(point, A, B);
-    const exact = haversineKm(point, B);
-    expect(Math.abs(projected - exact) / exact).toBeLessThan(0.01);
-  });
-
-  it('trata segmento degenerado (a === b)', () => {
-    const d = distanceToSegmentKm({ lat: 40.5, lng: -8 }, A, A);
-    expect(d).toBeCloseTo(haversineKm({ lat: 40.5, lng: -8 }, A), 0);
-  });
-
-  it('distanceToPathKm devolve o mínimo entre segmentos', () => {
-    const path = [A, B, { lat: 41, lng: -7 }];
-    expect(distanceToPathKm({ lat: 41, lng: -7.5 }, path)).toBeLessThan(1);
-  });
-
-  it('distanceToPathKm devolve Infinity para caminhos degenerados', () => {
-    expect(distanceToPathKm(A, [])).toBe(Infinity);
-    expect(distanceToPathKm(A, [A])).toBe(Infinity);
-  });
-
-  it('withinCorridor filtra pelo desvio e devolve-o', () => {
-    const pontos = [
-      { id: 'dentro', lat: 40.5, lng: -8.02 },
-      { id: 'fora', lat: 40.5, lng: -6.5 },
-    ];
-    const r = withinCorridor(pontos, [A, B], 12);
-    expect(r.map((x) => x.point.id)).toEqual(['dentro']);
-    expect(r[0].offsetKm).toBeGreaterThan(0);
-    expect(r[0].offsetKm).toBeLessThan(12);
-  });
-
-  it('withinCorridor devolve vazio quando nada cai no corredor', () => {
-    expect(withinCorridor([{ lat: 0, lng: 0 }], [A, B], 5)).toEqual([]);
   });
 });

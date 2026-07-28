@@ -17,7 +17,6 @@ import { getModuleTheme, withOpacity } from '../../src/theme/colors';
 import { API_BASE } from '../../src/config/api';
 import { mergeDishes } from '../../src/utils/gastronomyAdapter';
 import ModuleHighlights from '../../src/components/module/ModuleHighlights';
-import ModuleGuideCta from '../../src/components/module/ModuleGuideCta';
 import ModuleHistory from '../../src/components/module/ModuleHistory';
 import ModuleLinks from '../../src/components/module/ModuleLinks';
 
