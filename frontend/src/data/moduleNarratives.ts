@@ -1,3 +1,7 @@
+import type React from 'react';
+import type { MaterialIcons } from '@expo/vector-icons';
+import type { Href } from 'expo-router';
+
 /**
  * Narrativas dos módulos temáticos — história, marcos e ligações cruzadas
  *
@@ -7,6 +11,9 @@
  *
  * Fonte: protótipo Claude Design (Portugal Vivo App.dc.html), secção MODEXTRA.
  */
+
+/** Nome válido de ícone MaterialIcons */
+export type MaterialIconName = React.ComponentProps<typeof MaterialIcons>['name'];
 
 export interface ModuleMilestone {
   /** Ano ou período ("1756", "Séc. XV", "Hoje") */
@@ -19,9 +26,9 @@ export interface ModuleNarrative {
   /** Nome apresentado ao utilizador */
   label: string;
   /** Rota expo-router do módulo */
-  route: string;
+  route: Href;
   /** Ícone MaterialIcons */
-  icon: string;
+  icon: MaterialIconName;
   /** Texto de abertura — a leitura do módulo */
   story: string;
   /** Slugs de 3 módulos cruzados por tema */
