@@ -11,6 +11,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import MusicCard, { MusicItem } from '../../src/components/MusicCard';
 import { getModuleTheme, withOpacity } from '../../src/theme/colors';
 import ModuleHighlights from '../../src/components/module/ModuleHighlights';
+import ModuleGuideCta from '../../src/components/module/ModuleGuideCta';
 import ModuleHistory from '../../src/components/module/ModuleHistory';
 import ModuleLinks from '../../src/components/module/ModuleLinks';
 
@@ -297,6 +298,8 @@ export default function MusicaTradicional() {
             <MaterialIcons name="music-note" size={20} color={C.accent} />
           </View>
         </View>
+        <ModuleGuideCta module="musica" />
+
 
         {/* ── Type Tabs ───────────────────────────────────────────────────── */}
         <ScrollView

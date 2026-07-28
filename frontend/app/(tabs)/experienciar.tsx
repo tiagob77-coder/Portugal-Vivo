@@ -25,6 +25,8 @@ import {
 } from '../../src/services/api';
 import { useTheme, scrimPine } from '../../src/theme';
 import { getModuleTheme, withOpacity } from '../../src/theme/colors';
+import { guideRegions } from '../../src/data/explorationGuide';
+import { useDefaultRegion } from '../../src/hooks/useDefaultRegion';
 import SmartImage from '../../src/components/SmartImage';
 import ErrorBoundary from '../../src/components/ErrorBoundary';
 import { useResponsive } from '../../src/hooks/useResponsive';
@@ -94,6 +96,10 @@ function ExperienciarTab() {
   const { colors } = useTheme();
   const { width } = useResponsive();
   const popularCardWidth = Math.min(260, width * 0.7);
+  // Região de partida dos guias — resolvida por GPS/onboarding, com fallback
+  const currentRegion = useDefaultRegion();
+  const currentRegionLabel =
+    guideRegions.find((r) => r.id === currentRegion)?.label ?? '';
   const [token, setToken] = useState<string | null>(null);
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [selectedDay, setSelectedDay] = useState<number | null>(null);
@@ -417,6 +423,47 @@ function ExperienciarTab() {
             </View>
           </TouchableOpacity>
         )}
+
+        {/* Guias de Exploração — 7 regiões */}
+        <View style={styles.section}>
+          <View style={styles.sectionHeader}>
+            <Text style={[styles.sectionTitle, { color: colors.text }]}>Guias de Exploração</Text>
+            <Text style={[styles.modulesCount, { color: colors.textMuted }]}>
+              Está em {currentRegionLabel}
+            </Text>
+          </View>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.guidesRow}
+          >
+            {guideRegions.map((r) => {
+              const here = r.id === currentRegion;
+              return (
+                <TouchableOpacity
+                  key={r.id}
+                  style={[styles.guideCard, {
+                    backgroundColor: colors.surface,
+                    borderColor: here ? colors.accent : colors.border,
+                  }]}
+                  onPress={() => router.push({ pathname: '/guia', params: { region: r.id } })}
+                  accessibilityRole="button"
+                  accessibilityLabel={`Abrir Guia de Exploração do ${r.label}`}
+                >
+                  {here && (
+                    <View style={[styles.guideBadge, { backgroundColor: colors.accent }]}>
+                      <Text style={styles.guideBadgeText}>ESTÁ AQUI</Text>
+                    </View>
+                  )}
+                  <Text style={[styles.guideName, { color: colors.text }]}>{r.label}</Text>
+                  <Text style={[styles.guideSub, { color: colors.textMuted }]} numberOfLines={2}>
+                    {r.sub}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </ScrollView>
+        </View>
 
         {/* Módulos Temáticos */}
         <View style={styles.section}>
@@ -761,6 +808,26 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   sectionTitle: { fontSize: 18, fontWeight: '600' },
+  // Guias de Exploração
+  guidesRow: { paddingHorizontal: 20, gap: 10 },
+  guideCard: {
+    width: 150,
+    borderWidth: 1,
+    borderRadius: 14,
+    padding: 13,
+    gap: 4,
+  },
+  guideBadge: {
+    alignSelf: 'flex-start',
+    paddingHorizontal: 7,
+    paddingVertical: 2,
+    borderRadius: 6,
+    marginBottom: 2,
+  },
+  guideBadgeText: { fontSize: 8.5, fontWeight: '800', color: '#FFF', letterSpacing: 0.5 },
+  guideName: { fontSize: 14.5, fontWeight: '700' },
+  guideSub: { fontSize: 11, lineHeight: 15 },
+
   // Módulos Temáticos
   modulesCount: { fontSize: 11, fontWeight: '700', marginLeft: 'auto' },
   modulesGrid: {
