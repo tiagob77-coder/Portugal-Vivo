@@ -323,6 +323,27 @@ export default function RotasCulturais() {
           </View>
         </View>
 
+        {/* EN2 — rota premium dedicada */}
+        <TouchableOpacity
+          style={styles.en2Card}
+          onPress={() => router.push('/en2')}
+          accessibilityRole="button"
+          accessibilityLabel="Abrir a rota EN2"
+        >
+          <View style={styles.en2Shield}>
+            <Text style={styles.en2ShieldText}>N2</Text>
+          </View>
+          <View style={styles.en2Body}>
+            <Text style={styles.en2Title}>EN2 &middot; a Route 66 portuguesa</Text>
+            <Text style={styles.en2Sub}>
+              738,5 km de Chaves a Faro &middot; 11 distritos &middot; passaporte de carimbos
+            </Text>
+          </View>
+          <MaterialIcons name="chevron-right" size={20} color="#E0B877" />
+        </TouchableOpacity>
+
+        <ModuleGuideCta module="rotas-culturais" />
+
         {/* Premium Banner */}
         <View style={styles.premiumBanner}>
           <MaterialIcons name="star" size={18} color="#FCD34D" />
@@ -491,6 +512,33 @@ const styles = StyleSheet.create({
     width: 40, height: 40, borderRadius: 20,
     backgroundColor: C.accentLight, alignItems: 'center', justifyContent: 'center',
   },
+
+  // EN2 — cartão de entrada com paleta asfalto/dourado da rota
+  en2Card: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    marginHorizontal: 20,
+    marginBottom: 14,
+    padding: 13,
+    borderRadius: 14,
+    backgroundColor: '#1C1915',
+    borderWidth: 1,
+    borderColor: 'rgba(224,184,119,0.35)',
+  },
+  en2Shield: {
+    width: 38,
+    height: 44,
+    borderRadius: 7,
+    borderWidth: 2,
+    borderColor: '#E0B877',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  en2ShieldText: { fontSize: 14, fontWeight: '800', color: '#E0B877' },
+  en2Body: { flex: 1, minWidth: 0 },
+  en2Title: { fontSize: 14.5, fontWeight: '700', color: '#F5EFE4' },
+  en2Sub: { fontSize: 11.5, lineHeight: 16, color: '#8A8172', marginTop: 2 },
 
   premiumBanner: {
     flexDirection: 'row', alignItems: 'center', gap: 10,

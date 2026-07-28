@@ -371,6 +371,8 @@ export default function FloraScreen() {
             <MaterialIcons name="eco" size={20} color={C.accent} />
           </View>
         </View>
+        <ModuleGuideCta module="flora" />
+
 
         {/* ── Seasonal banner ─────────────────────────────────────────────── */}
         <View style={styles.seasonalBanner}>

@@ -222,6 +222,8 @@ export default function EconomiaScreen() {
             <MaterialIcons name="storefront" size={20} color={C.market} />
           </View>
         </View>
+        <ModuleGuideCta module="economia" />
+
 
         {/* ── Tab Selector ───────────────────────────────────────────────── */}
         <ScrollView

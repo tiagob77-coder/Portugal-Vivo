@@ -365,6 +365,8 @@ export default function InfraestruturaScreen() {
             <MaterialIcons name="terrain" size={20} color={C.accent} />
           </View>
         </View>
+        <ModuleGuideCta module="infraestrutura" />
+
 
         {/* ── Type Tabs ──────────────────────────────────────────────────── */}
         <ScrollView

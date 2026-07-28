@@ -309,6 +309,8 @@ export default function PrehistoriaScreen() {
             <MaterialIcons name="account-balance" size={20} color={C.accent} />
           </View>
         </View>
+        <ModuleGuideCta module="prehistoria" />
+
 
         {/* ── Category Tabs ──────────────────────────────────────────────── */}
         <ScrollView

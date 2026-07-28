@@ -381,6 +381,8 @@ export default function BiodiversidadeScreen() {
             <MaterialIcons name="waves" size={20} color={C.accent} />
           </View>
         </View>
+        <ModuleGuideCta module="biodiversidade" />
+
 
         {/* ── Current season banner ───────────────────────────────────────── */}
         <View style={styles.seasonBanner}>

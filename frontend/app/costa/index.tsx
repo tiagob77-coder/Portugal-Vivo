@@ -461,6 +461,8 @@ export default function CostaScreen() {
           </View>
         </View>
 
+        <ModuleGuideCta module="costa" />
+
         {/* Progress Bar — north to south scroll indicator */}
         <View style={styles.progressSection}>
           <View style={styles.progressLabelRow}>

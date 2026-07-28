@@ -415,6 +415,8 @@ export default function FaunaScreen() {
             <MaterialIcons name="pets" size={20} color={C.accent} />
           </View>
         </View>
+        <ModuleGuideCta module="fauna" />
+
 
         {/* ── Flagship banner ─────────────────────────────────────────────── */}
         <View style={styles.flagshipBanner}>

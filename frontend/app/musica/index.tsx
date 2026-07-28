@@ -297,6 +297,8 @@ export default function MusicaTradicional() {
             <MaterialIcons name="music-note" size={20} color={C.accent} />
           </View>
         </View>
+        <ModuleGuideCta module="musica" />
+
 
         {/* ── Type Tabs ───────────────────────────────────────────────────── */}
         <ScrollView

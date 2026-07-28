@@ -374,6 +374,8 @@ export default function GastronomiaScreen() {
             <MaterialIcons name="restaurant" size={20} color={C.amber} />
           </View>
         </View>
+        <ModuleGuideCta module="gastronomia" />
+
 
         {/* ── Seasonal Banner ─────────────────────────────────────────────── */}
         <View style={styles.seasonBanner}>

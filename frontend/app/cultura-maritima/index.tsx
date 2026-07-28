@@ -401,6 +401,8 @@ export default function CulturaMaritima() {
             <MaterialIcons name="directions-boat" size={20} color={C.accent} />
           </View>
         </View>
+        <ModuleGuideCta module="cultura-maritima" />
+
 
         {/* ── Type Tabs ───────────────────────────────────────────────────── */}
         <ScrollView
