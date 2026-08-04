@@ -16,6 +16,9 @@ import { getModuleTheme, withOpacity } from '../../src/theme/colors';
 import CulturalHubMap, { HubMapLayer, HubStop } from '../../src/components/CulturalHubMap';
 import CulturalHubTimeline, { buildTimelineMonths } from '../../src/components/CulturalHubTimeline';
 import CulturalHubPlaylists, { DEFAULT_PLAYLISTS, Playlist } from '../../src/components/CulturalHubPlaylists';
+import ModuleHighlights from '../../src/components/module/ModuleHighlights';
+import ModuleHistory from '../../src/components/module/ModuleHistory';
+import ModuleLinks from '../../src/components/module/ModuleLinks';
 
 const MT = getModuleTheme('rotas-culturais');
 const C = {
@@ -456,6 +459,11 @@ export default function RotasCulturais() {
             Dados: DGPC &middot; UNESCO &middot; Munic&iacute;pios &middot; Conselho da Europa
           </Text>
         </View>
+
+        {/* ── História e Ligações (módulo temático) ─────────────────────── */}
+        <ModuleHistory module="rotas-culturais" />
+        <ModuleHighlights module="rotas-culturais" />
+        <ModuleLinks module="rotas-culturais" />
 
         <View style={{ height: 100 }} />
       </ScrollView>

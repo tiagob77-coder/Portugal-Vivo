@@ -12,6 +12,9 @@ import { useQuery } from '@tanstack/react-query';
 import MaritimeCultureCard, { MaritimeEvent } from '../../src/components/MaritimeCultureCard';
 import { getModuleTheme, withOpacity } from '../../src/theme/colors';
 import { API_BASE } from '../../src/config/api';
+import ModuleHighlights from '../../src/components/module/ModuleHighlights';
+import ModuleHistory from '../../src/components/module/ModuleHistory';
+import ModuleLinks from '../../src/components/module/ModuleLinks';
 
 // ─── Colors (from centralized theme) ─────────────────────────────────────────
 
@@ -498,6 +501,11 @@ export default function CulturaMaritima() {
             Dados: DGPC · Municípios · Associações de Pescadores
           </Text>
         </View>
+
+        {/* ── História e Ligações (módulo temático) ─────────────────────── */}
+        <ModuleHistory module="cultura-maritima" />
+        <ModuleHighlights module="cultura-maritima" />
+        <ModuleLinks module="cultura-maritima" />
 
         <View style={{ height: 100 }} />
       </ScrollView>

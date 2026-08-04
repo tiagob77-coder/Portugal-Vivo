@@ -15,6 +15,9 @@ import { useQuery } from '@tanstack/react-query';
 import PrehistoriaCard, { PrehistoriaSite } from '../../src/components/PrehistoriaCard';
 import { getModuleTheme } from '../../src/theme/colors';
 import { API_BASE } from '../../src/config/api';
+import ModuleHighlights from '../../src/components/module/ModuleHighlights';
+import ModuleHistory from '../../src/components/module/ModuleHistory';
+import ModuleLinks from '../../src/components/module/ModuleLinks';
 
 // ─── Colors (from centralized theme) ─────────────────────────────────────────
 
@@ -422,6 +425,11 @@ export default function PrehistoriaScreen() {
             Dados: SIPA/DGPC · LNEG · Parque Arqueológico do Vale do Côa
           </Text>
         </View>
+
+        {/* ── História e Ligações (módulo temático) ─────────────────────── */}
+        <ModuleHistory module="prehistoria" />
+        <ModuleHighlights module="prehistoria" />
+        <ModuleLinks module="prehistoria" />
 
         <View style={{ height: 100 }} />
       </ScrollView>

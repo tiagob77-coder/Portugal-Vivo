@@ -15,6 +15,9 @@ import { useQuery } from '@tanstack/react-query';
 import { API_BASE } from '../../src/config/api';
 import FloraSpeciesCard, { FloraSpecies } from '../../src/components/FloraSpeciesCard';
 import { getModuleTheme } from '../../src/theme/colors';
+import ModuleHighlights from '../../src/components/module/ModuleHighlights';
+import ModuleHistory from '../../src/components/module/ModuleHistory';
+import ModuleLinks from '../../src/components/module/ModuleLinks';
 
 // ─── Colors (from centralized theme) ─────────────────────────────────────────
 
@@ -490,6 +493,11 @@ export default function FloraScreen() {
             Dados: ICNF · Lista Vermelha · Flora-On
           </Text>
         </View>
+
+        {/* ── História e Ligações (módulo temático) ─────────────────────── */}
+        <ModuleHistory module="flora" />
+        <ModuleHighlights module="flora" />
+        <ModuleLinks module="flora" />
 
         <View style={{ height: 100 }} />
       </ScrollView>
