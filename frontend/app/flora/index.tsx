@@ -16,6 +16,7 @@ import { API_BASE } from '../../src/config/api';
 import FloraSpeciesCard, { FloraSpecies } from '../../src/components/FloraSpeciesCard';
 import { getModuleTheme } from '../../src/theme/colors';
 import ModuleHighlights from '../../src/components/module/ModuleHighlights';
+import ModuleGuideCta from '../../src/components/module/ModuleGuideCta';
 import ModuleHistory from '../../src/components/module/ModuleHistory';
 import ModuleLinks from '../../src/components/module/ModuleLinks';
 
@@ -371,6 +372,8 @@ export default function FloraScreen() {
             <MaterialIcons name="eco" size={20} color={C.accent} />
           </View>
         </View>
+        <ModuleGuideCta module="flora" />
+
 
         {/* ── Seasonal banner ─────────────────────────────────────────────── */}
         <View style={styles.seasonalBanner}>

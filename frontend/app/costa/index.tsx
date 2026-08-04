@@ -17,6 +17,7 @@ import { useRegionParam } from '../../src/hooks/useRegionParam';
 import { matchesRegion } from '../../src/utils/regionMatch';
 import RegionFilterBanner from '../../src/components/RegionFilterBanner';
 import ModuleHighlights from '../../src/components/module/ModuleHighlights';
+import ModuleGuideCta from '../../src/components/module/ModuleGuideCta';
 import ModuleHistory from '../../src/components/module/ModuleHistory';
 import ModuleLinks from '../../src/components/module/ModuleLinks';
 
@@ -460,6 +461,8 @@ export default function CostaScreen() {
             <MaterialIcons name="waves" size={20} color={C.ocean} />
           </View>
         </View>
+
+        <ModuleGuideCta module="costa" />
 
         {/* Progress Bar — north to south scroll indicator */}
         <View style={styles.progressSection}>
