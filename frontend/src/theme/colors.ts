@@ -292,13 +292,13 @@ export const moduleThemes: Record<string, ModuleTheme> = {
     textMuted: palette.ocean[400],
   },
   costa: {
-    bg: palette.gray[50],          // light / airy
-    card: palette.white,
-    accent: palette.ocean[500],
-    accentMuted: palette.ocean[50],
-    textPrimary: palette.gray[800],
-    textSecondary: palette.gray[600],
-    textMuted: palette.gray[400],
+    bg: '#04121F',                 // deep Atlantic
+    card: '#082033',
+    accent: '#38BDF8',
+    accentMuted: withOpacity('#38BDF8', 0.15),
+    textPrimary: '#E0F2FE',
+    textSecondary: '#A8CBE3',
+    textMuted: '#6E93AC',
   },
   fauna: {
     bg: '#120B00',                 // dark earth
@@ -346,13 +346,13 @@ export const moduleThemes: Record<string, ModuleTheme> = {
     textMuted: '#6B9E73',
   },
   economia: {
-    bg: palette.gray[50],          // light / market feel
-    card: palette.white,
-    accent: '#D97706',
-    accentMuted: withOpacity('#D97706', 0.12),
-    textPrimary: palette.gray[800],
-    textSecondary: palette.gray[600],
-    textMuted: palette.gray[400],
+    bg: '#1A1206',                 // dark ochre
+    card: '#2A1D0B',
+    accent: '#F59E0B',
+    accentMuted: withOpacity('#F59E0B', 0.15),
+    textPrimary: '#FDF3D7',
+    textSecondary: '#D9C08A',
+    textMuted: '#A98B54',
   },
   prehistoria: {
     bg: '#1A1208',                 // sepia / ancient
@@ -380,6 +380,15 @@ export const moduleThemes: Record<string, ModuleTheme> = {
     textPrimary: '#F3E8FF',
     textSecondary: '#C4B5D4',
     textMuted: '#7C6D8F',
+  },
+  inclusivo: {
+    bg: '#04121C',                 // accessible Atlantic blue
+    card: '#082031',
+    accent: '#38BDF8',
+    accentMuted: withOpacity('#38BDF8', 0.15),
+    textPrimary: '#E0F2FE',
+    textSecondary: '#B6D4E8',
+    textMuted: '#6E93AC',
   },
 };
 
@@ -461,6 +470,49 @@ export function withOpacity(hex: string, opacity: number): string {
   const g = parseInt(cleaned.substring(2, 4), 16);
   const b = parseInt(cleaned.substring(4, 6), 16);
   return `rgba(${r}, ${g}, ${b}, ${opacity})`;
+}
+
+/**
+ * Relative luminance of a hex colour, per WCAG 2.1.
+ */
+export function luminance(hex: string): number {
+  const cleaned = hex.replace('#', '');
+  const channels = [0, 2, 4].map((i) => {
+    const v = parseInt(cleaned.substring(i, i + 2), 16) / 255;
+    return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4);
+  });
+  return 0.2126 * channels[0] + 0.7152 * channels[1] + 0.0722 * channels[2];
+}
+
+/**
+ * Contrast ratio between two hex colours (1–21), per WCAG 2.1.
+ */
+export function contrastRatio(a: string, b: string): number {
+  const [hi, lo] = [luminance(a), luminance(b)].sort((x, y) => y - x);
+  return (hi + 0.05) / (lo + 0.05);
+}
+
+/** Contraste mínimo para texto normal (WCAG AA). */
+const AA_NORMAL_TEXT = 4.5;
+
+/**
+ * Legible foreground for text/icons sitting on `background`.
+ *
+ * Bright accents (amber, sky blue) need dark text — white on them fails AA at
+ * around 2:1. Prefers the brand ink, but escalates to pure black/white when
+ * mid-luminance accents (the purples, amber) leave the ink short of AA. Always
+ * returns the highest-contrast option available, so the result never regresses.
+ */
+export function onColor(background: string, dark = '#0E1E1A', light = '#FFFFFF'): string {
+  const preferred = contrastRatio(background, dark) >= contrastRatio(background, light)
+    ? dark
+    : light;
+  if (contrastRatio(background, preferred) >= AA_NORMAL_TEXT) return preferred;
+
+  // O ink de marca não chega — recorrer aos extremos puros
+  return contrastRatio(background, '#000000') >= contrastRatio(background, '#FFFFFF')
+    ? '#000000'
+    : '#FFFFFF';
 }
 
 /**
