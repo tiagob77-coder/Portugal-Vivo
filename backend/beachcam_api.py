@@ -7,6 +7,61 @@ from typing import Optional
 beachcam_router = APIRouter(prefix="/beachcams", tags=["Beachcams"])
 
 
+# How a camera delivers its feed. Open cameras (municipalities, ports,
+# universities) publish in one of these three shapes:
+#
+#   hls      — a direct .m3u8 stream. Best experience: real live video.
+#   snapshot — a JPEG endpoint refreshed every few seconds. The most common
+#              format among open cameras, and the cheapest to serve.
+#   iframe   — an embeddable page from an aggregator. Least control: the
+#              provider decides what is shown and whether framing is allowed.
+PROVIDER_HLS = "hls"
+PROVIDER_SNAPSHOT = "snapshot"
+PROVIDER_IFRAME = "iframe"
+VALID_PROVIDERS = {PROVIDER_HLS, PROVIDER_SNAPSHOT, PROVIDER_IFRAME}
+
+# Fallback cadence for snapshot cameras that don't declare one
+DEFAULT_SNAPSHOT_REFRESH_SECONDS = 30
+
+
+def resolve_provider(cam: dict) -> dict:
+    """Fill in provider metadata from whichever URL a camera declares.
+
+    Cameras are curated by hand, so rather than requiring every entry to spell
+    out its provider, infer it: an explicit `provider` wins, then a stream URL,
+    then a snapshot URL, then an embed page. Returns a copy — never mutates the
+    curated data.
+    """
+    resolved = dict(cam)
+
+    declared = resolved.get("provider")
+    if declared in VALID_PROVIDERS:
+        provider = declared
+    elif resolved.get("stream_url"):
+        provider = PROVIDER_HLS
+    elif resolved.get("snapshot_url"):
+        provider = PROVIDER_SNAPSHOT
+    elif resolved.get("embed_url"):
+        provider = PROVIDER_IFRAME
+    else:
+        provider = None
+
+    resolved["provider"] = provider
+    # The client needs one URL to open, whatever the shape
+    resolved["feed_url"] = (
+        resolved.get("stream_url")
+        or resolved.get("snapshot_url")
+        or resolved.get("embed_url")
+    )
+    if provider == PROVIDER_SNAPSHOT:
+        resolved["refresh_seconds"] = int(
+            resolved.get("refresh_seconds") or DEFAULT_SNAPSHOT_REFRESH_SECONDS
+        )
+    # A camera with no usable URL is listed but not playable
+    resolved["playable"] = provider is not None
+    return resolved
+
+
 # Curated beachcam data - VERIFIED FREE webcam sources (worldcam.eu)
 # ONLY URLs that exist and work directly
 BEACHCAM_DATA = [
@@ -198,7 +253,7 @@ async def list_beachcams(
     region: Optional[str] = Query(None, description="Filter by region: Norte, Centro, Lisboa, Algarve"),
     surf_level: Optional[str] = Query(None, description="Filter by surf level"),
 ):
-    cams = BEACHCAM_DATA
+    cams = [resolve_provider(c) for c in BEACHCAM_DATA]
     if region:
         cams = [c for c in cams if c["region"].lower() == region.lower()]
     if surf_level:
@@ -215,5 +270,5 @@ async def list_beachcams(
 async def get_beachcam(cam_id: str):
     for cam in BEACHCAM_DATA:
         if cam["id"] == cam_id:
-            return cam
+            return resolve_provider(cam)
     raise HTTPException(404, "Webcam not found")
