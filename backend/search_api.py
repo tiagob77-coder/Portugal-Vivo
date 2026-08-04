@@ -14,6 +14,26 @@ _db_holder = DatabaseHolder("search")
 set_search_db = _db_holder.set
 
 
+def name_relevance(name: Optional[str], query: str) -> int:
+    """Rank a result name against the query — lower sorts first.
+
+    0 exact match, 1 starts with, 2 contains, 3 no match in the name (the hit
+    came from description or tags). Stable sorting keeps the underlying
+    textScore / IQ order within each band.
+    """
+    needle = (query or "").strip().lower()
+    haystack = (name or "").strip().lower()
+    if not needle or not haystack:
+        return 3
+    if haystack == needle:
+        return 0
+    if haystack.startswith(needle):
+        return 1
+    if needle in haystack:
+        return 2
+    return 3
+
+
 class SearchFilters(BaseModel):
     query: str
     categories: Optional[List[str]] = None
@@ -68,7 +88,16 @@ async def advanced_search(filters: SearchFilters):
     cursor = _db_holder.db.heritage_items.find(query, projection)
     if use_text:
         cursor = cursor.sort([("score", {"$meta": "textScore"})])
+    else:
+        # The regex fallback has no textScore to rank by; IQ keeps the better
+        # documented places on top instead of returning insertion order.
+        cursor = cursor.sort("iq_score", -1)
     items = await cursor.skip(skip).limit(limit).to_list(limit)
+
+    # Within the page, lift exact and prefix matches above mere substring hits —
+    # searching "Faro" should not open with "Alfarofia".
+    if filters.query:
+        items.sort(key=lambda item: name_relevance(item.get("name"), filters.query))
 
     total = await _db_holder.db.heritage_items.count_documents(query)
 

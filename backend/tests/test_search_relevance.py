@@ -13,6 +13,7 @@ happen to be in the test DB), only that:
 import pytest
 
 from conftest import requires_db
+from search_api import name_relevance
 
 
 @pytest.mark.anyio
@@ -73,3 +74,54 @@ async def test_global_search_short_query_returns_empty(client):
     assert resp.status_code == 200
     body = resp.json()
     assert body.get("total") == 0 or body.get("results") == []
+
+
+class TestNameRelevance:
+    """name_relevance — pure ranking, no DB needed."""
+
+    def test_exact_match_ranks_first(self):
+        assert name_relevance("Faro", "Faro") == 0
+
+    def test_ranking_is_ordered_exact_prefix_contains_miss(self):
+        assert (
+            name_relevance("Faro", "Faro")
+            < name_relevance("Faro Velho", "Faro")
+            < name_relevance("Praia de Faro", "Faro")
+            < name_relevance("Alfarrobeira", "Faro")
+        )
+
+    def test_is_case_and_whitespace_insensitive(self):
+        assert name_relevance("  FARO  ", "faro") == 0
+        assert name_relevance("Faro Velho", "  FARO ") == 1
+
+    def test_substring_elsewhere_in_the_name_is_not_a_prefix(self):
+        # "Faro" appears, but not at the start
+        assert name_relevance("Praia de Faro", "Faro") == 2
+
+    def test_no_match_in_name_ranks_last(self):
+        # The hit came from description or tags, not the name
+        assert name_relevance("Sé de Silves", "Faro") == 3
+
+    def test_missing_name_or_query_ranks_last(self):
+        assert name_relevance(None, "Faro") == 3
+        assert name_relevance("", "Faro") == 3
+        assert name_relevance("Faro", "") == 3
+        assert name_relevance("Faro", "   ") == 3
+
+    def test_sorting_a_page_lifts_the_real_match(self):
+        page = [
+            {"name": "Alfarrobeira"},
+            {"name": "Praia de Faro"},
+            {"name": "Faro"},
+            {"name": "Faro Velho"},
+        ]
+        page.sort(key=lambda i: name_relevance(i.get("name"), "Faro"))
+        assert [i["name"] for i in page] == [
+            "Faro", "Faro Velho", "Praia de Faro", "Alfarrobeira",
+        ]
+
+    def test_sort_is_stable_within_a_band(self):
+        # Two equal-ranked names keep their incoming order (textScore / IQ)
+        page = [{"name": "Faro Norte"}, {"name": "Faro Sul"}]
+        page.sort(key=lambda i: name_relevance(i.get("name"), "Faro"))
+        assert [i["name"] for i in page] == ["Faro Norte", "Faro Sul"]

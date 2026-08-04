@@ -2,7 +2,7 @@
  * Advanced Search Page
  * Results grouped by type with region chips and counters
  */
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import OptimizedImage from '../src/components/OptimizedImage';
 import { useRouter, useLocalSearchParams } from 'expo-router';
@@ -50,11 +50,14 @@ const GROUP_LABELS: Record<string, { label: string; icon: string }> = {
   article: { label: 'Artigos', icon: 'article' },
 };
 
-const search = async (query: string, regions?: string[]) => {
+/** Página de resultados. O backend limita a 100 por pedido. */
+const PAGE_SIZE = 60;
+
+const search = async (query: string, regions?: string[], skip = 0) => {
   const res = await fetch(`${API_URL}/api/search`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ query, regions, limit: 50 }),
+    body: JSON.stringify({ query, regions, limit: PAGE_SIZE, skip }),
   });
   if (!res.ok) throw new Error('Search failed');
   return res.json();
@@ -100,6 +103,17 @@ function makeStyles(C: Record<string, string>) {
     resultMeta: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 4 },
     catBadge: { backgroundColor: withOpacity(palette.terracotta[500], 0.15), paddingHorizontal: 7, paddingVertical: 1, borderRadius: 4 },
     catBadgeText: { fontSize: 11, color: C.accent, textTransform: 'capitalize' },
+    loadMore: {
+      alignSelf: 'center',
+      marginTop: 8,
+      marginBottom: 24,
+      paddingVertical: 12,
+      paddingHorizontal: 22,
+      borderRadius: 22,
+      borderWidth: 1.5,
+      borderColor: C.accent,
+    },
+    loadMoreText: { fontSize: 13.5, fontWeight: '700', color: C.accent },
     regionText: { fontSize: 12, color: C.textMuted, textTransform: 'capitalize' },
     ratingText: { fontSize: 12, color: C.accent, fontWeight: '600' },
     resultDesc: { fontSize: 13, color: C.textSub, lineHeight: 18 },
@@ -141,24 +155,47 @@ export default function SearchPage() {
     enabled: !searchQuery,
   });
 
-  const { data: searchData, isLoading: searchLoading } = useQuery({
-    queryKey: ['search', searchQuery, selectedRegions],
-    queryFn: () => search(searchQuery, selectedRegions.length ? selectedRegions : undefined),
+  // Resultados acumulam-se à medida que se pede mais; nova pesquisa ou novo
+  // filtro recomeça do zero.
+  const [skip, setSkip] = useState(0);
+  const [accumulated, setAccumulated] = useState<SearchResult[]>([]);
+
+  useEffect(() => {
+    setSkip(0);
+    setAccumulated([]);
+  }, [searchQuery, selectedRegions]);
+
+  const { data: searchData, isLoading: searchLoading, isFetching } = useQuery({
+    queryKey: ['search', searchQuery, selectedRegions, skip],
+    queryFn: () => search(searchQuery, selectedRegions.length ? selectedRegions : undefined, skip),
     enabled: searchQuery.length >= 2,
   });
+
+  useEffect(() => {
+    if (!searchData?.results) return;
+    setAccumulated((prev) => {
+      const next = skip === 0 ? searchData.results : [...prev, ...searchData.results];
+      // O mesmo POI pode reaparecer entre páginas se a base mudar entretanto
+      const seen = new Set<string>();
+      return next.filter((item: SearchResult) => {
+        if (seen.has(item.id)) return false;
+        seen.add(item.id);
+        return true;
+      });
+    });
+  }, [searchData, skip]);
 
   const toggleRegion = (id: string) => {
     setSelectedRegions(prev => prev.includes(id) ? prev.filter(r => r !== id) : [...prev, id]);
   };
 
   const grouped: Record<string, SearchResult[]> = {};
-  if (searchData?.results) {
-    for (const item of searchData.results) {
-      const type = item.type || 'poi';
-      (grouped[type] = grouped[type] || []).push(item);
-    }
+  for (const item of accumulated) {
+    const type = item.type || 'poi';
+    (grouped[type] = grouped[type] || []).push(item);
   }
   const totalResults = searchData?.total || 0;
+  const hasMore = accumulated.length < totalResults;
 
   return (
     <View style={[styles.container, { paddingTop: insets.top }]} data-testid="search-page">
@@ -206,7 +243,9 @@ export default function SearchPage() {
         ) : searchQuery.length >= 2 && searchData ? (
           <>
             <Text style={styles.resultsSummary}>
-              {totalResults} resultado{totalResults !== 1 ? 's' : ''} para &ldquo;{searchData.query}&rdquo;
+              {totalResults.toLocaleString('pt-PT')} resultado{totalResults !== 1 ? 's' : ''} para
+              &ldquo;{searchData.query}&rdquo;
+              {hasMore ? ` · a mostrar ${accumulated.length.toLocaleString('pt-PT')}` : ''}
             </Text>
 
             {totalResults === 0 ? (
@@ -267,6 +306,22 @@ export default function SearchPage() {
                   </View>
                 );
               })
+            )}
+
+            {hasMore && (
+              <TouchableOpacity
+                style={styles.loadMore}
+                onPress={() => setSkip(accumulated.length)}
+                disabled={isFetching}
+                accessibilityRole="button"
+                accessibilityLabel="Ver mais lugares"
+              >
+                <Text style={styles.loadMoreText}>
+                  {isFetching
+                    ? 'A carregar…'
+                    : `Ver mais ${Math.min(PAGE_SIZE, totalResults - accumulated.length)} lugares`}
+                </Text>
+              </TouchableOpacity>
             )}
           </>
         ) : (
