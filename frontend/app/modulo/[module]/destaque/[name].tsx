@@ -15,7 +15,7 @@ import { useQuery } from '@tanstack/react-query';
 import { getModuleTheme, withOpacity, onColor } from '../../../../src/theme/colors';
 import { getModuleNarrative } from '../../../../src/data/moduleNarratives';
 import { getHighlight, getHighlightDetail } from '../../../../src/data/moduleHighlights';
-import { haversineKm, formatDistance, nearest } from '../../../../src/utils/geo';
+import { formatDistance, nearest } from '../../../../src/utils/geo';
 import NavigationChooser from '../../../../src/components/NavigationChooser';
 import { getMapItems } from '../../../../src/services/api';
 
@@ -93,7 +93,7 @@ export default function HighlightDetailScreen() {
             <MaterialIcons name="arrow-back" size={21} color={t.textPrimary} />
           </TouchableOpacity>
           <View style={[s.modulePill, { backgroundColor: withOpacity(t.accent, 0.15) }]}>
-            <MaterialIcons name={narrative.icon as never} size={14} color={t.accent} />
+            <MaterialIcons name={narrative.icon} size={14} color={t.accent} />
             <Text style={[s.modulePillText, { color: t.accent }]}>{narrative.label}</Text>
           </View>
         </View>
@@ -124,7 +124,7 @@ export default function HighlightDetailScreen() {
               </TouchableOpacity>
               <TouchableOpacity
                 style={[s.action, s.actionGhost, { borderColor: t.accent }]}
-                onPress={() => router.push('/(tabs)/mapa' as never)}
+                onPress={() => router.push('/(tabs)/mapa')}
                 accessibilityRole="button"
               >
                 <MaterialIcons name="map" size={16} color={t.accent} />
@@ -163,7 +163,7 @@ export default function HighlightDetailScreen() {
               <TouchableOpacity
                 key={point.id ?? `${point.lat},${point.lng}`}
                 style={[s.poiRow, { backgroundColor: t.card, borderColor: withOpacity(t.accent, 0.18) }]}
-                onPress={() => point.id && router.push(`/heritage/${point.id}` as never)}
+                onPress={() => point.id && router.push({ pathname: '/heritage/[id]', params: { id: point.id } })}
                 disabled={!point.id}
                 accessibilityRole="button"
               >
@@ -190,10 +190,10 @@ export default function HighlightDetailScreen() {
 
           <TouchableOpacity
             style={[s.linkRow, { backgroundColor: t.card, borderColor: withOpacity(t.accent, 0.18) }]}
-            onPress={() => router.push(narrative.route as never)}
+            onPress={() => router.push(narrative.route)}
             accessibilityRole="button"
           >
-            <MaterialIcons name={narrative.icon as never} size={18} color={t.accent} />
+            <MaterialIcons name={narrative.icon} size={18} color={t.accent} />
             <Text style={[s.linkText, { color: t.textPrimary }]}>Voltar a {narrative.label}</Text>
             <MaterialIcons name="chevron-right" size={20} color={t.textMuted} />
           </TouchableOpacity>
@@ -201,7 +201,7 @@ export default function HighlightDetailScreen() {
           <TouchableOpacity
             style={[s.linkRow, { backgroundColor: t.card, borderColor: withOpacity(t.accent, 0.18) }]}
             onPress={() =>
-              router.push(`/encyclopedia?q=${encodeURIComponent(narrative.categories[0])}` as never)
+              router.push({ pathname: '/encyclopedia', params: { q: narrative.categories[0] } })
             }
             accessibilityRole="button"
           >
@@ -212,7 +212,7 @@ export default function HighlightDetailScreen() {
 
           <TouchableOpacity
             style={[s.linkRow, { backgroundColor: t.card, borderColor: withOpacity(t.accent, 0.18) }]}
-            onPress={() => router.push(`/search?q=${encodeURIComponent(highlight.name)}` as never)}
+            onPress={() => router.push({ pathname: '/search', params: { q: highlight.name } })}
             accessibilityRole="button"
           >
             <MaterialIcons name="search" size={18} color={t.accent} />

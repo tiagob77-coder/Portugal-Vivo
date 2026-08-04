@@ -9,6 +9,7 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { useRouter } from 'expo-router';
+import type { Href } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useQuery } from '@tanstack/react-query';
@@ -56,7 +57,13 @@ const getCategoryIcon = (category: string): string => {
  * (getModuleTheme), para que a grelha mostre a identidade de cada um — cartões
  * escuros nos temas escuros, com faixa de acento no topo.
  */
-const THEMATIC_MODULES: { title: string; sub: string; icon: string; slug: string; route: string }[] = [
+const THEMATIC_MODULES: {
+  title: string;
+  sub: string;
+  icon: React.ComponentProps<typeof MaterialIcons>['name'];
+  slug: string;
+  route: Href;
+}[] = [
   { title: 'Costa', sub: 'Praias, marés e surf', icon: 'waves', slug: 'costa', route: '/costa' },
   { title: 'Biodiversidade Marinha', sub: 'Espécies do Atlântico', icon: 'water', slug: 'biodiversidade', route: '/biodiversidade' },
   { title: 'Flora Endémica', sub: 'Espécies botânicas', icon: 'local-florist', slug: 'flora', route: '/flora' },
@@ -425,15 +432,15 @@ function ExperienciarTab() {
               const mt = getModuleTheme(mod.slug);
               return (
                 <TouchableOpacity
-                  key={mod.route}
+                  key={mod.slug}
                   style={[styles.moduleCard, { backgroundColor: mt.card, borderColor: withOpacity(mt.accent, 0.25) }]}
-                  onPress={() => router.push(mod.route as any)}
+                  onPress={() => router.push(mod.route)}
                   accessibilityRole="button"
                   accessibilityLabel={`Abrir módulo ${mod.title}`}
                 >
                   <View style={[styles.moduleAccentBar, { backgroundColor: mt.accent }]} />
                   <View style={[styles.moduleIcon, { backgroundColor: mt.accentMuted }]}>
-                    <MaterialIcons name={mod.icon as any} size={20} color={mt.accent} />
+                    <MaterialIcons name={mod.icon} size={20} color={mt.accent} />
                   </View>
                   <Text style={[styles.moduleTitle, { color: mt.textPrimary }]} numberOfLines={2}>
                     {mod.title}
