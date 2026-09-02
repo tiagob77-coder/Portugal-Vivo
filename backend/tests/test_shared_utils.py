@@ -14,8 +14,10 @@ from fastapi import HTTPException
 from shared_utils import (
     DatabaseHolder,
     clamp_pagination,
+    corridor_offset_km,
     haversine_km,
     haversine_meters,
+    project_onto_segment,
     order_enriched_first,
 )
 
@@ -133,3 +135,52 @@ class TestDatabaseHolder:
         h.set("first")
         h.set("second")
         assert h.db == "second"
+
+
+class TestCorridorProjection:
+    """project_onto_segment / corridor_offset_km — the trip-corridor maths."""
+
+    # Segment running due north along the -8 meridian, lat 40 → 41
+    A = (40.0, -8.0)
+    B = (41.0, -8.0)
+
+    def test_point_on_segment_has_zero_offset(self):
+        dist, t = project_onto_segment(40.5, -8.0, *self.A, *self.B)
+        assert dist == pytest.approx(0, abs=1e-6)
+        assert t == pytest.approx(0.5, abs=0.01)
+
+    def test_progress_runs_from_origin_to_destination(self):
+        _, t_start = project_onto_segment(40.0, -8.0, *self.A, *self.B)
+        _, t_end = project_onto_segment(41.0, -8.0, *self.A, *self.B)
+        assert t_start == pytest.approx(0, abs=1e-6)
+        assert t_end == pytest.approx(1, abs=1e-6)
+
+    def test_offset_measures_perpendicular_distance(self):
+        # 0.1 degrees of longitude at ~40.5 lat is roughly 8.5 km
+        dist, _ = project_onto_segment(40.5, -8.1, *self.A, *self.B)
+        assert 7 < dist < 10
+
+    def test_progress_is_clamped_beyond_the_ends(self):
+        # Well north of B: clamps to 1, and measures distance to B
+        dist, t = project_onto_segment(42.0, -8.0, *self.A, *self.B)
+        assert t == 1.0
+        assert dist == pytest.approx(haversine_km(42.0, -8.0, 41.0, -8.0), rel=0.01)
+
+    def test_degenerate_segment_falls_back_to_point_distance(self):
+        dist, t = project_onto_segment(40.5, -8.0, *self.A, *self.A)
+        assert t == 0.0
+        assert dist == pytest.approx(haversine_km(40.5, -8.0, *self.A), rel=0.01)
+
+    def test_corridor_offset_km_wraps_projection(self):
+        origin = {"lat": 40.0, "lng": -8.0}
+        destination = {"lat": 41.0, "lng": -8.0}
+        dist, t = corridor_offset_km(40.5, -8.0, origin, destination)
+        assert dist == pytest.approx(0, abs=1e-6)
+        assert t == pytest.approx(0.5, abs=0.01)
+
+    def test_chaves_faro_axis_places_coimbra_mid_route(self):
+        # Real check: Coimbra sits roughly halfway down the EN2 corridor
+        chaves = {"lat": 41.7404, "lng": -7.4707}
+        faro = {"lat": 37.0194, "lng": -7.9304}
+        _, t = corridor_offset_km(40.2033, -8.4103, chaves, faro)
+        assert 0.3 < t < 0.5

@@ -15,7 +15,7 @@ import {
   Switch,
   Alert,
 } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useRouter, useLocalSearchParams } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -135,6 +135,9 @@ const getRoutes = async (category?: string, region?: string): Promise<Route[]> =
   return response.data;
 };
 
+/** Desvio máximo ao eixo do percurso, em km. */
+const CORRIDOR_WIDTHS = [15, 30, 60];
+
 const REGION_MAP: Record<string, string> = {
   norte: 'Norte', centro: 'Centro', lisboa: 'Lisboa',
   alentejo: 'Alentejo', algarve: 'Algarve', acores: 'Açores', madeira: 'Madeira',
@@ -172,6 +175,22 @@ export default function PlaneadorTab() {
   const [selectedTool, setSelectedTool] = useState<string | null>(null);
   const [selectedInterests, setSelectedInterests] = useState<string[]>([]);
   const [selectedRegion, setSelectedRegion] = useState<string | null>(null);
+  const [tripOrigin, setTripOrigin] = useState('');
+  const [tripDestination, setTripDestination] = useState('');
+  const [corridorKm, setCorridorKm] = useState(15);
+  // Pré-preenchimento vindo de outro ecrã (ex.: EN2 → Chaves → Faro)
+  const routeParams = useLocalSearchParams<{
+    origin?: string; destination?: string; days?: string; corridor?: string;
+  }>();
+  useEffect(() => {
+    if (routeParams.origin) setTripOrigin(String(routeParams.origin));
+    if (routeParams.destination) setTripDestination(String(routeParams.destination));
+    if (routeParams.days) setTripDays(String(routeParams.days));
+    const width = Number(routeParams.corridor);
+    if (CORRIDOR_WIDTHS.includes(width)) setCorridorKm(width);
+  }, [routeParams.origin, routeParams.destination, routeParams.days, routeParams.corridor]);
+  // Só há corredor com os dois extremos preenchidos
+  const corridorActive = tripOrigin.trim().length > 1 && tripDestination.trim().length > 1;
   const [tripDays, setTripDays] = useState('2');
   const [selectedPace, setSelectedPace] = useState('moderado');
   const [localitySearch, setLocalitySearch] = useState('');
@@ -219,7 +238,7 @@ export default function PlaneadorTab() {
   };
 
   const handleStartPlanning = async () => {
-    if (!selectedRegion && !selectedLocality) {
+    if (!corridorActive && !selectedRegion && !selectedLocality) {
       router.push('/smart-routes');
       return;
     }
@@ -236,15 +255,26 @@ export default function PlaneadorTab() {
         ? selectedInterests.join(',')
         : 'cultura,gastronomia';
       const region = selectedRegion ? REGION_MAP[selectedRegion] : undefined;
-      const params = {
-        locality: selectedLocality || undefined,
-        region,
-        days: parseInt(tripDays),
-        interests,
-        profile: selectedProfile,
-        pace: selectedPace,
-        max_radius_km: selectedLocality ? 15 : 50,
-      };
+      // Em modo corredor a região é ignorada — o percurso manda
+      const params = corridorActive
+        ? {
+            origin: tripOrigin.trim(),
+            destination: tripDestination.trim(),
+            corridor_km: corridorKm,
+            days: parseInt(tripDays),
+            interests,
+            profile: selectedProfile,
+            pace: selectedPace,
+          }
+        : {
+            locality: selectedLocality || undefined,
+            region,
+            days: parseInt(tripDays),
+            interests,
+            profile: selectedProfile,
+            pace: selectedPace,
+            max_radius_km: selectedLocality ? 15 : 50,
+          };
       if (aiNarrativeEnabled) {
         const result = await generateAiItinerary(params);
         setAiResult(result);
@@ -484,6 +514,106 @@ export default function PlaneadorTab() {
           </View>
         </View>
 
+        {/* Origem e destino — com ambos preenchidos, o roteiro passa a corredor */}
+        <View style={styles.section}>
+          <View style={styles.sectionHeader}>
+            <MaterialIcons name="alt-route" size={20} color="#8B5CF6" />
+            <Text style={styles.sectionTitle}>Origem e destino</Text>
+          </View>
+          <Text style={styles.corridorHint}>
+            Preencha os dois para gerar um roteiro ao longo do percurso, em vez de à volta de uma região.
+          </Text>
+
+          <View style={styles.localityInput}>
+            <MaterialIcons name="trip-origin" size={18} color="#8B5CF6" />
+            <TextInput
+              style={styles.localityTextInput}
+              placeholder="Partida (ex: Chaves)"
+              placeholderTextColor={palette.gray[500]}
+              value={tripOrigin}
+              onChangeText={setTripOrigin}
+              accessibilityLabel="Local de partida"
+            />
+            {!!tripOrigin && (
+              <TouchableOpacity
+                onPress={() => setTripOrigin('')}
+                accessibilityRole="button"
+                accessibilityLabel="Limpar partida"
+              >
+                <MaterialIcons name="close" size={18} color={palette.gray[300]} />
+              </TouchableOpacity>
+            )}
+          </View>
+
+          <View style={styles.swapRow}>
+            <TouchableOpacity
+              style={styles.swapBtn}
+              onPress={() => {
+                const from = tripOrigin;
+                setTripOrigin(tripDestination);
+                setTripDestination(from);
+              }}
+              disabled={!tripOrigin && !tripDestination}
+              accessibilityRole="button"
+              accessibilityLabel="Trocar partida e chegada"
+            >
+              <MaterialIcons name="swap-vert" size={18} color="#8B5CF6" />
+            </TouchableOpacity>
+          </View>
+
+          <View style={styles.localityInput}>
+            <MaterialIcons name="place" size={18} color="#8B5CF6" />
+            <TextInput
+              style={styles.localityTextInput}
+              placeholder="Chegada (ex: Faro)"
+              placeholderTextColor={palette.gray[500]}
+              value={tripDestination}
+              onChangeText={setTripDestination}
+              accessibilityLabel="Local de chegada"
+            />
+            {!!tripDestination && (
+              <TouchableOpacity
+                onPress={() => setTripDestination('')}
+                accessibilityRole="button"
+                accessibilityLabel="Limpar chegada"
+              >
+                <MaterialIcons name="close" size={18} color={palette.gray[300]} />
+              </TouchableOpacity>
+            )}
+          </View>
+
+          {corridorActive && (
+            <>
+              <Text style={styles.corridorLabel}>DESVIO MÁXIMO AO PERCURSO</Text>
+              <View style={styles.corridorChips}>
+                {CORRIDOR_WIDTHS.map((km) => {
+                  const on = km === corridorKm;
+                  return (
+                    <TouchableOpacity
+                      key={km}
+                      style={[styles.corridorChip, on && styles.corridorChipActive]}
+                      onPress={() => setCorridorKm(km)}
+                      accessibilityRole="button"
+                      accessibilityState={{ selected: on }}
+                      accessibilityLabel={`Desvio de ${km} quilómetros`}
+                    >
+                      <Text style={[styles.corridorChipText, on && styles.corridorChipTextActive]}>
+                        &plusmn;{km} km
+                      </Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+              <View style={styles.corridorNote}>
+                <MaterialIcons name="info-outline" size={14} color="#8B5CF6" />
+                <Text style={styles.corridorNoteText}>
+                  Em modo percurso a região é ignorada — o roteiro segue de {tripOrigin} a {tripDestination}.
+                </Text>
+              </View>
+            </>
+          )}
+        </View>
+
         {/* Region Selector */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
@@ -715,14 +845,35 @@ export default function PlaneadorTab() {
         </TouchableOpacity>
 
         {/* Smart Itinerary Result */}
+        {aiResult?.corridor?.active && (
+          <View style={styles.corridorSummary}>
+            <View style={styles.corridorSummaryHead}>
+              <MaterialIcons name="alt-route" size={17} color="#8B5CF6" />
+              <Text style={styles.corridorSummaryTitle}>Percurso</Text>
+            </View>
+            <Text style={styles.corridorSummaryText}>
+              {aiResult.corridor.route_km
+                ? `${aiResult.corridor.route_km} km em linha recta · `
+                : ''}
+              desvio até {aiResult.corridor.corridor_km} km
+            </Text>
+            <Text style={styles.corridorSummaryText}>
+              {aiResult.corridor.available_pois.toLocaleString('pt-PT')} locais disponíveis no
+              corredor · {aiResult.summary.total_pois} escolhidos para estes dias
+            </Text>
+          </View>
+        )}
+
         {aiResult && (
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
               <MaterialIcons name="auto-awesome" size={20} color={palette.terracotta[500]} />
               <Text style={styles.sectionTitle}>
-                {aiResult.locality
-                  ? t('plannerEvents.planner.result.titleLocality', { place: aiResult.locality })
-                  : t('plannerEvents.planner.result.titleRegion', { region: aiResult.region })} - {aiResult.days === 1
+                {aiResult.corridor?.active
+                  ? `${aiResult.corridor.origin?.name} → ${aiResult.corridor.destination?.name}`
+                  : aiResult.locality
+                    ? t('plannerEvents.planner.result.titleLocality', { place: aiResult.locality })
+                    : t('plannerEvents.planner.result.titleRegion', { region: aiResult.region })} - {aiResult.days === 1
                   ? t('plannerEvents.planner.oneDay', { n: aiResult.days })
                   : t('plannerEvents.planner.manyDays', { n: aiResult.days })}
               </Text>
@@ -1183,6 +1334,62 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     gap: 8,
   },
+  corridorSummary: {
+    marginHorizontal: 20,
+    marginBottom: 12,
+    padding: 13,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(139,92,246,0.3)',
+    backgroundColor: 'rgba(139,92,246,0.07)',
+    gap: 3,
+  },
+  corridorSummaryHead: { flexDirection: 'row', alignItems: 'center', gap: 7, marginBottom: 3 },
+  corridorSummaryTitle: { fontSize: 13.5, fontWeight: '700', color: '#8B5CF6' },
+  corridorSummaryText: { fontSize: 12, lineHeight: 17, color: palette.gray[400] },
+
+  corridorHint: {
+    fontSize: 12,
+    lineHeight: 17,
+    color: palette.gray[400],
+    marginBottom: 10,
+  },
+  swapRow: { alignItems: 'center', paddingVertical: 4 },
+  swapBtn: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(139,92,246,0.12)',
+  },
+  corridorLabel: {
+    fontSize: 10.5,
+    fontWeight: '700',
+    letterSpacing: 0.8,
+    color: palette.gray[400],
+    marginTop: 14,
+    marginBottom: 7,
+  },
+  corridorChips: { flexDirection: 'row', gap: 8 },
+  corridorChip: {
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(139,92,246,0.35)',
+  },
+  corridorChipActive: { backgroundColor: '#8B5CF6', borderColor: '#8B5CF6' },
+  corridorChipText: { fontSize: 12.5, fontWeight: '600', color: palette.gray[300] },
+  corridorChipTextActive: { color: '#FFF' },
+  corridorNote: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 7,
+    marginTop: 12,
+  },
+  corridorNoteText: { flex: 1, fontSize: 11.5, lineHeight: 16, color: palette.gray[400] },
+
   regionChip: {
     paddingHorizontal: 16,
     paddingVertical: 10,
