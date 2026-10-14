@@ -6,7 +6,10 @@ import {
   View, Text, StyleSheet, TouchableOpacity, ScrollView,
 } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
+import type { TFunction } from 'i18next';
 import { useTheme } from '../context/ThemeContext';
+import { currentLocale } from '../i18n/format';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -57,13 +60,9 @@ const CATEGORY_ICONS: Record<PrehistoriaSite['category'], React.ComponentProps<t
   arqueologico:'explore',
 };
 
-const CATEGORY_LABELS: Record<PrehistoriaSite['category'], string> = {
-  geositio:    'Geossítio',
-  megalito:    'Megalito',
-  rupestre:    'Arte Rupestre',
-  santuario:   'Santuário',
-  arqueologico:'Arqueológico',
-};
+// Category / period / astronomical labels are translated at render:
+// modulesCulture.prehistoriaCard.categories.<category>, modulesCulture.prehistoria.periods.<period>,
+// modulesCulture.prehistoriaCard.astro.<astronomical_type>
 
 const PERIOD_COLORS: Record<PrehistoriaSite['period'], string> = {
   Paleolitico: '#DC2626',
@@ -73,26 +72,10 @@ const PERIOD_COLORS: Record<PrehistoriaSite['period'], string> = {
   Ferro:       '#2563EB',
 };
 
-const PERIOD_LABELS: Record<PrehistoriaSite['period'], string> = {
-  Paleolitico: 'Paleolítico',
-  Neolitico:   'Neolítico',
-  Calcolitico: 'Calcolítico',
-  Bronze:      'Bronze',
-  Ferro:       'Ferro',
-};
-
-const ASTRO_LABELS: Record<NonNullable<PrehistoriaSite['astronomical_type']>, string> = {
-  solar:     '☀️ Alinhamento Solar',
-  lunar:     '🌙 Alinhamento Lunar',
-  estelar:   '⭐ Estelar',
-  equinocio: '☀️ Equinócio',
-  solsticio: '☀️ Solstício',
-};
-
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-function formatAge(years: number): string {
-  return years.toLocaleString('pt-PT') + ' a.C.';
+function formatAge(years: number, t: TFunction): string {
+  return t('modulesCulture.prehistoriaCard.ageBc', { years: years.toLocaleString(currentLocale()) });
 }
 
 // ─── Component ────────────────────────────────────────────────────────────────
@@ -100,9 +83,10 @@ function formatAge(years: number): string {
 export default function PrehistoriaCard({ site, expanded = false, onPress }: PrehistoriaCardProps) {
   const accentColor = CATEGORY_COLORS[site.category];
   const categoryIcon = CATEGORY_ICONS[site.category];
-  const categoryLabel = CATEGORY_LABELS[site.category];
+  const { t } = useTranslation();
+  const categoryLabel = t(`modulesCulture.prehistoriaCard.categories.${site.category}`, { defaultValue: site.category });
   const periodColor = PERIOD_COLORS[site.period];
-  const periodLabel = PERIOD_LABELS[site.period];
+  const periodLabel = t(`modulesCulture.prehistoria.periods.${site.period}`, { defaultValue: site.period });
   const { colors } = useTheme();
 
   const visibleMotifs = site.motifs_findings ? site.motifs_findings.slice(0, 4) : [];
@@ -162,7 +146,7 @@ export default function PrehistoriaCard({ site, expanded = false, onPress }: Pre
             <>
               <Text style={styles.metaSep}>·</Text>
               <MaterialIcons name="history" size={12} color="#9CA3AF" />
-              <Text style={[styles.metaText, { color: colors.textMuted }]}>{formatAge(site.age_years)}</Text>
+              <Text style={[styles.metaText, { color: colors.textMuted }]}>{formatAge(site.age_years, t)}</Text>
             </>
           ) : null}
           {site.distance_km !== undefined ? (
@@ -182,7 +166,7 @@ export default function PrehistoriaCard({ site, expanded = false, onPress }: Pre
           <View style={styles.astroRow}>
             <View style={styles.astroChip}>
               <Text style={styles.astroChipText}>
-                {ASTRO_LABELS[site.astronomical_type]}
+                {t(`modulesCulture.prehistoriaCard.astro.${site.astronomical_type}`, { defaultValue: site.astronomical_type })}
                 {site.alignment_azimuth !== undefined
                   ? '  ' + site.alignment_azimuth + '\u00b0'
                   : ''}
@@ -223,13 +207,17 @@ export default function PrehistoriaCard({ site, expanded = false, onPress }: Pre
               <View style={styles.celestialBox}>
                 <View style={styles.celestialHeader}>
                   <MaterialIcons name="brightness-5" size={14} color="#D97706" />
-                  <Text style={styles.celestialTitle}>Evento Celeste</Text>
+                  <Text style={styles.celestialTitle}>{t('modulesCulture.prehistoriaCard.celestialEvent')}</Text>
                 </View>
                 {site.celestial_event.solstice ? (
-                  <Text style={styles.celestialText}>Solstício: {site.celestial_event.solstice}</Text>
+                  <Text style={styles.celestialText}>
+                    {t('modulesCulture.prehistoriaCard.solstice', { event: site.celestial_event.solstice })}
+                  </Text>
                 ) : null}
                 {site.celestial_event.equinox ? (
-                  <Text style={styles.celestialText}>Equinócio: {site.celestial_event.equinox}</Text>
+                  <Text style={styles.celestialText}>
+                    {t('modulesCulture.prehistoriaCard.equinox', { event: site.celestial_event.equinox })}
+                  </Text>
                 ) : null}
               </View>
             ) : null}
@@ -237,7 +225,9 @@ export default function PrehistoriaCard({ site, expanded = false, onPress }: Pre
             {site.orientation !== undefined ? (
               <View style={styles.orientRow}>
                 <MaterialIcons name="navigation" size={13} color="#9CA3AF" />
-                <Text style={styles.orientText}>Orientação: {site.orientation}°</Text>
+                <Text style={styles.orientText}>
+                  {t('modulesCulture.prehistoriaCard.orientation', { degrees: site.orientation })}
+                </Text>
               </View>
             ) : null}
           </View>

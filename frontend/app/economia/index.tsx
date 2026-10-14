@@ -2,6 +2,7 @@
  * Economia Local — markets, artisans, and regional products explorer
  */
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity,
   ActivityIndicator,
@@ -111,20 +112,21 @@ type TabKey = 'mercados' | 'artesaos' | 'produtos';
 
 interface Tab {
   key: TabKey;
-  label: string;
+  labelKey: string;
   icon: React.ComponentProps<typeof MaterialIcons>['name'];
   color: string;
 }
 
 const TABS: Tab[] = [
-  { key: 'mercados', label: 'Mercados',  icon: 'storefront',   color: C.market  },
-  { key: 'artesaos', label: 'Artesãos',  icon: 'palette',      color: C.artisan },
-  { key: 'produtos', label: 'Produtos',  icon: 'local-grocery-store', color: C.dop },
+  { key: 'mercados', labelKey: 'modulesCulture.economia.tabs.mercados',  icon: 'storefront',   color: C.market  },
+  { key: 'artesaos', labelKey: 'modulesCulture.economia.tabs.artesaos',  icon: 'palette',      color: C.artisan },
+  { key: 'produtos', labelKey: 'modulesCulture.economia.tabs.produtos',  icon: 'local-grocery-store', color: C.dop },
 ];
 
-const MONTH_NAMES = [
-  'Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun',
-  'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez',
+// Translated at render: modulesCulture.shared.monthsShort.<key>
+const MONTH_KEYS = [
+  'jan', 'feb', 'mar', 'apr', 'may', 'jun',
+  'jul', 'aug', 'sep', 'oct', 'nov', 'dec',
 ];
 
 // ─── Main Screen ──────────────────────────────────────────────────────────────
@@ -132,6 +134,7 @@ const MONTH_NAMES = [
 export default function EconomiaScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const { t } = useTranslation();
 
   const [activeTab, setActiveTab] = useState<TabKey>('mercados');
   const [expandedId, setExpandedId] = useState<string | null>(null);
@@ -197,7 +200,7 @@ export default function EconomiaScreen() {
     ? produtos.filter((p: any) => p.season?.includes(seasonFilter))
     : produtos;
 
-  const activeTabConf = TABS.find((t) => t.key === activeTab)!;
+  const activeTabConf = TABS.find((tab) => tab.key === activeTab)!;
   const activeList =
     activeTab === 'mercados' ? mercados : activeTab === 'artesaos' ? artesaos : filteredProdutos;
 
@@ -216,8 +219,8 @@ export default function EconomiaScreen() {
             <MaterialIcons name="arrow-back" size={22} color={C.market} />
           </TouchableOpacity>
           <View style={styles.headerContent}>
-            <Text style={styles.headerTitle}>Economia Local</Text>
-            <Text style={styles.headerSubtitle}>Mercados · Produtos · Artesãos</Text>
+            <Text style={styles.headerTitle}>{t('modulesCulture.economia.title')}</Text>
+            <Text style={styles.headerSubtitle}>{t('modulesCulture.economia.subtitle')}</Text>
           </View>
           <View style={styles.headerIcon}>
             <MaterialIcons name="storefront" size={20} color={C.market} />
@@ -256,7 +259,7 @@ export default function EconomiaScreen() {
                     isActive && styles.tabChipLabelActive,
                   ]}
                 >
-                  {tab.label}
+                  {t(tab.labelKey)}
                 </Text>
               </TouchableOpacity>
             );
@@ -268,7 +271,7 @@ export default function EconomiaScreen() {
           <View style={styles.seasonSection}>
             <View style={styles.seasonHeader}>
               <MaterialIcons name="calendar-today" size={13} color={C.textLight} />
-              <Text style={styles.seasonHeaderText}>Filtrar por época</Text>
+              <Text style={styles.seasonHeaderText}>{t('modulesCulture.economia.filterBySeason')}</Text>
             </View>
             <ScrollView
               horizontal
@@ -288,10 +291,10 @@ export default function EconomiaScreen() {
                     seasonFilter === null && styles.seasonChipTextActive,
                   ]}
                 >
-                  Todos
+                  {t('modulesCulture.shared.all')}
                 </Text>
               </TouchableOpacity>
-              {MONTH_NAMES.map((name, idx) => {
+              {MONTH_KEYS.map((monthKey, idx) => {
                 const month = idx + 1;
                 const isActive = seasonFilter === month;
                 const isCurrent = month === currentMonth;
@@ -312,7 +315,7 @@ export default function EconomiaScreen() {
                         isCurrent && !isActive && styles.seasonChipTextCurrent,
                       ]}
                     >
-                      {name}
+                      {t(`modulesCulture.shared.monthsShort.${monthKey}`)}
                     </Text>
                   </TouchableOpacity>
                 );
@@ -325,9 +328,11 @@ export default function EconomiaScreen() {
         <View style={styles.summaryRow}>
           <View style={[styles.summaryDot, { backgroundColor: activeTabConf.color }]} />
           <Text style={styles.summaryText}>
-            {activeTab === 'mercados' && `${ECONOMY_DATA.mercados.length} mercados e feiras`}
-            {activeTab === 'artesaos' && `${ECONOMY_DATA.artesaos.length} ofícios artesanais`}
-            {activeTab === 'produtos' && `${filteredProdutos.length} produto${filteredProdutos.length !== 1 ? 's' : ''} encontrado${filteredProdutos.length !== 1 ? 's' : ''}`}
+            {activeTab === 'mercados' && t('modulesCulture.economia.marketsCount', { count: ECONOMY_DATA.mercados.length })}
+            {activeTab === 'artesaos' && t('modulesCulture.economia.artisansCount', { count: ECONOMY_DATA.artesaos.length })}
+            {activeTab === 'produtos' && (filteredProdutos.length === 1
+              ? t('modulesCulture.economia.oneProductFound', { count: filteredProdutos.length })
+              : t('modulesCulture.economia.productsFound', { count: filteredProdutos.length }))}
           </Text>
         </View>
 
@@ -377,9 +382,9 @@ export default function EconomiaScreen() {
           {activeTab === 'produtos' && filteredProdutos.length === 0 && (
             <View style={styles.emptyState}>
               <MaterialIcons name="search-off" size={36} color={C.textLight} />
-              <Text style={styles.emptyStateTitle}>Sem produtos nesta época</Text>
+              <Text style={styles.emptyStateTitle}>{t('modulesCulture.economia.emptyTitle')}</Text>
               <Text style={styles.emptyStateText}>
-                Tente outro mês ou selecione &quot;Todos&quot;.
+                {t('modulesCulture.economia.emptyText')}
               </Text>
             </View>
           )}
@@ -389,10 +394,10 @@ export default function EconomiaScreen() {
               style={styles.loadMoreBtn}
               onPress={() => setVisibleCount((v) => v + PAGE)}
               accessibilityRole="button"
-              accessibilityLabel="Ver mais resultados"
+              accessibilityLabel={t('modulesCulture.economia.seeMoreA11y')}
             >
               <Text style={styles.loadMoreText}>
-                Ver mais ({activeList.length - visibleCount})
+                {t('modulesCulture.economia.seeMore', { count: activeList.length - visibleCount })}
               </Text>
               <MaterialIcons name="expand-more" size={18} color={activeTabConf.color} />
             </TouchableOpacity>
@@ -403,7 +408,7 @@ export default function EconomiaScreen() {
         <View style={styles.infoFooter}>
           <MaterialIcons name="info-outline" size={14} color={C.textLight} />
           <Text style={styles.infoFooterText}>
-            Dados curados com base em fontes regionais e tradição oral.
+            {t('modulesCulture.economia.sources')}
           </Text>
         </View>
 

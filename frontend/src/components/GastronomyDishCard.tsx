@@ -4,6 +4,7 @@
 import { palette } from '../theme/colors';
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useTheme } from '../context/ThemeContext';
 import OptimizedImage from './OptimizedImage';
@@ -79,31 +80,14 @@ const TYPE_ICON: Record<CoastalDish['type'], React.ComponentProps<typeof Materia
   misto:      'local-dining',
 };
 
-const TYPE_LABEL: Record<CoastalDish['type'], string> = {
-  peixe:      'Peixe',
-  marisco:    'Marisco',
-  sopa:       'Sopa',
-  doce:       'Doce',
-  tradicional: 'Tradicional',
-  misto:      'Misto',
-};
+// Type / recipe labels are translated at render: modulesCulture.gastronomyDishCard.{types,recipes}.<id>
 
-const RECIPE_LABEL: Record<CoastalDish['recipe_type'], string> = {
-  guisado:    'Guisado',
-  assado:     'Assado',
-  frito:      'Frito',
-  escabeche:  'Escabeche',
-  caldeirada: 'Caldeirada',
-  cru:        'Cru',
-  fumado:     'Fumado',
-};
+const MONTH_KEYS = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'];
 
-const MONTH_SHORT = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
-
-const ENV_CONFIG: Record<string, { label: string; color: string }> = {
-  seguro:   { label: 'Espécie Segura',  color: C.green },
-  moderado: { label: 'Moderado',        color: C.amber },
-  risco:    { label: 'Em Risco',        color: C.red },
+const ENV_CONFIG: Record<string, { labelKey: string; color: string }> = {
+  seguro:   { labelKey: 'modulesCulture.gastronomyDishCard.env.seguro',   color: C.green },
+  moderado: { labelKey: 'modulesCulture.gastronomyDishCard.env.moderado', color: C.amber },
+  risco:    { labelKey: 'modulesCulture.gastronomyDishCard.env.risco',    color: C.red },
 };
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -120,6 +104,7 @@ function isInSeason(seasonality: CoastalDish['seasonality'], month: number): boo
 
 function GastronomyDishCard({ dish, expanded = false, onPress }: GastronomyDishCardProps) {
   const { colors } = useTheme();
+  const { t } = useTranslation();
   const currentMonth = new Date().getMonth() + 1;
   const typeColor = TYPE_COLOR[dish.type];
   const typeIcon  = TYPE_ICON[dish.type];
@@ -171,12 +156,12 @@ function GastronomyDishCard({ dish, expanded = false, onPress }: GastronomyDishC
       <View style={styles.badgeRow}>
         <View style={[styles.recipeBadge, { backgroundColor: typeColor + '18', borderColor: typeColor + '44' }]}>
           <Text style={[styles.recipeBadgeText, { color: typeColor }]}>
-            {RECIPE_LABEL[dish.recipe_type]}
+            {t(`modulesCulture.gastronomyDishCard.recipes.${dish.recipe_type}`)}
           </Text>
         </View>
         <View style={[styles.typeBadge, { backgroundColor: typeColor + '18', borderColor: typeColor + '44' }]}>
           <Text style={[styles.typeBadgeText, { color: typeColor }]}>
-            {TYPE_LABEL[dish.type]}
+            {t(`modulesCulture.gastronomyDishCard.types.${dish.type}`)}
           </Text>
         </View>
         {dish.distance_km !== undefined && (
@@ -192,7 +177,7 @@ function GastronomyDishCard({ dish, expanded = false, onPress }: GastronomyDishC
         <View style={styles.seasonRow}>
           <MaterialIcons name="calendar-today" size={11} color={C.textLight} />
           <View style={styles.monthGrid}>
-            {MONTH_SHORT.map((m, idx) => {
+            {MONTH_KEYS.map((m, idx) => {
               const month = idx + 1;
               const active  = isInSeason(dish.seasonality, month);
               const current = month === currentMonth;
@@ -205,7 +190,9 @@ function GastronomyDishCard({ dish, expanded = false, onPress }: GastronomyDishC
                     current && styles.monthCellCurrent,
                   ]}
                 >
-                  <Text style={[styles.monthText, active && { color: typeColor }]}>{m}</Text>
+                  <Text style={[styles.monthText, active && { color: typeColor }]}>
+                    {t(`modulesCulture.shared.monthsShort.${m}`)}
+                  </Text>
                 </View>
               );
             })}
@@ -217,7 +204,7 @@ function GastronomyDishCard({ dish, expanded = false, onPress }: GastronomyDishC
       {envConf && (
         <View style={[styles.envBadge, { backgroundColor: envConf.color + '18', borderColor: envConf.color + '44' }]}>
           <MaterialIcons name="eco" size={12} color={envConf.color} />
-          <Text style={[styles.envText, { color: envConf.color }]}>{envConf.label}</Text>
+          <Text style={[styles.envText, { color: envConf.color }]}>{t(envConf.labelKey)}</Text>
         </View>
       )}
 
@@ -254,7 +241,7 @@ function GastronomyDishCard({ dish, expanded = false, onPress }: GastronomyDishC
           <MaterialIcons name="restaurant-menu" size={11} color={C.textLight} />
           <Text style={styles.ingredientsText}>
             {visibleIngredients.join(' · ')}
-            {extraIngredients > 0 && ` +${extraIngredients} mais`}
+            {extraIngredients > 0 && ` ${t('modulesCulture.shared.more', { count: extraIngredients })}`}
           </Text>
         </View>
       )}
@@ -270,7 +257,7 @@ function GastronomyDishCard({ dish, expanded = false, onPress }: GastronomyDishC
             <View style={styles.restaurantsBlock}>
               <View style={styles.sectionLabel}>
                 <MaterialIcons name="star" size={12} color={C.amber} />
-                <Text style={styles.sectionLabelText}>Melhores restaurantes</Text>
+                <Text style={styles.sectionLabelText}>{t('modulesCulture.gastronomyDishCard.bestRestaurants')}</Text>
               </View>
               <View style={styles.restaurantChips}>
                 {dish.best_restaurants.map((r) => (
@@ -287,7 +274,7 @@ function GastronomyDishCard({ dish, expanded = false, onPress }: GastronomyDishC
               <View style={styles.sectionLabel}>
                 <MaterialIcons name="verified" size={12} color={C.textLight} />
                 <Text style={styles.sectionLabelText}>
-                  Fiabilidade: {Math.round(dish.reliability_score * 100)}%
+                  {t('modulesCulture.gastronomyDishCard.reliability', { value: Math.round(dish.reliability_score * 100) })}
                 </Text>
               </View>
               <View style={styles.reliabilityBar}>

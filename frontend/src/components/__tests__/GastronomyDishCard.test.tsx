@@ -1,5 +1,6 @@
 import React from 'react';
-import { render, fireEvent } from '@testing-library/react-native';
+import { render, fireEvent, act } from '@testing-library/react-native';
+import i18n from 'i18next';
 import GastronomyDishCard, { CoastalDish } from '../GastronomyDishCard';
 
 jest.mock('@expo/vector-icons', () => ({ MaterialIcons: 'MaterialIcons' }));
@@ -80,5 +81,20 @@ describe('GastronomyDishCard', () => {
     };
     const { getByText } = render(<GastronomyDishCard dish={minimal} />);
     expect(getByText('Arroz de Marisco')).toBeTruthy();
+  });
+
+  describe('em inglês', () => {
+    afterEach(async () => {
+      await act(() => i18n.changeLanguage('pt')); // eslint-disable-line import/no-named-as-default-member
+    });
+
+    it('traduz os labels do card', async () => {
+      await act(() => i18n.changeLanguage('en')); // eslint-disable-line import/no-named-as-default-member
+      const { getByText } = render(<GastronomyDishCard dish={mockDish} onPress={onPress} expanded />);
+      expect(getByText('Sustainable species')).toBeTruthy();
+      expect(getByText('Fish')).toBeTruthy();
+      expect(getByText('Best restaurants')).toBeTruthy();
+      expect(getByText('Reliability: 90%')).toBeTruthy();
+    });
   });
 });

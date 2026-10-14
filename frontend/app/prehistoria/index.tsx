@@ -2,6 +2,7 @@
  * Pré-História — Geossítios · Megalitos · Arte Rupestre · Astronomia
  */
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useRegionParam } from '../../src/hooks/useRegionParam';
 import { filterByRegion } from '../../src/utils/regionMatch';
 import RegionFilterBanner from '../../src/components/RegionFilterBanner';
@@ -227,25 +228,25 @@ type PeriodFilter = 'todos' | 'Paleolitico' | 'Neolitico' | 'Calcolitico' | 'Bro
 
 interface Tab {
   key: CategoryTab;
-  label: string;
+  labelKey: string;
   icon: React.ComponentProps<typeof MaterialIcons>['name'];
 }
 
 const CATEGORY_TABS: Tab[] = [
-  { key: 'todos',      label: 'Todos',        icon: 'apps' },
-  { key: 'megalito',   label: 'Megalitos',    icon: 'account-balance' },
-  { key: 'rupestre',   label: 'Arte Rupestre',icon: 'brush' },
-  { key: 'geositio',   label: 'Geossítios',   icon: 'terrain' },
-  { key: 'astronomia', label: 'Astronomia',   icon: 'brightness-5' },
+  { key: 'todos',      labelKey: 'modulesCulture.prehistoria.tabs.todos',      icon: 'apps' },
+  { key: 'megalito',   labelKey: 'modulesCulture.prehistoria.tabs.megalito',   icon: 'account-balance' },
+  { key: 'rupestre',   labelKey: 'modulesCulture.prehistoria.tabs.rupestre',   icon: 'brush' },
+  { key: 'geositio',   labelKey: 'modulesCulture.prehistoria.tabs.geositio',   icon: 'terrain' },
+  { key: 'astronomia', labelKey: 'modulesCulture.prehistoria.tabs.astronomia', icon: 'brightness-5' },
 ];
 
-const PERIOD_CHIPS: { key: PeriodFilter; label: string }[] = [
-  { key: 'todos',       label: 'Todos' },
-  { key: 'Paleolitico', label: 'Paleolítico' },
-  { key: 'Neolitico',   label: 'Neolítico' },
-  { key: 'Calcolitico', label: 'Calcolítico' },
-  { key: 'Bronze',      label: 'Bronze' },
-  { key: 'Ferro',       label: 'Ferro' },
+const PERIOD_CHIPS: { key: PeriodFilter; labelKey: string }[] = [
+  { key: 'todos',       labelKey: 'modulesCulture.shared.all' },
+  { key: 'Paleolitico', labelKey: 'modulesCulture.prehistoria.periods.Paleolitico' },
+  { key: 'Neolitico',   labelKey: 'modulesCulture.prehistoria.periods.Neolitico' },
+  { key: 'Calcolitico', labelKey: 'modulesCulture.prehistoria.periods.Calcolitico' },
+  { key: 'Bronze',      labelKey: 'modulesCulture.prehistoria.periods.Bronze' },
+  { key: 'Ferro',       labelKey: 'modulesCulture.prehistoria.periods.Ferro' },
 ];
 
 // ─── Main Screen ──────────────────────────────────────────────────────────────
@@ -253,6 +254,7 @@ const PERIOD_CHIPS: { key: PeriodFilter; label: string }[] = [
 export default function PrehistoriaScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const { t } = useTranslation();
 
   const { regionId, clear } = useRegionParam();
   const [activeCategory, setActiveCategory] = useState<CategoryTab>('todos');
@@ -303,8 +305,8 @@ export default function PrehistoriaScreen() {
             <MaterialIcons name="arrow-back" size={22} color={C.accent} />
           </TouchableOpacity>
           <View style={styles.headerContent}>
-            <Text style={styles.headerTitle}>Pré-História</Text>
-            <Text style={styles.headerSubtitle}>Geossítios · Megalitos · Arte Rupestre · Astronomia</Text>
+            <Text style={styles.headerTitle}>{t('modulesCulture.prehistoria.title')}</Text>
+            <Text style={styles.headerSubtitle}>{t('modulesCulture.prehistoria.subtitle')}</Text>
           </View>
           <View style={styles.headerIcon}>
             <MaterialIcons name="account-balance" size={20} color={C.accent} />
@@ -338,7 +340,7 @@ export default function PrehistoriaScreen() {
                   color={isActive ? '#1A1208' : C.textDim}
                 />
                 <Text style={[styles.tabChipLabel, isActive && styles.tabChipLabelActive]}>
-                  {tab.label}
+                  {t(tab.labelKey)}
                 </Text>
               </TouchableOpacity>
             );
@@ -349,7 +351,7 @@ export default function PrehistoriaScreen() {
         <View style={styles.periodSection}>
           <View style={styles.periodHeader}>
             <MaterialIcons name="schedule" size={13} color={C.textFaint} />
-            <Text style={styles.periodHeaderText}>Período</Text>
+            <Text style={styles.periodHeaderText}>{t('modulesCulture.prehistoria.periodLabel')}</Text>
           </View>
           <ScrollView
             horizontal
@@ -366,7 +368,7 @@ export default function PrehistoriaScreen() {
                   activeOpacity={0.8}
                 >
                   <Text style={[styles.periodChipText, isActive && styles.periodChipTextActive]}>
-                    {chip.label}
+                    {t(chip.labelKey)}
                   </Text>
                 </TouchableOpacity>
               );
@@ -381,8 +383,8 @@ export default function PrehistoriaScreen() {
               <MaterialIcons name="brightness-5" size={22} color="#92400E" />
             </View>
             <View style={styles.astronomyBannerText}>
-              <Text style={styles.astronomyBannerTitle}>Próximo evento</Text>
-              <Text style={styles.astronomyBannerDesc}>Solstício de Verão — 21 Jun</Text>
+              <Text style={styles.astronomyBannerTitle}>{t('modulesCulture.prehistoria.nextEvent')}</Text>
+              <Text style={styles.astronomyBannerDesc}>{t('modulesCulture.prehistoria.nextEventDesc')}</Text>
             </View>
             <Text style={styles.astronomyBannerEmoji}>☀️</Text>
           </View>
@@ -392,7 +394,9 @@ export default function PrehistoriaScreen() {
         <View style={styles.summaryRow}>
           <View style={styles.summaryDot} />
           <Text style={styles.summaryText}>
-            {filteredSites.length} {filteredSites.length === 1 ? 'sítio encontrado' : 'sítios encontrados'}
+            {filteredSites.length === 1
+              ? t('modulesCulture.prehistoria.oneSiteFound', { count: filteredSites.length })
+              : t('modulesCulture.prehistoria.sitesFound', { count: filteredSites.length })}
           </Text>
         </View>
 
@@ -413,9 +417,9 @@ export default function PrehistoriaScreen() {
           {filteredSites.length === 0 ? (
             <View style={styles.emptyState}>
               <MaterialIcons name="search-off" size={40} color={C.textFaint} />
-              <Text style={styles.emptyStateTitle}>Sem sítios encontrados</Text>
+              <Text style={styles.emptyStateTitle}>{t('modulesCulture.prehistoria.emptyTitle')}</Text>
               <Text style={styles.emptyStateText}>
-                Tente outro filtro ou selecione &quot;Todos&quot;.
+                {t('modulesCulture.prehistoria.emptyText')}
               </Text>
             </View>
           ) : null}
@@ -425,7 +429,7 @@ export default function PrehistoriaScreen() {
         <View style={styles.infoFooter}>
           <MaterialIcons name="info-outline" size={14} color={C.textFaint} />
           <Text style={styles.infoFooterText}>
-            Dados: SIPA/DGPC · LNEG · Parque Arqueológico do Vale do Côa
+            {t('modulesCulture.prehistoria.sources')}
           </Text>
         </View>
 
