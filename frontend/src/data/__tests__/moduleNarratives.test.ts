@@ -52,7 +52,7 @@ describe('data/moduleNarratives', () => {
     expect(linked.map(m => m.slug)).toEqual(['costa', 'cultura-maritima', 'gastronomia']);
     linked.forEach(m => {
       expect(m.label).toBeTruthy();
-      expect(m.route.startsWith('/')).toBe(true);
+      expect(String(m.route).startsWith('/')).toBe(true);
     });
   });
 
@@ -62,7 +62,7 @@ describe('data/moduleNarratives', () => {
   });
 
   it('cada rota é única e começa por /', () => {
-    const routes = Object.values(moduleNarratives).map(n => n.route);
+    const routes = Object.values(moduleNarratives).map(n => String(n.route));
     expect(new Set(routes).size).toBe(routes.length);
     routes.forEach(r => expect(r.startsWith('/')).toBe(true));
   });
