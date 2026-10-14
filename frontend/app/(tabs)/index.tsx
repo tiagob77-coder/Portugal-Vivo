@@ -5,6 +5,7 @@ import Head from 'expo-router/head';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useQuery } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
 import { getCategories, getHeritageItems, getStats, getRegions } from '../../src/services/api';
 import CategoryCard from '../../src/components/CategoryCard';
 import HeritageCard from '../../src/components/HeritageCard';
@@ -13,15 +14,13 @@ import ErrorState from '../../src/components/ui/ErrorState';
 import { Category, HeritageItem, Region } from '../../src/types';
 import { useTheme, palette, withOpacity, fontFamilies } from '../../src/theme';
 
-const ALL_REGION: Region = { id: 'all', name: 'Todas', color: '' };
-
 // ============================================================
 // Super-categorias: agrupam as 43 categorias em 7 temas claros
 // (Lei de Miller: 7±2 chunks cognitivos)
 // ============================================================
 interface SuperCategory {
   id: string;
-  label: string;
+  labelKey: string;
   icon: string;
   color: string;
   categoryIds: string[];
@@ -30,14 +29,14 @@ interface SuperCategory {
 const SUPER_CATEGORIES: SuperCategory[] = [
   {
     id: 'all',
-    label: 'Tudo',
+    labelKey: 'coreTabs.explore.themes.all',
     icon: 'apps',
     color: palette.forest[500],
     categoryIds: [],
   },
   {
     id: 'natureza',
-    label: 'Natureza',
+    labelKey: 'coreTabs.explore.themes.nature',
     icon: 'park',
     color: palette.forest[400],
     categoryIds: [
@@ -53,7 +52,7 @@ const SUPER_CATEGORIES: SuperCategory[] = [
   },
   {
     id: 'patrimonio',
-    label: 'Património',
+    labelKey: 'coreTabs.explore.themes.heritage',
     icon: 'account-balance',
     color: palette.terracotta[600],
     categoryIds: [
@@ -66,7 +65,7 @@ const SUPER_CATEGORIES: SuperCategory[] = [
   },
   {
     id: 'gastronomia',
-    label: 'Gastronomia',
+    labelKey: 'coreTabs.explore.themes.food',
     icon: 'restaurant',
     color: palette.rust[500],
     categoryIds: [
@@ -79,7 +78,7 @@ const SUPER_CATEGORIES: SuperCategory[] = [
   },
   {
     id: 'mar',
-    label: 'Mar & Praias',
+    labelKey: 'coreTabs.explore.themes.sea',
     icon: 'waves',
     color: palette.ocean[500],
     categoryIds: [
@@ -88,7 +87,7 @@ const SUPER_CATEGORIES: SuperCategory[] = [
   },
   {
     id: 'cultura',
-    label: 'Cultura',
+    labelKey: 'coreTabs.explore.themes.culture',
     icon: 'celebration',
     color: '#7C3AED',
     categoryIds: [
@@ -99,7 +98,7 @@ const SUPER_CATEGORIES: SuperCategory[] = [
   },
   {
     id: 'experiencias',
-    label: 'Experiências',
+    labelKey: 'coreTabs.explore.themes.experiences',
     icon: 'explore',
     color: palette.terracotta[500],
     categoryIds: [
@@ -117,6 +116,7 @@ export default function ExploreScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { colors } = useTheme();
+  const { t } = useTranslation();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [selectedRegion, setSelectedRegion] = useState('all');
@@ -138,7 +138,10 @@ export default function ExploreScreen() {
     queryFn: getRegions,
   });
 
-  const regions: Region[] = useMemo(() => [ALL_REGION, ...apiRegions], [apiRegions]);
+  const regions: Region[] = useMemo(
+    () => [{ id: 'all', name: t('common.all'), color: '' }, ...apiRegions],
+    [apiRegions, t],
+  );
 
   const { data: stats } = useQuery({
     queryKey: ['stats'],
@@ -207,10 +210,10 @@ export default function ExploreScreen() {
     <View style={[styles.container, { paddingTop: insets.top, backgroundColor: colors.background }]}>
       {Platform.OS === 'web' && (
         <Head>
-          <title>Explorar — Portugal Vivo | 43 Categorias de Património</title>
-          <meta name="description" content="Explore mais de 6.300 locais únicos em Portugal: castelos, aldeias históricas, cascatas, gastronomia, trilhos, praias e muito mais. 7 regiões, 43 categorias." />
-          <meta property="og:title" content="Explorar — Portugal Vivo" />
-          <meta property="og:description" content="6.300+ pontos de interesse cultural, natural e gastronómico em Portugal. Filtre por tema e região." />
+          <title>{t('coreTabs.explore.headTitle')}</title>
+          <meta name="description" content={t('coreTabs.explore.headDescription')} />
+          <meta property="og:title" content={t('coreTabs.explore.ogTitle')} />
+          <meta property="og:description" content={t('coreTabs.explore.ogDescription')} />
           <link rel="canonical" href="https://portugal-vivo.app/explorar" />
         </Head>
       )}
@@ -219,8 +222,8 @@ export default function ExploreScreen() {
         <View style={styles.brandRow}>
           <BrandLogo height={44} accessibilityLabel="Portugal Vivo" />
           <View style={{ flex: 1 }}>
-            <Text style={[styles.headerTitle, { color: colors.textPrimary }]}>Explorar</Text>
-            <Text style={[styles.headerSubtitle, { color: colors.textSecondary }]}>Descubra o melhor de Portugal</Text>
+            <Text style={[styles.headerTitle, { color: colors.textPrimary }]}>{t('explore.title')}</Text>
+            <Text style={[styles.headerSubtitle, { color: colors.textSecondary }]}>{t('coreTabs.explore.subtitle')}</Text>
           </View>
         </View>
       </View>
@@ -231,17 +234,17 @@ export default function ExploreScreen() {
           <MaterialIcons name="search" size={20} color={colors.textMuted} />
           <TextInput
             style={[styles.searchInput, { color: colors.textPrimary }]}
-            placeholder="Pesquisar lendas, festas, lugares..."
+            placeholder={t('coreTabs.explore.searchPlaceholder')}
             placeholderTextColor={colors.textMuted}
             value={searchQuery}
             onChangeText={handleSearch}
-            accessibilityLabel="Pesquisar locais e pontos de interesse"
+            accessibilityLabel={t('coreTabs.explore.searchA11y')}
             returnKeyType="search"
           />
           {searchQuery ? (
             <TouchableOpacity
               onPress={() => setSearchQuery('')}
-              accessibilityLabel="Limpar pesquisa"
+              accessibilityLabel={t('coreTabs.shared.clearSearch')}
               accessibilityRole="button"
             >
               <MaterialIcons name="close" size={20} color={colors.textMuted} />
@@ -257,7 +260,7 @@ export default function ExploreScreen() {
           showsHorizontalScrollIndicator={false}
           style={styles.superCatScroll}
           contentContainerStyle={styles.superCatContent}
-          accessibilityLabel="Filtrar por tema"
+          accessibilityLabel={t('coreTabs.explore.filterByTheme')}
         >
           {SUPER_CATEGORIES.map(sc => {
             const isActive = selectedSuper === sc.id;
@@ -270,7 +273,7 @@ export default function ExploreScreen() {
                   isActive && { backgroundColor: sc.color },
                 ]}
                 onPress={() => setSelectedSuper(sc.id)}
-                accessibilityLabel={sc.label}
+                accessibilityLabel={t(sc.labelKey)}
                 accessibilityRole="button"
                 accessibilityState={{ selected: isActive }}
               >
@@ -284,7 +287,7 @@ export default function ExploreScreen() {
                   { color: isActive ? '#FFFFFF' : colors.textSecondary },
                   isActive && { fontWeight: '700' },
                 ]}>
-                  {sc.label}
+                  {t(sc.labelKey)}
                 </Text>
               </TouchableOpacity>
             );
@@ -299,7 +302,7 @@ export default function ExploreScreen() {
           showsHorizontalScrollIndicator={false}
           style={styles.filtersScroll}
           contentContainerStyle={styles.filtersContent}
-          accessibilityLabel="Filtrar por região"
+          accessibilityLabel={t('coreTabs.explore.filterByRegion')}
         >
           {regions.map(region => (
             <TouchableOpacity
@@ -313,7 +316,7 @@ export default function ExploreScreen() {
                 },
               ]}
               onPress={() => setSelectedRegion(region.id)}
-              accessibilityLabel={`Região: ${region.name}`}
+              accessibilityLabel={t('coreTabs.explore.regionA11y', { name: region.name })}
               accessibilityRole="button"
               accessibilityState={{ selected: selectedRegion === region.id }}
             >
@@ -335,11 +338,11 @@ export default function ExploreScreen() {
           <TouchableOpacity
             style={styles.backButton}
             onPress={clearFilters}
-            accessibilityLabel="Voltar às categorias"
+            accessibilityLabel={t('coreTabs.explore.backToCategories')}
             accessibilityRole="button"
           >
             <MaterialIcons name="arrow-back" size={20} color={colors.accent} />
-            <Text style={[styles.backText, { color: colors.accent }]}>Categorias</Text>
+            <Text style={[styles.backText, { color: colors.accent }]}>{t('explore.categories')}</Text>
           </TouchableOpacity>
           {selectedCategoryData && (
             <View style={[styles.selectedBadge, { backgroundColor: selectedCategoryData.color + '20' }]}>
@@ -356,7 +359,9 @@ export default function ExploreScreen() {
       {viewMode === 'categories' && !searchQuery && !categoriesLoading && (
         <View style={styles.countRow}>
           <Text style={[styles.countText, { color: colors.textMuted }]}>
-            {visibleCategories.length}{selectedSuper !== 'all' ? ` categorias em ${activeSuperCat?.label}` : ' categorias'}
+            {selectedSuper !== 'all'
+              ? t('coreTabs.explore.categoriesIn', { count: visibleCategories.length, theme: activeSuperCat ? t(activeSuperCat.labelKey) : '' })
+              : t('coreTabs.explore.categoriesCount', { count: visibleCategories.length })}
           </Text>
         </View>
       )}
@@ -372,7 +377,7 @@ export default function ExploreScreen() {
             <ActivityIndicator size="large" color={colors.accent} style={styles.loader} />
           ) : categoriesError ? (
             <ErrorState
-              message="Não foi possível carregar as categorias."
+              message={t('coreTabs.explore.loadCategoriesError')}
               onRetry={() => refetchCategories()}
             />
           ) : (
@@ -413,13 +418,13 @@ export default function ExploreScreen() {
               <ActivityIndicator size="large" color={colors.accent} style={styles.loader} />
             ) : itemsError ? (
               <ErrorState
-                message="Não foi possível carregar os locais."
+                message={t('coreTabs.explore.loadPlacesError')}
                 onRetry={() => refetch()}
               />
             ) : (
               <View style={styles.emptyState}>
                 <MaterialIcons name="search-off" size={48} color={colors.textMuted} />
-                <Text style={[styles.emptyText, { color: colors.textMuted }]}>Nenhum resultado encontrado</Text>
+                <Text style={[styles.emptyText, { color: colors.textMuted }]}>{t('explore.noResults')}</Text>
               </View>
             )
           }

@@ -19,6 +19,7 @@ import { useRouter, Stack } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useQuery } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useTheme } from '../../src/context/ThemeContext';
 import {
@@ -82,6 +83,7 @@ function MunicipalityCard({ item, onPress }: { item: PartnerMunicipality; onPres
 }
 
 export default function DestinosScreen() {
+  const { t } = useTranslation();
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { colors } = useTheme();
@@ -100,19 +102,19 @@ export default function DestinosScreen() {
 
   return (
     <View style={[s.root, { backgroundColor: colors.background }]}>
-      <Stack.Screen options={{ headerShown: false, title: 'Municípios parceiros' }} />
+      <Stack.Screen options={{ headerShown: false, title: t('exploreScreens.destinos.title') }} />
 
       <View style={[s.header, { paddingTop: insets.top + 8, borderBottomColor: colors.borderLight }]}>
-        <TouchableOpacity onPress={goBack} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }} accessibilityLabel="Voltar">
+        <TouchableOpacity onPress={goBack} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }} accessibilityLabel={t('common.back')}>
           <MaterialIcons name="arrow-back" size={24} color={colors.textPrimary} />
         </TouchableOpacity>
-        <Text style={[s.headerTitle, { color: colors.textPrimary }]}>Municípios parceiros</Text>
+        <Text style={[s.headerTitle, { color: colors.textPrimary }]}>{t('exploreScreens.destinos.title')}</Text>
         <View style={{ width: 24 }} />
       </View>
 
       <ScrollView contentContainerStyle={[s.content, { paddingBottom: insets.bottom + 32 }]}>
         <Text style={[s.intro, { color: colors.textSecondary }]}>
-          Territórios que trabalham connosco para mostrar o melhor do seu património, natureza e cultura.
+          {t('exploreScreens.destinos.intro')}
         </Text>
 
         {isLoading ? (
@@ -122,23 +124,23 @@ export default function DestinosScreen() {
         ) : error ? (
           <View style={s.state}>
             <MaterialIcons name="cloud-off" size={40} color={colors.textMuted} />
-            <Text style={[s.stateTitle, { color: colors.textPrimary }]}>Não foi possível carregar os municípios</Text>
+            <Text style={[s.stateTitle, { color: colors.textPrimary }]}>{t('exploreScreens.destinos.loadError')}</Text>
             <TouchableOpacity style={[s.btn, { backgroundColor: colors.primary }]} onPress={() => refetch()}>
-              <Text style={s.btnText}>Tentar novamente</Text>
+              <Text style={s.btnText}>{t('common.retry')}</Text>
             </TouchableOpacity>
           </View>
         ) : items.length === 0 ? (
           <View style={s.state}>
             <MaterialIcons name="location-city" size={48} color={colors.textMuted} />
-            <Text style={[s.stateTitle, { color: colors.textPrimary }]}>Ainda não há municípios parceiros</Text>
+            <Text style={[s.stateTitle, { color: colors.textPrimary }]}>{t('exploreScreens.destinos.emptyTitle')}</Text>
             <Text style={[s.stateText, { color: colors.textSecondary }]}>
-              Em breve vai poder conhecer aqui os territórios parceiros do Portugal Vivo.
+              {t('exploreScreens.destinos.emptyText')}
             </Text>
             <TouchableOpacity
               style={[s.btnOutline, { borderColor: colors.primary }]}
               onPress={() => Linking.openURL(`mailto:${CONTACT_EMAIL}`).catch(() => {})}
             >
-              <Text style={[s.btnOutlineText, { color: colors.primary }]}>É de uma câmara municipal? Fale connosco</Text>
+              <Text style={[s.btnOutlineText, { color: colors.primary }]}>{t('exploreScreens.destinos.contactCta')}</Text>
             </TouchableOpacity>
           </View>
         ) : (

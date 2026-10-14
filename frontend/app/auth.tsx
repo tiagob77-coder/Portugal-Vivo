@@ -8,6 +8,7 @@ import { useRouter } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../src/context/AuthContext';
 import { useTheme, palette, spacing, borders, withOpacity } from '../src/theme';
 
@@ -20,6 +21,7 @@ export default function AuthScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { colors } = useTheme();
+  const { t } = useTranslation();
   const { login: googleLogin, isLoading: googleLoading } = useAuth();
 
   const [mode, setMode] = useState<AuthMode>('login');
@@ -40,25 +42,25 @@ export default function AuthScreen() {
     const newErrors: Record<string, string> = {};
 
     if (!email) {
-      newErrors.email = 'Email é obrigatório';
+      newErrors.email = t('account.auth.emailRequired');
     } else if (!validateEmail(email)) {
-      newErrors.email = 'Email inválido';
+      newErrors.email = t('account.auth.emailInvalid');
     }
 
     if (mode !== 'forgot') {
       if (!password) {
-        newErrors.password = 'Password é obrigatória';
+        newErrors.password = t('account.auth.passwordRequired');
       } else if (password.length < 6) {
-        newErrors.password = 'Password deve ter pelo menos 6 caracteres';
+        newErrors.password = t('account.auth.passwordTooShort');
       }
     }
 
     if (mode === 'register') {
       if (!name) {
-        newErrors.name = 'Nome é obrigatório';
+        newErrors.name = t('account.auth.nameRequired');
       }
       if (password !== confirmPassword) {
-        newErrors.confirmPassword = 'Passwords não coincidem';
+        newErrors.confirmPassword = t('account.auth.passwordsMismatch');
       }
     }
 
@@ -79,15 +81,15 @@ export default function AuthScreen() {
 
       if (!response.ok) {
         const error = await response.json();
-        Alert.alert('Erro', error.detail || 'Credenciais inválidas');
+        Alert.alert(t('account.auth.error'), error.detail || t('account.auth.invalidCredentials'));
         return;
       }
 
       const _data = await response.json();
-      Alert.alert('Sucesso', 'Login efetuado com sucesso!');
+      Alert.alert(t('account.auth.success'), t('account.auth.loginSuccess'));
       router.replace('/(tabs)/descobrir');
     } catch (_error) {
-      Alert.alert('Erro', 'Não foi possível fazer login. Tente novamente.');
+      Alert.alert(t('account.auth.error'), t('account.auth.loginFailed'));
     } finally {
       setIsLoading(false);
     }
@@ -106,17 +108,17 @@ export default function AuthScreen() {
 
       if (!response.ok) {
         const error = await response.json();
-        Alert.alert('Erro', error.detail || 'Não foi possível criar conta');
+        Alert.alert(t('account.auth.error'), error.detail || t('account.auth.registerFailedShort'));
         return;
       }
 
       Alert.alert(
-        'Conta Criada!',
-        'A sua conta foi criada com sucesso. Faça login para continuar.',
-        [{ text: 'OK', onPress: () => setMode('login') }]
+        t('account.auth.accountCreatedTitle'),
+        t('account.auth.accountCreatedMessage'),
+        [{ text: t('account.auth.ok'), onPress: () => setMode('login') }]
       );
     } catch (_error) {
-      Alert.alert('Erro', 'Não foi possível criar conta. Tente novamente.');
+      Alert.alert(t('account.auth.error'), t('account.auth.registerFailed'));
     } finally {
       setIsLoading(false);
     }
@@ -124,7 +126,7 @@ export default function AuthScreen() {
 
   const handleForgotPassword = async () => {
     if (!email || !validateEmail(email)) {
-      setErrors({ email: 'Introduza um email válido' });
+      setErrors({ email: t('account.auth.enterValidEmail') });
       return;
     }
 
@@ -137,12 +139,12 @@ export default function AuthScreen() {
       });
 
       Alert.alert(
-        'Email Enviado',
-        'Se o email existir na nossa base de dados, receberá instruções para repor a password.',
-        [{ text: 'OK', onPress: () => setMode('login') }]
+        t('account.auth.emailSentTitle'),
+        t('account.auth.emailSentMessage'),
+        [{ text: t('account.auth.ok'), onPress: () => setMode('login') }]
       );
     } catch (_error) {
-      Alert.alert('Erro', 'Não foi possível processar o pedido.');
+      Alert.alert(t('account.auth.error'), t('account.auth.requestFailed'));
     } finally {
       setIsLoading(false);
     }
@@ -200,7 +202,7 @@ export default function AuthScreen() {
           <TouchableOpacity
             onPress={() => setShowPassword(!showPassword)}
             accessibilityRole="button"
-            accessibilityLabel={showPassword ? 'Ocultar password' : 'Mostrar password'}
+            accessibilityLabel={showPassword ? t('account.auth.hidePassword') : t('account.auth.showPassword')}
             hitSlop={10}
           >
             <MaterialIcons name={showPassword ? 'visibility' : 'visibility-off'} size={20} color={colors.textMuted} />
@@ -230,7 +232,7 @@ export default function AuthScreen() {
               style={styles.backButton}
               onPress={() => router.back()}
               accessibilityRole="button"
-              accessibilityLabel="Voltar"
+              accessibilityLabel={t('common.back')}
               hitSlop={10}
             >
               <MaterialIcons name="arrow-back" size={24} color={colors.textOnPrimary} />
@@ -239,30 +241,30 @@ export default function AuthScreen() {
             <View style={styles.logoContainer}>
               <MaterialIcons name="castle" size={48} color={colors.accent} />
               <Text style={[styles.logoText, { color: colors.textOnPrimary }]}>Portugal Vivo</Text>
-              <Text style={[styles.logoSubtext, { color: colors.accent }]}>de Portugal</Text>
+              <Text style={[styles.logoSubtext, { color: colors.accent }]}>{t('welcome.subtitle')}</Text>
             </View>
           </View>
 
           {/* Form */}
           <View style={[styles.formContainer, { backgroundColor: withOpacity(palette.gray[800], 0.8) }]}>
             <Text style={[styles.title, { color: colors.textOnPrimary }]}>
-              {mode === 'login' && 'Bem-vindo de volta'}
-              {mode === 'register' && 'Criar Conta'}
-              {mode === 'forgot' && 'Recuperar Password'}
+              {mode === 'login' && t('account.auth.titleLogin')}
+              {mode === 'register' && t('account.auth.createAccount')}
+              {mode === 'forgot' && t('account.auth.titleForgot')}
             </Text>
             <Text style={[styles.subtitle, { color: colors.textMuted }]}>
-              {mode === 'login' && 'Entre na sua conta para continuar'}
-              {mode === 'register' && 'Junte-se à comunidade'}
-              {mode === 'forgot' && 'Introduza o seu email para repor a password'}
+              {mode === 'login' && t('account.auth.subtitleLogin')}
+              {mode === 'register' && t('account.auth.subtitleRegister')}
+              {mode === 'forgot' && t('account.auth.subtitleForgot')}
             </Text>
 
             {mode === 'register' && (
-              renderInput('person', 'Nome completo', name, setName, errors.name)
+              renderInput('person', t('account.auth.fullName'), name, setName, errors.name)
             )}
 
             {renderInput(
               'email',
-              'Email',
+              t('account.auth.emailPlaceholder'),
               email,
               setEmail,
               errors.email,
@@ -272,7 +274,7 @@ export default function AuthScreen() {
             {mode !== 'forgot' && (
               renderInput(
                 'lock',
-                'Password',
+                t('account.auth.passwordPlaceholder'),
                 password,
                 setPassword,
                 errors.password,
@@ -283,7 +285,7 @@ export default function AuthScreen() {
             {mode === 'register' && (
               renderInput(
                 'lock',
-                'Confirmar Password',
+                t('account.auth.confirmPassword'),
                 confirmPassword,
                 setConfirmPassword,
                 errors.confirmPassword,
@@ -296,7 +298,7 @@ export default function AuthScreen() {
                 style={styles.forgotLink}
                 onPress={() => { setMode('forgot'); setErrors({}); }}
               >
-                <Text style={[styles.forgotLinkText, { color: colors.accent }]}>Esqueceu a password?</Text>
+                <Text style={[styles.forgotLinkText, { color: colors.accent }]}>{t('account.auth.forgotPassword')}</Text>
               </TouchableOpacity>
             )}
 
@@ -311,9 +313,9 @@ export default function AuthScreen() {
                 <ActivityIndicator size="small" color={palette.gray[900]} />
               ) : (
                 <Text style={[styles.submitButtonText, { color: palette.gray[900] }]}>
-                  {mode === 'login' && 'Entrar'}
-                  {mode === 'register' && 'Criar Conta'}
-                  {mode === 'forgot' && 'Enviar Email'}
+                  {mode === 'login' && t('account.auth.signIn')}
+                  {mode === 'register' && t('account.auth.createAccount')}
+                  {mode === 'forgot' && t('account.auth.sendEmail')}
                 </Text>
               )}
             </TouchableOpacity>
@@ -323,7 +325,7 @@ export default function AuthScreen() {
               <>
                 <View style={styles.divider}>
                   <View style={[styles.dividerLine, { backgroundColor: colors.border }]} />
-                  <Text style={[styles.dividerText, { color: colors.textMuted }]}>ou</Text>
+                  <Text style={[styles.dividerText, { color: colors.textMuted }]}>{t('account.auth.or')}</Text>
                   <View style={[styles.dividerLine, { backgroundColor: colors.border }]} />
                 </View>
 
@@ -339,7 +341,7 @@ export default function AuthScreen() {
                   ) : (
                     <>
                       <MaterialIcons name="g-mobiledata" size={24} color={colors.textOnPrimary} />
-                      <Text style={[styles.googleButtonText, { color: colors.textOnPrimary }]}>Continuar com Google</Text>
+                      <Text style={[styles.googleButtonText, { color: colors.textOnPrimary }]}>{t('account.auth.continueWithGoogle')}</Text>
                     </>
                   )}
                 </TouchableOpacity>
@@ -351,21 +353,21 @@ export default function AuthScreen() {
               {mode === 'login' && (
                 <TouchableOpacity onPress={() => { setMode('register'); setErrors({}); }}>
                   <Text style={[styles.modeSwitchText, { color: colors.textMuted }]}>
-                    Não tem conta? <Text style={[styles.modeSwitchLink, { color: colors.accent }]}>Criar agora</Text>
+                    {t('account.auth.noAccount')}{' '}<Text style={[styles.modeSwitchLink, { color: colors.accent }]}>{t('account.auth.createNow')}</Text>
                   </Text>
                 </TouchableOpacity>
               )}
               {mode === 'register' && (
                 <TouchableOpacity onPress={() => { setMode('login'); setErrors({}); }}>
                   <Text style={[styles.modeSwitchText, { color: colors.textMuted }]}>
-                    Já tem conta? <Text style={[styles.modeSwitchLink, { color: colors.accent }]}>Entrar</Text>
+                    {t('account.auth.haveAccount')}{' '}<Text style={[styles.modeSwitchLink, { color: colors.accent }]}>{t('account.auth.signIn')}</Text>
                   </Text>
                 </TouchableOpacity>
               )}
               {mode === 'forgot' && (
                 <TouchableOpacity onPress={() => { setMode('login'); setErrors({}); }}>
                   <Text style={[styles.modeSwitchText, { color: colors.textMuted }]}>
-                    <Text style={[styles.modeSwitchLink, { color: colors.accent }]}>Voltar ao login</Text>
+                    <Text style={[styles.modeSwitchLink, { color: colors.accent }]}>{t('account.auth.backToLogin')}</Text>
                   </Text>
                 </TouchableOpacity>
               )}
@@ -374,9 +376,9 @@ export default function AuthScreen() {
 
           {/* Terms */}
           <Text style={[styles.termsText, { color: colors.textMuted }]}>
-            Ao continuar, aceita os nossos{' '}
-            <Text style={[styles.termsLink, { color: colors.textSecondary }]}>Termos de Serviço</Text> e{' '}
-            <Text style={[styles.termsLink, { color: colors.textSecondary }]}>Política de Privacidade</Text>
+            {t('account.auth.termsPrefix')}{' '}
+            <Text style={[styles.termsLink, { color: colors.textSecondary }]}>{t('account.auth.termsOfService')}</Text>{' '}{t('account.auth.and')}{' '}
+            <Text style={[styles.termsLink, { color: colors.textSecondary }]}>{t('account.auth.privacyPolicy')}</Text>
           </Text>
         </ScrollView>
       </LinearGradient>

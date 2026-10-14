@@ -5,7 +5,8 @@
  */
 import React from 'react';
 import { Alert } from 'react-native';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react-native';
+import { render, screen, fireEvent, waitFor, act } from '@testing-library/react-native';
+import { changeLanguage } from 'i18next';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import * as municipalModule from '../../src/services/api/municipal';
 import * as barrelModule from '../../src/services/api';
@@ -416,5 +417,19 @@ describe('destino', () => {
     renderWithClient(<Destino />);
     expect(await screen.findByText('Este município ainda não tem página no Portugal Vivo')).toBeTruthy();
     expect(trackImpact).not.toHaveBeenCalled();
+  });
+
+  describe('in English', () => {
+    afterEach(async () => {
+      await act(() => changeLanguage('pt'));
+    });
+
+    it('shows the partner list empty state in English', async () => {
+      await act(() => changeLanguage('en'));
+      municipal.getPartnerMunicipalities.mockResolvedValue({ municipalities: [], total: 0 });
+      renderWithClient(<Destinos />);
+      expect(await screen.findByText('No partner municipalities yet')).toBeTruthy();
+      expect(screen.getByText('Partner municipalities')).toBeTruthy();
+    });
   });
 });

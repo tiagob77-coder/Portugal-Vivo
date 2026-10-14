@@ -11,7 +11,7 @@ import offlineCache from '../offlineCache';
 import { API_BASE } from '../../config/api';
 import { secureStorage } from '../../utils/secureStorage';
 import logger from '../../utils/logger';
-import i18n from '../../i18n';
+import i18n from 'i18next';
 
 const api = axios.create({
   baseURL: API_BASE,

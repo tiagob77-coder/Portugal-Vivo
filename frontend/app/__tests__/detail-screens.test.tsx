@@ -3,7 +3,8 @@
  * Verifies each screen renders without crashing when given a mock param.
  */
 import React from 'react';
-import { render } from '@testing-library/react-native';
+import { act, render } from '@testing-library/react-native';
+import i18n from 'i18next';
 
 // ─── expo-router ──────────────────────────────────────────────────────────────
 jest.mock('expo-router', () => ({
@@ -259,5 +260,18 @@ describe('Detail Screens — smoke tests', () => {
     const ItineraryDetail = require('../itinerary/[id]').default;
     const { toJSON } = render(<ItineraryDetail />);
     expect(toJSON()).toBeTruthy();
+  });
+});
+
+describe('Detail Screens — English UI', () => {
+  afterEach(async () => {
+    await act(() => i18n.changeLanguage('pt')); // eslint-disable-line import/no-named-as-default-member
+  });
+
+  it('heritage/[id] shows its not-found state in English', async () => {
+    await act(() => i18n.changeLanguage('en')); // eslint-disable-line import/no-named-as-default-member
+    const HeritageDetail = require('../heritage/[id]').default;
+    const { getByText } = render(<HeritageDetail />);
+    expect(getByText('Item not found')).toBeTruthy();
   });
 });

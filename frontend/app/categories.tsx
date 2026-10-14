@@ -4,6 +4,7 @@ import { useRouter, Stack } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useQuery } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
 import { getMainCategories } from '../src/services/api';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useTheme } from '../src/context/ThemeContext';
@@ -80,6 +81,7 @@ function makeStyles(C: Record<string, string>) {
 }
 
 export default function CategoriesScreen() {
+  const { t } = useTranslation();
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const [expandedCategory, setExpandedCategory] = useState<string | null>(null);
@@ -120,7 +122,7 @@ export default function CategoriesScreen() {
         </TouchableOpacity>
         <View style={styles.headerTitleContainer}>
           <Text style={styles.headerTitle}>Portugal Vivo</Text>
-          <Text style={styles.headerSubtitle}>6 categorias  |  44 temas  |  ~{totalPOI.toLocaleString()} POI</Text>
+          <Text style={styles.headerSubtitle}>{t('exploreScreens.categories.summary', { total: totalPOI.toLocaleString() })}</Text>
         </View>
         <View style={styles.placeholder} />
       </View>
@@ -158,7 +160,7 @@ export default function CategoriesScreen() {
                     </View>
                     <View style={styles.mainCategoryFooter}>
                       <View style={styles.statsRow}>
-                        <Text style={styles.statText}>{subcategories.length} temas</Text>
+                        <Text style={styles.statText}>{t('exploreScreens.categories.themes', { count: subcategories.length })}</Text>
                         <Text style={styles.statDivider}>|</Text>
                         <Text style={styles.statText}>~{(mc.poi_target || 0).toLocaleString()} POI</Text>
                       </View>

@@ -15,6 +15,7 @@ import {
   Linking,
 } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import { API_BASE } from '../config/api';
 import { palette, withOpacity } from '../theme';
 
@@ -60,6 +61,7 @@ export default function RouteShareButton({
   filters,
   metrics,
 }: RouteShareButtonProps) {
+  const { t } = useTranslation();
   const [modalVisible, setModalVisible] = useState(false);
   const [loading, setLoading] = useState(false);
   const [shareCode, setShareCode] = useState<string | null>(null);
@@ -96,7 +98,7 @@ export default function RouteShareButton({
       setShareUrl(data.share_url);
       setModalVisible(true);
     } catch (_e) {
-      setError('Nao foi possivel criar o link de partilha. Tente novamente.');
+      setError(t('components.routeShareButton.error'));
     } finally {
       setLoading(false);
     }
@@ -122,7 +124,7 @@ export default function RouteShareButton({
   const handleWhatsApp = () => {
     if (!fullShareUrl) return;
     const message = encodeURIComponent(
-      `Descobre esta rota em Portugal Vivo: ${routeName}\n\n${fullShareUrl}`
+      `${t('components.routeShareButton.shareMessage', { name: routeName })}\n\n${fullShareUrl}`
     );
     const url = `https://wa.me/?text=${message}`;
     if (Platform.OS === 'web') {
@@ -135,7 +137,7 @@ export default function RouteShareButton({
   const handleNativeShare = async () => {
     if (!fullShareUrl) return;
 
-    const message = `Descobre esta rota em Portugal Vivo: ${routeName}\n\n${fullShareUrl}`;
+    const message = `${t('components.routeShareButton.shareMessage', { name: routeName })}\n\n${fullShareUrl}`;
 
     if (Platform.OS === 'web' && typeof navigator !== 'undefined' && navigator.share) {
       try {
@@ -179,7 +181,7 @@ export default function RouteShareButton({
         ) : (
           <MaterialIcons name="share" size={20} color={palette.terracotta[500]} />
         )}
-        <Text style={styles.triggerText}>Partilhar Rota</Text>
+        <Text style={styles.triggerText}>{t('routeSharing.shareRoute')}</Text>
       </TouchableOpacity>
 
       {error && (
@@ -197,7 +199,7 @@ export default function RouteShareButton({
           <View style={styles.modalContainer}>
             {/* Header */}
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Partilhar Rota</Text>
+              <Text style={styles.modalTitle}>{t('routeSharing.shareRoute')}</Text>
               <TouchableOpacity onPress={() => setModalVisible(false)}>
                 <MaterialIcons name="close" size={24} color="#94A3B8" />
               </TouchableOpacity>
@@ -215,19 +217,19 @@ export default function RouteShareButton({
                 <View style={styles.statItem}>
                   <MaterialIcons name="place" size={16} color={palette.terracotta[500]} />
                   <Text style={styles.statValue}>{poiCount}</Text>
-                  <Text style={styles.statLabel}>Pontos</Text>
+                  <Text style={styles.statLabel}>{t('components.routeShareButton.stops')}</Text>
                 </View>
                 <View style={styles.statDivider} />
                 <View style={styles.statItem}>
                   <MaterialIcons name="straighten" size={16} color={palette.terracotta[500]} />
                   <Text style={styles.statValue}>{distanceKm}</Text>
-                  <Text style={styles.statLabel}>Distancia</Text>
+                  <Text style={styles.statLabel}>{t('components.routeShareButton.distance')}</Text>
                 </View>
                 <View style={styles.statDivider} />
                 <View style={styles.statItem}>
                   <MaterialIcons name="schedule" size={16} color={palette.terracotta[500]} />
                   <Text style={styles.statValue}>{durationText}</Text>
-                  <Text style={styles.statLabel}>Duracao</Text>
+                  <Text style={styles.statLabel}>{t('components.routeShareButton.duration')}</Text>
                 </View>
               </View>
             </View>
@@ -257,11 +259,11 @@ export default function RouteShareButton({
             <View style={styles.qrPlaceholder}>
               <MaterialIcons name="qr-code-2" size={32} color="#64748B" />
               <Text style={styles.qrText}>{shareCode || ''}</Text>
-              <Text style={styles.qrSubtext}>QR Code</Text>
+              <Text style={styles.qrSubtext}>{t('components.routeShareButton.qrCode')}</Text>
             </View>
 
             {/* Share Targets */}
-            <Text style={styles.shareLabel}>Partilhar via</Text>
+            <Text style={styles.shareLabel}>{t('components.shareSheet.shareVia')}</Text>
             <View style={styles.shareTargets}>
               <TouchableOpacity
                 style={styles.shareTarget}
@@ -276,7 +278,7 @@ export default function RouteShareButton({
                   />
                 </View>
                 <Text style={styles.shareTargetLabel}>
-                  {copied ? 'Copiado!' : 'Copiar Link'}
+                  {copied ? t('routeSharing.copied') : t('components.shareSheet.copyLink')}
                 </Text>
               </TouchableOpacity>
 
@@ -299,7 +301,7 @@ export default function RouteShareButton({
                 <View style={[styles.shareIcon, { backgroundColor: withOpacity(palette.terracotta[500], 0.13) }]}>
                   <MaterialIcons name="ios-share" size={24} color={palette.terracotta[500]} />
                 </View>
-                <Text style={styles.shareTargetLabel}>Partilhar</Text>
+                <Text style={styles.shareTargetLabel}>{t('detail.share')}</Text>
               </TouchableOpacity>
             </View>
 
@@ -309,7 +311,7 @@ export default function RouteShareButton({
               onPress={() => setModalVisible(false)}
               activeOpacity={0.7}
             >
-              <Text style={styles.closeButtonText}>Fechar</Text>
+              <Text style={styles.closeButtonText}>{t('common.close')}</Text>
             </TouchableOpacity>
           </View>
         </View>

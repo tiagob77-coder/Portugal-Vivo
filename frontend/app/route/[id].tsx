@@ -12,6 +12,7 @@ import { ShareButton } from '../../src/components/ShareButton';
 import { PUBLIC_URL } from '../../src/config/api';
 import logger from '../../src/utils/logger';
 import { trackImpact } from '../../src/services/impactTracking';
+import { useTranslation } from 'react-i18next';
 
 // Conditional import for WebView
 let WebView: any = null;
@@ -64,6 +65,7 @@ export default function RouteDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const { t } = useTranslation();
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [_locationPermission, setLocationPermission] = useState<boolean>(false);
 
@@ -181,8 +183,10 @@ const userLat = ${userLocation?.lat ?? 'null'};
 const userLng = ${userLocation?.lng ?? 'null'};
 const defaultLat = ${routeStartCoords.lat};
 const defaultLng = ${routeStartCoords.lng};
-const routeName = '${(route?.name || 'Rota').replace(/'/g, "\\'")}';
+const routeName = '${(route?.name || t('details.route.fallbackName')).replace(/'/g, "\\'")}';
 const regionName = '${((route?.region || 'portugal').charAt(0).toUpperCase() + (route?.region || 'portugal').slice(1))}';
+const regionLabel = ${JSON.stringify(t('details.route.mapRegion'))};
+const stopsSoonLabel = ${JSON.stringify(t('details.route.mapStopsSoon'))};
 
 function pinEl(label) {
   const el = document.createElement('div');
@@ -207,7 +211,7 @@ function initMap() {
         .setLngLat([defaultLng, defaultLat])
         .setPopup(new maplibregl.Popup({ offset: 18 }).setHTML(
           '<div class="info-window"><div class="info-title">' + routeName + '</div>' +
-          '<div class="info-desc">Regi&atilde;o: ' + regionName + '<br>Paragens em breve...</div></div>'
+          '<div class="info-desc">' + regionLabel + ': ' + regionName + '<br>' + stopsSoonLabel + '</div></div>'
         ))
         .addTo(map)
         .togglePopup();
@@ -292,7 +296,7 @@ if (window.maplibregl) { initMap(); } else { window.addEventListener('load', ini
     
     Linking.openURL(url).catch(err => {
       logger.error('Failed to open navigation:', err);
-      Alert.alert('Erro', 'Não foi possível abrir a navegação. Verifique se tem o Google Maps instalado.');
+      Alert.alert(t('details.route.errorTitle'), t('details.route.navigationError'));
     });
   };
 
@@ -308,14 +312,14 @@ if (window.maplibregl) { initMap(); } else { window.addEventListener('load', ini
     return (
       <View style={[styles.container, styles.centerContent]}>
         <MaterialIcons name="error-outline" size={48} color="#EF4444" />
-        <Text style={styles.errorText}>Rota não encontrada</Text>
+        <Text style={styles.errorText}>{t('details.route.notFound')}</Text>
       </View>
     );
   }
 
   const routeCanonical = `https://portugal-vivo.app/route/${id}`;
-  const routeDesc = route.description ? route.description.slice(0, 160) : `Rota ${route.name} — Portugal Vivo`;
-  const routeTitle = `${route.name} — Rota | Portugal Vivo`;
+  const routeDesc = route.description ? route.description.slice(0, 160) : t('details.route.seoDescription', { name: route.name });
+  const routeTitle = t('details.route.seoTitle', { name: route.name });
   const routeImage = (route as any).image_url || coverImage;
   const routeSchema = {
     '@context': 'https://schema.org',
@@ -366,7 +370,7 @@ if (window.maplibregl) { initMap(); } else { window.addEventListener('load', ini
             </TouchableOpacity>
             <ShareButton
               title={route.name}
-              description={`Explora a rota ${route.name} com ${stops.length} paragens no Portugal Vivo! \u{1F5FA}\u{FE0F}`}
+              description={t(stops.length === 1 ? 'details.route.shareDescriptionOne' : 'details.route.shareDescription', { name: route.name, count: stops.length })}
               url={`${PUBLIC_URL}/route/${id}`}
             />
           </View>
@@ -400,53 +404,53 @@ if (window.maplibregl) { initMap(); } else { window.addEventListener('load', ini
           <View style={styles.statItem}>
             <MaterialIcons name="place" size={22} color="#3B82F6" />
             <Text style={styles.statValue}>{items.length}</Text>
-            <Text style={styles.statLabel}>Pontos</Text>
+            <Text style={styles.statLabel}>{t('details.route.statPoints')}</Text>
           </View>
           {route.duration_hours && (
             <View style={styles.statItem}>
               <MaterialIcons name="schedule" size={22} color="#C49A6C" />
               <Text style={styles.statValue}>{route.duration_hours}h</Text>
-              <Text style={styles.statLabel}>Duração</Text>
+              <Text style={styles.statLabel}>{t('details.route.statDuration')}</Text>
             </View>
           )}
           {route.distance_km && (
             <View style={styles.statItem}>
               <MaterialIcons name="straighten" size={22} color="#22C55E" />
               <Text style={styles.statValue}>{route.distance_km}km</Text>
-              <Text style={styles.statLabel}>Distância</Text>
+              <Text style={styles.statLabel}>{t('details.route.statDistance')}</Text>
             </View>
           )}
           <View style={styles.statItem}>
             <MaterialIcons name="star" size={22} color="#EAB308" />
             <Text style={styles.statValue}>4.8</Text>
-            <Text style={styles.statLabel}>Avaliação</Text>
+            <Text style={styles.statLabel}>{t('details.route.statRating')}</Text>
           </View>
         </View>
 
         {/* Description */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Sobre esta Rota</Text>
+          <Text style={styles.sectionTitle}>{t('details.route.about')}</Text>
           <Text style={styles.description}>{route.description}</Text>
         </View>
 
         {/* Interactive Route Map */}
         <View style={styles.section}>
           <View style={styles.mapHeader}>
-            <Text style={styles.sectionTitle}>Mapa da Rota</Text>
+            <Text style={styles.sectionTitle}>{t('details.route.mapTitle')}</Text>
             <View style={styles.mapHeaderButtons}>
               <TouchableOpacity style={styles.addStopButton} onPress={() => {
                 Alert.alert(
-                  'Adicionar Paragem',
-                  'Em breve poderá adicionar novos locais à rota!',
-                  [{ text: 'OK' }]
+                  t('details.route.addStopTitle'),
+                  t('details.route.addStopSoon'),
+                  [{ text: t('details.route.ok') }]
                 );
               }}>
                 <MaterialIcons name="add-location" size={16} color="#22C55E" />
-                <Text style={styles.addStopButtonText}>Adicionar</Text>
+                <Text style={styles.addStopButtonText}>{t('details.route.add')}</Text>
               </TouchableOpacity>
               <TouchableOpacity style={styles.openMapsButton} onPress={openNavigation}>
                 <MaterialIcons name="directions" size={16} color="#C49A6C" />
-                <Text style={styles.openMapsButtonText}>Navegar</Text>
+                <Text style={styles.openMapsButtonText}>{t('details.route.navigate')}</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -465,7 +469,7 @@ if (window.maplibregl) { initMap(); } else { window.addEventListener('load', ini
                 renderLoading={() => (
                   <View style={styles.mapLoadingContainer}>
                     <ActivityIndicator size="large" color="#C49A6C" />
-                    <Text style={styles.mapLoadingText}>A carregar mapa interativo...</Text>
+                    <Text style={styles.mapLoadingText}>{t('details.route.loadingMap')}</Text>
                   </View>
                 )}
                 onError={(e: any) => logger.error('WebView error:', e.nativeEvent)}
@@ -475,7 +479,7 @@ if (window.maplibregl) { initMap(); } else { window.addEventListener('load', ini
                 <iframe
                   srcDoc={interactiveMapHtml}
                   style={{ width: '100%', height: '100%', borderRadius: 12, border: 'none' }}
-                  title="Route Map"
+                  title={t('details.route.mapFrameTitle')}
                   loading="lazy"
                   allowFullScreen
                 />
@@ -483,7 +487,7 @@ if (window.maplibregl) { initMap(); } else { window.addEventListener('load', ini
             ) : (
               <View style={styles.mapFallback}>
                 <MaterialIcons name="map" size={32} color="#64748B" />
-                <Text style={styles.mapFallbackText}>Mapa não disponível</Text>
+                <Text style={styles.mapFallbackText}>{t('details.route.mapUnavailable')}</Text>
               </View>
             )}
           </View>
@@ -494,17 +498,17 @@ if (window.maplibregl) { initMap(); } else { window.addEventListener('load', ini
               <View style={[styles.legendMarker, { backgroundColor: color }]}>
                 <Text style={styles.legendMarkerText}>1</Text>
               </View>
-              <Text style={styles.legendDescription}>Paragens da rota (toque para ver detalhes)</Text>
+              <Text style={styles.legendDescription}>{t('details.route.legendStops')}</Text>
             </View>
             {userLocation && (
               <View style={styles.legendRow}>
                 <View style={[styles.legendMarker, { backgroundColor: '#3B82F6' }]} />
-                <Text style={styles.legendDescription}>A sua posição atual</Text>
+                <Text style={styles.legendDescription}>{t('details.route.legendYourPosition')}</Text>
               </View>
             )}
             <View style={styles.legendRow}>
               <View style={[styles.legendLine, { backgroundColor: color }]} />
-              <Text style={styles.legendDescription}>Trajeto da rota</Text>
+              <Text style={styles.legendDescription}>{t('details.route.legendPath')}</Text>
             </View>
           </View>
         </View>
@@ -512,7 +516,7 @@ if (window.maplibregl) { initMap(); } else { window.addEventListener('load', ini
         {/* Route Points */}
         {items.length > 0 && (
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Pontos de Interesse ({items.length})</Text>
+            <Text style={styles.sectionTitle}>{t('details.route.pointsOfInterest', { count: items.length })}</Text>
             {items.map((item, index) => (
               <View key={item.id}>
                 <View style={styles.routePointNumber}>
@@ -541,7 +545,7 @@ if (window.maplibregl) { initMap(); } else { window.addEventListener('load', ini
         {/* Tags */}
         {route.tags && route.tags.length > 0 && (
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Tags</Text>
+            <Text style={styles.sectionTitle}>{t('details.route.tags')}</Text>
             <View style={styles.tagsContainer}>
               {route.tags.map((tag, index) => (
                 <View key={index} style={[styles.tag, { backgroundColor: color + '20' }]}>
@@ -556,15 +560,15 @@ if (window.maplibregl) { initMap(); } else { window.addEventListener('load', ini
       {/* Bottom Action Bar */}
       <View style={[styles.actionBar, { paddingBottom: insets.bottom + 12 }]}>
         <TouchableOpacity style={styles.actionButtonSecondary} onPress={() => {
-          Alert.alert('Em breve', 'Funcionalidade de guardar rota em desenvolvimento');
+          Alert.alert(t('details.route.comingSoonTitle'), t('details.route.saveRouteSoon'));
         }}>
           <MaterialIcons name="bookmark-border" size={22} color="#FAF8F3" />
-          <Text style={styles.actionButtonTextSecondary}>Guardar</Text>
+          <Text style={styles.actionButtonTextSecondary}>{t('common.save')}</Text>
         </TouchableOpacity>
         
         <TouchableOpacity style={[styles.actionButtonPrimary, { backgroundColor: color }]} onPress={openNavigation}>
           <MaterialIcons name="navigation" size={22} color="#FFFFFF" />
-          <Text style={styles.actionButtonTextPrimary}>Iniciar Navegação</Text>
+          <Text style={styles.actionButtonTextPrimary}>{t('details.route.startNavigation')}</Text>
         </TouchableOpacity>
       </View>
     </View>

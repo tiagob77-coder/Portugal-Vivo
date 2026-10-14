@@ -20,6 +20,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useQuery } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
 import { LinearGradient } from 'expo-linear-gradient';
 import api, {
   getLocalities,
@@ -43,32 +44,32 @@ const serif = fontFamilies.serif;
 const PLANNING_TOOLS = [
   {
     id: 'quick',
-    title: 'Viagem Rápida',
-    description: 'Gere um roteiro automático para um dia',
+    titleKey: 'plannerEvents.planner.tools.quickTitle',
+    descriptionKey: 'plannerEvents.planner.tools.quickDesc',
     icon: 'flash-on',
     color: palette.terracotta[500],
     gradient: ['#B08556', palette.terracotta[500]],
   },
   {
     id: 'weekend',
-    title: 'Fim de Semana',
-    description: 'Plano otimizado para 2-3 dias',
+    titleKey: 'plannerEvents.planner.tools.weekendTitle',
+    descriptionKey: 'plannerEvents.planner.tools.weekendDesc',
     icon: 'weekend',
     color: '#8B5CF6',
     gradient: ['#7C3AED', '#8B5CF6'],
   },
   {
     id: 'roadtrip',
-    title: 'Road Trip',
-    description: 'Aventura pela estrada com paragens',
+    titleKey: 'plannerEvents.planner.tools.roadtripTitle',
+    descriptionKey: 'plannerEvents.planner.tools.roadtripDesc',
     icon: 'directions-car',
     color: '#22C55E',
     gradient: ['#16A34A', '#22C55E'],
   },
   {
     id: 'thematic',
-    title: 'Temático',
-    description: 'Roteiro focado num tema específico',
+    titleKey: 'plannerEvents.planner.tools.thematicTitle',
+    descriptionKey: 'plannerEvents.planner.tools.thematicDesc',
     icon: 'category',
     color: '#06B6D4',
     gradient: ['#0891B2', '#06B6D4'],
@@ -77,26 +78,26 @@ const PLANNING_TOOLS = [
 
 // All interest categories (covering all 44 subcategories)
 const INTERESTS = [
-  { id: 'natureza', name: 'Natureza', icon: 'terrain', color: '#22C55E' },
-  { id: 'patrimonio', name: 'Património', icon: 'account-balance', color: palette.terracotta[500] },
-  { id: 'gastronomia', name: 'Gastronomia', icon: 'restaurant', color: '#EF4444' },
-  { id: 'historia', name: 'História', icon: 'history-edu', color: '#92400E' },
-  { id: 'cultura', name: 'Cultura', icon: 'celebration', color: '#8B5CF6' },
-  { id: 'praias', name: 'Praias', icon: 'beach-access', color: '#06B6D4' },
-  { id: 'vinhos', name: 'Vinhos', icon: 'local-bar', color: '#7C3AED' },
-  { id: 'aventura', name: 'Aventura', icon: 'hiking', color: '#84CC16' },
-  { id: 'festas', name: 'Festas', icon: 'music-note', color: '#EC4899' },
+  { id: 'natureza', labelKey: 'plannerEvents.planner.interests.natureza', icon: 'terrain', color: '#22C55E' },
+  { id: 'patrimonio', labelKey: 'plannerEvents.planner.interests.patrimonio', icon: 'account-balance', color: palette.terracotta[500] },
+  { id: 'gastronomia', labelKey: 'plannerEvents.planner.interests.gastronomia', icon: 'restaurant', color: '#EF4444' },
+  { id: 'historia', labelKey: 'plannerEvents.planner.interests.historia', icon: 'history-edu', color: '#92400E' },
+  { id: 'cultura', labelKey: 'plannerEvents.planner.interests.cultura', icon: 'celebration', color: '#8B5CF6' },
+  { id: 'praias', labelKey: 'plannerEvents.planner.interests.praias', icon: 'beach-access', color: '#06B6D4' },
+  { id: 'vinhos', labelKey: 'plannerEvents.planner.interests.vinhos', icon: 'local-bar', color: '#7C3AED' },
+  { id: 'aventura', labelKey: 'plannerEvents.planner.interests.aventura', icon: 'hiking', color: '#84CC16' },
+  { id: 'festas', labelKey: 'plannerEvents.planner.interests.festas', icon: 'music-note', color: '#EC4899' },
 ];
 
 // Portuguese regions
 const REGIONS = [
-  { id: 'norte', name: 'Norte', emoji: '🏔️' },
-  { id: 'centro', name: 'Centro', emoji: '🏛️' },
-  { id: 'lisboa', name: 'Lisboa', emoji: '🌆' },
-  { id: 'alentejo', name: 'Alentejo', emoji: '🌾' },
-  { id: 'algarve', name: 'Algarve', emoji: '🏖️' },
-  { id: 'acores', name: 'Açores', emoji: '🌋' },
-  { id: 'madeira', name: 'Madeira', emoji: '🌺' },
+  { id: 'norte', labelKey: 'plannerEvents.regions.norte', emoji: '🏔️' },
+  { id: 'centro', labelKey: 'plannerEvents.regions.centro', emoji: '🏛️' },
+  { id: 'lisboa', labelKey: 'plannerEvents.regions.lisboa', emoji: '🌆' },
+  { id: 'alentejo', labelKey: 'plannerEvents.regions.alentejo', emoji: '🌾' },
+  { id: 'algarve', labelKey: 'plannerEvents.regions.algarve', emoji: '🏖️' },
+  { id: 'acores', labelKey: 'plannerEvents.regions.acores', emoji: '🌋' },
+  { id: 'madeira', labelKey: 'plannerEvents.regions.madeira', emoji: '🌺' },
 ];
 
 const PERIOD_ICONS: Record<string, string> = {
@@ -148,18 +149,18 @@ const toRegionId = (region?: string | null): string | undefined => {
 };
 
 const PACE_OPTIONS = [
-  { id: 'relaxado', name: 'Relaxado', icon: 'spa' },
-  { id: 'moderado', name: 'Moderado', icon: 'directions-walk' },
-  { id: 'intenso', name: 'Intenso', icon: 'directions-run' },
+  { id: 'relaxado', labelKey: 'plannerEvents.planner.pace.relaxado', icon: 'spa' },
+  { id: 'moderado', labelKey: 'plannerEvents.planner.pace.moderado', icon: 'directions-walk' },
+  { id: 'intenso', labelKey: 'plannerEvents.planner.pace.intenso', icon: 'directions-run' },
 ];
 
 const PROFILE_OPTIONS = [
-  { id: 'familia', name: 'Família', icon: 'family-restroom' },
-  { id: 'casal', name: 'Casal', icon: 'favorite' },
-  { id: 'solo', name: 'Solo', icon: 'person' },
-  { id: 'senior', name: 'Sénior', icon: 'elderly' },
-  { id: 'aventureiro', name: 'Aventureiro', icon: 'hiking' },
-  { id: 'grupo', name: 'Grupo', icon: 'groups' },
+  { id: 'familia', labelKey: 'plannerEvents.planner.profile.familia', icon: 'family-restroom' },
+  { id: 'casal', labelKey: 'plannerEvents.planner.profile.casal', icon: 'favorite' },
+  { id: 'solo', labelKey: 'plannerEvents.planner.profile.solo', icon: 'person' },
+  { id: 'senior', labelKey: 'plannerEvents.planner.profile.senior', icon: 'elderly' },
+  { id: 'aventureiro', labelKey: 'plannerEvents.planner.profile.aventureiro', icon: 'hiking' },
+  { id: 'grupo', labelKey: 'plannerEvents.planner.profile.grupo', icon: 'groups' },
 ];
 
 export default function PlaneadorTab() {
@@ -167,6 +168,7 @@ export default function PlaneadorTab() {
   const insets = useSafeAreaInsets();
   const { colors: tc } = useTheme();
   const { isPremium } = useAuth();
+  const { t } = useTranslation();
   const [selectedTool, setSelectedTool] = useState<string | null>(null);
   const [selectedInterests, setSelectedInterests] = useState<string[]>([]);
   const [selectedRegion, setSelectedRegion] = useState<string | null>(null);
@@ -263,9 +265,12 @@ export default function PlaneadorTab() {
     if (!aiResult) return;
     setSaveLoading(true);
     try {
+      const daysText = aiResult.days > 1
+        ? t('plannerEvents.planner.manyDays', { n: aiResult.days })
+        : t('plannerEvents.planner.oneDay', { n: aiResult.days });
       const title = aiResult.locality
-        ? `${aiResult.locality} · ${aiResult.days} dia${aiResult.days > 1 ? 's' : ''}`
-        : `${aiResult.region} · ${aiResult.days} dia${aiResult.days > 1 ? 's' : ''}`;
+        ? `${aiResult.locality} · ${daysText}`
+        : `${aiResult.region} · ${daysText}`;
       await saveItinerary({
         title,
         itinerary_data: aiResult,
@@ -277,9 +282,9 @@ export default function PlaneadorTab() {
         interests: aiResult.interests,
         is_public: false,
       });
-      Alert.alert('Guardado!', 'O seu roteiro foi guardado em "Meus Planos".');
+      Alert.alert(t('plannerEvents.planner.saveAlert.successTitle'), t('plannerEvents.planner.saveAlert.successMessage'));
     } catch {
-      Alert.alert('Erro', 'Não foi possível guardar o roteiro.');
+      Alert.alert(t('plannerEvents.planner.saveAlert.errorTitle'), t('plannerEvents.planner.saveAlert.errorMessage'));
     } finally {
       setSaveLoading(false);
     }
@@ -298,10 +303,10 @@ export default function PlaneadorTab() {
   };
 
   const handleDeletePlan = async (id: string) => {
-    Alert.alert('Eliminar', 'Tem a certeza que quer eliminar este roteiro?', [
-      { text: 'Cancelar', style: 'cancel' },
+    Alert.alert(t('plannerEvents.planner.deleteAlert.title'), t('plannerEvents.planner.deleteAlert.message'), [
+      { text: t('plannerEvents.planner.deleteAlert.cancel'), style: 'cancel' },
       {
-        text: 'Eliminar', style: 'destructive',
+        text: t('plannerEvents.planner.deleteAlert.confirm'), style: 'destructive',
         onPress: async () => {
           try {
             await deleteItinerary(id);
@@ -324,7 +329,7 @@ export default function PlaneadorTab() {
       data-testid={`tool-${tool.id}`}
       accessibilityRole="button"
       accessibilityState={{ selected: selectedTool === tool.id }}
-      accessibilityLabel={`Ferramenta de planeamento: ${tool.title}`}
+      accessibilityLabel={t('plannerEvents.planner.tools.a11y', { name: t(tool.titleKey) })}
     >
       <LinearGradient
         colors={tool.gradient}
@@ -333,8 +338,8 @@ export default function PlaneadorTab() {
         style={styles.toolGradient}
       >
         <MaterialIcons name={tool.icon as any} size={28} color="#FFF" />
-        <Text style={styles.toolTitle}>{tool.title}</Text>
-        <Text style={styles.toolDescription}>{tool.description}</Text>
+        <Text style={styles.toolTitle}>{t(tool.titleKey)}</Text>
+        <Text style={styles.toolDescription}>{t(tool.descriptionKey)}</Text>
       </LinearGradient>
     </TouchableOpacity>
   );
@@ -347,7 +352,7 @@ export default function PlaneadorTab() {
       activeOpacity={0.8}
       data-testid={`route-card-${route.id}`}
       accessibilityRole="link"
-      accessibilityLabel={`Ver rota: ${route.name}`}
+      accessibilityLabel={t('plannerEvents.planner.routes.routeA11y', { name: route.name })}
     >
       <View style={styles.routeIcon}>
         <MaterialIcons name="route" size={24} color={palette.terracotta[500]} />
@@ -390,15 +395,15 @@ export default function PlaneadorTab() {
       >
         {/* Header */}
         <View style={styles.header}>
-          <Text style={styles.headerTitle}>Planeador</Text>
-          <Text style={styles.headerSubtitle}>Crie o seu roteiro perfeito</Text>
+          <Text style={styles.headerTitle}>{t('plannerEvents.planner.title')}</Text>
+          <Text style={styles.headerSubtitle}>{t('plannerEvents.planner.subtitle')}</Text>
         </View>
 
         {/* Planning Tools */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <MaterialIcons name="auto-fix-high" size={20} color={palette.terracotta[500]} />
-            <Text style={styles.sectionTitle}>Ferramentas de Planeamento</Text>
+            <Text style={styles.sectionTitle}>{t('plannerEvents.planner.tools.sectionTitle')}</Text>
           </View>
           <View style={styles.toolsGrid}>
             {PLANNING_TOOLS.map(renderToolCard)}
@@ -409,7 +414,7 @@ export default function PlaneadorTab() {
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <MaterialIcons name="schedule" size={20} color="#8B5CF6" />
-            <Text style={styles.sectionTitle}>Duração da Viagem</Text>
+            <Text style={styles.sectionTitle}>{t('plannerEvents.planner.duration.title')}</Text>
           </View>
           <View style={styles.durationRow}>
             {['1', '2', '3', '5', '7'].map((days) => (
@@ -422,13 +427,19 @@ export default function PlaneadorTab() {
                 onPress={() => setTripDays(days)}
                 accessibilityRole="tab"
                 accessibilityState={{ selected: tripDays === days }}
-                accessibilityLabel={`Duração: ${days} ${parseInt(days) === 1 ? 'dia' : 'dias'}`}
+                accessibilityLabel={t('plannerEvents.planner.duration.a11y', {
+                  label: parseInt(days) === 1
+                    ? t('plannerEvents.planner.oneDay', { n: days })
+                    : t('plannerEvents.planner.manyDays', { n: days }),
+                })}
               >
                 <Text style={[
                   styles.durationText,
                   tripDays === days && styles.durationTextActive,
                 ]}>
-                  {days} {parseInt(days) === 1 ? 'dia' : 'dias'}
+                  {parseInt(days) === 1
+                    ? t('plannerEvents.planner.oneDay', { n: days })
+                    : t('plannerEvents.planner.manyDays', { n: days })}
                 </Text>
               </TouchableOpacity>
             ))}
@@ -439,7 +450,7 @@ export default function PlaneadorTab() {
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <MaterialIcons name="favorite" size={20} color="#EF4444" />
-            <Text style={styles.sectionTitle}>Os Seus Interesses</Text>
+            <Text style={styles.sectionTitle}>{t('plannerEvents.planner.interests.title')}</Text>
           </View>
           <View style={styles.interestsGrid}>
             {INTERESTS.map((interest) => (
@@ -455,7 +466,7 @@ export default function PlaneadorTab() {
                 onPress={() => toggleInterest(interest.id)}
                 accessibilityRole="tab"
                 accessibilityState={{ selected: selectedInterests.includes(interest.id) }}
-                accessibilityLabel={`Interesse: ${interest.name}`}
+                accessibilityLabel={t('plannerEvents.planner.interests.a11y', { name: t(interest.labelKey) })}
               >
                 <MaterialIcons
                   name={interest.icon as any}
@@ -466,7 +477,7 @@ export default function PlaneadorTab() {
                   styles.interestText,
                   selectedInterests.includes(interest.id) && styles.interestTextActive,
                 ]}>
-                  {interest.name}
+                  {t(interest.labelKey)}
                 </Text>
               </TouchableOpacity>
             ))}
@@ -477,7 +488,7 @@ export default function PlaneadorTab() {
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <MaterialIcons name="map" size={20} color="#06B6D4" />
-            <Text style={styles.sectionTitle}>Região</Text>
+            <Text style={styles.sectionTitle}>{t('plannerEvents.planner.region.title')}</Text>
           </View>
           <ScrollView
             horizontal
@@ -492,13 +503,13 @@ export default function PlaneadorTab() {
               onPress={() => { setSelectedRegion(null); setSelectedLocality(null); }}
               accessibilityRole="tab"
               accessibilityState={{ selected: !selectedRegion }}
-              accessibilityLabel="Região: Todas"
+              accessibilityLabel={t('plannerEvents.planner.region.a11y', { name: t('plannerEvents.regions.all') })}
             >
               <Text style={[
                 styles.regionText,
                 !selectedRegion && styles.regionTextActive,
               ]}>
-                🇵🇹 Todas
+                {`🇵🇹 ${t('plannerEvents.regions.all')}`}
               </Text>
             </TouchableOpacity>
             {REGIONS.map((region) => (
@@ -514,13 +525,13 @@ export default function PlaneadorTab() {
                 }}
                 accessibilityRole="tab"
                 accessibilityState={{ selected: selectedRegion === region.id }}
-                accessibilityLabel={`Região: ${region.name}`}
+                accessibilityLabel={t('plannerEvents.planner.region.a11y', { name: t(region.labelKey) })}
               >
                 <Text style={[
                   styles.regionText,
                   selectedRegion === region.id && styles.regionTextActive,
                 ]}>
-                  {region.emoji} {region.name}
+                  {region.emoji} {t(region.labelKey)}
                 </Text>
               </TouchableOpacity>
             ))}
@@ -531,13 +542,13 @@ export default function PlaneadorTab() {
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <MaterialIcons name="place" size={20} color="#EF4444" />
-            <Text style={styles.sectionTitle}>Localidade</Text>
+            <Text style={styles.sectionTitle}>{t('plannerEvents.planner.locality.title')}</Text>
           </View>
           <View style={styles.localityInput}>
             <MaterialIcons name="search" size={18} color={palette.gray[300]} />
             <TextInput
               style={styles.localityTextInput}
-              placeholder="Pesquisar localidade (ex: Braga, Sintra...)"
+              placeholder={t('plannerEvents.planner.locality.placeholder')}
               placeholderTextColor={palette.gray[500]}
               value={localitySearch}
               onChangeText={(text) => {
@@ -549,7 +560,7 @@ export default function PlaneadorTab() {
               <TouchableOpacity
                 onPress={() => { setSelectedLocality(null); setLocalitySearch(''); }}
                 accessibilityRole="button"
-                accessibilityLabel="Limpar localidade selecionada"
+                accessibilityLabel={t('plannerEvents.planner.locality.clearA11y')}
               >
                 <MaterialIcons name="close" size={18} color={palette.gray[300]} />
               </TouchableOpacity>
@@ -573,10 +584,10 @@ export default function PlaneadorTab() {
                   }}
                   accessibilityRole="button"
                   accessibilityState={{ selected: selectedLocality === loc.name }}
-                  accessibilityLabel={`Selecionar localidade: ${loc.name}`}
+                  accessibilityLabel={t('plannerEvents.planner.locality.selectA11y', { name: loc.name })}
                 >
                   <Text style={styles.localityChipText}>{loc.name}</Text>
-                  <Text style={styles.localityChipCount}>{loc.poi_count} POIs</Text>
+                  <Text style={styles.localityChipCount}>{t('plannerEvents.planner.poiCount', { n: loc.poi_count })}</Text>
                 </TouchableOpacity>
               ))}
             </ScrollView>
@@ -587,7 +598,7 @@ export default function PlaneadorTab() {
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <MaterialIcons name="speed" size={20} color="#F97316" />
-            <Text style={styles.sectionTitle}>Ritmo</Text>
+            <Text style={styles.sectionTitle}>{t('plannerEvents.planner.pace.title')}</Text>
           </View>
           <View style={styles.paceRow}>
             {PACE_OPTIONS.map((pace) => (
@@ -600,7 +611,7 @@ export default function PlaneadorTab() {
                 onPress={() => setSelectedPace(pace.id)}
                 accessibilityRole="tab"
                 accessibilityState={{ selected: selectedPace === pace.id }}
-                accessibilityLabel={`Ritmo: ${pace.name}`}
+                accessibilityLabel={t('plannerEvents.planner.pace.a11y', { name: t(pace.labelKey) })}
               >
                 <MaterialIcons
                   name={pace.icon as any}
@@ -611,7 +622,7 @@ export default function PlaneadorTab() {
                   styles.paceText,
                   selectedPace === pace.id && styles.paceTextActive,
                 ]}>
-                  {pace.name}
+                  {t(pace.labelKey)}
                 </Text>
               </TouchableOpacity>
             ))}
@@ -622,7 +633,7 @@ export default function PlaneadorTab() {
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <MaterialIcons name="person" size={20} color="#3B82F6" />
-            <Text style={styles.sectionTitle}>Perfil de Viajante</Text>
+            <Text style={styles.sectionTitle}>{t('plannerEvents.planner.profile.title')}</Text>
           </View>
           <View style={styles.profileGrid}>
             {PROFILE_OPTIONS.map((profile) => (
@@ -635,7 +646,7 @@ export default function PlaneadorTab() {
                 onPress={() => setSelectedProfile(profile.id)}
                 accessibilityRole="tab"
                 accessibilityState={{ selected: selectedProfile === profile.id }}
-                accessibilityLabel={`Perfil de viajante: ${profile.name}`}
+                accessibilityLabel={t('plannerEvents.planner.profile.a11y', { name: t(profile.labelKey) })}
               >
                 <MaterialIcons
                   name={profile.icon as any}
@@ -646,7 +657,7 @@ export default function PlaneadorTab() {
                   styles.profileText,
                   selectedProfile === profile.id && styles.profileTextActive,
                 ]}>
-                  {profile.name}
+                  {t(profile.labelKey)}
                 </Text>
               </TouchableOpacity>
             ))}
@@ -658,8 +669,8 @@ export default function PlaneadorTab() {
           <View style={styles.aiToggleInfo}>
             <MaterialIcons name="auto-stories" size={20} color="#8B5CF6" />
             <View>
-              <Text style={styles.aiToggleTitle}>Narrativa IA (GPT-4o)</Text>
-              <Text style={styles.aiToggleSubtitle}>Descrições envolventes para cada dia</Text>
+              <Text style={styles.aiToggleTitle}>{t('plannerEvents.planner.aiNarrative.title')}</Text>
+              <Text style={styles.aiToggleSubtitle}>{t('plannerEvents.planner.aiNarrative.subtitle')}</Text>
             </View>
           </View>
           <Switch
@@ -679,7 +690,7 @@ export default function PlaneadorTab() {
           data-testid="start-planning-btn"
           accessibilityRole="button"
           accessibilityState={{ disabled: aiLoading }}
-          accessibilityLabel="Gerar roteiro com inteligência artificial"
+          accessibilityLabel={t('plannerEvents.planner.generate.a11y')}
         >
           <LinearGradient
             colors={[palette.terracotta[500], '#B08556']}
@@ -693,7 +704,11 @@ export default function PlaneadorTab() {
               <MaterialIcons name="auto-awesome" size={22} color="#000" />
             )}
             <Text style={styles.startText}>
-              {aiLoading ? 'A gerar roteiro inteligente...' : isPremium ? 'Gerar Roteiro com IA' : 'Gerar Roteiro com IA — Premium'}
+              {aiLoading
+                ? t('plannerEvents.planner.generate.loading')
+                : isPremium
+                  ? t('plannerEvents.planner.generate.label')
+                  : t('plannerEvents.planner.generate.labelPremium')}
             </Text>
             {!isPremium && <MaterialIcons name="lock" size={16} color="#000" />}
           </LinearGradient>
@@ -705,10 +720,14 @@ export default function PlaneadorTab() {
             <View style={styles.sectionHeader}>
               <MaterialIcons name="auto-awesome" size={20} color={palette.terracotta[500]} />
               <Text style={styles.sectionTitle}>
-                {aiResult.locality ? `Roteiro em ${aiResult.locality}` : `Roteiro ${aiResult.region}`} - {aiResult.days} {aiResult.days === 1 ? 'dia' : 'dias'}
+                {aiResult.locality
+                  ? t('plannerEvents.planner.result.titleLocality', { place: aiResult.locality })
+                  : t('plannerEvents.planner.result.titleRegion', { region: aiResult.region })} - {aiResult.days === 1
+                  ? t('plannerEvents.planner.oneDay', { n: aiResult.days })
+                  : t('plannerEvents.planner.manyDays', { n: aiResult.days })}
               </Text>
               <View style={styles.aiBadge}>
-                <Text style={styles.aiBadgeText}>IA</Text>
+                <Text style={styles.aiBadgeText}>{t('plannerEvents.planner.result.aiBadge')}</Text>
               </View>
             </View>
 
@@ -718,22 +737,22 @@ export default function PlaneadorTab() {
                 <View style={styles.aiSummaryItem}>
                   <MaterialIcons name="place" size={16} color={palette.terracotta[500]} />
                   <Text style={styles.aiSummaryValue}>{aiResult.summary.total_pois}</Text>
-                  <Text style={styles.aiSummaryLabel}>POIs</Text>
+                  <Text style={styles.aiSummaryLabel}>{t('plannerEvents.planner.result.pois')}</Text>
                 </View>
                 <View style={styles.aiSummaryItem}>
                   <MaterialIcons name="schedule" size={16} color="#22C55E" />
                   <Text style={styles.aiSummaryValue}>{aiResult.summary.total_visit_minutes} min</Text>
-                  <Text style={styles.aiSummaryLabel}>Visitas</Text>
+                  <Text style={styles.aiSummaryLabel}>{t('plannerEvents.planner.result.visits')}</Text>
                 </View>
                 <View style={styles.aiSummaryItem}>
                   <MaterialIcons name="directions-car" size={16} color="#3B82F6" />
                   <Text style={styles.aiSummaryValue}>{aiResult.summary.total_travel_minutes} min</Text>
-                  <Text style={styles.aiSummaryLabel}>Viagem</Text>
+                  <Text style={styles.aiSummaryLabel}>{t('plannerEvents.planner.result.travel')}</Text>
                 </View>
                 <View style={styles.aiSummaryItem}>
                   <MaterialIcons name="category" size={16} color="#8B5CF6" />
                   <Text style={styles.aiSummaryValue}>{aiResult.summary.category_count}</Text>
-                  <Text style={styles.aiSummaryLabel}>Categorias</Text>
+                  <Text style={styles.aiSummaryLabel}>{t('plannerEvents.planner.result.categories')}</Text>
                 </View>
               </View>
             </View>
@@ -752,10 +771,13 @@ export default function PlaneadorTab() {
               <View key={day.day} style={styles.aiDayCard}>
                 <View style={styles.aiDayHeader}>
                   <View style={styles.aiDayBadge}>
-                    <Text style={styles.aiDayNumber}>Dia {day.day}</Text>
+                    <Text style={styles.aiDayNumber}>{t('plannerEvents.planner.result.dayBadge', { day: day.day })}</Text>
                   </View>
                   <Text style={styles.aiDayTheme}>
-                    {dayNarrative?.theme || `${day.poi_count} POIs - ${Math.round(day.total_minutes / 60)}h total`}
+                    {dayNarrative?.theme || t('plannerEvents.planner.result.dayFallbackTheme', {
+                      pois: day.poi_count,
+                      hours: Math.round(day.total_minutes / 60),
+                    })}
                   </Text>
                 </View>
 
@@ -781,7 +803,7 @@ export default function PlaneadorTab() {
                         style={styles.aiPoiItem}
                         onPress={() => router.push(`/heritage/${poi.id}`)}
                         accessibilityRole="link"
-                        accessibilityLabel={`Ver detalhes do ponto de interesse: ${poi.name}`}
+                        accessibilityLabel={t('plannerEvents.planner.result.poiA11y', { name: poi.name })}
                       >
                         <MaterialIcons name="place" size={16} color={PERIOD_COLORS[period.period] || palette.terracotta[500]} />
                         <View style={{ flex: 1 }}>
@@ -830,7 +852,7 @@ export default function PlaneadorTab() {
               <View style={styles.aiTransport}>
                 <MaterialIcons name="directions-bus" size={16} color="#06B6D4" />
                 <Text style={styles.aiTransportText}>
-                  Transportes: {aiResult.transport.recommended.join(' · ')}
+                  {t('plannerEvents.planner.result.transport', { list: aiResult.transport.recommended.join(' · ') })}
                 </Text>
               </View>
             )}
@@ -838,7 +860,7 @@ export default function PlaneadorTab() {
             {/* Events */}
             {aiResult.events_nearby?.length > 0 && (
               <View style={styles.aiEventsCard}>
-                <Text style={styles.aiEventsTitle}>Eventos na região</Text>
+                <Text style={styles.aiEventsTitle}>{t('plannerEvents.planner.result.eventsTitle')}</Text>
                 {aiResult.events_nearby.map((evt) => (
                   <View key={evt.id} style={styles.aiEventItem}>
                     <MaterialIcons name="event" size={14} color="#EC4899" />
@@ -858,10 +880,10 @@ export default function PlaneadorTab() {
                 })
               }
               accessibilityRole="button"
-              accessibilityLabel="Ver roteiro no mapa"
+              accessibilityLabel={t('plannerEvents.planner.result.showOnMapA11y')}
             >
               <MaterialIcons name="map" size={18} color={palette.terracotta[500]} />
-              <Text style={styles.showOnMapText}>Ver Roteiro no Mapa</Text>
+              <Text style={styles.showOnMapText}>{t('plannerEvents.planner.result.showOnMap')}</Text>
             </TouchableOpacity>
 
             {/* Save button */}
@@ -872,13 +894,13 @@ export default function PlaneadorTab() {
                 disabled={saveLoading}
                 accessibilityRole="button"
                 accessibilityState={{ disabled: saveLoading }}
-                accessibilityLabel="Guardar roteiro nos meus planos"
+                accessibilityLabel={t('plannerEvents.planner.result.saveA11y')}
               >
                 {saveLoading
                   ? <ActivityIndicator size="small" color="#FFF" />
                   : <MaterialIcons name="bookmark-add" size={18} color="#FFF" />
                 }
-                <Text style={styles.saveBtnText}>Guardar Roteiro</Text>
+                <Text style={styles.saveBtnText}>{t('plannerEvents.planner.result.save')}</Text>
               </TouchableOpacity>
             )}
 
@@ -887,10 +909,10 @@ export default function PlaneadorTab() {
               style={styles.resetResultBtn}
               onPress={() => { setAiResult(null); setAiNarrative(null); }}
               accessibilityRole="button"
-              accessibilityLabel="Criar novo roteiro"
+              accessibilityLabel={t('plannerEvents.planner.result.resetA11y')}
             >
               <MaterialIcons name="refresh" size={18} color={colors.terracotta[500]} />
-              <Text style={styles.resetResultText}>Novo Roteiro</Text>
+              <Text style={styles.resetResultText}>{t('plannerEvents.planner.result.reset')}</Text>
             </TouchableOpacity>
           </View>
         )}
@@ -907,10 +929,10 @@ export default function PlaneadorTab() {
               }}
               accessibilityRole="button"
               accessibilityState={{ expanded: myPlansOpen }}
-              accessibilityLabel={myPlansOpen ? 'Fechar secção Meus Planos' : 'Abrir secção Meus Planos'}
+              accessibilityLabel={myPlansOpen ? t('plannerEvents.planner.myPlans.closeA11y') : t('plannerEvents.planner.myPlans.openA11y')}
             >
               <MaterialIcons name="folder" size={20} color={palette.terracotta[500]} />
-              <Text style={styles.sectionTitle}>Meus Planos</Text>
+              <Text style={styles.sectionTitle}>{t('plannerEvents.planner.myPlans.title')}</Text>
               <MaterialIcons
                 name={myPlansOpen ? 'expand-less' : 'expand-more'}
                 size={22}
@@ -924,7 +946,7 @@ export default function PlaneadorTab() {
                 <ActivityIndicator size="small" color={palette.terracotta[500]} style={{ padding: 20 }} />
               ) : myPlans.length === 0 ? (
                 <Text style={[styles.emptyText, { paddingHorizontal: 20 }]}>
-                  Ainda não tem roteiros guardados.
+                  {t('plannerEvents.planner.myPlans.empty')}
                 </Text>
               ) : (
                 <View style={{ paddingHorizontal: 20, gap: 8, marginTop: 8 }}>
@@ -934,20 +956,26 @@ export default function PlaneadorTab() {
                       style={styles.planCard}
                       onPress={() => router.push(`/itinerary/${plan.id}`)}
                       accessibilityRole="link"
-                      accessibilityLabel={`Abrir roteiro guardado: ${plan.title}`}
+                      accessibilityLabel={t('plannerEvents.planner.myPlans.openPlanA11y', { title: plan.title })}
                     >
                       <View style={{ flex: 1 }}>
                         <Text style={styles.planTitle} numberOfLines={1}>{plan.title}</Text>
                         <Text style={styles.planMeta}>
-                          {plan.days} dia{plan.days > 1 ? 's' : ''} · {plan.total_pois} POIs
-                          {plan.collaborators_count > 0 ? ` · ${plan.collaborators_count} colaborador${plan.collaborators_count > 1 ? 'es' : ''}` : ''}
+                          {plan.days > 1
+                            ? t('plannerEvents.planner.manyDays', { n: plan.days })
+                            : t('plannerEvents.planner.oneDay', { n: plan.days })} · {t('plannerEvents.planner.poiCount', { n: plan.total_pois })}
+                          {plan.collaborators_count > 0
+                            ? ` · ${plan.collaborators_count > 1
+                              ? t('plannerEvents.planner.myPlans.collaborators', { n: plan.collaborators_count })
+                              : t('plannerEvents.planner.myPlans.oneCollaborator', { n: plan.collaborators_count })}`
+                            : ''}
                         </Text>
                       </View>
                       <TouchableOpacity
                         onPress={() => handleDeletePlan(plan.id)}
                         style={{ padding: 4 }}
                         accessibilityRole="button"
-                        accessibilityLabel={`Eliminar roteiro: ${plan.title}`}
+                        accessibilityLabel={t('plannerEvents.planner.myPlans.deletePlanA11y', { title: plan.title })}
                       >
                         <MaterialIcons name="delete-outline" size={18} color={palette.gray[300]} />
                       </TouchableOpacity>
@@ -964,7 +992,7 @@ export default function PlaneadorTab() {
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <MaterialIcons name="route" size={20} color="#22C55E" />
-            <Text style={styles.sectionTitle}>Rotas Sugeridas</Text>
+            <Text style={styles.sectionTitle}>{t('plannerEvents.planner.routes.title')}</Text>
           </View>
           {routesLoading ? (
             <View style={styles.loadingContainer}>
@@ -977,7 +1005,7 @@ export default function PlaneadorTab() {
           ) : (
             <View style={styles.emptyState}>
               <MaterialIcons name="explore" size={32} color={palette.gray[500]} />
-              <Text style={styles.emptyText}>Selecione uma região para ver rotas</Text>
+              <Text style={styles.emptyText}>{t('plannerEvents.planner.routes.empty')}</Text>
             </View>
           )}
         </View>
@@ -989,12 +1017,12 @@ export default function PlaneadorTab() {
             onPress={() => router.push('/smart-routes')}
             data-testid="quick-action-smart-routes"
             accessibilityRole="link"
-            accessibilityLabel="Abrir Rotas Inteligentes (IQ)"
+            accessibilityLabel={t('plannerEvents.planner.quickActions.smartRoutesA11y')}
           >
             <View style={[styles.quickActionIcon, { backgroundColor: 'rgba(230, 122, 74, 0.1)' }]}>
               <MaterialIcons name="auto-awesome" size={24} color={colors.terracotta[500]} />
             </View>
-            <Text style={styles.quickActionText}>Rotas Inteligentes (IQ)</Text>
+            <Text style={styles.quickActionText}>{t('plannerEvents.planner.quickActions.smartRoutes')}</Text>
             <MaterialIcons name="arrow-forward" size={20} color={palette.gray[500]} />
           </TouchableOpacity>
           <TouchableOpacity
@@ -1002,24 +1030,24 @@ export default function PlaneadorTab() {
             onPress={() => router.push('/route-planner')}
             data-testid="quick-action-route-planner"
             accessibilityRole="link"
-            accessibilityLabel="Abrir Planear Rota A para B"
+            accessibilityLabel={t('plannerEvents.planner.quickActions.routePlannerA11y')}
           >
             <View style={styles.quickActionIcon}>
               <MaterialIcons name="directions" size={24} color={palette.terracotta[500]} />
             </View>
-            <Text style={styles.quickActionText}>Planear Rota A→B</Text>
+            <Text style={styles.quickActionText}>{t('plannerEvents.planner.quickActions.routePlanner')}</Text>
             <MaterialIcons name="arrow-forward" size={20} color={palette.gray[500]} />
           </TouchableOpacity>
           <TouchableOpacity
             style={styles.quickAction}
             onPress={() => router.push('/nearby')}
             accessibilityRole="link"
-            accessibilityLabel="Abrir Locais Perto de Mim"
+            accessibilityLabel={t('plannerEvents.planner.quickActions.nearbyA11y')}
           >
             <View style={[styles.quickActionIcon, { backgroundColor: 'rgba(34, 197, 94, 0.1)' }]}>
               <MaterialIcons name="near-me" size={24} color="#22C55E" />
             </View>
-            <Text style={styles.quickActionText}>Locais Perto de Mim</Text>
+            <Text style={styles.quickActionText}>{t('plannerEvents.planner.quickActions.nearby')}</Text>
             <MaterialIcons name="arrow-forward" size={20} color={palette.gray[500]} />
           </TouchableOpacity>
         </View>

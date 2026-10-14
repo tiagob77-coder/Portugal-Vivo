@@ -8,17 +8,18 @@ import {
   View, Text, StyleSheet, TouchableOpacity, Linking,
 } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import type { FeaturedTrail } from '../services/api/routes';
 
 // ─── Difficulty labels (PT-PT) ────────────────────────────────────────────────
 
 type Difficulty = 'facil' | 'moderado' | 'dificil' | 'muito_dificil';
 
-const DIFFICULTY_LABEL: Record<Difficulty, string> = {
-  facil:         'Fácil',
-  moderado:      'Moderado',
-  dificil:       'Difícil',
-  muito_dificil: 'Muito difícil',
+const DIFFICULTY_LABEL_KEY: Record<Difficulty, string> = {
+  facil:         'components.featuredTrailCard.difficulty.facil',
+  moderado:      'components.featuredTrailCard.difficulty.moderado',
+  dificil:       'components.featuredTrailCard.difficulty.dificil',
+  muito_dificil: 'components.featuredTrailCard.difficulty.muitoDificil',
 };
 
 const FALLBACK_COLOR = '#3F6F4A';
@@ -31,9 +32,11 @@ interface FeaturedTrailCardProps {
 // ─── Component ────────────────────────────────────────────────────────────────
 
 function FeaturedTrailCard({ trail, onPress }: FeaturedTrailCardProps) {
+  const { t } = useTranslation();
   const chipColor = trail.color || FALLBACK_COLOR;
+  const difficultyKey = trail.difficulty ? DIFFICULTY_LABEL_KEY[trail.difficulty as Difficulty] : undefined;
   const difficultyLabel =
-    (trail.difficulty && DIFFICULTY_LABEL[trail.difficulty as Difficulty]) || trail.difficulty || '—';
+    (difficultyKey && t(difficultyKey)) || trail.difficulty || '—';
 
   const handleOpenAllTrails = () => {
     if (trail.external_url) {
@@ -89,13 +92,13 @@ function FeaturedTrailCard({ trail, onPress }: FeaturedTrailCardProps) {
           <View style={[styles.statusChip, styles.statusPending]}>
             <MaterialIcons name="help-outline" size={12} color="#92400E" />
             <Text style={[styles.statusText, styles.statusPendingText]}>
-              Geometria por confirmar
+              {t('components.featuredTrailCard.geometryPending')}
             </Text>
           </View>
         ) : (
           <View style={[styles.statusChip, styles.statusReady]}>
             <MaterialIcons name="timeline" size={12} color="#166534" />
-            <Text style={[styles.statusText, styles.statusReadyText]}>No mapa</Text>
+            <Text style={[styles.statusText, styles.statusReadyText]}>{t('components.featuredTrailCard.onMap')}</Text>
           </View>
         )}
       </View>
@@ -107,10 +110,10 @@ function FeaturedTrailCard({ trail, onPress }: FeaturedTrailCardProps) {
           onPress={handleOpenAllTrails}
           activeOpacity={0.85}
           accessibilityRole="button"
-          accessibilityLabel={`Ver ${trail.name} no AllTrails`}
+          accessibilityLabel={t('components.featuredTrailCard.viewOnAllTrailsA11y', { name: trail.name })}
         >
           <MaterialIcons name="open-in-new" size={16} color="#FFFFFF" />
-          <Text style={styles.linkBtnText}>Ver no AllTrails</Text>
+          <Text style={styles.linkBtnText}>{t('components.featuredTrailCard.viewOnAllTrails')}</Text>
         </TouchableOpacity>
       ) : null}
     </>
@@ -123,7 +126,7 @@ function FeaturedTrailCard({ trail, onPress }: FeaturedTrailCardProps) {
         activeOpacity={0.92}
         onPress={() => onPress(trail.id)}
         accessibilityRole="button"
-        accessibilityLabel={`Abrir ${trail.name}`}
+        accessibilityLabel={t('components.featuredTrailCard.openA11y', { name: trail.name })}
         testID="featured-trail-card"
       >
         {body}

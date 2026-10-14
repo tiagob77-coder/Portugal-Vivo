@@ -15,6 +15,7 @@ import { useQuery } from '@tanstack/react-query';
 import axios from 'axios';
 import { API_BASE } from '../config/api';
 import { palette, withOpacity } from '../theme/colors';
+import { useTranslation } from 'react-i18next';
 
 // ========================
 // TYPES
@@ -84,6 +85,7 @@ interface ExploreNearbyProps {
 // ========================
 
 const useDeviceLocation = () => {
+  const { t } = useTranslation();
   const [location, setLocation] = useState<Location | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -94,7 +96,7 @@ const useDeviceLocation = () => {
     try {
       if (Platform.OS === 'web') {
         if (!navigator.geolocation) {
-          setError('Geolocalização não suportada neste browser');
+          setError(t('widgets.exploreNearby.geoUnsupported'));
           setLoading(false);
           return;
         }
@@ -107,7 +109,7 @@ const useDeviceLocation = () => {
             setLoading(false);
           },
           (err) => {
-            setError(`Erro de geolocalização: ${err.message}`);
+            setError(t('widgets.exploreNearby.geoError', { message: err.message }));
             setLoading(false);
           },
           { enableHighAccuracy: true, timeout: 10000 }
@@ -117,7 +119,7 @@ const useDeviceLocation = () => {
         const ExpoLocation = require('expo-location'); // eslint-disable-line @typescript-eslint/no-require-imports
         const { status } = await ExpoLocation.requestForegroundPermissionsAsync();
         if (status !== 'granted') {
-          setError('Permissão de localização negada');
+          setError(t('widgets.exploreNearby.permissionDenied'));
           setLoading(false);
           return;
         }
@@ -128,10 +130,10 @@ const useDeviceLocation = () => {
         setLoading(false);
       }
     } catch (e: any) {
-      setError(e.message || 'Erro ao obter localização');
+      setError(e.message || t('widgets.exploreNearby.locationError'));
       setLoading(false);
     }
-  }, []);
+  }, [t]);
 
   useEffect(() => {
     requestLocation();
@@ -170,10 +172,10 @@ const fetchWalkingRoute = async (lat: number, lng: number, maxMinutes: number): 
 // ========================
 
 const RADIUS_OPTIONS = [1, 2, 5, 10, 25];
-const SORT_OPTIONS: { key: string; label: string; icon: keyof typeof MaterialIcons.glyphMap }[] = [
-  { key: 'distance', label: 'Distância', icon: 'near-me' },
-  { key: 'iq_score', label: 'Classificação', icon: 'star' },
-  { key: 'popular', label: 'Popular', icon: 'trending-up' },
+const SORT_OPTIONS: { key: string; labelKey: string; icon: keyof typeof MaterialIcons.glyphMap }[] = [
+  { key: 'distance', labelKey: 'widgets.exploreNearby.sortDistance', icon: 'near-me' },
+  { key: 'iq_score', labelKey: 'widgets.exploreNearby.sortRating', icon: 'star' },
+  { key: 'popular', labelKey: 'widgets.exploreNearby.sortPopular', icon: 'trending-up' },
 ];
 
 const DIRECTION_ARROWS: Record<string, string> = {
@@ -199,6 +201,7 @@ const CATEGORY_ICONS: Record<string, keyof typeof MaterialIcons.glyphMap> = {
 
 const ExploreNearby: React.FC<ExploreNearbyProps> = ({ onPOIPress, onRoutePress }) => {
   const { location, error: locError, loading: locLoading, refresh: refreshLocation } = useDeviceLocation();
+  const { t } = useTranslation();
   const [selectedRadius, setSelectedRadius] = useState(5);
   const [sortBy, setSortBy] = useState('distance');
   const [activeTab, setActiveTab] = useState<'discover' | 'route'>('discover');
@@ -244,7 +247,7 @@ const ExploreNearby: React.FC<ExploreNearbyProps> = ({ onPOIPress, onRoutePress 
     return (
       <View style={styles.centered}>
         <ActivityIndicator size="large" color={palette.terracotta[500]} />
-        <Text style={styles.loadingText}>A obter localização...</Text>
+        <Text style={styles.loadingText}>{t('widgets.exploreNearby.gettingLocation')}</Text>
       </View>
     );
   }
@@ -254,9 +257,9 @@ const ExploreNearby: React.FC<ExploreNearbyProps> = ({ onPOIPress, onRoutePress 
     return (
       <View style={styles.centered}>
         <MaterialIcons name="location-off" size={48} color="#94A3B8" />
-        <Text style={styles.errorText}>{locError || 'Localização indisponível'}</Text>
+        <Text style={styles.errorText}>{locError || t('widgets.exploreNearby.unavailable')}</Text>
         <TouchableOpacity style={styles.retryButton} onPress={refreshLocation}>
-          <Text style={styles.retryText}>Tentar novamente</Text>
+          <Text style={styles.retryText}>{t('common.retry')}</Text>
         </TouchableOpacity>
       </View>
     );
@@ -348,7 +351,7 @@ const ExploreNearby: React.FC<ExploreNearbyProps> = ({ onPOIPress, onRoutePress 
       return (
         <View style={styles.routeLoading}>
           <ActivityIndicator size="small" color={palette.terracotta[500]} />
-          <Text style={styles.loadingText}>A calcular rota...</Text>
+          <Text style={styles.loadingText}>{t('widgets.exploreNearby.calculatingRoute')}</Text>
         </View>
       );
     }
@@ -357,7 +360,7 @@ const ExploreNearby: React.FC<ExploreNearbyProps> = ({ onPOIPress, onRoutePress 
       return (
         <View style={styles.emptyState}>
           <MaterialIcons name="directions-walk" size={40} color="#475569" />
-          <Text style={styles.emptyText}>Sem POIs alcançáveis a pé nesta zona</Text>
+          <Text style={styles.emptyText}>{t('widgets.exploreNearby.noWalkable')}</Text>
         </View>
       );
     }
@@ -367,19 +370,19 @@ const ExploreNearby: React.FC<ExploreNearbyProps> = ({ onPOIPress, onRoutePress 
         <View style={styles.routeSummary}>
           <View style={styles.routeStat}>
             <Text style={styles.routeStatValue}>{walkingData.poi_count}</Text>
-            <Text style={styles.routeStatLabel}>Paragens</Text>
+            <Text style={styles.routeStatLabel}>{t('widgets.exploreNearby.stops')}</Text>
           </View>
           <View style={styles.routeStat}>
             <Text style={styles.routeStatValue}>{walkingData.total_walking_minutes}</Text>
-            <Text style={styles.routeStatLabel}>min caminhada</Text>
+            <Text style={styles.routeStatLabel}>{t('widgets.exploreNearby.walkMin')}</Text>
           </View>
           <View style={styles.routeStat}>
             <Text style={styles.routeStatValue}>{walkingData.total_distance_km}</Text>
-            <Text style={styles.routeStatLabel}>km total</Text>
+            <Text style={styles.routeStatLabel}>{t('widgets.exploreNearby.kmTotal')}</Text>
           </View>
           <View style={styles.routeStat}>
             <Text style={styles.routeStatValue}>+{walkingData.return_to_start_minutes}</Text>
-            <Text style={styles.routeStatLabel}>min regresso</Text>
+            <Text style={styles.routeStatLabel}>{t('widgets.exploreNearby.returnMin')}</Text>
           </View>
         </View>
 
@@ -395,7 +398,11 @@ const ExploreNearby: React.FC<ExploreNearbyProps> = ({ onPOIPress, onRoutePress 
             <View style={styles.routeStopInfo}>
               <Text style={styles.routeStopName} numberOfLines={1}>{poi.name}</Text>
               <Text style={styles.routeStopMeta}>
-                {poi.category} · {poi.leg_walking_minutes} min a pé · {poi.cumulative_walking_minutes} min total
+                {t('widgets.exploreNearby.stopMeta', {
+                  category: poi.category,
+                  leg: poi.leg_walking_minutes ?? '',
+                  total: poi.cumulative_walking_minutes ?? '',
+                })}
               </Text>
             </View>
             <MaterialIcons name="chevron-right" size={20} color="#475569" />
@@ -407,7 +414,7 @@ const ExploreNearby: React.FC<ExploreNearbyProps> = ({ onPOIPress, onRoutePress 
           onPress={() => onRoutePress?.(walkingData.route)}
         >
           <MaterialIcons name="directions-walk" size={20} color="#0F172A" />
-          <Text style={styles.startRouteText}>Iniciar Rota</Text>
+          <Text style={styles.startRouteText}>{t('widgets.exploreNearby.startRoute')}</Text>
         </TouchableOpacity>
       </View>
     );
@@ -431,21 +438,21 @@ const ExploreNearby: React.FC<ExploreNearbyProps> = ({ onPOIPress, onRoutePress 
       {/* Header */}
       <View style={styles.header}>
         <MaterialIcons name="explore" size={24} color={palette.terracotta[500]} />
-        <Text style={styles.title}>Explorar Perto de Mim</Text>
+        <Text style={styles.title}>{t('widgets.exploreNearby.title')}</Text>
       </View>
 
       {/* Highlights Section */}
       {!highlightsLoading && highlightsData && (
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.highlightsRow}>
-          {renderHighlightCard(highlightsData.closest_poi, 'Mais Perto', 'near-me', '#3B82F6')}
-          {renderHighlightCard(highlightsData.highest_rated, 'Melhor Classificado', 'star', '#F59E0B')}
-          {renderHighlightCard(highlightsData.hidden_gem, 'Joia Escondida', 'auto-awesome', '#8B5CF6')}
+          {renderHighlightCard(highlightsData.closest_poi, t('widgets.exploreNearby.closest'), 'near-me', '#3B82F6')}
+          {renderHighlightCard(highlightsData.highest_rated, t('widgets.exploreNearby.topRated'), 'star', '#F59E0B')}
+          {renderHighlightCard(highlightsData.hidden_gem, t('widgets.exploreNearby.hiddenGem'), 'auto-awesome', '#8B5CF6')}
         </ScrollView>
       )}
 
       {/* Radius Selector */}
       <View style={styles.selectorSection}>
-        <Text style={styles.selectorLabel}>Raio</Text>
+        <Text style={styles.selectorLabel}>{t('widgets.exploreNearby.radius')}</Text>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.selectorRow}>
           {RADIUS_OPTIONS.map((r) => (
             <TouchableOpacity
@@ -463,7 +470,7 @@ const ExploreNearby: React.FC<ExploreNearbyProps> = ({ onPOIPress, onRoutePress 
 
       {/* Sort Selector */}
       <View style={styles.selectorSection}>
-        <Text style={styles.selectorLabel}>Ordenar</Text>
+        <Text style={styles.selectorLabel}>{t('widgets.exploreNearby.sort')}</Text>
         <View style={styles.sortRow}>
           {SORT_OPTIONS.map((opt) => (
             <TouchableOpacity
@@ -477,7 +484,7 @@ const ExploreNearby: React.FC<ExploreNearbyProps> = ({ onPOIPress, onRoutePress 
                 color={sortBy === opt.key ? '#0F172A' : '#94A3B8'}
               />
               <Text style={[styles.sortChipText, sortBy === opt.key && styles.sortChipTextActive]}>
-                {opt.label}
+                {t(opt.labelKey)}
               </Text>
             </TouchableOpacity>
           ))}
@@ -496,7 +503,7 @@ const ExploreNearby: React.FC<ExploreNearbyProps> = ({ onPOIPress, onRoutePress 
             color={activeTab === 'discover' ? palette.terracotta[500] : '#94A3B8'}
           />
           <Text style={[styles.tabText, activeTab === 'discover' && styles.tabTextActive]}>
-            Descobrir
+            {t('widgets.exploreNearby.tabDiscover')}
           </Text>
         </TouchableOpacity>
         <TouchableOpacity
@@ -509,7 +516,7 @@ const ExploreNearby: React.FC<ExploreNearbyProps> = ({ onPOIPress, onRoutePress 
             color={activeTab === 'route' ? palette.terracotta[500] : '#94A3B8'}
           />
           <Text style={[styles.tabText, activeTab === 'route' && styles.tabTextActive]}>
-            Rota a Pé
+            {t('widgets.exploreNearby.tabRoute')}
           </Text>
         </TouchableOpacity>
       </View>
@@ -520,19 +527,19 @@ const ExploreNearby: React.FC<ExploreNearbyProps> = ({ onPOIPress, onRoutePress 
           {discoverLoading ? (
             <View style={styles.routeLoading}>
               <ActivityIndicator size="small" color={palette.terracotta[500]} />
-              <Text style={styles.loadingText}>A procurar POIs...</Text>
+              <Text style={styles.loadingText}>{t('widgets.exploreNearby.searching')}</Text>
             </View>
           ) : summary && summary.total_found === 0 ? (
             <View style={styles.emptyState}>
               <MaterialIcons name="search-off" size={40} color="#475569" />
-              <Text style={styles.emptyText}>Sem POIs neste raio</Text>
+              <Text style={styles.emptyText}>{t('widgets.exploreNearby.noPois')}</Text>
               {summary.suggested_radius_km && (
                 <TouchableOpacity
                   style={styles.suggestButton}
                   onPress={() => setSelectedRadius(summary.suggested_radius_km!)}
                 >
                   <Text style={styles.suggestText}>
-                    Tentar {summary.suggested_radius_km} km
+                    {t('widgets.exploreNearby.tryRadius', { km: summary.suggested_radius_km })}
                   </Text>
                 </TouchableOpacity>
               )}
@@ -562,7 +569,11 @@ const ExploreNearby: React.FC<ExploreNearbyProps> = ({ onPOIPress, onRoutePress 
       {summary && summary.total_found > 0 && activeTab === 'discover' && (
         <View style={styles.summaryFooter}>
           <Text style={styles.summaryText}>
-            {summary.returned} de {summary.total_found} POIs num raio de {selectedRadius} km
+            {t('widgets.exploreNearby.summary', {
+              returned: summary.returned,
+              total: summary.total_found,
+              km: selectedRadius,
+            })}
           </Text>
         </View>
       )}

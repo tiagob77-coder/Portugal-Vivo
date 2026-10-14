@@ -1,5 +1,6 @@
 import React from 'react';
-import { render, screen, fireEvent } from '@testing-library/react-native';
+import { render, screen, fireEvent, act } from '@testing-library/react-native';
+import i18n from 'i18next';
 import { useQuery } from '@tanstack/react-query';
 import { SafetyWidget } from '../SafetyWidget';
 
@@ -203,5 +204,25 @@ describe('SafetyWidget', () => {
 
     render(<SafetyWidget />);
     expect(screen.getByText('Aviso de calor intenso')).toBeTruthy();
+  });
+
+  describe('in English', () => {
+    afterEach(async () => {
+      await act(() => i18n.changeLanguage('pt'));
+    });
+
+    it('renders the status and fire count in English', async () => {
+      await act(() => i18n.changeLanguage('en'));
+      mockUseQuery.mockImplementation(({ queryKey }: { queryKey: string[] }) =>
+        queryKey[0] === 'safety-check'
+          ? { data: { safety_level: 'safe' }, isLoading: false }
+          : { data: { total: 4, active_count: 2 }, isLoading: false },
+      );
+
+      render(<SafetyWidget />);
+      expect(screen.getByText('Safe')).toBeTruthy();
+      expect(screen.getByText('No alerts')).toBeTruthy();
+      expect(screen.getByText('4 incidents in Portugal')).toBeTruthy();
+    });
   });
 });

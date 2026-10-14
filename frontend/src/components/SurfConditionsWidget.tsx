@@ -9,6 +9,7 @@ import { useQuery } from '@tanstack/react-query';
 import { LinearGradient } from 'expo-linear-gradient';
 import { getAllSpotsConditions, getSurfSpotConditions } from '../services/api';
 import { palette, stateColors } from '../theme';
+import { useTranslation } from 'react-i18next';
 
 interface SurfWidgetProps {
   spotId?: string; // Specific spot, or show best conditions
@@ -16,15 +17,16 @@ interface SurfWidgetProps {
   onPress?: () => void;
 }
 
-const QUALITY_CONFIG: Record<string, { color: string; gradient: string[]; label: string; icon: string }> = {
-  excellent: { color: stateColors.surf.excellent, gradient: ['#166534', stateColors.surf.excellent], label: 'Excelente', icon: 'sentiment-very-satisfied' },
-  good: { color: stateColors.surf.good, gradient: ['#1D4ED8', stateColors.surf.good], label: 'Bom', icon: 'sentiment-satisfied' },
-  fair: { color: stateColors.surf.fair, gradient: ['#B45309', stateColors.surf.fair], label: 'Razoável', icon: 'sentiment-neutral' },
-  poor: { color: stateColors.surf.poor, gradient: ['#B91C1C', stateColors.surf.poor], label: 'Fraco', icon: 'sentiment-dissatisfied' },
-  flat: { color: stateColors.surf.flat, gradient: ['#374151', stateColors.surf.flat], label: 'Flat', icon: 'waves' },
+const QUALITY_CONFIG: Record<string, { color: string; gradient: string[]; labelKey: string; icon: string }> = {
+  excellent: { color: stateColors.surf.excellent, gradient: ['#166534', stateColors.surf.excellent], labelKey: 'widgets.surfQuality.excellent', icon: 'sentiment-very-satisfied' },
+  good: { color: stateColors.surf.good, gradient: ['#1D4ED8', stateColors.surf.good], labelKey: 'widgets.surfQuality.good', icon: 'sentiment-satisfied' },
+  fair: { color: stateColors.surf.fair, gradient: ['#B45309', stateColors.surf.fair], labelKey: 'widgets.surfQuality.fair', icon: 'sentiment-neutral' },
+  poor: { color: stateColors.surf.poor, gradient: ['#B91C1C', stateColors.surf.poor], labelKey: 'widgets.surfQuality.poor', icon: 'sentiment-dissatisfied' },
+  flat: { color: stateColors.surf.flat, gradient: ['#374151', stateColors.surf.flat], labelKey: 'widgets.surfQuality.flat', icon: 'waves' },
 };
 
 export function SurfConditionsWidget({ spotId, compact = false, onPress }: SurfWidgetProps) {
+  const { t } = useTranslation();
   const { data, isLoading, error } = useQuery<any>({
     queryKey: spotId ? ['surf-spot', spotId] : ['surf-all'],
     queryFn: () => spotId ? getSurfSpotConditions(spotId) : getAllSpotsConditions(),
@@ -54,7 +56,7 @@ export function SurfConditionsWidget({ spotId, compact = false, onPress }: SurfW
   } else if ('spots' in (data as any) && (data as any).spots.length > 0) {
     // Get the best quality spot
     spotData = (data as any).spots[0];
-    spotName = spotData.spot?.name || 'Melhor Spot';
+    spotName = spotData.spot?.name || t('widgets.surfConditions.bestSpot');
   } else {
     return null;
   }
@@ -78,7 +80,7 @@ export function SurfConditionsWidget({ spotId, compact = false, onPress }: SurfW
           <MaterialIcons name="waves" size={14} color={palette.white} />
         </View>
         <Text style={styles.compactText}>{waveHeight?.toFixed(1)}m</Text>
-        <Text style={styles.compactLabel}>{config.label}</Text>
+        <Text style={styles.compactLabel}>{t(config.labelKey)}</Text>
       </TouchableOpacity>
     );
   }
@@ -101,12 +103,12 @@ export function SurfConditionsWidget({ spotId, compact = false, onPress }: SurfW
             <MaterialIcons name="waves" size={24} color={palette.white} />
           </View>
           <View style={styles.headerText}>
-            <Text style={styles.title}>Condições de Surf</Text>
+            <Text style={styles.title}>{t('widgets.surfConditions.title')}</Text>
             <Text style={styles.spotName}>{spotName}</Text>
           </View>
           <View style={styles.qualityContainer}>
             <MaterialIcons name={config.icon as any} size={20} color={palette.white} />
-            <Text style={styles.qualityText}>{config.label}</Text>
+            <Text style={styles.qualityText}>{t(config.labelKey)}</Text>
           </View>
         </View>
 
@@ -114,25 +116,25 @@ export function SurfConditionsWidget({ spotId, compact = false, onPress }: SurfW
           <View style={styles.stat}>
             <Text style={styles.statValue}>{waveHeight?.toFixed(1) || '--'}</Text>
             <Text style={styles.statUnit}>m</Text>
-            <Text style={styles.statLabel}>Altura</Text>
+            <Text style={styles.statLabel}>{t('widgets.surfConditions.height')}</Text>
           </View>
           <View style={styles.statDivider} />
           <View style={styles.stat}>
             <Text style={styles.statValue}>{wavePeriod?.toFixed(0) || '--'}</Text>
             <Text style={styles.statUnit}>s</Text>
-            <Text style={styles.statLabel}>Período</Text>
+            <Text style={styles.statLabel}>{t('widgets.surfConditions.period')}</Text>
           </View>
           <View style={styles.statDivider} />
           <View style={styles.stat}>
             <Text style={styles.statValue}>{waveDirection || '--'}</Text>
             <Text style={styles.statUnit}></Text>
-            <Text style={styles.statLabel}>Direção</Text>
+            <Text style={styles.statLabel}>{t('widgets.surfConditions.direction')}</Text>
           </View>
         </View>
 
         <View style={styles.footer}>
           <MaterialIcons name="info-outline" size={12} color="rgba(255,255,255,0.6)" />
-          <Text style={styles.footerText}>Dados em tempo real • Open-Meteo</Text>
+          <Text style={styles.footerText}>{t('widgets.surfConditions.footer')}</Text>
         </View>
       </LinearGradient>
     </TouchableOpacity>

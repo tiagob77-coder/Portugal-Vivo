@@ -5,16 +5,17 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import { stateColors, palette } from '../../../src/theme';
 
 export const NIGHT_FILTERS = [
-  { id: 'all', label: 'Todos', icon: 'nightlight-round', color: stateColors.rarity.raro },
-  { id: 'Gastronomia Noturna', label: 'Tascas', icon: 'restaurant', color: '#F97316' },
-  { id: 'Sabores Nocturnos', label: 'Gastronomia', icon: 'local-dining', color: '#EAB308' },
-  { id: 'Evento/Festa', label: 'Festas', icon: 'celebration', color: stateColors.event.festival },
-  { id: 'Arte & Cultura', label: 'Arte', icon: 'palette', color: stateColors.surf.good },
-  { id: 'Iluminacao Patrimonial', label: 'Patrimonio', icon: 'church', color: '#14B8A6' },
-  { id: 'Miradouro/Lenda', label: 'Miradouros', icon: 'visibility', color: '#A78BFA' },
+  { id: 'all', labelKey: 'mapScreen.night.filters.all', icon: 'nightlight-round', color: stateColors.rarity.raro },
+  { id: 'Gastronomia Noturna', labelKey: 'mapScreen.night.filters.tascas', icon: 'restaurant', color: '#F97316' },
+  { id: 'Sabores Nocturnos', labelKey: 'mapScreen.night.filters.gastronomia', icon: 'local-dining', color: '#EAB308' },
+  { id: 'Evento/Festa', labelKey: 'mapScreen.night.filters.festas', icon: 'celebration', color: stateColors.event.festival },
+  { id: 'Arte & Cultura', labelKey: 'mapScreen.night.filters.arte', icon: 'palette', color: stateColors.surf.good },
+  { id: 'Iluminacao Patrimonial', labelKey: 'mapScreen.night.filters.patrimonio', icon: 'church', color: '#14B8A6' },
+  { id: 'Miradouro/Lenda', labelKey: 'mapScreen.night.filters.miradouros', icon: 'visibility', color: '#A78BFA' },
 ];
 
 interface NightExplorerPanelProps {
@@ -30,6 +31,7 @@ export default function NightExplorerPanel({
   activeFilter,
   onFilterChange,
 }: NightExplorerPanelProps) {
+  const { t } = useTranslation();
   return (
     <View style={styles.panel} data-testid="night-explorer-panel">
       <View style={styles.header}>
@@ -38,11 +40,13 @@ export default function NightExplorerPanel({
             <MaterialIcons name="nightlight-round" size={20} color="#FDE68A" />
           </View>
           <View>
-            <Text style={styles.title}>Explorador Noturno</Text>
+            <Text style={styles.title}>{t('mapScreen.night.title')}</Text>
             <Text style={styles.subtitle}>
               {isLoading
-                ? 'A carregar...'
-                : `${itemCount} locais para explorar de noite`}
+                ? t('common.loading')
+                : itemCount === 1
+                ? t('mapScreen.night.countOne', { count: itemCount })
+                : t('mapScreen.night.count', { count: itemCount })}
             </Text>
           </View>
         </View>
@@ -67,7 +71,7 @@ export default function NightExplorerPanel({
                 color={isActive ? palette.white : f.color}
               />
               <Text style={[styles.chipText, isActive && { color: palette.white }]}>
-                {f.label}
+                {t(f.labelKey)}
               </Text>
             </TouchableOpacity>
           );

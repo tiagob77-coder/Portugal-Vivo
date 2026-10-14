@@ -22,6 +22,8 @@ import { useRouter } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useQuery } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
+import type { TFunction } from 'i18next';
 import api, { getAgendaLive, AgendaEvent } from '../../src/services/api';
 import { colors, shadows, fontFamilies, scrimPine } from '../../src/theme';
 import { palette } from '../../src/theme/colors';
@@ -31,33 +33,33 @@ import EmptyState from '../../src/components/EmptyState';
 
 const serif = fontFamilies.serif;
 
-const MONTHS_PT = [
-  'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
-  'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'
+const MONTH_KEYS = [
+  'january', 'february', 'march', 'april', 'may', 'june',
+  'july', 'august', 'september', 'october', 'november', 'december'
 ];
 
-const WEEKDAYS_PT = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
+const WEEKDAY_KEYS = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
 
 // All event categories active
 const EVENT_CATEGORIES = [
-  { id: 'festas', name: 'Festas', icon: 'celebration', color: palette.terracotta[500] },
-  { id: 'religioso', name: 'Religioso', icon: 'church', color: '#8B5CF6' },
-  { id: 'gastronomia', name: 'Gastronomia', icon: 'restaurant', color: '#EF4444' },
-  { id: 'natureza', name: 'Natureza', icon: 'park', color: '#22C55E' },
-  { id: 'cultural', name: 'Cultural', icon: 'theater-comedy', color: '#06B6D4' },
-  { id: 'festival', name: 'Festivais', icon: 'music-note', color: '#EC4899' },
+  { id: 'festas', labelKey: 'plannerEvents.events.categories.festas', icon: 'celebration', color: palette.terracotta[500] },
+  { id: 'religioso', labelKey: 'plannerEvents.events.categories.religioso', icon: 'church', color: '#8B5CF6' },
+  { id: 'gastronomia', labelKey: 'plannerEvents.events.categories.gastronomia', icon: 'restaurant', color: '#EF4444' },
+  { id: 'natureza', labelKey: 'plannerEvents.events.categories.natureza', icon: 'park', color: '#22C55E' },
+  { id: 'cultural', labelKey: 'plannerEvents.events.categories.cultural', icon: 'theater-comedy', color: '#06B6D4' },
+  { id: 'festival', labelKey: 'plannerEvents.events.categories.festival', icon: 'music-note', color: '#EC4899' },
 ];
 
 // All regions of Portugal
 const REGIONS = [
-  { id: null, name: 'Todas', emoji: '🇵🇹' },
-  { id: 'norte', name: 'Norte', emoji: '🏔️' },
-  { id: 'centro', name: 'Centro', emoji: '🏛️' },
-  { id: 'lisboa', name: 'Lisboa', emoji: '🌆' },
-  { id: 'alentejo', name: 'Alentejo', emoji: '🌾' },
-  { id: 'algarve', name: 'Algarve', emoji: '🏖️' },
-  { id: 'acores', name: 'Açores', emoji: '🌋' },
-  { id: 'madeira', name: 'Madeira', emoji: '🌺' },
+  { id: null, labelKey: 'plannerEvents.regions.all', emoji: '🇵🇹' },
+  { id: 'norte', labelKey: 'plannerEvents.regions.norte', emoji: '🏔️' },
+  { id: 'centro', labelKey: 'plannerEvents.regions.centro', emoji: '🏛️' },
+  { id: 'lisboa', labelKey: 'plannerEvents.regions.lisboa', emoji: '🌆' },
+  { id: 'alentejo', labelKey: 'plannerEvents.regions.alentejo', emoji: '🌾' },
+  { id: 'algarve', labelKey: 'plannerEvents.regions.algarve', emoji: '🏖️' },
+  { id: 'acores', labelKey: 'plannerEvents.regions.acores', emoji: '🌋' },
+  { id: 'madeira', labelKey: 'plannerEvents.regions.madeira', emoji: '🌺' },
 ];
 
 // All categories allowed
@@ -169,9 +171,9 @@ const getCategoryColor = (category: string): string => {
   return cat?.color || palette.terracotta[500];
 };
 
-const getCategoryName = (category: string): string => {
+const getCategoryName = (category: string, t: TFunction): string => {
   const cat = EVENT_CATEGORIES.find(c => c.id === category);
-  return cat?.name || category;
+  return (cat && t(cat.labelKey)) || category;
 };
 
 /**
@@ -197,6 +199,7 @@ export default function EventosTab() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { colors: tc } = useTheme();
+  const { t } = useTranslation();
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [selectedRegion, setSelectedRegion] = useState<string | null>(null);
@@ -289,6 +292,11 @@ export default function EventosTab() {
     return date.toDateString() === today.toDateString();
   };
 
+  const regionName = (id: string): string => {
+    const region = REGIONS.find(r => r.id === id);
+    return (region && t(region.labelKey)) || id;
+  };
+
   /** Navigate to event detail page */
   const openEventDetail = (event: CalendarEvent) => {
     router.push(`/evento/${event.id}`);
@@ -306,7 +314,11 @@ export default function EventosTab() {
       disabled={!day.date || day.events.length === 0}
       accessibilityLabel={
         day.date
-          ? `Dia ${day.date.getDate()}${day.events.length > 0 ? `, ${day.events.length} ${day.events.length === 1 ? 'evento' : 'eventos'}` : ''}`
+          ? day.events.length === 0
+            ? t('plannerEvents.events.calendarDay', { day: day.date.getDate() })
+            : day.events.length === 1
+              ? t('plannerEvents.events.calendarDayOneEvent', { day: day.date.getDate() })
+              : t('plannerEvents.events.calendarDayEvents', { day: day.date.getDate(), n: day.events.length })
           : undefined
       }
       accessibilityRole="button"
@@ -370,7 +382,7 @@ export default function EventosTab() {
         onPress={() => openEventDetail(event)}
         activeOpacity={0.8}
         data-testid={`event-card-${event.id}`}
-        accessibilityLabel={`Ver evento ${event.name}`}
+        accessibilityLabel={t('plannerEvents.events.eventA11y', { name: event.name })}
         accessibilityRole="button"
       >
         {/* Event Image */}
@@ -388,7 +400,11 @@ export default function EventosTab() {
         {rarityColor && (
           <View style={[styles.rarityBadge, { backgroundColor: rarityColor }]}>
             <Text style={styles.rarityText}>
-              {event.rarity === 'epico' ? '★ Épico' : event.rarity === 'raro' ? '◆ Raro' : '● Comum'}
+              {event.rarity === 'epico'
+                ? t('plannerEvents.events.rarity.epic')
+                : event.rarity === 'raro'
+                  ? t('plannerEvents.events.rarity.rare')
+                  : t('plannerEvents.events.rarity.common')}
             </Text>
           </View>
         )}
@@ -398,7 +414,7 @@ export default function EventosTab() {
           <View style={[styles.eventCategoryBadge, { backgroundColor: color + '30' }]}>
             <MaterialIcons name={getCategoryIcon(event.category) as any} size={14} color={color} />
             <Text style={[styles.eventCategoryText, { color }]}>
-              {getCategoryName(event.category)}
+              {getCategoryName(event.category, t)}
             </Text>
           </View>
           
@@ -423,11 +439,11 @@ export default function EventosTab() {
               style={styles.ticketButton}
               onPress={(e) => { e.stopPropagation(); Linking.openURL(event.ticket_url!); }}
               activeOpacity={0.7}
-              accessibilityLabel={`Comprar bilhetes para ${event.name}`}
+              accessibilityLabel={t('plannerEvents.events.buyTicketsA11y', { name: event.name })}
               accessibilityRole="link"
             >
               <MaterialIcons name="confirmation-number" size={14} color="#FFF" />
-              <Text style={styles.ticketText}>Comprar Bilhetes</Text>
+              <Text style={styles.ticketText}>{t('plannerEvents.events.buyTickets')}</Text>
             </TouchableOpacity>
           )}
         </View>
@@ -439,7 +455,7 @@ export default function EventosTab() {
     return (
       <View style={[styles.container, styles.loadingContainer, { backgroundColor: tc.background }]}>
         <ActivityIndicator size="large" color={palette.terracotta[500]} />
-        <Text style={styles.loadingText}>A carregar eventos...</Text>
+        <Text style={styles.loadingText}>{t('plannerEvents.events.loading')}</Text>
       </View>
     );
   }
@@ -456,8 +472,8 @@ export default function EventosTab() {
       >
         {/* Header */}
         <View style={styles.header}>
-          <Text style={styles.headerTitle}>Eventos</Text>
-          <Text style={styles.headerSubtitle}>Festas, Romarias & Tradições de Portugal</Text>
+          <Text style={styles.headerTitle}>{t('plannerEvents.events.title')}</Text>
+          <Text style={styles.headerSubtitle}>{t('plannerEvents.events.subtitle')}</Text>
         </View>
 
         {/* View Mode Toggle */}
@@ -465,7 +481,7 @@ export default function EventosTab() {
           <TouchableOpacity
             style={[styles.toggleButton, viewMode === 'calendar' && [styles.toggleActive, { backgroundColor: tc.accent }]]}
             onPress={() => setViewMode('calendar')}
-            accessibilityLabel="Ver em calendário"
+            accessibilityLabel={t('plannerEvents.events.calendarViewA11y')}
             accessibilityRole="tab"
             accessibilityState={{ selected: viewMode === 'calendar' }}
           >
@@ -475,13 +491,13 @@ export default function EventosTab() {
               color={viewMode === 'calendar' ? '#FFF' : tc.textMuted}
             />
             <Text style={[styles.toggleText, { color: viewMode === 'calendar' ? '#FFF' : tc.textMuted }, viewMode === 'calendar' && styles.toggleTextActive]}>
-              Calendário
+              {t('plannerEvents.events.calendarView')}
             </Text>
           </TouchableOpacity>
           <TouchableOpacity
             style={[styles.toggleButton, viewMode === 'list' && [styles.toggleActive, { backgroundColor: tc.accent }]]}
             onPress={() => setViewMode('list')}
-            accessibilityLabel="Ver em lista"
+            accessibilityLabel={t('plannerEvents.events.listViewA11y')}
             accessibilityRole="tab"
             accessibilityState={{ selected: viewMode === 'list' }}
           >
@@ -491,7 +507,7 @@ export default function EventosTab() {
               color={viewMode === 'list' ? '#FFF' : tc.textMuted}
             />
             <Text style={[styles.toggleText, { color: viewMode === 'list' ? '#FFF' : tc.textMuted }, viewMode === 'list' && styles.toggleTextActive]}>
-              Lista
+              {t('plannerEvents.events.listView')}
             </Text>
           </TouchableOpacity>
         </View>
@@ -509,7 +525,7 @@ export default function EventosTab() {
               !selectedCategory && [styles.filterChipActive, { borderColor: tc.accent }],
             ]}
             onPress={() => setSelectedCategory(null)}
-            accessibilityLabel="Mostrar todas as categorias"
+            accessibilityLabel={t('plannerEvents.events.allCategoriesA11y')}
             accessibilityRole="tab"
             accessibilityState={{ selected: !selectedCategory }}
           >
@@ -518,7 +534,7 @@ export default function EventosTab() {
               { color: tc.textSecondary },
               !selectedCategory && styles.filterTextActive,
             ]}>
-              Todos
+              {t('plannerEvents.events.allCategories')}
             </Text>
           </TouchableOpacity>
           {EVENT_CATEGORIES.map((cat) => (
@@ -532,7 +548,7 @@ export default function EventosTab() {
               onPress={() => setSelectedCategory(
                 selectedCategory === cat.id ? null : cat.id
               )}
-              accessibilityLabel={`Filtrar por categoria ${cat.name}`}
+              accessibilityLabel={t('plannerEvents.events.filterCategoryA11y', { name: t(cat.labelKey) })}
               accessibilityRole="tab"
               accessibilityState={{ selected: selectedCategory === cat.id }}
             >
@@ -546,7 +562,7 @@ export default function EventosTab() {
                 { color: tc.textSecondary },
                 selectedCategory === cat.id && styles.filterTextActive,
               ]}>
-                {cat.name}
+                {t(cat.labelKey)}
               </Text>
             </TouchableOpacity>
           ))}
@@ -567,7 +583,7 @@ export default function EventosTab() {
                 selectedRegion === region.id && [styles.regionPillActive, { borderColor: tc.accent }],
               ]}
               onPress={() => setSelectedRegion(region.id)}
-              accessibilityLabel={`Filtrar por região ${region.name}`}
+              accessibilityLabel={t('plannerEvents.events.filterRegionA11y', { name: t(region.labelKey) })}
               accessibilityRole="tab"
               accessibilityState={{ selected: selectedRegion === region.id }}
             >
@@ -576,7 +592,7 @@ export default function EventosTab() {
                 styles.regionPillText,
                 selectedRegion === region.id && styles.regionPillTextActive,
               ]}>
-                {region.name}
+                {t(region.labelKey)}
               </Text>
             </TouchableOpacity>
           ))}
@@ -587,17 +603,17 @@ export default function EventosTab() {
           <View style={styles.activeFiltersBar}>
             <MaterialIcons name="filter-list" size={16} color={palette.terracotta[500]} />
             <Text style={styles.activeFiltersText}>
-              Filtros:{selectedCategory ? ` ${EVENT_CATEGORIES.find(c => c.id === selectedCategory)?.name || selectedCategory}` : ''}
-              {selectedRegion ? ` · ${REGIONS.find(r => r.id === selectedRegion)?.name || selectedRegion}` : ''}
+              {t('plannerEvents.events.filtersLabel')}{selectedCategory ? ` ${getCategoryName(selectedCategory, t)}` : ''}
+              {selectedRegion ? ` · ${regionName(selectedRegion)}` : ''}
             </Text>
             <TouchableOpacity
               style={styles.clearFiltersButton}
               onPress={() => { setSelectedCategory(null); setSelectedRegion(null); }}
-              accessibilityLabel="Limpar filtros"
+              accessibilityLabel={t('plannerEvents.events.clearFiltersA11y')}
               accessibilityRole="button"
             >
               <MaterialIcons name="close" size={14} color="#FFF" />
-              <Text style={styles.clearFiltersText}>Limpar</Text>
+              <Text style={styles.clearFiltersText}>{t('plannerEvents.events.clearFilters')}</Text>
             </TouchableOpacity>
           </View>
         )}
@@ -610,18 +626,18 @@ export default function EventosTab() {
               <TouchableOpacity
                 style={styles.monthButton}
                 onPress={() => navigateMonth('prev')}
-                accessibilityLabel="Mês anterior"
+                accessibilityLabel={t('plannerEvents.events.prevMonthA11y')}
                 accessibilityRole="button"
               >
                 <MaterialIcons name="chevron-left" size={28} color={tc.textPrimary} />
               </TouchableOpacity>
               <Text style={[styles.monthTitle, { color: tc.textPrimary }]}>
-                {MONTHS_PT[selectedDate.getMonth()]} {selectedDate.getFullYear()}
+                {t(`plannerEvents.events.months.${MONTH_KEYS[selectedDate.getMonth()]}`)} {selectedDate.getFullYear()}
               </Text>
               <TouchableOpacity
                 style={styles.monthButton}
                 onPress={() => navigateMonth('next')}
-                accessibilityLabel="Mês seguinte"
+                accessibilityLabel={t('plannerEvents.events.nextMonthA11y')}
                 accessibilityRole="button"
               >
                 <MaterialIcons name="chevron-right" size={28} color={tc.textPrimary} />
@@ -630,8 +646,8 @@ export default function EventosTab() {
 
             {/* Weekday Headers */}
             <View style={styles.weekdaysRow}>
-              {WEEKDAYS_PT.map((day, i) => (
-                <Text key={i} style={[styles.weekdayText, { color: tc.textSecondary }]}>{day}</Text>
+              {WEEKDAY_KEYS.map((day, i) => (
+                <Text key={i} style={[styles.weekdayText, { color: tc.textSecondary }]}>{t(`plannerEvents.events.weekdays.${day}`)}</Text>
               ))}
             </View>
 
@@ -648,9 +664,9 @@ export default function EventosTab() {
             ) : (
               <EmptyState
                 icon="event-note"
-                title="Sem eventos neste mês"
-                subtitle="Explore outros meses para descobrir festivais, romarias e tradições por todo o Portugal"
-                actionLabel="Ver todos os eventos"
+                title={t('plannerEvents.events.emptyMonthTitle')}
+                subtitle={t('plannerEvents.events.emptyMonthSubtitle')}
+                actionLabel={t('plannerEvents.events.emptyMonthAction')}
                 onAction={() => { setSelectedCategory(null); setSelectedRegion(null); }}
               />
             )}
@@ -661,7 +677,7 @@ export default function EventosTab() {
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <MaterialIcons name="upcoming" size={20} color="#22C55E" />
-            <Text style={styles.sectionTitle}>Próximos Eventos</Text>
+            <Text style={styles.sectionTitle}>{t('plannerEvents.events.upcomingTitle')}</Text>
           </View>
           {filteredUpcoming.length > 0 ? (
             <View style={styles.upcomingList}>
@@ -670,8 +686,8 @@ export default function EventosTab() {
           ) : (
             <EmptyState
               icon="celebration"
-              title="Sem eventos próximos"
-              subtitle="Novos eventos são adicionados regularmente. Volte em breve!"
+              title={t('plannerEvents.events.emptyUpcomingTitle')}
+              subtitle={t('plannerEvents.events.emptyUpcomingSubtitle')}
             />
           )}
         </View>
@@ -680,12 +696,12 @@ export default function EventosTab() {
         <View style={styles.agendaViralBanner}>
           <View style={[styles.liveDot, !vaAvailable && { backgroundColor: '#EF4444' }]} />
           <View style={{ flex: 1 }}>
-            <Text style={styles.agendaViralTitle}>Eventos em Tempo Real</Text>
+            <Text style={styles.agendaViralTitle}>{t('plannerEvents.events.liveTitle')}</Text>
             <Text style={styles.agendaViralSubtitle}>
-              {liveSources.database} da base de dados
+              {t('plannerEvents.events.fromDatabase', { n: liveSources.database })}
               {vaAvailable
-                ? ` · ${liveSources.viralagenda} do Viral Agenda RSS`
-                : ' · Viral Agenda RSS indisponível'}
+                ? ` · ${t('plannerEvents.events.fromViralAgenda', { n: liveSources.viralagenda })}`
+                : ` · ${t('plannerEvents.events.viralAgendaUnavailable')}`}
             </Text>
           </View>
           <MaterialIcons
@@ -699,17 +715,17 @@ export default function EventosTab() {
         <View style={styles.statsContainer}>
           <View style={styles.statItem}>
             <Text style={styles.statValue}>{filteredEvents.length}</Text>
-            <Text style={styles.statLabel}>Este Mês</Text>
+            <Text style={styles.statLabel}>{t('plannerEvents.events.statThisMonth')}</Text>
           </View>
           <View style={styles.statDivider} />
           <View style={styles.statItem}>
             <Text style={styles.statValue}>{filteredUpcoming.length}</Text>
-            <Text style={styles.statLabel}>Próximos</Text>
+            <Text style={styles.statLabel}>{t('plannerEvents.events.statUpcoming')}</Text>
           </View>
           <View style={styles.statDivider} />
           <View style={styles.statItem}>
             <Text style={styles.statValue}>{REGIONS.length - 1}</Text>
-            <Text style={styles.statLabel}>Regiões</Text>
+            <Text style={styles.statLabel}>{t('plannerEvents.events.statRegions')}</Text>
           </View>
         </View>
 

@@ -3,6 +3,8 @@
  * MAP-008 fix (trail-list selection had no geometry because the /trails
  * list endpoint excludes the `points` field) is unit-testable.
  */
+import { t as i18nT } from 'i18next';
+import type { TFunction } from 'i18next';
 import type { RouteDetail, RouteWaypoint } from './RouteDetailSheet';
 
 export interface TrailListItem {
@@ -41,12 +43,16 @@ export function buildTrailShellRoute(trail: TrailListItem): RouteDetail {
 }
 
 /** Map a list of GPX points (from /trails/{id}) onto the waypoint shape
- *  the map polyline + numbered markers expect. */
-export function trailPointsToWaypoints(points: TrailPoint[]): RouteWaypoint[] {
+ *  the map polyline + numbered markers expect. `t` labels unnamed points
+ *  ("Ponto 1"); it defaults to the global i18next instance. */
+export function trailPointsToWaypoints(
+  points: TrailPoint[],
+  t: TFunction = i18nT,
+): RouteWaypoint[] {
   return points.map((p, i) => ({
     lat: p.lat,
     lng: p.lng,
-    name: p.name || `Ponto ${i + 1}`,
+    name: p.name || t('mapScreen.routes.point', { n: i + 1 }),
     order: i + 1,
   }));
 }
@@ -57,9 +63,10 @@ export function trailPointsToWaypoints(points: TrailPoint[]): RouteWaypoint[] {
 export function hydrateTrailWaypoints(
   selectedRoute: RouteDetail | null,
   points: TrailPoint[] | undefined,
+  t: TFunction = i18nT,
 ): RouteDetail | null {
   if (!selectedRoute || selectedRoute.type !== 'trail') return null;
   if (selectedRoute.waypoints.length > 0) return null;
   if (!Array.isArray(points) || points.length < 2) return null;
-  return { ...selectedRoute, waypoints: trailPointsToWaypoints(points) };
+  return { ...selectedRoute, waypoints: trailPointsToWaypoints(points, t) };
 }

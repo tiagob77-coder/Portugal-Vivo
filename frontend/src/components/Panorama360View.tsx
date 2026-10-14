@@ -18,6 +18,8 @@ import {
 import { WebView } from 'react-native-webview';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useTranslation } from 'react-i18next';
+import type { TFunction } from 'i18next';
 
 interface Panorama360Props {
   imageUrl: string;
@@ -27,7 +29,8 @@ interface Panorama360Props {
 
 // ─── HTML com Pannellum.js ────────────────────────────────────────────────────
 
-function buildPanoramaHTML(imageUrl: string, title: string): string {
+function buildPanoramaHTML(imageUrl: string, title: string, t: TFunction): string {
+  const js = (key: string) => JSON.stringify(t(key));
   return `<!DOCTYPE html>
 <html>
 <head>
@@ -60,16 +63,16 @@ pannellum.viewer('panorama', {
   maxHfov: 150,
   friction: 0.5,
   strings: {
-    loadButtonLabel: 'Carregar Panorama',
-    loadingLabel: 'A carregar…',
+    loadButtonLabel: ${js('widgets.panorama.loadButton')},
+    loadingLabel: ${js('widgets.panorama.loadingShort')},
     bylineLabel: '',
-    noPanoramaError: 'Panorama não disponível.',
-    fileAccessError: 'Não foi possível carregar o panorama.',
-    malformedURLError: 'URL inválido.',
-    iOS8WebGLError: 'Dispositivo sem suporte WebGL.',
-    genericWebGLError: 'WebGL não disponível.',
-    textureSizeError: 'Imagem demasiado grande.',
-    unknownError: 'Erro desconhecido.',
+    noPanoramaError: ${js('widgets.panorama.noPanorama')},
+    fileAccessError: ${js('widgets.panorama.fileAccess')},
+    malformedURLError: ${js('widgets.panorama.malformedUrl')},
+    iOS8WebGLError: ${js('widgets.panorama.ios8WebGl')},
+    genericWebGLError: ${js('widgets.panorama.genericWebGl')},
+    textureSizeError: ${js('widgets.panorama.textureSize')},
+    unknownError: ${js('widgets.panorama.unknown')},
   },
 });
 </script>
@@ -79,8 +82,10 @@ pannellum.viewer('panorama', {
 
 // ─── Componente ───────────────────────────────────────────────────────────────
 
-export default function Panorama360View({ imageUrl, title = 'Panorama 360°', onClose }: Panorama360Props) {
+export default function Panorama360View({ imageUrl, title: titleProp, onClose }: Panorama360Props) {
   const insets = useSafeAreaInsets();
+  const { t } = useTranslation();
+  const title = titleProp ?? t('widgets.panorama.defaultTitle');
   const [loading, setLoading] = React.useState(true);
 
   const content = (
@@ -102,11 +107,11 @@ export default function Panorama360View({ imageUrl, title = 'Panorama 360°', on
         {loading && (
           <View style={s.loadingOverlay}>
             <ActivityIndicator color="#C49A6C" size="large" />
-            <Text style={s.loadingText}>A carregar panorama…</Text>
+            <Text style={s.loadingText}>{t('widgets.panorama.loading')}</Text>
           </View>
         )}
         <WebView
-          source={{ html: buildPanoramaHTML(imageUrl, title) }}
+          source={{ html: buildPanoramaHTML(imageUrl, title, t) }}
           style={s.webView}
           onLoadEnd={() => setLoading(false)}
           javaScriptEnabled
@@ -123,7 +128,7 @@ export default function Panorama360View({ imageUrl, title = 'Panorama 360°', on
       {/* Instrução */}
       <View style={[s.hint, { paddingBottom: insets.bottom + 8 }]}>
         <MaterialIcons name="touch-app" size={14} color="rgba(255,255,255,0.6)" />
-        <Text style={s.hintText}>Arraste para explorar · Dois dedos para zoom</Text>
+        <Text style={s.hintText}>{t('widgets.panorama.hint')}</Text>
       </View>
     </View>
   );

@@ -5,6 +5,7 @@ import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useQuery } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
 import { API_BASE } from '../config/api';
 import axios from 'axios';
 import { palette } from '../theme/colors';
@@ -15,6 +16,7 @@ interface StreakTrackerProps {
 }
 
 export default function StreakTracker({ userId, compact = false }: StreakTrackerProps) {
+  const { t } = useTranslation();
   const { data: streak } = useQuery({
     queryKey: ['streak', userId],
     queryFn: async () => {
@@ -58,24 +60,26 @@ export default function StreakTracker({ userId, compact = false }: StreakTracker
             color={streak.current_streak > 0 ? '#EF4444' : '#64748B'}
           />
           <View>
-            <Text style={styles.streakCount}>{streak.current_streak} dias</Text>
+            <Text style={styles.streakCount}>
+              {t(streak.current_streak === 1 ? 'components.streakTracker.daysOne' : 'components.streakTracker.days', { count: streak.current_streak })}
+            </Text>
             <Text style={styles.streakLabel}>
               {streak.streak_alive
-                ? `Faltam ${Math.round(streak.hours_remaining)}h para manter`
-                : 'Visita um local para começar!'}
+                ? t('components.streakTracker.hoursLeft', { hours: Math.round(streak.hours_remaining) })
+                : t('components.streakTracker.start')}
             </Text>
           </View>
         </View>
         <View style={styles.longestStreak}>
           <Text style={styles.longestValue}>{streak.longest_streak}</Text>
-          <Text style={styles.longestLabel}>Recorde</Text>
+          <Text style={styles.longestLabel}>{t('components.streakTracker.record')}</Text>
         </View>
       </View>
 
       {/* Weekly Progress */}
       <View style={styles.weeklySection}>
         <View style={styles.weeklyHeader}>
-          <Text style={styles.weeklyTitle}>Semana</Text>
+          <Text style={styles.weeklyTitle}>{t('components.streakTracker.week')}</Text>
           <Text style={styles.weeklyCount}>
             {streak.weekly_visits}/{streak.weekly_goal}
           </Text>
@@ -97,7 +101,11 @@ export default function StreakTracker({ userId, compact = false }: StreakTracker
           <View style={styles.milestoneInfo}>
             <Text style={styles.milestoneName}>{nextMilestone.name}</Text>
             <Text style={styles.milestoneProgress}>
-              {nextMilestone.progress}/{nextMilestone.days} dias ({nextMilestone.progress_pct}%)
+              {t('components.streakTracker.milestoneProgress', {
+                progress: nextMilestone.progress,
+                days: nextMilestone.days,
+                pct: nextMilestone.progress_pct,
+              })}
             </Text>
           </View>
           <Text style={styles.milestoneXP}>+{nextMilestone.xp_bonus} XP</Text>
@@ -108,7 +116,7 @@ export default function StreakTracker({ userId, compact = false }: StreakTracker
       <View style={styles.monthlyRow}>
         <MaterialIcons name="calendar-today" size={16} color="#94A3B8" />
         <Text style={styles.monthlyText}>
-          {streak.monthly_visits} visitas este mês
+          {t(streak.monthly_visits === 1 ? 'components.streakTracker.monthlyVisitsOne' : 'components.streakTracker.monthlyVisits', { count: streak.monthly_visits })}
         </Text>
       </View>
     </View>

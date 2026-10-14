@@ -4,6 +4,7 @@ import {
   View, Text, StyleSheet, TouchableOpacity, Animated, Pressable,
 } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import { useTheme } from '../theme';
 
 export interface MicroStory {
@@ -48,6 +49,7 @@ function MicroStoryCard({
   onQueroSaberMais,
   saved = false,
 }: MicroStoryCardProps) {
+  const { t } = useTranslation();
   const { colors } = useTheme();
   const [isAudioPlaying, setIsAudioPlaying] = useState(false);
   const [isSaved, setIsSaved] = useState(saved);
@@ -134,15 +136,15 @@ function MicroStoryCard({
           <TouchableOpacity
             style={[styles.qsmButton, { backgroundColor: accentColor }]}
             onPress={() => onQueroSaberMais?.(story.poi_id)}
-            accessibilityLabel="Quero saber mais"
+            accessibilityLabel={t('components.microStoryCard.learnMore')}
           >
             <MaterialIcons name="arrow-forward" size={14} color="#fff" />
-            <Text style={styles.qsmText}>Quero saber mais</Text>
+            <Text style={styles.qsmText}>{t('components.microStoryCard.learnMore')}</Text>
           </TouchableOpacity>
 
           <View style={styles.iconActions}>
             {story.has_audio && (
-              <TouchableOpacity onPress={handleAudioPlay} style={styles.iconBtn} accessibilityLabel="Ouvir história">
+              <TouchableOpacity onPress={handleAudioPlay} style={styles.iconBtn} accessibilityLabel={t('components.microStoryCard.listen')}>
                 <Animated.View style={{ transform: [{ scale: audioAnim }] }}>
                   <MaterialIcons
                     name={isAudioPlaying ? 'pause-circle-filled' : 'play-circle-filled'}
@@ -152,14 +154,14 @@ function MicroStoryCard({
                 </Animated.View>
               </TouchableOpacity>
             )}
-            <TouchableOpacity onPress={handleSave} style={styles.iconBtn} accessibilityLabel="Guardar">
+            <TouchableOpacity onPress={handleSave} style={styles.iconBtn} accessibilityLabel={t('common.save')}>
               <MaterialIcons
                 name={isSaved ? 'bookmark' : 'bookmark-border'}
                 size={22}
                 color={isSaved ? accentColor : colors.textSecondary}
               />
             </TouchableOpacity>
-            <TouchableOpacity onPress={() => onShare?.(story)} style={styles.iconBtn} accessibilityLabel="Partilhar">
+            <TouchableOpacity onPress={() => onShare?.(story)} style={styles.iconBtn} accessibilityLabel={t('detail.share')}>
               <MaterialIcons name="share" size={22} color={colors.textSecondary} />
             </TouchableOpacity>
           </View>

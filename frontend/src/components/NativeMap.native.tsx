@@ -8,6 +8,7 @@ import { palette } from '../theme/colors';
 import React, { useEffect } from 'react';
 import { StyleSheet, View, Text } from 'react-native';
 import MapView, { Marker, Callout, Polyline, PROVIDER_DEFAULT } from 'react-native-maps';
+import { useTranslation } from 'react-i18next';
 import type { MapItem, LeafletMapProps, WaypointMarker } from './NativeMap.types';
 
 // Re-export types
@@ -54,6 +55,7 @@ export function LeafletMapComponent({
   onMapReady,
   ...props
 }: LeafletMapProps) {
+  const { t } = useTranslation();
   const mapRef = React.useRef<MapView>(null);
   const safeItems = Array.isArray(items) ? items : [];
 
@@ -122,7 +124,7 @@ export function LeafletMapComponent({
                 <Text style={styles.calloutCategory}>
                   {item.category?.replace(/_/g, ' ')} • {item.region}
                 </Text>
-                <Text style={styles.calloutAction}>Ver detalhes →</Text>
+                <Text style={styles.calloutAction}>{t('mapScreen.nativeMap.seeDetails')}</Text>
               </View>
             </Callout>
           </Marker>

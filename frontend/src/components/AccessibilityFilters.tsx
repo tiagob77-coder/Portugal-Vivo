@@ -5,6 +5,7 @@ import { useQuery } from '@tanstack/react-query';
 import { getAccessibilityFilters } from '../services/api';
 import { colors, typography, spacing, borders, shadows } from '../theme';
 import { palette } from '../theme/colors';
+import { useTranslation } from 'react-i18next';
 
 interface AccessibilityFiltersProps {
   selectedFilters: string[];
@@ -30,6 +31,7 @@ export const AccessibilityFilters: React.FC<AccessibilityFiltersProps> = ({
   onFiltersChange,
   compact = false,
 }) => {
+  const { t } = useTranslation();
   const { data: filtersData, isLoading } = useQuery({
     queryKey: ['accessibility-filters'],
     queryFn: getAccessibilityFilters,
@@ -90,13 +92,13 @@ export const AccessibilityFilters: React.FC<AccessibilityFiltersProps> = ({
     <View style={styles.container}>
       <View style={styles.header}>
         <MaterialIcons name="accessibility-new" size={20} color={colors.ocean[500]} />
-        <Text style={styles.title}>Acessibilidade</Text>
+        <Text style={styles.title}>{t('widgets.accessibilityFilters.title')}</Text>
         {selectedFilters.length > 0 && (
           <TouchableOpacity 
             onPress={() => onFiltersChange([])}
             style={styles.clearButton}
           >
-            <Text style={styles.clearText}>Limpar</Text>
+            <Text style={styles.clearText}>{t('widgets.accessibilityFilters.clear')}</Text>
           </TouchableOpacity>
         )}
       </View>
@@ -132,7 +134,9 @@ export const AccessibilityFilters: React.FC<AccessibilityFiltersProps> = ({
         <View style={styles.selectedInfo}>
           <MaterialIcons name="info" size={14} color={colors.ocean[500]} />
           <Text style={styles.selectedText}>
-            {selectedFilters.length} {selectedFilters.length === 1 ? 'filtro selecionado' : 'filtros selecionados'}
+            {selectedFilters.length === 1
+              ? t('widgets.accessibilityFilters.oneSelected', { count: selectedFilters.length })
+              : t('widgets.accessibilityFilters.manySelected', { count: selectedFilters.length })}
           </Text>
         </View>
       )}

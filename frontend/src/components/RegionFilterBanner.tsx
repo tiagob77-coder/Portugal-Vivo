@@ -5,6 +5,7 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import { TOURISM_REGIONS } from '../utils/regionMatch';
 
 interface Props {
@@ -14,20 +15,21 @@ interface Props {
 }
 
 export default function RegionFilterBanner({ regionId, onClear, accent = '#2E5E4E' }: Props) {
+  const { t } = useTranslation();
   const label = TOURISM_REGIONS[regionId] || regionId;
   return (
     <View style={[styles.bar, { backgroundColor: accent + '14', borderColor: accent + '33' }]}>
       <MaterialIcons name="place" size={16} color={accent} />
       <Text style={[styles.text, { color: accent }]} numberOfLines={1}>
-        A mostrar: {label}
+        {t('components.regionFilterBanner.showing', { region: label })}
       </Text>
       <TouchableOpacity
         onPress={onClear}
         style={[styles.button, { backgroundColor: accent }]}
         accessibilityRole="button"
-        accessibilityLabel="Ver todas as regiões"
+        accessibilityLabel={t('components.regionFilterBanner.seeAllA11y')}
       >
-        <Text style={styles.buttonText}>Ver todos</Text>
+        <Text style={styles.buttonText}>{t('components.regionFilterBanner.seeAll')}</Text>
       </TouchableOpacity>
     </View>
   );

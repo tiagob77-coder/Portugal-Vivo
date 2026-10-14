@@ -19,6 +19,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useTranslation } from 'react-i18next';
 import { useResponsive } from '../src/hooks/useResponsive';
 import { fontFamilies, palette } from '../src/theme';
 import PatternBackground from '../src/components/PatternBackground';
@@ -67,23 +68,23 @@ const SLIDES = [
 // ─── Qualification options ────────────────────────────────────────────────────
 
 const TRAVELER_TYPES = [
-  { id: 'adventurer', icon: 'terrain', label: 'Aventureiro', desc: 'Trilhos e natureza' },
-  { id: 'culture', icon: 'account-balance', label: 'Cultura & História', desc: 'Monumentos e tradições' },
-  { id: 'food', icon: 'restaurant', label: 'Gastronomia', desc: 'Sabores e vinhos' },
-  { id: 'family', icon: 'family-restroom', label: 'Família', desc: 'Passeios para todos' },
-  { id: 'photo', icon: 'photo-camera', label: 'Fotografia', desc: 'Paisagens únicas' },
-  { id: 'beach', icon: 'beach-access', label: 'Mar & Praias', desc: 'Litoral e surf' },
+  { id: 'adventurer', icon: 'terrain', labelKey: 'account.onboarding.travelerTypes.adventurer.label', descKey: 'account.onboarding.travelerTypes.adventurer.desc' },
+  { id: 'culture', icon: 'account-balance', labelKey: 'account.onboarding.travelerTypes.culture.label', descKey: 'account.onboarding.travelerTypes.culture.desc' },
+  { id: 'food', icon: 'restaurant', labelKey: 'account.onboarding.travelerTypes.food.label', descKey: 'account.onboarding.travelerTypes.food.desc' },
+  { id: 'family', icon: 'family-restroom', labelKey: 'account.onboarding.travelerTypes.family.label', descKey: 'account.onboarding.travelerTypes.family.desc' },
+  { id: 'photo', icon: 'photo-camera', labelKey: 'account.onboarding.travelerTypes.photo.label', descKey: 'account.onboarding.travelerTypes.photo.desc' },
+  { id: 'beach', icon: 'beach-access', labelKey: 'account.onboarding.travelerTypes.beach.label', descKey: 'account.onboarding.travelerTypes.beach.desc' },
 ] as const;
 
 const INTEREST_OPTIONS = [
-  { id: 'monuments', icon: 'account-balance', label: 'Monumentos' },
-  { id: 'nature', icon: 'forest', label: 'Natureza' },
-  { id: 'food', icon: 'restaurant', label: 'Gastronomia' },
-  { id: 'beach', icon: 'waves', label: 'Praias' },
-  { id: 'villages', icon: 'home-work', label: 'Aldeias' },
-  { id: 'art', icon: 'palette', label: 'Arte & Cultura' },
-  { id: 'hiking', icon: 'directions-walk', label: 'Caminhadas' },
-  { id: 'spiritual', icon: 'church', label: 'Espiritualidade' },
+  { id: 'monuments', icon: 'account-balance', labelKey: 'account.onboarding.interests.monuments' },
+  { id: 'nature', icon: 'forest', labelKey: 'account.onboarding.interests.nature' },
+  { id: 'food', icon: 'restaurant', labelKey: 'account.onboarding.interests.food' },
+  { id: 'beach', icon: 'waves', labelKey: 'account.onboarding.interests.beach' },
+  { id: 'villages', icon: 'home-work', labelKey: 'account.onboarding.interests.villages' },
+  { id: 'art', icon: 'palette', labelKey: 'account.onboarding.interests.art' },
+  { id: 'hiking', icon: 'directions-walk', labelKey: 'account.onboarding.interests.hiking' },
+  { id: 'spiritual', icon: 'church', labelKey: 'account.onboarding.interests.spiritual' },
 ] as const;
 
 const REGIONS = [
@@ -98,10 +99,10 @@ const REGIONS = [
 ] as const;
 
 const TIME_OPTIONS = [
-  { id: '1h', icon: 'hourglass-bottom', label: '1 hora', desc: 'Uma visita rápida' },
-  { id: '3h', icon: 'hourglass-top', label: 'Meio-dia', desc: 'Explorar com calma' },
-  { id: 'dia', icon: 'wb-sunny', label: 'Dia inteiro', desc: 'Imersão completa' },
-  { id: 'fds', icon: 'weekend', label: 'Fim de semana', desc: 'Rota de 2 dias' },
+  { id: '1h', icon: 'hourglass-bottom', labelKey: 'account.onboarding.timeOptions.oneHour.label', descKey: 'account.onboarding.timeOptions.oneHour.desc' },
+  { id: '3h', icon: 'hourglass-top', labelKey: 'account.onboarding.timeOptions.halfDay.label', descKey: 'account.onboarding.timeOptions.halfDay.desc' },
+  { id: 'dia', icon: 'wb-sunny', labelKey: 'account.onboarding.timeOptions.fullDay.label', descKey: 'account.onboarding.timeOptions.fullDay.desc' },
+  { id: 'fds', icon: 'weekend', labelKey: 'account.onboarding.timeOptions.weekend.label', descKey: 'account.onboarding.timeOptions.weekend.desc' },
 ] as const;
 
 // ─── Main component ───────────────────────────────────────────────────────────
@@ -110,6 +111,7 @@ export default function OnboardingScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { width, height } = useResponsive();
+  const { t } = useTranslation();
   const scrollRef = useRef<ScrollView>(null);
   const [currentIndex, setCurrentIndex] = useState(0);
 
@@ -170,9 +172,9 @@ export default function OnboardingScreen() {
     true;
 
   const nextLabel =
-    currentIndex === 0 ? 'Começar' :
-    slide.id === 'time' ? 'Ver o meu feed' :
-    'Continuar';
+    currentIndex === 0 ? t('account.onboarding.start') :
+    slide.id === 'time' ? t('account.onboarding.seeMyFeed') :
+    t('account.onboarding.continue');
 
   return (
     <View style={styles.container}>
@@ -205,7 +207,7 @@ export default function OnboardingScreen() {
           style={[styles.skipBtn, { top: insets.top + 16 }]}
           onPress={handleFinish}
         >
-          <Text style={styles.skipText}>Saltar</Text>
+          <Text style={styles.skipText}>{t('account.onboarding.skip')}</Text>
         </TouchableOpacity>
       )}
 
@@ -250,10 +252,10 @@ export default function OnboardingScreen() {
               activeOpacity={0.85}
             >
               <MaterialIcons name="diamond" size={18} color="#FFF" style={{ marginRight: 8 }} />
-              <Text style={styles.nextBtnText}>Experimentar Descobridor</Text>
+              <Text style={styles.nextBtnText}>{t('account.onboarding.tryPremium')}</Text>
             </TouchableOpacity>
             <TouchableOpacity style={styles.skipFreeBtn} onPress={handleFinish}>
-              <Text style={styles.skipFreeText}>Começar grátis</Text>
+              <Text style={styles.skipFreeText}>{t('account.onboarding.startFree')}</Text>
             </TouchableOpacity>
           </View>
         ) : (
@@ -291,21 +293,22 @@ export default function OnboardingScreen() {
 // ─── Slide content components ─────────────────────────────────────────────────
 
 function WelcomeContent() {
+  const { t } = useTranslation();
   return (
     <>
       <View style={[styles.iconBadge, { backgroundColor: '#2E5E4E33', borderColor: '#2E5E4E66' }]}>
         <MaterialIcons name="terrain" size={36} color="#4CAF82" />
       </View>
-      <Text style={styles.slideLabel}>BEM-VINDO</Text>
-      <Text style={styles.slideTitle}>{'Descobre o\nPatrimonio Vivo'}</Text>
+      <Text style={styles.slideLabel}>{t('account.onboarding.welcomeLabel')}</Text>
+      <Text style={styles.slideTitle}>{t('account.onboarding.welcomeTitle')}</Text>
       <Text style={styles.slideDesc}>
-        Mais de 5 600 lugares, sabores e histórias que fazem Portugal único. Em 3 passos personalizamos a tua experiência.
+        {t('account.onboarding.welcomeDesc')}
       </Text>
       <View style={styles.bullets}>
         {[
-          { icon: 'place' as const, text: '5 600+ lugares em Portugal' },
-          { icon: 'auto-awesome' as const, text: 'Feed personalizado ao teu perfil' },
-          { icon: 'wifi-off' as const, text: 'Acesso offline aos favoritos' },
+          { icon: 'place' as const, text: t('account.onboarding.bulletPlaces') },
+          { icon: 'auto-awesome' as const, text: t('account.onboarding.bulletFeed') },
+          { icon: 'wifi-off' as const, text: t('account.onboarding.bulletOffline') },
         ].map((b) => (
           <View key={b.text} style={styles.bulletRow}>
             <MaterialIcons name={b.icon} size={16} color="rgba(255,255,255,0.7)" />
@@ -324,28 +327,29 @@ function TravelerStep({
   selected: string;
   onSelect: (id: string) => void;
 }) {
+  const { t } = useTranslation();
   return (
     <View style={styles.qualWrap}>
-      <Text style={styles.qualStep}>PASSO 1 DE 3</Text>
-      <Text style={styles.qualQuestion}>Que tipo de viajante és?</Text>
-      <Text style={styles.qualSubtitle}>Personalizamos o teu feed com base na tua resposta</Text>
+      <Text style={styles.qualStep}>{t('account.onboarding.stepOf', { step: 1, total: 3 })}</Text>
+      <Text style={styles.qualQuestion}>{t('account.onboarding.travelerQuestion')}</Text>
+      <Text style={styles.qualSubtitle}>{t('account.onboarding.travelerSubtitle')}</Text>
       <View style={styles.cardGrid}>
-        {TRAVELER_TYPES.map((t) => {
-          const active = selected === t.id;
+        {TRAVELER_TYPES.map((type) => {
+          const active = selected === type.id;
           return (
             <TouchableOpacity
-              key={t.id}
+              key={type.id}
               style={[styles.typeCard, active && styles.cardSelected]}
-              onPress={() => onSelect(t.id)}
+              onPress={() => onSelect(type.id)}
               activeOpacity={0.75}
             >
               <MaterialIcons
-                name={t.icon as any}
+                name={type.icon as any}
                 size={22}
                 color={active ? '#C49A6C' : 'rgba(255,255,255,0.65)'}
               />
-              <Text style={[styles.cardLabel, active && styles.cardLabelSelected]}>{t.label}</Text>
-              <Text style={styles.cardDesc}>{t.desc}</Text>
+              <Text style={[styles.cardLabel, active && styles.cardLabelSelected]}>{t(type.labelKey)}</Text>
+              <Text style={styles.cardDesc}>{t(type.descKey)}</Text>
             </TouchableOpacity>
           );
         })}
@@ -361,11 +365,12 @@ function InterestStep({
   selected: string[];
   onToggle: (id: string) => void;
 }) {
+  const { t } = useTranslation();
   return (
     <View style={styles.qualWrap}>
-      <Text style={styles.qualStep}>PASSO 2 DE 3</Text>
-      <Text style={styles.qualQuestion}>O que mais te interessa?</Text>
-      <Text style={styles.qualSubtitle}>Escolhe um ou mais temas</Text>
+      <Text style={styles.qualStep}>{t('account.onboarding.stepOf', { step: 2, total: 3 })}</Text>
+      <Text style={styles.qualQuestion}>{t('account.onboarding.interestQuestion')}</Text>
+      <Text style={styles.qualSubtitle}>{t('account.onboarding.interestSubtitle')}</Text>
       <View style={styles.chipGrid}>
         {INTEREST_OPTIONS.map((opt) => {
           const active = selected.includes(opt.id);
@@ -381,7 +386,7 @@ function InterestStep({
                 size={15}
                 color={active ? '#C49A6C' : 'rgba(255,255,255,0.65)'}
               />
-              <Text style={[styles.chipText, active && styles.chipTextSelected]}>{opt.label}</Text>
+              <Text style={[styles.chipText, active && styles.chipTextSelected]}>{t(opt.labelKey)}</Text>
             </TouchableOpacity>
           );
         })}
@@ -397,11 +402,12 @@ function LocationStep({
   selected: string;
   onSelect: (id: string) => void;
 }) {
+  const { t } = useTranslation();
   return (
     <View style={styles.qualWrap}>
-      <Text style={styles.qualStep}>PASSO 3 DE 3</Text>
-      <Text style={styles.qualQuestion}>A tua zona de interesse?</Text>
-      <Text style={styles.qualSubtitle}>Mostramos lugares próximos primeiro</Text>
+      <Text style={styles.qualStep}>{t('account.onboarding.stepOf', { step: 3, total: 3 })}</Text>
+      <Text style={styles.qualQuestion}>{t('account.onboarding.locationQuestion')}</Text>
+      <Text style={styles.qualSubtitle}>{t('account.onboarding.locationSubtitle')}</Text>
       <ScrollView
         style={styles.regionScroll}
         showsVerticalScrollIndicator={false}
@@ -418,9 +424,9 @@ function LocationStep({
             >
               <View style={{ flex: 1 }}>
                 <Text style={[styles.regionLabel, active && styles.regionLabelSelected]}>
-                  {r.label}
+                  {r.id === 'all' ? t('account.onboarding.allPortugal') : r.label}
                 </Text>
-                <Text style={styles.regionDesc}>{r.desc}</Text>
+                <Text style={styles.regionDesc}>{r.id === 'all' ? t('account.onboarding.noPreference') : r.desc}</Text>
               </View>
               {active && <MaterialIcons name="check-circle" size={20} color="#C49A6C" />}
             </TouchableOpacity>
@@ -438,28 +444,29 @@ function TimeStep({
   selected: string;
   onSelect: (id: string) => void;
 }) {
+  const { t } = useTranslation();
   return (
     <View style={styles.qualWrap}>
-      <Text style={styles.qualStep}>PASSO 4 DE 4</Text>
-      <Text style={styles.qualQuestion}>Quanto tempo tens disponível?</Text>
-      <Text style={styles.qualSubtitle}>Ajustamos as sugestões ao teu ritmo</Text>
+      <Text style={styles.qualStep}>{t('account.onboarding.stepOf', { step: 4, total: 4 })}</Text>
+      <Text style={styles.qualQuestion}>{t('account.onboarding.timeQuestion')}</Text>
+      <Text style={styles.qualSubtitle}>{t('account.onboarding.timeSubtitle')}</Text>
       <View style={styles.cardGrid}>
-        {TIME_OPTIONS.map((t) => {
-          const active = selected === t.id;
+        {TIME_OPTIONS.map((opt) => {
+          const active = selected === opt.id;
           return (
             <TouchableOpacity
-              key={t.id}
+              key={opt.id}
               style={[styles.typeCard, active && styles.cardSelected]}
-              onPress={() => onSelect(t.id)}
+              onPress={() => onSelect(opt.id)}
               activeOpacity={0.75}
             >
               <MaterialIcons
-                name={t.icon as any}
+                name={opt.icon as any}
                 size={22}
                 color={active ? '#C49A6C' : 'rgba(255,255,255,0.65)'}
               />
-              <Text style={[styles.cardLabel, active && styles.cardLabelSelected]}>{t.label}</Text>
-              <Text style={styles.cardDesc}>{t.desc}</Text>
+              <Text style={[styles.cardLabel, active && styles.cardLabelSelected]}>{t(opt.labelKey)}</Text>
+              <Text style={styles.cardDesc}>{t(opt.descKey)}</Text>
             </TouchableOpacity>
           );
         })}
@@ -469,6 +476,7 @@ function TimeStep({
 }
 
 function PremiumContent() {
+  const { t } = useTranslation();
   return (
     <>
       <View
@@ -476,17 +484,17 @@ function PremiumContent() {
       >
         <MaterialIcons name="diamond" size={36} color={palette.filigrana[500]} />
       </View>
-      <Text style={styles.slideLabel}>DESCOBRIDOR</Text>
-      <Text style={styles.slideTitle}>{'Desbloqueia\nPortugal Completo'}</Text>
+      <Text style={styles.slideLabel}>{t('account.onboarding.premiumLabel')}</Text>
+      <Text style={styles.slideTitle}>{t('account.onboarding.premiumTitle')}</Text>
       <Text style={styles.slideDesc}>
-        Roteiros IA, áudio guias, modo offline e muito mais. Experimenta 7 dias grátis.
+        {t('account.onboarding.premiumDesc')}
       </Text>
       <View style={styles.premiumFeatures}>
         {[
-          { icon: 'auto-awesome' as const, text: 'Roteiros personalizados por IA' },
-          { icon: 'headphones' as const, text: 'Áudio guias em 9 vozes' },
-          { icon: 'cloud-download' as const, text: 'Modo offline completo' },
-          { icon: 'route' as const, text: 'Rotas e coleções exclusivas' },
+          { icon: 'auto-awesome' as const, text: t('account.onboarding.premiumFeatures.aiItineraries') },
+          { icon: 'headphones' as const, text: t('account.onboarding.premiumFeatures.audioGuides') },
+          { icon: 'cloud-download' as const, text: t('account.onboarding.premiumFeatures.offlineMode') },
+          { icon: 'route' as const, text: t('account.onboarding.premiumFeatures.exclusiveRoutes') },
         ].map((b) => (
           <View key={b.text} style={styles.premiumRow}>
             <View style={styles.premiumIconWrap}>
@@ -497,14 +505,14 @@ function PremiumContent() {
         ))}
         <View style={styles.pricingRow}>
           <View style={styles.priceCard}>
-            <Text style={styles.priceLabel}>Mensal</Text>
+            <Text style={styles.priceLabel}>{t('account.onboarding.monthly')}</Text>
             <Text style={styles.priceAmount}>€4.99</Text>
-            <Text style={styles.pricePer}>/mês</Text>
+            <Text style={styles.pricePer}>{t('account.onboarding.perMonth')}</Text>
           </View>
           <View style={[styles.priceCard, styles.priceCardHighlight]}>
-            <Text style={[styles.priceLabel, { color: palette.filigrana[500] }]}>Anual</Text>
+            <Text style={[styles.priceLabel, { color: palette.filigrana[500] }]}>{t('account.onboarding.annual')}</Text>
             <Text style={[styles.priceAmount, { color: '#FFF' }]}>€39.99</Text>
-            <Text style={[styles.pricePer, { color: 'rgba(255,255,255,0.6)' }]}>/ano · -33%</Text>
+            <Text style={[styles.pricePer, { color: 'rgba(255,255,255,0.6)' }]}>{t('account.onboarding.perYear')}</Text>
           </View>
         </View>
       </View>

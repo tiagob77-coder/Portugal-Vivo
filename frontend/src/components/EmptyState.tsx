@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Animated } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import { useTheme, withOpacity, palette } from '../theme';
 import PatternBackground from './PatternBackground';
 
@@ -61,16 +62,16 @@ interface EmptyStateProps {
 
 interface VariantPreset {
   icon: string;
-  title: string;
-  subtitle: string;
+  titleKey: string;
+  subtitleKey: string;
   illustrationIcons: IllustrationIcon[];
 }
 
 const VARIANT_PRESETS: Record<VariantKey, VariantPreset> = {
   'no-results': {
     icon: 'search',
-    title: 'Sem resultados',
-    subtitle: 'Tente outro termo ou ajuste os filtros',
+    titleKey: 'components.emptyState.noResults.title',
+    subtitleKey: 'components.emptyState.noResults.subtitle',
     illustrationIcons: [
       { name: 'search', size: 28, color: palette.terracotta[500], offsetX: 0, offsetY: 0, opacity: 0.35 },
       { name: 'filter-list', size: 18, color: palette.gray[500], offsetX: 30, offsetY: -18, opacity: 0.25 },
@@ -79,8 +80,8 @@ const VARIANT_PRESETS: Record<VariantKey, VariantPreset> = {
   },
   'no-favorites': {
     icon: 'favorite-border',
-    title: 'Sem favoritos ainda',
-    subtitle: 'Explore locais e adicione aos seus favoritos',
+    titleKey: 'components.emptyState.noFavorites.title',
+    subtitleKey: 'components.emptyState.noFavorites.subtitle',
     illustrationIcons: [
       { name: 'favorite-border', size: 30, color: palette.terracotta[500], offsetX: 0, offsetY: 0, opacity: 0.35 },
       { name: 'star-border', size: 16, color: palette.gray[500], offsetX: -26, offsetY: -16, opacity: 0.2 },
@@ -89,8 +90,8 @@ const VARIANT_PRESETS: Record<VariantKey, VariantPreset> = {
   },
   'no-visits': {
     icon: 'explore',
-    title: 'Nenhuma visita registada',
-    subtitle: 'Visite um local para começar a ganhar pontos',
+    titleKey: 'components.emptyState.noVisits.title',
+    subtitleKey: 'components.emptyState.noVisits.subtitle',
     illustrationIcons: [
       { name: 'explore', size: 28, color: palette.terracotta[500], offsetX: 0, offsetY: 0, opacity: 0.35 },
       { name: 'place', size: 18, color: palette.gray[500], offsetX: 26, offsetY: -14, opacity: 0.25 },
@@ -99,8 +100,8 @@ const VARIANT_PRESETS: Record<VariantKey, VariantPreset> = {
   },
   'no-routes': {
     icon: 'route',
-    title: 'Sem rotas guardadas',
-    subtitle: 'Gere uma rota inteligente para começar',
+    titleKey: 'components.emptyState.noRoutes.title',
+    subtitleKey: 'components.emptyState.noRoutes.subtitle',
     illustrationIcons: [
       { name: 'route', size: 28, color: palette.terracotta[500], offsetX: 0, offsetY: 0, opacity: 0.35 },
       { name: 'directions', size: 18, color: palette.gray[500], offsetX: -28, offsetY: -10, opacity: 0.25 },
@@ -109,8 +110,8 @@ const VARIANT_PRESETS: Record<VariantKey, VariantPreset> = {
   },
   'no-events': {
     icon: 'event',
-    title: 'Sem eventos por perto',
-    subtitle: 'Explore outras regiões ou datas',
+    titleKey: 'components.emptyState.noEvents.title',
+    subtitleKey: 'components.emptyState.noEvents.subtitle',
     illustrationIcons: [
       { name: 'event', size: 28, color: palette.terracotta[500], offsetX: 0, offsetY: 0, opacity: 0.35 },
       { name: 'date-range', size: 18, color: palette.gray[500], offsetX: 28, offsetY: -12, opacity: 0.25 },
@@ -119,8 +120,8 @@ const VARIANT_PRESETS: Record<VariantKey, VariantPreset> = {
   },
   'no-connection': {
     icon: 'wifi-off',
-    title: 'Sem ligação',
-    subtitle: 'Verifique a sua ligação à internet',
+    titleKey: 'components.emptyState.noConnection.title',
+    subtitleKey: 'components.emptyState.noConnection.subtitle',
     illustrationIcons: [
       { name: 'wifi-off', size: 28, color: palette.terracotta[500], offsetX: 0, offsetY: 0, opacity: 0.35 },
       { name: 'cloud-off', size: 18, color: palette.gray[500], offsetX: -26, offsetY: -14, opacity: 0.25 },
@@ -129,8 +130,8 @@ const VARIANT_PRESETS: Record<VariantKey, VariantPreset> = {
   },
   'empty-category': {
     icon: 'category',
-    title: 'Categoria vazia',
-    subtitle: 'Esta categoria ainda não tem conteúdo',
+    titleKey: 'components.emptyState.emptyCategory.title',
+    subtitleKey: 'components.emptyState.emptyCategory.subtitle',
     illustrationIcons: [
       { name: 'category', size: 28, color: palette.terracotta[500], offsetX: 0, offsetY: 0, opacity: 0.35 },
       { name: 'folder-open', size: 18, color: palette.gray[500], offsetX: 26, offsetY: -14, opacity: 0.25 },
@@ -139,8 +140,8 @@ const VARIANT_PRESETS: Record<VariantKey, VariantPreset> = {
   },
   'loading-error': {
     icon: 'error-outline',
-    title: 'Erro ao carregar',
-    subtitle: 'Algo correu mal. Tente novamente.',
+    titleKey: 'components.emptyState.loadingError.title',
+    subtitleKey: 'components.emptyState.loadingError.subtitle',
     illustrationIcons: [
       { name: 'error-outline', size: 28, color: palette.terracotta[500], offsetX: 0, offsetY: 0, opacity: 0.35 },
       { name: 'refresh', size: 18, color: palette.gray[500], offsetX: 28, offsetY: -12, opacity: 0.25 },
@@ -195,14 +196,15 @@ export default function EmptyState({
   compact,
   textured = true,
 }: EmptyStateProps) {
+  const { t } = useTranslation();
   const { colors } = useTheme();
   const resolvedIconColor = iconColor ?? colors.textMuted;
 
   // Resolve variant presets, with explicit props taking precedence
   const preset = variant ? VARIANT_PRESETS[variant] : null;
   const resolvedIcon = icon ?? preset?.icon ?? 'info-outline';
-  const resolvedTitle = title ?? preset?.title ?? '';
-  const resolvedSubtitle = subtitle ?? preset?.subtitle;
+  const resolvedTitle = title ?? (preset ? t(preset.titleKey) : '');
+  const resolvedSubtitle = subtitle ?? (preset ? t(preset.subtitleKey) : undefined);
   const illustrationIcons = preset?.illustrationIcons;
 
   // Build actions list: explicit `actions` prop > legacy actionLabel/onAction

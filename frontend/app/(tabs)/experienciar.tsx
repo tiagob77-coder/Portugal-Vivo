@@ -15,6 +15,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useQuery } from '@tanstack/react-query';
 import { LinearGradient } from 'expo-linear-gradient';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useTranslation } from 'react-i18next';
 import {
   getCalendarEvents,
   getUpcomingEvents,
@@ -30,13 +31,16 @@ import { useDefaultRegion } from '../../src/hooks/useDefaultRegion';
 import SmartImage from '../../src/components/SmartImage';
 import ErrorBoundary from '../../src/components/ErrorBoundary';
 import { useResponsive } from '../../src/hooks/useResponsive';
+import { currentLocale } from '../../src/i18n/format';
 
-const MONTHS_PT = [
-  'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
-  'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro',
-];
+const MONTH_KEYS = [
+  'jan', 'feb', 'mar', 'apr', 'may', 'jun',
+  'jul', 'aug', 'sep', 'oct', 'nov', 'dec',
+].map((m) => `coreTabs.experience.months.${m}`);
 
-const WEEKDAYS_PT = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
+const WEEKDAY_KEYS = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'].map(
+  (d) => `coreTabs.experience.weekdays.${d}`,
+);
 
 const getCategoryIcon = (category: string): string => {
   const icons: Record<string, string> = {
@@ -60,24 +64,24 @@ const getCategoryIcon = (category: string): string => {
  * escuros nos temas escuros, com faixa de acento no topo.
  */
 const THEMATIC_MODULES: {
-  title: string;
-  sub: string;
+  titleKey: string;
+  subKey: string;
   icon: React.ComponentProps<typeof MaterialIcons>['name'];
   slug: string;
   route: Href;
 }[] = [
-  { title: 'Costa', sub: 'Praias, marés e surf', icon: 'waves', slug: 'costa', route: '/costa' },
-  { title: 'Biodiversidade Marinha', sub: 'Espécies do Atlântico', icon: 'water', slug: 'biodiversidade', route: '/biodiversidade' },
-  { title: 'Flora Endémica', sub: 'Espécies botânicas', icon: 'local-florist', slug: 'flora', route: '/flora' },
-  { title: 'Fauna & Habitats', sub: 'Vida selvagem', icon: 'pets', slug: 'fauna', route: '/fauna' },
-  { title: 'Gastronomia', sub: 'Atlas de sabores', icon: 'restaurant', slug: 'gastronomia', route: '/gastronomia' },
-  { title: 'Cultura Marítima', sub: 'Tradições do mar', icon: 'sailing', slug: 'cultura-maritima', route: '/cultura-maritima' },
-  { title: 'Pré-História', sub: 'Megálitos e céu noturno', icon: 'history-edu', slug: 'prehistoria', route: '/prehistoria' },
-  { title: 'Infraestrutura Natural', sub: 'Parques e passadiços', icon: 'park', slug: 'infraestrutura', route: '/infraestrutura' },
-  { title: 'Economia Local', sub: 'Mercados e produtores', icon: 'storefront', slug: 'economia', route: '/economia' },
-  { title: 'Música', sub: 'Tradições musicais', icon: 'music-note', slug: 'musica', route: '/musica' },
-  { title: 'Rotas Culturais', sub: 'Festas, fado e danças', icon: 'route', slug: 'rotas-culturais', route: '/rotas-culturais' },
-  { title: 'Turismo Inclusivo', sub: 'Portugal para todos', icon: 'accessible', slug: 'inclusivo', route: '/inclusivo' },
+  { titleKey: 'coreTabs.experience.modules.coast', subKey: 'coreTabs.experience.modules.coastSub', icon: 'waves', slug: 'costa', route: '/costa' },
+  { titleKey: 'coreTabs.experience.modules.marine', subKey: 'coreTabs.experience.modules.marineSub', icon: 'water', slug: 'biodiversidade', route: '/biodiversidade' },
+  { titleKey: 'coreTabs.experience.modules.flora', subKey: 'coreTabs.experience.modules.floraSub', icon: 'local-florist', slug: 'flora', route: '/flora' },
+  { titleKey: 'coreTabs.experience.modules.fauna', subKey: 'coreTabs.experience.modules.faunaSub', icon: 'pets', slug: 'fauna', route: '/fauna' },
+  { titleKey: 'coreTabs.experience.modules.gastronomy', subKey: 'coreTabs.experience.modules.gastronomySub', icon: 'restaurant', slug: 'gastronomia', route: '/gastronomia' },
+  { titleKey: 'coreTabs.experience.modules.maritime', subKey: 'coreTabs.experience.modules.maritimeSub', icon: 'sailing', slug: 'cultura-maritima', route: '/cultura-maritima' },
+  { titleKey: 'coreTabs.experience.modules.prehistory', subKey: 'coreTabs.experience.modules.prehistorySub', icon: 'history-edu', slug: 'prehistoria', route: '/prehistoria' },
+  { titleKey: 'coreTabs.experience.modules.infrastructure', subKey: 'coreTabs.experience.modules.infrastructureSub', icon: 'park', slug: 'infraestrutura', route: '/infraestrutura' },
+  { titleKey: 'coreTabs.experience.modules.economy', subKey: 'coreTabs.experience.modules.economySub', icon: 'storefront', slug: 'economia', route: '/economia' },
+  { titleKey: 'coreTabs.experience.modules.music', subKey: 'coreTabs.experience.modules.musicSub', icon: 'music-note', slug: 'musica', route: '/musica' },
+  { titleKey: 'coreTabs.experience.modules.culturalRoutes', subKey: 'coreTabs.experience.modules.culturalRoutesSub', icon: 'route', slug: 'rotas-culturais', route: '/rotas-culturais' },
+  { titleKey: 'coreTabs.experience.modules.inclusive', subKey: 'coreTabs.experience.modules.inclusiveSub', icon: 'accessible', slug: 'inclusivo', route: '/inclusivo' },
 ];
 
 const parseEventDay = (event: CalendarEvent): { day: number; month: number } | null => {
@@ -94,6 +98,7 @@ function ExperienciarTab() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { colors } = useTheme();
+  const { t } = useTranslation();
   const { width } = useResponsive();
   const popularCardWidth = Math.min(260, width * 0.7);
   // Região de partida dos guias — resolvida por GPS/onboarding, com fallback
@@ -212,7 +217,11 @@ function ExperienciarTab() {
         disabled={!day.date}
         accessibilityLabel={
           dayNumber !== null
-            ? `Dia ${dayNumber}${hasEvents ? `, ${day.events.length} ${day.events.length === 1 ? 'evento' : 'eventos'}` : ''}`
+            ? !hasEvents
+              ? t('coreTabs.experience.dayA11y', { day: dayNumber })
+              : day.events.length === 1
+                ? t('coreTabs.experience.dayOneEventA11y', { day: dayNumber })
+                : t('coreTabs.experience.dayEventsA11y', { day: dayNumber, count: day.events.length })
             : undefined
         }
         accessibilityRole="button"
@@ -253,7 +262,7 @@ function ExperienciarTab() {
       onPress={() => router.push(`/evento/${event.id}`)}
       activeOpacity={0.8}
       data-testid={`event-card-${event.id}`}
-      accessibilityLabel={`Ver evento ${event.name}`}
+      accessibilityLabel={t('coreTabs.shared.viewEvent', { name: event.name })}
       accessibilityRole="button"
     >
       <SmartImage
@@ -289,7 +298,7 @@ function ExperienciarTab() {
       style={[styles.popularCard, { width: popularCardWidth, backgroundColor: colors.card, borderColor: colors.border }]}
       onPress={() => router.push(`/evento/${event.id}`)}
       activeOpacity={0.85}
-      accessibilityLabel={`Ver evento ${event.name}`}
+      accessibilityLabel={t('coreTabs.shared.viewEvent', { name: event.name })}
       accessibilityRole="button"
     >
       <SmartImage
@@ -329,7 +338,7 @@ function ExperienciarTab() {
       style={[styles.visitCard, { backgroundColor: colors.card, borderColor: colors.border }]}
       onPress={() => router.push(`/heritage/${visit.poi_id}`)}
       activeOpacity={0.8}
-      accessibilityLabel={`Ver ${visit.poi_name}`}
+      accessibilityLabel={t('coreTabs.shared.view', { name: visit.poi_name })}
       accessibilityRole="button"
     >
       <SmartImage
@@ -343,7 +352,7 @@ function ExperienciarTab() {
           {visit.poi_name}
         </Text>
         <Text style={[styles.visitDate, { color: colors.textMuted }]}>
-          {new Date(visit.timestamp).toLocaleDateString('pt-PT')}
+          {new Date(visit.timestamp).toLocaleDateString(currentLocale())}
         </Text>
       </View>
       <View style={[styles.visitPoints, { backgroundColor: colors.success + '22' }]}>
@@ -358,7 +367,7 @@ function ExperienciarTab() {
     return (
       <View style={[styles.container, styles.loadingContainer, { backgroundColor: colors.background }]}>
         <ActivityIndicator size="large" color={colors.accent} />
-        <Text style={[styles.loadingText, { color: colors.textMuted }]}>A carregar agenda...</Text>
+        <Text style={[styles.loadingText, { color: colors.textMuted }]}>{t('coreTabs.experience.loading')}</Text>
       </View>
     );
   }
@@ -375,9 +384,9 @@ function ExperienciarTab() {
       >
         {/* Header */}
         <View style={styles.header}>
-          <Text style={[styles.headerTitle, { color: colors.text }]}>Experienciar Portugal</Text>
+          <Text style={[styles.headerTitle, { color: colors.text }]}>{t('coreTabs.experience.title')}</Text>
           <Text style={[styles.headerSubtitle, { color: colors.textMuted }]}>
-            Eventos, módulos temáticos e experiências perto de si
+            {t('coreTabs.experience.subtitle')}
           </Text>
         </View>
 
@@ -387,7 +396,7 @@ function ExperienciarTab() {
             activeOpacity={0.9}
             onPress={() => router.push(`/evento/${suggestionOfDay.id}`)}
             style={[styles.suggestionCard, { borderColor: colors.border }]}
-            accessibilityLabel={`Sugestão do dia: ${suggestionOfDay.name}`}
+            accessibilityLabel={t('coreTabs.experience.suggestionA11y', { name: suggestionOfDay.name })}
             accessibilityRole="button"
           >
             <SmartImage
@@ -403,7 +412,7 @@ function ExperienciarTab() {
             <View style={styles.suggestionOverlay}>
               <View style={[styles.suggestionTag, { backgroundColor: colors.accent }]}>
                 <MaterialIcons name="auto-awesome" size={12} color="#FFF" />
-                <Text style={styles.suggestionTagText}>Sugestão do dia</Text>
+                <Text style={styles.suggestionTagText}>{t('coreTabs.experience.suggestionOfDay')}</Text>
               </View>
               <Text style={styles.suggestionTitle} numberOfLines={2}>
                 {suggestionOfDay.name}
@@ -427,9 +436,9 @@ function ExperienciarTab() {
         {/* Guias de Exploração — 7 regiões */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
-            <Text style={[styles.sectionTitle, { color: colors.text }]}>Guias de Exploração</Text>
+            <Text style={[styles.sectionTitle, { color: colors.text }]}>{t('coreTabs.experience.guides')}</Text>
             <Text style={[styles.modulesCount, { color: colors.textMuted }]}>
-              Está em {currentRegionLabel}
+              {t('coreTabs.experience.youAreIn', { region: currentRegionLabel })}
             </Text>
           </View>
           <ScrollView
@@ -448,11 +457,11 @@ function ExperienciarTab() {
                   }]}
                   onPress={() => router.push({ pathname: '/guia', params: { region: r.id } })}
                   accessibilityRole="button"
-                  accessibilityLabel={`Abrir Guia de Exploração do ${r.label}`}
+                  accessibilityLabel={t('coreTabs.experience.openGuide', { region: r.label })}
                 >
                   {here && (
                     <View style={[styles.guideBadge, { backgroundColor: colors.accent }]}>
-                      <Text style={styles.guideBadgeText}>ESTÁ AQUI</Text>
+                      <Text style={styles.guideBadgeText}>{t('coreTabs.experience.youAreHere')}</Text>
                     </View>
                   )}
                   <Text style={[styles.guideName, { color: colors.text }]}>{r.label}</Text>
@@ -468,9 +477,9 @@ function ExperienciarTab() {
         {/* Módulos Temáticos */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
-            <Text style={[styles.sectionTitle, { color: colors.text }]}>Módulos Temáticos</Text>
+            <Text style={[styles.sectionTitle, { color: colors.text }]}>{t('coreTabs.experience.modulesTitle')}</Text>
             <Text style={[styles.modulesCount, { color: colors.textMuted }]}>
-              {THEMATIC_MODULES.length} módulos
+              {t('coreTabs.experience.modulesCount', { count: THEMATIC_MODULES.length })}
             </Text>
           </View>
           <View style={styles.modulesGrid}>
@@ -483,17 +492,17 @@ function ExperienciarTab() {
                   style={[styles.moduleCard, { backgroundColor: mt.card, borderColor: withOpacity(mt.accent, 0.25) }]}
                   onPress={() => router.push(mod.route)}
                   accessibilityRole="button"
-                  accessibilityLabel={`Abrir módulo ${mod.title}`}
+                  accessibilityLabel={t('coreTabs.experience.openModule', { name: t(mod.titleKey) })}
                 >
                   <View style={[styles.moduleAccentBar, { backgroundColor: mt.accent }]} />
                   <View style={[styles.moduleIcon, { backgroundColor: mt.accentMuted }]}>
                     <MaterialIcons name={mod.icon} size={20} color={mt.accent} />
                   </View>
                   <Text style={[styles.moduleTitle, { color: mt.textPrimary }]} numberOfLines={2}>
-                    {mod.title}
+                    {t(mod.titleKey)}
                   </Text>
                   <Text style={[styles.moduleSub, { color: mt.textMuted }]} numberOfLines={1}>
-                    {mod.sub}
+                    {t(mod.subKey)}
                   </Text>
                 </TouchableOpacity>
               );
@@ -508,18 +517,18 @@ function ExperienciarTab() {
             <TouchableOpacity
               style={styles.monthButton}
               onPress={() => navigateMonth('prev')}
-              accessibilityLabel="Mês anterior"
+              accessibilityLabel={t('coreTabs.experience.prevMonth')}
               accessibilityRole="button"
             >
               <MaterialIcons name="chevron-left" size={28} color={colors.text} />
             </TouchableOpacity>
             <Text style={[styles.monthTitle, { color: colors.text }]}>
-              {MONTHS_PT[selectedDate.getMonth()]} {selectedDate.getFullYear()}
+              {t(MONTH_KEYS[selectedDate.getMonth()])} {selectedDate.getFullYear()}
             </Text>
             <TouchableOpacity
               style={styles.monthButton}
               onPress={() => navigateMonth('next')}
-              accessibilityLabel="Mês seguinte"
+              accessibilityLabel={t('coreTabs.experience.nextMonth')}
               accessibilityRole="button"
             >
               <MaterialIcons name="chevron-right" size={28} color={colors.text} />
@@ -528,9 +537,9 @@ function ExperienciarTab() {
 
           {/* Weekday Headers */}
           <View style={styles.weekdaysRow}>
-            {WEEKDAYS_PT.map((day, i) => (
+            {WEEKDAY_KEYS.map((day, i) => (
               <Text key={i} style={[styles.weekdayText, { color: colors.textMuted }]}>
-                {day}
+                {t(day)}
               </Text>
             ))}
           </View>
@@ -544,15 +553,16 @@ function ExperienciarTab() {
           {selectedDay && selectedDayEvents.length > 0 && (
             <View style={[styles.selectedDayBox, { backgroundColor: colors.background }]}>
               <Text style={[styles.selectedDayTitle, { color: colors.text }]}>
-                Dia {selectedDay} — {selectedDayEvents.length}{' '}
-                {selectedDayEvents.length === 1 ? 'evento' : 'eventos'}
+                {selectedDayEvents.length === 1
+                  ? t('coreTabs.experience.dayOneEvent', { day: selectedDay })
+                  : t('coreTabs.experience.dayEvents', { day: selectedDay, count: selectedDayEvents.length })}
               </Text>
               {selectedDayEvents.map((event) => (
                 <TouchableOpacity
                   key={`sel-${event.id}`}
                   style={styles.selectedDayItem}
                   onPress={() => router.push(`/evento/${event.id}`)}
-                  accessibilityLabel={`Ver evento ${event.name}`}
+                  accessibilityLabel={t('coreTabs.shared.viewEvent', { name: event.name })}
                   accessibilityRole="button"
                 >
                   <MaterialIcons
@@ -571,7 +581,7 @@ function ExperienciarTab() {
           {selectedDay && selectedDayEvents.length === 0 && (
             <View style={[styles.selectedDayBox, { backgroundColor: colors.background }]}>
               <Text style={[styles.selectedDayEmpty, { color: colors.textMuted }]}>
-                Sem eventos no dia {selectedDay}
+                {t('coreTabs.experience.noEventsOnDay', { day: selectedDay })}
               </Text>
             </View>
           )}
@@ -583,7 +593,7 @@ function ExperienciarTab() {
             <View style={styles.sectionHeader}>
               <MaterialIcons name="trending-up" size={20} color={colors.accent} />
               <Text style={[styles.sectionTitle, { color: colors.text }]}>
-                Experiências Populares
+                {t('coreTabs.experience.popular')}
               </Text>
             </View>
             <ScrollView
@@ -600,14 +610,14 @@ function ExperienciarTab() {
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <MaterialIcons name="event" size={20} color={colors.accent} />
-            <Text style={[styles.sectionTitle, { color: colors.text }]}>Próximos Eventos</Text>
+            <Text style={[styles.sectionTitle, { color: colors.text }]}>{t('calendar.upcomingEvents')}</Text>
           </View>
           {upcomingData && upcomingData.length > 0 ? (
             <View style={styles.eventsList}>{upcomingData.slice(0, 5).map(renderEventCard)}</View>
           ) : (
             <View style={[styles.emptySection, { backgroundColor: colors.card, borderColor: colors.border }]}>
               <MaterialIcons name="event-busy" size={32} color={colors.textMuted} />
-              <Text style={[styles.emptyText, { color: colors.textMuted }]}>Sem eventos próximos</Text>
+              <Text style={[styles.emptyText, { color: colors.textMuted }]}>{t('coreTabs.experience.noUpcoming')}</Text>
             </View>
           )}
         </View>
@@ -617,26 +627,26 @@ function ExperienciarTab() {
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
               <MaterialIcons name="emoji-events" size={20} color={colors.accent} />
-              <Text style={[styles.sectionTitle, { color: colors.text }]}>As Minhas Conquistas</Text>
+              <Text style={[styles.sectionTitle, { color: colors.text }]}>{t('coreTabs.experience.myAchievements')}</Text>
             </View>
             <View style={styles.statsRow}>
               <View style={[styles.statCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
                 <Text style={[styles.statValue, { color: colors.accent }]}>
                   {progressData.total_visits}
                 </Text>
-                <Text style={[styles.statLabel, { color: colors.textMuted }]}>Visitas</Text>
+                <Text style={[styles.statLabel, { color: colors.textMuted }]}>{t('gamification.visits')}</Text>
               </View>
               <View style={[styles.statCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
                 <Text style={[styles.statValue, { color: colors.accent }]}>
                   {progressData.total_points}
                 </Text>
-                <Text style={[styles.statLabel, { color: colors.textMuted }]}>Pontos</Text>
+                <Text style={[styles.statLabel, { color: colors.textMuted }]}>{t('gamification.points')}</Text>
               </View>
               <View style={[styles.statCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
                 <Text style={[styles.statValue, { color: colors.accent }]}>
                   {progressData.current_streak}
                 </Text>
-                <Text style={[styles.statLabel, { color: colors.textMuted }]}>Dias seguidos</Text>
+                <Text style={[styles.statLabel, { color: colors.textMuted }]}>{t('coreTabs.experience.dayStreak')}</Text>
               </View>
             </View>
           </View>
@@ -647,7 +657,7 @@ function ExperienciarTab() {
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
               <MaterialIcons name="history" size={20} color={colors.success} />
-              <Text style={[styles.sectionTitle, { color: colors.text }]}>Histórico de Visitas</Text>
+              <Text style={[styles.sectionTitle, { color: colors.text }]}>{t('coreTabs.experience.visitHistory')}</Text>
             </View>
             {historyData && historyData.length > 0 ? (
               <View style={styles.visitsList}>
@@ -657,7 +667,7 @@ function ExperienciarTab() {
                     style={[styles.expandButton, { borderColor: colors.border }]}
                     onPress={() => setVisitsExpanded((v) => !v)}
                     activeOpacity={0.7}
-                    accessibilityLabel={visitsExpanded ? 'Ver menos visitas' : 'Ver mais visitas'}
+                    accessibilityLabel={visitsExpanded ? t('coreTabs.experience.showFewerVisits') : t('coreTabs.experience.showMoreVisits')}
                     accessibilityRole="button"
                     accessibilityState={{ expanded: visitsExpanded }}
                   >
@@ -667,7 +677,7 @@ function ExperienciarTab() {
                       color={colors.textMuted}
                     />
                     <Text style={[styles.expandButtonText, { color: colors.textMuted }]}>
-                      {visitsExpanded ? 'Ver menos' : `Ver mais (${historyData.length - 5})`}
+                      {visitsExpanded ? t('coreTabs.experience.showLess') : t('coreTabs.experience.showMoreCount', { count: historyData.length - 5 })}
                     </Text>
                   </TouchableOpacity>
                 )}
@@ -676,7 +686,7 @@ function ExperienciarTab() {
               <View style={[styles.emptySection, { backgroundColor: colors.card, borderColor: colors.border }]}>
                 <MaterialIcons name="explore" size={32} color={colors.textMuted} />
                 <Text style={[styles.emptyText, { color: colors.textMuted }]}>
-                  Comece a explorar para registar visitas
+                  {t('coreTabs.experience.noVisits')}
                 </Text>
               </View>
             )}
@@ -688,23 +698,23 @@ function ExperienciarTab() {
           <TouchableOpacity
             style={styles.actionButton}
             onPress={() => router.push('/(tabs)/planeador')}
-            accessibilityLabel="Planear viagem"
+            accessibilityLabel={t('coreTabs.experience.planTripA11y')}
             accessibilityRole="button"
           >
             <LinearGradient colors={['#C49A6C', '#B08556']} style={styles.actionGradient}>
               <MaterialIcons name="edit-calendar" size={22} color="#000" />
-              <Text style={styles.actionText}>Planear Viagem</Text>
+              <Text style={styles.actionText}>{t('coreTabs.experience.planTrip')}</Text>
             </LinearGradient>
           </TouchableOpacity>
           <TouchableOpacity
             style={styles.actionButton}
             onPress={() => router.push('/nearby')}
-            accessibilityLabel="Perto de mim"
+            accessibilityLabel={t('coreTabs.experience.nearMeA11y')}
             accessibilityRole="button"
           >
             <LinearGradient colors={['#22C55E', '#16A34A']} style={styles.actionGradient}>
               <MaterialIcons name="near-me" size={22} color="#FFF" />
-              <Text style={[styles.actionText, { color: '#FFF' }]}>Perto de Mim</Text>
+              <Text style={[styles.actionText, { color: '#FFF' }]}>{t('coreTabs.experience.nearMe')}</Text>
             </LinearGradient>
           </TouchableOpacity>
         </View>

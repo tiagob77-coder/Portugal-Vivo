@@ -29,10 +29,12 @@ import {
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 
 const STORAGE_KEY = 'pv:cookie-consent:v1';
 
 export default function CookieBanner() {
+  const { t } = useTranslation();
   const router = useRouter();
   const [visible, setVisible] = useState(false);
 
@@ -64,17 +66,15 @@ export default function CookieBanner() {
       <View style={styles.row}>
         <MaterialIcons name="cookie" size={22} color="#C49A6C" style={styles.icon} />
         <View style={styles.copy}>
-          <Text style={styles.title}>Cookies e estatísticas anónimas</Text>
+          <Text style={styles.title}>{t('components.cookieBanner.title')}</Text>
           <Text style={styles.body}>
-            Só usamos um cookie de sessão — sem cookies de publicidade nem rastreadores de
-            terceiros. As estatísticas de utilização são anónimas e podem ser desativadas
-            em{' '}
+            {t('components.cookieBanner.body')}{' '}
             <Text
               style={styles.link}
               onPress={() => router.push('/settings/privacidade')}
               accessibilityRole="link"
             >
-              Definições
+              {t('components.cookieBanner.settingsLink')}
             </Text>
             .{' '}
             <Text
@@ -82,7 +82,7 @@ export default function CookieBanner() {
               onPress={() => router.push('/privacy')}
               accessibilityRole="link"
             >
-              Saber mais
+              {t('components.cookieBanner.learnMore')}
             </Text>
           </Text>
         </View>
@@ -90,9 +90,9 @@ export default function CookieBanner() {
           style={styles.button}
           onPress={dismiss}
           accessibilityRole="button"
-          accessibilityLabel="Aceitar e fechar aviso de cookies"
+          accessibilityLabel={t('components.cookieBanner.acceptA11y')}
         >
-          <Text style={styles.buttonText}>Aceitar</Text>
+          <Text style={styles.buttonText}>{t('components.cookieBanner.accept')}</Text>
         </TouchableOpacity>
       </View>
     </View>

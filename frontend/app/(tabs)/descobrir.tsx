@@ -12,6 +12,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useQuery } from '@tanstack/react-query';
 import { LinearGradient } from 'expo-linear-gradient';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useTranslation } from 'react-i18next';
 import SkeletonCard from '../../src/components/SkeletonCard';
 import ErrorState from '../../src/components/ui/ErrorState';
 import MicroStoryCard, { MicroStory } from '../../src/components/MicroStoryCard';
@@ -34,49 +35,50 @@ import { CONTENT_MAX_WIDTH } from '../../src/theme/breakpoints';
 
 const serif = fontFamilies.serif;
 
-const getGreeting = (): { greeting: string; period: HeroPeriod } => {
+const getGreeting = (): { greetingKey: string; period: HeroPeriod } => {
   const hour = new Date().getHours();
-  if (hour >= 5 && hour < 12) return { greeting: 'Bom dia', period: 'morning' };
-  if (hour >= 12 && hour < 19) return { greeting: 'Boa tarde', period: 'afternoon' };
-  return { greeting: 'Boa noite', period: 'evening' };
+  if (hour >= 5 && hour < 12) return { greetingKey: 'discovery.goodMorning', period: 'morning' };
+  if (hour >= 12 && hour < 19) return { greetingKey: 'discovery.goodAfternoon', period: 'afternoon' };
+  return { greetingKey: 'discovery.goodEvening', period: 'evening' };
 };
 
 const REGIONS = [
-  { id: 'norte', name: 'Norte', subtitle: 'Montanhas e tradição', image: regionImages.norte },
-  { id: 'centro', name: 'Centro', subtitle: 'Aldeias históricas', image: regionImages.centro },
-  { id: 'lisboa', name: 'Lisboa', subtitle: 'Capital vibrante', image: regionImages.lisboa },
-  { id: 'alentejo', name: 'Alentejo', subtitle: 'Planícies douradas', image: regionImages.alentejo },
-  { id: 'algarve', name: 'Algarve', subtitle: 'Costa e falésias', image: regionImages.algarve },
-  { id: 'acores', name: 'Açores', subtitle: 'Natureza vulcânica', image: regionImages.acores },
-  { id: 'madeira', name: 'Madeira', subtitle: 'Ilha jardim', image: regionImages.madeira },
+  { id: 'norte', name: 'Norte', subtitleKey: 'coreTabs.discover.regions.norte', image: regionImages.norte },
+  { id: 'centro', name: 'Centro', subtitleKey: 'coreTabs.discover.regions.centro', image: regionImages.centro },
+  { id: 'lisboa', name: 'Lisboa', subtitleKey: 'coreTabs.discover.regions.lisboa', image: regionImages.lisboa },
+  { id: 'alentejo', name: 'Alentejo', subtitleKey: 'coreTabs.discover.regions.alentejo', image: regionImages.alentejo },
+  { id: 'algarve', name: 'Algarve', subtitleKey: 'coreTabs.discover.regions.algarve', image: regionImages.algarve },
+  { id: 'acores', name: 'Açores', subtitleKey: 'coreTabs.discover.regions.acores', image: regionImages.acores },
+  { id: 'madeira', name: 'Madeira', subtitleKey: 'coreTabs.discover.regions.madeira', image: regionImages.madeira },
 ];
 
 const QUICK_ACTIONS = [
-  { id: 'mapa', title: 'Mapa', icon: 'map', route: '/(tabs)/mapa' },
-  { id: 'planeador', title: 'Planeador', icon: 'edit-calendar', route: '/(tabs)/planeador' },
-  { id: 'eventos', title: 'Eventos', icon: 'event', route: '/(tabs)/eventos' },
-  { id: 'pesquisar', title: 'Pesquisar', icon: 'search', route: '/search' },
-  { id: 'perto', title: 'Perto de Mim', icon: 'near-me', route: '/nearby' },
-  { id: 'conquistas', title: 'Conquistas', icon: 'military-tech', route: '/gamification' },
-  { id: 'album', title: 'Álbum', icon: 'photo-album', route: '/album' },
-  { id: 'ranking', title: 'Ranking', icon: 'leaderboard', route: '/leaderboard' },
-  { id: 'transportes', title: 'Transportes', icon: 'train', route: '/(tabs)/transportes' },
-  { id: 'beachcams', title: 'Beachcams', icon: 'videocam', route: '/(tabs)/beachcams' },
-  { id: 'coleccoes', title: 'Enciclopédia', icon: 'collections-bookmark', route: '/(tabs)/coleccoes' },
-  { id: 'guia', title: 'Guia Viajante', icon: 'menu-book', route: null },
+  { id: 'mapa', titleKey: 'tabs.map', icon: 'map', route: '/(tabs)/mapa' },
+  { id: 'planeador', titleKey: 'tabs.planner', icon: 'edit-calendar', route: '/(tabs)/planeador' },
+  { id: 'eventos', titleKey: 'tabs.events', icon: 'event', route: '/(tabs)/eventos' },
+  { id: 'pesquisar', titleKey: 'common.search', icon: 'search', route: '/search' },
+  { id: 'perto', titleKey: 'coreTabs.discover.quickActions.nearMe', icon: 'near-me', route: '/nearby' },
+  { id: 'conquistas', titleKey: 'achievements.title', icon: 'military-tech', route: '/gamification' },
+  { id: 'album', titleKey: 'coreTabs.discover.quickActions.album', icon: 'photo-album', route: '/album' },
+  { id: 'ranking', titleKey: 'coreTabs.discover.quickActions.ranking', icon: 'leaderboard', route: '/leaderboard' },
+  { id: 'transportes', titleKey: 'coreTabs.discover.quickActions.transport', icon: 'train', route: '/(tabs)/transportes' },
+  { id: 'beachcams', titleKey: 'coreTabs.discover.quickActions.beachcams', icon: 'videocam', route: '/(tabs)/beachcams' },
+  { id: 'coleccoes', titleKey: 'coreTabs.discover.quickActions.encyclopedia', icon: 'collections-bookmark', route: '/(tabs)/coleccoes' },
+  { id: 'guia', titleKey: 'coreTabs.discover.quickActions.guide', icon: 'menu-book', route: null },
 ];
 
-const PROFILE_LABELS: Record<string, { label: string; icon: string; color: string }> = {
-  aventureiro: { label: 'Aventureiro', icon: 'terrain', color: palette.forest[500] },
-  gastronomo: { label: 'Gastrónomo', icon: 'restaurant', color: palette.rust[500] },
-  cultural: { label: 'Cultural', icon: 'account-balance', color: palette.filigrana[700] },
-  familia: { label: 'Família', icon: 'family-restroom', color: palette.mint[600] },
+const PROFILE_LABELS: Record<string, { labelKey: string; icon: string; color: string }> = {
+  aventureiro: { labelKey: 'coreTabs.discover.profiles.adventurer', icon: 'terrain', color: palette.forest[500] },
+  gastronomo: { labelKey: 'coreTabs.discover.profiles.foodie', icon: 'restaurant', color: palette.rust[500] },
+  cultural: { labelKey: 'coreTabs.discover.profiles.cultural', icon: 'account-balance', color: palette.filigrana[700] },
+  familia: { labelKey: 'coreTabs.discover.profiles.family', icon: 'family-restroom', color: palette.mint[600] },
 };
 
 function DescobrerTab() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { colors, isDark } = useTheme();
+  const { t } = useTranslation();
   const { width, contentMaxWidth } = useResponsive();
   // Largura útil da coluna (limitada para se manter "phone-shaped" em web/tablet).
   const colWidth = Math.min(width, contentMaxWidth);
@@ -228,7 +230,7 @@ function DescobrerTab() {
   });
 
   const onRefresh = async () => { setRefreshing(true); await refetchFeed(); setRefreshing(false); };
-  const { greeting, period } = getGreeting();
+  const { greetingKey, period } = getGreeting();
 
   const groupedFeed = React.useMemo(() => {
     if (!feedData?.items) return {};
@@ -268,7 +270,7 @@ function DescobrerTab() {
     return (
       <View style={[styles.container, { backgroundColor: colors.background, paddingTop: insets.top }]}>
         <ErrorState
-          message="Não foi possível carregar a sua descoberta. Verifique a ligação."
+          message={t('coreTabs.discover.loadError')}
           onRetry={() => refetchFeed()}
         />
       </View>
@@ -279,10 +281,10 @@ function DescobrerTab() {
     <View style={[styles.container, ds.bg]}>
       {Platform.OS === 'web' && (
         <Head>
-          <title>Descobrir — Portugal Vivo | POI do Dia, Tendências e Regiões</title>
-          <meta name="description" content="Descubra o melhor de Portugal hoje: o POI do Dia, locais em tendência, previsão meteorológica e sugestões por região. Tesouros que não encontra nos guias." />
-          <meta property="og:title" content="Descobrir — Portugal Vivo" />
-          <meta property="og:description" content="POI do Dia, tendências e sugestões personalizadas por região. Explore Portugal como nunca antes." />
+          <title>{t('coreTabs.discover.headTitle')}</title>
+          <meta name="description" content={t('coreTabs.discover.headDescription')} />
+          <meta property="og:title" content={t('coreTabs.discover.ogTitle')} />
+          <meta property="og:description" content={t('coreTabs.discover.ogDescription')} />
           <link rel="canonical" href="https://portugal-vivo.app/descobrir" />
         </Head>
       )}
@@ -307,7 +309,7 @@ function DescobrerTab() {
             <Animated.View style={{ transform: [{ rotate: refreshRotate }] }}>
               <MaterialIcons name="explore" size={24} color={colors.accent} />
             </Animated.View>
-            <Text style={[styles.refreshText, { color: colors.textMuted }]}>A descobrir novidades...</Text>
+            <Text style={[styles.refreshText, { color: colors.textMuted }]}>{t('coreTabs.discover.refreshing')}</Text>
           </View>
         )}
         {/* Hero Header */}
@@ -322,15 +324,15 @@ function DescobrerTab() {
               <TouchableOpacity
                 style={{ position: 'absolute', top: 12, right: 16, flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(255,255,255,0.2)', paddingHorizontal: 14, paddingVertical: 8, borderRadius: 20, gap: 6 }}
                 onPress={() => router.push('/(tabs)/profile')}
-                accessibilityLabel={token ? 'Abrir perfil' : 'Iniciar sessão'}
+                accessibilityLabel={token ? t('coreTabs.discover.openProfile') : t('coreTabs.discover.signIn')}
                 accessibilityRole="button"
               >
                 <MaterialIcons name={token ? 'account-circle' : 'login'} size={18} color="#FFFFFF" />
-                <Text style={{ color: '#FFFFFF', fontSize: 13, fontWeight: '600' }}>{token ? 'Perfil' : 'Entrar'}</Text>
+                <Text style={{ color: '#FFFFFF', fontSize: 13, fontWeight: '600' }}>{token ? t('tabs.profile') : t('coreTabs.discover.signInShort')}</Text>
               </TouchableOpacity>
-              <Text style={styles.greeting}>{greeting}</Text>
-              <Text style={styles.headerTitle}>Descubra Portugal</Text>
-              <Text style={styles.headerSubtitle}>O património vivo do nosso país</Text>
+              <Text style={styles.greeting}>{t(greetingKey)}</Text>
+              <Text style={styles.headerTitle}>{t('coreTabs.discover.heroTitle')}</Text>
+              <Text style={styles.headerSubtitle}>{t('coreTabs.discover.heroSubtitle')}</Text>
             </LinearGradient>
           </ImageBackground>
         </View>
@@ -346,7 +348,7 @@ function DescobrerTab() {
                 if (action.route) router.push(action.route);
               }}
               data-testid={`action-${action.id}`}
-              accessibilityLabel={action.id === 'guia' ? 'Abrir Guia do Viajante' : `Abrir ${action.title}`}
+              accessibilityLabel={action.id === 'guia' ? t('coreTabs.discover.openGuide') : t('coreTabs.shared.open', { name: t(action.titleKey) })}
               accessibilityRole="button"
               accessibilityState={action.id === 'guia' ? { expanded: guiaOpen } : undefined}
             >
@@ -356,7 +358,7 @@ function DescobrerTab() {
                   <View style={styles.actionBadge}><Text style={styles.actionBadgeText}>{claimableMissions}</Text></View>
                 )}
               </View>
-              <Text style={[styles.actionText, ds.textSecondary]} numberOfLines={1}>{action.title}</Text>
+              <Text style={[styles.actionText, ds.textSecondary]} numberOfLines={1}>{t(action.titleKey)}</Text>
             </TouchableOpacity>
           ))}
         </View>
@@ -370,13 +372,13 @@ function DescobrerTab() {
             <MaterialIcons name={PROFILE_LABELS[activePerfil].icon as any} size={22} color={PROFILE_LABELS[activePerfil].color} />
             <View style={{ flex: 1, marginLeft: 10 }}>
               <Text style={[styles.profileBannerTitle, { color: PROFILE_LABELS[activePerfil].color }]}>
-                Sugestões para {PROFILE_LABELS[activePerfil].label}
+                {t('coreTabs.discover.suggestionsFor', { profile: t(PROFILE_LABELS[activePerfil].labelKey) })}
               </Text>
               <Text style={[styles.profileBannerSub, { color: colors.textMuted }]}>
-                Feed personalizado ao seu perfil
+                {t('coreTabs.discover.profileFeed')}
               </Text>
             </View>
-            <TouchableOpacity onPress={() => setActivePerfil(null)} data-testid="clear-profile-btn" accessibilityLabel="Remover filtro de perfil" accessibilityRole="button">
+            <TouchableOpacity onPress={() => setActivePerfil(null)} data-testid="clear-profile-btn" accessibilityLabel={t('coreTabs.discover.removeProfileFilter')} accessibilityRole="button">
               <MaterialIcons name="close" size={18} color={colors.textMuted} />
             </TouchableOpacity>
           </View>
@@ -387,8 +389,8 @@ function DescobrerTab() {
           <View style={[styles.guiaPanel, { backgroundColor: colors.surface, borderColor: colors.borderLight }]} data-testid="guia-viajante-panel">
             <View style={styles.guiaPanelHeader}>
               <MaterialIcons name="menu-book" size={18} color={colors.primary} />
-              <Text style={[styles.guiaPanelTitle, { color: colors.textPrimary }]}>Guia do Viajante - Portugal</Text>
-              <TouchableOpacity onPress={() => setGuiaOpen(false)} data-testid="close-guia" accessibilityLabel="Fechar Guia do Viajante" accessibilityRole="button">
+              <Text style={[styles.guiaPanelTitle, { color: colors.textPrimary }]}>{t('coreTabs.discover.guide.title')}</Text>
+              <TouchableOpacity onPress={() => setGuiaOpen(false)} data-testid="close-guia" accessibilityLabel={t('coreTabs.discover.guide.close')} accessibilityRole="button">
                 <MaterialIcons name="close" size={20} color={colors.textMuted} />
               </TouchableOpacity>
             </View>
@@ -396,15 +398,15 @@ function DescobrerTab() {
             {/* Informacoes Essenciais */}
             <View style={[styles.guiaSectionHeader, { borderTopColor: colors.borderLight }]}>
               <MaterialIcons name="info" size={14} color={colors.accent} />
-              <Text style={[styles.guiaSectionTitle, { color: colors.accent }]}>Informações Essenciais</Text>
+              <Text style={[styles.guiaSectionTitle, { color: colors.accent }]}>{t('coreTabs.discover.guide.essentials.title')}</Text>
             </View>
             {[
-              { icon: 'language', label: 'Idioma Oficial', value: 'Português' },
-              { icon: 'payments', label: 'Moeda', value: 'Euro (EUR)' },
-              { icon: 'schedule', label: 'Fuso Horário', value: 'WET (UTC+0) / WEST (UTC+1 verão)' },
-              { icon: 'electrical-services', label: 'Tomadas', value: 'Tipo F, 230V 50Hz' },
-              { icon: 'local-drink', label: 'Água da torneira', value: 'Segura para beber em todo o país' },
-              { icon: 'directions-car', label: 'Conduzir', value: 'Lado direito. Carta EU aceite.' },
+              { icon: 'language', label: t('coreTabs.discover.guide.essentials.language'), value: t('coreTabs.discover.guide.essentials.languageValue') },
+              { icon: 'payments', label: t('coreTabs.discover.guide.essentials.currency'), value: 'Euro (EUR)' },
+              { icon: 'schedule', label: t('coreTabs.discover.guide.essentials.timezone'), value: t('coreTabs.discover.guide.essentials.timezoneValue') },
+              { icon: 'electrical-services', label: t('coreTabs.discover.guide.essentials.sockets'), value: t('coreTabs.discover.guide.essentials.socketsValue') },
+              { icon: 'local-drink', label: t('coreTabs.discover.guide.essentials.tapWater'), value: t('coreTabs.discover.guide.essentials.tapWaterValue') },
+              { icon: 'directions-car', label: t('coreTabs.discover.guide.essentials.driving'), value: t('coreTabs.discover.guide.essentials.drivingValue') },
             ].map((item, i) => (
               <View key={i} style={[styles.guiaRow, { borderTopColor: colors.borderLight }]}>
                 <MaterialIcons name={item.icon as any} size={14} color={colors.textMuted} />
@@ -416,13 +418,13 @@ function DescobrerTab() {
             {/* Melhor Epoca */}
             <View style={[styles.guiaSectionHeader, { borderTopColor: colors.borderLight }]}>
               <MaterialIcons name="wb-sunny" size={14} color={colors.accent} />
-              <Text style={[styles.guiaSectionTitle, { color: colors.accent }]}>Melhor Epoca para Visitar</Text>
+              <Text style={[styles.guiaSectionTitle, { color: colors.accent }]}>{t('coreTabs.discover.guide.bestTime.title')}</Text>
             </View>
             {[
-              { icon: 'calendar-today', label: 'Primavera (Mar-Mai)', value: 'Ideal. Tempo ameno, poucos turistas' },
-              { icon: 'wb-sunny', label: 'Verao (Jun-Ago)', value: 'Quente, praias. Muito turistico' },
-              { icon: 'eco', label: 'Outono (Set-Nov)', value: 'Excelente. Vindimas, cores, bom tempo' },
-              { icon: 'ac-unit', label: 'Inverno (Dez-Fev)', value: 'Suave no sul, neve na Serra da Estrela' },
+              { icon: 'calendar-today', label: t('coreTabs.discover.guide.bestTime.spring'), value: t('coreTabs.discover.guide.bestTime.springValue') },
+              { icon: 'wb-sunny', label: t('coreTabs.discover.guide.bestTime.summer'), value: t('coreTabs.discover.guide.bestTime.summerValue') },
+              { icon: 'eco', label: t('coreTabs.discover.guide.bestTime.autumn'), value: t('coreTabs.discover.guide.bestTime.autumnValue') },
+              { icon: 'ac-unit', label: t('coreTabs.discover.guide.bestTime.winter'), value: t('coreTabs.discover.guide.bestTime.winterValue') },
             ].map((item, i) => (
               <View key={i} style={[styles.guiaRow, { borderTopColor: colors.borderLight }]}>
                 <MaterialIcons name={item.icon as any} size={14} color={colors.textMuted} />
@@ -434,17 +436,17 @@ function DescobrerTab() {
             {/* Custos */}
             <View style={[styles.guiaSectionHeader, { borderTopColor: colors.borderLight }]}>
               <MaterialIcons name="euro" size={14} color={colors.accent} />
-              <Text style={[styles.guiaSectionTitle, { color: colors.accent }]}>Custos Medios</Text>
+              <Text style={[styles.guiaSectionTitle, { color: colors.accent }]}>{t('coreTabs.discover.guide.costs.title')}</Text>
             </View>
             {[
-              { icon: 'restaurant', label: 'Refeicao (restaurante)', value: '8-15 EUR' },
-              { icon: 'local-cafe', label: 'Cafe + pastel de nata', value: '1.50-2.50 EUR' },
-              { icon: 'hotel', label: 'Hotel (2 estrelas)', value: '40-80 EUR/noite' },
-              { icon: 'apartment', label: 'Hotel (4 estrelas)', value: '80-150 EUR/noite' },
-              { icon: 'directions-bus', label: 'Transporte publico', value: '1.50-3 EUR/viagem' },
-              { icon: 'local-gas-station', label: 'Gasolina', value: '~1.60 EUR/litro' },
-              { icon: 'local-bar', label: 'Cerveja (bar)', value: '1.50-3 EUR' },
-              { icon: 'favorite', label: 'Gorjetas', value: '5-10% (opcional, arredondamento)' },
+              { icon: 'restaurant', label: t('coreTabs.discover.guide.costs.meal'), value: '8-15 EUR' },
+              { icon: 'local-cafe', label: t('coreTabs.discover.guide.costs.coffee'), value: '1.50-2.50 EUR' },
+              { icon: 'hotel', label: t('coreTabs.discover.guide.costs.hotel2'), value: t('coreTabs.discover.guide.costs.hotel2Value') },
+              { icon: 'apartment', label: t('coreTabs.discover.guide.costs.hotel4'), value: t('coreTabs.discover.guide.costs.hotel4Value') },
+              { icon: 'directions-bus', label: t('coreTabs.discover.guide.costs.publicTransport'), value: t('coreTabs.discover.guide.costs.publicTransportValue') },
+              { icon: 'local-gas-station', label: t('coreTabs.discover.guide.costs.petrol'), value: t('coreTabs.discover.guide.costs.petrolValue') },
+              { icon: 'local-bar', label: t('coreTabs.discover.guide.costs.beer'), value: '1.50-3 EUR' },
+              { icon: 'favorite', label: t('coreTabs.discover.guide.costs.tips'), value: t('coreTabs.discover.guide.costs.tipsValue') },
             ].map((item, i) => (
               <View key={i} style={[styles.guiaRow, { borderTopColor: colors.borderLight }]}>
                 <MaterialIcons name={item.icon as any} size={14} color={colors.textMuted} />
@@ -456,16 +458,16 @@ function DescobrerTab() {
             {/* Saude e Seguranca */}
             <View style={[styles.guiaSectionHeader, { borderTopColor: colors.borderLight }]}>
               <MaterialIcons name="local-hospital" size={14} color={colors.error} />
-              <Text style={[styles.guiaSectionTitle, { color: colors.error }]}>Saude e Seguranca</Text>
+              <Text style={[styles.guiaSectionTitle, { color: colors.error }]}>{t('coreTabs.discover.guide.health.title')}</Text>
             </View>
             {[
-              { icon: 'emergency', label: 'Emergencia geral', value: '112' },
-              { icon: 'local-police', label: 'Policia (PSP)', value: '112 / 21 765 42 42' },
-              { icon: 'fire-truck', label: 'Bombeiros', value: '117' },
+              { icon: 'emergency', label: t('coreTabs.discover.guide.health.emergency'), value: '112' },
+              { icon: 'local-police', label: t('coreTabs.discover.guide.health.police'), value: '112 / 21 765 42 42' },
+              { icon: 'fire-truck', label: t('coreTabs.discover.guide.health.firefighters'), value: '117' },
               { icon: 'local-hospital', label: 'Saude 24', value: '808 24 24 24' },
-              { icon: 'health-and-safety', label: 'Cartao Europeu Saude', value: 'Aceite em hospitais publicos (EU)' },
-              { icon: 'verified-user', label: 'Seguranca geral', value: 'Pais muito seguro para turistas' },
-              { icon: 'warning', label: 'Cuidados', value: 'Carteiristas em zonas turisticas' },
+              { icon: 'health-and-safety', label: t('coreTabs.discover.guide.health.ehic'), value: t('coreTabs.discover.guide.health.ehicValue') },
+              { icon: 'verified-user', label: t('coreTabs.discover.guide.health.safety'), value: t('coreTabs.discover.guide.health.safetyValue') },
+              { icon: 'warning', label: t('coreTabs.discover.guide.health.caution'), value: t('coreTabs.discover.guide.health.cautionValue') },
             ].map((item, i) => (
               <View key={i} style={[styles.guiaRow, { borderTopColor: colors.borderLight }]}>
                 <MaterialIcons name={item.icon as any} size={14} color={colors.textMuted} />
@@ -477,15 +479,15 @@ function DescobrerTab() {
             {/* Transportes */}
             <View style={[styles.guiaSectionHeader, { borderTopColor: colors.borderLight }]}>
               <MaterialIcons name="directions-car" size={14} color={colors.accent} />
-              <Text style={[styles.guiaSectionTitle, { color: colors.accent }]}>Transportes</Text>
+              <Text style={[styles.guiaSectionTitle, { color: colors.accent }]}>{t('coreTabs.discover.guide.transport.title')}</Text>
             </View>
             {[
-              { icon: 'train', label: 'Comboios (CP)', value: 'Rede nacional, Alfa Pendular rapido' },
-              { icon: 'directions-bus', label: 'Autocarros (Rede Expressos)', value: 'Cobertura nacional, economico' },
-              { icon: 'subway', label: 'Metro', value: 'Lisboa (4 linhas) e Porto (6 linhas)' },
-              { icon: 'local-taxi', label: 'Taxi / TVDE', value: 'Uber e Bolt disponiveis' },
-              { icon: 'directions-boat', label: 'Ferries', value: 'Ligacoes fluviais em Lisboa e Porto' },
-              { icon: 'flight', label: 'Voos internos', value: 'TAP para Madeira e Acores' },
+              { icon: 'train', label: t('coreTabs.discover.guide.transport.trains'), value: t('coreTabs.discover.guide.transport.trainsValue') },
+              { icon: 'directions-bus', label: t('coreTabs.discover.guide.transport.buses'), value: t('coreTabs.discover.guide.transport.busesValue') },
+              { icon: 'subway', label: t('coreTabs.discover.guide.transport.metro'), value: t('coreTabs.discover.guide.transport.metroValue') },
+              { icon: 'local-taxi', label: t('coreTabs.discover.guide.transport.taxi'), value: t('coreTabs.discover.guide.transport.taxiValue') },
+              { icon: 'directions-boat', label: t('coreTabs.discover.guide.transport.ferries'), value: t('coreTabs.discover.guide.transport.ferriesValue') },
+              { icon: 'flight', label: t('coreTabs.discover.guide.transport.flights'), value: t('coreTabs.discover.guide.transport.flightsValue') },
             ].map((item, i) => (
               <View key={i} style={[styles.guiaRow, { borderTopColor: colors.borderLight }]}>
                 <MaterialIcons name={item.icon as any} size={14} color={colors.textMuted} />
@@ -497,14 +499,14 @@ function DescobrerTab() {
             {/* Cultura e Etiqueta */}
             <View style={[styles.guiaSectionHeader, { borderTopColor: colors.borderLight }]}>
               <MaterialIcons name="people" size={14} color={colors.accent} />
-              <Text style={[styles.guiaSectionTitle, { color: colors.accent }]}>Cultura e Etiqueta</Text>
+              <Text style={[styles.guiaSectionTitle, { color: colors.accent }]}>{t('coreTabs.discover.guide.etiquette.title')}</Text>
             </View>
             {[
-              { icon: 'waving-hand', label: 'Cumprimento', value: 'Aperto de mao, 2 beijos entre amigos' },
-              { icon: 'schedule', label: 'Horario refeicoes', value: 'Almoco 12-14h, Jantar 19:30-21:30' },
-              { icon: 'store', label: 'Horario comercio', value: 'Seg-Sab 9-19h. Centros ate 23h' },
-              { icon: 'no-photography', label: 'Fotografias', value: 'Pedir autorizacao em igrejas e museus' },
-              { icon: 'smoking-rooms', label: 'Fumar', value: 'Proibido em espacos fechados' },
+              { icon: 'waving-hand', label: t('coreTabs.discover.guide.etiquette.greeting'), value: t('coreTabs.discover.guide.etiquette.greetingValue') },
+              { icon: 'schedule', label: t('coreTabs.discover.guide.etiquette.mealTimes'), value: t('coreTabs.discover.guide.etiquette.mealTimesValue') },
+              { icon: 'store', label: t('coreTabs.discover.guide.etiquette.shopHours'), value: t('coreTabs.discover.guide.etiquette.shopHoursValue') },
+              { icon: 'no-photography', label: t('coreTabs.discover.guide.etiquette.photos'), value: t('coreTabs.discover.guide.etiquette.photosValue') },
+              { icon: 'smoking-rooms', label: t('coreTabs.discover.guide.etiquette.smoking'), value: t('coreTabs.discover.guide.etiquette.smokingValue') },
             ].map((item, i) => (
               <View key={i} style={[styles.guiaRow, { borderTopColor: colors.borderLight }]}>
                 <MaterialIcons name={item.icon as any} size={14} color={colors.textMuted} />
@@ -516,12 +518,12 @@ function DescobrerTab() {
             {/* Documentacao */}
             <View style={[styles.guiaSectionHeader, { borderTopColor: colors.borderLight }]}>
               <MaterialIcons name="badge" size={14} color={colors.accent} />
-              <Text style={[styles.guiaSectionTitle, { color: colors.accent }]}>Documentacao</Text>
+              <Text style={[styles.guiaSectionTitle, { color: colors.accent }]}>{t('coreTabs.discover.guide.documents.title')}</Text>
             </View>
             {[
-              { icon: 'public', label: 'Cidadaos EU/EEE', value: 'BI ou passaporte valido' },
-              { icon: 'flight-land', label: 'Cidadaos fora EU', value: 'Passaporte. Visto Schengen se aplicavel' },
-              { icon: 'receipt-long', label: 'Tax Free', value: 'Compras > 50 EUR (residentes fora EU)' },
+              { icon: 'public', label: t('coreTabs.discover.guide.documents.eu'), value: t('coreTabs.discover.guide.documents.euValue') },
+              { icon: 'flight-land', label: t('coreTabs.discover.guide.documents.nonEu'), value: t('coreTabs.discover.guide.documents.nonEuValue') },
+              { icon: 'receipt-long', label: 'Tax Free', value: t('coreTabs.discover.guide.documents.taxFreeValue') },
             ].map((item, i) => (
               <View key={i} style={[styles.guiaRow, { borderTopColor: colors.borderLight }]}>
                 <MaterialIcons name={item.icon as any} size={14} color={colors.textMuted} />
@@ -540,7 +542,7 @@ function DescobrerTab() {
             onPress={() => setExpandedWidget(expandedWidget === 'weather' ? null : 'weather')}
             activeOpacity={0.7}
             data-testid="weather-chip"
-            accessibilityLabel="Ver previsão meteorológica"
+            accessibilityLabel={t('coreTabs.discover.weatherA11y')}
             accessibilityRole="button"
             accessibilityState={{ expanded: expandedWidget === 'weather' }}
           >
@@ -571,7 +573,7 @@ function DescobrerTab() {
             onPress={() => setExpandedWidget(expandedWidget === 'safety' ? null : 'safety')}
             activeOpacity={0.7}
             data-testid="safety-chip"
-            accessibilityLabel="Ver estado de segurança"
+            accessibilityLabel={t('coreTabs.discover.safetyA11y')}
             accessibilityRole="button"
             accessibilityState={{ expanded: expandedWidget === 'safety' }}
           >
@@ -582,7 +584,7 @@ function DescobrerTab() {
                 color={safetyData?.safety_level === 'danger' ? colors.error : safetyData?.safety_level === 'warning' ? colors.warning : colors.success}
               />
               <Text style={[styles.chipText, { color: colors.textPrimary }]} numberOfLines={1}>
-                {safetyData?.safety_level === 'danger' ? 'Perigo' : safetyData?.safety_level === 'warning' ? 'Atencao' : 'Seguro'}
+                {safetyData?.safety_level === 'danger' ? t('coreTabs.discover.safety.danger') : safetyData?.safety_level === 'warning' ? t('coreTabs.discover.safety.warning') : t('coreTabs.discover.safety.safe')}
               </Text>
               <MaterialIcons name={expandedWidget === 'safety' ? 'expand-less' : 'expand-more'} size={16} color={colors.textMuted} />
             </View>
@@ -590,7 +592,7 @@ function DescobrerTab() {
               <View style={[styles.chipDetail, { borderTopColor: colors.borderLight }]}>
                 {safetyData?.message && <Text style={[styles.chipDetailText, { color: colors.textSecondary }]}>{safetyData.message}</Text>}
                 {((firesData as any)?.active_count || 0) > 0 && (
-                  <Text style={[styles.chipDetailText, { color: colors.textSecondary }]}>{(firesData as any).active_count} incendios ativos</Text>
+                  <Text style={[styles.chipDetailText, { color: colors.textSecondary }]}>{t('coreTabs.discover.activeFires', { count: (firesData as any).active_count })}</Text>
                 )}
                 {safetyData?.weather_alerts?.slice(0, 2).map((alert: any, i: number) => (
                   <View key={i} style={styles.chipAlertRow}>
@@ -608,7 +610,7 @@ function DescobrerTab() {
             onPress={() => setExpandedWidget(expandedWidget === 'surf' ? null : 'surf')}
             activeOpacity={0.7}
             data-testid="surf-chip"
-            accessibilityLabel="Ver condições de surf"
+            accessibilityLabel={t('coreTabs.discover.surfA11y')}
             accessibilityRole="button"
             accessibilityState={{ expanded: expandedWidget === 'surf' }}
           >
@@ -621,14 +623,14 @@ function DescobrerTab() {
             </View>
             {expandedWidget === 'surf' && surfData?.spots?.[0] && (
               <View style={[styles.chipDetail, { borderTopColor: colors.borderLight }]}>
-                <Text style={[styles.chipDetailText, { color: colors.textSecondary }]}>{surfData.spots[0].spot?.name || 'Melhor Spot'}</Text>
+                <Text style={[styles.chipDetailText, { color: colors.textSecondary }]}>{surfData.spots[0].spot?.name || t('coreTabs.discover.bestSpot')}</Text>
                 <View style={styles.surfStats}>
                   <Text style={[styles.surfStat, { color: colors.textPrimary }]}>{surfData.spots[0].wave_height_m?.toFixed(1)}m</Text>
-                  <Text style={[styles.surfStatLabel, { color: colors.textMuted }]}>Altura</Text>
+                  <Text style={[styles.surfStatLabel, { color: colors.textMuted }]}>{t('coreTabs.discover.waveHeight')}</Text>
                   <Text style={[styles.surfStat, { color: colors.textPrimary }]}>{surfData.spots[0].wave_period_s?.toFixed(0)}s</Text>
-                  <Text style={[styles.surfStatLabel, { color: colors.textMuted }]}>Periodo</Text>
+                  <Text style={[styles.surfStatLabel, { color: colors.textMuted }]}>{t('coreTabs.discover.wavePeriod')}</Text>
                   <Text style={[styles.surfStat, { color: colors.textPrimary }]}>{surfData.spots[0].wave_direction || '--'}</Text>
-                  <Text style={[styles.surfStatLabel, { color: colors.textMuted }]}>Dir.</Text>
+                  <Text style={[styles.surfStatLabel, { color: colors.textMuted }]}>{t('coreTabs.discover.waveDirection')}</Text>
                 </View>
                 <Text style={[styles.chipDetailMuted, { color: colors.textMuted }]}>Open-Meteo</Text>
               </View>
@@ -649,7 +651,7 @@ function DescobrerTab() {
             <View style={styles.sectionHeader}>
               <View style={styles.sectionTitleRow}>
                 <MaterialIcons name="auto-awesome" size={18} color={colors.accent} />
-                <Text style={[styles.sectionTitle, ds.textPrimary]}>POI do Dia</Text>
+                <Text style={[styles.sectionTitle, ds.textPrimary]}>{t('coreTabs.discover.poiOfDay')}</Text>
               </View>
               <Text style={[styles.seeAll, { color: colors.textMuted, fontSize: 11 }]}>{poiDoDia.category_label}</Text>
             </View>
@@ -658,7 +660,7 @@ function DescobrerTab() {
               onPress={() => router.push(`/heritage/${poiDoDia.poi.id}`)}
               activeOpacity={0.85}
               data-testid="poi-do-dia-card"
-              accessibilityLabel={`Ver detalhe de ${poiDoDia.poi.name}`}
+              accessibilityLabel={t('coreTabs.shared.viewDetails', { name: poiDoDia.poi.name })}
               accessibilityRole="button"
             >
               <SmartImage
@@ -672,7 +674,7 @@ function DescobrerTab() {
                 <View style={styles.poiDiaTop}>
                   <View style={[styles.poiDiaBadge, { backgroundColor: colors.premium + '18' }]}>
                     <MaterialIcons name="auto-awesome" size={12} color={colors.premium} />
-                    <Text style={[styles.poiDiaBadgeText, { color: colors.premium }]}>Destaque IQ</Text>
+                    <Text style={[styles.poiDiaBadgeText, { color: colors.premium }]}>{t('coreTabs.discover.iqHighlight')}</Text>
                   </View>
                   <View style={[styles.poiDiaScoreBadge, { backgroundColor: colors.primary + '15' }]}>
                     <Text style={[styles.poiDiaScoreVal, { color: colors.primary }]}>{poiDoDia.poi.iq_score}</Text>
@@ -698,9 +700,9 @@ function DescobrerTab() {
         {/* Regions */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
-            <Text style={[styles.sectionTitle, ds.textPrimary]}>Explorar por Região</Text>
-            <TouchableOpacity onPress={() => router.push('/(tabs)/mapa')} accessibilityLabel="Ver mapa" accessibilityRole="link">
-              <Text style={[styles.seeAll, { color: colors.accent }]}>Ver Mapa</Text>
+            <Text style={[styles.sectionTitle, ds.textPrimary]}>{t('coreTabs.discover.exploreByRegion')}</Text>
+            <TouchableOpacity onPress={() => router.push('/(tabs)/mapa')} accessibilityLabel={t('coreTabs.discover.viewMapA11y')} accessibilityRole="link">
+              <Text style={[styles.seeAll, { color: colors.accent }]}>{t('coreTabs.discover.viewMap')}</Text>
             </TouchableOpacity>
           </View>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.regionsRow}>
@@ -711,14 +713,14 @@ function DescobrerTab() {
                 onPress={() => router.push(`/(tabs)/mapa?region=${region.id}&t=${Date.now()}`)}
                 activeOpacity={0.9}
                 data-testid={`region-card-${region.id}`}
-                accessibilityLabel={`Explorar região ${region.name} no mapa`}
+                accessibilityLabel={t('coreTabs.discover.exploreRegionA11y', { name: region.name })}
                 accessibilityRole="button"
               >
                 <ImageBackground source={{ uri: region.image }} style={styles.regionImage} imageStyle={styles.regionImageStyle}>
                   <LinearGradient colors={['transparent', scrimPine(0.55)]} style={styles.regionGradient}>
                     <View style={styles.regionContent}>
                       <Text style={styles.regionName}>{region.name}</Text>
-                      <Text style={styles.regionSubtitle}>{region.subtitle}</Text>
+                      <Text style={styles.regionSubtitle}>{t(region.subtitleKey)}</Text>
                     </View>
                   </LinearGradient>
                 </ImageBackground>
@@ -733,10 +735,10 @@ function DescobrerTab() {
             <View style={styles.sectionHeader}>
               <View style={styles.sectionTitleRow}>
                 <MaterialIcons name="auto-awesome" size={18} color={colors.accent} />
-                <Text style={[styles.sectionTitle, ds.textPrimary]}>Enciclopedia Viva</Text>
+                <Text style={[styles.sectionTitle, ds.textPrimary]}>{t('coreTabs.discover.encyclopedia')}</Text>
               </View>
-              <TouchableOpacity onPress={() => router.push('/(tabs)/coleccoes')} accessibilityLabel="Ver toda a Enciclopédia Viva" accessibilityRole="link">
-                <Text style={[styles.seeAll, { color: colors.accent }]}>Ver Todos</Text>
+              <TouchableOpacity onPress={() => router.push('/(tabs)/coleccoes')} accessibilityLabel={t('coreTabs.discover.viewAllEncyclopedia')} accessibilityRole="link">
+                <Text style={[styles.seeAll, { color: colors.accent }]}>{t('coreTabs.discover.seeAll')}</Text>
               </TouchableOpacity>
             </View>
             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.universesRow}>
@@ -747,14 +749,14 @@ function DescobrerTab() {
                   onPress={() => router.push('/(tabs)/coleccoes')}
                   activeOpacity={0.8}
                   data-testid={`universe-card-${universe.id}`}
-                  accessibilityLabel={`Abrir universo ${universe.name}`}
+                  accessibilityLabel={t('coreTabs.shared.openUniverse', { name: universe.name })}
                   accessibilityRole="button"
                 >
                   <View style={[styles.universeIcon, { backgroundColor: universe.color || colors.primary }]}>
                     <MaterialIcons name={(universe.icon || 'place') as any} size={22} color="#FFF" />
                   </View>
                   <Text style={[styles.universeName, ds.textPrimary]} numberOfLines={2}>{universe.name}</Text>
-                  <Text style={[styles.universeCount, ds.textMuted]}>{universe.item_count} locais</Text>
+                  <Text style={[styles.universeCount, ds.textMuted]}>{t('coreTabs.units.places', { count: universe.item_count })}</Text>
                 </TouchableOpacity>
               ))}
             </ScrollView>
@@ -767,7 +769,7 @@ function DescobrerTab() {
           onPress={surprisePOI ? () => router.push(`/heritage/${surprisePOI.id}`) : handleSurprise}
           activeOpacity={0.85}
           data-testid="surprise-card"
-          accessibilityLabel={surprisePOI ? `Ver detalhe de ${surprisePOI.name}` : 'Surpreende-me com um lugar escondido'}
+          accessibilityLabel={surprisePOI ? t('coreTabs.shared.viewDetails', { name: surprisePOI.name }) : t('coreTabs.discover.surpriseA11y')}
           accessibilityRole="button"
         >
           {surpriseLoading ? (
@@ -782,7 +784,7 @@ function DescobrerTab() {
                 contentFit="cover"
               />
               <View style={{ flex: 1 }}>
-                <Text style={[{ fontSize: 11, fontWeight: '700', letterSpacing: 1, color: colors.accent, marginBottom: 2 }]}>LUGAR ESCONDIDO</Text>
+                <Text style={[{ fontSize: 11, fontWeight: '700', letterSpacing: 1, color: colors.accent, marginBottom: 2 }]}>{t('coreTabs.discover.hiddenPlace')}</Text>
                 <Text style={[styles.surpriseTitle, ds.textPrimary]} numberOfLines={1}>{surprisePOI.name}</Text>
                 <Text style={[{ fontSize: 12, color: colors.textMuted }]} numberOfLines={1}>{surprisePOI.region} · {surprisePOI.category}</Text>
               </View>
@@ -794,8 +796,8 @@ function DescobrerTab() {
                 <MaterialIcons name="shuffle" size={24} color={colors.accent} />
               </View>
               <View style={{ flex: 1 }}>
-                <Text style={[styles.surpriseTitle, ds.textPrimary]}>Surpreende-me</Text>
-                <Text style={[{ fontSize: 12, color: colors.textMuted }]}>Descobre um lugar escondido</Text>
+                <Text style={[styles.surpriseTitle, ds.textPrimary]}>{t('coreTabs.discover.surpriseMe')}</Text>
+                <Text style={[{ fontSize: 12, color: colors.textMuted }]}>{t('coreTabs.discover.surpriseSub')}</Text>
               </View>
               <MaterialIcons name="arrow-forward-ios" size={14} color={colors.textMuted} />
             </>
@@ -808,9 +810,9 @@ function DescobrerTab() {
             <View style={styles.sectionHeader}>
               <View style={styles.sectionTitleRow}>
                 <MaterialIcons name="trending-up" size={18} color={colors.success} />
-                <Text style={[styles.sectionTitle, ds.textPrimary]}>Em Tendencia</Text>
+                <Text style={[styles.sectionTitle, ds.textPrimary]}>{t('coreTabs.discover.trending')}</Text>
               </View>
-              <Text style={[styles.sectionPeriod, ds.textMuted]}>7 dias</Text>
+              <Text style={[styles.sectionPeriod, ds.textMuted]}>{t('coreTabs.discover.last7Days')}</Text>
             </View>
             <View style={styles.trendingList}>
               {trendingData.items.slice(0, 5).map((item: TrendingItem, index: number) => (
@@ -820,7 +822,7 @@ function DescobrerTab() {
                   onPress={() => router.push(`/heritage/${item.id}`)}
                   activeOpacity={0.8}
                   data-testid={`trending-card-${item.id}`}
-                  accessibilityLabel={`Ver detalhe de ${item.name}`}
+                  accessibilityLabel={t('coreTabs.shared.viewDetails', { name: item.name })}
                   accessibilityRole="button"
                 >
                   <View style={[styles.trendingRank, { backgroundColor: colors.primary + '15' }]}>
@@ -831,7 +833,7 @@ function DescobrerTab() {
                     <Text style={[styles.trendingTitle, ds.textPrimary]} numberOfLines={2}>{item.name}</Text>
                     <View style={styles.trendingMeta}>
                       <MaterialIcons name="trending-up" size={14} color={colors.success} />
-                      <Text style={{ fontSize: 12, color: colors.success }}>{item.trending_score} visitas</Text>
+                      <Text style={{ fontSize: 12, color: colors.success }}>{t('coreTabs.units.visits', { count: item.trending_score })}</Text>
                     </View>
                   </View>
                 </TouchableOpacity>
@@ -849,11 +851,11 @@ function DescobrerTab() {
             contentContainerStyle={styles.categoryTabsContent}
           >
             {[
-              { id: 'todos', label: 'Para Ti', icon: 'person' },
-              { id: 'nearby', label: 'Próximo', icon: 'near-me' },
-              { id: 'stories', label: 'Histórias', icon: 'auto-stories' },
-              { id: 'trails', label: 'Trilhos', icon: 'directions-walk' },
-              { id: 'events', label: 'Eventos', icon: 'event' },
+              { id: 'todos', label: t('coreTabs.discover.feedTabs.forYou'), icon: 'person' },
+              { id: 'nearby', label: t('coreTabs.discover.feedTabs.nearby'), icon: 'near-me' },
+              { id: 'stories', label: t('coreTabs.discover.feedTabs.stories'), icon: 'auto-stories' },
+              { id: 'trails', label: t('coreTabs.discover.feedTabs.trails'), icon: 'directions-walk' },
+              { id: 'events', label: t('coreTabs.discover.feedTabs.events'), icon: 'event' },
             ].map((cat) => (
               <TouchableOpacity
                 key={cat.id}
@@ -862,7 +864,7 @@ function DescobrerTab() {
                   { backgroundColor: activeCategory === cat.id ? colors.accent : colors.surface, borderColor: activeCategory === cat.id ? colors.accent : colors.borderLight },
                 ]}
                 onPress={() => { setActiveCategory(cat.id); setFeedPage(1); }}
-                accessibilityLabel={`Filtrar feed por ${cat.label}`}
+                accessibilityLabel={t('coreTabs.discover.filterFeedBy', { name: cat.label })}
                 accessibilityRole="tab"
                 accessibilityState={{ selected: activeCategory === cat.id }}
               >
@@ -879,7 +881,7 @@ function DescobrerTab() {
             <View style={styles.sectionHeader}>
               <View style={styles.sectionTitleRow}>
                 <MaterialIcons name="person" size={18} color={colors.accent} />
-                <Text style={[styles.sectionTitle, ds.textPrimary]}>Para Si</Text>
+                <Text style={[styles.sectionTitle, ds.textPrimary]}>{t('coreTabs.discover.forYou')}</Text>
               </View>
             </View>
             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.horizontalScroll}>
@@ -890,7 +892,7 @@ function DescobrerTab() {
                   onPress={() => router.push(`/heritage/${item.content_id}`)}
                   activeOpacity={0.8}
                   data-testid={`discovery-card-${item.content_id}`}
-                  accessibilityLabel={`Ver detalhe de ${item.content_data.name}`}
+                  accessibilityLabel={t('coreTabs.shared.viewDetails', { name: item.content_data.name })}
                   accessibilityRole="button"
                 >
                   <SmartImage uri={item.content_data.image_url} name={item.content_data.name} style={styles.discoveryImage} contentFit="cover" />
@@ -908,10 +910,10 @@ function DescobrerTab() {
               <TouchableOpacity
                 style={[styles.loadMoreBtn, { borderColor: colors.borderLight }]}
                 onPress={() => setFeedPage(p => p + 1)}
-                accessibilityLabel="Carregar mais sugestões"
+                accessibilityLabel={t('coreTabs.discover.loadMoreA11y')}
                 accessibilityRole="button"
               >
-                <Text style={[styles.loadMoreText, { color: colors.accent }]}>Carregar mais</Text>
+                <Text style={[styles.loadMoreText, { color: colors.accent }]}>{t('coreTabs.discover.loadMore')}</Text>
                 <MaterialIcons name="expand-more" size={18} color={colors.accent} />
               </TouchableOpacity>
             )}
@@ -924,10 +926,10 @@ function DescobrerTab() {
             <View style={styles.sectionHeader}>
               <View style={styles.sectionTitleRow}>
                 <MaterialIcons name="auto-stories" size={18} color={colors.accent} />
-                <Text style={[styles.sectionTitle, ds.textPrimary]}>Micro-histórias</Text>
+                <Text style={[styles.sectionTitle, ds.textPrimary]}>{t('coreTabs.discover.microStories')}</Text>
               </View>
-              <TouchableOpacity onPress={() => router.push('/search')} accessibilityLabel="Ver mais micro-histórias" accessibilityRole="link">
-                <Text style={[styles.sectionLink, { color: colors.accent }]}>Ver mais</Text>
+              <TouchableOpacity onPress={() => router.push('/search')} accessibilityLabel={t('coreTabs.discover.moreMicroStoriesA11y')} accessibilityRole="link">
+                <Text style={[styles.sectionLink, { color: colors.accent }]}>{t('common.seeMore')}</Text>
               </TouchableOpacity>
             </View>
             {microStoriesData.stories.map((story: MicroStory) => (
@@ -946,7 +948,7 @@ function DescobrerTab() {
           <View style={styles.sectionHeader}>
             <View style={styles.sectionTitleRow}>
               <MaterialIcons name="history-edu" size={18} color={colors.accent} />
-              <Text style={[styles.sectionTitle, ds.textPrimary]}>Linha do Tempo</Text>
+              <Text style={[styles.sectionTitle, ds.textPrimary]}>{t('coreTabs.discover.timeline')}</Text>
             </View>
           </View>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.horizontalScroll}>
@@ -960,7 +962,7 @@ function DescobrerTab() {
                 key={r.id}
                 style={[styles.timelineChip, { backgroundColor: colors.surface, borderColor: colors.borderLight }]}
                 onPress={() => router.push(`/timeline/${r.id}`)}
-                accessibilityLabel={`Ver linha do tempo de ${r.label}`}
+                accessibilityLabel={t('coreTabs.discover.timelineA11y', { name: r.label })}
                 accessibilityRole="button"
               >
                 <Text style={styles.timelineEmoji}>{r.emoji}</Text>
@@ -978,43 +980,43 @@ function DescobrerTab() {
           <View style={styles.sectionHeader}>
             <View style={styles.sectionTitleRow}>
               <MaterialIcons name="auto-awesome-mosaic" size={18} color={colors.accent} />
-              <Text style={[styles.sectionTitle, ds.textPrimary]}>Explorar em Profundidade</Text>
+              <Text style={[styles.sectionTitle, ds.textPrimary]}>{t('coreTabs.discover.deepDive.title')}</Text>
             </View>
           </View>
           {[
             {
-              title: 'Mar & Costa',
-              subtitle: 'Zonas costeiras, biodiversidade marinha e cultura do mar',
+              title: t('coreTabs.discover.deepDive.sea'),
+              subtitle: t('coreTabs.discover.deepDive.seaSub'),
               icon: 'sailing' as const,
               color: palette.ocean[500],
               modules: [
-                { name: 'Costa de Portugal', route: '/costa', icon: 'waves' as const, count: '10 zonas' },
-                { name: 'Biodiversidade Marinha', route: '/biodiversidade', icon: 'water' as const, count: '10 spots' },
-                { name: 'Cultura Marítima', route: '/cultura-maritima', icon: 'anchor' as const, count: '14 tradições' },
+                { name: t('coreTabs.discover.deepDive.modules.coast'), route: '/costa', icon: 'waves' as const, count: t('coreTabs.units.zones', { count: 10 }) },
+                { name: t('coreTabs.discover.deepDive.modules.marine'), route: '/biodiversidade', icon: 'water' as const, count: t('coreTabs.units.spots', { count: 10 }) },
+                { name: t('coreTabs.discover.deepDive.modules.maritime'), route: '/cultura-maritima', icon: 'anchor' as const, count: t('coreTabs.units.traditions', { count: 14 }) },
               ],
             },
             {
-              title: 'Natureza Viva',
-              subtitle: 'Flora endémica, fauna e infraestruturas naturais',
+              title: t('coreTabs.discover.deepDive.nature'),
+              subtitle: t('coreTabs.discover.deepDive.natureSub'),
               icon: 'eco' as const,
               color: palette.forest[500],
               modules: [
-                { name: 'Flora Endémica', route: '/flora', icon: 'local-florist' as const, count: '8 espécies' },
-                { name: 'Fauna & Habitats', route: '/fauna', icon: 'pets' as const, count: '8 espécies' },
-                { name: 'Infraestrutura Natural', route: '/infraestrutura', icon: 'terrain' as const, count: '14 locais' },
+                { name: t('coreTabs.discover.deepDive.modules.flora'), route: '/flora', icon: 'local-florist' as const, count: t('coreTabs.units.species', { count: 8 }) },
+                { name: t('coreTabs.discover.deepDive.modules.fauna'), route: '/fauna', icon: 'pets' as const, count: t('coreTabs.units.species', { count: 8 }) },
+                { name: t('coreTabs.discover.deepDive.modules.infrastructure'), route: '/infraestrutura', icon: 'terrain' as const, count: t('coreTabs.units.places', { count: 14 }) },
               ],
             },
             {
-              title: 'Património & Cultura',
-              subtitle: 'Música, pré-história, astronomia e economia local',
+              title: t('coreTabs.discover.deepDive.heritage'),
+              subtitle: t('coreTabs.discover.deepDive.heritageSub'),
               icon: 'account-balance' as const,
               color: palette.terracotta[600],
               modules: [
-                { name: 'Rotas Culturais', route: '/rotas-culturais', icon: 'auto-awesome' as const, count: '22 rotas' },
-                { name: 'Música Tradicional', route: '/musica', icon: 'music-note' as const, count: '14 tradições' },
-                { name: 'Pré-História & Astronomia', route: '/prehistoria', icon: 'public' as const, count: '12 sítios' },
-                { name: 'Economia Local', route: '/economia', icon: 'storefront' as const, count: '5 mercados' },
-                { name: 'Atlas Gastronómico', route: '/gastronomia', icon: 'restaurant' as const, count: '14 pratos' },
+                { name: t('coreTabs.discover.deepDive.modules.culturalRoutes'), route: '/rotas-culturais', icon: 'auto-awesome' as const, count: t('coreTabs.units.routes', { count: 22 }) },
+                { name: t('coreTabs.discover.deepDive.modules.music'), route: '/musica', icon: 'music-note' as const, count: t('coreTabs.units.traditions', { count: 14 }) },
+                { name: t('coreTabs.discover.deepDive.modules.prehistory'), route: '/prehistoria', icon: 'public' as const, count: t('coreTabs.units.sites', { count: 12 }) },
+                { name: t('coreTabs.discover.deepDive.modules.economy'), route: '/economia', icon: 'storefront' as const, count: t('coreTabs.units.markets', { count: 5 }) },
+                { name: t('coreTabs.discover.deepDive.modules.gastronomy'), route: '/gastronomia', icon: 'restaurant' as const, count: t('coreTabs.units.dishes', { count: 14 }) },
               ],
             },
           ].map((group) => (
@@ -1060,7 +1062,7 @@ function DescobrerTab() {
                       backgroundColor: mi % 2 === 0 ? (isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.02)') : 'transparent',
                     }}
                     onPress={() => router.push(mod.route)}
-                    accessibilityLabel={`Abrir ${mod.name}`}
+                    accessibilityLabel={t('coreTabs.shared.open', { name: mod.name })}
                     accessibilityRole="button"
                   >
                     <View style={{
@@ -1086,16 +1088,16 @@ function DescobrerTab() {
         <TouchableOpacity
           style={[styles.toolkitBanner, { backgroundColor: colors.surface, borderColor: colors.borderLight }]}
           onPress={() => router.push('/content-toolkit')}
-          accessibilityLabel="Abrir Toolkit IA para Agentes Culturais"
+          accessibilityLabel={t('coreTabs.discover.toolkitA11y')}
           accessibilityRole="button"
         >
           <View style={[styles.toolkitIcon, { backgroundColor: (colors.primary || '#4A6741') + '18' }]}>
             <MaterialIcons name="auto-awesome" size={22} color={colors.primary || '#4A6741'} />
           </View>
           <View style={{ flex: 1 }}>
-            <Text style={[styles.toolkitTitle, ds.textPrimary]}>Toolkit IA para Agentes Culturais</Text>
+            <Text style={[styles.toolkitTitle, ds.textPrimary]}>{t('coreTabs.discover.toolkitTitle')}</Text>
             <Text style={[styles.toolkitSub, ds.textSecondary]}>
-              Cria e enriquece conteúdo cultural com IA
+              {t('coreTabs.discover.toolkitSub')}
             </Text>
           </View>
           <MaterialIcons name="arrow-forward-ios" size={14} color={colors.textMuted} />
@@ -1109,16 +1111,16 @@ function DescobrerTab() {
             <View style={[styles.emptyIcon, { backgroundColor: colors.primary + '15' }]}>
               <MaterialIcons name="explore" size={48} color={colors.primary} />
             </View>
-            <Text style={[styles.emptyTitle, ds.textPrimary]}>Comece a Explorar</Text>
-            <Text style={[styles.emptySubtitle, ds.textMuted]}>Visite locais para receber recomendacoes personalizadas</Text>
+            <Text style={[styles.emptyTitle, ds.textPrimary]}>{t('coreTabs.discover.emptyTitle')}</Text>
+            <Text style={[styles.emptySubtitle, ds.textMuted]}>{t('coreTabs.discover.emptySub')}</Text>
             <TouchableOpacity
               style={[styles.exploreButton, { backgroundColor: colors.accent }]}
               onPress={() => router.push('/(tabs)/mapa')}
               data-testid="explore-button"
-              accessibilityLabel="Ver mapa"
+              accessibilityLabel={t('coreTabs.discover.viewMapA11y')}
               accessibilityRole="button"
             >
-              <Text style={styles.exploreButtonText}>Ver Mapa</Text>
+              <Text style={styles.exploreButtonText}>{t('coreTabs.discover.viewMap')}</Text>
               <MaterialIcons name="arrow-forward" size={18} color="#FFFFFF" />
             </TouchableOpacity>
           </View>

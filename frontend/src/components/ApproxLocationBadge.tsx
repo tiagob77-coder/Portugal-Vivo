@@ -15,6 +15,7 @@
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 
 import { palette } from '../theme';
 
@@ -29,18 +30,19 @@ export interface ApproxLocationBadgeProps {
   compact?: boolean;
 }
 
+// i18n keys (empty = no label); translated at render time.
 const LABELS: Record<CoordPrecision, string> = {
   precise: '',
-  municipality: 'localização aprox. (concelho)',
-  district: 'localização aprox. (distrito)',
-  region: 'localização aprox. (região)',
+  municipality: 'components.approxLocationBadge.municipality',
+  district: 'components.approxLocationBadge.district',
+  region: 'components.approxLocationBadge.region',
 };
 
 const COMPACT_LABELS: Record<CoordPrecision, string> = {
   precise: '',
-  municipality: 'aprox. concelho',
-  district: 'aprox. distrito',
-  region: 'aprox. região',
+  municipality: 'components.approxLocationBadge.compactMunicipality',
+  district: 'components.approxLocationBadge.compactDistrict',
+  region: 'components.approxLocationBadge.compactRegion',
 };
 
 /** Returns true when this POI deserves the badge. Pure for unit-testing. */
@@ -59,13 +61,15 @@ export default function ApproxLocationBadge({
   approximate,
   compact = false,
 }: ApproxLocationBadgeProps) {
+  const { t } = useTranslation();
   if (!shouldShowApprox(precision, approximate)) return null;
 
   const labels = compact ? COMPACT_LABELS : LABELS;
+  const labelKey = precision ? labels[precision as CoordPrecision] : undefined;
   // Fallback label when approximate=true but precision is missing/unknown.
   const text =
-    (precision && labels[precision as CoordPrecision]) ||
-    (compact ? 'localização aprox.' : 'localização aproximada');
+    (labelKey ? t(labelKey) : '') ||
+    (compact ? t('components.approxLocationBadge.fallbackCompact') : t('components.approxLocationBadge.fallback'));
 
   return (
     <View

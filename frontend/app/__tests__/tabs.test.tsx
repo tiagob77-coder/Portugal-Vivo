@@ -3,7 +3,8 @@
  * Verifies each screen renders without crashing.
  */
 import React from 'react';
-import { render } from '@testing-library/react-native';
+import { act, render } from '@testing-library/react-native';
+import i18n from 'i18next';
 
 // ─── expo-router ──────────────────────────────────────────────────────────────
 jest.mock('expo-router', () => ({
@@ -217,12 +218,8 @@ jest.mock('expo-location', () => ({
   Accuracy: { High: 3, Balanced: 2 },
 }));
 
-jest.mock('react-i18next', () => ({
-  useTranslation: () => ({
-    t: (key: string) => key,
-    i18n: { language: 'pt', changeLanguage: jest.fn() },
-  }),
-}));
+// react-i18next is NOT mocked: jest.setup.js initialises the real i18n in
+// Portuguese, so the screens render their original copy.
 
 jest.mock('../../src/i18n', () => ({
   LANGUAGES: [{ code: 'pt', name: 'Português', flag: '🇵🇹' }],
@@ -283,6 +280,20 @@ jest.mock('../../src/components/ImageUpload', () => ({
 }));
 
 // ─── Tests ────────────────────────────────────────────────────────────────────
+
+describe('Tab Screens — English UI', () => {
+  afterEach(async () => {
+    await act(() => i18n.changeLanguage('pt')); // eslint-disable-line import/no-named-as-default-member
+  });
+
+  it('(tabs)/index renders its English copy', async () => {
+    const ExploreScreen = require('../(tabs)/index').default;
+    await act(() => i18n.changeLanguage('en')); // eslint-disable-line import/no-named-as-default-member
+    const { getByText, getByPlaceholderText } = render(<ExploreScreen />);
+    expect(getByText('Discover the best of Portugal')).toBeTruthy();
+    expect(getByPlaceholderText('Search legends, festivals, places...')).toBeTruthy();
+  });
+});
 
 describe('Tab Screens — smoke tests', () => {
   it('(tabs)/index renders without crashing', () => {

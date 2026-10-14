@@ -11,6 +11,8 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { API_URL } from '../config/api';
 import ImageUpload from './ImageUpload';
 import { palette } from '../theme/colors';
+import { useTranslation } from 'react-i18next';
+import { currentLocale } from '../i18n/format';
 
 interface Review {
   id: string;
@@ -108,9 +110,10 @@ function RatingBar({ label, count, total, color }: { label: string; count: numbe
 }
 
 function ReviewCard({ review, onHelpful, token }: { review: Review; onHelpful: () => void; token?: string }) {
+  const { t } = useTranslation();
   const formatDate = (dateStr: string) => {
     const date = new Date(dateStr);
-    return date.toLocaleDateString('pt-PT', { day: 'numeric', month: 'short', year: 'numeric' });
+    return date.toLocaleDateString(currentLocale(), { day: 'numeric', month: 'short', year: 'numeric' });
   };
 
   return (
@@ -142,13 +145,13 @@ function ReviewCard({ review, onHelpful, token }: { review: Review; onHelpful: (
       {review.visit_date && (
         <View style={styles.visitDateRow}>
           <MaterialIcons name="event" size={12} color="#64748B" />
-          <Text style={styles.visitDateText}>Visitou em {review.visit_date}</Text>
+          <Text style={styles.visitDateText}>{t('widgets.reviews.visitedOn', { date: review.visit_date })}</Text>
         </View>
       )}
       
       <TouchableOpacity style={styles.helpfulButton} onPress={onHelpful} disabled={!token}>
         <MaterialIcons name="thumb-up" size={14} color="#64748B" />
-        <Text style={styles.helpfulText}>Útil ({review.helpful_votes})</Text>
+        <Text style={styles.helpfulText}>{t('widgets.reviews.helpful', { votes: review.helpful_votes })}</Text>
       </TouchableOpacity>
     </View>
   );
@@ -156,6 +159,7 @@ function ReviewCard({ review, onHelpful, token }: { review: Review; onHelpful: (
 
 export function ReviewsSection({ itemId, authToken, onLoginRequired }: ReviewsSectionProps) {
   const queryClient = useQueryClient();
+  const { t } = useTranslation();
   const [showForm, setShowForm] = useState(false);
   const [newRating, setNewRating] = useState(0);
   const [newTitle, setNewTitle] = useState('');
@@ -185,10 +189,10 @@ export function ReviewsSection({ itemId, authToken, onLoginRequired }: ReviewsSe
       setNewTitle('');
       setNewText('');
       setImageUrl(null);
-      Alert.alert('Sucesso', 'A sua avaliação foi publicada!');
+      Alert.alert(t('widgets.reviews.successTitle'), t('widgets.reviews.successMessage'));
     },
     onError: (error: Error) => {
-      Alert.alert('Erro', error.message);
+      Alert.alert(t('widgets.reviews.errorTitle'), error.message);
     },
   });
 
@@ -198,7 +202,7 @@ export function ReviewsSection({ itemId, authToken, onLoginRequired }: ReviewsSe
       return;
     }
     if (newRating === 0) {
-      Alert.alert('Avaliação necessária', 'Por favor selecione uma classificação de 1 a 5 estrelas.');
+      Alert.alert(t('widgets.reviews.ratingRequiredTitle'), t('widgets.reviews.ratingRequiredMessage'));
       return;
     }
     submitMutation.mutate({
@@ -241,7 +245,7 @@ export function ReviewsSection({ itemId, authToken, onLoginRequired }: ReviewsSe
         <View style={styles.summaryLeft}>
           <Text style={styles.averageRating}>{summary?.average_rating.toFixed(1) || '0.0'}</Text>
           <StarRating rating={summary?.average_rating || 0} size={20} />
-          <Text style={styles.totalReviews}>{summary?.total_reviews || 0} avaliações</Text>
+          <Text style={styles.totalReviews}>{t('widgets.reviews.totalReviews', { count: summary?.total_reviews || 0 })}</Text>
         </View>
         
         <View style={styles.summaryRight}>
@@ -261,26 +265,26 @@ export function ReviewsSection({ itemId, authToken, onLoginRequired }: ReviewsSe
           data-testid="write-review-btn"
         >
           <MaterialIcons name="rate-review" size={20} color="#FFF" />
-          <Text style={styles.writeReviewText}>Escrever Avaliação</Text>
+          <Text style={styles.writeReviewText}>{t('widgets.reviews.writeReview')}</Text>
         </TouchableOpacity>
       ) : (
         <View style={styles.formContainer}>
-          <Text style={styles.formLabel}>A sua classificação</Text>
+          <Text style={styles.formLabel}>{t('widgets.reviews.yourRating')}</Text>
           <StarRating rating={newRating} size={32} interactive onRate={setNewRating} />
           
-          <Text style={styles.formLabel}>Título (opcional)</Text>
+          <Text style={styles.formLabel}>{t('widgets.reviews.titleOptional')}</Text>
           <TextInput
             style={styles.input}
-            placeholder="Ex: Experiência incrível!"
+            placeholder={t('widgets.reviews.titlePlaceholder')}
             placeholderTextColor="#64748B"
             value={newTitle}
             onChangeText={setNewTitle}
           />
           
-          <Text style={styles.formLabel}>A sua avaliação</Text>
+          <Text style={styles.formLabel}>{t('widgets.reviews.yourReview')}</Text>
           <TextInput
             style={[styles.input, styles.textArea]}
-            placeholder="Partilhe a sua experiência..."
+            placeholder={t('widgets.reviews.reviewPlaceholder')}
             placeholderTextColor="#64748B"
             value={newText}
             onChangeText={setNewText}
@@ -288,7 +292,7 @@ export function ReviewsSection({ itemId, authToken, onLoginRequired }: ReviewsSe
             numberOfLines={4}
           />
 
-          <Text style={styles.formLabel}>Foto (opcional)</Text>
+          <Text style={styles.formLabel}>{t('widgets.reviews.photoOptional')}</Text>
           {authToken && (
             <ImageUpload
               token={authToken}
@@ -300,7 +304,7 @@ export function ReviewsSection({ itemId, authToken, onLoginRequired }: ReviewsSe
 
           <View style={styles.formButtons}>
             <TouchableOpacity style={styles.cancelButton} onPress={() => setShowForm(false)}>
-              <Text style={styles.cancelButtonText}>Cancelar</Text>
+              <Text style={styles.cancelButtonText}>{t('common.cancel')}</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={[styles.submitButton, submitMutation.isPending && styles.submitButtonDisabled]}
@@ -310,7 +314,7 @@ export function ReviewsSection({ itemId, authToken, onLoginRequired }: ReviewsSe
               {submitMutation.isPending ? (
                 <ActivityIndicator size="small" color="#FFF" />
               ) : (
-                <Text style={styles.submitButtonText}>Publicar</Text>
+                <Text style={styles.submitButtonText}>{t('widgets.reviews.publish')}</Text>
               )}
             </TouchableOpacity>
           </View>
@@ -319,7 +323,7 @@ export function ReviewsSection({ itemId, authToken, onLoginRequired }: ReviewsSe
 
       {/* Reviews List */}
       <View style={styles.reviewsList}>
-        <Text style={styles.reviewsListTitle}>Avaliações Recentes</Text>
+        <Text style={styles.reviewsListTitle}>{t('widgets.reviews.recent')}</Text>
         {reviews && reviews.length > 0 ? (
           reviews.map((review) => (
             <ReviewCard
@@ -332,7 +336,7 @@ export function ReviewsSection({ itemId, authToken, onLoginRequired }: ReviewsSe
         ) : (
           <View style={styles.emptyState}>
             <MaterialIcons name="rate-review" size={48} color="#374151" />
-            <Text style={styles.emptyText}>Seja o primeiro a avaliar!</Text>
+            <Text style={styles.emptyText}>{t('widgets.reviews.empty')}</Text>
           </View>
         )}
       </View>

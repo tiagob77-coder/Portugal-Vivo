@@ -9,6 +9,7 @@ import { useRouter, useLocalSearchParams } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useQuery } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
 import { SearchBar } from '../src/components/SearchBar';
 import AnimatedListItem from '../src/components/AnimatedListItem';
 import SkeletonCard from '../src/components/SkeletonCard';
@@ -34,20 +35,20 @@ interface SearchResult {
 }
 
 const REGIONS = [
-  { id: 'norte', name: 'Norte' },
-  { id: 'centro', name: 'Centro' },
-  { id: 'lisboa', name: 'Lisboa' },
-  { id: 'alentejo', name: 'Alentejo' },
-  { id: 'algarve', name: 'Algarve' },
-  { id: 'acores', name: 'Açores' },
-  { id: 'madeira', name: 'Madeira' },
+  { id: 'norte', labelKey: 'exploreScreens.regions.norte' },
+  { id: 'centro', labelKey: 'exploreScreens.regions.centro' },
+  { id: 'lisboa', labelKey: 'exploreScreens.regions.lisboa' },
+  { id: 'alentejo', labelKey: 'exploreScreens.regions.alentejo' },
+  { id: 'algarve', labelKey: 'exploreScreens.regions.algarve' },
+  { id: 'acores', labelKey: 'exploreScreens.regions.acores' },
+  { id: 'madeira', labelKey: 'exploreScreens.regions.madeira' },
 ];
 
-const GROUP_LABELS: Record<string, { label: string; icon: string }> = {
-  poi: { label: 'Pontos de Interesse', icon: 'place' },
-  route: { label: 'Rotas', icon: 'route' },
-  event: { label: 'Eventos', icon: 'event' },
-  article: { label: 'Artigos', icon: 'article' },
+const GROUP_LABELS: Record<string, { labelKey: string; icon: string }> = {
+  poi: { labelKey: 'exploreScreens.search.groups.poi', icon: 'place' },
+  route: { labelKey: 'exploreScreens.search.groups.route', icon: 'route' },
+  event: { labelKey: 'exploreScreens.search.groups.event', icon: 'event' },
+  article: { labelKey: 'exploreScreens.search.groups.article', icon: 'article' },
 };
 
 const search = async (query: string, regions?: string[]) => {
@@ -115,6 +116,7 @@ function makeStyles(C: Record<string, string>) {
 }
 
 export default function SearchPage() {
+  const { t } = useTranslation();
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const params = useLocalSearchParams<{ q?: string }>();
@@ -169,7 +171,7 @@ export default function SearchPage() {
         </TouchableOpacity>
         <View style={{ flex: 1 }}>
           <SearchBar
-            placeholder="Pesquisar património..."
+            placeholder={t('exploreScreens.search.placeholder')}
             onSearch={setSearchQuery}
             autoFocus={!params.q}
             initialQuery={searchQuery}
@@ -186,7 +188,7 @@ export default function SearchPage() {
             onPress={() => toggleRegion(r.id)}
           >
             <Text style={[styles.regionChipText, selectedRegions.includes(r.id) && styles.regionChipTextActive]}>
-              {r.name}
+              {t(r.labelKey)}
             </Text>
           </TouchableOpacity>
         ))}
@@ -206,20 +208,23 @@ export default function SearchPage() {
         ) : searchQuery.length >= 2 && searchData ? (
           <>
             <Text style={styles.resultsSummary}>
-              {totalResults} resultado{totalResults !== 1 ? 's' : ''} para &ldquo;{searchData.query}&rdquo;
+              {totalResults === 1
+                ? t('exploreScreens.search.resultsOne', { count: totalResults, query: searchData.query })
+                : t('exploreScreens.search.resultsMany', { count: totalResults, query: searchData.query })}
             </Text>
 
             {totalResults === 0 ? (
               <EmptyState
                 icon="search-off"
-                title="Sem resultados"
-                subtitle="Tente pesquisar com outros termos ou remova os filtros de região"
-                actionLabel={selectedRegions.length > 0 ? "Limpar filtros" : undefined}
+                title={t('exploreScreens.search.noResults')}
+                subtitle={t('exploreScreens.search.emptySubtitle')}
+                actionLabel={selectedRegions.length > 0 ? t('exploreScreens.search.clearFilters') : undefined}
                 onAction={selectedRegions.length > 0 ? () => setSelectedRegions([]) : undefined}
               />
             ) : (
               Object.entries(grouped).map(([type, items]) => {
-                const info = GROUP_LABELS[type] || { label: type, icon: 'folder' };
+                const group = GROUP_LABELS[type];
+                const info = { label: group ? t(group.labelKey) : type, icon: group?.icon || 'folder' };
                 return (
                   <View key={type} style={styles.group}>
                     <View style={styles.groupHeader}>
@@ -271,7 +276,7 @@ export default function SearchPage() {
           </>
         ) : (
           <>
-            <Text style={styles.sectionTitle}>Pesquisas Populares</Text>
+            <Text style={styles.sectionTitle}>{t('exploreScreens.search.popularSearches')}</Text>
             <View style={styles.chipsWrap}>
               {(popularData?.suggested_searches || ['Cascatas', 'Termas', 'Gastronomia', 'Piscinas', 'Lendas']).map((term: string) => (
                 <TouchableOpacity key={term} style={styles.popularChip} onPress={() => setSearchQuery(term)}>

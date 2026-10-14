@@ -22,6 +22,7 @@ import { useRouter, useLocalSearchParams } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useQuery } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
 import { LinearGradient } from 'expo-linear-gradient';
 import api from '../../src/services/api';
 import * as DocumentPicker from 'expo-document-picker';
@@ -50,12 +51,12 @@ import { useResponsive } from '../../src/hooks/useResponsive';
 
 // Map layers based on strategic report
 const MAP_LAYERS = [
-  { id: 'territorio_natureza', name: 'Natureza', icon: 'terrain', color: '#3F6F4A' },
-  { id: 'historia_patrimonio', name: 'Património', icon: 'account-balance', color: '#C49A6C' },
-  { id: 'gastronomia_produtos', name: 'Gastronomia', icon: 'restaurant', color: '#EF4444' },
-  { id: 'cultura_viva', name: 'Cultura & Eventos', icon: 'event', color: '#8B5CF6' },
-  { id: 'praias_mar', name: 'Praias & Mar', icon: 'beach-access', color: '#06B6D4' },
-  { id: 'experiencias_rotas', name: 'Experiências', icon: 'hiking', color: '#84CC16' },
+  { id: 'territorio_natureza', icon: 'terrain', color: '#3F6F4A' },
+  { id: 'historia_patrimonio', icon: 'account-balance', color: '#C49A6C' },
+  { id: 'gastronomia_produtos', icon: 'restaurant', color: '#EF4444' },
+  { id: 'cultura_viva', icon: 'event', color: '#8B5CF6' },
+  { id: 'praias_mar', icon: 'beach-access', color: '#06B6D4' },
+  { id: 'experiencias_rotas', icon: 'hiking', color: '#84CC16' },
 ];
 
 // Subcategory taxonomy — kept aligned with backend shared_constants.py
@@ -63,72 +64,72 @@ const MAP_LAYERS = [
 // `coming_soon` flag: those leaves have no POI data yet, so they render
 // disabled and are excluded from the default-active set (see
 // getLayerSubcategories) to avoid empty map queries.
-const SUBCATEGORIES: Record<string, { id: string; name: string; icon: string; comingSoon?: boolean }[]> = {
+const SUBCATEGORIES: Record<string, { id: string; icon: string; comingSoon?: boolean }[]> = {
   territorio_natureza: [
-    { id: 'percursos_pedestres', name: 'Percursos Pedestres', icon: 'hiking' },
-    { id: 'aventura_natureza', name: 'Aventura e Natureza', icon: 'terrain' },
-    { id: 'natureza_especializada', name: 'Natureza Especializada', icon: 'eco' },
-    { id: 'fauna_autoctone', name: 'Fauna Autóctone', icon: 'pets' },
-    { id: 'flora_autoctone', name: 'Flora Autóctone', icon: 'local-florist' },
-    { id: 'flora_botanica', name: 'Flora Botânica', icon: 'park' },
-    { id: 'biodiversidade_avistamentos', name: 'Biodiversidade', icon: 'visibility' },
-    { id: 'miradouros', name: 'Miradouros', icon: 'panorama' },
-    { id: 'barragens_albufeiras', name: 'Barragens e Albufeiras', icon: 'water' },
-    { id: 'cascatas_pocos', name: 'Cascatas e Poços', icon: 'waves' },
-    { id: 'praias_fluviais', name: 'Praias Fluviais', icon: 'pool' },
-    { id: 'arqueologia_geologia', name: 'Arqueologia e Geologia', icon: 'diamond' },
-    { id: 'moinhos_azenhas', name: 'Moinhos e Azenhas', icon: 'settings' },
-    { id: 'ecovias_passadicos', name: 'Ecovias e Passadiços', icon: 'directions-walk' },
+    { id: 'percursos_pedestres', icon: 'hiking' },
+    { id: 'aventura_natureza', icon: 'terrain' },
+    { id: 'natureza_especializada', icon: 'eco' },
+    { id: 'fauna_autoctone', icon: 'pets' },
+    { id: 'flora_autoctone', icon: 'local-florist' },
+    { id: 'flora_botanica', icon: 'park' },
+    { id: 'biodiversidade_avistamentos', icon: 'visibility' },
+    { id: 'miradouros', icon: 'panorama' },
+    { id: 'barragens_albufeiras', icon: 'water' },
+    { id: 'cascatas_pocos', icon: 'waves' },
+    { id: 'praias_fluviais', icon: 'pool' },
+    { id: 'arqueologia_geologia', icon: 'diamond' },
+    { id: 'moinhos_azenhas', icon: 'settings' },
+    { id: 'ecovias_passadicos', icon: 'directions-walk' },
   ],
   historia_patrimonio: [
-    { id: 'castelos', name: 'Castelos', icon: 'fort' },
-    { id: 'palacios_solares', name: 'Palácios e Solares', icon: 'villa' },
-    { id: 'museus', name: 'Museus', icon: 'museum' },
-    { id: 'oficios_artesanato', name: 'Ofícios e Artesanato', icon: 'handyman' },
-    { id: 'termas_banhos', name: 'Termas e Banhos', icon: 'hot-tub' },
-    { id: 'patrimonio_ferroviario', name: 'Património Ferroviário', icon: 'train' },
-    { id: 'arte_urbana', name: 'Arte Urbana', icon: 'palette' },
+    { id: 'castelos', icon: 'fort' },
+    { id: 'palacios_solares', icon: 'villa' },
+    { id: 'museus', icon: 'museum' },
+    { id: 'oficios_artesanato', icon: 'handyman' },
+    { id: 'termas_banhos', icon: 'hot-tub' },
+    { id: 'patrimonio_ferroviario', icon: 'train' },
+    { id: 'arte_urbana', icon: 'palette' },
   ],
   gastronomia_produtos: [
-    { id: 'restaurantes_gastronomia', name: 'Restaurantes', icon: 'restaurant' },
-    { id: 'tabernas_historicas', name: 'Tabernas Históricas', icon: 'local-bar' },
-    { id: 'mercados_feiras', name: 'Mercados e Feiras', icon: 'storefront' },
-    { id: 'produtores_dop', name: 'Produtores DOP', icon: 'agriculture' },
-    { id: 'agroturismo_enoturismo', name: 'Agroturismo e Enoturismo', icon: 'wine-bar' },
-    { id: 'pratos_tipicos', name: 'Pratos Típicos', icon: 'lunch-dining' },
-    { id: 'docaria_regional', name: 'Doçaria Regional', icon: 'cake' },
+    { id: 'restaurantes_gastronomia', icon: 'restaurant' },
+    { id: 'tabernas_historicas', icon: 'local-bar' },
+    { id: 'mercados_feiras', icon: 'storefront' },
+    { id: 'produtores_dop', icon: 'agriculture' },
+    { id: 'agroturismo_enoturismo', icon: 'wine-bar' },
+    { id: 'pratos_tipicos', icon: 'lunch-dining' },
+    { id: 'docaria_regional', icon: 'cake' },
   ],
   cultura_viva: [
-    { id: 'musica_tradicional', name: 'Música Tradicional', icon: 'music-note' },
-    { id: 'festivais_musica', name: 'Festivais de Música', icon: 'celebration' },
-    { id: 'festas_romarias', name: 'Festas e Romarias', icon: 'festival' },
+    { id: 'musica_tradicional', icon: 'music-note' },
+    { id: 'festivais_musica', icon: 'celebration' },
+    { id: 'festas_romarias', icon: 'festival' },
   ],
   praias_mar: [
-    { id: 'surf', name: 'Surf', icon: 'surfing' },
-    { id: 'praias_bandeira_azul', name: 'Praias Bandeira Azul', icon: 'flag' },
+    { id: 'surf', icon: 'surfing' },
+    { id: 'praias_bandeira_azul', icon: 'flag' },
   ],
   experiencias_rotas: [
-    { id: 'rotas_tematicas', name: 'Rotas Temáticas', icon: 'route' },
-    { id: 'grande_expedicao', name: 'Grande Expedição 2026', icon: 'explore', comingSoon: true },
-    { id: 'perolas_portugal', name: 'Pérolas de Portugal', icon: 'star' },
-    { id: 'alojamentos_rurais', name: 'Alojamentos Rurais', icon: 'cottage', comingSoon: true },
-    { id: 'parques_campismo', name: 'Parques de Campismo', icon: 'holiday-village' },
-    { id: 'pousadas_juventude', name: 'Pousadas de Juventude', icon: 'hotel' },
-    { id: 'agentes_turisticos', name: 'Agentes Turísticos', icon: 'support-agent', comingSoon: true },
-    { id: 'entidades_operadores', name: 'Entidades e Operadores', icon: 'business', comingSoon: true },
-    { id: 'guia_viajante', name: 'Guia do Viajante', icon: 'menu-book', comingSoon: true },
-    { id: 'transportes', name: 'Transportes', icon: 'directions-bus', comingSoon: true },
+    { id: 'rotas_tematicas', icon: 'route' },
+    { id: 'grande_expedicao', icon: 'explore', comingSoon: true },
+    { id: 'perolas_portugal', icon: 'star' },
+    { id: 'alojamentos_rurais', icon: 'cottage', comingSoon: true },
+    { id: 'parques_campismo', icon: 'holiday-village' },
+    { id: 'pousadas_juventude', icon: 'hotel' },
+    { id: 'agentes_turisticos', icon: 'support-agent', comingSoon: true },
+    { id: 'entidades_operadores', icon: 'business', comingSoon: true },
+    { id: 'guia_viajante', icon: 'menu-book', comingSoon: true },
+    { id: 'transportes', icon: 'directions-bus', comingSoon: true },
   ],
 };
 
 const MAP_REGIONS = [
-  { id: 'norte', name: 'Norte', color: '#3B82F6' },
-  { id: 'centro', name: 'Centro', color: '#10B981' },
-  { id: 'lisboa', name: 'Lisboa', color: '#F59E0B' },
-  { id: 'alentejo', name: 'Alentejo', color: '#D97706' },
-  { id: 'algarve', name: 'Algarve', color: '#EF4444' },
-  { id: 'acores', name: 'Açores', color: '#6366F1' },
-  { id: 'madeira', name: 'Madeira', color: '#EC4899' },
+  { id: 'norte', color: '#3B82F6' },
+  { id: 'centro', color: '#10B981' },
+  { id: 'lisboa', color: '#F59E0B' },
+  { id: 'alentejo', color: '#D97706' },
+  { id: 'algarve', color: '#EF4444' },
+  { id: 'acores', color: '#6366F1' },
+  { id: 'madeira', color: '#EC4899' },
 ];
 
 // Bounding boxes for each region — used to navigate the map on region selection
@@ -228,6 +229,26 @@ function MapaTab() {
   const { region: regionParam, t: navTimestamp } = useLocalSearchParams<{ region?: string; t?: string }>();
   const insets = useSafeAreaInsets();
   const { height: winHeight } = useResponsive();
+  const { t } = useTranslation();
+  // Display names for the layer / subcategory / region taxonomies, keyed by id.
+  const layers = useMemo(
+    () => MAP_LAYERS.map((l) => ({ ...l, name: t(`mapScreen.layers.${l.id}`) })),
+    [t],
+  );
+  const subcategories = useMemo(
+    () =>
+      Object.fromEntries(
+        Object.entries(SUBCATEGORIES).map(([layerId, subs]) => [
+          layerId,
+          subs.map((sub) => ({ ...sub, name: t(`mapScreen.subcategories.${sub.id}`) })),
+        ]),
+      ),
+    [t],
+  );
+  const regions = useMemo(
+    () => MAP_REGIONS.map((r) => ({ ...r, name: t(`mapScreen.regions.${r.id}`) })),
+    [t],
+  );
   const mapRef = useRef<any>(null);
   const [activeLayers, setActiveLayers] = useState<string[]>(MAP_LAYERS.map(l => l.id));
   const [activeSubcategories, setActiveSubcategories] = useState<string[]>(
@@ -318,10 +339,13 @@ function MapaTab() {
       });
       if (res.data?.id) {
         setSelectedTrail(res.data.id);
-        Alert.alert('Trilho carregado', `Trilho "${res.data.name}" carregado! ${res.data.distance_km}km`);
+        Alert.alert(
+          t('mapScreen.screen.gpxLoadedTitle'),
+          t('mapScreen.screen.gpxLoadedMessage', { name: res.data.name, distance: res.data.distance_km }),
+        );
       }
     } catch (_err) {
-      Alert.alert('Erro', 'Erro ao carregar ficheiro GPX. Verifique o formato.');
+      Alert.alert(t('mapScreen.screen.errorTitle'), t('mapScreen.screen.gpxError'));
     } finally {
       setGpxUploading(false);
     }
@@ -532,7 +556,7 @@ function MapaTab() {
       waypoints: (infraDetail.waypoints || []).map((wp: any, i: number) => ({
         lat: wp.lat,
         lng: wp.lng,
-        name: wp.name || `Ponto ${i + 1}`,
+        name: wp.name || t('mapScreen.routes.point', { n: i + 1 }),
         order: wp.order ?? i + 1,
       })),
       color: '#0EA5E9',
@@ -566,7 +590,7 @@ function MapaTab() {
   // and wait for /trails/{id} to resolve via trailData; once it does, the
   // helper fills the waypoints so the polyline + numbered markers render.
   useEffect(() => {
-    const hydrated = hydrateTrailWaypoints(selectedRoute, trailData?.points);
+    const hydrated = hydrateTrailWaypoints(selectedRoute, trailData?.points, t);
     if (hydrated) setSelectedRoute(hydrated);
   }, [selectedRoute, trailData]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -729,7 +753,7 @@ function MapaTab() {
             setSelectedInfraId(null);
           }}
           activeOpacity={0.85}
-          accessibilityLabel="Fechar rota"
+          accessibilityLabel={t('mapScreen.screen.closeRoute')}
           accessibilityRole="button"
         >
           <MaterialIcons name="close" size={20} color="#fff" />
@@ -842,7 +866,7 @@ function MapaTab() {
                         approximate={(item as any).coord_approximate}
                         compact
                       />
-                      <Text style={styles.calloutAction}>Toca para ver detalhes →</Text>
+                      <Text style={styles.calloutAction}>{t('mapScreen.screen.calloutAction')}</Text>
                     </View>
                   </Callout>
                 </Marker>
@@ -887,10 +911,14 @@ function MapaTab() {
 
           {/* Header Overlay */}
           <View style={[styles.headerOverlay, { top: insets.top + 10 }]}>
-            <Text style={styles.headerTitle}>Mapa Inteligente</Text>
+            <Text style={styles.headerTitle}>{t('mapScreen.screen.title')}</Text>
             <View style={styles.headerStats}>
               <MaterialIcons name="place" size={14} color="#C49A6C" />
-              <Text style={styles.headerStatsText}>{mapComponentItems?.length || 0} locais</Text>
+              <Text style={styles.headerStatsText}>
+                {(mapComponentItems?.length || 0) === 1
+                  ? t('mapScreen.screen.placesOne', { count: 1 })
+                  : t('mapScreen.screen.places', { count: mapComponentItems?.length || 0 })}
+              </Text>
             </View>
           </View>
 
@@ -957,7 +985,7 @@ function MapaTab() {
                         key={trail.id}
                         style={[styles.trailChip, active && { backgroundColor: trail.color || '#22C55E', borderColor: trail.color || '#22C55E' }]}
                         onPress={() => setSelectedTrail(active ? null : trail.id)}
-                        accessibilityLabel={`Trilho ${trail.name}`}
+                        accessibilityLabel={t('mapScreen.screen.trailLabel', { name: trail.name })}
                         accessibilityRole="button"
                         accessibilityState={{ selected: active }}
                       >
@@ -981,7 +1009,7 @@ function MapaTab() {
             <TouchableOpacity
               style={styles.controlButton}
               onPress={centerOnPortugal}
-              accessibilityLabel="Centrar mapa em Portugal"
+              accessibilityLabel={t('mapScreen.screen.centerPortugal')}
               accessibilityRole="imagebutton"
             >
               <MaterialIcons name="my-location" size={22} color="#FFFFFF" />
@@ -989,7 +1017,7 @@ function MapaTab() {
             <TouchableOpacity
               style={styles.controlButton}
               onPress={fitToMarkers}
-              accessibilityLabel="Ajustar zoom aos locais"
+              accessibilityLabel={t('mapScreen.screen.fitMarkers')}
               accessibilityRole="imagebutton"
             >
               <MaterialIcons name="zoom-out-map" size={22} color="#FFFFFF" />
@@ -997,7 +1025,7 @@ function MapaTab() {
             <TouchableOpacity
               style={styles.controlButton}
               onPress={() => router.push('/search')}
-              accessibilityLabel="Pesquisar"
+              accessibilityLabel={t('common.search')}
               accessibilityRole="imagebutton"
             >
               <MaterialIcons name="search" size={22} color="#FFFFFF" />
@@ -1006,7 +1034,7 @@ function MapaTab() {
               style={[styles.controlButton, showAccessibility && styles.controlButtonActive]}
               onPress={() => setShowAccessibility(!showAccessibility)}
               data-testid="accessibility-toggle"
-              accessibilityLabel="Filtros de acessibilidade"
+              accessibilityLabel={t('mapScreen.screen.accessibilityFilters')}
               accessibilityRole="imagebutton"
               accessibilityState={{ expanded: showAccessibility }}
             >
@@ -1024,7 +1052,7 @@ function MapaTab() {
             <TouchableOpacity
               style={[styles.controlButton, satelliteBasemap && styles.controlButtonActive]}
               onPress={() => setSatelliteBasemap(v => !v)}
-              accessibilityLabel="Vista de satélite"
+              accessibilityLabel={t('mapScreen.nativeMap.satellite')}
               accessibilityRole="switch"
               accessibilityState={{ checked: satelliteBasemap }}
             >
@@ -1061,7 +1089,7 @@ function MapaTab() {
               showsHorizontalScrollIndicator={false}
               contentContainerStyle={styles.layerContent}
             >
-              {MAP_LAYERS.map((layer) => {
+              {layers.map((layer) => {
                 const layerSubs = getLayerSubcategories(layer.id);
                 const activeCount = layerSubs.filter(s => activeSubcategories.includes(s)).length;
                 const isActive = activeCount > 0;
@@ -1075,7 +1103,7 @@ function MapaTab() {
                     ]}
                     onPress={() => toggleLayer(layer.id)}
                     data-testid={`layer-${layer.id}`}
-                    accessibilityLabel={`Camada ${layer.name}`}
+                    accessibilityLabel={t('mapScreen.layerSelector.layerLabel', { name: layer.name })}
                     accessibilityRole="switch"
                     accessibilityState={{ checked: isActive }}
                   >
@@ -1105,7 +1133,7 @@ function MapaTab() {
               showsHorizontalScrollIndicator={false}
               contentContainerStyle={[styles.layerContent, { marginTop: 6 }]}
             >
-              {MAP_REGIONS.map((region) => {
+              {regions.map((region) => {
                 const isActive = regionFilter === region.id;
                 return (
                   <TouchableOpacity
@@ -1116,7 +1144,7 @@ function MapaTab() {
                     ]}
                     onPress={() => setRegionFilter(isActive ? null : region.id)}
                     data-testid={`native-region-${region.id}`}
-                    accessibilityLabel={`Filtrar mapa pela região ${region.name}`}
+                    accessibilityLabel={t('mapScreen.screen.filterRegion', { name: region.name })}
                     accessibilityRole="button"
                     accessibilityState={{ selected: isActive }}
                   >
@@ -1134,7 +1162,7 @@ function MapaTab() {
               style={[styles.selectedCard, { bottom: 180 }]}
               onPress={handleItemPress}
               activeOpacity={0.9}
-              accessibilityLabel={`Ver detalhe de ${selectedItem.name}`}
+              accessibilityLabel={t('mapScreen.screen.seeDetailOf', { name: selectedItem.name })}
               accessibilityRole="button"
             >
               <View style={styles.selectedCardInner}>
@@ -1194,10 +1222,10 @@ function MapaTab() {
               <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 8 }}>
                 <View style={{ flexDirection: 'row', gap: 8, paddingHorizontal: 4 }}>
                   {([
-                    { id: 'all', label: 'Todos', icon: 'layers', color: '#64748B' },
-                    { id: 'trail', label: 'Trilhos', icon: 'hiking', color: '#22C55E' },
-                    { id: 'passadico', label: 'Passadiços', icon: 'directions-walk', color: '#0EA5E9' },
-                    { id: 'cultural', label: 'Culturais', icon: 'account-balance', color: '#A855F7' },
+                    { id: 'all', label: t('mapScreen.screen.routeFilters.all'), icon: 'layers', color: '#64748B' },
+                    { id: 'trail', label: t('mapScreen.screen.routeFilters.trail'), icon: 'hiking', color: '#22C55E' },
+                    { id: 'passadico', label: t('mapScreen.screen.routeFilters.passadico'), icon: 'directions-walk', color: '#0EA5E9' },
+                    { id: 'cultural', label: t('mapScreen.screen.routeFilters.cultural'), icon: 'account-balance', color: '#A855F7' },
                   ] as const).map((f) => (
                     <TouchableOpacity
                       key={f.id}
@@ -1206,7 +1234,7 @@ function MapaTab() {
                         routeTypeFilter === f.id && { backgroundColor: f.color, borderColor: f.color },
                       ]}
                       onPress={() => setRouteTypeFilter(f.id)}
-                      accessibilityLabel={`Filtrar rotas por ${f.label}`}
+                      accessibilityLabel={t('mapScreen.screen.filterRoutesBy', { label: f.label })}
                       accessibilityRole="tab"
                       accessibilityState={{ selected: routeTypeFilter === f.id }}
                     >
@@ -1224,7 +1252,7 @@ function MapaTab() {
                     key={trail.id}
                     style={styles.routeListItemNative}
                     onPress={() => openTrailRoute(trail)}
-                    accessibilityLabel={`Ver trilho ${trail.name}`}
+                    accessibilityLabel={t('mapScreen.screen.seeTrail', { name: trail.name })}
                     accessibilityRole="button"
                   >
                     <View style={[styles.routeItemDot, { backgroundColor: trail.color || '#22C55E' }]} />
@@ -1242,7 +1270,7 @@ function MapaTab() {
                       key={infra.id}
                       style={styles.routeListItemNative}
                       onPress={() => setSelectedInfraId(infra.id)}
-                      accessibilityLabel={`Ver percurso ${infra.name}`}
+                      accessibilityLabel={t('mapScreen.screen.seeInfra', { name: infra.name })}
                       accessibilityRole="button"
                     >
                       <View style={[styles.routeItemDot, { backgroundColor: '#0EA5E9' }]} />
@@ -1270,13 +1298,17 @@ function MapaTab() {
                       });
                       setFullscreenRoute(true);
                     }}
-                    accessibilityLabel={`Ver rota cultural ${cr.name}`}
+                    accessibilityLabel={t('mapScreen.screen.seeCulturalRoute', { name: cr.name })}
                     accessibilityRole="button"
                   >
                     <View style={[styles.routeItemDot, { backgroundColor: '#A855F7' }]} />
                     <View style={{ flex: 1 }}>
                       <Text style={[styles.routeItemName, { color: '#F9FAFB' }]} numberOfLines={1}>{cr.name}</Text>
-                      <Text style={[styles.routeItemMeta, { color: '#9CA3AF' }]}>{(cr.stops || []).length} paragens</Text>
+                      <Text style={[styles.routeItemMeta, { color: '#9CA3AF' }]}>
+                        {(cr.stops || []).length === 1
+                          ? t('mapScreen.screen.stopsOne', { count: 1 })
+                          : t('mapScreen.screen.stops', { count: (cr.stops || []).length })}
+                      </Text>
                     </View>
                     <MaterialIcons name="chevron-right" size={18} color="#6B7280" />
                   </TouchableOpacity>
@@ -1302,7 +1334,7 @@ function MapaTab() {
                 style={[styles.fullscreenCloseBtn, { top: insets.top + 12 }]}
                 onPress={() => { setFullscreenRoute(false); setSelectedRoute(null); setSelectedInfraId(null); }}
                 activeOpacity={0.85}
-                accessibilityLabel="Fechar rota"
+                accessibilityLabel={t('mapScreen.screen.closeRoute')}
                 accessibilityRole="button"
               >
                 <MaterialIcons name="close" size={20} color="#fff" />
@@ -1315,7 +1347,7 @@ function MapaTab() {
             <TouchableOpacity
               style={styles.actionButton}
               onPress={() => router.push('/nearby')}
-              accessibilityLabel="Ver locais perto de mim"
+              accessibilityLabel={t('mapScreen.screen.nearMeLabel')}
               accessibilityRole="button"
             >
               <LinearGradient
@@ -1323,13 +1355,13 @@ function MapaTab() {
                 style={styles.actionGradient}
               >
                 <MaterialIcons name="near-me" size={20} color="#000" />
-                <Text style={styles.actionText}>Perto de Mim</Text>
+                <Text style={styles.actionText}>{t('mapScreen.screen.nearMe')}</Text>
               </LinearGradient>
             </TouchableOpacity>
             <TouchableOpacity
               style={styles.actionButton}
               onPress={() => router.push('/route-planner')}
-              accessibilityLabel="Planear rota"
+              accessibilityLabel={t('mapScreen.screen.planRouteLabel')}
               accessibilityRole="button"
             >
               <LinearGradient
@@ -1337,7 +1369,7 @@ function MapaTab() {
                 style={styles.actionGradient}
               >
                 <MaterialIcons name="directions" size={20} color="#FFF" />
-                <Text style={[styles.actionText, { color: '#FFF' }]}>Planear Rota</Text>
+                <Text style={[styles.actionText, { color: '#FFF' }]}>{t('mapScreen.screen.planRoute')}</Text>
               </LinearGradient>
             </TouchableOpacity>
           </View>
@@ -1351,10 +1383,14 @@ function MapaTab() {
         >
           {/* Header */}
           <View style={styles.header}>
-            <Text style={styles.webHeaderTitle}>Mapa Inteligente</Text>
+            <Text style={styles.webHeaderTitle}>{t('mapScreen.screen.title')}</Text>
             <View style={styles.headerStats}>
               <MaterialIcons name="place" size={16} color="#C49A6C" />
-              <Text style={styles.headerStatsText}>{mapComponentItems?.length || 0} locais</Text>
+              <Text style={styles.headerStatsText}>
+                {(mapComponentItems?.length || 0) === 1
+                  ? t('mapScreen.screen.placesOne', { count: 1 })
+                  : t('mapScreen.screen.places', { count: mapComponentItems?.length || 0 })}
+              </Text>
             </View>
           </View>
 
@@ -1363,13 +1399,14 @@ function MapaTab() {
             <View style={styles.regionFilterBar} data-testid="region-filter-bar">
               <MaterialIcons name="filter-list" size={16} color="#2E5E4E" />
               <Text style={styles.regionFilterText}>
-                Filtrado por: <Text style={{ fontWeight: '700' }}>{regionFilter.charAt(0).toUpperCase() + regionFilter.slice(1)}</Text>
+                {t('mapScreen.screen.filteredBy')}{' '}
+                <Text style={{ fontWeight: '700' }}>{regionFilter.charAt(0).toUpperCase() + regionFilter.slice(1)}</Text>
               </Text>
               <TouchableOpacity
                 style={styles.regionFilterClear}
                 onPress={() => setRegionFilter(null)}
                 data-testid="clear-region-filter"
-                accessibilityLabel="Remover filtro de região"
+                accessibilityLabel={t('mapScreen.screen.removeRegionFilter')}
                 accessibilityRole="button"
               >
                 <MaterialIcons name="close" size={16} color="#FFF" />
@@ -1385,8 +1422,8 @@ function MapaTab() {
           {(LAYER_RESPECTING_MODES as ReadonlyArray<string>).includes(mapMode) && (
             <View style={styles.section}>
               <MapLayerSelector
-                layers={MAP_LAYERS}
-                subcategories={SUBCATEGORIES}
+                layers={layers}
+                subcategories={subcategories}
                 activeSubcategories={activeSubcategories}
                 expandedLayer={expandedLayer}
                 onToggleLayer={toggleLayer}
@@ -1401,14 +1438,14 @@ function MapaTab() {
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
               <MaterialIcons name="map" size={20} color="#3B82F6" />
-              <Text style={styles.sectionTitle}>Regiões</Text>
+              <Text style={styles.sectionTitle}>{t('mapScreen.screen.regions')}</Text>
             </View>
             <ScrollView 
               horizontal 
               showsHorizontalScrollIndicator={false}
               contentContainerStyle={styles.layerContent}
             >
-              {MAP_REGIONS.map((region) => {
+              {regions.map((region) => {
                 const isActive = regionFilter === region.id;
                 return (
                   <TouchableOpacity
@@ -1419,7 +1456,7 @@ function MapaTab() {
                     ]}
                     onPress={() => setRegionFilter(isActive ? null : region.id)}
                     data-testid={`region-filter-${region.id}`}
-                    accessibilityLabel={`Filtrar mapa pela região ${region.name}`}
+                    accessibilityLabel={t('mapScreen.screen.filterRegion', { name: region.name })}
                     accessibilityRole="button"
                     accessibilityState={{ selected: isActive }}
                   >
@@ -1446,13 +1483,13 @@ function MapaTab() {
               style={styles.sectionHeader}
               onPress={() => setShowAccessibility(!showAccessibility)}
               data-testid="accessibility-section-toggle"
-              accessibilityLabel="Turismo Inclusivo"
+              accessibilityLabel={t('mapScreen.screen.inclusiveTourism')}
               accessibilityRole="button"
               accessibilityState={{ expanded: showAccessibility }}
             >
               <View style={styles.sectionTitleRow}>
                 <MaterialIcons name="accessible" size={20} color={colors.ocean[500]} />
-                <Text style={styles.sectionTitle}>Turismo Inclusivo</Text>
+                <Text style={styles.sectionTitle}>{t('mapScreen.screen.inclusiveTourism')}</Text>
                 {accessibilityFilters.length > 0 && (
                   <View style={styles.activeBadge}>
                     <Text style={styles.activeBadgeText}>{accessibilityFilters.length}</Text>
@@ -1488,7 +1525,7 @@ function MapaTab() {
                     key={trail.id}
                     style={[styles.trailChip, selectedTrail === trail.id && { backgroundColor: trail.color, borderColor: trail.color }]}
                     onPress={() => setSelectedTrail(selectedTrail === trail.id ? null : trail.id)}
-                    accessibilityLabel={`Trilho ${trail.name}`}
+                    accessibilityLabel={t('mapScreen.screen.trailLabel', { name: trail.name })}
                     accessibilityRole="button"
                     accessibilityState={{ selected: selectedTrail === trail.id }}
                   >
@@ -1507,7 +1544,7 @@ function MapaTab() {
                   style={styles.gpxUploadBtn}
                   onPress={handleGpxUpload}
                   disabled={gpxUploading}
-                  accessibilityLabel="Carregar ficheiro GPX"
+                  accessibilityLabel={t('mapScreen.screen.uploadGpxLabel')}
                   accessibilityRole="button"
                   accessibilityState={{ disabled: gpxUploading }}
                 >
@@ -1516,7 +1553,9 @@ function MapaTab() {
                   ) : (
                     <MaterialIcons name="file-upload" size={16} color="#FFF" />
                   )}
-                  <Text style={styles.gpxUploadText}>{gpxUploading ? 'A enviar...' : 'Upload GPX'}</Text>
+                  <Text style={styles.gpxUploadText}>
+                    {gpxUploading ? t('mapScreen.screen.uploading') : t('mapScreen.screen.uploadGpx')}
+                  </Text>
                 </TouchableOpacity>
               )}
             </View>
@@ -1569,7 +1608,7 @@ function MapaTab() {
             {(isLoading || (mapMode === 'proximity' && proximityDataLoading) || (mapMode === 'noturno' && nightLoading)) && (
               <View style={styles.mapLoadingOverlay}>
                 <ActivityIndicator size="small" color="#C49A6C" />
-                <Text style={styles.loadingText}>A carregar mapa...</Text>
+                <Text style={styles.loadingText}>{t('mapScreen.screen.loadingMap')}</Text>
               </View>
             )}
             <LeafletMapComponent
@@ -1605,10 +1644,10 @@ function MapaTab() {
               <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 10 }}>
                 <View style={{ flexDirection: 'row', gap: 8, paddingHorizontal: 4 }}>
                   {([
-                    { id: 'all', label: 'Todos', icon: 'layers', color: '#64748B' },
-                    { id: 'trail', label: 'Trilhos', icon: 'hiking', color: '#22C55E' },
-                    { id: 'passadico', label: 'Passadiços', icon: 'directions-walk', color: '#0EA5E9' },
-                    { id: 'cultural', label: 'Culturais', icon: 'account-balance', color: '#A855F7' },
+                    { id: 'all', label: t('mapScreen.screen.routeFilters.all'), icon: 'layers', color: '#64748B' },
+                    { id: 'trail', label: t('mapScreen.screen.routeFilters.trail'), icon: 'hiking', color: '#22C55E' },
+                    { id: 'passadico', label: t('mapScreen.screen.routeFilters.passadico'), icon: 'directions-walk', color: '#0EA5E9' },
+                    { id: 'cultural', label: t('mapScreen.screen.routeFilters.cultural'), icon: 'account-balance', color: '#A855F7' },
                   ] as const).map((f) => (
                     <TouchableOpacity
                       key={f.id}
@@ -1617,7 +1656,7 @@ function MapaTab() {
                         routeTypeFilter === f.id && { backgroundColor: f.color, borderColor: f.color },
                       ]}
                       onPress={() => setRouteTypeFilter(f.id)}
-                      accessibilityLabel={`Filtrar rotas por ${f.label}`}
+                      accessibilityLabel={t('mapScreen.screen.filterRoutesBy', { label: f.label })}
                       accessibilityRole="tab"
                       accessibilityState={{ selected: routeTypeFilter === f.id }}
                     >
@@ -1635,7 +1674,7 @@ function MapaTab() {
                   style={styles.routeListItem}
                   onPress={() => openTrailRoute(trail)}
                   activeOpacity={0.8}
-                  accessibilityLabel={`Ver trilho ${trail.name}`}
+                  accessibilityLabel={t('mapScreen.screen.seeTrail', { name: trail.name })}
                   accessibilityRole="button"
                 >
                   <View style={[styles.routeItemDot, { backgroundColor: trail.color || '#22C55E' }]} />
@@ -1656,7 +1695,7 @@ function MapaTab() {
                     style={styles.routeListItem}
                     onPress={() => setSelectedInfraId(infra.id)}
                     activeOpacity={0.8}
-                    accessibilityLabel={`Ver percurso ${infra.name}`}
+                    accessibilityLabel={t('mapScreen.screen.seeInfra', { name: infra.name })}
                     accessibilityRole="button"
                   >
                     <View style={[styles.routeItemDot, { backgroundColor: '#0EA5E9' }]} />
@@ -1693,13 +1732,18 @@ function MapaTab() {
                     setFullscreenRoute(true);
                   }}
                   activeOpacity={0.8}
-                  accessibilityLabel={`Ver rota cultural ${cr.name}`}
+                  accessibilityLabel={t('mapScreen.screen.seeCulturalRoute', { name: cr.name })}
                   accessibilityRole="button"
                 >
                   <View style={[styles.routeItemDot, { backgroundColor: '#A855F7' }]} />
                   <View style={{ flex: 1 }}>
                     <Text style={styles.routeItemName} numberOfLines={1}>{cr.name}</Text>
-                    <Text style={styles.routeItemMeta}>{(cr.stops || []).length} paragens{cr.distance_km ? ` · ${cr.distance_km}km` : ''}</Text>
+                    <Text style={styles.routeItemMeta}>
+                      {(cr.stops || []).length === 1
+                        ? t('mapScreen.screen.stopsOne', { count: 1 })
+                        : t('mapScreen.screen.stops', { count: (cr.stops || []).length })}
+                      {cr.distance_km ? ` · ${cr.distance_km}km` : ''}
+                    </Text>
                   </View>
                   <MaterialIcons name="chevron-right" size={18} color="#9CA3AF" />
                 </TouchableOpacity>
@@ -1737,7 +1781,7 @@ function MapaTab() {
               {/* Elevation Profile */}
               {trailElevation?.profile && (
                 <View style={styles.elevationContainer}>
-                  <Text style={styles.elevationTitle}>Perfil de Elevação</Text>
+                  <Text style={styles.elevationTitle}>{t('mapScreen.screen.elevationProfile')}</Text>
                   <View style={styles.elevationChart}>
                     {trailElevation.profile.map((pt: any, i: number) => {
                       const maxEle = trailData.max_elevation || 1;

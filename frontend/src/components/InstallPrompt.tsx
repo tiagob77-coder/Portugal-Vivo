@@ -5,12 +5,14 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Platform, Animated } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useTranslation } from 'react-i18next';
 import { palette } from '../theme/colors';
 
 const DISMISS_KEY = 'pwa_install_dismissed';
 const DISMISS_DURATION_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
 
 export default function InstallPrompt() {
+  const { t } = useTranslation();
   const [showPrompt, setShowPrompt] = useState(false);
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
   const slideAnim = useState(new Animated.Value(100))[0];
@@ -86,11 +88,11 @@ export default function InstallPrompt() {
           <MaterialIcons name="get-app" size={28} color={palette.gray[50]} />
         </View>
         <View style={styles.textContainer}>
-          <Text style={styles.title}>Instalar Portugal Vivo</Text>
-          <Text style={styles.subtitle}>Acesso rápido e funciona offline</Text>
+          <Text style={styles.title}>{t('components.installPrompt.title')}</Text>
+          <Text style={styles.subtitle}>{t('components.installPrompt.subtitle')}</Text>
         </View>
         <TouchableOpacity style={styles.installButton} onPress={handleInstall}>
-          <Text style={styles.installButtonText}>Instalar</Text>
+          <Text style={styles.installButtonText}>{t('components.installPrompt.install')}</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.dismissButton} onPress={handleDismiss}>
           <MaterialIcons name="close" size={20} color="#8A8A8A" />

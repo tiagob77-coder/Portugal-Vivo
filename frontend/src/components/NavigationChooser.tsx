@@ -7,6 +7,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Modal, Platform, Linking } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import { useTheme } from '../context/ThemeContext';
 
 interface NavigationChooserProps {
@@ -35,6 +36,7 @@ export default function NavigationChooser({
   lng,
   distanceLabel,
 }: NavigationChooserProps) {
+  const { t } = useTranslation();
   const { colors } = useTheme();
 
   const openGoogleMaps = () => {
@@ -56,24 +58,24 @@ export default function NavigationChooser({
           onPress={(e) => e.stopPropagation()}
         >
           <View style={[styles.handle, { backgroundColor: colors.border }]} />
-          <Text style={[styles.title, { color: colors.textPrimary }]}>Navegar para o local</Text>
+          <Text style={[styles.title, { color: colors.textPrimary }]}>{t('components.navigationChooser.title')}</Text>
           <Text style={[styles.subtitle, { color: colors.textSecondary }]} numberOfLines={1}>
             {name}
-            {distanceLabel ? ` · a ${distanceLabel} da sua localização` : ''}
+            {distanceLabel ? ` · ${t('components.navigationChooser.distanceAway', { distance: distanceLabel })}` : ''}
           </Text>
 
           <TouchableOpacity
             style={[styles.option, { backgroundColor: colors.surfaceAlt, borderColor: colors.borderLight }]}
             onPress={openGoogleMaps}
             accessibilityRole="button"
-            accessibilityLabel="Navegar com o Google Maps"
+            accessibilityLabel={t('components.navigationChooser.googleA11y')}
           >
             <View style={[styles.optionIcon, { backgroundColor: '#4285F4' }]}>
               <MaterialIcons name="map" size={20} color="#FFF" />
             </View>
             <View style={styles.optionBody}>
               <Text style={[styles.optionName, { color: colors.textPrimary }]}>Google Maps</Text>
-              <Text style={[styles.optionDesc, { color: colors.textSecondary }]}>Direções passo a passo</Text>
+              <Text style={[styles.optionDesc, { color: colors.textSecondary }]}>{t('components.navigationChooser.googleDesc')}</Text>
             </View>
             <MaterialIcons name="open-in-new" size={18} color={colors.textMuted} />
           </TouchableOpacity>
@@ -82,14 +84,14 @@ export default function NavigationChooser({
             style={[styles.option, { backgroundColor: colors.surfaceAlt, borderColor: colors.borderLight }]}
             onPress={openWaze}
             accessibilityRole="button"
-            accessibilityLabel="Navegar com o Waze"
+            accessibilityLabel={t('components.navigationChooser.wazeA11y')}
           >
             <View style={[styles.optionIcon, { backgroundColor: '#05C8F7' }]}>
               <MaterialIcons name="directions-car" size={20} color="#FFF" />
             </View>
             <View style={styles.optionBody}>
               <Text style={[styles.optionName, { color: colors.textPrimary }]}>Waze</Text>
-              <Text style={[styles.optionDesc, { color: colors.textSecondary }]}>Trânsito em tempo real</Text>
+              <Text style={[styles.optionDesc, { color: colors.textSecondary }]}>{t('components.navigationChooser.wazeDesc')}</Text>
             </View>
             <MaterialIcons name="open-in-new" size={18} color={colors.textMuted} />
           </TouchableOpacity>
@@ -98,9 +100,9 @@ export default function NavigationChooser({
             style={styles.cancelButton}
             onPress={onClose}
             accessibilityRole="button"
-            accessibilityLabel="Cancelar navegação"
+            accessibilityLabel={t('components.navigationChooser.cancelA11y')}
           >
-            <Text style={[styles.cancelText, { color: colors.textSecondary }]}>Cancelar</Text>
+            <Text style={[styles.cancelText, { color: colors.textSecondary }]}>{t('common.cancel')}</Text>
           </TouchableOpacity>
         </TouchableOpacity>
       </TouchableOpacity>

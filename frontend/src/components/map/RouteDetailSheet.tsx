@@ -13,6 +13,7 @@ import {
   Platform,
 } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 
 export interface RouteWaypoint {
   lat: number;
@@ -42,12 +43,12 @@ interface RouteDetailSheetProps {
   onWaypointPress: (wp: RouteWaypoint) => void;
 }
 
-const TYPE_LABELS: Record<string, string> = {
-  trail: 'Trilho',
-  passadico: 'Passadiço',
-  ecovia: 'Ecovia',
-  cultural: 'Rota Cultural',
-  expedicao: 'Expedição',
+const TYPE_LABEL_KEYS: Record<string, string> = {
+  trail: 'mapScreen.routeSheet.types.trail',
+  passadico: 'mapScreen.routeSheet.types.passadico',
+  ecovia: 'mapScreen.routeSheet.types.ecovia',
+  cultural: 'mapScreen.routeSheet.types.cultural',
+  expedicao: 'mapScreen.routeSheet.types.expedicao',
 };
 
 const TYPE_COLORS: Record<string, string> = {
@@ -66,10 +67,11 @@ const DIFFICULTY_COLORS: Record<string, string> = {
 };
 
 export default function RouteDetailSheet({ route, onClose, onWaypointPress }: RouteDetailSheetProps) {
+  const { t } = useTranslation();
   if (!route) return null;
 
   const typeColor = route.color || TYPE_COLORS[route.type] || palette.terracotta[500];
-  const typeLabel = TYPE_LABELS[route.type] || route.type;
+  const typeLabel = TYPE_LABEL_KEYS[route.type] ? t(TYPE_LABEL_KEYS[route.type]) : route.type;
   const diffColor = DIFFICULTY_COLORS[route.difficulty || ''] || '#9CA3AF';
 
   const mapsUrl = route.waypoints.length > 0
@@ -94,7 +96,7 @@ export default function RouteDetailSheet({ route, onClose, onWaypointPress }: Ro
           onPress={onClose}
           activeOpacity={0.8}
           accessibilityRole="button"
-          accessibilityLabel="Fechar detalhe da rota"
+          accessibilityLabel={t('mapScreen.routeSheet.close')}
           hitSlop={10}
         >
           <MaterialIcons name="close" size={20} color="#9CA3AF" />
@@ -123,7 +125,11 @@ export default function RouteDetailSheet({ route, onClose, onWaypointPress }: Ro
         {route.duration_days != null && (
           <View style={s.stat}>
             <MaterialIcons name="calendar-today" size={13} color="#8B5CF6" />
-            <Text style={s.statText}>{route.duration_days} dias</Text>
+            <Text style={s.statText}>
+              {route.duration_days === 1
+                ? t('mapScreen.routeSheet.daysOne', { count: route.duration_days })
+                : t('mapScreen.routeSheet.days', { count: route.duration_days })}
+            </Text>
           </View>
         )}
         {route.elevation_gain != null && (
@@ -143,7 +149,10 @@ export default function RouteDetailSheet({ route, onClose, onWaypointPress }: Ro
       {route.waypoints.length > 0 && (
         <>
           <Text style={s.waypointsTitle}>
-            {route.type === 'cultural' ? 'Paragens' : 'Pontos de passagem'} ({route.waypoints.length})
+            {route.type === 'cultural'
+              ? t('mapScreen.routeSheet.stops')
+              : t('mapScreen.routeSheet.waypoints')}{' '}
+            ({route.waypoints.length})
           </Text>
           <ScrollView
             style={s.waypointsList}
@@ -159,8 +168,8 @@ export default function RouteDetailSheet({ route, onClose, onWaypointPress }: Ro
                   onPress={() => onWaypointPress(wp)}
                   activeOpacity={0.7}
                   accessibilityRole="button"
-                  accessibilityLabel={`Paragem ${wp.order}: ${wp.name}`}
-                  accessibilityHint="Abre o detalhe deste ponto da rota"
+                  accessibilityLabel={t('mapScreen.routeSheet.stopLabel', { order: wp.order, name: wp.name })}
+                  accessibilityHint={t('mapScreen.routeSheet.stopHint')}
                 >
                   <View style={[s.waypointNum, { backgroundColor: typeColor }]}>
                     <Text style={s.waypointNumText}>{wp.order}</Text>
@@ -190,11 +199,11 @@ export default function RouteDetailSheet({ route, onClose, onWaypointPress }: Ro
           }}
           activeOpacity={0.85}
           accessibilityRole="button"
-          accessibilityLabel="Iniciar navegação para a rota"
-          accessibilityHint="Abre a rota no Google Maps"
+          accessibilityLabel={t('mapScreen.routeSheet.startLabel')}
+          accessibilityHint={t('mapScreen.routeSheet.startHint')}
         >
           <MaterialIcons name="navigation" size={16} color="#fff" />
-          <Text style={s.startBtnText}>Iniciar</Text>
+          <Text style={s.startBtnText}>{t('mapScreen.routeSheet.start')}</Text>
         </TouchableOpacity>
       )}
     </View>

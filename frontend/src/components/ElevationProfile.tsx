@@ -8,6 +8,7 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, Platform, LayoutChangeEvent } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useTheme } from '../context/ThemeContext';
+import { useTranslation } from 'react-i18next';
 
 export interface ElevationPoint {
   distance_km: number;
@@ -63,6 +64,7 @@ function buildLine(data: ElevationPoint[], w: number, s: ReturnType<typeof stats
 
 function ElevationProfile({ data, color = '#22C55E', trailName }: Props) {
   const { colors } = useTheme();
+  const { t } = useTranslation();
   const [width, setWidth] = useState(320);
   const onLayout = (e: LayoutChangeEvent) => setWidth(e.nativeEvent.layout.width);
   const s = stats(data);
@@ -71,27 +73,27 @@ function ElevationProfile({ data, color = '#22C55E', trailName }: Props) {
   if (Platform.OS !== 'web') {
     return (
       <View style={[st.container, { backgroundColor: colors.surface }]} onLayout={onLayout}>
-        {trailName && <Text style={[st.label, { color: colors.textPrimary }]}>Perfil de Elevação</Text>}
+        {trailName && <Text style={[st.label, { color: colors.textPrimary }]}>{t('widgets.elevationProfile.title')}</Text>}
         <View style={st.statsRow}>
           <View style={st.stat}>
             <MaterialIcons name="arrow-upward" size={16} color="#22C55E" />
             <Text style={[st.statVal, { color: colors.textPrimary }]}>+{s.gain}m</Text>
-            <Text style={[st.statLbl, { color: colors.textMuted }]}>Subida</Text>
+            <Text style={[st.statLbl, { color: colors.textMuted }]}>{t('widgets.elevationProfile.ascent')}</Text>
           </View>
           <View style={st.stat}>
             <MaterialIcons name="arrow-downward" size={16} color="#EF4444" />
             <Text style={[st.statVal, { color: colors.textPrimary }]}>-{s.loss}m</Text>
-            <Text style={[st.statLbl, { color: colors.textMuted }]}>Descida</Text>
+            <Text style={[st.statLbl, { color: colors.textMuted }]}>{t('widgets.elevationProfile.descent')}</Text>
           </View>
           <View style={st.stat}>
             <MaterialIcons name="terrain" size={16} color="#C49A6C" />
             <Text style={[st.statVal, { color: colors.textPrimary }]}>{s.maxE}m</Text>
-            <Text style={[st.statLbl, { color: colors.textMuted }]}>Máx.</Text>
+            <Text style={[st.statLbl, { color: colors.textMuted }]}>{t('widgets.elevationProfile.max')}</Text>
           </View>
           <View style={st.stat}>
             <MaterialIcons name="height" size={16} color="#6366F1" />
             <Text style={[st.statVal, { color: colors.textPrimary }]}>{s.minE}m</Text>
-            <Text style={[st.statLbl, { color: colors.textMuted }]}>Mín.</Text>
+            <Text style={[st.statLbl, { color: colors.textMuted }]}>{t('widgets.elevationProfile.min')}</Text>
           </View>
         </View>
       </View>

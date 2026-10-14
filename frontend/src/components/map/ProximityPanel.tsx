@@ -12,6 +12,7 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import { colors, palette, withOpacity } from '../../../src/theme';
 
 interface ProximityPOI {
@@ -43,6 +44,7 @@ export default function ProximityPanel({
   onPoiPress,
   onRefresh,
 }: ProximityPanelProps) {
+  const { t } = useTranslation();
   return (
     <View style={styles.panel} data-testid="proximity-panel">
       <View style={styles.header}>
@@ -51,11 +53,13 @@ export default function ProximityPanel({
             <MaterialIcons name="near-me" size={18} color="#FFF" />
           </View>
           <View>
-            <Text style={styles.title}>POIs Perto de Si</Text>
+            <Text style={styles.title}>{t('mapScreen.proximity.title')}</Text>
             <Text style={styles.subtitle}>
               {isLoading
-                ? 'A localizar...'
-                : `${total} locais num raio de 5km`}
+                ? t('mapScreen.proximity.locating')
+                : total === 1
+                ? t('mapScreen.proximity.countOne', { count: total })
+                : t('mapScreen.proximity.count', { count: total })}
             </Text>
           </View>
         </View>
@@ -71,7 +75,7 @@ export default function ProximityPanel({
       {isLoading ? (
         <View style={styles.loading}>
           <ActivityIndicator size="small" color={palette.terracotta[500]} />
-          <Text style={styles.loadingText}>A procurar POIs próximos...</Text>
+          <Text style={styles.loadingText}>{t('mapScreen.proximity.searching')}</Text>
         </View>
       ) : (
         <ScrollView

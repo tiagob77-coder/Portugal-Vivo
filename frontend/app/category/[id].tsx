@@ -4,6 +4,7 @@ import { useLocalSearchParams, useRouter, Stack } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useQuery } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
 import { getHeritageItems, getCategories } from '../../src/services/api';
 import HeritageCard from '../../src/components/HeritageCard';
 import AnimatedListItem from '../../src/components/AnimatedListItem';
@@ -18,15 +19,20 @@ if (Platform.OS !== 'web') {
 
 // Region definitions
 const REGIONS = [
-  { id: 'all', name: 'Todas', icon: 'public' },
-  { id: 'norte', name: 'Norte', icon: 'terrain' },
-  { id: 'centro', name: 'Centro', icon: 'landscape' },
-  { id: 'lisboa', name: 'Lisboa', icon: 'location-city' },
-  { id: 'alentejo', name: 'Alentejo', icon: 'grass' },
-  { id: 'algarve', name: 'Algarve', icon: 'beach-access' },
-  { id: 'acores', name: 'Açores', icon: 'waves' },
-  { id: 'madeira', name: 'Madeira', icon: 'forest' },
+  { id: 'all', labelKey: 'exploreScreens.regions.all', icon: 'public' },
+  { id: 'norte', labelKey: 'exploreScreens.regions.norte', icon: 'terrain' },
+  { id: 'centro', labelKey: 'exploreScreens.regions.centro', icon: 'landscape' },
+  { id: 'lisboa', labelKey: 'exploreScreens.regions.lisboa', icon: 'location-city' },
+  { id: 'alentejo', labelKey: 'exploreScreens.regions.alentejo', icon: 'grass' },
+  { id: 'algarve', labelKey: 'exploreScreens.regions.algarve', icon: 'beach-access' },
+  { id: 'acores', labelKey: 'exploreScreens.regions.acores', icon: 'waves' },
+  { id: 'madeira', labelKey: 'exploreScreens.regions.madeira', icon: 'forest' },
 ];
+
+// Escapes text for the WebView map HTML: markup characters and quotes, and
+// non-ASCII as numeric entities (the inline HTML declares no charset).
+const toHtmlText = (text: string) =>
+  text.replace(/[&<>"'\u0080-\uFFFF]/g, (c) => `&#${c.charCodeAt(0)};`);
 
 // Category metadata - covers both old and new subcategory IDs
 const CATEGORY_META: Record<string, { icon: string; color: string; image: string }> = {
@@ -150,6 +156,7 @@ const calculateZoom = (items: any[]) => {
 };
 
 export default function CategoryScreen() {
+  const { t } = useTranslation();
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const insets = useSafeAreaInsets();
@@ -169,6 +176,8 @@ export default function CategoryScreen() {
   });
 
   const category = categories.find(c => c.id === id);
+  const selectedRegionKey = REGIONS.find(r => r.id === selectedRegion)?.labelKey;
+  const selectedRegionName = selectedRegionKey ? t(selectedRegionKey) : undefined;
   const meta = CATEGORY_META[id || ''] || { icon: 'category', color: '#C49A6C', image: CATEGORY_META.lendas.image };
 
   // Partnership categories — visible but not yet available
@@ -311,7 +320,7 @@ export default function CategoryScreen() {
                 const popup = new maplibregl.Popup({ offset: 24 }).setHTML(
                   '<div class="info-window"><h3>' + item.title + '</h3>' +
                   '<p>' + (item.address || 'Portugal') + '</p>' +
-                  '<button onclick="openInMaps(&quot;' + item.title + '&quot;, &quot;' + (item.address || 'Portugal') + '&quot;)">Abrir navega&ccedil;&atilde;o</button></div>'
+                  '<button onclick="openInMaps(&quot;' + item.title + '&quot;, &quot;' + (item.address || 'Portugal') + '&quot;)">${toHtmlText(t('exploreScreens.category.openDirections'))}</button></div>'
                 );
                 new maplibregl.Marker({ color: '${meta.color}' })
                   .setLngLat(lngLat)
@@ -373,8 +382,17 @@ export default function CategoryScreen() {
             </View>
             <Text style={styles.heroTitle}>{category?.name || id}</Text>
             <Text style={styles.heroSubtitle}>
-              {filteredItems.length} {filteredItems.length === 1 ? 'lugar' : 'lugares'} 
-              {selectedRegion !== 'all' && ` em ${REGIONS.find(r => r.id === selectedRegion)?.name}`}
+              {selectedRegion !== 'all'
+                ? t(
+                    filteredItems.length === 1
+                      ? 'exploreScreens.category.placeOneInRegion'
+                      : 'exploreScreens.category.placesInRegion',
+                    { count: filteredItems.length, region: selectedRegionName },
+                  )
+                : t(
+                    filteredItems.length === 1 ? 'exploreScreens.category.placeOne' : 'exploreScreens.category.places',
+                    { count: filteredItems.length },
+                  )}
             </Text>
           </View>
         </LinearGradient>
@@ -405,7 +423,7 @@ export default function CategoryScreen() {
                 styles.filterChipText,
                 selectedRegion === region.id && styles.filterChipTextActive
               ]}>
-                {region.name}
+                {t(region.labelKey)}
               </Text>
               <View style={[
                 styles.filterChipCount,
@@ -427,15 +445,15 @@ export default function CategoryScreen() {
       {isComingSoon ? (
         <View style={styles.emptyContainer}>
           <MaterialIcons name="lock-clock" size={64} color="#C49A6C" />
-          <Text style={styles.emptyTitle}>Brevemente disponivel</Text>
+          <Text style={styles.emptyTitle}>{t('exploreScreens.category.comingSoonTitle')}</Text>
           <Text style={styles.emptySubtitle}>
-            {category?.name || id} estara disponivel na fase de parcerias. Estamos a trabalhar para trazer a melhor experiencia!
+            {t('exploreScreens.category.comingSoonText', { name: category?.name || id })}
           </Text>
           <TouchableOpacity
             style={[styles.resetFilterButton, { backgroundColor: meta.color }]}
             onPress={() => router.back()}
           >
-            <Text style={styles.resetFilterButtonText}>Voltar</Text>
+            <Text style={styles.resetFilterButtonText}>{t('common.back')}</Text>
           </TouchableOpacity>
         </View>
       ) : isLoading ? (
@@ -445,18 +463,18 @@ export default function CategoryScreen() {
       ) : filteredItems.length === 0 ? (
         <View style={styles.emptyContainer}>
           <MaterialIcons name="inbox" size={64} color="#3D4A3D" />
-          <Text style={styles.emptyTitle}>Sem resultados</Text>
+          <Text style={styles.emptyTitle}>{t('exploreScreens.category.noResults')}</Text>
           <Text style={styles.emptySubtitle}>
             {selectedRegion !== 'all' 
-              ? `Não existem locais em ${REGIONS.find(r => r.id === selectedRegion)?.name}`
-              : 'Esta categoria ainda não tem items disponíveis'}
+              ? t('exploreScreens.category.noPlacesInRegion', { region: selectedRegionName })
+              : t('exploreScreens.category.emptyCategory')}
           </Text>
           {selectedRegion !== 'all' && (
             <TouchableOpacity 
               style={[styles.resetFilterButton, { backgroundColor: meta.color }]} 
               onPress={() => setSelectedRegion('all')}
             >
-              <Text style={styles.resetFilterButtonText}>Ver todas as regiões</Text>
+              <Text style={styles.resetFilterButtonText}>{t('exploreScreens.category.seeAllRegions')}</Text>
             </TouchableOpacity>
           )}
         </View>
@@ -493,16 +511,16 @@ export default function CategoryScreen() {
               renderLoading={() => (
                 <View style={styles.mapLoading}>
                   <ActivityIndicator size="large" color="#C49A6C" />
-                  <Text style={styles.mapLoadingText}>A carregar mapa...</Text>
+                  <Text style={styles.mapLoadingText}>{t('exploreScreens.category.loadingMap')}</Text>
                 </View>
               )}
             />
           ) : (
             <View style={styles.webMapFallback}>
               <MaterialIcons name="map" size={64} color="#3D4A3D" />
-              <Text style={styles.webMapTitle}>Mapa Interativo</Text>
+              <Text style={styles.webMapTitle}>{t('exploreScreens.category.interactiveMap')}</Text>
               <Text style={styles.webMapSubtitle}>
-                {filteredItems.filter(i => i.location).length} locais com coordenadas
+                {t('exploreScreens.category.placesWithCoords', { count: filteredItems.filter(i => i.location).length })}
               </Text>
               <TouchableOpacity 
                 style={[styles.openMapButton, { backgroundColor: meta.color }]}
@@ -516,7 +534,7 @@ export default function CategoryScreen() {
                 }}
               >
                 <MaterialIcons name="open-in-new" size={18} color="#2E5E4E" />
-                <Text style={styles.openMapButtonText}>Abrir no Google Maps</Text>
+                <Text style={styles.openMapButtonText}>{t('exploreScreens.category.openInGoogleMaps')}</Text>
               </TouchableOpacity>
               
               {/* Quick list of items with location */}

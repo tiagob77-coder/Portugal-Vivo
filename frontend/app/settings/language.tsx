@@ -33,7 +33,7 @@ export default function LanguageScreen() {
 
       {/* Language List */}
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-        <Text style={styles.sectionTitle}>Selecione o idioma</Text>
+        <Text style={styles.sectionTitle}>{t('account.language.selectLanguage')}</Text>
         
         {LANGUAGES.map((lang) => (
           <TouchableOpacity
@@ -61,7 +61,7 @@ export default function LanguageScreen() {
         <View style={styles.infoBox}>
           <MaterialIcons name="info-outline" size={20} color="#64748B" />
           <Text style={styles.infoText}>
-            A aplicação irá reiniciar para aplicar o novo idioma em todos os ecrãs.
+            {t('account.language.restartInfo')}
           </Text>
         </View>
       </ScrollView>

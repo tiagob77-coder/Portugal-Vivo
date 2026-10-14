@@ -6,6 +6,7 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, ActivityIndicator, Keyboard, Platform, ScrollView } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 import debounce from 'lodash/debounce';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
@@ -39,7 +40,8 @@ const CATEGORY_ICONS: Record<string, string> = {
   areas_protegidas: 'park', rios: 'water', minerais: 'diamond',
 };
 
-export function SearchBar({ placeholder = 'Pesquisar património...', onSearch, autoFocus = false, initialQuery = '' }: SearchBarProps) {
+export function SearchBar({ placeholder, onSearch, autoFocus = false, initialQuery = '' }: SearchBarProps) {
+  const { t } = useTranslation();
   const router = useRouter();
   const { colors } = useTheme();
   const [query, setQuery] = useState(initialQuery);
@@ -130,7 +132,13 @@ export function SearchBar({ placeholder = 'Pesquisar património...', onSearch, 
 
   // Group suggestions by type
   const grouped = suggestions.reduce<Record<string, Suggestion[]>>((acc, s) => {
-    const label = s.type === 'item' ? 'POIs' : s.type === 'route' ? 'Rotas' : s.type === 'category' ? 'Categorias' : 'Tags';
+    const label = s.type === 'item'
+      ? t('components.searchBar.groupPois')
+      : s.type === 'route'
+        ? t('components.searchBar.groupRoutes')
+        : s.type === 'category'
+          ? t('components.searchBar.groupCategories')
+          : t('components.searchBar.groupTags');
     (acc[label] = acc[label] || []).push(s);
     return acc;
   }, {});
@@ -142,7 +150,7 @@ export function SearchBar({ placeholder = 'Pesquisar património...', onSearch, 
         <TextInput
           ref={inputRef}
           style={[styles.input, { color: colors.textOnPrimary }]}
-          placeholder={placeholder}
+          placeholder={placeholder ?? t('explore.searchPlaceholder')}
           placeholderTextColor={colors.textMuted}
           value={query}
           onChangeText={(text) => { setQuery(text); setIsFocused(true); }}
@@ -166,9 +174,9 @@ export function SearchBar({ placeholder = 'Pesquisar património...', onSearch, 
             {query.length < 2 && history.length > 0 && (
               <>
                 <View style={styles.dropdownHeader}>
-                  <Text style={[styles.dropdownLabel, { color: colors.textMuted }]}>Pesquisas Recentes</Text>
+                  <Text style={[styles.dropdownLabel, { color: colors.textMuted }]}>{t('components.searchBar.recentSearches')}</Text>
                   <TouchableOpacity onPress={clearHistory} data-testid="clear-history-btn">
-                    <Text style={[styles.clearAllText, { color: colors.error }]}>Limpar tudo</Text>
+                    <Text style={[styles.clearAllText, { color: colors.error }]}>{t('components.searchBar.clearAll')}</Text>
                   </TouchableOpacity>
                 </View>
                 {history.map((term) => (

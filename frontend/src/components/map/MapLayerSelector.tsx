@@ -12,6 +12,7 @@ import {
   Alert,
 } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import { palette, stateColors, withOpacity } from '../../theme';
 
 interface MapLayer {
@@ -51,6 +52,7 @@ export default function MapLayerSelector({
   getLayerSubcategories,
   isNative = false,
 }: MapLayerSelectorProps) {
+  const { t } = useTranslation();
   // Total selectable subcategories (excludes `comingSoon` placeholders) —
   // derived from props so the counter never drifts from the taxonomy.
   const totalSelectable = Object.values(subcategories)
@@ -61,9 +63,12 @@ export default function MapLayerSelector({
       {!isNative && (
         <View style={styles.sectionHeader}>
           <MaterialIcons name="layers" size={20} color={stateColors.rarity.raro} />
-          <Text style={styles.sectionTitle}>Camadas</Text>
+          <Text style={styles.sectionTitle}>{t('mapScreen.layerSelector.title')}</Text>
           <Text style={styles.subcatCount}>
-            {activeSubcategories.length} de {totalSelectable}
+            {t('mapScreen.layerSelector.count', {
+              active: activeSubcategories.length,
+              total: totalSelectable,
+            })}
           </Text>
         </View>
       )}
@@ -102,9 +107,15 @@ export default function MapLayerSelector({
                 selected: isActive,
                 expanded: !isNative ? isExpanded : undefined,
               }}
-              accessibilityLabel={`Camada ${layer.name}${
-                isActive ? ` (activa, ${activeCount} de ${layerSubs.length})` : ''
-              }`}
+              accessibilityLabel={
+                isActive
+                  ? t('mapScreen.layerSelector.layerLabelActive', {
+                      name: layer.name,
+                      active: activeCount,
+                      total: layerSubs.length,
+                    })
+                  : t('mapScreen.layerSelector.layerLabel', { name: layer.name })
+              }
               hitSlop={6}
             >
               <MaterialIcons
@@ -134,21 +145,23 @@ export default function MapLayerSelector({
         <View style={styles.subcatContainer}>
           <View style={styles.subcatHeader}>
             <Text style={styles.subcatLabel}>
-              {layers.find((l) => l.id === expandedLayer)?.name} — subcategorias
+              {t('mapScreen.layerSelector.subcategoriesHeader', {
+                name: layers.find((l) => l.id === expandedLayer)?.name,
+              })}
             </Text>
             <TouchableOpacity
               onPress={() => onToggleLayer(expandedLayer)}
               data-testid="toggle-all-subcats"
               accessibilityRole="button"
-              accessibilityLabel="Selecionar ou desmarcar todas as subcategorias"
+              accessibilityLabel={t('mapScreen.layerSelector.toggleAllLabel')}
               hitSlop={8}
             >
               <Text style={styles.toggleAllText}>
                 {getLayerSubcategories(expandedLayer).every((s) =>
                   activeSubcategories.includes(s)
                 )
-                  ? 'Desmarcar tudo'
-                  : 'Selecionar tudo'}
+                  ? t('mapScreen.layerSelector.deselectAll')
+                  : t('mapScreen.layerSelector.selectAll')}
               </Text>
             </TouchableOpacity>
           </View>
@@ -180,9 +193,9 @@ export default function MapLayerSelector({
                   onPress={() => {
                     if (isComingSoon) {
                       Alert.alert(
-                        'Brevemente disponivel',
-                        `${sub.name} estara disponivel na fase de parcerias. Fique atento!`,
-                        [{ text: 'OK' }]
+                        t('mapScreen.layerSelector.comingSoonTitle'),
+                        t('mapScreen.layerSelector.comingSoonMessage', { name: sub.name }),
+                        [{ text: t('mapScreen.layerSelector.ok') }]
                       );
                       return;
                     }
@@ -196,8 +209,8 @@ export default function MapLayerSelector({
                   }}
                   accessibilityLabel={
                     isComingSoon
-                      ? `${sub.name} (em breve)`
-                      : `Subcategoria ${sub.name}`
+                      ? `${sub.name} (${t('mapScreen.layerSelector.comingSoon')})`
+                      : t('mapScreen.layerSelector.subcategoryLabel', { name: sub.name })
                   }
                   hitSlop={4}
                 >
@@ -226,7 +239,7 @@ export default function MapLayerSelector({
                     ]}
                   >
                     {sub.name}
-                    {isComingSoon ? ' (em breve)' : ''}
+                    {isComingSoon ? ` (${t('mapScreen.layerSelector.comingSoon')})` : ''}
                   </Text>
                 </TouchableOpacity>
               );

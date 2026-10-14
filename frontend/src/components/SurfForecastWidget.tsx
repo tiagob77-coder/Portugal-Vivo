@@ -9,6 +9,8 @@ import { useQuery } from '@tanstack/react-query';
 import { LinearGradient } from 'expo-linear-gradient';
 import api from '../services/api';
 import { palette } from '../theme/colors';
+import { useTranslation } from 'react-i18next';
+import { currentLocale } from '../i18n/format';
 
 interface ForecastPoint {
   time: string;
@@ -28,12 +30,12 @@ interface SurfForecastWidgetProps {
   onSpotPress?: (spotId: string) => void;
 }
 
-const QUALITY_CONFIG: Record<string, { color: string; gradient: [string, string]; label: string }> = {
-  excellent: { color: '#22C55E', gradient: ['#166534', '#22C55E'], label: 'Excelente' },
-  good: { color: '#3B82F6', gradient: ['#1D4ED8', '#3B82F6'], label: 'Bom' },
-  fair: { color: palette.terracotta[500], gradient: ['#B45309', palette.terracotta[500]], label: 'Razoável' },
-  poor: { color: '#EF4444', gradient: ['#B91C1C', '#EF4444'], label: 'Fraco' },
-  flat: { color: '#6B7280', gradient: ['#374151', '#6B7280'], label: 'Flat' },
+const QUALITY_CONFIG: Record<string, { color: string; gradient: [string, string]; labelKey: string }> = {
+  excellent: { color: '#22C55E', gradient: ['#166534', '#22C55E'], labelKey: 'widgets.surfQuality.excellent' },
+  good: { color: '#3B82F6', gradient: ['#1D4ED8', '#3B82F6'], labelKey: 'widgets.surfQuality.good' },
+  fair: { color: palette.terracotta[500], gradient: ['#B45309', palette.terracotta[500]], labelKey: 'widgets.surfQuality.fair' },
+  poor: { color: '#EF4444', gradient: ['#B91C1C', '#EF4444'], labelKey: 'widgets.surfQuality.poor' },
+  flat: { color: '#6B7280', gradient: ['#374151', '#6B7280'], labelKey: 'widgets.surfQuality.flat' },
 };
 
 const SPOTS = [
@@ -51,7 +53,7 @@ const getSpotForecast = async (spotId: string): Promise<SpotForecast> => {
 
 const formatTime = (isoTime: string) => {
   const date = new Date(isoTime);
-  return date.toLocaleTimeString('pt-PT', { hour: '2-digit', minute: '2-digit' });
+  return date.toLocaleTimeString(currentLocale(), { hour: '2-digit', minute: '2-digit' });
 };
 
 const getTimeOfDay = (isoTime: string) => {
@@ -71,6 +73,7 @@ const TIME_ICONS: Record<string, string> = {
 
 export function SurfForecastWidget({ spotId = 'nazare', onSpotPress }: SurfForecastWidgetProps) {
   const [selectedSpot, setSelectedSpot] = useState(spotId);
+  const { t } = useTranslation();
 
   const { data, isLoading, error } = useQuery({
     queryKey: ['surf-forecast', selectedSpot],
@@ -83,7 +86,7 @@ export function SurfForecastWidget({ spotId = 'nazare', onSpotPress }: SurfForec
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="small" color="#3B82F6" />
-        <Text style={styles.loadingText}>A carregar previsão...</Text>
+        <Text style={styles.loadingText}>{t('widgets.surfForecast.loading')}</Text>
       </View>
     );
   }
@@ -101,14 +104,14 @@ export function SurfForecastWidget({ spotId = 'nazare', onSpotPress }: SurfForec
           <View style={styles.header}>
             <View style={styles.headerLeft}>
               <MaterialIcons name="surfing" size={24} color="#FFF" />
-              <Text style={styles.title}>Previsão Surf 24h</Text>
+              <Text style={styles.title}>{t('widgets.surfForecast.title')}</Text>
             </View>
           </View>
           <View style={styles.errorContent}>
             <MaterialIcons name="cloud-off" size={32} color="rgba(255,255,255,0.5)" />
-            <Text style={styles.errorText}>Não foi possível carregar a previsão</Text>
+            <Text style={styles.errorText}>{t('widgets.surfForecast.loadError')}</Text>
             <TouchableOpacity style={styles.retryButton} onPress={() => {}}>
-              <Text style={styles.retryText}>Toque para tentar novamente</Text>
+              <Text style={styles.retryText}>{t('widgets.surfForecast.tapRetry')}</Text>
             </TouchableOpacity>
           </View>
         </LinearGradient>
@@ -131,10 +134,10 @@ export function SurfForecastWidget({ spotId = 'nazare', onSpotPress }: SurfForec
         <View style={styles.header}>
           <View style={styles.headerLeft}>
             <MaterialIcons name="surfing" size={24} color="#FFF" />
-            <Text style={styles.title}>Previsão Surf 24h</Text>
+            <Text style={styles.title}>{t('widgets.surfForecast.title')}</Text>
           </View>
           <View style={styles.qualityBadge}>
-            <Text style={styles.qualityText}>{config.label}</Text>
+            <Text style={styles.qualityText}>{t(config.labelKey)}</Text>
           </View>
         </View>
 
@@ -170,7 +173,7 @@ export function SurfForecastWidget({ spotId = 'nazare', onSpotPress }: SurfForec
             <Text style={styles.currentHeight}>
               {data.current?.wave_height_m?.toFixed(1) || '--'}
             </Text>
-            <Text style={styles.currentUnit}>metros</Text>
+            <Text style={styles.currentUnit}>{t('widgets.surfForecast.metres')}</Text>
           </View>
           <View style={styles.currentDetails}>
             <View style={styles.detailRow}>
@@ -186,7 +189,7 @@ export function SurfForecastWidget({ spotId = 'nazare', onSpotPress }: SurfForec
 
         {/* Forecast Timeline */}
         <View style={styles.forecastSection}>
-          <Text style={styles.forecastTitle}>Próximas horas</Text>
+          <Text style={styles.forecastTitle}>{t('widgets.surfForecast.nextHours')}</Text>
           <ScrollView 
             horizontal 
             showsHorizontalScrollIndicator={false}
@@ -215,7 +218,7 @@ export function SurfForecastWidget({ spotId = 'nazare', onSpotPress }: SurfForec
           style={styles.footer}
           onPress={() => onSpotPress?.(selectedSpot)}
         >
-          <Text style={styles.footerText}>Ver detalhes completos</Text>
+          <Text style={styles.footerText}>{t('widgets.surfForecast.seeDetails')}</Text>
           <MaterialIcons name="arrow-forward" size={16} color="rgba(255,255,255,0.8)" />
         </TouchableOpacity>
       </LinearGradient>

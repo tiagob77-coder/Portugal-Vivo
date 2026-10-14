@@ -5,6 +5,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import { palette, withOpacity } from '../../theme';
 
 // Top-bar map modes. Held to 7 so the row fits without horizontal scroll on
@@ -25,13 +26,13 @@ import { palette, withOpacity } from '../../theme';
 // ("Rotas" vs "Trilhos") to avoid the earlier "Rotas & Trilhos" overlap
 // that read as a duplicate of the adjacent Trilhos tab.
 const MAP_MODES = [
-  { id: 'markers', icon: 'place', label: 'Camadas' },
-  { id: 'rotas', icon: 'route', label: 'Rotas' },
-  { id: 'explorador', icon: 'explore', label: 'Explorador' },
-  { id: 'heatmap', icon: 'whatshot', label: 'Densidade' },
-  { id: 'trails', icon: 'hiking', label: 'Trilhos' },
-  { id: 'proximity', icon: 'near-me', label: 'Proximidade' },
-  { id: 'noturno', icon: 'nightlight-round', label: 'Modo noturno' },
+  { id: 'markers', icon: 'place', labelKey: 'mapScreen.modes.markers' },
+  { id: 'rotas', icon: 'route', labelKey: 'mapScreen.modes.rotas' },
+  { id: 'explorador', icon: 'explore', labelKey: 'mapScreen.modes.explorador' },
+  { id: 'heatmap', icon: 'whatshot', labelKey: 'mapScreen.modes.heatmap' },
+  { id: 'trails', icon: 'hiking', labelKey: 'mapScreen.modes.trails' },
+  { id: 'proximity', icon: 'near-me', labelKey: 'mapScreen.modes.proximity' },
+  { id: 'noturno', icon: 'nightlight-round', labelKey: 'mapScreen.modes.noturno' },
 ] as const;
 
 export type MapMode = typeof MAP_MODES[number]['id'];
@@ -61,6 +62,7 @@ interface MapModeSelectorProps {
 }
 
 export default function MapModeSelector({ activeMode, onModeChange, modes }: MapModeSelectorProps) {
+  const { t } = useTranslation();
   const items = modes ? MAP_MODES.filter((m) => modes.includes(m.id)) : MAP_MODES;
   return (
     <ScrollView
@@ -68,11 +70,12 @@ export default function MapModeSelector({ activeMode, onModeChange, modes }: Map
       showsHorizontalScrollIndicator={false}
       style={styles.scroll}
       accessibilityRole="tablist"
-      accessibilityLabel="Modos de mapa"
+      accessibilityLabel={t('mapScreen.modes.a11yLabel')}
     >
       <View style={styles.container}>
         {items.map((mode) => {
           const isActive = activeMode === mode.id;
+          const label = t(mode.labelKey);
           return (
             <TouchableOpacity
               key={mode.id}
@@ -81,7 +84,7 @@ export default function MapModeSelector({ activeMode, onModeChange, modes }: Map
               data-testid={`map-mode-${mode.id}`}
               accessibilityRole="tab"
               accessibilityState={{ selected: isActive }}
-              accessibilityLabel={`Modo de mapa: ${mode.label}`}
+              accessibilityLabel={t('mapScreen.modes.modeLabel', { mode: label })}
               // 44×44 minimum recommended by WCAG 2.5.5; the visual button
               // stays compact because the hitSlop expands the touch area.
               hitSlop={{ top: 12, bottom: 12, left: 6, right: 6 }}
@@ -97,7 +100,7 @@ export default function MapModeSelector({ activeMode, onModeChange, modes }: Map
                   isActive && styles.btnTextActive,
                 ]}
               >
-                {mode.label}
+                {label}
               </Text>
             </TouchableOpacity>
           );

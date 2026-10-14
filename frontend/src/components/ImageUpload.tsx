@@ -7,6 +7,7 @@ import OptimizedImage from './OptimizedImage';
 import { MaterialIcons } from '@expo/vector-icons';
 import { uploadImage } from '../services/api';
 import { palette, withOpacity } from '../theme/colors';
+import { useTranslation } from 'react-i18next';
 
 interface ImageUploadProps {
   token: string;
@@ -19,6 +20,7 @@ interface ImageUploadProps {
 export default function ImageUpload({
   token, context, itemId, onUpload, maxSizeMB = 5,
 }: ImageUploadProps) {
+  const { t } = useTranslation();
   const [uploading, setUploading] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -37,13 +39,13 @@ export default function ImageUpload({
 
     // Validate type
     if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
-      setError('Use JPEG, PNG ou WebP');
+      setError(t('widgets.imageUpload.badType'));
       return;
     }
 
     // Validate size
     if (file.size > maxSizeMB * 1024 * 1024) {
-      setError(`Ficheiro demasiado grande (máx. ${maxSizeMB} MB)`);
+      setError(t('widgets.imageUpload.tooLarge', { max: maxSizeMB }));
       return;
     }
 
@@ -62,7 +64,7 @@ export default function ImageUpload({
       );
       onUpload(result.url);
     } catch (err: any) {
-      setError(err?.response?.data?.detail || 'Erro ao fazer upload');
+      setError(err?.response?.data?.detail || t('widgets.imageUpload.uploadError'));
       setPreviewUrl(null);
     } finally {
       setUploading(false);
@@ -74,7 +76,7 @@ export default function ImageUpload({
       const ImagePicker = require('expo-image-picker'); // eslint-disable-line @typescript-eslint/no-require-imports
       const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
       if (status !== 'granted') {
-        Alert.alert('Permissão necessária', 'Precisamos de acesso à galeria para carregar fotos.');
+        Alert.alert(t('widgets.imageUpload.permissionTitle'), t('widgets.imageUpload.permissionMessage'));
         return;
       }
 
@@ -102,13 +104,13 @@ export default function ImageUpload({
         );
         onUpload(uploadResult.url);
       } catch (err: any) {
-        setError(err?.response?.data?.detail || 'Erro ao fazer upload');
+        setError(err?.response?.data?.detail || t('widgets.imageUpload.uploadError'));
         setPreviewUrl(null);
       } finally {
         setUploading(false);
       }
     } catch {
-      setError('Galeria não disponível');
+      setError(t('widgets.imageUpload.galleryUnavailable'));
     }
   };
 
@@ -131,15 +133,15 @@ export default function ImageUpload({
         {uploading ? (
           <View style={styles.center}>
             <ActivityIndicator size="large" color={palette.terracotta[500]} />
-            <Text style={styles.uploadingText}>A carregar...</Text>
+            <Text style={styles.uploadingText}>{t('common.loading')}</Text>
           </View>
         ) : previewUrl ? (
           <OptimizedImage uri={previewUrl} style={styles.preview} />
         ) : (
           <View style={styles.center}>
             <MaterialIcons name="add-a-photo" size={36} color={palette.terracotta[500]} />
-            <Text style={styles.label}>Adicionar foto</Text>
-            <Text style={styles.hint}>JPEG, PNG ou WebP (máx. {maxSizeMB} MB)</Text>
+            <Text style={styles.label}>{t('widgets.imageUpload.addPhoto')}</Text>
+            <Text style={styles.hint}>{t('widgets.imageUpload.hint', { max: maxSizeMB })}</Text>
           </View>
         )}
 

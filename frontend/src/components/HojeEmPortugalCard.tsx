@@ -8,6 +8,7 @@ import {
 } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 
 export interface HojeItem {
   label: string;
@@ -51,6 +52,7 @@ function Chip({ emoji, label, sub, color }: { emoji?: string; label: string; sub
 
 function HojeEmPortugalCard({ data, loading, accentColor = '#10B981' }: Props) {
   const router = useRouter();
+  const { t } = useTranslation();
 
   if (loading) {
     return (
@@ -91,7 +93,7 @@ function HojeEmPortugalCard({ data, loading, accentColor = '#10B981' }: Props) {
     const ev = events[0];
     chips.push({
       emoji: '🎉',
-      label: ev.name || ev.title || 'Evento próximo',
+      label: ev.name || ev.title || t('components.hojeEmPortugalCard.nearbyEvent'),
       sub: ev.distance_km != null ? `${ev.distance_km} km` : ev.region,
       color: '#F59E0B',
     });
@@ -110,7 +112,7 @@ function HojeEmPortugalCard({ data, loading, accentColor = '#10B981' }: Props) {
 
   // Surf
   if (surf.note) {
-    chips.push({ emoji: surf.emoji, label: 'Mar & Surf', sub: surf.note.split('—')[0].trim(), color: '#3B82F6' });
+    chips.push({ emoji: surf.emoji, label: t('components.hojeEmPortugalCard.seaSurf'), sub: surf.note.split('—')[0].trim(), color: '#3B82F6' });
   }
 
   return (
@@ -118,15 +120,15 @@ function HojeEmPortugalCard({ data, loading, accentColor = '#10B981' }: Props) {
       {/* Header */}
       <View style={styles.header}>
         <View style={[styles.dot, { backgroundColor: accentColor }]} />
-        <Text style={[styles.title, { color: accentColor }]}>Hoje em Portugal</Text>
+        <Text style={[styles.title, { color: accentColor }]}>{t('components.hojeEmPortugalCard.title')}</Text>
         {!data.has_location && (
           <View style={styles.noloc}>
             <MaterialIcons name="location-off" size={11} color="#6B7280" />
-            <Text style={styles.nolocText}>Sem GPS</Text>
+            <Text style={styles.nolocText}>{t('components.hojeEmPortugalCard.noGps')}</Text>
           </View>
         )}
         <TouchableOpacity onPress={() => router.push('/nearby')} style={styles.link}>
-          <Text style={[styles.linkText, { color: accentColor }]}>Ver perto</Text>
+          <Text style={[styles.linkText, { color: accentColor }]}>{t('components.hojeEmPortugalCard.seeNearby')}</Text>
           <MaterialIcons name="arrow-forward" size={12} color={accentColor} />
         </TouchableOpacity>
       </View>
@@ -148,7 +150,7 @@ function HojeEmPortugalCard({ data, loading, accentColor = '#10B981' }: Props) {
         <TouchableOpacity style={styles.footer} onPress={() => router.push('/(tabs)/eventos')} activeOpacity={0.7}>
           <MaterialIcons name="event" size={12} color="#6B7280" />
           <Text style={styles.footerText}>
-            {events.length} eventos em {data.month_pt} · toque para ver
+            {t('components.hojeEmPortugalCard.eventsFooter', { count: events.length, month: data.month_pt })}
           </Text>
           <MaterialIcons name="chevron-right" size={14} color="#6B7280" />
         </TouchableOpacity>

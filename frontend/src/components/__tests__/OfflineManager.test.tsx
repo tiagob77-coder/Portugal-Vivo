@@ -1,5 +1,6 @@
 import React from 'react';
 import { render, waitFor } from '@testing-library/react-native';
+import i18n from 'i18next';
 
 // ── Mocks ─────────────────────────────────────────────────────────────────────
 
@@ -58,6 +59,11 @@ import OfflineManager from '../OfflineManager';
 // ── Tests ─────────────────────────────────────────────────────────────────────
 
 describe('OfflineManager', () => {
+  // The assertions below were written against the English copy; the
+  // Portuguese UI is covered by the last test.
+  beforeAll(() => i18n.changeLanguage('en'));
+  afterAll(() => i18n.changeLanguage('pt'));
+
   beforeEach(() => {
     mockIsOffline = false;
     mockDownloadedRegions = [];
@@ -137,5 +143,16 @@ describe('OfflineManager', () => {
     const { getByText } = render(<OfflineManager />);
     await waitFor(() => expect(getByText('Norte')).toBeTruthy());
     expect(getByText('Available Regions')).toBeTruthy();
+  });
+
+  it('renders in Portuguese', async () => {
+    await i18n.changeLanguage('pt');
+    try {
+      const { getByText } = render(<OfflineManager />);
+      await waitFor(() => expect(getByText('Regiões offline')).toBeTruthy());
+      expect(getByText('Armazenamento usado')).toBeTruthy();
+    } finally {
+      await i18n.changeLanguage('en');
+    }
   });
 });

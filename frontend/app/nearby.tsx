@@ -4,6 +4,7 @@ import { useRouter, Stack } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useQuery } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
 import { getNearbyPOIs, getNearbyCategoryCounts, getCategories } from '../src/services/api';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as Location from 'expo-location';
@@ -296,6 +297,7 @@ function makeStyles(C: Record<string, string>) {
 }
 
 export default function NearbyScreen() {
+  const { t } = useTranslation();
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { colors, isDark } = useTheme();
@@ -312,6 +314,7 @@ export default function NearbyScreen() {
   const s = makeStyles(C);
 
   const [location, setLocation] = useState<{ latitude: number; longitude: number } | null>(null);
+  // Holds an i18n key (translated at render time), or null when there is no error.
   const [locationError, setLocationError] = useState<string | null>(null);
   const [isLoadingLocation, setIsLoadingLocation] = useState(true);
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
@@ -331,7 +334,7 @@ export default function NearbyScreen() {
 
         const { status } = await Location.requestForegroundPermissionsAsync();
         if (status !== 'granted') {
-          setLocationError('Permissão de localização negada. Por favor, ative a localização nas definições.');
+          setLocationError('exploreScreens.nearby.permissionDeniedSettings');
           setIsLoadingLocation(false);
           return;
         }
@@ -346,7 +349,7 @@ export default function NearbyScreen() {
         });
       } catch (error) {
         logger.error('Location error:', error);
-        setLocationError('Não foi possível obter a sua localização. Verifique se o GPS está ativo.');
+        setLocationError('exploreScreens.nearby.locationFailed');
       } finally {
         setIsLoadingLocation(false);
       }
@@ -441,14 +444,14 @@ export default function NearbyScreen() {
             <TouchableOpacity style={s.backButton} onPress={() => router.back()}>
               <MaterialIcons name="arrow-back" size={24} color={C.text} />
             </TouchableOpacity>
-            <Text style={s.headerTitle}>Perto de Mim</Text>
+            <Text style={s.headerTitle}>{t('exploreScreens.nearby.title')}</Text>
             <View style={{ width: 44 }} />
           </View>
         </LinearGradient>
         <View style={s.centerContent}>
           <ActivityIndicator size="large" color={C.accent} />
-          <Text style={s.loadingText}>A obter a sua localização...</Text>
-          <Text style={s.loadingSubtext}>Por favor, aguarde</Text>
+          <Text style={s.loadingText}>{t('exploreScreens.nearby.gettingLocation')}</Text>
+          <Text style={s.loadingSubtext}>{t('exploreScreens.nearby.pleaseWait')}</Text>
         </View>
       </View>
     );
@@ -463,14 +466,14 @@ export default function NearbyScreen() {
             <TouchableOpacity style={s.backButton} onPress={() => router.back()}>
               <MaterialIcons name="arrow-back" size={24} color={C.text} />
             </TouchableOpacity>
-            <Text style={s.headerTitle}>Perto de Mim</Text>
+            <Text style={s.headerTitle}>{t('exploreScreens.nearby.title')}</Text>
             <View style={{ width: 44 }} />
           </View>
         </LinearGradient>
         <View style={s.centerContent}>
           <MaterialIcons name="location-off" size={64} color="#EF4444" />
-          <Text style={s.errorTitle}>Localização Indisponível</Text>
-          <Text style={s.errorText}>{locationError}</Text>
+          <Text style={s.errorTitle}>{t('exploreScreens.nearby.unavailableTitle')}</Text>
+          <Text style={s.errorText}>{t(locationError)}</Text>
           <TouchableOpacity
             style={s.retryButton}
             onPress={() => {
@@ -486,10 +489,10 @@ export default function NearbyScreen() {
                       longitude: loc.coords.longitude,
                     });
                   } else {
-                    setLocationError('Permissão de localização negada.');
+                    setLocationError('exploreScreens.nearby.permissionDenied');
                   }
                 } catch (_e) {
-                  setLocationError('Erro ao obter localização.');
+                  setLocationError('exploreScreens.nearby.locationError');
                 } finally {
                   setIsLoadingLocation(false);
                 }
@@ -497,7 +500,7 @@ export default function NearbyScreen() {
             }}
           >
             <MaterialIcons name="refresh" size={20} color={C.bg} />
-            <Text style={s.retryButtonText}>Tentar novamente</Text>
+            <Text style={s.retryButtonText}>{t('common.retry')}</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -513,7 +516,7 @@ export default function NearbyScreen() {
           <TouchableOpacity style={s.backButton} onPress={() => router.back()}>
             <MaterialIcons name="arrow-back" size={24} color={C.text} />
           </TouchableOpacity>
-          <Text style={s.headerTitle}>Perto de Mim</Text>
+          <Text style={s.headerTitle}>{t('exploreScreens.nearby.title')}</Text>
           <View style={{ flexDirection: 'row', gap: 8 }}>
             <TouchableOpacity
               style={[s.refreshButton, { backgroundColor: withOpacity(C.accent, 0.2) }]}
@@ -533,7 +536,7 @@ export default function NearbyScreen() {
         <View style={s.locationInfo}>
           <MaterialIcons name="location-on" size={18} color="#22C55E" />
           <Text style={s.locationText}>
-            {location ? `${location.latitude.toFixed(4)}, ${location.longitude.toFixed(4)}` : 'A localizar...'}
+            {location ? `${location.latitude.toFixed(4)}, ${location.longitude.toFixed(4)}` : t('exploreScreens.nearby.locating')}
           </Text>
         </View>
 
@@ -541,22 +544,22 @@ export default function NearbyScreen() {
           <View style={s.statsRow}>
             <View style={s.stat}>
               <Text style={s.statValue}>{categoryCounts.total_pois}</Text>
-              <Text style={s.statLabel}>POIs</Text>
+              <Text style={s.statLabel}>{t('exploreScreens.nearby.statPois')}</Text>
             </View>
             <View style={s.stat}>
               <Text style={s.statValue}>{radius} km</Text>
-              <Text style={s.statLabel}>Raio</Text>
+              <Text style={s.statLabel}>{t('exploreScreens.nearby.statRadius')}</Text>
             </View>
             <View style={s.stat}>
               <Text style={s.statValue}>{categoryCounts.categories.length}</Text>
-              <Text style={s.statLabel}>Categorias</Text>
+              <Text style={s.statLabel}>{t('exploreScreens.nearby.statCategories')}</Text>
             </View>
           </View>
         )}
       </LinearGradient>
 
       <View style={s.radiusContainer}>
-        <Text style={s.radiusLabel}>Raio de pesquisa:</Text>
+        <Text style={s.radiusLabel}>{t('exploreScreens.nearby.radiusLabel')}</Text>
         <ScrollView horizontal showsHorizontalScrollIndicator={false}>
           {[10, 25, 50, 100].map((r) => (
             <TouchableOpacity
@@ -612,7 +615,7 @@ export default function NearbyScreen() {
       {isLoadingPOIs ? (
         <View style={s.centerContent}>
           <ActivityIndicator size="large" color={C.accent} />
-          <Text style={s.loadingText}>A procurar POIs próximos...</Text>
+          <Text style={s.loadingText}>{t('exploreScreens.nearby.searchingPois')}</Text>
         </View>
       ) : nearbyData && nearbyData.pois.length > 0 ? (
         <FlatList
@@ -679,10 +682,12 @@ export default function NearbyScreen() {
       ) : (
         <View style={s.centerContent}>
           <MaterialIcons name="location-searching" size={64} color={C.cardDeep} />
-          <Text style={s.emptyTitle}>Nenhum POI encontrado</Text>
+          <Text style={s.emptyTitle}>{t('exploreScreens.nearby.noPoisTitle')}</Text>
           <Text style={s.emptyText}>
-            Não existem pontos de interesse num raio de {radius} km.
-            {selectedCategories.length > 0 ? '\nExperimente remover filtros de categoria.' : '\nExperimente aumentar o raio de pesquisa.'}
+            {t('exploreScreens.nearby.noPoisInRadius', { radius })}
+            {selectedCategories.length > 0
+              ? `\n${t('exploreScreens.nearby.tryRemoveFilters')}`
+              : `\n${t('exploreScreens.nearby.tryIncreaseRadius')}`}
           </Text>
         </View>
       )}

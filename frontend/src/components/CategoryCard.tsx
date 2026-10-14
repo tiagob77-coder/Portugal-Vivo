@@ -1,6 +1,7 @@
 import { palette } from '../theme/colors';
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { Image } from 'expo-image';
 import { MaterialIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -18,6 +19,7 @@ interface CategoryCardProps {
 }
 
 function CategoryCard({ category, onPress }: CategoryCardProps) {
+  const { t } = useTranslation();
   const imageUrl = getCategoryImage(category.id);
   const culturalIcon = getCulturalIcon(category.id);
   
@@ -25,6 +27,9 @@ function CategoryCard({ category, onPress }: CategoryCardProps) {
   const iconName = category.icon || culturalIcon.icon;
   const iconColor = category.color || culturalIcon.color;
   
+  const itemCount = (category as any).count || 0;
+  const itemsLabel = t(itemCount === 1 ? 'components.categoryCard.itemsOne' : 'components.categoryCard.items', { count: itemCount });
+
   const handlePress = () => {
     hapticLight();
     onPress();
@@ -35,9 +40,9 @@ function CategoryCard({ category, onPress }: CategoryCardProps) {
       <PressableScale
         onPress={handlePress}
         style={styles.card}
-        accessibilityLabel={`${category.name}${(category as any).count ? `, ${(category as any).count} itens` : ''}`}
+        accessibilityLabel={`${category.name}${(category as any).count ? `, ${itemsLabel}` : ''}`}
         accessibilityRole="button"
-        accessibilityHint="Toque para ver itens desta categoria"
+        accessibilityHint={t('components.categoryCard.a11yHint')}
       >
       {/* Background Image */}
       <Image
@@ -64,7 +69,7 @@ function CategoryCard({ category, onPress }: CategoryCardProps) {
           />
         </View>
         <Text style={styles.name} numberOfLines={2}>{category.name}</Text>
-        <Text style={styles.count}>{(category as any).count || 0} itens</Text>
+        <Text style={styles.count}>{itemsLabel}</Text>
       </View>
     </PressableScale>
     </View>

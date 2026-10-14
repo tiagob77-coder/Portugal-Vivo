@@ -1,6 +1,1014 @@
 {
-  "pt": {},
-  "en": {},
-  "es": {},
-  "fr": {}
+  "pt": {
+    "categoryCard": {
+      "a11yHint": "Toque para ver itens desta categoria",
+      "items": "{{count}} itens",
+      "itemsOne": "{{count}} itens"
+    },
+    "discoveryCard": {
+      "protectedArea": "Área Protegida Próxima",
+      "biodiversityStation": "Estação de Biodiversidade",
+      "natureSuggestions": "Sugestões de Natureza",
+      "itineraryTitle": "Itinerário Sustentável (2 dias)",
+      "day1Evening": "Dia 1 - Noite",
+      "byPublicTransport": "{{km}} km por transporte público",
+      "day2Morning": "Dia 2 - Manhã"
+    },
+    "featuredTrailCard": {
+      "difficulty": {
+        "facil": "Fácil",
+        "moderado": "Moderado",
+        "dificil": "Difícil",
+        "muitoDificil": "Muito difícil"
+      },
+      "geometryPending": "Geometria por confirmar",
+      "onMap": "No mapa",
+      "viewOnAllTrailsA11y": "Ver {{name}} no AllTrails",
+      "viewOnAllTrails": "Ver no AllTrails",
+      "openA11y": "Abrir {{name}}"
+    },
+    "heritageCard": {
+      "a11yHint": "Toque para ver detalhes"
+    },
+    "hojeEmPortugalCard": {
+      "title": "Hoje em Portugal",
+      "noGps": "Sem GPS",
+      "seeNearby": "Ver perto",
+      "nearbyEvent": "Evento próximo",
+      "seaSurf": "Mar & Surf",
+      "eventsFooter": "{{count}} eventos em {{month}} · toque para ver"
+    },
+    "microStoryCard": {
+      "learnMore": "Quero saber mais",
+      "listen": "Ouvir história"
+    },
+    "missionCard": {
+      "today": "Hoje!",
+      "daysLeft": "{{count}}d",
+      "badge": "Badge",
+      "completed": "Completo",
+      "claim": "Reclamar"
+    },
+    "emptyState": {
+      "noResults": {
+        "title": "Sem resultados",
+        "subtitle": "Tente outro termo ou ajuste os filtros"
+      },
+      "noFavorites": {
+        "title": "Sem favoritos ainda",
+        "subtitle": "Explore locais e adicione aos seus favoritos"
+      },
+      "noVisits": {
+        "title": "Nenhuma visita registada",
+        "subtitle": "Visite um local para começar a ganhar pontos"
+      },
+      "noRoutes": {
+        "title": "Sem rotas guardadas",
+        "subtitle": "Gere uma rota inteligente para começar"
+      },
+      "noEvents": {
+        "title": "Sem eventos por perto",
+        "subtitle": "Explore outras regiões ou datas"
+      },
+      "noConnection": {
+        "title": "Sem ligação",
+        "subtitle": "Verifique a sua ligação à internet"
+      },
+      "emptyCategory": {
+        "title": "Categoria vazia",
+        "subtitle": "Esta categoria ainda não tem conteúdo"
+      },
+      "loadingError": {
+        "title": "Erro ao carregar",
+        "subtitle": "Algo correu mal. Tente novamente."
+      }
+    },
+    "errorBoundary": {
+      "title": "Algo correu mal",
+      "unexpected": "Erro inesperado"
+    },
+    "searchBar": {
+      "recentSearches": "Pesquisas Recentes",
+      "clearAll": "Limpar tudo",
+      "groupPois": "POIs",
+      "groupRoutes": "Rotas",
+      "groupCategories": "Categorias",
+      "groupTags": "Tags"
+    },
+    "regionFilterBanner": {
+      "showing": "A mostrar: {{region}}",
+      "seeAllA11y": "Ver todas as regiões",
+      "seeAll": "Ver todos"
+    },
+    "offlineBanner": {
+      "offlinePending": "Modo Offline - {{count}} ações pendentes",
+      "offlinePendingOne": "Modo Offline - {{count}} ações pendentes",
+      "offlineLocal": "Modo Offline - dados locais",
+      "backOnline": "De volta online"
+    },
+    "installPrompt": {
+      "title": "Instalar Portugal Vivo",
+      "subtitle": "Acesso rápido e funciona offline",
+      "install": "Instalar"
+    },
+    "cookieBanner": {
+      "title": "Cookies e estatísticas anónimas",
+      "body": "Só usamos um cookie de sessão — sem cookies de publicidade nem rastreadores de terceiros. As estatísticas de utilização são anónimas e podem ser desativadas em",
+      "settingsLink": "Definições",
+      "learnMore": "Saber mais",
+      "acceptA11y": "Aceitar e fechar aviso de cookies",
+      "accept": "Aceitar"
+    },
+    "approxLocationBadge": {
+      "municipality": "localização aprox. (concelho)",
+      "district": "localização aprox. (distrito)",
+      "region": "localização aprox. (região)",
+      "compactMunicipality": "aprox. concelho",
+      "compactDistrict": "aprox. distrito",
+      "compactRegion": "aprox. região",
+      "fallbackCompact": "localização aprox.",
+      "fallback": "localização aproximada"
+    },
+    "shareButton": {
+      "linkCopied": "Link copiado!"
+    },
+    "shareSheet": {
+      "shareVia": "Partilhar via",
+      "copyLink": "Copiar Link"
+    },
+    "routeShareButton": {
+      "error": "Nao foi possivel criar o link de partilha. Tente novamente.",
+      "shareMessage": "Descobre esta rota em Portugal Vivo: {{name}}",
+      "stops": "Pontos",
+      "distance": "Distancia",
+      "duration": "Duracao",
+      "qrCode": "QR Code"
+    },
+    "navigationChooser": {
+      "title": "Navegar para o local",
+      "distanceAway": "a {{distance}} da sua localização",
+      "googleA11y": "Navegar com o Google Maps",
+      "googleDesc": "Direções passo a passo",
+      "wazeA11y": "Navegar com o Waze",
+      "wazeDesc": "Trânsito em tempo real",
+      "cancelA11y": "Cancelar navegação"
+    },
+    "premiumGate": {
+      "features": {
+        "aiItinerary": {
+          "title": "Roteiros IA",
+          "desc": "Gere itinerários personalizados com inteligência artificial",
+          "bullet1": "Roteiros adaptados ao teu perfil",
+          "bullet2": "Atualização em tempo real",
+          "bullet3": "Exportação PDF e GPX"
+        },
+        "audioGuides": {
+          "title": "Áudio Guias",
+          "desc": "Ouça narrativas imersivas em 9 vozes diferentes",
+          "bullet1": "9 vozes e estilos narrativos",
+          "bullet2": "Funciona offline",
+          "bullet3": "Narração em português e inglês"
+        },
+        "offline": {
+          "title": "Modo Offline",
+          "desc": "Faça download de regiões para explorar sem internet",
+          "bullet1": "Download de mapas e POIs",
+          "bullet2": "Narrativas disponíveis offline",
+          "bullet3": "Sincronização automática"
+        },
+        "epochs": {
+          "title": "Épocas Históricas",
+          "desc": "Explore a timeline interativa de Portugal",
+          "bullet1": "Da pré-história ao séc. XXI",
+          "bullet2": "Filtros por período no mapa",
+          "bullet3": "Conteúdo exclusivo por época"
+        },
+        "collections": {
+          "title": "Coleções Completas",
+          "desc": "Aceda a 12 coleções temáticas exclusivas",
+          "bullet1": "12 coleções temáticas",
+          "bullet2": "Rotas pré-definidas",
+          "bullet3": "Actualizadas mensalmente"
+        },
+        "customRoutes": {
+          "title": "Rotas Personalizadas",
+          "desc": "Crie e partilhe as suas próprias rotas",
+          "bullet1": "Editor de rotas arrastar-e-largar",
+          "bullet2": "Partilha com amigos",
+          "bullet3": "Importação de GPX"
+        },
+        "export": {
+          "title": "Exportar Roteiros",
+          "desc": "Exporte em PDF e GPX para navegação",
+          "bullet1": "PDF formatado para impressão",
+          "bullet2": "GPX para GPS e Garmin",
+          "bullet3": "Histórico de exportações"
+        },
+        "fallback": {
+          "title": "Funcionalidade Premium",
+          "desc": "Esta funcionalidade requer uma subscrição premium",
+          "bullet1": "Acesso completo a todas as funcionalidades"
+        }
+      },
+      "unlock": "Desbloquear",
+      "monthly": "MENSAL",
+      "perMonth": "/mês",
+      "yearly": "ANUAL",
+      "perYear": "/ano · -33%",
+      "trialNote": "7 dias grátis · Cancela quando quiseres",
+      "cta": "Experimentar Descobridor"
+    },
+    "streakTracker": {
+      "days": "{{count}} dias",
+      "daysOne": "{{count}} dias",
+      "hoursLeft": "Faltam {{hours}}h para manter",
+      "start": "Visita um local para começar!",
+      "record": "Recorde",
+      "week": "Semana",
+      "milestoneProgress": "{{progress}}/{{days}} dias ({{pct}}%)",
+      "monthlyVisits": "{{count}} visitas este mês",
+      "monthlyVisitsOne": "{{count}} visitas este mês"
+    },
+    "badgeCelebration": {
+      "title": "Badge Desbloqueado!",
+      "points": "+{{count}} pontos",
+      "pointsOne": "+{{count}} pontos"
+    },
+    "onboardingModal": {
+      "discover": {
+        "title": "Descubra Portugal",
+        "subtitle": "Mais de 5.600 locais únicos espalhados por 7 regiões e 39 categorias. De cascatas escondidas a tascas centenárias."
+      },
+      "routes": {
+        "title": "Rotas Temáticas",
+        "subtitle": "Percorra rotas curadas como \"Aldeias Históricas do Centro\" ou \"Levadas da Madeira\". Cada rota liga os melhores POIs por tema."
+      },
+      "poiOfDay": {
+        "title": "POI do Dia",
+        "subtitle": "Todos os dias um local diferente é destacado. Descubra tesouros que não encontra nos guias convencionais."
+      },
+      "skip": "Saltar",
+      "next": "Seguinte",
+      "start": "Começar a explorar"
+    }
+  },
+  "en": {
+    "categoryCard": {
+      "a11yHint": "Tap to see the items in this category",
+      "items": "{{count}} items",
+      "itemsOne": "{{count}} item"
+    },
+    "discoveryCard": {
+      "protectedArea": "Nearby Protected Area",
+      "biodiversityStation": "Biodiversity Station",
+      "natureSuggestions": "Nature Suggestions",
+      "itineraryTitle": "Sustainable Itinerary (2 days)",
+      "day1Evening": "Day 1 - Evening",
+      "byPublicTransport": "{{km}} km by public transport",
+      "day2Morning": "Day 2 - Morning"
+    },
+    "featuredTrailCard": {
+      "difficulty": {
+        "facil": "Easy",
+        "moderado": "Moderate",
+        "dificil": "Hard",
+        "muitoDificil": "Very hard"
+      },
+      "geometryPending": "Route line to be confirmed",
+      "onMap": "On the map",
+      "viewOnAllTrailsA11y": "View {{name}} on AllTrails",
+      "viewOnAllTrails": "View on AllTrails",
+      "openA11y": "Open {{name}}"
+    },
+    "heritageCard": {
+      "a11yHint": "Tap to see details"
+    },
+    "hojeEmPortugalCard": {
+      "title": "Today in Portugal",
+      "noGps": "No GPS",
+      "seeNearby": "See nearby",
+      "nearbyEvent": "Nearby event",
+      "seaSurf": "Sea & Surf",
+      "eventsFooter": "{{count}} events in {{month}} · tap to view"
+    },
+    "microStoryCard": {
+      "learnMore": "Tell me more",
+      "listen": "Listen to the story"
+    },
+    "missionCard": {
+      "today": "Today!",
+      "daysLeft": "{{count}}d",
+      "badge": "Badge",
+      "completed": "Completed",
+      "claim": "Claim"
+    },
+    "emptyState": {
+      "noResults": {
+        "title": "No results",
+        "subtitle": "Try another term or adjust the filters"
+      },
+      "noFavorites": {
+        "title": "No favourites yet",
+        "subtitle": "Explore places and add them to your favourites"
+      },
+      "noVisits": {
+        "title": "No visits recorded yet",
+        "subtitle": "Visit a place to start earning points"
+      },
+      "noRoutes": {
+        "title": "No saved routes",
+        "subtitle": "Generate a smart route to get started"
+      },
+      "noEvents": {
+        "title": "No events nearby",
+        "subtitle": "Explore other regions or dates"
+      },
+      "noConnection": {
+        "title": "No connection",
+        "subtitle": "Check your internet connection"
+      },
+      "emptyCategory": {
+        "title": "Empty category",
+        "subtitle": "This category has no content yet"
+      },
+      "loadingError": {
+        "title": "Couldn't load",
+        "subtitle": "Something went wrong. Please try again."
+      }
+    },
+    "errorBoundary": {
+      "title": "Something went wrong",
+      "unexpected": "Unexpected error"
+    },
+    "searchBar": {
+      "recentSearches": "Recent searches",
+      "clearAll": "Clear all",
+      "groupPois": "Places",
+      "groupRoutes": "Routes",
+      "groupCategories": "Categories",
+      "groupTags": "Tags"
+    },
+    "regionFilterBanner": {
+      "showing": "Showing: {{region}}",
+      "seeAllA11y": "Show all regions",
+      "seeAll": "Show all"
+    },
+    "offlineBanner": {
+      "offlinePending": "Offline mode - {{count}} pending actions",
+      "offlinePendingOne": "Offline mode - {{count}} pending action",
+      "offlineLocal": "Offline mode - local data",
+      "backOnline": "Back online"
+    },
+    "installPrompt": {
+      "title": "Install Portugal Vivo",
+      "subtitle": "Quick access, works offline",
+      "install": "Install"
+    },
+    "cookieBanner": {
+      "title": "Cookies and anonymous statistics",
+      "body": "We only use a session cookie — no advertising cookies and no third-party trackers. Usage statistics are anonymous and can be switched off in",
+      "settingsLink": "Settings",
+      "learnMore": "Learn more",
+      "acceptA11y": "Accept and close the cookie notice",
+      "accept": "Accept"
+    },
+    "approxLocationBadge": {
+      "municipality": "approx. location (municipality)",
+      "district": "approx. location (district)",
+      "region": "approx. location (region)",
+      "compactMunicipality": "approx. municipality",
+      "compactDistrict": "approx. district",
+      "compactRegion": "approx. region",
+      "fallbackCompact": "approx. location",
+      "fallback": "approximate location"
+    },
+    "shareButton": {
+      "linkCopied": "Link copied!"
+    },
+    "shareSheet": {
+      "shareVia": "Share via",
+      "copyLink": "Copy link"
+    },
+    "routeShareButton": {
+      "error": "Couldn't create the share link. Please try again.",
+      "shareMessage": "Discover this route on Portugal Vivo: {{name}}",
+      "stops": "Stops",
+      "distance": "Distance",
+      "duration": "Duration",
+      "qrCode": "QR code"
+    },
+    "navigationChooser": {
+      "title": "Get directions",
+      "distanceAway": "{{distance}} from your location",
+      "googleA11y": "Navigate with Google Maps",
+      "googleDesc": "Turn-by-turn directions",
+      "wazeA11y": "Navigate with Waze",
+      "wazeDesc": "Live traffic",
+      "cancelA11y": "Cancel navigation"
+    },
+    "premiumGate": {
+      "features": {
+        "aiItinerary": {
+          "title": "AI Itineraries",
+          "desc": "Create personalised itineraries with artificial intelligence",
+          "bullet1": "Itineraries tailored to you",
+          "bullet2": "Real-time updates",
+          "bullet3": "PDF and GPX export"
+        },
+        "audioGuides": {
+          "title": "Audio Guides",
+          "desc": "Listen to immersive stories in 9 different voices",
+          "bullet1": "9 voices and storytelling styles",
+          "bullet2": "Works offline",
+          "bullet3": "Narration in Portuguese and English"
+        },
+        "offline": {
+          "title": "Offline Mode",
+          "desc": "Download regions to explore without internet",
+          "bullet1": "Download maps and places",
+          "bullet2": "Stories available offline",
+          "bullet3": "Automatic sync"
+        },
+        "epochs": {
+          "title": "Historical Eras",
+          "desc": "Explore Portugal's interactive timeline",
+          "bullet1": "From prehistory to the 21st century",
+          "bullet2": "Filter the map by period",
+          "bullet3": "Exclusive content for each era"
+        },
+        "collections": {
+          "title": "Full Collections",
+          "desc": "Access 12 exclusive themed collections",
+          "bullet1": "12 themed collections",
+          "bullet2": "Ready-made routes",
+          "bullet3": "Updated monthly"
+        },
+        "customRoutes": {
+          "title": "Custom Routes",
+          "desc": "Create and share your own routes",
+          "bullet1": "Drag-and-drop route editor",
+          "bullet2": "Share with friends",
+          "bullet3": "GPX import"
+        },
+        "export": {
+          "title": "Export Itineraries",
+          "desc": "Export to PDF and GPX for navigation",
+          "bullet1": "Print-ready PDF",
+          "bullet2": "GPX for GPS and Garmin",
+          "bullet3": "Export history"
+        },
+        "fallback": {
+          "title": "Premium Feature",
+          "desc": "This feature requires a Premium subscription",
+          "bullet1": "Full access to every feature"
+        }
+      },
+      "unlock": "Unlock",
+      "monthly": "MONTHLY",
+      "perMonth": "/month",
+      "yearly": "YEARLY",
+      "perYear": "/year · -33%",
+      "trialNote": "7 days free · Cancel anytime",
+      "cta": "Try Descobridor"
+    },
+    "streakTracker": {
+      "days": "{{count}} days",
+      "daysOne": "{{count}} day",
+      "hoursLeft": "{{hours}}h left to keep your streak",
+      "start": "Visit a place to get started!",
+      "record": "Best",
+      "week": "This week",
+      "milestoneProgress": "{{progress}}/{{days}} days ({{pct}}%)",
+      "monthlyVisits": "{{count}} visits this month",
+      "monthlyVisitsOne": "{{count}} visit this month"
+    },
+    "badgeCelebration": {
+      "title": "Badge Unlocked!",
+      "points": "+{{count}} points",
+      "pointsOne": "+{{count}} point"
+    },
+    "onboardingModal": {
+      "discover": {
+        "title": "Discover Portugal",
+        "subtitle": "Over 5,600 unique places across 7 regions and 39 categories. From hidden waterfalls to century-old taverns."
+      },
+      "routes": {
+        "title": "Themed Routes",
+        "subtitle": "Follow curated routes such as \"Aldeias Históricas do Centro\" or \"Levadas da Madeira\". Each route links the best places by theme."
+      },
+      "poiOfDay": {
+        "title": "Place of the Day",
+        "subtitle": "Every day a different place takes the spotlight. Discover treasures you won't find in the usual guidebooks."
+      },
+      "skip": "Skip",
+      "next": "Next",
+      "start": "Start exploring"
+    }
+  },
+  "es": {
+    "categoryCard": {
+      "a11yHint": "Toca para ver los elementos de esta categoría",
+      "items": "{{count}} elementos",
+      "itemsOne": "{{count}} elemento"
+    },
+    "discoveryCard": {
+      "protectedArea": "Espacio protegido cercano",
+      "biodiversityStation": "Estación de biodiversidad",
+      "natureSuggestions": "Sugerencias de naturaleza",
+      "itineraryTitle": "Itinerario sostenible (2 días)",
+      "day1Evening": "Día 1 - Noche",
+      "byPublicTransport": "{{km}} km en transporte público",
+      "day2Morning": "Día 2 - Mañana"
+    },
+    "featuredTrailCard": {
+      "difficulty": {
+        "facil": "Fácil",
+        "moderado": "Moderado",
+        "dificil": "Difícil",
+        "muitoDificil": "Muy difícil"
+      },
+      "geometryPending": "Trazado por confirmar",
+      "onMap": "En el mapa",
+      "viewOnAllTrailsA11y": "Ver {{name}} en AllTrails",
+      "viewOnAllTrails": "Ver en AllTrails",
+      "openA11y": "Abrir {{name}}"
+    },
+    "heritageCard": {
+      "a11yHint": "Toca para ver los detalles"
+    },
+    "hojeEmPortugalCard": {
+      "title": "Hoy en Portugal",
+      "noGps": "Sin GPS",
+      "seeNearby": "Ver cerca",
+      "nearbyEvent": "Evento cercano",
+      "seaSurf": "Mar y surf",
+      "eventsFooter": "{{count}} eventos en {{month}} · toca para ver"
+    },
+    "microStoryCard": {
+      "learnMore": "Quiero saber más",
+      "listen": "Escuchar la historia"
+    },
+    "missionCard": {
+      "today": "¡Hoy!",
+      "daysLeft": "{{count}}d",
+      "badge": "Insignia",
+      "completed": "Completada",
+      "claim": "Reclamar"
+    },
+    "emptyState": {
+      "noResults": {
+        "title": "Sin resultados",
+        "subtitle": "Prueba otro término o ajusta los filtros"
+      },
+      "noFavorites": {
+        "title": "Aún no tienes favoritos",
+        "subtitle": "Explora lugares y añádelos a tus favoritos"
+      },
+      "noVisits": {
+        "title": "Ninguna visita registrada",
+        "subtitle": "Visita un lugar para empezar a ganar puntos"
+      },
+      "noRoutes": {
+        "title": "No hay rutas guardadas",
+        "subtitle": "Genera una ruta inteligente para empezar"
+      },
+      "noEvents": {
+        "title": "No hay eventos cerca",
+        "subtitle": "Explora otras regiones o fechas"
+      },
+      "noConnection": {
+        "title": "Sin conexión",
+        "subtitle": "Comprueba tu conexión a internet"
+      },
+      "emptyCategory": {
+        "title": "Categoría vacía",
+        "subtitle": "Esta categoría aún no tiene contenido"
+      },
+      "loadingError": {
+        "title": "Error al cargar",
+        "subtitle": "Algo ha ido mal. Inténtalo de nuevo."
+      }
+    },
+    "errorBoundary": {
+      "title": "Algo ha ido mal",
+      "unexpected": "Error inesperado"
+    },
+    "searchBar": {
+      "recentSearches": "Búsquedas recientes",
+      "clearAll": "Borrar todo",
+      "groupPois": "Lugares",
+      "groupRoutes": "Rutas",
+      "groupCategories": "Categorías",
+      "groupTags": "Etiquetas"
+    },
+    "regionFilterBanner": {
+      "showing": "Mostrando: {{region}}",
+      "seeAllA11y": "Ver todas las regiones",
+      "seeAll": "Ver todos"
+    },
+    "offlineBanner": {
+      "offlinePending": "Modo sin conexión - {{count}} acciones pendientes",
+      "offlinePendingOne": "Modo sin conexión - {{count}} acción pendiente",
+      "offlineLocal": "Modo sin conexión - datos locales",
+      "backOnline": "De nuevo en línea"
+    },
+    "installPrompt": {
+      "title": "Instalar Portugal Vivo",
+      "subtitle": "Acceso rápido y funciona sin conexión",
+      "install": "Instalar"
+    },
+    "cookieBanner": {
+      "title": "Cookies y estadísticas anónimas",
+      "body": "Solo usamos una cookie de sesión, sin cookies publicitarias ni rastreadores de terceros. Las estadísticas de uso son anónimas y se pueden desactivar en",
+      "settingsLink": "Ajustes",
+      "learnMore": "Más información",
+      "acceptA11y": "Aceptar y cerrar el aviso de cookies",
+      "accept": "Aceptar"
+    },
+    "approxLocationBadge": {
+      "municipality": "ubicación aprox. (municipio)",
+      "district": "ubicación aprox. (distrito)",
+      "region": "ubicación aprox. (región)",
+      "compactMunicipality": "aprox. municipio",
+      "compactDistrict": "aprox. distrito",
+      "compactRegion": "aprox. región",
+      "fallbackCompact": "ubicación aprox.",
+      "fallback": "ubicación aproximada"
+    },
+    "shareButton": {
+      "linkCopied": "¡Enlace copiado!"
+    },
+    "shareSheet": {
+      "shareVia": "Compartir vía",
+      "copyLink": "Copiar enlace"
+    },
+    "routeShareButton": {
+      "error": "No se ha podido crear el enlace para compartir. Inténtalo de nuevo.",
+      "shareMessage": "Descubre esta ruta en Portugal Vivo: {{name}}",
+      "stops": "Paradas",
+      "distance": "Distancia",
+      "duration": "Duración",
+      "qrCode": "Código QR"
+    },
+    "navigationChooser": {
+      "title": "Cómo llegar",
+      "distanceAway": "a {{distance}} de tu ubicación",
+      "googleA11y": "Navegar con Google Maps",
+      "googleDesc": "Indicaciones paso a paso",
+      "wazeA11y": "Navegar con Waze",
+      "wazeDesc": "Tráfico en tiempo real",
+      "cancelA11y": "Cancelar navegación"
+    },
+    "premiumGate": {
+      "features": {
+        "aiItinerary": {
+          "title": "Itinerarios con IA",
+          "desc": "Genera itinerarios personalizados con inteligencia artificial",
+          "bullet1": "Itinerarios adaptados a tu perfil",
+          "bullet2": "Actualización en tiempo real",
+          "bullet3": "Exportación a PDF y GPX"
+        },
+        "audioGuides": {
+          "title": "Audioguías",
+          "desc": "Escucha narraciones inmersivas con 9 voces diferentes",
+          "bullet1": "9 voces y estilos narrativos",
+          "bullet2": "Funciona sin conexión",
+          "bullet3": "Narración en portugués e inglés"
+        },
+        "offline": {
+          "title": "Modo sin conexión",
+          "desc": "Descarga regiones para explorar sin internet",
+          "bullet1": "Descarga de mapas y lugares",
+          "bullet2": "Narraciones disponibles sin conexión",
+          "bullet3": "Sincronización automática"
+        },
+        "epochs": {
+          "title": "Épocas históricas",
+          "desc": "Explora la cronología interactiva de Portugal",
+          "bullet1": "De la prehistoria al siglo XXI",
+          "bullet2": "Filtros por período en el mapa",
+          "bullet3": "Contenido exclusivo por época"
+        },
+        "collections": {
+          "title": "Colecciones completas",
+          "desc": "Accede a 12 colecciones temáticas exclusivas",
+          "bullet1": "12 colecciones temáticas",
+          "bullet2": "Rutas predefinidas",
+          "bullet3": "Actualizadas cada mes"
+        },
+        "customRoutes": {
+          "title": "Rutas personalizadas",
+          "desc": "Crea y comparte tus propias rutas",
+          "bullet1": "Editor de rutas de arrastrar y soltar",
+          "bullet2": "Comparte con amigos",
+          "bullet3": "Importación de GPX"
+        },
+        "export": {
+          "title": "Exportar itinerarios",
+          "desc": "Exporta en PDF y GPX para navegar",
+          "bullet1": "PDF listo para imprimir",
+          "bullet2": "GPX para GPS y Garmin",
+          "bullet3": "Historial de exportaciones"
+        },
+        "fallback": {
+          "title": "Función Premium",
+          "desc": "Esta función requiere una suscripción Premium",
+          "bullet1": "Acceso completo a todas las funciones"
+        }
+      },
+      "unlock": "Desbloquear",
+      "monthly": "MENSUAL",
+      "perMonth": "/mes",
+      "yearly": "ANUAL",
+      "perYear": "/año · -33%",
+      "trialNote": "7 días gratis · Cancela cuando quieras",
+      "cta": "Probar Descobridor"
+    },
+    "streakTracker": {
+      "days": "{{count}} días",
+      "daysOne": "{{count}} día",
+      "hoursLeft": "Te quedan {{hours}} h para mantener la racha",
+      "start": "¡Visita un lugar para empezar!",
+      "record": "Récord",
+      "week": "Semana",
+      "milestoneProgress": "{{progress}}/{{days}} días ({{pct}} %)",
+      "monthlyVisits": "{{count}} visitas este mes",
+      "monthlyVisitsOne": "{{count}} visita este mes"
+    },
+    "badgeCelebration": {
+      "title": "¡Insignia desbloqueada!",
+      "points": "+{{count}} puntos",
+      "pointsOne": "+{{count}} punto"
+    },
+    "onboardingModal": {
+      "discover": {
+        "title": "Descubre Portugal",
+        "subtitle": "Más de 5.600 lugares únicos repartidos por 7 regiones y 39 categorías. De cascadas escondidas a tabernas centenarias."
+      },
+      "routes": {
+        "title": "Rutas temáticas",
+        "subtitle": "Recorre rutas seleccionadas como \"Aldeias Históricas do Centro\" o \"Levadas da Madeira\". Cada ruta une los mejores lugares por temática."
+      },
+      "poiOfDay": {
+        "title": "Lugar del día",
+        "subtitle": "Cada día destacamos un lugar diferente. Descubre tesoros que no encontrarás en las guías convencionales."
+      },
+      "skip": "Saltar",
+      "next": "Siguiente",
+      "start": "Empezar a explorar"
+    }
+  },
+  "fr": {
+    "categoryCard": {
+      "a11yHint": "Touchez pour voir les éléments de cette catégorie",
+      "items": "{{count}} éléments",
+      "itemsOne": "{{count}} élément"
+    },
+    "discoveryCard": {
+      "protectedArea": "Aire protégée à proximité",
+      "biodiversityStation": "Station de biodiversité",
+      "natureSuggestions": "Suggestions nature",
+      "itineraryTitle": "Itinéraire durable (2 jours)",
+      "day1Evening": "Jour 1 - Soir",
+      "byPublicTransport": "{{km}} km en transports en commun",
+      "day2Morning": "Jour 2 - Matin"
+    },
+    "featuredTrailCard": {
+      "difficulty": {
+        "facil": "Facile",
+        "moderado": "Modéré",
+        "dificil": "Difficile",
+        "muitoDificil": "Très difficile"
+      },
+      "geometryPending": "Tracé à confirmer",
+      "onMap": "Sur la carte",
+      "viewOnAllTrailsA11y": "Voir {{name}} sur AllTrails",
+      "viewOnAllTrails": "Voir sur AllTrails",
+      "openA11y": "Ouvrir {{name}}"
+    },
+    "heritageCard": {
+      "a11yHint": "Touchez pour voir les détails"
+    },
+    "hojeEmPortugalCard": {
+      "title": "Aujourd'hui au Portugal",
+      "noGps": "Pas de GPS",
+      "seeNearby": "Voir à proximité",
+      "nearbyEvent": "Événement à proximité",
+      "seaSurf": "Mer & surf",
+      "eventsFooter": "{{count}} événements en {{month}} · touchez pour voir"
+    },
+    "microStoryCard": {
+      "learnMore": "En savoir plus",
+      "listen": "Écouter l'histoire"
+    },
+    "missionCard": {
+      "today": "Aujourd'hui !",
+      "daysLeft": "{{count}}j",
+      "badge": "Badge",
+      "completed": "Terminée",
+      "claim": "Récupérer"
+    },
+    "emptyState": {
+      "noResults": {
+        "title": "Aucun résultat",
+        "subtitle": "Essayez un autre terme ou ajustez les filtres"
+      },
+      "noFavorites": {
+        "title": "Pas encore de favoris",
+        "subtitle": "Explorez des lieux et ajoutez-les à vos favoris"
+      },
+      "noVisits": {
+        "title": "Aucune visite enregistrée",
+        "subtitle": "Visitez un lieu pour commencer à gagner des points"
+      },
+      "noRoutes": {
+        "title": "Aucun itinéraire enregistré",
+        "subtitle": "Générez un itinéraire intelligent pour commencer"
+      },
+      "noEvents": {
+        "title": "Aucun événement à proximité",
+        "subtitle": "Explorez d'autres régions ou dates"
+      },
+      "noConnection": {
+        "title": "Pas de connexion",
+        "subtitle": "Vérifiez votre connexion internet"
+      },
+      "emptyCategory": {
+        "title": "Catégorie vide",
+        "subtitle": "Cette catégorie n'a pas encore de contenu"
+      },
+      "loadingError": {
+        "title": "Erreur de chargement",
+        "subtitle": "Un problème est survenu. Veuillez réessayer."
+      }
+    },
+    "errorBoundary": {
+      "title": "Un problème est survenu",
+      "unexpected": "Erreur inattendue"
+    },
+    "searchBar": {
+      "recentSearches": "Recherches récentes",
+      "clearAll": "Tout effacer",
+      "groupPois": "Lieux",
+      "groupRoutes": "Itinéraires",
+      "groupCategories": "Catégories",
+      "groupTags": "Mots-clés"
+    },
+    "regionFilterBanner": {
+      "showing": "Affichage : {{region}}",
+      "seeAllA11y": "Voir toutes les régions",
+      "seeAll": "Tout voir"
+    },
+    "offlineBanner": {
+      "offlinePending": "Mode hors ligne - {{count}} actions en attente",
+      "offlinePendingOne": "Mode hors ligne - {{count}} action en attente",
+      "offlineLocal": "Mode hors ligne - données locales",
+      "backOnline": "De retour en ligne"
+    },
+    "installPrompt": {
+      "title": "Installer Portugal Vivo",
+      "subtitle": "Accès rapide, fonctionne hors ligne",
+      "install": "Installer"
+    },
+    "cookieBanner": {
+      "title": "Cookies et statistiques anonymes",
+      "body": "Nous n'utilisons qu'un cookie de session — aucun cookie publicitaire ni traceur tiers. Les statistiques d'utilisation sont anonymes et peuvent être désactivées dans les",
+      "settingsLink": "Paramètres",
+      "learnMore": "En savoir plus",
+      "acceptA11y": "Accepter et fermer l'avis sur les cookies",
+      "accept": "Accepter"
+    },
+    "approxLocationBadge": {
+      "municipality": "localisation approx. (commune)",
+      "district": "localisation approx. (district)",
+      "region": "localisation approx. (région)",
+      "compactMunicipality": "approx. commune",
+      "compactDistrict": "approx. district",
+      "compactRegion": "approx. région",
+      "fallbackCompact": "localisation approx.",
+      "fallback": "localisation approximative"
+    },
+    "shareButton": {
+      "linkCopied": "Lien copié !"
+    },
+    "shareSheet": {
+      "shareVia": "Partager via",
+      "copyLink": "Copier le lien"
+    },
+    "routeShareButton": {
+      "error": "Impossible de créer le lien de partage. Veuillez réessayer.",
+      "shareMessage": "Découvrez cet itinéraire sur Portugal Vivo : {{name}}",
+      "stops": "Étapes",
+      "distance": "Distance",
+      "duration": "Durée",
+      "qrCode": "Code QR"
+    },
+    "navigationChooser": {
+      "title": "Itinéraire vers le lieu",
+      "distanceAway": "à {{distance}} de votre position",
+      "googleA11y": "Naviguer avec Google Maps",
+      "googleDesc": "Itinéraire étape par étape",
+      "wazeA11y": "Naviguer avec Waze",
+      "wazeDesc": "Trafic en temps réel",
+      "cancelA11y": "Annuler la navigation"
+    },
+    "premiumGate": {
+      "features": {
+        "aiItinerary": {
+          "title": "Itinéraires IA",
+          "desc": "Créez des itinéraires personnalisés grâce à l'intelligence artificielle",
+          "bullet1": "Itinéraires adaptés à votre profil",
+          "bullet2": "Mise à jour en temps réel",
+          "bullet3": "Export PDF et GPX"
+        },
+        "audioGuides": {
+          "title": "Audioguides",
+          "desc": "Écoutez des récits immersifs avec 9 voix différentes",
+          "bullet1": "9 voix et styles narratifs",
+          "bullet2": "Fonctionne hors ligne",
+          "bullet3": "Narration en portugais et en anglais"
+        },
+        "offline": {
+          "title": "Mode hors ligne",
+          "desc": "Téléchargez des régions pour explorer sans internet",
+          "bullet1": "Téléchargement des cartes et des lieux",
+          "bullet2": "Récits disponibles hors ligne",
+          "bullet3": "Synchronisation automatique"
+        },
+        "epochs": {
+          "title": "Époques historiques",
+          "desc": "Explorez la frise chronologique interactive du Portugal",
+          "bullet1": "De la préhistoire au XXIe siècle",
+          "bullet2": "Filtres par période sur la carte",
+          "bullet3": "Contenu exclusif par époque"
+        },
+        "collections": {
+          "title": "Collections complètes",
+          "desc": "Accédez à 12 collections thématiques exclusives",
+          "bullet1": "12 collections thématiques",
+          "bullet2": "Itinéraires prédéfinis",
+          "bullet3": "Mises à jour chaque mois"
+        },
+        "customRoutes": {
+          "title": "Itinéraires personnalisés",
+          "desc": "Créez et partagez vos propres itinéraires",
+          "bullet1": "Éditeur d'itinéraires par glisser-déposer",
+          "bullet2": "Partage avec vos amis",
+          "bullet3": "Import GPX"
+        },
+        "export": {
+          "title": "Exporter les itinéraires",
+          "desc": "Exportez en PDF et GPX pour la navigation",
+          "bullet1": "PDF prêt à imprimer",
+          "bullet2": "GPX pour GPS et Garmin",
+          "bullet3": "Historique des exportations"
+        },
+        "fallback": {
+          "title": "Fonctionnalité Premium",
+          "desc": "Cette fonctionnalité nécessite un abonnement Premium",
+          "bullet1": "Accès complet à toutes les fonctionnalités"
+        }
+      },
+      "unlock": "Débloquer",
+      "monthly": "MENSUEL",
+      "perMonth": "/mois",
+      "yearly": "ANNUEL",
+      "perYear": "/an · -33 %",
+      "trialNote": "7 jours gratuits · Annulez à tout moment",
+      "cta": "Essayer Descobridor"
+    },
+    "streakTracker": {
+      "days": "{{count}} jours",
+      "daysOne": "{{count}} jour",
+      "hoursLeft": "Plus que {{hours}} h pour garder votre série",
+      "start": "Visitez un lieu pour commencer !",
+      "record": "Record",
+      "week": "Semaine",
+      "milestoneProgress": "{{progress}}/{{days}} jours ({{pct}} %)",
+      "monthlyVisits": "{{count}} visites ce mois-ci",
+      "monthlyVisitsOne": "{{count}} visite ce mois-ci"
+    },
+    "badgeCelebration": {
+      "title": "Badge débloqué !",
+      "points": "+{{count}} points",
+      "pointsOne": "+{{count}} point"
+    },
+    "onboardingModal": {
+      "discover": {
+        "title": "Découvrez le Portugal",
+        "subtitle": "Plus de 5 600 lieux uniques répartis dans 7 régions et 39 catégories. Des cascades cachées aux tavernes centenaires."
+      },
+      "routes": {
+        "title": "Itinéraires thématiques",
+        "subtitle": "Parcourez des itinéraires choisis comme « Aldeias Históricas do Centro » ou « Levadas da Madeira ». Chaque itinéraire relie les meilleurs lieux par thème."
+      },
+      "poiOfDay": {
+        "title": "Lieu du jour",
+        "subtitle": "Chaque jour, un lieu différent est mis à l'honneur. Découvrez des trésors absents des guides classiques."
+      },
+      "skip": "Passer",
+      "next": "Suivant",
+      "start": "Commencer à explorer"
+    }
+  }
 }

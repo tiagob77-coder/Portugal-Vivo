@@ -1,6 +1,854 @@
 {
-  "pt": {},
-  "en": {},
-  "es": {},
-  "fr": {}
+  "pt": {
+    "regions": {
+      "all": "Todas",
+      "norte": "Norte",
+      "centro": "Centro",
+      "lisboa": "Lisboa",
+      "alentejo": "Alentejo",
+      "algarve": "Algarve",
+      "acores": "Açores",
+      "madeira": "Madeira"
+    },
+    "planner": {
+      "title": "Planeador",
+      "subtitle": "Crie o seu roteiro perfeito",
+      "oneDay": "{{n}} dia",
+      "manyDays": "{{n}} dias",
+      "poiCount": "{{n}} POIs",
+      "tools": {
+        "sectionTitle": "Ferramentas de Planeamento",
+        "a11y": "Ferramenta de planeamento: {{name}}",
+        "quickTitle": "Viagem Rápida",
+        "quickDesc": "Gere um roteiro automático para um dia",
+        "weekendTitle": "Fim de Semana",
+        "weekendDesc": "Plano otimizado para 2-3 dias",
+        "roadtripTitle": "Road Trip",
+        "roadtripDesc": "Aventura pela estrada com paragens",
+        "thematicTitle": "Temático",
+        "thematicDesc": "Roteiro focado num tema específico"
+      },
+      "duration": {
+        "title": "Duração da Viagem",
+        "a11y": "Duração: {{label}}"
+      },
+      "interests": {
+        "title": "Os Seus Interesses",
+        "a11y": "Interesse: {{name}}",
+        "natureza": "Natureza",
+        "patrimonio": "Património",
+        "gastronomia": "Gastronomia",
+        "historia": "História",
+        "cultura": "Cultura",
+        "praias": "Praias",
+        "vinhos": "Vinhos",
+        "aventura": "Aventura",
+        "festas": "Festas"
+      },
+      "region": {
+        "title": "Região",
+        "a11y": "Região: {{name}}"
+      },
+      "locality": {
+        "title": "Localidade",
+        "placeholder": "Pesquisar localidade (ex: Braga, Sintra...)",
+        "clearA11y": "Limpar localidade selecionada",
+        "selectA11y": "Selecionar localidade: {{name}}"
+      },
+      "pace": {
+        "title": "Ritmo",
+        "a11y": "Ritmo: {{name}}",
+        "relaxado": "Relaxado",
+        "moderado": "Moderado",
+        "intenso": "Intenso"
+      },
+      "profile": {
+        "title": "Perfil de Viajante",
+        "a11y": "Perfil de viajante: {{name}}",
+        "familia": "Família",
+        "casal": "Casal",
+        "solo": "Solo",
+        "senior": "Sénior",
+        "aventureiro": "Aventureiro",
+        "grupo": "Grupo"
+      },
+      "aiNarrative": {
+        "title": "Narrativa IA (GPT-4o)",
+        "subtitle": "Descrições envolventes para cada dia"
+      },
+      "generate": {
+        "a11y": "Gerar roteiro com inteligência artificial",
+        "loading": "A gerar roteiro inteligente...",
+        "label": "Gerar Roteiro com IA",
+        "labelPremium": "Gerar Roteiro com IA — Premium"
+      },
+      "result": {
+        "titleLocality": "Roteiro em {{place}}",
+        "titleRegion": "Roteiro {{region}}",
+        "aiBadge": "IA",
+        "pois": "POIs",
+        "visits": "Visitas",
+        "travel": "Viagem",
+        "categories": "Categorias",
+        "dayBadge": "Dia {{day}}",
+        "dayFallbackTheme": "{{pois}} POIs - {{hours}}h total",
+        "poiA11y": "Ver detalhes do ponto de interesse: {{name}}",
+        "transport": "Transportes: {{list}}",
+        "eventsTitle": "Eventos na região",
+        "showOnMapA11y": "Ver roteiro no mapa",
+        "showOnMap": "Ver Roteiro no Mapa",
+        "saveA11y": "Guardar roteiro nos meus planos",
+        "save": "Guardar Roteiro",
+        "resetA11y": "Criar novo roteiro",
+        "reset": "Novo Roteiro"
+      },
+      "saveAlert": {
+        "successTitle": "Guardado!",
+        "successMessage": "O seu roteiro foi guardado em \"Meus Planos\".",
+        "errorTitle": "Erro",
+        "errorMessage": "Não foi possível guardar o roteiro."
+      },
+      "deleteAlert": {
+        "title": "Eliminar",
+        "message": "Tem a certeza que quer eliminar este roteiro?",
+        "cancel": "Cancelar",
+        "confirm": "Eliminar"
+      },
+      "myPlans": {
+        "title": "Meus Planos",
+        "openA11y": "Abrir secção Meus Planos",
+        "closeA11y": "Fechar secção Meus Planos",
+        "empty": "Ainda não tem roteiros guardados.",
+        "openPlanA11y": "Abrir roteiro guardado: {{title}}",
+        "deletePlanA11y": "Eliminar roteiro: {{title}}",
+        "oneCollaborator": "{{n}} colaborador",
+        "collaborators": "{{n}} colaboradores"
+      },
+      "routes": {
+        "title": "Rotas Sugeridas",
+        "routeA11y": "Ver rota: {{name}}",
+        "empty": "Selecione uma região para ver rotas"
+      },
+      "quickActions": {
+        "smartRoutesA11y": "Abrir Rotas Inteligentes (IQ)",
+        "smartRoutes": "Rotas Inteligentes (IQ)",
+        "routePlannerA11y": "Abrir Planear Rota A para B",
+        "routePlanner": "Planear Rota A→B",
+        "nearbyA11y": "Abrir Locais Perto de Mim",
+        "nearby": "Locais Perto de Mim"
+      }
+    },
+    "events": {
+      "title": "Eventos",
+      "subtitle": "Festas, Romarias & Tradições de Portugal",
+      "loading": "A carregar eventos...",
+      "months": {
+        "january": "Janeiro",
+        "february": "Fevereiro",
+        "march": "Março",
+        "april": "Abril",
+        "may": "Maio",
+        "june": "Junho",
+        "july": "Julho",
+        "august": "Agosto",
+        "september": "Setembro",
+        "october": "Outubro",
+        "november": "Novembro",
+        "december": "Dezembro"
+      },
+      "weekdays": {
+        "sun": "Dom",
+        "mon": "Seg",
+        "tue": "Ter",
+        "wed": "Qua",
+        "thu": "Qui",
+        "fri": "Sex",
+        "sat": "Sáb"
+      },
+      "categories": {
+        "festas": "Festas",
+        "religioso": "Religioso",
+        "gastronomia": "Gastronomia",
+        "natureza": "Natureza",
+        "cultural": "Cultural",
+        "festival": "Festivais"
+      },
+      "rarity": {
+        "epic": "★ Épico",
+        "rare": "◆ Raro",
+        "common": "● Comum"
+      },
+      "calendarDay": "Dia {{day}}",
+      "calendarDayOneEvent": "Dia {{day}}, 1 evento",
+      "calendarDayEvents": "Dia {{day}}, {{n}} eventos",
+      "eventA11y": "Ver evento {{name}}",
+      "buyTicketsA11y": "Comprar bilhetes para {{name}}",
+      "buyTickets": "Comprar Bilhetes",
+      "calendarViewA11y": "Ver em calendário",
+      "calendarView": "Calendário",
+      "listViewA11y": "Ver em lista",
+      "listView": "Lista",
+      "allCategoriesA11y": "Mostrar todas as categorias",
+      "allCategories": "Todos",
+      "filterCategoryA11y": "Filtrar por categoria {{name}}",
+      "filterRegionA11y": "Filtrar por região {{name}}",
+      "filtersLabel": "Filtros:",
+      "clearFiltersA11y": "Limpar filtros",
+      "clearFilters": "Limpar",
+      "prevMonthA11y": "Mês anterior",
+      "nextMonthA11y": "Mês seguinte",
+      "emptyMonthTitle": "Sem eventos neste mês",
+      "emptyMonthSubtitle": "Explore outros meses para descobrir festivais, romarias e tradições por todo o Portugal",
+      "emptyMonthAction": "Ver todos os eventos",
+      "upcomingTitle": "Próximos Eventos",
+      "emptyUpcomingTitle": "Sem eventos próximos",
+      "emptyUpcomingSubtitle": "Novos eventos são adicionados regularmente. Volte em breve!",
+      "liveTitle": "Eventos em Tempo Real",
+      "fromDatabase": "{{n}} da base de dados",
+      "fromViralAgenda": "{{n}} do Viral Agenda RSS",
+      "viralAgendaUnavailable": "Viral Agenda RSS indisponível",
+      "statThisMonth": "Este Mês",
+      "statUpcoming": "Próximos",
+      "statRegions": "Regiões"
+    }
+  },
+  "en": {
+    "regions": {
+      "all": "All",
+      "norte": "North",
+      "centro": "Centre",
+      "lisboa": "Lisbon",
+      "alentejo": "Alentejo",
+      "algarve": "Algarve",
+      "acores": "Azores",
+      "madeira": "Madeira"
+    },
+    "planner": {
+      "title": "Planner",
+      "subtitle": "Create your perfect itinerary",
+      "oneDay": "{{n}} day",
+      "manyDays": "{{n}} days",
+      "poiCount": "{{n}} POIs",
+      "tools": {
+        "sectionTitle": "Planning Tools",
+        "a11y": "Planning tool: {{name}}",
+        "quickTitle": "Quick Trip",
+        "quickDesc": "Get an automatic one-day itinerary",
+        "weekendTitle": "Weekend",
+        "weekendDesc": "Optimised plan for 2-3 days",
+        "roadtripTitle": "Road Trip",
+        "roadtripDesc": "An adventure on the open road, with stops along the way",
+        "thematicTitle": "Themed",
+        "thematicDesc": "An itinerary built around a specific theme"
+      },
+      "duration": {
+        "title": "Trip Length",
+        "a11y": "Duration: {{label}}"
+      },
+      "interests": {
+        "title": "Your Interests",
+        "a11y": "Interest: {{name}}",
+        "natureza": "Nature",
+        "patrimonio": "Heritage",
+        "gastronomia": "Gastronomy",
+        "historia": "History",
+        "cultura": "Culture",
+        "praias": "Beaches",
+        "vinhos": "Wine",
+        "aventura": "Adventure",
+        "festas": "Festivals"
+      },
+      "region": {
+        "title": "Region",
+        "a11y": "Region: {{name}}"
+      },
+      "locality": {
+        "title": "Town",
+        "placeholder": "Search for a town (e.g. Braga, Sintra...)",
+        "clearA11y": "Clear selected town",
+        "selectA11y": "Select town: {{name}}"
+      },
+      "pace": {
+        "title": "Pace",
+        "a11y": "Pace: {{name}}",
+        "relaxado": "Relaxed",
+        "moderado": "Moderate",
+        "intenso": "Intense"
+      },
+      "profile": {
+        "title": "Traveller Profile",
+        "a11y": "Traveller profile: {{name}}",
+        "familia": "Family",
+        "casal": "Couple",
+        "solo": "Solo",
+        "senior": "Senior",
+        "aventureiro": "Adventurer",
+        "grupo": "Group"
+      },
+      "aiNarrative": {
+        "title": "AI Narrative (GPT-4o)",
+        "subtitle": "Engaging descriptions for each day"
+      },
+      "generate": {
+        "a11y": "Generate an itinerary with artificial intelligence",
+        "loading": "Creating your smart itinerary...",
+        "label": "Generate AI Itinerary",
+        "labelPremium": "Generate AI Itinerary — Premium"
+      },
+      "result": {
+        "titleLocality": "Itinerary in {{place}}",
+        "titleRegion": "{{region}} itinerary",
+        "aiBadge": "AI",
+        "pois": "POIs",
+        "visits": "Visits",
+        "travel": "Travel",
+        "categories": "Categories",
+        "dayBadge": "Day {{day}}",
+        "dayFallbackTheme": "{{pois}} POIs - {{hours}}h total",
+        "poiA11y": "View point of interest details: {{name}}",
+        "transport": "Transport: {{list}}",
+        "eventsTitle": "Events in the region",
+        "showOnMapA11y": "View itinerary on the map",
+        "showOnMap": "View Itinerary on Map",
+        "saveA11y": "Save itinerary to my plans",
+        "save": "Save Itinerary",
+        "resetA11y": "Create a new itinerary",
+        "reset": "New Itinerary"
+      },
+      "saveAlert": {
+        "successTitle": "Saved!",
+        "successMessage": "Your itinerary has been saved to \"My Plans\".",
+        "errorTitle": "Error",
+        "errorMessage": "We couldn't save the itinerary."
+      },
+      "deleteAlert": {
+        "title": "Delete",
+        "message": "Are you sure you want to delete this itinerary?",
+        "cancel": "Cancel",
+        "confirm": "Delete"
+      },
+      "myPlans": {
+        "title": "My Plans",
+        "openA11y": "Open My Plans section",
+        "closeA11y": "Close My Plans section",
+        "empty": "You don't have any saved itineraries yet.",
+        "openPlanA11y": "Open saved itinerary: {{title}}",
+        "deletePlanA11y": "Delete itinerary: {{title}}",
+        "oneCollaborator": "{{n}} collaborator",
+        "collaborators": "{{n}} collaborators"
+      },
+      "routes": {
+        "title": "Suggested Routes",
+        "routeA11y": "View route: {{name}}",
+        "empty": "Select a region to see routes"
+      },
+      "quickActions": {
+        "smartRoutesA11y": "Open Smart Routes (IQ)",
+        "smartRoutes": "Smart Routes (IQ)",
+        "routePlannerA11y": "Open Plan a Route from A to B",
+        "routePlanner": "Plan a Route A→B",
+        "nearbyA11y": "Open Places Near Me",
+        "nearby": "Places Near Me"
+      }
+    },
+    "events": {
+      "title": "Events",
+      "subtitle": "Festivals, Pilgrimages & Traditions of Portugal",
+      "loading": "Loading events...",
+      "months": {
+        "january": "January",
+        "february": "February",
+        "march": "March",
+        "april": "April",
+        "may": "May",
+        "june": "June",
+        "july": "July",
+        "august": "August",
+        "september": "September",
+        "october": "October",
+        "november": "November",
+        "december": "December"
+      },
+      "weekdays": {
+        "sun": "Sun",
+        "mon": "Mon",
+        "tue": "Tue",
+        "wed": "Wed",
+        "thu": "Thu",
+        "fri": "Fri",
+        "sat": "Sat"
+      },
+      "categories": {
+        "festas": "Celebrations",
+        "religioso": "Religious",
+        "gastronomia": "Gastronomy",
+        "natureza": "Nature",
+        "cultural": "Cultural",
+        "festival": "Festivals"
+      },
+      "rarity": {
+        "epic": "★ Epic",
+        "rare": "◆ Rare",
+        "common": "● Common"
+      },
+      "calendarDay": "Day {{day}}",
+      "calendarDayOneEvent": "Day {{day}}, 1 event",
+      "calendarDayEvents": "Day {{day}}, {{n}} events",
+      "eventA11y": "View event {{name}}",
+      "buyTicketsA11y": "Buy tickets for {{name}}",
+      "buyTickets": "Buy Tickets",
+      "calendarViewA11y": "View as calendar",
+      "calendarView": "Calendar",
+      "listViewA11y": "View as list",
+      "listView": "List",
+      "allCategoriesA11y": "Show all categories",
+      "allCategories": "All",
+      "filterCategoryA11y": "Filter by category {{name}}",
+      "filterRegionA11y": "Filter by region {{name}}",
+      "filtersLabel": "Filters:",
+      "clearFiltersA11y": "Clear filters",
+      "clearFilters": "Clear",
+      "prevMonthA11y": "Previous month",
+      "nextMonthA11y": "Next month",
+      "emptyMonthTitle": "No events this month",
+      "emptyMonthSubtitle": "Browse other months to discover festivals, pilgrimages and traditions all over Portugal",
+      "emptyMonthAction": "See all events",
+      "upcomingTitle": "Upcoming Events",
+      "emptyUpcomingTitle": "No upcoming events",
+      "emptyUpcomingSubtitle": "New events are added regularly. Check back soon!",
+      "liveTitle": "Live Events",
+      "fromDatabase": "{{n}} from our database",
+      "fromViralAgenda": "{{n}} from Viral Agenda RSS",
+      "viralAgendaUnavailable": "Viral Agenda RSS unavailable",
+      "statThisMonth": "This Month",
+      "statUpcoming": "Upcoming",
+      "statRegions": "Regions"
+    }
+  },
+  "es": {
+    "regions": {
+      "all": "Todas",
+      "norte": "Norte",
+      "centro": "Centro",
+      "lisboa": "Lisboa",
+      "alentejo": "Alentejo",
+      "algarve": "Algarve",
+      "acores": "Azores",
+      "madeira": "Madeira"
+    },
+    "planner": {
+      "title": "Planificador",
+      "subtitle": "Crea tu itinerario perfecto",
+      "oneDay": "{{n}} día",
+      "manyDays": "{{n}} días",
+      "poiCount": "{{n}} POIs",
+      "tools": {
+        "sectionTitle": "Herramientas de planificación",
+        "a11y": "Herramienta de planificación: {{name}}",
+        "quickTitle": "Viaje rápido",
+        "quickDesc": "Genera un itinerario automático para un día",
+        "weekendTitle": "Fin de semana",
+        "weekendDesc": "Plan optimizado para 2-3 días",
+        "roadtripTitle": "Road trip",
+        "roadtripDesc": "Aventura por carretera con paradas",
+        "thematicTitle": "Temático",
+        "thematicDesc": "Itinerario centrado en un tema concreto"
+      },
+      "duration": {
+        "title": "Duración del viaje",
+        "a11y": "Duración: {{label}}"
+      },
+      "interests": {
+        "title": "Tus intereses",
+        "a11y": "Interés: {{name}}",
+        "natureza": "Naturaleza",
+        "patrimonio": "Patrimonio",
+        "gastronomia": "Gastronomía",
+        "historia": "Historia",
+        "cultura": "Cultura",
+        "praias": "Playas",
+        "vinhos": "Vinos",
+        "aventura": "Aventura",
+        "festas": "Fiestas"
+      },
+      "region": {
+        "title": "Región",
+        "a11y": "Región: {{name}}"
+      },
+      "locality": {
+        "title": "Localidad",
+        "placeholder": "Buscar localidad (p. ej.: Braga, Sintra...)",
+        "clearA11y": "Borrar la localidad seleccionada",
+        "selectA11y": "Seleccionar localidad: {{name}}"
+      },
+      "pace": {
+        "title": "Ritmo",
+        "a11y": "Ritmo: {{name}}",
+        "relaxado": "Relajado",
+        "moderado": "Moderado",
+        "intenso": "Intenso"
+      },
+      "profile": {
+        "title": "Perfil de viajero",
+        "a11y": "Perfil de viajero: {{name}}",
+        "familia": "Familia",
+        "casal": "Pareja",
+        "solo": "Solo",
+        "senior": "Sénior",
+        "aventureiro": "Aventurero",
+        "grupo": "Grupo"
+      },
+      "aiNarrative": {
+        "title": "Narrativa IA (GPT-4o)",
+        "subtitle": "Descripciones cautivadoras para cada día"
+      },
+      "generate": {
+        "a11y": "Generar un itinerario con inteligencia artificial",
+        "loading": "Generando itinerario inteligente...",
+        "label": "Generar itinerario con IA",
+        "labelPremium": "Generar itinerario con IA — Premium"
+      },
+      "result": {
+        "titleLocality": "Itinerario en {{place}}",
+        "titleRegion": "Itinerario {{region}}",
+        "aiBadge": "IA",
+        "pois": "POIs",
+        "visits": "Visitas",
+        "travel": "Trayecto",
+        "categories": "Categorías",
+        "dayBadge": "Día {{day}}",
+        "dayFallbackTheme": "{{pois}} POIs - {{hours}} h en total",
+        "poiA11y": "Ver detalles del punto de interés: {{name}}",
+        "transport": "Transporte: {{list}}",
+        "eventsTitle": "Eventos en la región",
+        "showOnMapA11y": "Ver itinerario en el mapa",
+        "showOnMap": "Ver itinerario en el mapa",
+        "saveA11y": "Guardar itinerario en mis planes",
+        "save": "Guardar itinerario",
+        "resetA11y": "Crear un nuevo itinerario",
+        "reset": "Nuevo itinerario"
+      },
+      "saveAlert": {
+        "successTitle": "¡Guardado!",
+        "successMessage": "Tu itinerario se ha guardado en \"Mis planes\".",
+        "errorTitle": "Error",
+        "errorMessage": "No se ha podido guardar el itinerario."
+      },
+      "deleteAlert": {
+        "title": "Eliminar",
+        "message": "¿Seguro que quieres eliminar este itinerario?",
+        "cancel": "Cancelar",
+        "confirm": "Eliminar"
+      },
+      "myPlans": {
+        "title": "Mis planes",
+        "openA11y": "Abrir la sección Mis planes",
+        "closeA11y": "Cerrar la sección Mis planes",
+        "empty": "Todavía no tienes itinerarios guardados.",
+        "openPlanA11y": "Abrir itinerario guardado: {{title}}",
+        "deletePlanA11y": "Eliminar itinerario: {{title}}",
+        "oneCollaborator": "{{n}} colaborador",
+        "collaborators": "{{n}} colaboradores"
+      },
+      "routes": {
+        "title": "Rutas sugeridas",
+        "routeA11y": "Ver ruta: {{name}}",
+        "empty": "Selecciona una región para ver rutas"
+      },
+      "quickActions": {
+        "smartRoutesA11y": "Abrir Rutas inteligentes (IQ)",
+        "smartRoutes": "Rutas inteligentes (IQ)",
+        "routePlannerA11y": "Abrir Planificar ruta de A a B",
+        "routePlanner": "Planificar ruta A→B",
+        "nearbyA11y": "Abrir Lugares cerca de mí",
+        "nearby": "Lugares cerca de mí"
+      }
+    },
+    "events": {
+      "title": "Eventos",
+      "subtitle": "Fiestas, romerías y tradiciones de Portugal",
+      "loading": "Cargando eventos...",
+      "months": {
+        "january": "Enero",
+        "february": "Febrero",
+        "march": "Marzo",
+        "april": "Abril",
+        "may": "Mayo",
+        "june": "Junio",
+        "july": "Julio",
+        "august": "Agosto",
+        "september": "Septiembre",
+        "october": "Octubre",
+        "november": "Noviembre",
+        "december": "Diciembre"
+      },
+      "weekdays": {
+        "sun": "Dom",
+        "mon": "Lun",
+        "tue": "Mar",
+        "wed": "Mié",
+        "thu": "Jue",
+        "fri": "Vie",
+        "sat": "Sáb"
+      },
+      "categories": {
+        "festas": "Fiestas",
+        "religioso": "Religioso",
+        "gastronomia": "Gastronomía",
+        "natureza": "Naturaleza",
+        "cultural": "Cultural",
+        "festival": "Festivales"
+      },
+      "rarity": {
+        "epic": "★ Épico",
+        "rare": "◆ Raro",
+        "common": "● Común"
+      },
+      "calendarDay": "Día {{day}}",
+      "calendarDayOneEvent": "Día {{day}}, 1 evento",
+      "calendarDayEvents": "Día {{day}}, {{n}} eventos",
+      "eventA11y": "Ver evento {{name}}",
+      "buyTicketsA11y": "Comprar entradas para {{name}}",
+      "buyTickets": "Comprar entradas",
+      "calendarViewA11y": "Ver en calendario",
+      "calendarView": "Calendario",
+      "listViewA11y": "Ver en lista",
+      "listView": "Lista",
+      "allCategoriesA11y": "Mostrar todas las categorías",
+      "allCategories": "Todos",
+      "filterCategoryA11y": "Filtrar por categoría {{name}}",
+      "filterRegionA11y": "Filtrar por región {{name}}",
+      "filtersLabel": "Filtros:",
+      "clearFiltersA11y": "Borrar filtros",
+      "clearFilters": "Borrar",
+      "prevMonthA11y": "Mes anterior",
+      "nextMonthA11y": "Mes siguiente",
+      "emptyMonthTitle": "No hay eventos este mes",
+      "emptyMonthSubtitle": "Explora otros meses para descubrir festivales, romerías y tradiciones por todo Portugal",
+      "emptyMonthAction": "Ver todos los eventos",
+      "upcomingTitle": "Próximos eventos",
+      "emptyUpcomingTitle": "No hay eventos próximos",
+      "emptyUpcomingSubtitle": "Se añaden nuevos eventos con regularidad. ¡Vuelve pronto!",
+      "liveTitle": "Eventos en tiempo real",
+      "fromDatabase": "{{n}} de la base de datos",
+      "fromViralAgenda": "{{n}} de Viral Agenda RSS",
+      "viralAgendaUnavailable": "Viral Agenda RSS no disponible",
+      "statThisMonth": "Este mes",
+      "statUpcoming": "Próximos",
+      "statRegions": "Regiones"
+    }
+  },
+  "fr": {
+    "regions": {
+      "all": "Toutes",
+      "norte": "Nord",
+      "centro": "Centre",
+      "lisboa": "Lisbonne",
+      "alentejo": "Alentejo",
+      "algarve": "Algarve",
+      "acores": "Açores",
+      "madeira": "Madère"
+    },
+    "planner": {
+      "title": "Planificateur",
+      "subtitle": "Créez votre itinéraire idéal",
+      "oneDay": "{{n}} jour",
+      "manyDays": "{{n}} jours",
+      "poiCount": "{{n}} POI",
+      "tools": {
+        "sectionTitle": "Outils de planification",
+        "a11y": "Outil de planification : {{name}}",
+        "quickTitle": "Voyage express",
+        "quickDesc": "Générez un itinéraire automatique pour une journée",
+        "weekendTitle": "Week-end",
+        "weekendDesc": "Programme optimisé pour 2-3 jours",
+        "roadtripTitle": "Road trip",
+        "roadtripDesc": "L'aventure sur la route, avec des étapes",
+        "thematicTitle": "Thématique",
+        "thematicDesc": "Itinéraire centré sur un thème précis"
+      },
+      "duration": {
+        "title": "Durée du voyage",
+        "a11y": "Durée : {{label}}"
+      },
+      "interests": {
+        "title": "Vos centres d'intérêt",
+        "a11y": "Centre d'intérêt : {{name}}",
+        "natureza": "Nature",
+        "patrimonio": "Patrimoine",
+        "gastronomia": "Gastronomie",
+        "historia": "Histoire",
+        "cultura": "Culture",
+        "praias": "Plages",
+        "vinhos": "Vins",
+        "aventura": "Aventure",
+        "festas": "Fêtes"
+      },
+      "region": {
+        "title": "Région",
+        "a11y": "Région : {{name}}"
+      },
+      "locality": {
+        "title": "Localité",
+        "placeholder": "Rechercher une localité (ex. : Braga, Sintra...)",
+        "clearA11y": "Effacer la localité sélectionnée",
+        "selectA11y": "Sélectionner la localité : {{name}}"
+      },
+      "pace": {
+        "title": "Rythme",
+        "a11y": "Rythme : {{name}}",
+        "relaxado": "Détendu",
+        "moderado": "Modéré",
+        "intenso": "Intense"
+      },
+      "profile": {
+        "title": "Profil de voyageur",
+        "a11y": "Profil de voyageur : {{name}}",
+        "familia": "Famille",
+        "casal": "Couple",
+        "solo": "Solo",
+        "senior": "Senior",
+        "aventureiro": "Aventurier",
+        "grupo": "Groupe"
+      },
+      "aiNarrative": {
+        "title": "Récit IA (GPT-4o)",
+        "subtitle": "Des descriptions captivantes pour chaque jour"
+      },
+      "generate": {
+        "a11y": "Générer un itinéraire avec l'intelligence artificielle",
+        "loading": "Création de votre itinéraire intelligent...",
+        "label": "Générer un itinéraire avec l'IA",
+        "labelPremium": "Générer un itinéraire avec l'IA — Premium"
+      },
+      "result": {
+        "titleLocality": "Itinéraire à {{place}}",
+        "titleRegion": "Itinéraire {{region}}",
+        "aiBadge": "IA",
+        "pois": "POI",
+        "visits": "Visites",
+        "travel": "Trajet",
+        "categories": "Catégories",
+        "dayBadge": "Jour {{day}}",
+        "dayFallbackTheme": "{{pois}} POI - {{hours}} h au total",
+        "poiA11y": "Voir les détails du point d'intérêt : {{name}}",
+        "transport": "Transports : {{list}}",
+        "eventsTitle": "Événements dans la région",
+        "showOnMapA11y": "Voir l'itinéraire sur la carte",
+        "showOnMap": "Voir l'itinéraire sur la carte",
+        "saveA11y": "Enregistrer l'itinéraire dans mes plans",
+        "save": "Enregistrer l'itinéraire",
+        "resetA11y": "Créer un nouvel itinéraire",
+        "reset": "Nouvel itinéraire"
+      },
+      "saveAlert": {
+        "successTitle": "Enregistré !",
+        "successMessage": "Votre itinéraire a été enregistré dans « Mes plans ».",
+        "errorTitle": "Erreur",
+        "errorMessage": "Impossible d'enregistrer l'itinéraire."
+      },
+      "deleteAlert": {
+        "title": "Supprimer",
+        "message": "Voulez-vous vraiment supprimer cet itinéraire ?",
+        "cancel": "Annuler",
+        "confirm": "Supprimer"
+      },
+      "myPlans": {
+        "title": "Mes plans",
+        "openA11y": "Ouvrir la section Mes plans",
+        "closeA11y": "Fermer la section Mes plans",
+        "empty": "Vous n'avez pas encore d'itinéraire enregistré.",
+        "openPlanA11y": "Ouvrir l'itinéraire enregistré : {{title}}",
+        "deletePlanA11y": "Supprimer l'itinéraire : {{title}}",
+        "oneCollaborator": "{{n}} collaborateur",
+        "collaborators": "{{n}} collaborateurs"
+      },
+      "routes": {
+        "title": "Circuits suggérés",
+        "routeA11y": "Voir le circuit : {{name}}",
+        "empty": "Sélectionnez une région pour voir les circuits"
+      },
+      "quickActions": {
+        "smartRoutesA11y": "Ouvrir Circuits intelligents (IQ)",
+        "smartRoutes": "Circuits intelligents (IQ)",
+        "routePlannerA11y": "Ouvrir Planifier un trajet de A à B",
+        "routePlanner": "Planifier un trajet A→B",
+        "nearbyA11y": "Ouvrir Lieux à proximité",
+        "nearby": "Lieux à proximité"
+      }
+    },
+    "events": {
+      "title": "Événements",
+      "subtitle": "Fêtes, pèlerinages et traditions du Portugal",
+      "loading": "Chargement des événements...",
+      "months": {
+        "january": "Janvier",
+        "february": "Février",
+        "march": "Mars",
+        "april": "Avril",
+        "may": "Mai",
+        "june": "Juin",
+        "july": "Juillet",
+        "august": "Août",
+        "september": "Septembre",
+        "october": "Octobre",
+        "november": "Novembre",
+        "december": "Décembre"
+      },
+      "weekdays": {
+        "sun": "Dim",
+        "mon": "Lun",
+        "tue": "Mar",
+        "wed": "Mer",
+        "thu": "Jeu",
+        "fri": "Ven",
+        "sat": "Sam"
+      },
+      "categories": {
+        "festas": "Fêtes",
+        "religioso": "Religieux",
+        "gastronomia": "Gastronomie",
+        "natureza": "Nature",
+        "cultural": "Culturel",
+        "festival": "Festivals"
+      },
+      "rarity": {
+        "epic": "★ Épique",
+        "rare": "◆ Rare",
+        "common": "● Commun"
+      },
+      "calendarDay": "Jour {{day}}",
+      "calendarDayOneEvent": "Jour {{day}}, 1 événement",
+      "calendarDayEvents": "Jour {{day}}, {{n}} événements",
+      "eventA11y": "Voir l'événement {{name}}",
+      "buyTicketsA11y": "Acheter des billets pour {{name}}",
+      "buyTickets": "Acheter des billets",
+      "calendarViewA11y": "Afficher en calendrier",
+      "calendarView": "Calendrier",
+      "listViewA11y": "Afficher en liste",
+      "listView": "Liste",
+      "allCategoriesA11y": "Afficher toutes les catégories",
+      "allCategories": "Tous",
+      "filterCategoryA11y": "Filtrer par catégorie {{name}}",
+      "filterRegionA11y": "Filtrer par région {{name}}",
+      "filtersLabel": "Filtres :",
+      "clearFiltersA11y": "Effacer les filtres",
+      "clearFilters": "Effacer",
+      "prevMonthA11y": "Mois précédent",
+      "nextMonthA11y": "Mois suivant",
+      "emptyMonthTitle": "Aucun événement ce mois-ci",
+      "emptyMonthSubtitle": "Parcourez d'autres mois pour découvrir festivals, pèlerinages et traditions partout au Portugal",
+      "emptyMonthAction": "Voir tous les événements",
+      "upcomingTitle": "Événements à venir",
+      "emptyUpcomingTitle": "Aucun événement à venir",
+      "emptyUpcomingSubtitle": "De nouveaux événements sont ajoutés régulièrement. Revenez bientôt !",
+      "liveTitle": "Événements en temps réel",
+      "fromDatabase": "{{n}} de notre base de données",
+      "fromViralAgenda": "{{n}} de Viral Agenda RSS",
+      "viralAgendaUnavailable": "Viral Agenda RSS indisponible",
+      "statThisMonth": "Ce mois-ci",
+      "statUpcoming": "À venir",
+      "statRegions": "Régions"
+    }
+  }
 }

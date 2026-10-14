@@ -93,8 +93,8 @@ function ProfileScreen() {
         setNotificationsEnabled(false);
         await AsyncStorage.setItem('notifications_enabled', 'false');
         Alert.alert(
-          'Notificações bloqueadas',
-          'Ativa as notificações nas definições do dispositivo para receber alertas.',
+          t('account.profile.notificationsBlockedTitle'),
+          t('account.profile.notificationsBlockedMessage'),
         );
       }
     } else {
@@ -109,9 +109,9 @@ function ProfileScreen() {
   };
 
   const handleLogout = () => {
-    Alert.alert('Terminar Sessao', 'Tem a certeza que deseja sair?', [
-      { text: 'Cancelar', style: 'cancel' },
-      { text: 'Sair', style: 'destructive', onPress: logout },
+    Alert.alert(t('account.profile.logoutTitle'), t('account.profile.logoutMessage'), [
+      { text: t('common.cancel'), style: 'cancel' },
+      { text: t('account.profile.logoutConfirm'), style: 'destructive', onPress: logout },
     ]);
   };
 
@@ -125,7 +125,7 @@ function ProfileScreen() {
         headers: { Authorization: `Bearer ${sessionToken}` },
       });
       if (!res.ok) {
-        Alert.alert('Erro', 'Não foi possível exportar os seus dados. Tente mais tarde.');
+        Alert.alert(t('account.profile.error'), t('account.profile.exportFailed'));
         return;
       }
       const body = await res.text();
@@ -147,7 +147,7 @@ function ProfileScreen() {
         await Linking.openURL(dataUrl);
       }
     } catch (e) {
-      Alert.alert('Erro', 'Falha de rede ao exportar os dados.');
+      Alert.alert(t('account.profile.error'), t('account.profile.exportNetworkError'));
     }
   };
 
@@ -155,12 +155,12 @@ function ProfileScreen() {
   // dialog, then a literal "DELETE" prompt that the server also enforces.
   const handleDeleteAccount = () => {
     Alert.alert(
-      'Eliminar conta',
-      'Esta ação é irreversível. Todos os seus favoritos, visitas, badges e contributos serão apagados em 30 dias. Pretende mesmo continuar?',
+      t('account.profile.deleteAccount'),
+      t('account.profile.deleteMessage'),
       [
-        { text: 'Cancelar', style: 'cancel' },
+        { text: t('common.cancel'), style: 'cancel' },
         {
-          text: 'Continuar',
+          text: t('account.profile.continue'),
           style: 'destructive',
           onPress: () => {
             // Tier 2: ask for the literal "DELETE" string to avoid accidental
@@ -169,16 +169,16 @@ function ProfileScreen() {
             const ask = (cb: (value: string | null) => void) => {
               if (Platform.OS === 'ios' && (Alert as any).prompt) {
                 (Alert as any).prompt(
-                  'Confirme com "DELETE"',
-                  'Escreva DELETE em maiúsculas para confirmar.',
+                  t('account.profile.deleteConfirmTitle'),
+                  t('account.profile.deleteConfirmMessage'),
                   [
-                    { text: 'Cancelar', style: 'cancel', onPress: () => cb(null) },
-                    { text: 'Eliminar', style: 'destructive', onPress: cb },
+                    { text: t('common.cancel'), style: 'cancel', onPress: () => cb(null) },
+                    { text: t('account.profile.deleteAction'), style: 'destructive', onPress: cb },
                   ],
                   'plain-text'
                 );
               } else if (typeof window !== 'undefined' && (window as any).prompt) {
-                cb((window as any).prompt('Escreva DELETE para confirmar a eliminação.'));
+                cb((window as any).prompt(t('account.profile.deleteConfirmPrompt')));
               } else {
                 cb('DELETE'); // Android: confirmation already happened in tier 1
               }
@@ -196,13 +196,13 @@ function ProfileScreen() {
                 });
                 if (!res.ok) {
                   const detail = await res.json().catch(() => ({}));
-                  Alert.alert('Não foi possível eliminar', detail?.detail || 'Tente mais tarde.');
+                  Alert.alert(t('account.profile.deleteFailedTitle'), detail?.detail || t('account.profile.tryLater'));
                   return;
                 }
-                Alert.alert('Conta eliminada', 'Os seus dados serão purgados em 30 dias.');
+                Alert.alert(t('account.profile.deletedTitle'), t('account.profile.deletedMessage'));
                 logout();
               } catch (e) {
-                Alert.alert('Erro', 'Falha de rede ao eliminar a conta.');
+                Alert.alert(t('account.profile.error'), t('account.profile.deleteNetworkError'));
               }
             });
           },
@@ -221,27 +221,27 @@ function ProfileScreen() {
 
   // Acções principais — visíveis a todos os utilizadores autenticados
   const primaryMenuItems = [
-    { icon: 'analytics', label: 'O Meu Progresso', color: colors.accent, route: '/dashboard' },
-    { icon: 'near-me', label: 'Perto de Mim', color: colors.success, route: '/nearby' },
-    { icon: 'alt-route', label: 'Planear Viagem', color: colors.info, route: '/route-planner' },
+    { icon: 'analytics', label: t('account.profile.menu.myProgress'), color: colors.accent, route: '/dashboard' },
+    { icon: 'near-me', label: t('account.profile.menu.nearMe'), color: colors.success, route: '/nearby' },
+    { icon: 'alt-route', label: t('account.profile.menu.planTrip'), color: colors.info, route: '/route-planner' },
     ...(isAuthenticated && municipalAccess
-      ? [{ icon: 'location-city', label: 'Painel Municipal', color: colors.primary, route: '/municipio' }]
+      ? [{ icon: 'location-city', label: t('account.profile.menu.municipalPanel'), color: colors.primary, route: '/municipio' }]
       : []),
   ];
 
   // Ferramentas avançadas — colapsável, visível em sub-menu
   const advancedMenuItems = [
-    { icon: 'insights', label: 'IQ Monitor', color: colors.accent, route: '/iq-overview', testId: 'profile-iq-overview-link' },
-    { icon: 'dashboard', label: 'Painel Admin', color: '#1E3A3F', route: '/admin' },
-    { icon: 'admin-panel-settings', label: 'IQ Admin Panel', color: colors.secondary, route: '/iq-admin', testId: 'profile-iq-admin-link' },
-    { icon: 'cloud-upload', label: 'Importador Excel', color: colors.info, route: '/importer' },
+    { icon: 'insights', label: t('account.profile.menu.iqMonitor'), color: colors.accent, route: '/iq-overview', testId: 'profile-iq-overview-link' },
+    { icon: 'dashboard', label: t('account.profile.menu.adminPanel'), color: '#1E3A3F', route: '/admin' },
+    { icon: 'admin-panel-settings', label: t('account.profile.menu.iqAdminPanel'), color: colors.secondary, route: '/iq-admin', testId: 'profile-iq-admin-link' },
+    { icon: 'cloud-upload', label: t('account.profile.menu.excelImporter'), color: colors.info, route: '/importer' },
   ];
 
   return (
     <ScrollView style={[styles.container, { backgroundColor: colors.background, paddingTop: insets.top }]} contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
       {/* Header */}
       <View style={styles.header}>
-        <Text style={[styles.headerTitle, { color: colors.textPrimary }]}>Perfil</Text>
+        <Text style={[styles.headerTitle, { color: colors.textPrimary }]}>{t('profile.title')}</Text>
       </View>
 
       {!isAuthenticated ? (
@@ -249,26 +249,26 @@ function ProfileScreen() {
           {/* Login CTA */}
           <View style={styles.loginContainer}>
             <BrandLogo height={140} style={{ marginBottom: 16 }} />
-            <Text style={[styles.loginTitle, { color: colors.textPrimary }]}>Inicie Sessao</Text>
+            <Text style={[styles.loginTitle, { color: colors.textPrimary }]}>{t('account.profile.loginTitle')}</Text>
             <Text style={[styles.loginSubtitle, { color: colors.textSecondary }]}>
-              Aceda a sua conta para guardar favoritos, contribuir com historias e personalizar a sua experiencia.
+              {t('account.profile.loginSubtitle')}
             </Text>
             <TouchableOpacity
               style={[styles.loginButton, { backgroundColor: colors.accent }]}
               onPress={login}
-              accessibilityLabel="Entrar com Google"
+              accessibilityLabel={t('account.profile.signInWithGoogle')}
               accessibilityRole="button"
             >
               <MaterialIcons name="login" size={20} color="#FFFFFF" />
-              <Text style={styles.loginButtonText}>Entrar com Google</Text>
+              <Text style={styles.loginButtonText}>{t('account.profile.signInWithGoogle')}</Text>
             </TouchableOpacity>
             <View style={styles.legalLinksRow}>
               <Text style={[styles.legalLink, { color: colors.textMuted }]} onPress={() => router.push('/privacy')}>
-                Política de Privacidade
+                {t('account.profile.privacyPolicy')}
               </Text>
               <Text style={[styles.legalLinkSep, { color: colors.textMuted }]}>·</Text>
               <Text style={[styles.legalLink, { color: colors.textMuted }]} onPress={() => router.push('/terms')}>
-                Termos
+                {t('account.profile.terms')}
               </Text>
             </View>
           </View>
@@ -279,15 +279,15 @@ function ProfileScreen() {
             <View style={styles.statsRow}>
               <View style={styles.statItem}>
                 <Text style={[styles.statNumber, { color: colors.accent }]}>{stats?.total_items || 0}</Text>
-                <Text style={[styles.statLabel, { color: colors.textMuted }]}>Itens</Text>
+                <Text style={[styles.statLabel, { color: colors.textMuted }]}>{t('account.profile.items')}</Text>
               </View>
               <View style={styles.statItem}>
                 <Text style={[styles.statNumber, { color: colors.accent }]}>{stats?.total_routes || 0}</Text>
-                <Text style={[styles.statLabel, { color: colors.textMuted }]}>Rotas</Text>
+                <Text style={[styles.statLabel, { color: colors.textMuted }]}>{t('account.profile.routes')}</Text>
               </View>
               <View style={styles.statItem}>
                 <Text style={[styles.statNumber, { color: colors.accent }]}>7</Text>
-                <Text style={[styles.statLabel, { color: colors.textMuted }]}>Regioes</Text>
+                <Text style={[styles.statLabel, { color: colors.textMuted }]}>{t('account.profile.regions')}</Text>
               </View>
             </View>
           </View>
@@ -298,21 +298,21 @@ function ProfileScreen() {
               style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 14 }}
               onPress={toggleTheme}
               testID="theme-toggle"
-              accessibilityLabel={isDark ? 'Mudar para modo claro' : 'Mudar para modo escuro'}
+              accessibilityLabel={isDark ? t('account.profile.switchToLight') : t('account.profile.switchToDark')}
               accessibilityRole="switch"
               accessibilityState={{ checked: isDark }}
             >
               <View style={[styles.actionIcon, { backgroundColor: colors.secondary + '15' }]}>
                 <MaterialIcons name={isDark ? 'light-mode' : 'dark-mode'} size={24} color={colors.secondary} />
               </View>
-              <Text style={{ flex: 1, fontSize: 15, fontWeight: '600', color: colors.textPrimary }}>{isDark ? 'Modo Claro' : 'Modo Escuro'}</Text>
+              <Text style={{ flex: 1, fontSize: 15, fontWeight: '600', color: colors.textPrimary }}>{isDark ? t('account.profile.lightMode') : t('account.profile.darkMode')}</Text>
               <MaterialIcons name="chevron-right" size={20} color={colors.textMuted} />
             </TouchableOpacity>
             <View style={{ height: 1, backgroundColor: colors.borderLight, marginHorizontal: 16 }} />
             <TouchableOpacity
               style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 14 }}
               onPress={() => router.push('/settings/language')}
-              accessibilityLabel="Mudar idioma"
+              accessibilityLabel={t('account.profile.changeLanguage')}
               accessibilityRole="button"
             >
               <View style={[styles.actionIcon, { backgroundColor: colors.info + '15' }]}>
@@ -343,7 +343,7 @@ function ProfileScreen() {
             <TouchableOpacity
               style={[styles.logoutButton, { backgroundColor: colors.error + '12' }]}
               onPress={handleLogout}
-              accessibilityLabel="Terminar sessão"
+              accessibilityLabel={t('account.profile.logoutA11y')}
               accessibilityRole="button"
             >
               <MaterialIcons name="logout" size={20} color={colors.error} />
@@ -373,12 +373,12 @@ function ProfileScreen() {
           <TouchableOpacity
             style={[styles.advancedHeader, { borderColor: colors.borderLight }]}
             onPress={() => setAdvancedExpanded(prev => !prev)}
-            accessibilityLabel="Ferramentas avançadas"
+            accessibilityLabel={t('account.profile.advancedToolsA11y')}
             accessibilityRole="button"
             accessibilityState={{ expanded: advancedExpanded }}
           >
             <MaterialIcons name="build" size={18} color={colors.textMuted} />
-            <Text style={[styles.advancedHeaderText, { color: colors.textMuted }]}>Ferramentas Avançadas</Text>
+            <Text style={[styles.advancedHeaderText, { color: colors.textMuted }]}>{t('account.profile.advancedTools')}</Text>
             <MaterialIcons name={advancedExpanded ? 'expand-less' : 'expand-more'} size={20} color={colors.textMuted} />
           </TouchableOpacity>
           {advancedExpanded && (
@@ -408,44 +408,44 @@ function ProfileScreen() {
               style={styles.actionButton}
               onPress={toggleTheme}
               testID="theme-toggle"
-              accessibilityLabel={isDark ? 'Mudar para modo claro' : 'Mudar para modo escuro'}
+              accessibilityLabel={isDark ? t('account.profile.switchToLight') : t('account.profile.switchToDark')}
               accessibilityRole="switch"
               accessibilityState={{ checked: isDark }}
             >
               <View style={[styles.actionIcon, { backgroundColor: colors.secondary + '15' }]}>
                 <MaterialIcons name={isDark ? 'light-mode' : 'dark-mode'} size={24} color={colors.secondary} />
               </View>
-              <Text style={[styles.actionText, { color: colors.textPrimary }]}>{isDark ? 'Modo Claro' : 'Modo Escuro'}</Text>
+              <Text style={[styles.actionText, { color: colors.textPrimary }]}>{isDark ? t('account.profile.lightMode') : t('account.profile.darkMode')}</Text>
               <MaterialIcons name="chevron-right" size={20} color={colors.textMuted} />
             </TouchableOpacity>
             <TouchableOpacity
               style={styles.actionButton}
               onPress={() => router.push('/settings/appearance')}
-              accessibilityLabel="Aparência avançada"
+              accessibilityLabel={t('account.profile.advancedAppearanceA11y')}
               accessibilityRole="button"
             >
               <View style={[styles.actionIcon, { backgroundColor: '#A855F7' + '15' }]}>
                 <MaterialIcons name="palette" size={24} color="#A855F7" />
               </View>
-              <Text style={[styles.actionText, { color: colors.textPrimary }]}>Aparência Avançada</Text>
+              <Text style={[styles.actionText, { color: colors.textPrimary }]}>{t('account.profile.advancedAppearance')}</Text>
               <MaterialIcons name="chevron-right" size={20} color={colors.textMuted} />
             </TouchableOpacity>
             <TouchableOpacity
               style={styles.actionButton}
               onPress={() => router.push('/settings/privacidade')}
-              accessibilityLabel="Privacidade e estatísticas anónimas"
+              accessibilityLabel={t('account.profile.privacyStatsA11y')}
               accessibilityRole="button"
             >
               <View style={[styles.actionIcon, { backgroundColor: colors.primary + '15' }]}>
                 <MaterialIcons name="privacy-tip" size={24} color={colors.primary} />
               </View>
-              <Text style={[styles.actionText, { color: colors.textPrimary }]}>Privacidade</Text>
+              <Text style={[styles.actionText, { color: colors.textPrimary }]}>{t('account.profile.privacy')}</Text>
               <MaterialIcons name="chevron-right" size={20} color={colors.textMuted} />
             </TouchableOpacity>
             <TouchableOpacity
               style={[styles.actionButton, { borderBottomWidth: 0 }]}
               onPress={() => router.push('/settings/language')}
-              accessibilityLabel="Mudar idioma"
+              accessibilityLabel={t('account.profile.changeLanguage')}
               accessibilityRole="button"
             >
               <View style={[styles.actionIcon, { backgroundColor: colors.info + '15' }]}>
@@ -464,49 +464,49 @@ function ProfileScreen() {
             <TouchableOpacity
               style={[styles.actionButton, { borderBottomColor: colors.borderLight, borderBottomWidth: 1 }]}
               onPress={() => router.push('/privacy')}
-              accessibilityLabel="Política de Privacidade"
+              accessibilityLabel={t('account.profile.privacyPolicy')}
               accessibilityRole="button"
             >
               <View style={[styles.actionIcon, { backgroundColor: colors.info + '15' }]}>
                 <MaterialIcons name="privacy-tip" size={24} color={colors.info} />
               </View>
-              <Text style={[styles.actionText, { color: colors.textPrimary }]}>Política de Privacidade</Text>
+              <Text style={[styles.actionText, { color: colors.textPrimary }]}>{t('account.profile.privacyPolicy')}</Text>
               <MaterialIcons name="chevron-right" size={20} color={colors.textMuted} />
             </TouchableOpacity>
             <TouchableOpacity
               style={[styles.actionButton, { borderBottomColor: colors.borderLight, borderBottomWidth: 1 }]}
               onPress={() => router.push('/terms')}
-              accessibilityLabel="Termos de Utilização"
+              accessibilityLabel={t('account.profile.termsOfUse')}
               accessibilityRole="button"
             >
               <View style={[styles.actionIcon, { backgroundColor: colors.info + '15' }]}>
                 <MaterialIcons name="description" size={24} color={colors.info} />
               </View>
-              <Text style={[styles.actionText, { color: colors.textPrimary }]}>Termos de Utilização</Text>
+              <Text style={[styles.actionText, { color: colors.textPrimary }]}>{t('account.profile.termsOfUse')}</Text>
               <MaterialIcons name="chevron-right" size={20} color={colors.textMuted} />
             </TouchableOpacity>
             <TouchableOpacity
               style={[styles.actionButton, { borderBottomColor: colors.borderLight, borderBottomWidth: 1 }]}
               onPress={handleExportData}
-              accessibilityLabel="Exportar os meus dados"
+              accessibilityLabel={t('account.profile.exportData')}
               accessibilityRole="button"
             >
               <View style={[styles.actionIcon, { backgroundColor: colors.success + '15' }]}>
                 <MaterialIcons name="download" size={24} color={colors.success} />
               </View>
-              <Text style={[styles.actionText, { color: colors.textPrimary }]}>Exportar os meus dados</Text>
+              <Text style={[styles.actionText, { color: colors.textPrimary }]}>{t('account.profile.exportData')}</Text>
               <MaterialIcons name="chevron-right" size={20} color={colors.textMuted} />
             </TouchableOpacity>
             <TouchableOpacity
               style={[styles.actionButton, { borderBottomWidth: 0 }]}
               onPress={handleDeleteAccount}
-              accessibilityLabel="Eliminar conta"
+              accessibilityLabel={t('account.profile.deleteAccount')}
               accessibilityRole="button"
             >
               <View style={[styles.actionIcon, { backgroundColor: colors.error + '15' }]}>
                 <MaterialIcons name="delete-forever" size={24} color={colors.error} />
               </View>
-              <Text style={[styles.actionText, { color: colors.error }]}>Eliminar conta</Text>
+              <Text style={[styles.actionText, { color: colors.error }]}>{t('account.profile.deleteAccount')}</Text>
               <MaterialIcons name="chevron-right" size={20} color={colors.textMuted} />
             </TouchableOpacity>
           </View>
@@ -518,13 +518,13 @@ function ProfileScreen() {
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <MaterialIcons name="notifications" size={18} color={colors.success} />
-            <Text style={[styles.sectionTitle, { color: colors.textPrimary }]}>Notificações</Text>
+            <Text style={[styles.sectionTitle, { color: colors.textPrimary }]}>{t('account.profile.notifications')}</Text>
           </View>
           <TouchableOpacity
             style={[styles.notifToggle, { backgroundColor: colors.surface, borderColor: colors.borderLight }]}
             onPress={toggleNotifications}
             data-testid="notification-toggle"
-            accessibilityLabel="Notificações push"
+            accessibilityLabel={t('account.profile.pushNotificationsA11y')}
             accessibilityRole="switch"
             accessibilityState={{ checked: notificationsEnabled }}
           >
@@ -533,7 +533,7 @@ function ProfileScreen() {
               size={22}
               color={notificationsEnabled ? '#22c55e' : colors.textMuted}
             />
-            <Text style={[styles.actionText, { flex: 1, color: colors.textPrimary }]}>Push Notifications</Text>
+            <Text style={[styles.actionText, { flex: 1, color: colors.textPrimary }]}>{t('account.profile.pushNotifications')}</Text>
             <View style={[styles.toggleTrack, notificationsEnabled && styles.toggleTrackActive]}>
               <View style={[styles.toggleThumb, notificationsEnabled && styles.toggleThumbActive]} />
             </View>
@@ -547,7 +547,7 @@ function ProfileScreen() {
         <View style={styles.sectionHeader}>
           <MaterialIcons name="emoji-events" size={18} color={colors.accent} />
           <Text style={[styles.sectionTitle, { color: colors.textPrimary }]}>
-            {isAuthenticated ? 'As Minhas Conquistas' : 'Conquistas Disponiveis'}
+            {isAuthenticated ? t('account.profile.myAchievements') : t('account.profile.availableAchievements')}
           </Text>
           {isAuthenticated && gamProfile ? (
             <Text style={[styles.sectionCount, { color: colors.accent }]}>
@@ -563,7 +563,7 @@ function ProfileScreen() {
           <View style={[styles.xpBar, { backgroundColor: colors.surface, borderColor: colors.borderLight }]}>
             <View style={styles.xpInfo}>
               <Text style={[styles.xpLevel, { color: colors.textPrimary }]}>
-                Nivel {gamProfile.level}
+                {t('account.profile.level', { level: gamProfile.level })}
               </Text>
               <Text style={[styles.xpText, { color: colors.textMuted }]}>
                 {gamProfile.xp} / {gamProfile.xp + gamProfile.xp_to_next_level} XP
@@ -630,13 +630,13 @@ function ProfileScreen() {
                 <Text style={[styles.badgeName, { color: colors.textPrimary }]} numberOfLines={2}>{badge.name}</Text>
                 <View style={[styles.badgeLocked, { backgroundColor: colors.surfaceAlt }]}>
                   <MaterialIcons name="lock" size={12} color={colors.textMuted} />
-                  <Text style={[styles.badgeLockedText, { color: colors.textMuted }]}>Bloqueado</Text>
+                  <Text style={[styles.badgeLockedText, { color: colors.textMuted }]}>{t('account.profile.locked')}</Text>
                 </View>
               </View>
             ))}
           </ScrollView>
         ) : null}
-        {!isAuthenticated && <Text style={[styles.badgesHint, { color: colors.textMuted }]}>Inicie sessao para desbloquear conquistas</Text>}
+        {!isAuthenticated && <Text style={[styles.badgesHint, { color: colors.textMuted }]}>{t('account.profile.badgesHint')}</Text>}
       </View>
 
       {/* Favorites */}
@@ -644,7 +644,7 @@ function ProfileScreen() {
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <MaterialIcons name="favorite" size={18} color={colors.accent} />
-            <Text style={[styles.sectionTitle, { color: colors.textPrimary }]}>Os Meus Favoritos</Text>
+            <Text style={[styles.sectionTitle, { color: colors.textPrimary }]}>{t('account.profile.myFavorites')}</Text>
             <Text style={[styles.sectionCount, { color: colors.textMuted }]}>({favorites.length})</Text>
           </View>
           {favoritesLoading ? (
@@ -658,9 +658,9 @@ function ProfileScreen() {
           ) : (
             <EmptyState
               icon="favorite-border"
-              title="Ainda não tem favoritos"
-              subtitle="Explore o património e guarde os seus locais preferidos"
-              actionLabel="Descobrir locais"
+              title={t('account.profile.emptyFavoritesTitle')}
+              subtitle={t('account.profile.emptyFavoritesSubtitle')}
+              actionLabel={t('account.profile.discoverPlaces')}
               onAction={() => router.push('/(tabs)/descobrir')}
             />
           )}
@@ -672,7 +672,7 @@ function ProfileScreen() {
         <TouchableOpacity
           style={[styles.premiumActive, { backgroundColor: colors.surface, borderColor: '#C49A6C' }]}
           onPress={() => router.push('/premium')}
-          accessibilityLabel="Gerir subscrição premium"
+          accessibilityLabel={t('account.profile.managePremiumA11y')}
           accessibilityRole="button"
         >
           <LinearGradient
@@ -682,10 +682,10 @@ function ProfileScreen() {
             <MaterialIcons name="verified" size={28} color="#C49A6C" />
             <View style={{ flex: 1 }}>
               <Text style={[styles.premiumCtaTitle, { color: '#C49A6C' }]}>
-                {subStatus.tier_name} — Ativo
+                {t('account.profile.premiumActive', { tier: subStatus.tier_name })}
               </Text>
               <Text style={[styles.premiumCtaDesc, { color: colors.textMuted }]}>
-                Todas as funcionalidades desbloqueadas
+                {t('account.profile.allFeaturesUnlocked')}
               </Text>
             </View>
             <MaterialIcons name="settings" size={20} color="#C49A6C" />
@@ -695,14 +695,14 @@ function ProfileScreen() {
         <TouchableOpacity
           style={[styles.premiumCta, { backgroundColor: colors.surface, borderColor: colors.borderLight }]}
           onPress={() => router.push('/premium')}
-          accessibilityLabel="Subscrever premium"
+          accessibilityLabel={t('account.profile.subscribePremiumA11y')}
           accessibilityRole="button"
         >
           <MaterialIcons name="diamond" size={24} color="#C49A6C" />
           <View style={{ flex: 1 }}>
             <Text style={[styles.premiumCtaTitle, { color: colors.textPrimary }]}>Premium</Text>
             <Text style={[styles.premiumCtaDesc, { color: colors.textMuted }]}>
-              Roteiros IA, áudio guias, offline • desde 4,99€
+              {t('account.profile.premiumDesc')}
             </Text>
           </View>
           <MaterialIcons name="arrow-forward" size={20} color="#C49A6C" />
@@ -712,7 +712,7 @@ function ProfileScreen() {
       {/* App Info */}
       <View style={styles.appInfo}>
         <Text style={[styles.appInfoTitle, { color: colors.textMuted }]}>Portugal Vivo</Text>
-        <Text style={[styles.appInfoVersion, { color: colors.textMuted }]}>Versao 3.0.0</Text>
+        <Text style={[styles.appInfoVersion, { color: colors.textMuted }]}>{t('account.profile.version', { version: '3.0.0' })}</Text>
       </View>
     </ScrollView>
   );

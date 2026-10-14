@@ -11,21 +11,23 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useQuery } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
 import { colors, typography, borders, shadows } from '../../src/theme';
 import { palette } from '../../src/theme/colors';
 import { HIT_SLOP } from '../../src/theme/spacing';
 import { useTheme } from '../../src/context/ThemeContext';
 import api from '../../src/services/api';
 
-const SECTION_META: Record<string, { label: string; icon: string; color: string; emoji: string }> = {
-  nacional: { label: 'Nacional', icon: 'train', color: '#2563EB', emoji: '' },
-  lisboa: { label: 'Lisboa', icon: 'subway', color: '#DC2626', emoji: '' },
-  porto: { label: 'Porto', icon: 'tram', color: '#7C3AED', emoji: '' },
-  regional: { label: 'Regional', icon: 'directions-bus', color: '#059669', emoji: '' },
-  aereo: { label: 'Aereo', icon: 'flight', color: '#0891B2', emoji: '' },
+const SECTION_META: Record<string, { labelKey: string; icon: string; color: string; emoji: string }> = {
+  nacional: { labelKey: 'exploreScreens.transportes.sections.nacional', icon: 'train', color: '#2563EB', emoji: '' },
+  lisboa: { labelKey: 'exploreScreens.transportes.sections.lisboa', icon: 'subway', color: '#DC2626', emoji: '' },
+  porto: { labelKey: 'exploreScreens.transportes.sections.porto', icon: 'tram', color: '#7C3AED', emoji: '' },
+  regional: { labelKey: 'exploreScreens.transportes.sections.regional', icon: 'directions-bus', color: '#059669', emoji: '' },
+  aereo: { labelKey: 'exploreScreens.transportes.sections.aereo', icon: 'flight', color: '#0891B2', emoji: '' },
 };
 
 export default function TransportesScreen() {
+  const { t } = useTranslation();
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { colors: tc } = useTheme();
@@ -50,6 +52,14 @@ export default function TransportesScreen() {
     queryFn: async () => { const res = await api.get('/transportes/cards'); return res.data; },
   });
 
+  // Unknown sections fall back to their raw id as the label.
+  const sectionMeta = (id: string) => {
+    const meta = SECTION_META[id];
+    return meta
+      ? { label: t(meta.labelKey), icon: meta.icon, color: meta.color }
+      : { label: id, icon: 'commute', color: '#666' };
+  };
+
   const sections = sectionsData?.sections || [];
   const operators = operatorsData?.operators || [];
   const cards = cardsData?.cards || [];
@@ -65,14 +75,14 @@ export default function TransportesScreen() {
             hitSlop={HIT_SLOP}
             data-testid="transport-back-btn"
             accessibilityRole="button"
-            accessibilityLabel="Voltar"
+            accessibilityLabel={t('common.back')}
           >
             <MaterialIcons name="arrow-back" size={22} color={colors.gray[700]} />
           </TouchableOpacity>
           <View style={styles.headerContent}>
-            <Text style={styles.headerTitle}>Guia de Transportes</Text>
+            <Text style={styles.headerTitle}>{t('exploreScreens.transportes.title')}</Text>
             <Text style={styles.headerSubtitle}>
-              {sectionsData?.total_operators || 0} operadores em Portugal
+              {t('exploreScreens.transportes.subtitle', { count: sectionsData?.total_operators || 0 })}
             </Text>
           </View>
         </View>
@@ -84,15 +94,15 @@ export default function TransportesScreen() {
           activeOpacity={0.85}
           data-testid="transport-comboios-cta"
           accessibilityRole="link"
-          accessibilityLabel="Abrir Comboios e Ligações: CP, Metro, Ferries e Cartões"
+          accessibilityLabel={t('exploreScreens.transportes.trainsA11y')}
         >
           <View style={styles.comboiosCtaLeft}>
             <View style={styles.comboiosCtaIcon}>
               <MaterialIcons name="train" size={26} color="#FFF" />
             </View>
             <View style={styles.comboiosCtaText}>
-              <Text style={styles.comboiosCtaTitle}>Comboios e Ligacoes</Text>
-              <Text style={styles.comboiosCtaSubtitle}>CP, Metro, Ferries, Cartoes</Text>
+              <Text style={styles.comboiosCtaTitle}>{t('exploreScreens.transportes.trainsTitle')}</Text>
+              <Text style={styles.comboiosCtaSubtitle}>{t('exploreScreens.transportes.trainsSubtitle')}</Text>
             </View>
           </View>
           <MaterialIcons name="chevron-right" size={24} color="#FFF" />
@@ -106,13 +116,13 @@ export default function TransportesScreen() {
             data-testid="transport-filter-all"
             accessibilityRole="tab"
             accessibilityState={{ selected: !activeSection }}
-            accessibilityLabel="Filtrar transportes: Todos"
+            accessibilityLabel={t('exploreScreens.transportes.filterAllA11y')}
           >
             <MaterialIcons name="commute" size={16} color={!activeSection ? '#FFF' : colors.gray[600]} />
-            <Text style={[styles.filterChipText, !activeSection && styles.filterChipTextActive]}>Todos</Text>
+            <Text style={[styles.filterChipText, !activeSection && styles.filterChipTextActive]}>{t('exploreScreens.transportes.all')}</Text>
           </TouchableOpacity>
           {sections.map((sec: any) => {
-            const meta = SECTION_META[sec.id] || { label: sec.id, icon: 'commute', color: '#666' };
+            const meta = sectionMeta(sec.id);
             const isActive = activeSection === sec.id;
             return (
               <TouchableOpacity
@@ -122,7 +132,7 @@ export default function TransportesScreen() {
                 data-testid={`transport-filter-${sec.id}`}
                 accessibilityRole="tab"
                 accessibilityState={{ selected: isActive }}
-                accessibilityLabel={`Filtrar transportes: ${meta.label}`}
+                accessibilityLabel={t('exploreScreens.transportes.filterA11y', { label: meta.label })}
               >
                 <MaterialIcons name={meta.icon as any} size={16} color={isActive ? '#FFF' : meta.color} />
                 <Text style={[styles.filterChipText, isActive && styles.filterChipTextActive]}>
@@ -136,7 +146,7 @@ export default function TransportesScreen() {
         {/* Stats Bar */}
         <View style={styles.statsBar}>
           {sections.slice(0, 4).map((sec: any) => {
-            const meta = SECTION_META[sec.id] || { label: sec.id, icon: 'commute', color: '#666' };
+            const meta = sectionMeta(sec.id);
             return (
               <View key={sec.id} style={styles.statItem}>
                 <View style={[styles.statIconCircle, { backgroundColor: meta.color + '15' }]}>
@@ -155,7 +165,7 @@ export default function TransportesScreen() {
         ) : (
           <View style={styles.operatorsList}>
             {operators.map((op: any, idx: number) => {
-              const meta = SECTION_META[op.section] || { label: op.section, icon: 'commute', color: '#666' };
+              const meta = sectionMeta(op.section);
               return (
                 <TouchableOpacity
                   key={idx}
@@ -164,7 +174,7 @@ export default function TransportesScreen() {
                   activeOpacity={0.85}
                   data-testid={`transport-operator-${idx}`}
                   accessibilityRole="link"
-                  accessibilityLabel={`Abrir site do operador ${op.name}`}
+                  accessibilityLabel={t('exploreScreens.transportes.operatorA11y', { name: op.name })}
                 >
                   <View style={styles.operatorHeader}>
                     <View style={[styles.operatorIcon, { backgroundColor: meta.color + '12' }]}>
@@ -210,10 +220,10 @@ export default function TransportesScreen() {
           <View style={styles.cardsSection}>
             <View style={styles.cardsSectionHeader}>
               <MaterialIcons name="credit-card" size={22} color={colors.terracotta[500]} />
-              <Text style={styles.cardsSectionTitle}>Cartoes de Transporte</Text>
+              <Text style={styles.cardsSectionTitle}>{t('exploreScreens.transportes.cardsTitle')}</Text>
             </View>
             <Text style={styles.cardsSectionSubtitle}>
-              Os passes e cartoes que facilitam viajar em Portugal
+              {t('exploreScreens.transportes.cardsSubtitle')}
             </Text>
             {cards.map((card: any, idx: number) => (
               <TouchableOpacity
@@ -223,7 +233,7 @@ export default function TransportesScreen() {
                 activeOpacity={0.85}
                 data-testid={`transport-card-${idx}`}
                 accessibilityRole="link"
-                accessibilityLabel={`Abrir site do cartão de transporte ${card.name}`}
+                accessibilityLabel={t('exploreScreens.transportes.cardA11y', { name: card.name })}
               >
                 <View style={styles.transportCardHeader}>
                   <View style={styles.transportCardIcon}>
@@ -244,7 +254,7 @@ export default function TransportesScreen() {
                   </View>
                   <View style={styles.transportCardMetaItem}>
                     <MaterialIcons name="schedule" size={12} color={colors.gray[500]} />
-                    <Text style={styles.transportCardMetaText}>Validade: {card.validity}</Text>
+                    <Text style={styles.transportCardMetaText}>{t('exploreScreens.transportes.validity', { validity: card.validity })}</Text>
                   </View>
                 </View>
                 {card.tip && (

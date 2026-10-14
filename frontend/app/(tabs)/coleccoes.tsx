@@ -12,6 +12,7 @@ import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useQuery } from '@tanstack/react-query';
 import { LinearGradient } from 'expo-linear-gradient';
+import { useTranslation } from 'react-i18next';
 import { palette } from '../../src/theme/colors';
 import { useTheme } from '../../src/context/ThemeContext';
 import { useResponsive } from '../../src/hooks/useResponsive';
@@ -26,6 +27,7 @@ export default function ColeccoesScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { colors } = useTheme();
+  const { t } = useTranslation();
   const { contentMaxWidthWide, columns } = useResponsive();
   // Grid adaptativa: 2 colunas no telemóvel, mais em tablet/web (mobile-first).
   const numColumns = columns(160, CARD_GAP, 4);
@@ -82,7 +84,7 @@ export default function ColeccoesScreen() {
               style={styles.backBtn}
               hitSlop={HIT_SLOP}
               data-testid="back-from-universe"
-              accessibilityLabel="Voltar aos universos"
+              accessibilityLabel={t('coreTabs.collections.backToUniverses')}
               accessibilityRole="button"
             >
               <MaterialIcons name="arrow-back" size={24} color="#FFF" />
@@ -94,11 +96,11 @@ export default function ColeccoesScreen() {
               <View style={styles.detailStats}>
                 <View style={styles.detailStat}>
                   <MaterialIcons name="place" size={16} color="rgba(255,255,255,0.8)" />
-                  <Text style={styles.detailStatText}>{selectedUniverse.item_count} locais</Text>
+                  <Text style={styles.detailStatText}>{t('coreTabs.units.places', { count: selectedUniverse.item_count })}</Text>
                 </View>
                 <View style={styles.detailStat}>
                   <MaterialIcons name="article" size={16} color="rgba(255,255,255,0.8)" />
-                  <Text style={styles.detailStatText}>{selectedUniverse.article_count} artigos</Text>
+                  <Text style={styles.detailStatText}>{t('coreTabs.units.articles', { count: selectedUniverse.article_count })}</Text>
                 </View>
               </View>
             </View>
@@ -109,18 +111,18 @@ export default function ColeccoesScreen() {
             <TouchableOpacity
               style={[styles.regionChip, { backgroundColor: !selectedRegion ? colors.accent : colors.surfaceAlt }]}
               onPress={() => setSelectedRegion(null)}
-              accessibilityLabel="Filtrar por todas as regiões"
+              accessibilityLabel={t('coreTabs.collections.filterAllRegions')}
               accessibilityRole="tab"
               accessibilityState={{ selected: !selectedRegion }}
             >
-              <Text style={[styles.regionChipText, { color: !selectedRegion ? '#FFF' : colors.textSecondary }]}>Todas</Text>
+              <Text style={[styles.regionChipText, { color: !selectedRegion ? '#FFF' : colors.textSecondary }]}>{t('common.all')}</Text>
             </TouchableOpacity>
             {REGIONS.map((r) => (
               <TouchableOpacity
                 key={r}
                 style={[styles.regionChip, { backgroundColor: selectedRegion === r ? colors.accent : colors.surfaceAlt }]}
                 onPress={() => setSelectedRegion(selectedRegion === r ? null : r)}
-                accessibilityLabel={`Filtrar por região ${r}`}
+                accessibilityLabel={t('coreTabs.collections.filterByRegion', { region: r })}
                 accessibilityRole="tab"
                 accessibilityState={{ selected: selectedRegion === r }}
               >
@@ -141,7 +143,7 @@ export default function ColeccoesScreen() {
                   onPress={() => item.id && router.push(`/heritage/${item.id}`)}
                   activeOpacity={0.8}
                   data-testid={`item-${idx}`}
-                  accessibilityLabel={`Ver ${item.name}`}
+                  accessibilityLabel={t('coreTabs.shared.view', { name: item.name })}
                   accessibilityRole="button"
                 >
                   <View style={styles.itemHeader}>
@@ -171,11 +173,11 @@ export default function ColeccoesScreen() {
               {items.length === 0 && !browseLoading && (
                 <View style={styles.emptyState}>
                   <MaterialIcons name="search-off" size={48} color={colors.textMuted} />
-                  <Text style={[styles.emptyText, { color: colors.textMuted }]}>Sem resultados</Text>
+                  <Text style={[styles.emptyText, { color: colors.textMuted }]}>{t('coreTabs.collections.noResults')}</Text>
                 </View>
               )}
               <Text style={[styles.showingCount, { color: colors.textMuted }]}>
-                A mostrar {Math.min(items.length, 50)} de {selectedUniverse.item_count} locais
+                {t('coreTabs.collections.showing', { shown: Math.min(items.length, 50), total: selectedUniverse.item_count })}
               </Text>
             </View>
           )}
@@ -197,13 +199,13 @@ export default function ColeccoesScreen() {
             onPress={() => router.back()}
             style={styles.mainBackBtn}
             hitSlop={HIT_SLOP}
-            accessibilityLabel="Voltar"
+            accessibilityLabel={t('common.back')}
             accessibilityRole="button"
           >
             <MaterialIcons name="arrow-back" size={24} color="#FFF" />
           </TouchableOpacity>
-          <Text style={styles.mainTitle}>Enciclopédia Viva</Text>
-          <Text style={styles.mainSubtitle}>Conhecimento profundo sobre Portugal</Text>
+          <Text style={styles.mainTitle}>{t('coreTabs.collections.title')}</Text>
+          <Text style={styles.mainSubtitle}>{t('coreTabs.collections.subtitle')}</Text>
         </View>
 
         {/* Search Bar */}
@@ -211,10 +213,10 @@ export default function ColeccoesScreen() {
           <MaterialIcons name="search" size={20} color="rgba(255,255,255,0.6)" />
           <TextInput
             style={styles.searchInput}
-            placeholder="Pesquisar artigos, locais..."
+            placeholder={t('coreTabs.collections.searchPlaceholder')}
             placeholderTextColor="rgba(255,255,255,0.4)"
             value={searchQuery}
-            onChangeText={(t) => { setSearchQuery(t); if (t.length < 2) setSearchResults(null); }}
+            onChangeText={(text) => { setSearchQuery(text); if (text.length < 2) setSearchResults(null); }}
             onSubmitEditing={handleSearch}
             returnKeyType="search"
             data-testid="encyclopedia-search"
@@ -222,7 +224,7 @@ export default function ColeccoesScreen() {
           {searchQuery.length > 0 && (
             <TouchableOpacity
               onPress={() => { setSearchQuery(''); setSearchResults(null); }}
-              accessibilityLabel="Limpar pesquisa"
+              accessibilityLabel={t('coreTabs.shared.clearSearch')}
               accessibilityRole="button"
             >
               <MaterialIcons name="close" size={18} color="rgba(255,255,255,0.5)" />
@@ -233,7 +235,7 @@ export default function ColeccoesScreen() {
         {/* Search Results */}
         {searchResults && (
           <View style={styles.searchResultsContainer}>
-            <Text style={styles.searchResultsTitle}>{searchResults.total} resultados para &quot;{searchQuery}&quot;</Text>
+            <Text style={styles.searchResultsTitle}>{t('coreTabs.collections.resultsFor', { count: searchResults.total, query: searchQuery })}</Text>
             {searchResults.results?.map((group: any) => (
               <View key={group.id} style={styles.searchGroup}>
                 <View style={styles.searchGroupHeader}>
@@ -255,7 +257,7 @@ export default function ColeccoesScreen() {
         {!searchResults && (
           <View style={styles.sectionTitleRow}>
             <MaterialIcons name="auto-awesome" size={20} color="#8E24AA" />
-            <Text style={styles.sectionTitle}>Universos do Conhecimento</Text>
+            <Text style={styles.sectionTitle}>{t('coreTabs.collections.universes')}</Text>
           </View>
         )}
 
@@ -272,7 +274,7 @@ export default function ColeccoesScreen() {
                   onPress={() => router.push(`/encyclopedia/universe/${universe.id}`)}
                   activeOpacity={0.85}
                   data-testid={`universe-${universe.id}`}
-                  accessibilityLabel={`Abrir universo ${universe.name}`}
+                  accessibilityLabel={t('coreTabs.shared.openUniverse', { name: universe.name })}
                   accessibilityRole="button"
                 >
                   <MaterialIcons name={universe.icon} size={32} color="rgba(255,255,255,0.9)" style={styles.cardIcon} />

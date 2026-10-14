@@ -8,6 +8,7 @@ import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
+import { useTranslation } from 'react-i18next';
 import { shadows, palette } from '../theme';
 import { useTheme } from '../context/ThemeContext';
 
@@ -33,6 +34,7 @@ interface MissionCardProps {
 }
 
 function MissionCard({ mission, onClaim, onPress }: MissionCardProps) {
+  const { t } = useTranslation();
   const { colors } = useTheme();
   const progress = mission.progress ?? 0;
   const pct = Math.min((progress / mission.target_value) * 100, 100);
@@ -73,7 +75,7 @@ function MissionCard({ mission, onClaim, onPress }: MissionCardProps) {
         {!isComplete && (
           <View style={[s.expiry, { backgroundColor: daysLeft <= 1 ? '#FEE2E2' : colors.background }]}>
             <Text style={[s.expiryText, { color: daysLeft <= 1 ? '#EF4444' : colors.textMuted }]}>
-              {daysLeft === 0 ? 'Hoje!' : `${daysLeft}d`}
+              {daysLeft === 0 ? t('components.missionCard.today') : t('components.missionCard.daysLeft', { count: daysLeft })}
             </Text>
           </View>
         )}
@@ -100,7 +102,7 @@ function MissionCard({ mission, onClaim, onPress }: MissionCardProps) {
           {mission.reward_badge && (
             <View style={[s.rewardChip, { backgroundColor: '#EDE9FE' }]}>
               <MaterialIcons name="military-tech" size={13} color="#7C3AED" />
-              <Text style={[s.rewardText, { color: '#7C3AED' }]}>Badge</Text>
+              <Text style={[s.rewardText, { color: '#7C3AED' }]}>{t('components.missionCard.badge')}</Text>
             </View>
           )}
         </View>
@@ -109,7 +111,7 @@ function MissionCard({ mission, onClaim, onPress }: MissionCardProps) {
         {isClaimed ? (
           <View style={s.claimedBadge}>
             <MaterialIcons name="check-circle" size={14} color="#22C55E" />
-            <Text style={s.claimedText}>Completo</Text>
+            <Text style={s.claimedText}>{t('components.missionCard.completed')}</Text>
           </View>
         ) : isComplete ? (
           <TouchableOpacity
@@ -117,7 +119,7 @@ function MissionCard({ mission, onClaim, onPress }: MissionCardProps) {
             onPress={() => onClaim?.(mission.mission_id)}
           >
             <MaterialIcons name="card-giftcard" size={14} color="#fff" />
-            <Text style={s.claimBtnText}>Reclamar</Text>
+            <Text style={s.claimBtnText}>{t('components.missionCard.claim')}</Text>
           </TouchableOpacity>
         ) : (
           <LinearGradient

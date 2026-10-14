@@ -1,5 +1,6 @@
 import React, { Component, ErrorInfo, ReactNode } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { palette } from '../theme';
 import logger from '../utils/logger';
 
@@ -12,6 +13,27 @@ interface Props {
 interface State {
   hasError: boolean;
   error: Error | null;
+}
+
+function ErrorFallback({ error, onRetry }: { error: Error | null; onRetry: () => void }) {
+  const { t } = useTranslation();
+  return (
+    <View style={styles.container}>
+      <Text style={styles.emoji}>⚠️</Text>
+      <Text style={styles.title}>{t('components.errorBoundary.title')}</Text>
+      <Text style={styles.message}>
+        {error?.message || t('components.errorBoundary.unexpected')}
+      </Text>
+      <TouchableOpacity style={styles.button} onPress={onRetry}>
+        <Text style={styles.buttonText}>{t('common.retry')}</Text>
+      </TouchableOpacity>
+      {__DEV__ && error && (
+        <ScrollView style={styles.debugContainer}>
+          <Text style={styles.debugText}>{error.stack}</Text>
+        </ScrollView>
+      )}
+    </View>
+  );
 }
 
 export class ErrorBoundary extends Component<Props, State> {
@@ -39,23 +61,7 @@ export class ErrorBoundary extends Component<Props, State> {
         return this.props.fallback;
       }
 
-      return (
-        <View style={styles.container}>
-          <Text style={styles.emoji}>⚠️</Text>
-          <Text style={styles.title}>Algo correu mal</Text>
-          <Text style={styles.message}>
-            {this.state.error?.message || 'Erro inesperado'}
-          </Text>
-          <TouchableOpacity style={styles.button} onPress={this.handleRetry}>
-            <Text style={styles.buttonText}>Tentar novamente</Text>
-          </TouchableOpacity>
-          {__DEV__ && this.state.error && (
-            <ScrollView style={styles.debugContainer}>
-              <Text style={styles.debugText}>{this.state.error.stack}</Text>
-            </ScrollView>
-          )}
-        </View>
-      );
+      return <ErrorFallback error={this.state.error} onRetry={this.handleRetry} />;
     }
 
     return this.props.children;

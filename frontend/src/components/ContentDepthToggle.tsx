@@ -5,12 +5,13 @@ import {
 } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useTheme } from '../theme';
+import { useTranslation } from 'react-i18next';
 
 export type DepthLevel = 'snackable' | 'historia' | 'enciclopedico';
 
 interface DepthOption {
   id: DepthLevel;
-  label: string;
+  labelKey: string;
   sublabel: string;
   icon: keyof typeof MaterialIcons.glyphMap;
   readTime: string;
@@ -19,21 +20,21 @@ interface DepthOption {
 const DEPTH_OPTIONS: DepthOption[] = [
   {
     id: 'snackable',
-    label: 'Snack',
+    labelKey: 'widgets.contentDepth.snack',
     sublabel: '30–60s',
     icon: 'bolt',
     readTime: '1 min',
   },
   {
     id: 'historia',
-    label: 'História',
+    labelKey: 'widgets.contentDepth.story',
     sublabel: '3–5 min',
     icon: 'menu-book',
     readTime: '4 min',
   },
   {
     id: 'enciclopedico',
-    label: 'Enciclopédia',
+    labelKey: 'widgets.contentDepth.encyclopedia',
     sublabel: '7–12 min',
     icon: 'school',
     readTime: '10 min',
@@ -54,6 +55,7 @@ export default function ContentDepthToggle({
   compact = false,
 }: ContentDepthToggleProps) {
   const { colors } = useTheme();
+  const { t } = useTranslation();
   const scaleAnims = useRef<Record<DepthLevel, Animated.Value>>({
     snackable: new Animated.Value(1),
     historia: new Animated.Value(1),
@@ -79,7 +81,7 @@ export default function ContentDepthToggle({
             <TouchableOpacity
               key={opt.id}
               onPress={() => handleSelect(opt.id)}
-              accessibilityLabel={`${opt.label} — ${opt.sublabel}`}
+              accessibilityLabel={`${t(opt.labelKey)} — ${opt.sublabel}`}
               accessibilityState={{ selected: isActive }}
               style={[
                 styles.compactTab,
@@ -90,7 +92,7 @@ export default function ContentDepthToggle({
                 styles.compactLabel,
                 { color: isActive ? palette.white : (colors.textSecondary || '#888') },
               ]}>
-                {opt.label}
+                {t(opt.labelKey)}
               </Text>
             </TouchableOpacity>
           );
@@ -102,7 +104,7 @@ export default function ContentDepthToggle({
   return (
     <View style={styles.container}>
       <Text style={[styles.sectionLabel, { color: colors.textSecondary || '#888' }]}>
-        Profundidade do conteúdo
+        {t('widgets.contentDepth.sectionLabel')}
       </Text>
       <View style={[styles.track, { backgroundColor: colors.card || colors.surface }]}>
         {DEPTH_OPTIONS.map((opt) => {
@@ -116,7 +118,7 @@ export default function ContentDepthToggle({
             >
               <TouchableOpacity
                 onPress={() => handleSelect(opt.id)}
-                accessibilityLabel={`${opt.label} — ${opt.sublabel}`}
+                accessibilityLabel={`${t(opt.labelKey)} — ${opt.sublabel}`}
                 accessibilityState={{ selected: isActive }}
                 style={[
                   styles.tab,
@@ -140,7 +142,7 @@ export default function ContentDepthToggle({
                   { color: isActive ? palette.white : (colors.text || '#111') },
                   isActive && styles.tabLabelActive,
                 ]}>
-                  {opt.label}
+                  {t(opt.labelKey)}
                 </Text>
                 <Text style={[
                   styles.tabSublabel,
@@ -155,7 +157,7 @@ export default function ContentDepthToggle({
       </View>
       {loading && (
         <Text style={[styles.loadingHint, { color: colors.textSecondary || '#888' }]}>
-          A gerar conteúdo…
+          {t('widgets.contentDepth.generating')}
         </Text>
       )}
     </View>

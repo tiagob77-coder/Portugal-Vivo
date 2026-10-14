@@ -6,12 +6,14 @@ import { View, Text, StyleSheet, Switch, Animated } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { geofenceService } from '../services/geofencing';
 import { palette } from '../theme';
+import { useTranslation } from 'react-i18next';
 
 interface GeofenceControlProps {
   onPOIsLoad?: () => void;
 }
 
 export function GeofenceControl({ onPOIsLoad }: GeofenceControlProps) {
+  const { t } = useTranslation();
   const [isEnabled, setIsEnabled] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
   const opacity = useRef(new Animated.Value(0)).current;
@@ -47,8 +49,8 @@ export function GeofenceControl({ onPOIsLoad }: GeofenceControlProps) {
       <View style={styles.row}>
         <MaterialIcons name="my-location" size={20} color={isEnabled ? '#22C55E' : '#94A3B8'} />
         <View style={styles.textCol}>
-          <Text style={styles.title}>Proximidade</Text>
-          <Text style={styles.subtitle}>Alerta quando perto de POIs raros</Text>
+          <Text style={styles.title}>{t('widgets.geofence.title')}</Text>
+          <Text style={styles.subtitle}>{t('widgets.geofence.subtitle')}</Text>
         </View>
         <Switch
           value={isEnabled}

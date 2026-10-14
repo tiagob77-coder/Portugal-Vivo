@@ -19,6 +19,7 @@ import {
 import { Video, ResizeMode, AVPlaybackStatus } from 'expo-av';
 import { MaterialIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
+import { useTranslation } from 'react-i18next';
 
 interface PoiVideoPlayerProps {
   videoUrl: string;
@@ -35,6 +36,7 @@ export default function PoiVideoPlayer({
   autoPlay = true,
   compact = false,
 }: PoiVideoPlayerProps) {
+  const { t } = useTranslation();
   const videoRef = useRef<Video>(null);
   const [status, setStatus] = useState<AVPlaybackStatus>({} as AVPlaybackStatus);
   const [loading, setLoading] = useState(true);
@@ -145,7 +147,7 @@ export default function PoiVideoPlayer({
       {/* Label "Vídeo" */}
       <View style={s.videoLabel}>
         <MaterialIcons name="play-circle" size={12} color="rgba(255,255,255,0.8)" />
-        <Text style={s.videoLabelText}>Vídeo</Text>
+        <Text style={s.videoLabelText}>{t('widgets.poiVideo.label')}</Text>
       </View>
     </View>
   );

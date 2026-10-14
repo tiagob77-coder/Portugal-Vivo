@@ -18,6 +18,7 @@ import offlineStorage, {
 import axios from 'axios';
 import { API_BASE } from '../config/api';
 import logger from '../utils/logger';
+import { useTranslation } from 'react-i18next';
 
 // Theme colors
 const COLORS = {
@@ -45,6 +46,7 @@ function formatBytes(bytes: number): string {
 }
 
 export default function OfflineManager() {
+  const { t } = useTranslation();
   const [availableRegions, setAvailableRegions] = useState<RegionInfo[]>([]);
   const [downloadedRegions, setDownloadedRegions] = useState<OfflineRegionMeta[]>([]);
   const [storageUsed, setStorageUsed] = useState(0);
@@ -117,25 +119,25 @@ export default function OfflineManager() {
         });
       } catch (error) {
         Alert.alert(
-          'Download Failed',
-          'Could not download region data. Please check your connection and try again.'
+          t('widgets.offlineManager.downloadFailedTitle'),
+          t('widgets.offlineManager.downloadFailedMessage')
         );
         logger.error('Download error:', error);
       } finally {
         setDownloading(null);
       }
     },
-    [downloading]
+    [downloading, t]
   );
 
   const handleDelete = useCallback((regionId: string, regionName: string) => {
     Alert.alert(
-      'Delete Offline Data',
-      `Remove "${regionName}" offline data? You can re-download it later.`,
+      t('widgets.offlineManager.deleteTitle'),
+      t('widgets.offlineManager.deleteMessage', { name: regionName }),
       [
-        { text: 'Cancel', style: 'cancel' },
+        { text: t('widgets.offlineManager.cancel'), style: 'cancel' },
         {
-          text: 'Delete',
+          text: t('widgets.offlineManager.delete'),
           style: 'destructive',
           onPress: async () => {
             await offlineStorage.deleteRegion(regionId);
@@ -147,7 +149,7 @@ export default function OfflineManager() {
         },
       ]
     );
-  }, []);
+  }, [t]);
 
   const handleCheckUpdates = useCallback(async () => {
     setCheckingUpdates(true);
@@ -159,19 +161,19 @@ export default function OfflineManager() {
       setUpdatesAvailable(new Set(withUpdates));
 
       if (withUpdates.length === 0) {
-        Alert.alert('Up to Date', 'All downloaded regions are up to date.');
+        Alert.alert(t('widgets.offlineManager.upToDateTitle'), t('widgets.offlineManager.upToDateMessage'));
       } else {
         Alert.alert(
-          'Updates Available',
-          `${withUpdates.length} region(s) have updates available.`
+          t('widgets.offlineManager.updatesTitle'),
+          t('widgets.offlineManager.updatesMessage', { count: withUpdates.length })
         );
       }
     } catch {
-      Alert.alert('Error', 'Could not check for updates. Please try again.');
+      Alert.alert(t('widgets.offlineManager.errorTitle'), t('widgets.offlineManager.checkError'));
     } finally {
       setCheckingUpdates(false);
     }
-  }, []);
+  }, [t]);
 
   const downloadedIds = new Set(downloadedRegions.map((r) => r.regionId));
   const STORAGE_LIMIT = 100 * 1024 * 1024; // 100 MB visual cap
@@ -180,7 +182,7 @@ export default function OfflineManager() {
     return (
       <View style={styles.centered}>
         <ActivityIndicator size="large" color={COLORS.accent} />
-        <Text style={styles.loadingText}>Loading offline data...</Text>
+        <Text style={styles.loadingText}>{t('widgets.offlineManager.loading')}</Text>
       </View>
     );
   }
@@ -200,7 +202,7 @@ export default function OfflineManager() {
       {/* Header */}
       <View style={styles.header}>
         <MaterialIcons name="offline-pin" size={28} color={COLORS.accent} />
-        <Text style={styles.title}>Offline Regions</Text>
+        <Text style={styles.title}>{t('widgets.offlineManager.title')}</Text>
       </View>
 
       {/* Network Status */}
@@ -208,7 +210,7 @@ export default function OfflineManager() {
         <View style={styles.offlineNotice}>
           <MaterialIcons name="cloud-off" size={16} color={COLORS.warning} />
           <Text style={styles.offlineNoticeText}>
-            You are offline. Showing downloaded data only.
+            {t('widgets.offlineManager.offlineNotice')}
           </Text>
         </View>
       )}
@@ -217,7 +219,7 @@ export default function OfflineManager() {
       <View style={styles.card}>
         <View style={styles.storageHeader}>
           <MaterialIcons name="storage" size={20} color={COLORS.textSecondary} />
-          <Text style={styles.storageLabel}>Storage Used</Text>
+          <Text style={styles.storageLabel}>{t('widgets.offlineManager.storageUsed')}</Text>
           <Text style={styles.storageValue}>
             {formatBytes(storageUsed)} / {formatBytes(STORAGE_LIMIT)}
           </Text>
@@ -237,7 +239,7 @@ export default function OfflineManager() {
           />
         </View>
         <Text style={styles.regionCountText}>
-          {downloadedRegions.length} region(s) downloaded
+          {t('widgets.offlineManager.regionsDownloaded', { count: downloadedRegions.length })}
         </Text>
       </View>
 
@@ -254,7 +256,7 @@ export default function OfflineManager() {
             <MaterialIcons name="sync" size={20} color={COLORS.text} />
           )}
           <Text style={styles.updateButtonText}>
-            {checkingUpdates ? 'Checking...' : 'Check for Updates'}
+            {checkingUpdates ? t('widgets.offlineManager.checking') : t('widgets.offlineManager.checkUpdates')}
           </Text>
         </PressableScale>
       )}
@@ -262,7 +264,7 @@ export default function OfflineManager() {
       {/* Downloaded Regions */}
       {downloadedRegions.length > 0 && (
         <>
-          <Text style={styles.sectionTitle}>Downloaded</Text>
+          <Text style={styles.sectionTitle}>{t('widgets.offlineManager.downloaded')}</Text>
           {downloadedRegions.map((region) => {
             const hasUpdate = updatesAvailable.has(region.regionId);
             const isDownloading = downloading?.regionId === region.regionId;
@@ -280,8 +282,11 @@ export default function OfflineManager() {
                   <View style={styles.regionInfo}>
                     <Text style={styles.regionName}>{region.regionName}</Text>
                     <Text style={styles.regionStats}>
-                      {region.poiCount} POIs, {region.routesCount} routes,{' '}
-                      {region.eventsCount} events
+                      {t('widgets.offlineManager.regionStats', {
+                        pois: region.poiCount,
+                        routes: region.routesCount,
+                        events: region.eventsCount,
+                      })}
                     </Text>
                     <Text style={styles.regionSize}>
                       {formatBytes(region.sizeBytes)}
@@ -327,7 +332,7 @@ export default function OfflineManager() {
                       size={14}
                       color={COLORS.warning}
                     />
-                    <Text style={styles.updateBadgeText}>Update available</Text>
+                    <Text style={styles.updateBadgeText}>{t('widgets.offlineManager.updateAvailable')}</Text>
                   </View>
                 )}
                 {isDownloading && (
@@ -357,7 +362,7 @@ export default function OfflineManager() {
       {/* Available Regions */}
       {availableRegions.length > 0 && (
         <>
-          <Text style={styles.sectionTitle}>Available Regions</Text>
+          <Text style={styles.sectionTitle}>{t('widgets.offlineManager.availableRegions')}</Text>
           {availableRegions
             .filter((r) => !downloadedIds.has(r.id))
             .map((region) => {
@@ -376,8 +381,11 @@ export default function OfflineManager() {
                     <View style={styles.regionInfo}>
                       <Text style={styles.regionName}>{region.name}</Text>
                       <Text style={styles.regionStats}>
-                        {region.poi_count} POIs, {region.routes_count} routes,{' '}
-                        {region.events_count} events
+                        {t('widgets.offlineManager.regionStats', {
+                          pois: region.poi_count,
+                          routes: region.routes_count,
+                          events: region.events_count,
+                        })}
                       </Text>
                       <Text style={styles.regionSize}>
                         ~{region.estimated_size_mb} MB
@@ -433,9 +441,9 @@ export default function OfflineManager() {
               size={48}
               color={COLORS.textSecondary}
             />
-            <Text style={styles.emptyTitle}>No regions available</Text>
+            <Text style={styles.emptyTitle}>{t('widgets.offlineManager.emptyTitle')}</Text>
             <Text style={styles.emptySubtitle}>
-              Pull down to refresh and check for available regions.
+              {t('widgets.offlineManager.emptySubtitle')}
             </Text>
           </View>
         )}

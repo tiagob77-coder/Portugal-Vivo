@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, Animated, Modal } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import { palette } from '../theme/colors';
 
 const PARTICLE_COUNT = 18;
@@ -16,6 +17,7 @@ interface BadgeCelebrationProps {
 }
 
 export default function BadgeCelebration({ visible, badgeName, badgeIcon, badgeColor, pointsEarned, onDone }: BadgeCelebrationProps) {
+  const { t } = useTranslation();
   const iconScale = useRef(new Animated.Value(0)).current;
   const textOpacity = useRef(new Animated.Value(0)).current;
   const particles = useRef(
@@ -93,12 +95,14 @@ export default function BadgeCelebration({ visible, badgeName, badgeIcon, badgeC
 
           {/* Text */}
           <Animated.View style={{ opacity: textOpacity, alignItems: 'center' }}>
-            <Text style={s.title}>Badge Desbloqueado!</Text>
+            <Text style={s.title}>{t('components.badgeCelebration.title')}</Text>
             <Text style={s.badgeName}>{badgeName}</Text>
             {pointsEarned > 0 && (
               <View style={s.pointsRow}>
                 <MaterialIcons name="stars" size={18} color={palette.terracotta[500]} />
-                <Text style={s.points}>+{pointsEarned} pontos</Text>
+                <Text style={s.points}>
+                  {t(pointsEarned === 1 ? 'components.badgeCelebration.pointsOne' : 'components.badgeCelebration.points', { count: pointsEarned })}
+                </Text>
               </View>
             )}
           </Animated.View>

@@ -1,5 +1,6 @@
 import React from 'react';
-import { render, screen, fireEvent } from '@testing-library/react-native';
+import { act, render, screen, fireEvent } from '@testing-library/react-native';
+import { changeLanguage } from 'i18next';
 import MapModeSelector, { LAYER_RESPECTING_MODES } from '../MapModeSelector';
 
 jest.mock('@expo/vector-icons', () => ({
@@ -145,5 +146,19 @@ describe('LAYER_RESPECTING_MODES', () => {
     expect(LAYER_RESPECTING_MODES).not.toContain('proximity');
     expect(LAYER_RESPECTING_MODES).not.toContain('noturno');
     expect(LAYER_RESPECTING_MODES).not.toContain('rotas');
+  });
+});
+
+describe('MapModeSelector — English UI', () => {
+  afterEach(async () => {
+    await act(() => changeLanguage('pt'));
+  });
+
+  it('renders the mode labels in English', async () => {
+    await act(() => changeLanguage('en'));
+    render(<MapModeSelector activeMode="markers" onModeChange={jest.fn()} />);
+    expect(screen.getByText('Night mode')).toBeTruthy();
+    expect(screen.getByLabelText('Map mode: Density')).toBeTruthy();
+    expect(screen.queryByText('Modo noturno')).toBeNull();
   });
 });
