@@ -2,6 +2,7 @@
  * Atlas de Fauna — Portuguese wildlife, endemisms and observation routes explorer
  */
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useRegionParam } from '../../src/hooks/useRegionParam';
 import { filterByRegion } from '../../src/utils/regionMatch';
 import RegionFilterBanner from '../../src/components/RegionFilterBanner';
@@ -308,31 +309,31 @@ type HabitatKey = 'todos' | 'montanha' | 'humidas' | 'estepes' | 'laurissilva' |
 
 interface Tab {
   key: TabKey;
-  label: string;
+  labelKey: string;
   icon: React.ComponentProps<typeof MaterialIcons>['name'];
 }
 
 interface HabitatFilter {
   key: HabitatKey;
-  label: string;
+  labelKey: string;
 }
 
 const TABS: Tab[] = [
-  { key: 'todos',    label: 'Todos',         icon: 'pets' },
-  { key: 'aves',     label: 'Aves',          icon: 'air' },
-  { key: 'mamiferos',label: 'Mamíferos',     icon: 'pets' },
-  { key: 'repteis',  label: 'Répteis',       icon: 'bug-report' },
-  { key: 'racas',    label: 'Raças Autóctones', icon: 'agriculture' },
-  { key: 'epicos',   label: 'Épicos',        icon: 'star' },
+  { key: 'todos',    labelKey: 'modulesNature.fauna.tabs.todos',     icon: 'pets' },
+  { key: 'aves',     labelKey: 'modulesNature.fauna.tabs.aves',      icon: 'air' },
+  { key: 'mamiferos',labelKey: 'modulesNature.fauna.tabs.mamiferos', icon: 'pets' },
+  { key: 'repteis',  labelKey: 'modulesNature.fauna.tabs.repteis',   icon: 'bug-report' },
+  { key: 'racas',    labelKey: 'modulesNature.fauna.tabs.racas',     icon: 'agriculture' },
+  { key: 'epicos',   labelKey: 'modulesNature.fauna.tabs.epicos',    icon: 'star' },
 ];
 
 const HABITAT_FILTERS: HabitatFilter[] = [
-  { key: 'todos',       label: 'Todos' },
-  { key: 'montanha',    label: 'Montanha' },
-  { key: 'humidas',     label: 'Zonas Húmidas' },
-  { key: 'estepes',     label: 'Estepes' },
-  { key: 'laurissilva', label: 'Laurissilva' },
-  { key: 'marinho',     label: 'Marinho' },
+  { key: 'todos',       labelKey: 'modulesNature.fauna.habitatFilters.todos' },
+  { key: 'montanha',    labelKey: 'modulesNature.fauna.habitatFilters.montanha' },
+  { key: 'humidas',     labelKey: 'modulesNature.fauna.habitatFilters.humidas' },
+  { key: 'estepes',     labelKey: 'modulesNature.fauna.habitatFilters.estepes' },
+  { key: 'laurissilva', labelKey: 'modulesNature.fauna.habitatFilters.laurissilva' },
+  { key: 'marinho',     labelKey: 'modulesNature.fauna.habitatFilters.marinho' },
 ];
 
 function filterByTab(data: FaunaSpecies[], tab: TabKey): FaunaSpecies[] {
@@ -362,6 +363,7 @@ function filterByHabitat(data: FaunaSpecies[], habitat: HabitatKey): FaunaSpecie
 // ─── Main Screen ──────────────────────────────────────────────────────────────
 
 export default function FaunaScreen() {
+  const { t } = useTranslation();
   const router = useRouter();
   const insets = useSafeAreaInsets();
 
@@ -409,8 +411,8 @@ export default function FaunaScreen() {
             <MaterialIcons name="arrow-back" size={22} color={C.accent} />
           </TouchableOpacity>
           <View style={styles.headerContent}>
-            <Text style={styles.headerTitle}>Atlas de Fauna</Text>
-            <Text style={styles.headerSubtitle}>Vida Selvagem · Endemismos · Rotas de Observação</Text>
+            <Text style={styles.headerTitle}>{t('modulesNature.fauna.title')}</Text>
+            <Text style={styles.headerSubtitle}>{t('modulesNature.fauna.subtitle')}</Text>
           </View>
           <View style={styles.headerIcon}>
             <MaterialIcons name="pets" size={20} color={C.accent} />
@@ -423,8 +425,12 @@ export default function FaunaScreen() {
         <View style={styles.flagshipBanner}>
           <MaterialIcons name="workspace-premium" size={16} color={C.flagship} />
           <Text style={styles.flagshipText}>
-            Espécies emblemáticas:{' '}
-            <Text style={styles.flagshipCount}>{flagshipCount} espécies bandeira</Text>
+            {t('modulesNature.fauna.flagshipLabel')}{' '}
+            <Text style={styles.flagshipCount}>
+              {flagshipCount === 1
+                ? t('modulesNature.fauna.flagshipCountOne', { count: flagshipCount })
+                : t('modulesNature.fauna.flagshipCount', { count: flagshipCount })}
+            </Text>
           </Text>
         </View>
 
@@ -450,7 +456,7 @@ export default function FaunaScreen() {
                   color={isActive ? '#FFFFFF' : C.textMed}
                 />
                 <Text style={[styles.tabChipLabel, isActive && styles.tabChipLabelActive]}>
-                  {tab.label}
+                  {t(tab.labelKey)}
                 </Text>
               </TouchableOpacity>
             );
@@ -461,7 +467,7 @@ export default function FaunaScreen() {
         <View style={styles.habitatSection}>
           <View style={styles.habitatHeader}>
             <MaterialIcons name="terrain" size={12} color={C.textLight} />
-            <Text style={styles.habitatHeaderText}>Filtrar por habitat</Text>
+            <Text style={styles.habitatHeaderText}>{t('modulesNature.fauna.habitatFilterTitle')}</Text>
           </View>
           <ScrollView
             horizontal
@@ -477,7 +483,7 @@ export default function FaunaScreen() {
                   onPress={() => setActiveHabitat(hf.key)}
                 >
                   <Text style={[styles.habitatChipText, isActive && styles.habitatChipTextActive]}>
-                    {hf.label}
+                    {t(hf.labelKey)}
                   </Text>
                 </TouchableOpacity>
               );
@@ -489,7 +495,9 @@ export default function FaunaScreen() {
         <View style={styles.summaryRow}>
           <View style={[styles.summaryDot, { backgroundColor: C.accent }]} />
           <Text style={styles.summaryText}>
-            {filtered.length} espécie{filtered.length !== 1 ? 's' : ''} encontrada{filtered.length !== 1 ? 's' : ''}
+            {filtered.length === 1
+              ? t('modulesNature.shared.speciesFoundOne', { count: filtered.length })
+              : t('modulesNature.shared.speciesFound', { count: filtered.length })}
           </Text>
         </View>
 
@@ -510,9 +518,9 @@ export default function FaunaScreen() {
           {filtered.length === 0 && (
             <View style={styles.emptyState}>
               <MaterialIcons name="pets" size={40} color={C.textLight} />
-              <Text style={styles.emptyStateTitle}>Sem espécies neste filtro</Text>
+              <Text style={styles.emptyStateTitle}>{t('modulesNature.shared.emptyTitle')}</Text>
               <Text style={styles.emptyStateText}>
-                Tente outra categoria ou habitat.
+                {t('modulesNature.fauna.emptyText')}
               </Text>
             </View>
           )}
@@ -522,7 +530,7 @@ export default function FaunaScreen() {
         <View style={styles.infoFooter}>
           <MaterialIcons name="info-outline" size={14} color={C.textLight} />
           <Text style={styles.infoFooterText}>
-            Dados: ICNF · IUCN · Atlas das Aves · SEO/BirdLife
+            {t('modulesNature.fauna.sources')}
           </Text>
         </View>
 

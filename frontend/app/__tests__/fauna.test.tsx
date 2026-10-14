@@ -3,7 +3,8 @@
  * Covers: render, title, tabs, habitat filters, species count
  */
 import React from 'react';
-import { render, fireEvent } from '@testing-library/react-native';
+import { render, fireEvent, act } from '@testing-library/react-native';
+import { changeLanguage } from 'i18next';
 
 // ─── expo-router ──────────────────────────────────────────────────────────────
 jest.mock('expo-router', () => ({
@@ -178,5 +179,21 @@ describe('fauna/index', () => {
     const FaunaScreen = require('../fauna/index').default;
     const { getByText } = render(<FaunaScreen />);
     expect(getByText(/ICNF/)).toBeTruthy();
+  });
+});
+
+describe('fauna/index — English', () => {
+  afterEach(async () => {
+    await act(() => changeLanguage('pt'));
+  });
+
+  it('renders the screen copy in English', async () => {
+    await act(() => changeLanguage('en'));
+    const FaunaScreen = require('../fauna/index').default;
+    const { getByText, getAllByText } = render(<FaunaScreen />);
+    expect(getByText('Wildlife Atlas')).toBeTruthy();
+    expect(getByText('Birds')).toBeTruthy();
+    expect(getByText('Wetlands')).toBeTruthy();
+    expect(getAllByText(/species found/).length).toBeGreaterThan(0);
   });
 });

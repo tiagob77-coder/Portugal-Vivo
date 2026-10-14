@@ -22,6 +22,12 @@ import exploreScreens from './areas/exploreScreens.json';
 import components from './areas/components.json';
 import widgets from './areas/widgets.json';
 import premiumScreen from './areas/premiumScreen.json';
+import modulesNature from './areas/modulesNature.json';
+import modulesCoast from './areas/modulesCoast.json';
+import modulesCulture from './areas/modulesCulture.json';
+import modulesRoutes from './areas/modulesRoutes.json';
+import moduleContent from './areas/moduleContent.json';
+import guidesEn2 from './areas/guidesEn2.json';
 
 export const SUPPORTED_LANGUAGES = ['pt', 'en', 'es', 'fr'] as const;
 export type SupportedLanguage = (typeof SUPPORTED_LANGUAGES)[number];
@@ -41,6 +47,12 @@ export const AREAS: Record<string, AreaFile> = {
   components,
   widgets,
   premiumScreen,
+  modulesNature,
+  modulesCoast,
+  modulesCulture,
+  modulesRoutes,
+  moduleContent,
+  guidesEn2,
 };
 
 function buildLanguage(lang: SupportedLanguage): Dict {

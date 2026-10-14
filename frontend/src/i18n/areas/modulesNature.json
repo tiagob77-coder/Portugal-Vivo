@@ -1,0 +1,890 @@
+{
+  "pt": {
+    "shared": {
+      "speciesFoundOne": "{{count}} espécie encontrada",
+      "speciesFound": "{{count}} espécies encontradas",
+      "emptyTitle": "Sem espécies neste filtro"
+    },
+    "months": {
+      "short": {
+        "m1": "Jan",
+        "m2": "Fev",
+        "m3": "Mar",
+        "m4": "Abr",
+        "m5": "Mai",
+        "m6": "Jun",
+        "m7": "Jul",
+        "m8": "Ago",
+        "m9": "Set",
+        "m10": "Out",
+        "m11": "Nov",
+        "m12": "Dez"
+      },
+      "initial": {
+        "m1": "J",
+        "m2": "F",
+        "m3": "M",
+        "m4": "A",
+        "m5": "M",
+        "m6": "J",
+        "m7": "J",
+        "m8": "A",
+        "m9": "S",
+        "m10": "O",
+        "m11": "N",
+        "m12": "D"
+      }
+    },
+    "habitats": {
+      "montanha": "montanha",
+      "floresta": "floresta",
+      "estepes": "estepes",
+      "montado": "montado",
+      "maquis": "maquis",
+      "laurissilva": "laurissilva",
+      "insular": "insular",
+      "altitude": "altitude",
+      "marinho": "marinho",
+      "litoral": "litoral",
+      "zonas_humidas": "zonas_humidas",
+      "ripicola": "ripicola",
+      "campos": "campos",
+      "rochoso": "rochoso",
+      "falésias": "falésias",
+      "pastagem": "pastagem",
+      "dunas": "dunas",
+      "rios": "rios",
+      "pinhais": "pinhais",
+      "prado": "prado",
+      "charneca": "charneca",
+      "granito": "granito",
+      "arenoso": "arenoso",
+      "humido": "humido",
+      "turfa": "turfa",
+      "calcario": "calcario",
+      "calcareo": "calcareo",
+      "orla_florestal": "orla_florestal",
+      "ribeirinho": "ribeirinho",
+      "oceano_atlantico": "oceano_atlantico",
+      "matagal_mediterranico": "matagal_mediterranico",
+      "mata_mediterranica": "mata_mediterranica",
+      "rochedo_costeiro": "rochedo_costeiro",
+      "rocha_siliciosa": "rocha_siliciosa",
+      "praia_nidificacao": "praia_nidificacao",
+      "prado_atlantico": "prado_atlantico",
+      "penhascos": "penhascos",
+      "pastagem_montana": "pastagem_montana",
+      "pastagem_humida": "pastagem_humida",
+      "mato_costeiro": "mato_costeiro",
+      "matagal_de_urzal": "matagal_de_urzal",
+      "matagal_baixo": "matagal_baixo",
+      "mata_de_pinheiro": "mata_de_pinheiro",
+      "litoral_arenoso": "litoral_arenoso",
+      "floresta_riparia": "floresta_riparia",
+      "floresta_madura": "floresta_madura",
+      "floresta_atlantica": "floresta_atlantica",
+      "estuario": "estuario",
+      "estepe_cereal": "estepe_cereal",
+      "charneca_degradada": "charneca_degradada"
+    },
+    "fauna": {
+      "title": "Atlas de Fauna",
+      "subtitle": "Vida Selvagem · Endemismos · Rotas de Observação",
+      "flagshipLabel": "Espécies emblemáticas:",
+      "flagshipCountOne": "{{count}} espécies bandeira",
+      "flagshipCount": "{{count}} espécies bandeira",
+      "tabs": {
+        "todos": "Todos",
+        "aves": "Aves",
+        "mamiferos": "Mamíferos",
+        "repteis": "Répteis",
+        "racas": "Raças Autóctones",
+        "epicos": "Épicos"
+      },
+      "habitatFilterTitle": "Filtrar por habitat",
+      "habitatFilters": {
+        "todos": "Todos",
+        "montanha": "Montanha",
+        "humidas": "Zonas Húmidas",
+        "estepes": "Estepes",
+        "laurissilva": "Laurissilva",
+        "marinho": "Marinho"
+      },
+      "emptyText": "Tente outra categoria ou habitat.",
+      "sources": "Dados: ICNF · IUCN · Atlas das Aves · SEO/BirdLife"
+    },
+    "flora": {
+      "title": "Atlas de Flora",
+      "subtitle": "Flora Silvestre · Endemismos · Calendário de Floração",
+      "floweringNowLabel": "A florir agora:",
+      "floweringCountOne": "{{count}} espécies",
+      "floweringCount": "{{count}} espécies",
+      "inMonth": "em {{month}}",
+      "tabs": {
+        "todos": "Todos",
+        "endemicas": "Endémicas",
+        "protegidas": "Protegidas",
+        "montanha": "Alta Montanha",
+        "dunas": "Dunas",
+        "laurissilva": "Laurissilva",
+        "humidas": "Zonas Húmidas"
+      },
+      "monthFilterTitle": "Filtrar por mês de floração",
+      "allMonths": "Todos",
+      "emptyText": "Tente outro mês ou categoria.",
+      "sources": "Dados: ICNF · Lista Vermelha · Flora-On"
+    },
+    "marine": {
+      "title": "Vida Marinha",
+      "subtitle": "Espécies · Habitats · Avistamentos",
+      "seasonBannerOne": "Época atual: {{season}} — {{count}} espécies observáveis",
+      "seasonBanner": "Época atual: {{season}} — {{count}} espécies observáveis",
+      "categories": {
+        "all": "Todos",
+        "mammal": "Mamíferos",
+        "seabird": "Aves",
+        "fish": "Peixes",
+        "invertebrate": "Invertebrados",
+        "plant": "Plantas"
+      },
+      "seasons": {
+        "all": "Todos",
+        "winter": "Inverno",
+        "spring": "Primavera",
+        "summer": "Verão",
+        "autumn": "Outono",
+        "migration": "Migração"
+      },
+      "emptyTitle": "Sem espécies encontradas",
+      "emptyText": "Tente outros filtros de categoria ou época.",
+      "sources": "Dados: ICNF · OBIS · FishBase · eBird"
+    },
+    "faunaCard": {
+      "classes": {
+        "ave": "Ave",
+        "mamifero": "Mamífero",
+        "reptil": "Réptil",
+        "anfibio": "Anfíbio",
+        "peixe": "Peixe",
+        "invertebrado": "Invertebrado",
+        "racaAutoctone": "Raça Autóctone"
+      },
+      "rarity": {
+        "comum": "Comum",
+        "incomum": "Incomum",
+        "raro": "Raro",
+        "epico": "Epico"
+      },
+      "times": {
+        "manha": "Manhã",
+        "tarde": "Tarde",
+        "noturno": "Noturno",
+        "qualquer": "Qualquer hora"
+      },
+      "endemic": "Endémico",
+      "inDanger": "Em Perigo",
+      "flagship": "Flagship",
+      "observationTips": "Dicas de Observação"
+    },
+    "floraCard": {
+      "status": {
+        "endemica": "Endémica",
+        "autocone": "Autocone",
+        "introduzida": "Introduzida",
+        "protegida": "Protegida"
+      },
+      "endemicBadge": "Endémica",
+      "collapse": "Recolher {{name}}",
+      "viewDetails": "Ver detalhes de {{name}}",
+      "flowering": "Floração"
+    },
+    "marineCard": {
+      "categories": {
+        "mammal": "Mamífero",
+        "seabird": "Ave marinha",
+        "fish": "Peixe",
+        "invertebrate": "Invertebrado",
+        "plant": "Planta",
+        "reptile": "Réptil"
+      },
+      "seasons": {
+        "yearRound": "Todo o ano",
+        "winter": "Inverno",
+        "summer": "Verão",
+        "spring": "Primavera",
+        "autumn": "Outono",
+        "migration": "Migração"
+      },
+      "iucn": "IUCN {{status}}",
+      "habitat": "Habitat",
+      "depth": "Profundidade",
+      "bestSpots": "Melhores locais"
+    }
+  },
+  "en": {
+    "shared": {
+      "speciesFoundOne": "{{count}} species found",
+      "speciesFound": "{{count}} species found",
+      "emptyTitle": "No species match this filter"
+    },
+    "months": {
+      "short": {
+        "m1": "Jan",
+        "m2": "Feb",
+        "m3": "Mar",
+        "m4": "Apr",
+        "m5": "May",
+        "m6": "Jun",
+        "m7": "Jul",
+        "m8": "Aug",
+        "m9": "Sep",
+        "m10": "Oct",
+        "m11": "Nov",
+        "m12": "Dec"
+      },
+      "initial": {
+        "m1": "J",
+        "m2": "F",
+        "m3": "M",
+        "m4": "A",
+        "m5": "M",
+        "m6": "J",
+        "m7": "J",
+        "m8": "A",
+        "m9": "S",
+        "m10": "O",
+        "m11": "N",
+        "m12": "D"
+      }
+    },
+    "habitats": {
+      "montanha": "Mountain",
+      "floresta": "Forest",
+      "estepes": "Steppes",
+      "montado": "Cork-oak woodland",
+      "maquis": "Maquis scrub",
+      "laurissilva": "Laurel forest",
+      "insular": "Island",
+      "altitude": "Highlands",
+      "marinho": "Marine",
+      "litoral": "Coastline",
+      "zonas_humidas": "Wetlands",
+      "ripicola": "Riparian",
+      "campos": "Fields",
+      "rochoso": "Rocky areas",
+      "falésias": "Cliffs",
+      "pastagem": "Pasture",
+      "dunas": "Dunes",
+      "rios": "Rivers",
+      "pinhais": "Pine woods",
+      "prado": "Meadow",
+      "charneca": "Heathland",
+      "granito": "Granite",
+      "arenoso": "Sandy soils",
+      "humido": "Humid",
+      "turfa": "Peat bog",
+      "calcario": "Limestone",
+      "calcareo": "Limestone",
+      "orla_florestal": "Woodland edge",
+      "ribeirinho": "Riverside",
+      "oceano_atlantico": "Atlantic Ocean",
+      "matagal_mediterranico": "Mediterranean scrub",
+      "mata_mediterranica": "Mediterranean woodland",
+      "rochedo_costeiro": "Coastal rocks",
+      "rocha_siliciosa": "Siliceous rock",
+      "praia_nidificacao": "Nesting beach",
+      "prado_atlantico": "Atlantic meadow",
+      "penhascos": "Rocky crags",
+      "pastagem_montana": "Mountain pasture",
+      "pastagem_humida": "Wet pasture",
+      "mato_costeiro": "Coastal scrub",
+      "matagal_de_urzal": "Heather scrub",
+      "matagal_baixo": "Low scrub",
+      "mata_de_pinheiro": "Pine forest",
+      "litoral_arenoso": "Sandy coast",
+      "floresta_riparia": "Riparian forest",
+      "floresta_madura": "Mature forest",
+      "floresta_atlantica": "Atlantic forest",
+      "estuario": "Estuary",
+      "estepe_cereal": "Cereal steppe",
+      "charneca_degradada": "Degraded heathland"
+    },
+    "fauna": {
+      "title": "Wildlife Atlas",
+      "subtitle": "Wildlife · Endemic Species · Viewing Routes",
+      "flagshipLabel": "Iconic species:",
+      "flagshipCountOne": "{{count}} flagship species",
+      "flagshipCount": "{{count}} flagship species",
+      "tabs": {
+        "todos": "All",
+        "aves": "Birds",
+        "mamiferos": "Mammals",
+        "repteis": "Reptiles",
+        "racas": "Native Breeds",
+        "epicos": "Epic"
+      },
+      "habitatFilterTitle": "Filter by habitat",
+      "habitatFilters": {
+        "todos": "All",
+        "montanha": "Mountain",
+        "humidas": "Wetlands",
+        "estepes": "Steppes",
+        "laurissilva": "Laurel Forest",
+        "marinho": "Marine"
+      },
+      "emptyText": "Try another category or habitat.",
+      "sources": "Data: ICNF · IUCN · Atlas das Aves · SEO/BirdLife"
+    },
+    "flora": {
+      "title": "Flora Atlas",
+      "subtitle": "Wild Flora · Endemic Species · Flowering Calendar",
+      "floweringNowLabel": "In bloom now:",
+      "floweringCountOne": "{{count}} species",
+      "floweringCount": "{{count}} species",
+      "inMonth": "in {{month}}",
+      "tabs": {
+        "todos": "All",
+        "endemicas": "Endemic",
+        "protegidas": "Protected",
+        "montanha": "High Mountain",
+        "dunas": "Dunes",
+        "laurissilva": "Laurel Forest",
+        "humidas": "Wetlands"
+      },
+      "monthFilterTitle": "Filter by flowering month",
+      "allMonths": "All",
+      "emptyText": "Try another month or category.",
+      "sources": "Data: ICNF · Red List · Flora-On"
+    },
+    "marine": {
+      "title": "Marine Life",
+      "subtitle": "Species · Habitats · Sightings",
+      "seasonBannerOne": "Current season: {{season}} — {{count}} species to spot",
+      "seasonBanner": "Current season: {{season}} — {{count}} species to spot",
+      "categories": {
+        "all": "All",
+        "mammal": "Mammals",
+        "seabird": "Birds",
+        "fish": "Fish",
+        "invertebrate": "Invertebrates",
+        "plant": "Plants"
+      },
+      "seasons": {
+        "all": "All",
+        "winter": "Winter",
+        "spring": "Spring",
+        "summer": "Summer",
+        "autumn": "Autumn",
+        "migration": "Migration"
+      },
+      "emptyTitle": "No species found",
+      "emptyText": "Try a different category or season filter.",
+      "sources": "Data: ICNF · OBIS · FishBase · eBird"
+    },
+    "faunaCard": {
+      "classes": {
+        "ave": "Bird",
+        "mamifero": "Mammal",
+        "reptil": "Reptile",
+        "anfibio": "Amphibian",
+        "peixe": "Fish",
+        "invertebrado": "Invertebrate",
+        "racaAutoctone": "Native Breed"
+      },
+      "rarity": {
+        "comum": "Common",
+        "incomum": "Uncommon",
+        "raro": "Rare",
+        "epico": "Epic"
+      },
+      "times": {
+        "manha": "Morning",
+        "tarde": "Afternoon",
+        "noturno": "Night",
+        "qualquer": "Any time"
+      },
+      "endemic": "Endemic",
+      "inDanger": "Endangered",
+      "flagship": "Flagship",
+      "observationTips": "Viewing Tips"
+    },
+    "floraCard": {
+      "status": {
+        "endemica": "Endemic",
+        "autocone": "Native",
+        "introduzida": "Introduced",
+        "protegida": "Protected"
+      },
+      "endemicBadge": "Endemic",
+      "collapse": "Collapse {{name}}",
+      "viewDetails": "View details of {{name}}",
+      "flowering": "Flowering"
+    },
+    "marineCard": {
+      "categories": {
+        "mammal": "Mammal",
+        "seabird": "Seabird",
+        "fish": "Fish",
+        "invertebrate": "Invertebrate",
+        "plant": "Plant",
+        "reptile": "Reptile"
+      },
+      "seasons": {
+        "yearRound": "Year-round",
+        "winter": "Winter",
+        "summer": "Summer",
+        "spring": "Spring",
+        "autumn": "Autumn",
+        "migration": "Migration"
+      },
+      "iucn": "IUCN {{status}}",
+      "habitat": "Habitat",
+      "depth": "Depth",
+      "bestSpots": "Best spots"
+    }
+  },
+  "es": {
+    "shared": {
+      "speciesFoundOne": "{{count}} especie encontrada",
+      "speciesFound": "{{count}} especies encontradas",
+      "emptyTitle": "No hay especies con este filtro"
+    },
+    "months": {
+      "short": {
+        "m1": "Ene",
+        "m2": "Feb",
+        "m3": "Mar",
+        "m4": "Abr",
+        "m5": "May",
+        "m6": "Jun",
+        "m7": "Jul",
+        "m8": "Ago",
+        "m9": "Sep",
+        "m10": "Oct",
+        "m11": "Nov",
+        "m12": "Dic"
+      },
+      "initial": {
+        "m1": "E",
+        "m2": "F",
+        "m3": "M",
+        "m4": "A",
+        "m5": "M",
+        "m6": "J",
+        "m7": "J",
+        "m8": "A",
+        "m9": "S",
+        "m10": "O",
+        "m11": "N",
+        "m12": "D"
+      }
+    },
+    "habitats": {
+      "montanha": "Montaña",
+      "floresta": "Bosque",
+      "estepes": "Estepas",
+      "montado": "Dehesa",
+      "maquis": "Matorral",
+      "laurissilva": "Laurisilva",
+      "insular": "Insular",
+      "altitude": "Altitud",
+      "marinho": "Marino",
+      "litoral": "Litoral",
+      "zonas_humidas": "Humedales",
+      "ripicola": "Ribera",
+      "campos": "Campos",
+      "rochoso": "Zonas rocosas",
+      "falésias": "Acantilados",
+      "pastagem": "Pastizal",
+      "dunas": "Dunas",
+      "rios": "Ríos",
+      "pinhais": "Pinares",
+      "prado": "Prado",
+      "charneca": "Brezal",
+      "granito": "Granito",
+      "arenoso": "Arenales",
+      "humido": "Húmedo",
+      "turfa": "Turbera",
+      "calcario": "Caliza",
+      "calcareo": "Calizo",
+      "orla_florestal": "Linde del bosque",
+      "ribeirinho": "Ribereño",
+      "oceano_atlantico": "Océano Atlántico",
+      "matagal_mediterranico": "Matorral mediterráneo",
+      "mata_mediterranica": "Bosque mediterráneo",
+      "rochedo_costeiro": "Roquedo costero",
+      "rocha_siliciosa": "Roca silícea",
+      "praia_nidificacao": "Playa de nidificación",
+      "prado_atlantico": "Prado atlántico",
+      "penhascos": "Peñascos",
+      "pastagem_montana": "Pasto de montaña",
+      "pastagem_humida": "Pastizal húmedo",
+      "mato_costeiro": "Matorral costero",
+      "matagal_de_urzal": "Matorral de brezo",
+      "matagal_baixo": "Matorral bajo",
+      "mata_de_pinheiro": "Pinar",
+      "litoral_arenoso": "Litoral arenoso",
+      "floresta_riparia": "Bosque de ribera",
+      "floresta_madura": "Bosque maduro",
+      "floresta_atlantica": "Bosque atlántico",
+      "estuario": "Estuario",
+      "estepe_cereal": "Estepa cerealista",
+      "charneca_degradada": "Brezal degradado"
+    },
+    "fauna": {
+      "title": "Atlas de Fauna",
+      "subtitle": "Vida salvaje · Endemismos · Rutas de observación",
+      "flagshipLabel": "Especies emblemáticas:",
+      "flagshipCountOne": "{{count}} especie bandera",
+      "flagshipCount": "{{count}} especies bandera",
+      "tabs": {
+        "todos": "Todas",
+        "aves": "Aves",
+        "mamiferos": "Mamíferos",
+        "repteis": "Reptiles",
+        "racas": "Razas autóctonas",
+        "epicos": "Épicas"
+      },
+      "habitatFilterTitle": "Filtrar por hábitat",
+      "habitatFilters": {
+        "todos": "Todos",
+        "montanha": "Montaña",
+        "humidas": "Humedales",
+        "estepes": "Estepas",
+        "laurissilva": "Laurisilva",
+        "marinho": "Marino"
+      },
+      "emptyText": "Prueba otra categoría u otro hábitat.",
+      "sources": "Datos: ICNF · UICN · Atlas das Aves · SEO/BirdLife"
+    },
+    "flora": {
+      "title": "Atlas de Flora",
+      "subtitle": "Flora silvestre · Endemismos · Calendario de floración",
+      "floweringNowLabel": "En flor ahora:",
+      "floweringCountOne": "{{count}} especie",
+      "floweringCount": "{{count}} especies",
+      "inMonth": "en {{month}}",
+      "tabs": {
+        "todos": "Todas",
+        "endemicas": "Endémicas",
+        "protegidas": "Protegidas",
+        "montanha": "Alta montaña",
+        "dunas": "Dunas",
+        "laurissilva": "Laurisilva",
+        "humidas": "Humedales"
+      },
+      "monthFilterTitle": "Filtrar por mes de floración",
+      "allMonths": "Todos",
+      "emptyText": "Prueba otro mes u otra categoría.",
+      "sources": "Datos: ICNF · Lista Roja · Flora-On"
+    },
+    "marine": {
+      "title": "Vida marina",
+      "subtitle": "Especies · Hábitats · Avistamientos",
+      "seasonBannerOne": "Temporada actual: {{season}} — {{count}} especie observable",
+      "seasonBanner": "Temporada actual: {{season}} — {{count}} especies observables",
+      "categories": {
+        "all": "Todas",
+        "mammal": "Mamíferos",
+        "seabird": "Aves",
+        "fish": "Peces",
+        "invertebrate": "Invertebrados",
+        "plant": "Plantas"
+      },
+      "seasons": {
+        "all": "Todas",
+        "winter": "Invierno",
+        "spring": "Primavera",
+        "summer": "Verano",
+        "autumn": "Otoño",
+        "migration": "Migración"
+      },
+      "emptyTitle": "No se encontraron especies",
+      "emptyText": "Prueba otros filtros de categoría o temporada.",
+      "sources": "Datos: ICNF · OBIS · FishBase · eBird"
+    },
+    "faunaCard": {
+      "classes": {
+        "ave": "Ave",
+        "mamifero": "Mamífero",
+        "reptil": "Reptil",
+        "anfibio": "Anfibio",
+        "peixe": "Pez",
+        "invertebrado": "Invertebrado",
+        "racaAutoctone": "Raza autóctona"
+      },
+      "rarity": {
+        "comum": "Común",
+        "incomum": "Poco común",
+        "raro": "Raro",
+        "epico": "Épico"
+      },
+      "times": {
+        "manha": "Mañana",
+        "tarde": "Tarde",
+        "noturno": "Nocturno",
+        "qualquer": "Cualquier hora"
+      },
+      "endemic": "Endémico",
+      "inDanger": "En peligro",
+      "flagship": "Emblemática",
+      "observationTips": "Consejos de observación"
+    },
+    "floraCard": {
+      "status": {
+        "endemica": "Endémica",
+        "autocone": "Autóctona",
+        "introduzida": "Introducida",
+        "protegida": "Protegida"
+      },
+      "endemicBadge": "Endémica",
+      "collapse": "Contraer {{name}}",
+      "viewDetails": "Ver detalles de {{name}}",
+      "flowering": "Floración"
+    },
+    "marineCard": {
+      "categories": {
+        "mammal": "Mamífero",
+        "seabird": "Ave marina",
+        "fish": "Pez",
+        "invertebrate": "Invertebrado",
+        "plant": "Planta",
+        "reptile": "Reptil"
+      },
+      "seasons": {
+        "yearRound": "Todo el año",
+        "winter": "Invierno",
+        "summer": "Verano",
+        "spring": "Primavera",
+        "autumn": "Otoño",
+        "migration": "Migración"
+      },
+      "iucn": "UICN {{status}}",
+      "habitat": "Hábitat",
+      "depth": "Profundidad",
+      "bestSpots": "Mejores lugares"
+    }
+  },
+  "fr": {
+    "shared": {
+      "speciesFoundOne": "{{count}} espèce trouvée",
+      "speciesFound": "{{count}} espèces trouvées",
+      "emptyTitle": "Aucune espèce pour ce filtre"
+    },
+    "months": {
+      "short": {
+        "m1": "Janv",
+        "m2": "Févr",
+        "m3": "Mars",
+        "m4": "Avr",
+        "m5": "Mai",
+        "m6": "Juin",
+        "m7": "Juil",
+        "m8": "Août",
+        "m9": "Sept",
+        "m10": "Oct",
+        "m11": "Nov",
+        "m12": "Déc"
+      },
+      "initial": {
+        "m1": "J",
+        "m2": "F",
+        "m3": "M",
+        "m4": "A",
+        "m5": "M",
+        "m6": "J",
+        "m7": "J",
+        "m8": "A",
+        "m9": "S",
+        "m10": "O",
+        "m11": "N",
+        "m12": "D"
+      }
+    },
+    "habitats": {
+      "montanha": "Montagne",
+      "floresta": "Forêt",
+      "estepes": "Steppes",
+      "montado": "Montado",
+      "maquis": "Maquis",
+      "laurissilva": "Laurisylve",
+      "insular": "Insulaire",
+      "altitude": "Altitude",
+      "marinho": "Marin",
+      "litoral": "Littoral",
+      "zonas_humidas": "Zones humides",
+      "ripicola": "Ripisylve",
+      "campos": "Champs",
+      "rochoso": "Zones rocheuses",
+      "falésias": "Falaises",
+      "pastagem": "Pâturage",
+      "dunas": "Dunes",
+      "rios": "Rivières",
+      "pinhais": "Pinèdes",
+      "prado": "Prairie",
+      "charneca": "Lande",
+      "granito": "Granite",
+      "arenoso": "Sols sableux",
+      "humido": "Humide",
+      "turfa": "Tourbière",
+      "calcario": "Calcaire",
+      "calcareo": "Calcaire",
+      "orla_florestal": "Lisière forestière",
+      "ribeirinho": "Bords de rivière",
+      "oceano_atlantico": "Océan Atlantique",
+      "matagal_mediterranico": "Maquis méditerranéen",
+      "mata_mediterranica": "Forêt méditerranéenne",
+      "rochedo_costeiro": "Rochers côtiers",
+      "rocha_siliciosa": "Roche siliceuse",
+      "praia_nidificacao": "Plage de nidification",
+      "prado_atlantico": "Prairie atlantique",
+      "penhascos": "Escarpements",
+      "pastagem_montana": "Pâturage de montagne",
+      "pastagem_humida": "Prairie humide",
+      "mato_costeiro": "Fourrés côtiers",
+      "matagal_de_urzal": "Lande à bruyères",
+      "matagal_baixo": "Broussailles basses",
+      "mata_de_pinheiro": "Forêt de pins",
+      "litoral_arenoso": "Littoral sableux",
+      "floresta_riparia": "Forêt riveraine",
+      "floresta_madura": "Forêt mature",
+      "floresta_atlantica": "Forêt atlantique",
+      "estuario": "Estuaire",
+      "estepe_cereal": "Steppe céréalière",
+      "charneca_degradada": "Lande dégradée"
+    },
+    "fauna": {
+      "title": "Atlas de la faune",
+      "subtitle": "Vie sauvage · Endémismes · Itinéraires d'observation",
+      "flagshipLabel": "Espèces emblématiques :",
+      "flagshipCountOne": "{{count}} espèce phare",
+      "flagshipCount": "{{count}} espèces phares",
+      "tabs": {
+        "todos": "Toutes",
+        "aves": "Oiseaux",
+        "mamiferos": "Mammifères",
+        "repteis": "Reptiles",
+        "racas": "Races locales",
+        "epicos": "Épiques"
+      },
+      "habitatFilterTitle": "Filtrer par habitat",
+      "habitatFilters": {
+        "todos": "Tous",
+        "montanha": "Montagne",
+        "humidas": "Zones humides",
+        "estepes": "Steppes",
+        "laurissilva": "Laurisylve",
+        "marinho": "Marin"
+      },
+      "emptyText": "Essayez une autre catégorie ou un autre habitat.",
+      "sources": "Données : ICNF · UICN · Atlas das Aves · SEO/BirdLife"
+    },
+    "flora": {
+      "title": "Atlas de la flore",
+      "subtitle": "Flore sauvage · Endémismes · Calendrier de floraison",
+      "floweringNowLabel": "En fleur actuellement :",
+      "floweringCountOne": "{{count}} espèce",
+      "floweringCount": "{{count}} espèces",
+      "inMonth": "en {{month}}",
+      "tabs": {
+        "todos": "Toutes",
+        "endemicas": "Endémiques",
+        "protegidas": "Protégées",
+        "montanha": "Haute montagne",
+        "dunas": "Dunes",
+        "laurissilva": "Laurisylve",
+        "humidas": "Zones humides"
+      },
+      "monthFilterTitle": "Filtrer par mois de floraison",
+      "allMonths": "Tous",
+      "emptyText": "Essayez un autre mois ou une autre catégorie.",
+      "sources": "Données : ICNF · Liste rouge · Flora-On"
+    },
+    "marine": {
+      "title": "Vie marine",
+      "subtitle": "Espèces · Habitats · Observations",
+      "seasonBannerOne": "Saison actuelle : {{season}} — {{count}} espèce observable",
+      "seasonBanner": "Saison actuelle : {{season}} — {{count}} espèces observables",
+      "categories": {
+        "all": "Toutes",
+        "mammal": "Mammifères",
+        "seabird": "Oiseaux",
+        "fish": "Poissons",
+        "invertebrate": "Invertébrés",
+        "plant": "Plantes"
+      },
+      "seasons": {
+        "all": "Toutes",
+        "winter": "Hiver",
+        "spring": "Printemps",
+        "summer": "Été",
+        "autumn": "Automne",
+        "migration": "Migration"
+      },
+      "emptyTitle": "Aucune espèce trouvée",
+      "emptyText": "Essayez d'autres filtres de catégorie ou de saison.",
+      "sources": "Données : ICNF · OBIS · FishBase · eBird"
+    },
+    "faunaCard": {
+      "classes": {
+        "ave": "Oiseau",
+        "mamifero": "Mammifère",
+        "reptil": "Reptile",
+        "anfibio": "Amphibien",
+        "peixe": "Poisson",
+        "invertebrado": "Invertébré",
+        "racaAutoctone": "Race locale"
+      },
+      "rarity": {
+        "comum": "Commun",
+        "incomum": "Peu commun",
+        "raro": "Rare",
+        "epico": "Épique"
+      },
+      "times": {
+        "manha": "Matin",
+        "tarde": "Après-midi",
+        "noturno": "Nuit",
+        "qualquer": "À toute heure"
+      },
+      "endemic": "Endémique",
+      "inDanger": "En danger",
+      "flagship": "Emblématique",
+      "observationTips": "Conseils d'observation"
+    },
+    "floraCard": {
+      "status": {
+        "endemica": "Endémique",
+        "autocone": "Indigène",
+        "introduzida": "Introduite",
+        "protegida": "Protégée"
+      },
+      "endemicBadge": "Endémique",
+      "collapse": "Replier {{name}}",
+      "viewDetails": "Voir les détails de {{name}}",
+      "flowering": "Floraison"
+    },
+    "marineCard": {
+      "categories": {
+        "mammal": "Mammifère",
+        "seabird": "Oiseau marin",
+        "fish": "Poisson",
+        "invertebrate": "Invertébré",
+        "plant": "Plante",
+        "reptile": "Reptile"
+      },
+      "seasons": {
+        "yearRound": "Toute l'année",
+        "winter": "Hiver",
+        "summer": "Été",
+        "spring": "Printemps",
+        "autumn": "Automne",
+        "migration": "Migration"
+      },
+      "iucn": "UICN {{status}}",
+      "habitat": "Habitat",
+      "depth": "Profondeur",
+      "bestSpots": "Meilleurs sites"
+    }
+  }
+}
