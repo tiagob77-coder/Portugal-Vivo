@@ -82,6 +82,8 @@ const QUICK_ACTIONS = [
   { label: 'Importador', icon: 'cloud-upload', route: '/importer', color: '#22C55E' },
   { label: 'Premium Stats', icon: 'diamond', route: '/premium', color: '#C49A6C' },
   { label: 'Analytics', icon: 'bar-chart', route: '/analytics', color: '#F59E0B' },
+  { label: 'API para parceiros', icon: 'vpn-key', route: '/admin-api-keys', color: '#6366F1' },
+  { label: 'Contratos municipais', icon: 'account-balance', route: '/admin-municipios', color: '#0F766E' },
   { label: 'CAOP', icon: 'public', route: '', color: '#10B981' },
   { label: 'Moderação Imagens', icon: 'photo-library', route: '', color: '#EC4899' },
   { label: 'Comunidade', icon: 'forum', route: '', color: '#0EA5E9' },
