@@ -392,6 +392,15 @@ async def import_excel(
             logger.warning(f"Tenant {tenant.municipality_id} tentou importar POIs de outro município")
         pois = filtered
 
+    # Plano municipal: quota de POIs curados (municipal_api.MUNICIPAL_PLANS)
+    if not dry_run and not tenant.is_admin_global and pois:
+        from municipal_api import enforce_poi_quota
+        names = sorted({p["name"] for p in pois})
+        existing = await _db().heritage_items.distinct(
+            "name", {"municipality_id": effective_mun, "name": {"$in": names}}
+        )
+        await enforce_poi_quota(_db(), effective_mun, len(set(names) - set(existing)))
+
     result = await upsert_pois(pois, dry_run=dry_run)
 
     return ImportReport(

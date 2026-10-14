@@ -124,6 +124,21 @@ async def create_all_indexes(db):
     await db.paywall_intents.create_index("created_at", name="idx_intents_created")
     logger.info("  paywall_intents: 1 index created")
 
+    # Partner API (api_keys_api) - key lookup on every /v1 call + monthly counters
+    await db.api_keys.create_index("key_hash", unique=True, name="idx_api_keys_hash")
+    await db.api_keys.create_index("key_id", unique=True, name="idx_api_keys_id")
+    await db.api_usage.create_index([("key_id", 1), ("period", 1)], unique=True, name="idx_api_usage_key_period")
+    await db.api_access_requests.create_index([("status", 1), ("created_at", -1)], name="idx_api_requests_status")
+    logger.info("  api_keys/api_usage/api_access_requests: 4 indexes created")
+
+    # Municipal B2G (municipal_api) - contracts, public profiles, anonymous impact events
+    await db.municipal_subscriptions.create_index("municipality_id", unique=True, name="idx_mun_subs_mun")
+    await db.municipal_profiles.create_index("municipality_id", unique=True, name="idx_mun_profiles_mun")
+    await db.impact_events.create_index([("municipality_id", 1), ("ts", -1)], name="idx_impact_mun_ts")
+    await db.impact_events.create_index("ts", expireAfterSeconds=400 * 24 * 3600, name="idx_impact_ttl")
+    await db.heritage_items.create_index("audio_featured_by", sparse=True, name="idx_heritage_audio_featured")
+    logger.info("  municipal_subscriptions/profiles/impact_events: 5 indexes created (impact TTL 400d)")
+
     # user_progress
     await db.user_progress.create_index("user_id", unique=True, name="idx_progress_userid")
     await db.user_progress.create_index("total_points", name="idx_progress_points")

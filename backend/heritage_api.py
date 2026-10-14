@@ -9,6 +9,7 @@ from typing import List, Optional
 from models.api_models import HeritageItem, AccessibilityInfo, User
 from shared_constants import CATEGORIES, REGIONS, MAIN_CATEGORIES, SUBCATEGORIES, SUBCATEGORIES_BY_MAIN, SUBCATEGORY_MAP, MAIN_CATEGORY_MAP, sanitize_regex
 from shared_utils import DatabaseHolder, clamp_pagination
+from territory import PUBLISHED_POI_FILTER
 
 logger = logging.getLogger(__name__)
 
@@ -142,7 +143,8 @@ async def get_heritage_items(
 ):
     """Get heritage items with filters (supports CAOP administrative hierarchy)"""
     skip, limit = clamp_pagination(skip, limit)
-    query = {}
+    # Hide POIs a municipality unpublished/archived (partner portal).
+    query = dict(PUBLISHED_POI_FILTER)
 
     if category:
         resolved = CATEGORY_ALIASES.get(category, category)
@@ -316,6 +318,7 @@ async def get_map_items(
     response.headers["Cache-Control"] = "public, max-age=300, stale-while-revalidate=900"
     # Filter for items within Portugal (continental + islands) with valid coordinates
     query = {
+        **PUBLISHED_POI_FILTER,
         "location.lat": {"$exists": True, "$ne": None, "$ne": 0},
         "location.lng": {"$exists": True, "$ne": None, "$ne": 0},
         "$or": [
