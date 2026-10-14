@@ -12,26 +12,33 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useQuery } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
+import type { TFunction } from 'i18next';
 import { getCulturalRoute, getRouteLiveCalendar } from '../../src/services/api/cultural';
 import TrailMiniMap from '../../src/components/TrailMiniMap';
 
 type IconName = React.ComponentProps<typeof MaterialIcons>['name'];
 
-const FAMILY: Record<string, { color: string; label: string; icon: IconName }> = {
-  musicais:     { color: '#8B5CF6', label: 'Musical',      icon: 'music-note' },
-  danca:        { color: '#EC4899', label: 'Dança',        icon: 'directions-run' },
-  festas:       { color: '#F59E0B', label: 'Festas',       icon: 'celebration' },
-  trajes:       { color: '#06B6D4', label: 'Trajes',       icon: 'checkroom' },
-  instrumentos: { color: '#10B981', label: 'Instrumentos', icon: 'piano' },
-  integradas:   { color: '#EF4444', label: 'Integrada',    icon: 'auto-awesome' },
+const FAMILY: Record<string, { color: string; labelKey: string; icon: IconName }> = {
+  musicais:     { color: '#8B5CF6', labelKey: 'modulesRoutes.shared.families.musicais',     icon: 'music-note' },
+  danca:        { color: '#EC4899', labelKey: 'modulesRoutes.shared.families.danca',        icon: 'directions-run' },
+  festas:       { color: '#F59E0B', labelKey: 'modulesRoutes.shared.families.festas',       icon: 'celebration' },
+  trajes:       { color: '#06B6D4', labelKey: 'modulesRoutes.shared.families.trajes',       icon: 'checkroom' },
+  instrumentos: { color: '#10B981', labelKey: 'modulesRoutes.shared.families.instrumentos', icon: 'piano' },
+  integradas:   { color: '#EF4444', labelKey: 'modulesRoutes.shared.families.integradas',   icon: 'auto-awesome' },
 };
 
-const MONTHS = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+const MONTH_KEYS = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'];
 
-function formatDate(s?: string): string {
+function monthLabel(t: TFunction, month: number): string {
+  const key = MONTH_KEYS[month - 1];
+  return key ? t(`modulesRoutes.shared.months.${key}`) : '';
+}
+
+function formatDate(t: TFunction, s?: string): string {
   if (!s) return '';
   const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(s);
-  if (m) return `${m[3]} ${MONTHS[parseInt(m[2], 10) - 1]}`;
+  if (m) return `${m[3]} ${monthLabel(t, parseInt(m[2], 10))}`;
   return s.slice(0, 10);
 }
 
@@ -42,6 +49,7 @@ const C = {
 export default function CulturalRouteDetailScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const { t } = useTranslation();
   const { id } = useLocalSearchParams<{ id: string }>();
 
   const { data: route, isLoading, isError } = useQuery({
@@ -68,10 +76,10 @@ export default function CulturalRouteDetailScreen() {
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()} accessibilityRole="button" accessibilityLabel="Voltar">
+        <TouchableOpacity onPress={() => router.back()} accessibilityRole="button" accessibilityLabel={t('common.back')}>
           <MaterialIcons name="arrow-back" size={24} color={C.textDark} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle} numberOfLines={1}>Rota cultural</Text>
+        <Text style={styles.headerTitle} numberOfLines={1}>{t('modulesRoutes.rotaDetail.title')}</Text>
         <View style={styles.headerSpacer} />
       </View>
 
@@ -80,7 +88,7 @@ export default function CulturalRouteDetailScreen() {
       ) : isError || !route ? (
         <View style={styles.center}>
           <MaterialIcons name="error-outline" size={40} color={C.textMed} />
-          <Text style={styles.muted}>Não foi possível carregar a rota.</Text>
+          <Text style={styles.muted}>{t('modulesRoutes.rotaDetail.loadError')}</Text>
         </View>
       ) : (
         <ScrollView contentContainerStyle={styles.scroll}>
@@ -89,7 +97,7 @@ export default function CulturalRouteDetailScreen() {
           <View style={styles.badgeRow}>
             <View style={[styles.chip, { backgroundColor: fam.color }]}>
               <MaterialIcons name={fam.icon} size={12} color="#FFFFFF" />
-              <Text style={styles.chipText}>{fam.label}</Text>
+              <Text style={styles.chipText}>{t(fam.labelKey)}</Text>
             </View>
             {route.unesco ? (
               <View style={[styles.chip, styles.unesco]}>
@@ -99,7 +107,7 @@ export default function CulturalRouteDetailScreen() {
             {route.premium ? (
               <View style={[styles.chip, styles.premium]}>
                 <MaterialIcons name="star" size={11} color="#92400E" />
-                <Text style={styles.premiumText}>Premium</Text>
+                <Text style={styles.premiumText}>{t('modulesRoutes.shared.premium')}</Text>
               </View>
             ) : null}
           </View>
@@ -112,22 +120,36 @@ export default function CulturalRouteDetailScreen() {
 
           <View style={styles.statsRow}>
             {route.duration_days ? (
-              <Stat icon="schedule" value={`${route.duration_days} dia${route.duration_days > 1 ? 's' : ''}`} color={fam.color} />
+              <Stat
+                icon="schedule"
+                value={route.duration_days > 1
+                  ? t('modulesRoutes.shared.days', { count: route.duration_days })
+                  : t('modulesRoutes.shared.oneDay', { count: route.duration_days })}
+                color={fam.color}
+              />
             ) : null}
-            {stops.length ? <Stat icon="pin-drop" value={`${stops.length} paragens`} color={fam.color} /> : null}
+            {stops.length ? (
+              <Stat
+                icon="pin-drop"
+                value={stops.length === 1
+                  ? t('modulesRoutes.rotaDetail.oneStop', { count: stops.length })
+                  : t('modulesRoutes.rotaDetail.stopsCount', { count: stops.length })}
+                color={fam.color}
+              />
+            ) : null}
             {route.iq_score != null ? <Stat icon="auto-awesome" value={`IQ ${route.iq_score}`} color={fam.color} /> : null}
           </View>
 
           {points.length > 1 ? (
             <>
-              <Text style={styles.sectionTitle}>Traçado da rota</Text>
+              <Text style={styles.sectionTitle}>{t('modulesRoutes.rotaDetail.routeTrace')}</Text>
               <TrailMiniMap points={points} waypoints={waypoints} color={fam.color} height={220} />
             </>
           ) : null}
 
           {(route.description_long || route.description_short) ? (
             <>
-              <Text style={styles.sectionTitle}>Sobre a rota</Text>
+              <Text style={styles.sectionTitle}>{t('modulesRoutes.rotaDetail.about')}</Text>
               <Text style={styles.body}>{route.description_long || route.description_short}</Text>
             </>
           ) : null}
@@ -141,14 +163,14 @@ export default function CulturalRouteDetailScreen() {
 
           {events.length ? (
             <>
-              <Text style={styles.sectionTitle}>Eventos a acontecer</Text>
+              <Text style={styles.sectionTitle}>{t('modulesRoutes.rotaDetail.upcomingEvents')}</Text>
               {events.map((ev) => (
                 <View key={ev.id ?? ev.name} style={styles.eventRow}>
                   <MaterialIcons name="event-available" size={18} color={fam.color} />
                   <View style={styles.eventBody}>
                     <Text style={styles.eventName} numberOfLines={2}>{ev.name}</Text>
                     <Text style={styles.eventMeta} numberOfLines={1}>
-                      {[formatDate(ev.date_start), ev.region, ev.category].filter(Boolean).join(' · ')}
+                      {[formatDate(t, ev.date_start), ev.region, ev.category].filter(Boolean).join(' · ')}
                     </Text>
                   </View>
                 </View>
@@ -158,7 +180,7 @@ export default function CulturalRouteDetailScreen() {
 
           {stops.length ? (
             <>
-              <Text style={styles.sectionTitle}>Paragens</Text>
+              <Text style={styles.sectionTitle}>{t('modulesRoutes.rotaDetail.stops')}</Text>
               {stops.map((s, i) => (
                 <View key={`${s.name}-${i}`} style={styles.stopRow}>
                   <View style={[styles.stopNum, { backgroundColor: fam.color }]}>
@@ -173,15 +195,15 @@ export default function CulturalRouteDetailScreen() {
             </>
           ) : null}
 
-          <Section title="Instrumentos" items={route.instruments} color="#10B981" />
-          <Section title="Danças" items={route.dances} color="#EC4899" />
-          <Section title="Gastronomia" items={route.gastronomy} color="#F59E0B" />
-          <Section title="Trajes" items={route.costumes} color="#06B6D4" />
-          <Section title="Vozes & oralidade" items={route.voices_orality} color="#8B5CF6" />
+          <Section title={t('modulesRoutes.rotaDetail.instruments')} items={route.instruments} color="#10B981" />
+          <Section title={t('modulesRoutes.rotaDetail.dances')} items={route.dances} color="#EC4899" />
+          <Section title={t('modulesRoutes.rotaDetail.gastronomy')} items={route.gastronomy} color="#F59E0B" />
+          <Section title={t('modulesRoutes.rotaDetail.costumes')} items={route.costumes} color="#06B6D4" />
+          <Section title={t('modulesRoutes.rotaDetail.voices')} items={route.voices_orality} color="#8B5CF6" />
 
           {route.festivals?.length ? (
             <>
-              <Text style={styles.sectionTitle}>Festivais associados</Text>
+              <Text style={styles.sectionTitle}>{t('modulesRoutes.shared.festivals')}</Text>
               {route.festivals.map((f) => (
                 <View key={f} style={styles.festivalRow}>
                   <MaterialIcons name="event" size={14} color={fam.color} />
@@ -193,11 +215,11 @@ export default function CulturalRouteDetailScreen() {
 
           {route.best_months?.length ? (
             <>
-              <Text style={styles.sectionTitle}>Melhor altura</Text>
+              <Text style={styles.sectionTitle}>{t('modulesRoutes.rotaDetail.bestTime')}</Text>
               <View style={styles.tagsWrap}>
                 {route.best_months.map((m) => (
                   <View key={m} style={styles.monthChip}>
-                    <Text style={styles.monthText}>{MONTHS[m - 1]}</Text>
+                    <Text style={styles.monthText}>{monthLabel(t, m)}</Text>
                   </View>
                 ))}
               </View>

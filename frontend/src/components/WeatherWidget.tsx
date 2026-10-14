@@ -4,6 +4,7 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { useQuery } from '@tanstack/react-query';
 import { getWeatherForecast, getWeatherAlerts } from '../services/api';
 import { colors, typography, spacing, borders, shadows } from '../theme';
+import { useTranslation } from 'react-i18next';
 
 interface WeatherWidgetProps {
   location?: string;
@@ -34,6 +35,7 @@ export const WeatherWidget: React.FC<WeatherWidgetProps> = ({
   location = 'lisboa',
   onPress 
 }) => {
+  const { t } = useTranslation();
   const { data: forecastData, isLoading: forecastLoading } = useQuery({
     queryKey: ['weather-forecast', location],
     queryFn: () => getWeatherForecast(location),
@@ -97,7 +99,7 @@ export const WeatherWidget: React.FC<WeatherWidgetProps> = ({
         <View style={styles.alertRow}>
           <MaterialIcons name="warning" size={14} color={colors.terracotta[500]} />
           <Text style={styles.alertText} numberOfLines={1}>
-            {activeAlerts[0]?.title || 'Alerta meteorológico ativo'}
+            {activeAlerts[0]?.title || t('widgets.weather.alertFallback')}
           </Text>
         </View>
       )}
@@ -106,7 +108,7 @@ export const WeatherWidget: React.FC<WeatherWidgetProps> = ({
         <View style={styles.rainRow}>
           <MaterialIcons name="water-drop" size={12} color={colors.ocean[500]} />
           <Text style={styles.rainText}>
-            {Math.round(today.precipitation_prob)}% probabilidade de chuva
+            {t('widgets.weather.rainChance', { pct: Math.round(today.precipitation_prob) })}
           </Text>
         </View>
       )}

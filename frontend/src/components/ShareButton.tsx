@@ -1,6 +1,7 @@
 import React from 'react';
 import { TouchableOpacity, Share, Platform, StyleSheet, ViewStyle, Text, View } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import { palette, stateColors, withOpacity } from '../theme';
 
 interface ShareButtonProps {
@@ -31,6 +32,7 @@ const copyToClipboardWeb = (text: string): boolean => {
 };
 
 export const ShareButton = ({ title, description, url, iconSize = 24, iconColor = palette.gray[50], style, onShare }: ShareButtonProps) => {
+  const { t } = useTranslation();
   const [copied, setCopied] = React.useState(false);
 
   const handleShare = async () => {
@@ -74,7 +76,7 @@ export const ShareButton = ({ title, description, url, iconSize = 24, iconColor 
       <MaterialIcons name={copied ? 'check' : 'share'} size={iconSize} color={copied ? stateColors.surf.excellent : iconColor} />
       {copied && (
         <View style={styles.tooltip} data-testid="share-copied-tooltip">
-          <Text style={styles.tooltipText}>Link copiado!</Text>
+          <Text style={styles.tooltipText}>{t('components.shareButton.linkCopied')}</Text>
         </View>
       )}
     </TouchableOpacity>

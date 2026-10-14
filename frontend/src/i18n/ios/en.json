@@ -1,0 +1,7 @@
+{
+  "CFBundleDisplayName": "Portugal Vivo",
+  "NSLocationWhenInUseUsageDescription": "Discover cultural heritage near you",
+  "NSLocationAlwaysAndWhenInUseUsageDescription": "Get alerts about nearby cultural sites even when the app is in the background.",
+  "NSCameraUsageDescription": "Time-Travel augmented reality uses the camera to overlay historical reconstructions on the real world",
+  "NSPhotoLibraryUsageDescription": "Add photos from your library"
+}

@@ -298,7 +298,7 @@ async def get_stories():
     return stories
 
 
-async def _can_preview_unpublished(request: Request, item: dict) -> bool:
+async def can_preview_unpublished(request: Request, item: dict) -> bool:
     """Unpublished (draft or archived) POIs stay readable by admins and by the
     owning municipality's users, so the municipal panel can preview them."""
     user = await get_current_user(request)
@@ -317,7 +317,7 @@ async def _can_preview_unpublished(request: Request, item: dict) -> bool:
 async def get_heritage_item(item_id: str, request: Request):
     """Get a single heritage item"""
     item = await _db_holder.db.heritage_items.find_one({"id": item_id}, {"_id": 0})
-    if item and item.get("is_published") is False and not await _can_preview_unpublished(request, item):
+    if item and item.get("is_published") is False and not await can_preview_unpublished(request, item):
         item = None
     if not item:
         raise HTTPException(status_code=404, detail="Item not found")

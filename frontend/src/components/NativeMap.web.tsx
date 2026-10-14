@@ -11,6 +11,7 @@
  */
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { View, StyleSheet, TouchableOpacity, Text } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import type { MapItem, LeafletMapProps, WaypointMarker } from './NativeMap.types';
 import logger from '../utils/logger';
 
@@ -126,6 +127,10 @@ export function LeafletMapComponent(props: LeafletMapProps) {
     navigateToRegion,
   } = props;
 
+  const { t } = useTranslation();
+  // Latest `t` for the MapLibre click handlers, which are registered once.
+  const tRef = useRef(t);
+  tRef.current = t;
   const containerRef = useRef<any>(null);
   const mapRef = useRef<any>(null);
   const popupRef = useRef<any>(null);
@@ -134,7 +139,7 @@ export function LeafletMapComponent(props: LeafletMapProps) {
   const getMarkerColorRef = useRef(getMarkerColor);
   const [is3D, setIs3D] = useState(false);
   const [ready, setReady] = useState(false);
-  const [mapError, setMapError] = useState<string | null>(null);
+  const [mapError, setMapError] = useState<string | null>(null); // i18n key
   const [coords, setCoords] = useState<{lng: number; lat: number} | null>(null);
   const [isTecnico, setIsTecnico] = useState(false);
   // Satellite is a basemap toggle orthogonal to mapMode (markers/heatmap/…),
@@ -155,7 +160,7 @@ export function LeafletMapComponent(props: LeafletMapProps) {
     (async () => {
       const ml = await loadMapLibre();
       if (!ml) {
-        setMapError('Mapa indisponível — o browser não suporta WebGL.');
+        setMapError('mapScreen.nativeMap.webglUnavailable');
         return;
       }
       if (!containerRef.current) return;
@@ -313,6 +318,7 @@ export function LeafletMapComponent(props: LeafletMapProps) {
       popupRef.current?.remove();
 
       if (_mlgl) {
+        const tr = tRef.current;
         // Category-based fallback image (Wikimedia, no API key)
         const catFallback: Record<string, string> = {
           museus: 'https://upload.wikimedia.org/wikipedia/commons/thumb/3/30/Museu_Nacional_do_Azulejo_%28Lisbon%29.jpg/400px-Museu_Nacional_do_Azulejo_%28Lisbon%29.jpg',
@@ -342,8 +348,8 @@ export function LeafletMapComponent(props: LeafletMapProps) {
                 <p style="font-size:11px;color:#6B7280;margin:0 0 8px">${p.region}</p>
                 ${p.iq_score > 0 ? `<span style="font-size:10px;background:#F0FDF4;border-radius:6px;padding:2px 7px;color:#15803D;font-weight:700;display:inline-block;margin-bottom:8px">IQ ${p.iq_score}</span>` : ''}
                 <div style="display:flex;gap:6px">
-                  <span data-nav="${p.id}" style="flex:1;text-align:center;font-size:11px;font-weight:700;color:#fff;background:#1B5E91;padding:6px 8px;border-radius:8px;display:inline-block">⌖ Navegar</span>
-                  <span style="flex:1;text-align:center;font-size:11px;font-weight:700;color:#fff;background:#C49A6C;padding:6px 8px;border-radius:8px;display:inline-block">Ver Detalhe</span>
+                  <span data-nav="${p.id}" style="flex:1;text-align:center;font-size:11px;font-weight:700;color:#fff;background:#1B5E91;padding:6px 8px;border-radius:8px;display:inline-block">⌖ ${tr('mapScreen.nativeMap.navigate')}</span>
+                  <span style="flex:1;text-align:center;font-size:11px;font-weight:700;color:#fff;background:#C49A6C;padding:6px 8px;border-radius:8px;display:inline-block">${tr('mapScreen.nativeMap.viewDetail')}</span>
                 </div>
               </div>
             </div>
@@ -626,7 +632,7 @@ export function LeafletMapComponent(props: LeafletMapProps) {
       {/* Fallback quando WebGL não está disponível */}
       {mapError && (
         <View style={s.errorOverlay}>
-          <Text style={s.errorText}>{mapError}</Text>
+          <Text style={s.errorText}>{t(mapError)}</Text>
         </View>
       )}
 
@@ -648,7 +654,7 @@ export function LeafletMapComponent(props: LeafletMapProps) {
         activeOpacity={0.85}
       >
         <Text style={[s.btn3dText, isTecnico && { color: '#fff' }]}>
-          {isTecnico ? '◎ TEC' : '◎ TEC'}
+          {`◎ ${t('mapScreen.nativeMap.tec')}`}
         </Text>
       </TouchableOpacity>
 
@@ -659,7 +665,7 @@ export function LeafletMapComponent(props: LeafletMapProps) {
         activeOpacity={0.85}
         accessibilityRole="switch"
         accessibilityState={{ checked: satellite }}
-        accessibilityLabel="Vista de satélite"
+        accessibilityLabel={t('mapScreen.nativeMap.satellite')}
       >
         <Text style={[s.btn3dText, satellite && { color: '#fff' }]}>
           {'\u{1F6F0} SAT'}
@@ -681,7 +687,7 @@ export function LeafletMapComponent(props: LeafletMapProps) {
         }}
         activeOpacity={0.85}
         accessibilityRole="button"
-        accessibilityLabel="Abrir Street View no centro do mapa"
+        accessibilityLabel={t('mapScreen.nativeMap.streetView')}
       >
         <Text style={s.btn3dText}>{'⤡ SV'}</Text>
       </TouchableOpacity>

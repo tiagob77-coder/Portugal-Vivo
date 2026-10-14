@@ -15,6 +15,7 @@ mongomock_motor = pytest.importorskip("mongomock_motor")
 
 import heritage_api  # noqa: E402
 import search_api  # noqa: E402
+import translation_api  # noqa: E402
 from models.api_models import User  # noqa: E402
 
 LOC = {"lat": 38.57, "lng": -7.91}
@@ -36,7 +37,7 @@ async def client(monkeypatch):
         {"user_id": "u-lisboa", "municipality_id": "lisboa", "tenant_role": "municipio"},
         {"user_id": "u-admin", "role": "admin"},
     ])
-    for module in (heritage_api, search_api):
+    for module in (heritage_api, search_api, translation_api):
         holder = heritage_api.DatabaseHolder(f"{module.__name__}-test")
         holder.set(db)
         monkeypatch.setattr(module, "_db_holder", holder)
@@ -49,6 +50,7 @@ async def client(monkeypatch):
     app = FastAPI()
     app.include_router(heritage_api.heritage_router, prefix="/api")
     app.include_router(search_api.search_router, prefix="/api")
+    app.include_router(translation_api.translation_router, prefix="/api")
     async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://t") as c:
         c.current = current
         yield c
@@ -88,6 +90,14 @@ async def test_detail_hides_unpublished_except_for_owner_and_admin(client):
     assert (await client.get("/api/heritage/hidden")).status_code == 200
     client.current["user"] = _user("u-admin")
     assert (await client.get("/api/heritage/hidden")).status_code == 200
+
+
+@pytest.mark.anyio
+async def test_localized_detail_follows_the_same_rule(client):
+    assert (await client.get("/api/heritage/published/localized", params={"lang": "en"})).status_code == 200
+    assert (await client.get("/api/heritage/hidden/localized", params={"lang": "en"})).status_code == 404
+    client.current["user"] = _user("u-evora")
+    assert (await client.get("/api/heritage/hidden/localized", params={"lang": "en"})).status_code == 200
 
 
 @pytest.mark.anyio

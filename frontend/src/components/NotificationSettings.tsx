@@ -18,6 +18,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { palette, withOpacity } from '../theme/colors';
 import { MODULES, NOTIFICATION_PREFS_KEY } from '../config/modules';
 import geofenceService from '../services/geofencing';
+import { useTranslation } from 'react-i18next';
 
 const STORAGE_KEY = NOTIFICATION_PREFS_KEY;
 const ACCENT = palette.terracotta[500];
@@ -39,6 +40,17 @@ const REGIONS = [
 ] as const;
 
 type Region = (typeof REGIONS)[number];
+
+// Display labels only — the stored values stay the Portuguese region names.
+const REGION_LABEL_KEYS: Record<Region, string> = {
+  Norte: 'widgets.notificationSettings.regions.norte',
+  Centro: 'widgets.notificationSettings.regions.centro',
+  Lisboa: 'widgets.notificationSettings.regions.lisboa',
+  Alentejo: 'widgets.notificationSettings.regions.alentejo',
+  Algarve: 'widgets.notificationSettings.regions.algarve',
+  Açores: 'widgets.notificationSettings.regions.acores',
+  Madeira: 'widgets.notificationSettings.regions.madeira',
+};
 
 interface NotificationPrefs {
   proximityEnabled: boolean;
@@ -69,6 +81,7 @@ interface Props {
 }
 
 export default function NotificationSettings({ onSave }: Props) {
+  const { t } = useTranslation();
   const [prefs, setPrefs] = useState<NotificationPrefs>(DEFAULT_PREFS);
   const [loaded, setLoaded] = useState(false);
 
@@ -138,33 +151,33 @@ export default function NotificationSettings({ onSave }: Props) {
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      <Text style={styles.heading}>Notificações</Text>
+      <Text style={styles.heading}>{t('widgets.notificationSettings.heading')}</Text>
       <Text style={styles.subheading}>
-        Controle como e quando recebe alertas
+        {t('widgets.notificationSettings.subheading')}
       </Text>
 
       {/* ── Toggle rows ─────────────────────────────────────── */}
       <View style={styles.card}>
         <ToggleRow
           icon="near-me"
-          title="Proximidade"
-          subtitle="Alertas quando perto de POIs interessantes"
+          title={t('widgets.notificationSettings.proximityTitle')}
+          subtitle={t('widgets.notificationSettings.proximitySubtitle')}
           value={prefs.proximityEnabled}
           onToggle={() => toggleBool('proximityEnabled')}
         />
         <View style={styles.separator} />
         <ToggleRow
           icon="event"
-          title="Eventos"
-          subtitle="Eventos e festas na sua região"
+          title={t('widgets.notificationSettings.eventsTitle')}
+          subtitle={t('widgets.notificationSettings.eventsSubtitle')}
           value={prefs.eventsEnabled}
           onToggle={() => toggleBool('eventsEnabled')}
         />
         <View style={styles.separator} />
         <ToggleRow
           icon="mail-outline"
-          title="Resumo semanal"
-          subtitle="Novos POIs, eventos e progresso"
+          title={t('widgets.notificationSettings.digestTitle')}
+          subtitle={t('widgets.notificationSettings.digestSubtitle')}
           value={prefs.digestEnabled}
           onToggle={() => toggleBool('digestEnabled')}
         />
@@ -174,21 +187,21 @@ export default function NotificationSettings({ onSave }: Props) {
       <View style={styles.card}>
         <View style={styles.sectionHeader}>
           <MaterialIcons name="do-not-disturb" size={20} color={ACCENT} />
-          <Text style={styles.sectionTitle}>Horas silenciosas</Text>
+          <Text style={styles.sectionTitle}>{t('widgets.notificationSettings.quietTitle')}</Text>
         </View>
         <Text style={styles.sectionSubtitle}>
-          Sem notificações durante este período
+          {t('widgets.notificationSettings.quietSubtitle')}
         </Text>
         <View style={styles.quietRow}>
           <TimePicker
-            label="Início"
+            label={t('widgets.notificationSettings.start')}
             value={prefs.quietHoursStart}
             onIncrement={() => cycleHour('quietHoursStart', 1)}
             onDecrement={() => cycleHour('quietHoursStart', -1)}
           />
           <MaterialIcons name="arrow-forward" size={18} color={TEXT_SECONDARY} />
           <TimePicker
-            label="Fim"
+            label={t('widgets.notificationSettings.end')}
             value={prefs.quietHoursEnd}
             onIncrement={() => cycleHour('quietHoursEnd', 1)}
             onDecrement={() => cycleHour('quietHoursEnd', -1)}
@@ -200,10 +213,10 @@ export default function NotificationSettings({ onSave }: Props) {
       <View style={styles.card}>
         <View style={styles.sectionHeader}>
           <MaterialIcons name="map" size={20} color={ACCENT} />
-          <Text style={styles.sectionTitle}>Regiões favoritas</Text>
+          <Text style={styles.sectionTitle}>{t('widgets.notificationSettings.regionsTitle')}</Text>
         </View>
         <Text style={styles.sectionSubtitle}>
-          Receba alertas e digests para estas regiões
+          {t('widgets.notificationSettings.regionsSubtitle')}
         </Text>
         <View style={styles.chipContainer}>
           {REGIONS.map((region) => {
@@ -216,7 +229,7 @@ export default function NotificationSettings({ onSave }: Props) {
                 activeOpacity={0.7}
               >
                 <Text style={[styles.chipText, selected && styles.chipTextSelected]}>
-                  {region}
+                  {t(REGION_LABEL_KEYS[region])}
                 </Text>
                 {selected && (
                   <MaterialIcons name="check" size={14} color={CARD_BG} style={{ marginLeft: 4 }} />
@@ -231,10 +244,10 @@ export default function NotificationSettings({ onSave }: Props) {
       <View style={styles.card}>
         <View style={styles.sectionHeader}>
           <MaterialIcons name="interests" size={20} color={ACCENT} />
-          <Text style={styles.sectionTitle}>Módulos de interesse</Text>
+          <Text style={styles.sectionTitle}>{t('widgets.notificationSettings.modulesTitle')}</Text>
         </View>
         <Text style={styles.sectionSubtitle}>
-          Receba alertas de proximidade só destes temas. Sem seleção = todos.
+          {t('widgets.notificationSettings.modulesSubtitle')}
         </Text>
         <View style={styles.chipContainer}>
           {MODULES.map((mod) => {
@@ -256,7 +269,7 @@ export default function NotificationSettings({ onSave }: Props) {
                   style={{ marginRight: 6 }}
                 />
                 <Text style={[styles.chipText, selected && styles.chipTextSelected]}>
-                  {mod.label}
+                  {t(`widgets.modules.${mod.slug}`, { defaultValue: mod.label })}
                 </Text>
               </TouchableOpacity>
             );

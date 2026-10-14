@@ -5,6 +5,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, ScrollView } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 
 export interface HubStop {
   name: string;
@@ -31,6 +32,7 @@ export interface CulturalHubMapProps {
 }
 
 export default function CulturalHubMap({ stops, layers, onLayerToggle }: CulturalHubMapProps) {
+  const { t } = useTranslation();
   const visibleStops = stops.slice(0, 12);
 
   return (
@@ -68,7 +70,7 @@ export default function CulturalHubMap({ stops, layers, onLayerToggle }: Cultura
 
       <View style={styles.nativeNote}>
         <MaterialIcons name="map" size={12} color="#6B7280" />
-        <Text style={styles.nativeNoteText}>Mapa 3D disponível na versão web</Text>
+        <Text style={styles.nativeNoteText}>{t('modulesRoutes.culturalHub.webOnly3d')}</Text>
       </View>
     </View>
   );

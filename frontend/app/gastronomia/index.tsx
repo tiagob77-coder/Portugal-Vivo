@@ -1,7 +1,8 @@
 /**
  * Gastronomia Costeira — pratos, tradições e sabores do mar português
  */
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useRegionParam } from '../../src/hooks/useRegionParam';
 import { filterByRegion } from '../../src/utils/regionMatch';
 import RegionFilterBanner from '../../src/components/RegionFilterBanner';
@@ -289,21 +290,31 @@ type CategoryTab = 'todos' | CoastalDish['type'];
 
 interface CategoryConf {
   key: CategoryTab;
-  label: string;
+  labelKey: string;
   icon: React.ComponentProps<typeof MaterialIcons>['name'];
   color: string;
 }
 
 const CATEGORY_TABS: CategoryConf[] = [
-  { key: 'todos',      label: 'Todos',       icon: 'local-dining',   color: C.amber       },
-  { key: 'peixe',     label: 'Peixe',       icon: 'set-meal',       color: C.peixe       },
-  { key: 'marisco',   label: 'Marisco',     icon: 'cruelty-free',   color: C.marisco     },
-  { key: 'sopa',      label: 'Sopas',       icon: 'soup-kitchen',   color: C.sopa        },
-  { key: 'doce',      label: 'Doces',       icon: 'cake',           color: C.doce        },
-  { key: 'tradicional', label: 'Tradicionais', icon: 'restaurant',  color: C.tradicional },
+  { key: 'todos',      labelKey: 'modulesCulture.gastronomia.tabs.todos',       icon: 'local-dining',   color: C.amber       },
+  { key: 'peixe',     labelKey: 'modulesCulture.gastronomia.tabs.peixe',       icon: 'set-meal',       color: C.peixe       },
+  { key: 'marisco',   labelKey: 'modulesCulture.gastronomia.tabs.marisco',     icon: 'cruelty-free',   color: C.marisco     },
+  { key: 'sopa',      labelKey: 'modulesCulture.gastronomia.tabs.sopa',       icon: 'soup-kitchen',   color: C.sopa        },
+  { key: 'doce',      labelKey: 'modulesCulture.gastronomia.tabs.doce',       icon: 'cake',           color: C.doce        },
+  { key: 'tradicional', labelKey: 'modulesCulture.gastronomia.tabs.tradicional', icon: 'restaurant',  color: C.tradicional },
 ];
 
 const REGIONS = ['Todos', 'Minho', 'Norte', 'Centro', 'Alentejo', 'Algarve', 'Açores', 'Madeira'];
+
+/** Translation key for a static ingredient/species name (e.g. 'Vinho branco' → 'vinhoBranco'). */
+const toKey = (name: string): string =>
+  name
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .split(/[^A-Za-z0-9]+/)
+    .filter(Boolean)
+    .map((w, i) => (i === 0 ? w.toLowerCase() : w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()))
+    .join('');
 
 function isInSeason(dish: CoastalDish, month: number): boolean {
   if (!dish.seasonality) return true; // year-round
@@ -317,6 +328,7 @@ function isInSeason(dish: CoastalDish, month: number): boolean {
 export default function GastronomiaScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const { t } = useTranslation();
 
   const { regionId, clear } = useRegionParam();
   const [activeCategory, setActiveCategory] = useState<CategoryTab>('todos');
@@ -339,7 +351,20 @@ export default function GastronomiaScreen() {
       return res.json();
     },
   });
-  const allDishes = mergeDishes(DISHES_DATA, gastroData?.results);
+  // Curated texts are translated by dish id; Portuguese stays the data's text.
+  const localizedDishes = useMemo<CoastalDish[]>(() => {
+    const food = (name: string) => t(`modulesCulture.gastronomia.foods.${toKey(name)}`, { defaultValue: name });
+    return DISHES_DATA.map((d) => ({
+      ...d,
+      story_short: t(`modulesCulture.gastronomia.dishes.${d.id}.storyShort`, { defaultValue: d.story_short }),
+      story_long: d.story_long
+        ? t(`modulesCulture.gastronomia.dishes.${d.id}.storyLong`, { defaultValue: d.story_long })
+        : d.story_long,
+      ingredients: d.ingredients?.map(food),
+      species_related: d.species_related?.map((sp) => ({ ...sp, name: food(sp.name) })),
+    }));
+  }, [t]);
+  const allDishes = mergeDishes(localizedDishes, gastroData?.results);
 
   // Filter dishes
   const filteredDishes = allDishes.filter((d) => {
@@ -368,8 +393,8 @@ export default function GastronomiaScreen() {
             <MaterialIcons name="arrow-back" size={22} color={C.amber} />
           </TouchableOpacity>
           <View style={styles.headerContent}>
-            <Text style={styles.headerTitle}>Gastronomia Costeira</Text>
-            <Text style={styles.headerSubtitle}>Pratos · Tradições · Sabores do Mar</Text>
+            <Text style={styles.headerTitle}>{t('modulesCulture.gastronomia.title')}</Text>
+            <Text style={styles.headerSubtitle}>{t('modulesCulture.gastronomia.subtitle')}</Text>
           </View>
           <View style={styles.headerIcon}>
             <MaterialIcons name="restaurant" size={20} color={C.amber} />
@@ -382,7 +407,10 @@ export default function GastronomiaScreen() {
         <View style={styles.seasonBanner}>
           <MaterialIcons name="wb-sunny" size={16} color={C.amber} />
           <Text style={styles.seasonBannerText}>
-            Em época agora: <Text style={styles.seasonBannerCount}>{inSeasonCount} pratos</Text>
+            {t('modulesCulture.gastronomia.inSeasonNow')}{' '}
+            <Text style={styles.seasonBannerCount}>
+              {t('modulesCulture.gastronomia.inSeasonCount', { count: inSeasonCount })}
+            </Text>
           </Text>
           <MaterialIcons name="chevron-right" size={16} color={C.amber} />
         </View>
@@ -412,7 +440,7 @@ export default function GastronomiaScreen() {
                   color={isActive ? C.white : C.textLight}
                 />
                 <Text style={[styles.tabLabel, isActive && styles.tabLabelActive]}>
-                  {tab.label}
+                  {t(tab.labelKey)}
                 </Text>
               </TouchableOpacity>
             );
@@ -435,7 +463,7 @@ export default function GastronomiaScreen() {
                 activeOpacity={0.8}
               >
                 <Text style={[styles.regionText, isActive && styles.regionTextActive]}>
-                  {region}
+                  {region === 'Todos' ? t('modulesCulture.shared.all') : region}
                 </Text>
               </TouchableOpacity>
             );
@@ -446,7 +474,9 @@ export default function GastronomiaScreen() {
         <View style={styles.summaryRow}>
           <View style={[styles.summaryDot, { backgroundColor: activeCatConf.color }]} />
           <Text style={styles.summaryText}>
-            {filteredDishes.length} prato{filteredDishes.length !== 1 ? 's' : ''} encontrado{filteredDishes.length !== 1 ? 's' : ''}
+            {filteredDishes.length === 1
+              ? t('modulesCulture.gastronomia.oneDishFound', { count: filteredDishes.length })
+              : t('modulesCulture.gastronomia.dishesFound', { count: filteredDishes.length })}
           </Text>
         </View>
 
@@ -467,9 +497,9 @@ export default function GastronomiaScreen() {
           {filteredDishes.length === 0 && (
             <View style={styles.emptyState}>
               <MaterialIcons name="search-off" size={40} color={C.textLight} />
-              <Text style={styles.emptyTitle}>Nenhum prato encontrado</Text>
+              <Text style={styles.emptyTitle}>{t('modulesCulture.gastronomia.emptyTitle')}</Text>
               <Text style={styles.emptyText}>
-                Tente outra categoria ou região.
+                {t('modulesCulture.gastronomia.emptyText')}
               </Text>
             </View>
           )}
@@ -479,7 +509,7 @@ export default function GastronomiaScreen() {
         <View style={styles.infoFooter}>
           <MaterialIcons name="info-outline" size={14} color={C.textLight} />
           <Text style={styles.infoFooterText}>
-            Dados: DGPC · DGRM · Associações de Pescadores
+            {t('modulesCulture.gastronomia.sources')}
           </Text>
         </View>
 

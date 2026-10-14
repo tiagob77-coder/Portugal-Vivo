@@ -9,6 +9,7 @@ import {
 } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
+import { useTranslation } from 'react-i18next';
 import { palette, scrimPine } from '../theme';
 import { useTheme } from '../context/ThemeContext';
 import { PUBLIC_URL } from '../config/api';
@@ -25,8 +26,9 @@ interface SocialShareCardProps {
   stats?: { label: string; value: string }[];
 }
 
+// `labelKey` is an i18n key; brand names keep a literal `label`.
 const SHARE_TARGETS = [
-  { id: 'copy', label: 'Copiar Link', icon: 'content-copy' as const, color: '#64748B' },
+  { id: 'copy', labelKey: 'components.shareSheet.copyLink', icon: 'content-copy' as const, color: '#64748B' },
   { id: 'whatsapp', label: 'WhatsApp', icon: 'chat' as const, color: '#25D366' },
   { id: 'twitter', label: 'X / Twitter', icon: 'public' as const, color: '#1DA1F2' },
   { id: 'facebook', label: 'Facebook', icon: 'facebook' as const, color: '#1877F2' },
@@ -35,6 +37,7 @@ const SHARE_TARGETS = [
 export default function SocialShareCard({
   type, id, title, description, category, categoryColor, region, imageUrl, stats,
 }: SocialShareCardProps) {
+  const { t } = useTranslation();
   const [modalVisible, setModalVisible] = useState(false);
   const [copied, setCopied] = useState(false);
 
@@ -93,7 +96,7 @@ export default function SocialShareCard({
         activeOpacity={0.7}
       >
         <MaterialIcons name="share" size={22} color={palette.gray[50]} />
-        <Text style={styles.triggerText}>Partilhar</Text>
+        <Text style={styles.triggerText}>{t('detail.share')}</Text>
       </TouchableOpacity>
 
       <Modal
@@ -147,7 +150,7 @@ export default function SocialShareCard({
             </View>
 
             {/* Share Actions */}
-            <Text style={styles.shareLabel}>Partilhar via</Text>
+            <Text style={styles.shareLabel}>{t('components.shareSheet.shareVia')}</Text>
             <View style={styles.shareTargets}>
               {SHARE_TARGETS.map((target) => (
                 <TouchableOpacity
@@ -164,7 +167,7 @@ export default function SocialShareCard({
                     />
                   </View>
                   <Text style={styles.shareTargetLabel}>
-                    {copied && target.id === 'copy' ? 'Copiado!' : target.label}
+                    {copied && target.id === 'copy' ? t('routeSharing.copied') : target.labelKey ? t(target.labelKey) : target.label}
                   </Text>
                 </TouchableOpacity>
               ))}
@@ -175,7 +178,7 @@ export default function SocialShareCard({
               style={styles.closeButton}
               onPress={() => setModalVisible(false)}
             >
-              <Text style={styles.closeButtonText}>Fechar</Text>
+              <Text style={styles.closeButtonText}>{t('common.close')}</Text>
             </TouchableOpacity>
           </View>
         </View>

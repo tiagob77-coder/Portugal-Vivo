@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import OptimizedImage from './OptimizedImage';
 import { MaterialIcons } from '@expo/vector-icons';
 import { HeritageItem, Category } from '../types';
@@ -31,6 +32,7 @@ const REGION_NAMES: Record<string, string> = {
 };
 
 function HeritageCard({ item, categories, onPress, variant = 'default' }: HeritageCardProps) {
+  const { t } = useTranslation();
   const { colors } = useTheme();
   const { isFavorite, toggleFavorite } = useFavorites();
   const category = categories.find(c => c.id === item.category);
@@ -47,7 +49,7 @@ function HeritageCard({ item, categories, onPress, variant = 'default' }: Herita
         style={[styles.compactCard, { backgroundColor: colors.surfaceElevated, borderColor: colors.border }]}
         accessibilityLabel={`${item.name}, ${REGION_NAMES[item.region] || item.region}`}
         accessibilityRole="button"
-        accessibilityHint="Toque para ver detalhes"
+        accessibilityHint={t('components.heritageCard.a11yHint')}
       >
         <OptimizedImage uri={imageUrl} style={[styles.compactImage, { backgroundColor: colors.border }]} />
         <View style={styles.compactContent}>
@@ -72,7 +74,7 @@ function HeritageCard({ item, categories, onPress, variant = 'default' }: Herita
       style={[styles.card, { backgroundColor: colors.surfaceElevated, borderColor: colors.border }]}
       accessibilityLabel={`${item.name}. ${category?.name || item.category}. ${REGION_NAMES[item.region] || item.region}`}
       accessibilityRole="button"
-      accessibilityHint="Toque para ver detalhes"
+      accessibilityHint={t('components.heritageCard.a11yHint')}
     >
       <View style={styles.cardContent}>
         <OptimizedImage uri={imageUrl} style={[styles.thumbnail, { backgroundColor: colors.border }]} />

@@ -1,5 +1,6 @@
 import React from 'react';
-import { render, fireEvent } from '@testing-library/react-native';
+import { render, fireEvent, act } from '@testing-library/react-native';
+import i18n from 'i18next';
 import EmptyState from '../EmptyState';
 
 // Mock MaterialIcons
@@ -79,5 +80,18 @@ describe('EmptyState', () => {
       <EmptyState variant="no-connection" compact />
     );
     expect(getByText('Sem ligação')).toBeTruthy();
+  });
+
+  describe('in English', () => {
+    afterEach(async () => {
+      await act(async () => { await i18n.changeLanguage('pt'); }); // eslint-disable-line import/no-named-as-default-member
+    });
+
+    it('renders the variant preset copy in English', async () => {
+      await act(async () => { await i18n.changeLanguage('en'); }); // eslint-disable-line import/no-named-as-default-member
+      const { getByText } = render(<EmptyState variant="no-favorites" />);
+      expect(getByText('No favourites yet')).toBeTruthy();
+      expect(getByText('Explore places and add them to your favourites')).toBeTruthy();
+    });
   });
 });

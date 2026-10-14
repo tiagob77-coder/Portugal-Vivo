@@ -1,7 +1,8 @@
 /**
  * Música Tradicional — Portuguese traditional music explorer
  */
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity,
 } from 'react-native';
@@ -211,19 +212,19 @@ type TypeFilter = 'todos' | MusicItem['type'];
 
 interface TypeTab {
   key: TypeFilter;
-  label: string;
+  labelKey: string;
 }
 
 const TYPE_TABS: TypeTab[] = [
-  { key: 'todos',             label: 'Todos'        },
-  { key: 'fado',              label: 'Fado'          },
-  { key: 'folclore',          label: 'Folclore'      },
-  { key: 'instrumento',       label: 'Instrumentos'  },
-  { key: 'danca_tradicional', label: 'Danças'        },
-  { key: 'canto_polifonico',  label: 'Canto'         },
-  { key: 'canto_tradicional', label: 'Canto'         },
-  { key: 'festival',          label: 'Festivais'     },
-  { key: 'tuna',              label: 'Tunas'         },
+  { key: 'todos',             labelKey: 'modulesCulture.musica.tabs.todos'       },
+  { key: 'fado',              labelKey: 'modulesCulture.musica.tabs.fado'        },
+  { key: 'folclore',          labelKey: 'modulesCulture.musica.tabs.folclore'    },
+  { key: 'instrumento',       labelKey: 'modulesCulture.musica.tabs.instrumento' },
+  { key: 'danca_tradicional', labelKey: 'modulesCulture.musica.tabs.danca'       },
+  { key: 'canto_polifonico',  labelKey: 'modulesCulture.musica.tabs.canto'       },
+  { key: 'canto_tradicional', labelKey: 'modulesCulture.musica.tabs.canto'       },
+  { key: 'festival',          labelKey: 'modulesCulture.musica.tabs.festival'    },
+  { key: 'tuna',              labelKey: 'modulesCulture.musica.tabs.tuna'        },
 ];
 
 const TYPE_COLORS: Record<string, string> = {
@@ -240,11 +241,22 @@ const TYPE_COLORS: Record<string, string> = {
 
 const REGIONS = ['Todos', 'Minho', 'Norte', 'Trás-os-Montes', 'Centro', 'Lisboa', 'Alentejo', 'Algarve'];
 
+/** Translation key for a static instrument name (e.g. 'Gaita de foles' → 'gaitaDeFoles'). */
+const toKey = (name: string): string =>
+  name
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .split(/[^A-Za-z0-9]+/)
+    .filter(Boolean)
+    .map((w, i) => (i === 0 ? w.toLowerCase() : w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()))
+    .join('');
+
 // ─── Main Screen ──────────────────────────────────────────────────────────────
 
 export default function MusicaTradicional() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const { t } = useTranslation();
 
   const [typeFilter, setTypeFilter] = useState<TypeFilter>('todos');
   const [regionFilter, setRegionFilter] = useState<string>('Todos');
@@ -252,8 +264,16 @@ export default function MusicaTradicional() {
 
   const unescoCount = MUSIC_DATA.filter((m) => m.unesco).length;
 
+  // Curated texts are translated by item id; Portuguese stays the data's text.
+  const localizedMusic = useMemo<MusicItem[]>(() => MUSIC_DATA.map((m) => ({
+    ...m,
+    description_short: t(`modulesCulture.musica.items.${m.id}.description`, { defaultValue: m.description_short }),
+    instruments: m.instruments?.map((name) =>
+      t(`modulesCulture.musica.instruments.${toKey(name)}`, { defaultValue: name })),
+  })), [t]);
+
   // Apply filters — merge canto_polifonico and canto_tradicional under 'Canto'
-  const filtered = MUSIC_DATA.filter((m) => {
+  const filtered = localizedMusic.filter((m) => {
     const matchType =
       typeFilter === 'todos' ||
       m.type === typeFilter ||
@@ -276,7 +296,7 @@ export default function MusicaTradicional() {
 
   // Deduplicate Canto tabs (canto_polifonico and canto_tradicional share label)
   const displayTabs = TYPE_TABS.filter(
-    (tab, idx, arr) => arr.findIndex((t) => t.label === tab.label) === idx
+    (tab, idx, arr) => arr.findIndex((other) => other.labelKey === tab.labelKey) === idx
   );
 
   return (
@@ -291,8 +311,8 @@ export default function MusicaTradicional() {
             <MaterialIcons name="arrow-back" size={22} color={C.accent} />
           </TouchableOpacity>
           <View style={styles.headerContent}>
-            <Text style={styles.headerTitle}>Música Tradicional</Text>
-            <Text style={styles.headerSubtitle}>Fado &middot; Folclore &middot; Instrumentos &middot; Danças</Text>
+            <Text style={styles.headerTitle}>{t('modulesCulture.musica.title')}</Text>
+            <Text style={styles.headerSubtitle}>{t('modulesCulture.musica.subtitle')}</Text>
           </View>
           <View style={styles.headerIcon}>
             <MaterialIcons name="music-note" size={20} color={C.accent} />
@@ -322,7 +342,7 @@ export default function MusicaTradicional() {
                 activeOpacity={0.8}
               >
                 <Text style={[styles.tabChipLabel, isActive && styles.tabChipLabelActive]}>
-                  {tab.label}
+                  {t(tab.labelKey)}
                 </Text>
               </TouchableOpacity>
             );
@@ -346,7 +366,7 @@ export default function MusicaTradicional() {
                 activeOpacity={0.8}
               >
                 <Text style={[styles.regionChipText, isActive && styles.regionChipTextActive]}>
-                  {r}
+                  {r === 'Todos' ? t('modulesCulture.shared.all') : r}
                 </Text>
               </TouchableOpacity>
             );
@@ -358,7 +378,9 @@ export default function MusicaTradicional() {
           <View style={styles.unescoBanner}>
             <MaterialIcons name="star" size={18} color={C.unesco} />
             <Text style={styles.unescoBannerText}>
-              {unescoCount} tradição{unescoCount !== 1 ? 'ões' : ''} com reconhecimento UNESCO
+              {unescoCount === 1
+                ? t('modulesCulture.musica.unescoOne', { count: unescoCount })
+                : t('modulesCulture.musica.unescoMany', { count: unescoCount })}
             </Text>
           </View>
         )}
@@ -367,7 +389,9 @@ export default function MusicaTradicional() {
         <View style={styles.summaryRow}>
           <View style={[styles.summaryDot, { backgroundColor: activeColor }]} />
           <Text style={styles.summaryText}>
-            {filtered.length} tradição{filtered.length !== 1 ? 'ões' : ''} encontrada{filtered.length !== 1 ? 's' : ''}
+            {filtered.length === 1
+              ? t('modulesCulture.musica.oneTraditionFound', { count: filtered.length })
+              : t('modulesCulture.musica.traditionsFound', { count: filtered.length })}
           </Text>
         </View>
 
@@ -385,9 +409,9 @@ export default function MusicaTradicional() {
           {filtered.length === 0 && (
             <View style={styles.emptyState}>
               <MaterialIcons name="celebration" size={40} color={C.textLight} />
-              <Text style={styles.emptyStateTitle}>Sem tradições nesta categoria</Text>
+              <Text style={styles.emptyStateTitle}>{t('modulesCulture.musica.emptyTitle')}</Text>
               <Text style={styles.emptyStateText}>
-                Tenta outro tipo ou região para descobrir a música tradicional portuguesa.
+                {t('modulesCulture.musica.emptyText')}
               </Text>
             </View>
           )}
@@ -397,7 +421,7 @@ export default function MusicaTradicional() {
         <View style={styles.infoFooter}>
           <MaterialIcons name="info-outline" size={13} color={C.textLight} />
           <Text style={styles.infoFooterText}>
-            Dados: DGPC &middot; UNESCO &middot; Associações Culturais
+            {t('modulesCulture.musica.sources')}
           </Text>
         </View>
 

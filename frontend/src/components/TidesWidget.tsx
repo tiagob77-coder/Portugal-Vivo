@@ -10,6 +10,8 @@ import { LinearGradient } from 'expo-linear-gradient';
 
 import { API_URL } from '../config/api';
 import { palette, stateColors } from '../theme';
+import { useTranslation } from 'react-i18next';
+import { currentLocale } from '../i18n/format';
 
 interface TideData {
   source: string;
@@ -44,18 +46,18 @@ interface TidesWidgetProps {
   showStationPicker?: boolean;
 }
 
-const TIDE_STATE_CONFIG: Record<string, { color: string; gradient: string[]; label: string; icon: string }> = {
-  rising: { color: stateColors.tide.rising, gradient: ['#1E40AF', stateColors.tide.rising], label: 'Subindo', icon: 'arrow-upward' },
-  falling: { color: stateColors.tide.falling, gradient: ['#B45309', stateColors.tide.falling], label: 'Descendo', icon: 'arrow-downward' },
-  high: { color: stateColors.tide.high, gradient: ['#166534', stateColors.tide.high], label: 'Preia-mar', icon: 'vertical-align-top' },
-  low: { color: stateColors.tide.low, gradient: ['#B91C1C', stateColors.tide.low], label: 'Baixa-mar', icon: 'vertical-align-bottom' },
+const TIDE_STATE_CONFIG: Record<string, { color: string; gradient: string[]; labelKey: string; icon: string }> = {
+  rising: { color: stateColors.tide.rising, gradient: ['#1E40AF', stateColors.tide.rising], labelKey: 'widgets.tides.rising', icon: 'arrow-upward' },
+  falling: { color: stateColors.tide.falling, gradient: ['#B45309', stateColors.tide.falling], labelKey: 'widgets.tides.falling', icon: 'arrow-downward' },
+  high: { color: stateColors.tide.high, gradient: ['#166534', stateColors.tide.high], labelKey: 'widgets.tides.high', icon: 'vertical-align-top' },
+  low: { color: stateColors.tide.low, gradient: ['#B91C1C', stateColors.tide.low], labelKey: 'widgets.tides.low', icon: 'vertical-align-bottom' },
 };
 
 const MOON_PHASES = [
-  { name: 'Lua Nova', icon: 'brightness-3', rotation: 180 },
-  { name: 'Quarto Crescente', icon: 'brightness-2', rotation: 90 },
-  { name: 'Lua Cheia', icon: 'brightness-5', rotation: 0 },
-  { name: 'Quarto Minguante', icon: 'brightness-2', rotation: 270 },
+  { nameKey: 'widgets.tides.newMoon', icon: 'brightness-3', rotation: 180 },
+  { nameKey: 'widgets.tides.firstQuarter', icon: 'brightness-2', rotation: 90 },
+  { nameKey: 'widgets.tides.fullMoon', icon: 'brightness-5', rotation: 0 },
+  { nameKey: 'widgets.tides.lastQuarter', icon: 'brightness-2', rotation: 270 },
 ];
 
 const STATIONS = [
@@ -82,7 +84,7 @@ const getMoonPhaseInfo = (phase: number) => {
 
 const formatTime = (isoString: string) => {
   const date = new Date(isoString);
-  return date.toLocaleTimeString('pt-PT', { hour: '2-digit', minute: '2-digit' });
+  return date.toLocaleTimeString(currentLocale(), { hour: '2-digit', minute: '2-digit' });
 };
 
 const getTideData = async (lat: number, lng: number): Promise<TideData> => {
@@ -95,6 +97,7 @@ const getTideData = async (lat: number, lng: number): Promise<TideData> => {
 
 export function TidesWidget({ latitude, longitude, compact = false, onPress, showStationPicker = false }: TidesWidgetProps) {
   const [selectedStation, setSelectedStation] = useState<{ lat: number; lng: number } | null>(null);
+  const { t } = useTranslation();
   const activeLat = selectedStation?.lat ?? latitude;
   const activeLng = selectedStation?.lng ?? longitude;
 
@@ -134,7 +137,7 @@ export function TidesWidget({ latitude, longitude, compact = false, onPress, sho
           <MaterialIcons name={config.icon as any} size={14} color={palette.white} />
         </View>
         <Text style={styles.compactText}>{data.current.height_m.toFixed(1)}m</Text>
-        <Text style={styles.compactLabel}>{config.label}</Text>
+        <Text style={styles.compactLabel}>{t(config.labelKey)}</Text>
       </TouchableOpacity>
     );
   }
@@ -180,29 +183,33 @@ export function TidesWidget({ latitude, longitude, compact = false, onPress, sho
             <MaterialIcons name="waves" size={24} color={palette.white} />
           </View>
           <View style={styles.headerText}>
-            <Text style={styles.title}>Marés</Text>
-            <Text style={styles.stationName}>{data.station || 'Costa Portuguesa'}</Text>
+            <Text style={styles.title}>{t('widgets.tides.title')}</Text>
+            <Text style={styles.stationName}>{data.station || t('widgets.tides.defaultStation')}</Text>
           </View>
           <View style={styles.stateContainer}>
             <MaterialIcons name={config.icon as any} size={20} color={palette.white} />
-            <Text style={styles.stateText}>{config.label}</Text>
+            <Text style={styles.stateText}>{t(config.labelKey)}</Text>
           </View>
         </View>
 
         <View style={styles.currentRow}>
           <View style={styles.currentHeight}>
             <Text style={styles.heightValue}>{data.current.height_m.toFixed(2)}</Text>
-            <Text style={styles.heightUnit}>metros</Text>
+            <Text style={styles.heightUnit}>{t('widgets.tides.metres')}</Text>
           </View>
 
           <View style={styles.moonPhase}>
             <View style={{ transform: [{ rotate: `${moonInfo.rotation}deg` }] }}>
               <MaterialIcons name={moonInfo.icon as any} size={28} color="rgba(255,255,255,0.8)" />
             </View>
-            <Text style={styles.moonText}>{moonInfo.name}</Text>
+            <Text style={styles.moonText}>{t(moonInfo.nameKey)}</Text>
             {data.tide_type && (
               <Text style={styles.tideTypeText}>
-                Maré {data.tide_type === 'spring' ? 'Viva' : data.tide_type === 'neap' ? 'Morta' : 'Moderada'}
+                {data.tide_type === 'spring'
+                  ? t('widgets.tides.springTide')
+                  : data.tide_type === 'neap'
+                    ? t('widgets.tides.neapTide')
+                    : t('widgets.tides.moderateTide')}
               </Text>
             )}
           </View>
@@ -213,7 +220,7 @@ export function TidesWidget({ latitude, longitude, compact = false, onPress, sho
             <View style={styles.nextTideItem}>
               <MaterialIcons name="vertical-align-top" size={16} color="rgba(255,255,255,0.8)" />
               <View style={styles.nextTideInfo}>
-                <Text style={styles.nextTideLabel}>Preia-mar</Text>
+                <Text style={styles.nextTideLabel}>{t('widgets.tides.high')}</Text>
                 <Text style={styles.nextTideTime}>{formatTime(data.next_high_tide.datetime)}</Text>
                 <Text style={styles.nextTideHeight}>{data.next_high_tide.height_m?.toFixed(2)}m</Text>
               </View>
@@ -224,7 +231,7 @@ export function TidesWidget({ latitude, longitude, compact = false, onPress, sho
             <View style={styles.nextTideItem}>
               <MaterialIcons name="vertical-align-bottom" size={16} color="rgba(255,255,255,0.8)" />
               <View style={styles.nextTideInfo}>
-                <Text style={styles.nextTideLabel}>Baixa-mar</Text>
+                <Text style={styles.nextTideLabel}>{t('widgets.tides.low')}</Text>
                 <Text style={styles.nextTideTime}>{formatTime(data.next_low_tide.datetime)}</Text>
                 <Text style={styles.nextTideHeight}>{data.next_low_tide.height_m?.toFixed(2)}m</Text>
               </View>
@@ -235,7 +242,7 @@ export function TidesWidget({ latitude, longitude, compact = false, onPress, sho
         <View style={styles.footer}>
           <MaterialIcons name="info-outline" size={12} color="rgba(255,255,255,0.6)" />
           <Text style={styles.footerText}>
-            {data.api_type === 'real' ? 'Dados Stormglass' : 'Cálculo astronómico'} • Atualizado
+            {data.api_type === 'real' ? t('widgets.tides.footerReal') : t('widgets.tides.footerAstro')}
           </Text>
         </View>
       </LinearGradient>

@@ -10,6 +10,7 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useQuery } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
 import { getFeaturedTrail } from '../../src/services/api/routes';
 import TrailMiniMap from '../../src/components/TrailMiniMap';
 
@@ -23,11 +24,11 @@ const C = {
   fallback: '#3F6F4A',
 };
 
-const DIFFICULTY_LABEL: Record<string, string> = {
-  facil: 'Fácil',
-  moderado: 'Moderado',
-  dificil: 'Difícil',
-  muito_dificil: 'Muito difícil',
+const DIFFICULTY_LABEL_KEY: Record<string, string> = {
+  facil: 'modulesRoutes.trail.difficulty.facil',
+  moderado: 'modulesRoutes.trail.difficulty.moderado',
+  dificil: 'modulesRoutes.trail.difficulty.dificil',
+  muito_dificil: 'modulesRoutes.trail.difficulty.muitoDificil',
 };
 
 function prettyTag(tag: string): string {
@@ -38,6 +39,7 @@ function prettyTag(tag: string): string {
 export default function TrailDetailScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const { t } = useTranslation();
   const { id } = useLocalSearchParams<{ id: string }>();
 
   const { data: trail, isLoading, isError } = useQuery({
@@ -47,8 +49,9 @@ export default function TrailDetailScreen() {
   });
 
   const chipColor = trail?.color || C.fallback;
+  const difficultyLabelKey = trail?.difficulty ? DIFFICULTY_LABEL_KEY[trail.difficulty] : undefined;
   const difficultyLabel =
-    (trail?.difficulty && DIFFICULTY_LABEL[trail.difficulty]) || trail?.difficulty || '—';
+    (difficultyLabelKey && t(difficultyLabelKey)) || trail?.difficulty || '—';
 
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
@@ -56,11 +59,11 @@ export default function TrailDetailScreen() {
         <TouchableOpacity
           onPress={() => router.back()}
           accessibilityRole="button"
-          accessibilityLabel="Voltar"
+          accessibilityLabel={t('common.back')}
         >
           <MaterialIcons name="arrow-back" size={24} color={C.textDark} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle} numberOfLines={1}>Trilho</Text>
+        <Text style={styles.headerTitle} numberOfLines={1}>{t('modulesRoutes.trailDetail.title')}</Text>
         <View style={styles.headerSpacer} />
       </View>
 
@@ -69,7 +72,7 @@ export default function TrailDetailScreen() {
       ) : isError || !trail ? (
         <View style={styles.center}>
           <MaterialIcons name="error-outline" size={40} color={C.textMed} />
-          <Text style={styles.muted}>Não foi possível carregar o trilho.</Text>
+          <Text style={styles.muted}>{t('modulesRoutes.trailDetail.loadError')}</Text>
         </View>
       ) : (
         <ScrollView contentContainerStyle={styles.scroll}>
@@ -89,19 +92,19 @@ export default function TrailDetailScreen() {
           {/* Stats */}
           <View style={styles.statsCard}>
             {trail.distance_km !== undefined ? (
-              <Stat icon="straighten" label="Distância" value={`${trail.distance_km} km`} color={chipColor} />
+              <Stat icon="straighten" label={t('modulesRoutes.trailDetail.distance')} value={`${trail.distance_km} km`} color={chipColor} />
             ) : null}
             <Stat
               icon="schedule"
-              label="Duração"
+              label={t('modulesRoutes.trailDetail.duration')}
               value={trail.avg_time || (trail.estimated_hours ? `${trail.estimated_hours} h` : '—')}
               color={chipColor}
             />
             {trail.max_elevation ? (
-              <Stat icon="terrain" label="Cota máx." value={`${trail.max_elevation} m`} color={chipColor} />
+              <Stat icon="terrain" label={t('modulesRoutes.trailDetail.maxElevation')} value={`${trail.max_elevation} m`} color={chipColor} />
             ) : null}
             {trail.rating !== undefined ? (
-              <Stat icon="star" label="Avaliação" value={trail.rating.toFixed(1)} color="#F59E0B" />
+              <Stat icon="star" label={t('modulesRoutes.trailDetail.rating')} value={trail.rating.toFixed(1)} color="#F59E0B" />
             ) : null}
           </View>
 
@@ -113,14 +116,14 @@ export default function TrailDetailScreen() {
               color={trail.needs_geometry ? '#92400E' : '#166534'}
             />
             <Text style={[styles.statusText, trail.needs_geometry ? styles.statusPendingText : styles.statusReadyText]}>
-              {trail.needs_geometry ? 'Geometria por confirmar' : 'Traçado no mapa'}
+              {trail.needs_geometry ? t('modulesRoutes.trailDetail.geometryPending') : t('modulesRoutes.trailDetail.geometryReady')}
             </Text>
           </View>
 
           {/* Route preview (renders once real geometry is available) */}
           {trail.points && trail.points.length > 1 ? (
             <>
-              <Text style={styles.sectionTitle}>Traçado do percurso</Text>
+              <Text style={styles.sectionTitle}>{t('modulesRoutes.trailDetail.routeTrace')}</Text>
               <TrailMiniMap points={trail.points} color={chipColor} height={200} />
             </>
           ) : null}
@@ -128,7 +131,7 @@ export default function TrailDetailScreen() {
           {/* Description */}
           {trail.description ? (
             <>
-              <Text style={styles.sectionTitle}>Sobre o trilho</Text>
+              <Text style={styles.sectionTitle}>{t('modulesRoutes.trailDetail.about')}</Text>
               <Text style={styles.body}>{trail.description}</Text>
             </>
           ) : null}
@@ -138,7 +141,7 @@ export default function TrailDetailScreen() {
             <View style={styles.reviewCard}>
               <View style={styles.row}>
                 <MaterialIcons name="reviews" size={16} color={C.accent} />
-                <Text style={styles.reviewTitle}>Destaques de quem já foi</Text>
+                <Text style={styles.reviewTitle}>{t('modulesRoutes.trailDetail.reviewTitle')}</Text>
               </View>
               <Text style={styles.body}>{trail.review_summary}</Text>
             </View>
@@ -147,7 +150,7 @@ export default function TrailDetailScreen() {
           {/* Features */}
           {trail.tags && trail.tags.length > 0 ? (
             <>
-              <Text style={styles.sectionTitle}>Destaques</Text>
+              <Text style={styles.sectionTitle}>{t('modulesRoutes.trailDetail.highlights')}</Text>
               <View style={styles.tagsWrap}>
                 {trail.tags.map((tag) => (
                   <View key={tag} style={styles.tag}>
@@ -165,14 +168,14 @@ export default function TrailDetailScreen() {
               onPress={() => Linking.openURL(trail.external_url as string).catch(() => {})}
               activeOpacity={0.85}
               accessibilityRole="button"
-              accessibilityLabel={`Ver ${trail.name} no AllTrails`}
+              accessibilityLabel={t('modulesRoutes.trailDetail.openA11y', { name: trail.name })}
             >
               <MaterialIcons name="open-in-new" size={18} color="#FFFFFF" />
-              <Text style={styles.linkBtnText}>Ver no AllTrails</Text>
+              <Text style={styles.linkBtnText}>{t('modulesRoutes.trailDetail.open')}</Text>
             </TouchableOpacity>
           ) : null}
 
-          <Text style={styles.attribution}>Conteúdo e dados do trilho © AllTrails</Text>
+          <Text style={styles.attribution}>{t('modulesRoutes.trailDetail.attribution')}</Text>
         </ScrollView>
       )}
     </View>

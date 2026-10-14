@@ -11,6 +11,7 @@
 import React from 'react';
 import { Platform, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 
 import { palette } from '../../theme';
 
@@ -53,6 +54,7 @@ const blurStyle = Platform.select({
 }) as any;
 
 export default function ExplorerPanel({ weather, fires, surf }: ExplorerPanelProps) {
+  const { t } = useTranslation();
   const w0 = weather?.forecasts?.[0];
   const s0 = surf?.spots?.[0];
   const fireCount = fires?.active_count;
@@ -68,21 +70,23 @@ export default function ExplorerPanel({ weather, fires, surf }: ExplorerPanelPro
       <ScrollView
         style={styles.scroll}
         showsVerticalScrollIndicator={false}
-        accessibilityLabel="Dados técnicos em tempo real"
+        accessibilityLabel={t('mapScreen.explorer.a11yLabel')}
       >
         <View style={styles.inner}>
-          <Text style={styles.title}>Dados Técnicos em Tempo Real</Text>
+          <Text style={styles.title}>{t('mapScreen.explorer.title')}</Text>
 
           {w0 && (
             <View style={styles.card}>
               <MaterialIcons name="wb-sunny" size={20} color={palette.terracotta[400]} />
               <View style={styles.cardBody}>
                 <Text style={styles.cardTitle}>
-                  Meteorologia — {weather?.location ?? 'Lisboa'}
+                  {t('mapScreen.explorer.weather', { location: weather?.location ?? 'Lisboa' })}
                 </Text>
                 <Text style={styles.cardSubtitle}>
                   {w0.weather_description}
-                  {typeof w0.temp_max === 'number' ? ` · ${w0.temp_max}°C max` : ''}
+                  {typeof w0.temp_max === 'number'
+                    ? ` · ${t('mapScreen.explorer.tempMax', { temp: w0.temp_max })}`
+                    : ''}
                 </Text>
               </View>
             </View>
@@ -91,11 +95,13 @@ export default function ExplorerPanel({ weather, fires, surf }: ExplorerPanelPro
           <View style={styles.card}>
             <MaterialIcons name="local-fire-department" size={20} color={fireColor} />
             <View style={styles.cardBody}>
-              <Text style={styles.cardTitle}>Risco de Incêndio</Text>
+              <Text style={styles.cardTitle}>{t('mapScreen.explorer.fireRisk')}</Text>
               <Text style={styles.cardSubtitle}>
                 {fireCount != null
-                  ? `${fireCount} ${fireCount === 1 ? 'ocorrência activa' : 'ocorrências activas'}`
-                  : 'A carregar...'}
+                  ? fireCount === 1
+                    ? t('mapScreen.explorer.fireOne', { count: fireCount })
+                    : t('mapScreen.explorer.fireMany', { count: fireCount })
+                  : t('common.loading')}
               </Text>
             </View>
           </View>
@@ -105,12 +111,14 @@ export default function ExplorerPanel({ weather, fires, surf }: ExplorerPanelPro
               <MaterialIcons name="waves" size={20} color={palette.ocean[400]} />
               <View style={styles.cardBody}>
                 <Text style={styles.cardTitle}>
-                  Mar — {s0.spot?.name ?? 'Costa'}
+                  {t('mapScreen.explorer.sea', {
+                    spot: s0.spot?.name ?? t('mapScreen.explorer.coast'),
+                  })}
                 </Text>
                 <Text style={styles.cardSubtitle}>
                   {typeof s0.wave_height_m === 'number'
-                    ? `Ondas ${s0.wave_height_m}m`
-                    : 'Sem leitura'}
+                    ? t('mapScreen.explorer.waves', { height: s0.wave_height_m })
+                    : t('mapScreen.explorer.noReading')}
                   {s0.surf_quality ? ` · ${s0.surf_quality}` : ''}
                 </Text>
               </View>

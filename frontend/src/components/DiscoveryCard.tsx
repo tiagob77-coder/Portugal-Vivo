@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import { enrichEvent, getEventToNatureItinerary } from '../services/api';
 import { palette } from '../theme';
 import { useTheme } from '../context/ThemeContext';
@@ -24,6 +25,7 @@ const DiscoveryCard: React.FC<DiscoveryCardProps> = ({
   onNaturePress,
   showItinerary = false,
 }) => {
+  const { t } = useTranslation();
   const { colors } = useTheme();
   const [enrichment, setEnrichment] = useState<any>(null);
   const [itinerary, setItinerary] = useState<any>(null);
@@ -78,7 +80,7 @@ const DiscoveryCard: React.FC<DiscoveryCardProps> = ({
         >
           <View style={styles.sectionHeader}>
             <MaterialIcons name="park" size={18} color={palette.forest[500]} />
-            <Text style={[styles.sectionTitle, { color: colors.textPrimary }]}>Área Protegida Próxima</Text>
+            <Text style={[styles.sectionTitle, { color: colors.textPrimary }]}>{t('components.discoveryCard.protectedArea')}</Text>
           </View>
           <Text style={[styles.areaName, { color: colors.textPrimary }]}>{enrichment.protected_area.area.name}</Text>
           <Text style={[styles.areaDesignation, { color: colors.textMuted }]}>{enrichment.protected_area.area.designation}</Text>
@@ -94,7 +96,7 @@ const DiscoveryCard: React.FC<DiscoveryCardProps> = ({
         >
           <View style={styles.sectionHeader}>
             <MaterialIcons name="biotech" size={18} color={palette.ocean[500]} />
-            <Text style={[styles.sectionTitle, { color: colors.textPrimary }]}>Estação de Biodiversidade</Text>
+            <Text style={[styles.sectionTitle, { color: colors.textPrimary }]}>{t('components.discoveryCard.biodiversityStation')}</Text>
           </View>
           <Text style={[styles.areaName, { color: colors.textPrimary }]}>{enrichment.biodiversity_station.station.name}</Text>
           <View style={styles.highlightsRow}>
@@ -113,7 +115,7 @@ const DiscoveryCard: React.FC<DiscoveryCardProps> = ({
         <View style={[styles.section, { backgroundColor: colors.card }]}>
           <View style={styles.sectionHeader}>
             <MaterialIcons name="directions-transit" size={18} color="#F59E0B" />
-            <Text style={[styles.sectionTitle, { color: colors.textPrimary }]}>Transportes Próximos</Text>
+            <Text style={[styles.sectionTitle, { color: colors.textPrimary }]}>{t('discovery.nearbyTransport')}</Text>
           </View>
           {enrichment.transport.slice(0, 3).map((stop: any, i: number) => (
             <TouchableOpacity
@@ -141,7 +143,7 @@ const DiscoveryCard: React.FC<DiscoveryCardProps> = ({
         <View style={[styles.section, { backgroundColor: colors.card }]}>
           <View style={styles.sectionHeader}>
             <MaterialIcons name="eco" size={18} color={palette.forest[500]} />
-            <Text style={[styles.sectionTitle, { color: colors.textPrimary }]}>Sugestões de Natureza</Text>
+            <Text style={[styles.sectionTitle, { color: colors.textPrimary }]}>{t('components.discoveryCard.natureSuggestions')}</Text>
           </View>
           {enrichment.nature_suggestions.map((sug: any, i: number) => (
             <TouchableOpacity
@@ -170,11 +172,11 @@ const DiscoveryCard: React.FC<DiscoveryCardProps> = ({
         <View style={[styles.itinerarySection, { backgroundColor: colors.surfaceAlt, borderColor: colors.border }]}>
           <View style={styles.sectionHeader}>
             <MaterialIcons name="event-note" size={18} color={palette.terracotta[500]} />
-            <Text style={[styles.sectionTitle, { color: colors.textPrimary }]}>Itinerário Sustentável (2 dias)</Text>
+            <Text style={[styles.sectionTitle, { color: colors.textPrimary }]}>{t('components.discoveryCard.itineraryTitle')}</Text>
           </View>
 
           <View style={[styles.dayCard, { backgroundColor: colors.card }]}>
-            <Text style={styles.dayLabel}>Dia 1 - Noite</Text>
+            <Text style={styles.dayLabel}>{t('components.discoveryCard.day1Evening')}</Text>
             <Text style={[styles.dayActivity, { color: colors.textPrimary }]}>{itinerary.day_1_evening.activity}</Text>
           </View>
 
@@ -182,13 +184,13 @@ const DiscoveryCard: React.FC<DiscoveryCardProps> = ({
             <View style={styles.transportArrow}>
               <MaterialIcons name="arrow-downward" size={20} color={palette.terracotta[500]} />
               <Text style={styles.transportNote}>
-                {itinerary.transport_between.direct_distance_km} km por transporte público
+                {t('components.discoveryCard.byPublicTransport', { km: itinerary.transport_between.direct_distance_km })}
               </Text>
             </View>
           )}
 
           <View style={[styles.dayCard, { backgroundColor: colors.card }]}>
-            <Text style={styles.dayLabel}>Dia 2 - Manhã</Text>
+            <Text style={styles.dayLabel}>{t('components.discoveryCard.day2Morning')}</Text>
             <Text style={[styles.dayActivity, { color: colors.textPrimary }]}>{itinerary.day_2_morning.activity}</Text>
             {itinerary.day_2_morning.notable_species && (
               <View style={styles.highlightsRow}>
@@ -204,7 +206,7 @@ const DiscoveryCard: React.FC<DiscoveryCardProps> = ({
           {itinerary.sustainability_tips && (
             <View style={[styles.tipsBox, { backgroundColor: colors.surface }]}>
               <MaterialIcons name="lightbulb" size={16} color={palette.forest[500]} />
-              <Text style={[styles.tipsTitle, { color: colors.textPrimary }]}>Dicas de Sustentabilidade</Text>
+              <Text style={[styles.tipsTitle, { color: colors.textPrimary }]}>{t('discovery.sustainabilityTips')}</Text>
               {itinerary.sustainability_tips.slice(0, 3).map((tip: string, i: number) => (
                 <Text key={i} style={[styles.tipText, { color: colors.textSecondary }]}>- {tip}</Text>
               ))}

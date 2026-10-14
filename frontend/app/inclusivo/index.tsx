@@ -12,6 +12,7 @@ import {
 import { MaterialIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useTranslation } from 'react-i18next';
 import { getModuleTheme, withOpacity, onColor } from '../../src/theme/colors';
 import ModuleHighlights from '../../src/components/module/ModuleHighlights';
 import ModuleGuideCta from '../../src/components/module/ModuleGuideCta';
@@ -31,67 +32,40 @@ const C = {
   onAccent: onColor(MT.accent),
 };
 
-interface RegionalRead {
-  title: string;
-  desc: string;
-}
-
-const REGIONS: { id: string; label: string }[] = [
-  { id: 'norte', label: 'Norte' },
-  { id: 'centro', label: 'Centro' },
-  { id: 'lisboa', label: 'Lisboa e Vale do Tejo' },
-  { id: 'alentejo', label: 'Alentejo' },
-  { id: 'algarve', label: 'Algarve' },
-  { id: 'acores', label: 'Açores' },
-  { id: 'madeira', label: 'Madeira' },
+const REGIONS: { id: string; labelKey: string }[] = [
+  { id: 'norte', labelKey: 'modulesRoutes.inclusivo.regions.norte' },
+  { id: 'centro', labelKey: 'modulesRoutes.inclusivo.regions.centro' },
+  { id: 'lisboa', labelKey: 'modulesRoutes.inclusivo.regions.lisboa' },
+  { id: 'alentejo', labelKey: 'modulesRoutes.inclusivo.regions.alentejo' },
+  { id: 'algarve', labelKey: 'modulesRoutes.inclusivo.regions.algarve' },
+  { id: 'acores', labelKey: 'modulesRoutes.inclusivo.regions.acores' },
+  { id: 'madeira', labelKey: 'modulesRoutes.inclusivo.regions.madeira' },
 ];
 
-/** Leituras de acessibilidade por região — 3 por região. */
-const REGIONAL_READS: Record<string, RegionalRead[]> = {
-  norte: [
-    { title: 'Praias acessíveis de Matosinhos a Vila do Conde', desc: 'Passadeira até à água, cadeira anfíbia e apoio de nadador-salvador na época balnear — confirme no posto de praia.' },
-    { title: 'Metro do Porto e frente ribeirinha', desc: 'Toda a rede tem elevador e piso tátil; a marginal do Douro dá um percurso plano até à Foz.' },
-    { title: 'Ecopistas do Tâmega e do Corgo', desc: 'Antigas linhas férreas em plataforma contínua, sem degraus e com desnível mínimo.' },
-  ],
-  centro: [
-    { title: 'Museus e centros de ciência acessíveis', desc: 'Museu Vista Alegre, Ciência Viva de Aveiro e Museu do Papel têm circuito completo sem degraus.' },
-    { title: 'Passadiços do Mondego em troço plano', desc: 'O troço junto à Ponte da Mucela é o mais regular; os acessos de Góis têm estacionamento adaptado.' },
-    { title: 'Aldeias históricas — planear a visita', desc: 'Piódão e Monsanto têm calçada irregular e declives: escolha os miradouros com estacionamento próximo e apoio.' },
-  ],
-  lisboa: [
-    { title: 'Praias com cadeira anfíbia na Caparica e Cascais', desc: 'Várias praias têm passadeira, cadeira anfíbia e apoio de banho assistido entre junho e setembro.' },
-    { title: 'Metro, elevadores e Belém', desc: 'Quase todas as estações têm elevador; a frente ribeirinha de Belém a Algés é plana e contínua.' },
-    { title: 'Museus com apoio adaptado', desc: 'Gulbenkian, MAAT e Oceanário têm percursos acessíveis, visitas em LGP e material tátil por marcação.' },
-  ],
-  alentejo: [
-    { title: 'Évora acessível no centro histórico', desc: 'O circuito Templo–Sé–Praça do Giraldo tem calçada regularizada; peça o mapa acessível no posto de turismo.' },
-    { title: 'Alqueva e barcos com acesso', desc: 'Os cais de Amieira têm rampas e há embarcações com embarque adaptado por marcação.' },
-    { title: 'Observação de céu escuro sem trilho', desc: 'As sessões Dark Sky fazem-se em plataformas com acesso de carro — não exigem caminhada.' },
-  ],
-  algarve: [
-    { title: 'Rede de praias acessíveis do sotavento', desc: 'A maior concentração do país: passadeira, cadeira anfíbia e apoio balnear em praias de Faro a Monte Gordo.' },
-    { title: 'Passadiços da Ria Formosa em Marim', desc: 'Plataforma contínua com painéis e miradouros, adequada a cadeira de rodas com acompanhante.' },
-    { title: 'Ecovia do Litoral em troços planos', desc: 'Os segmentos de Tavira a Cabanas e da Praia de Faro são planos e pavimentados.' },
-  ],
-  acores: [
-    { title: 'Frentes de mar acessíveis', desc: 'Ponta Delgada, Angra e Horta têm marginais planas, com miradouros e piscinas com rampa.' },
-    { title: 'Furnas e caldeiras com acesso de carro', desc: 'O percurso das caldeiras e o Terra Nostra permitem ver a atividade geotérmica sem trilho.' },
-    { title: 'Observação de cetáceos com embarque assistido', desc: 'Alguns operadores têm barco com acesso facilitado — confirme sempre por telefone na véspera.' },
-  ],
-  madeira: [
-    { title: 'Funchal e teleféricos', desc: 'A baixa, a marginal e o teleférico do Monte formam um circuito acessível com vista de encosta.' },
-    { title: 'Miradouros com acesso adaptado', desc: 'Cabo Girão tem skywalk com piso regular e estacionamento adaptado, sem necessidade de caminhada.' },
-    { title: 'Piscinas naturais com estrutura', desc: 'Porto Moniz tem acesso adaptado ao complexo principal, com vestiários e rampa.' },
-  ],
+/**
+ * Leituras de acessibilidade por região — 3 por região. Os textos vivem em
+ * `modulesRoutes.inclusivo.reads.<região>.<id>.{title,desc}` (i18n).
+ */
+const REGIONAL_READS: Record<string, string[]> = {
+  norte: ['r1', 'r2', 'r3'],
+  centro: ['r1', 'r2', 'r3'],
+  lisboa: ['r1', 'r2', 'r3'],
+  alentejo: ['r1', 'r2', 'r3'],
+  algarve: ['r1', 'r2', 'r3'],
+  acores: ['r1', 'r2', 'r3'],
+  madeira: ['r1', 'r2', 'r3'],
 };
 
 export default function InclusivoScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const { t } = useTranslation();
   const [activeRegion, setActiveRegion] = useState(REGIONS[0].id);
 
-  const reads = REGIONAL_READS[activeRegion] ?? [];
-  const regionLabel = REGIONS.find((r) => r.id === activeRegion)?.label ?? '';
+  const reads = (REGIONAL_READS[activeRegion] ?? []).map((id) => ({
+    title: t(`modulesRoutes.inclusivo.reads.${activeRegion}.${id}.title`),
+    desc: t(`modulesRoutes.inclusivo.reads.${activeRegion}.${id}.desc`),
+  }));
 
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
@@ -102,13 +76,13 @@ export default function InclusivoScreen() {
             onPress={() => router.back()}
             style={styles.backBtn}
             accessibilityRole="button"
-            accessibilityLabel="Voltar"
+            accessibilityLabel={t('common.back')}
           >
             <MaterialIcons name="arrow-back" size={22} color={C.textDark} />
           </TouchableOpacity>
           <View style={styles.headerContent}>
-            <Text style={styles.headerTitle}>Turismo Inclusivo</Text>
-            <Text style={styles.headerSubtitle}>Portugal para todos</Text>
+            <Text style={styles.headerTitle}>{t('modulesRoutes.inclusivo.title')}</Text>
+            <Text style={styles.headerSubtitle}>{t('modulesRoutes.inclusivo.subtitle')}</Text>
           </View>
           <View style={styles.headerIcon}>
             <MaterialIcons name="accessible" size={24} color={C.accent} />
@@ -116,8 +90,7 @@ export default function InclusivoScreen() {
         </View>
 
         <Text style={styles.intro}>
-          Praias, percursos e equipamentos acessíveis — informação verificada para
-          mobilidade reduzida, famílias e animais.
+          {t('modulesRoutes.inclusivo.intro')}
         </Text>
 
         <ModuleHighlights module="inclusivo" />
@@ -125,7 +98,7 @@ export default function InclusivoScreen() {
 
 
         {/* ── Leitura por região ─────────────────────────────────────────── */}
-        <Text style={styles.sectionLabel}>REGIÃO</Text>
+        <Text style={styles.sectionLabel}>{t('modulesRoutes.inclusivo.regionLabel')}</Text>
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
@@ -141,14 +114,14 @@ export default function InclusivoScreen() {
                 accessibilityRole="button"
                 accessibilityState={{ selected: on }}
               >
-                <Text style={[styles.chipText, on && styles.chipTextActive]}>{r.label}</Text>
+                <Text style={[styles.chipText, on && styles.chipTextActive]}>{t(r.labelKey)}</Text>
               </TouchableOpacity>
             );
           })}
         </ScrollView>
 
         <View style={styles.readsWrap}>
-          <Text style={styles.readsTitle}>Acessibilidade no {regionLabel}</Text>
+          <Text style={styles.readsTitle}>{t(`modulesRoutes.inclusivo.readsTitle.${activeRegion}`)}</Text>
           {reads.map((r) => (
             <View key={r.title} style={styles.readCard}>
               <MaterialIcons name="check-circle" size={17} color={C.accent} style={styles.readIcon} />
@@ -168,7 +141,7 @@ export default function InclusivoScreen() {
         <View style={styles.infoFooter}>
           <MaterialIcons name="info-outline" size={14} color={C.textLight} />
           <Text style={styles.infoFooterText}>
-            Confirme sempre o apoio disponível junto do posto de praia ou do município.
+            {t('modulesRoutes.inclusivo.footer')}
           </Text>
         </View>
 

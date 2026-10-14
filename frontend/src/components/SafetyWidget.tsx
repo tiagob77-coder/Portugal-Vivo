@@ -4,6 +4,7 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { useQuery } from '@tanstack/react-query';
 import { getSafetyCheck, getActiveFires } from '../services/api';
 import { colors, typography, spacing, borders, shadows } from '../theme';
+import { useTranslation } from 'react-i18next';
 
 interface SafetyWidgetProps {
   lat?: number;
@@ -18,6 +19,7 @@ export const SafetyWidget: React.FC<SafetyWidgetProps> = ({
   onPress,
   compact = false
 }) => {
+  const { t } = useTranslation();
   const { data: safetyData, isLoading } = useQuery({
     queryKey: ['safety-check', lat, lng],
     queryFn: () => getSafetyCheck(lat, lng),
@@ -50,24 +52,24 @@ export const SafetyWidget: React.FC<SafetyWidgetProps> = ({
           icon: 'error',
           color: '#DC2626',
           bgColor: '#FEE2E2',
-          title: 'Perigo',
-          subtitle: 'Riscos na área',
+          title: t('widgets.safety.dangerTitle'),
+          subtitle: t('widgets.safety.dangerSubtitle'),
         };
       case 'warning':
         return {
           icon: 'warning',
           color: colors.terracotta[500],
           bgColor: colors.terracotta[100],
-          title: 'Atenção',
-          subtitle: 'Alertas ativos',
+          title: t('widgets.safety.warningTitle'),
+          subtitle: t('widgets.safety.warningSubtitle'),
         };
       default:
         return {
           icon: 'check-circle',
           color: '#16A34A',
           bgColor: '#DCFCE7',
-          title: 'Seguro',
-          subtitle: 'Sem alertas',
+          title: t('widgets.safety.safeTitle'),
+          subtitle: t('widgets.safety.safeSubtitle'),
         };
     }
   };
@@ -120,9 +122,11 @@ export const SafetyWidget: React.FC<SafetyWidgetProps> = ({
       {totalFires > 0 && (
         <View style={styles.firesInfo}>
           <Text style={styles.firesText}>
-            {totalFires} {totalFires === 1 ? 'ocorrência' : 'ocorrências'} em Portugal
+            {totalFires === 1
+              ? t('widgets.safety.oneOccurrence', { count: totalFires })
+              : t('widgets.safety.occurrences', { count: totalFires })}
           </Text>
-          <Text style={styles.sourceText}>Fonte: Fogos.pt / Proteção Civil</Text>
+          <Text style={styles.sourceText}>{t('widgets.safety.source')}</Text>
         </View>
       )}
 

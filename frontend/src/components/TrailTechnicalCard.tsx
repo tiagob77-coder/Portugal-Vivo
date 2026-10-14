@@ -7,6 +7,7 @@ import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useTheme } from '../context/ThemeContext';
+import { useTranslation } from 'react-i18next';
 
 export type TrailDifficulty = 'facil' | 'moderado' | 'dificil' | 'muito_dificil';
 export type TrailType = 'linear' | 'circular' | 'ida_volta';
@@ -27,17 +28,17 @@ interface Props {
   data: TrailTechnicalData;
 }
 
-const DIFFICULTY_CONFIG: Record<TrailDifficulty, { label: string; color: string; bg: string }> = {
-  facil: { label: 'Fácil', color: '#22C55E', bg: '#F0FDF4' },
-  moderado: { label: 'Moderado', color: '#EAB308', bg: '#FEFCE8' },
-  dificil: { label: 'Difícil', color: '#F97316', bg: '#FFF7ED' },
-  muito_dificil: { label: 'Muito Difícil', color: '#EF4444', bg: '#FEF2F2' },
+const DIFFICULTY_CONFIG: Record<TrailDifficulty, { labelKey: string; color: string; bg: string }> = {
+  facil: { labelKey: 'widgets.trailTech.facil', color: '#22C55E', bg: '#F0FDF4' },
+  moderado: { labelKey: 'widgets.trailTech.moderado', color: '#EAB308', bg: '#FEFCE8' },
+  dificil: { labelKey: 'widgets.trailTech.dificil', color: '#F97316', bg: '#FFF7ED' },
+  muito_dificil: { labelKey: 'widgets.trailTech.muitoDificil', color: '#EF4444', bg: '#FEF2F2' },
 };
 
-const TYPE_CONFIG: Record<TrailType, { label: string; icon: string }> = {
-  linear: { label: 'Linear', icon: 'trending-flat' },
-  circular: { label: 'Circular', icon: 'loop' },
-  ida_volta: { label: 'Ida e Volta', icon: 'compare-arrows' },
+const TYPE_CONFIG: Record<TrailType, { labelKey: string; icon: string }> = {
+  linear: { labelKey: 'widgets.trailTech.linear', icon: 'trending-flat' },
+  circular: { labelKey: 'widgets.trailTech.circular', icon: 'loop' },
+  ida_volta: { labelKey: 'widgets.trailTech.idaVolta', icon: 'compare-arrows' },
 };
 
 function fmtDuration(h?: number): string {
@@ -51,14 +52,15 @@ function fmtDuration(h?: number): string {
 
 export default function TrailTechnicalCard({ data }: Props) {
   const { colors } = useTheme();
+  const { t } = useTranslation();
   const diff = DIFFICULTY_CONFIG[data.difficulty || 'moderado'];
   const type = TYPE_CONFIG[data.trail_type || 'linear'];
 
   const stats = [
-    { icon: 'straighten', color: '#3B82F6', value: data.distance_km ? `${data.distance_km.toFixed(1)} km` : '—', label: 'Distância' },
-    { icon: 'schedule', color: palette.terracotta[500], value: fmtDuration(data.estimated_hours), label: 'Duração' },
-    { icon: 'arrow-upward', color: '#22C55E', value: data.elevation_gain ? `+${data.elevation_gain}m` : '—', label: 'Subida' },
-    { icon: 'terrain', color: '#8B5CF6', value: data.max_elevation ? `${data.max_elevation}m` : '—', label: 'Alt. Máx.' },
+    { icon: 'straighten', color: '#3B82F6', value: data.distance_km ? `${data.distance_km.toFixed(1)} km` : '—', label: t('widgets.trailTech.distance') },
+    { icon: 'schedule', color: palette.terracotta[500], value: fmtDuration(data.estimated_hours), label: t('widgets.trailTech.duration') },
+    { icon: 'arrow-upward', color: '#22C55E', value: data.elevation_gain ? `+${data.elevation_gain}m` : '—', label: t('widgets.trailTech.ascent') },
+    { icon: 'terrain', color: '#8B5CF6', value: data.max_elevation ? `${data.max_elevation}m` : '—', label: t('widgets.trailTech.maxAlt') },
   ] as const;
 
   return (
@@ -80,11 +82,11 @@ export default function TrailTechnicalCard({ data }: Props) {
       {/* Difficulty + type + terrain */}
       <View style={tc.metaRow}>
         <View style={[tc.diffBadge, { backgroundColor: diff.bg }]}>
-          <Text style={[tc.diffTxt, { color: diff.color }]}>{diff.label}</Text>
+          <Text style={[tc.diffTxt, { color: diff.color }]}>{t(diff.labelKey)}</Text>
         </View>
         <View style={[tc.typePill, { backgroundColor: colors.surface }]}>
           <MaterialIcons name={type.icon as any} size={13} color={colors.textSecondary} />
-          <Text style={[tc.typeTxt, { color: colors.textSecondary }]}>{type.label}</Text>
+          <Text style={[tc.typeTxt, { color: colors.textSecondary }]}>{t(type.labelKey)}</Text>
         </View>
         {data.terrain_type && (
           <View style={[tc.terrainPill, { backgroundColor: colors.surface }]}>

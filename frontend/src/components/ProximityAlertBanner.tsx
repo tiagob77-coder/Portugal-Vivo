@@ -16,6 +16,7 @@ import { useRouter } from 'expo-router';
 import { typography, spacing, borders, shadows, palette, withOpacity } from '../theme';
 import { ProximityAlert } from '../services/geofencing';
 import { getModuleConfig } from '../config/modules';
+import { useTranslation } from 'react-i18next';
 
 interface Props {
   alerts: ProximityAlert[];
@@ -23,6 +24,7 @@ interface Props {
 }
 
 export default function ProximityAlertBanner({ alerts, onDismiss }: Props) {
+  const { t } = useTranslation();
   const slideAnim = useRef(new Animated.Value(-120)).current;
   const opacityAnim = useRef(new Animated.Value(0)).current;
   const router = useRouter();
@@ -119,7 +121,7 @@ export default function ProximityAlertBanner({ alerts, onDismiss }: Props) {
           </View>
           {isRare && (
             <View style={styles.rareBadge}>
-              <Text style={styles.rareBadgeText}>RARO</Text>
+              <Text style={styles.rareBadgeText}>{t('widgets.proximityAlert.rare')}</Text>
             </View>
           )}
         </View>
@@ -138,7 +140,7 @@ export default function ProximityAlertBanner({ alerts, onDismiss }: Props) {
             </View>
             {mod && (
               <View style={[styles.iqBadge, { backgroundColor: accentColor }]}>
-                <Text style={styles.iqText}>{mod.label}</Text>
+                <Text style={styles.iqText}>{t(`widgets.modules.${mod.slug}`, { defaultValue: mod.label })}</Text>
               </View>
             )}
             {alert.iq_score && (

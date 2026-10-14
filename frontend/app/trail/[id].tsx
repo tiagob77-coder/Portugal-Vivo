@@ -11,6 +11,7 @@ import ElevationProfile from '../../src/components/ElevationProfile';
 import TrailTechnicalCard from '../../src/components/TrailTechnicalCard';
 import { colors } from '../../src/theme';
 import { trackImpact } from '../../src/services/impactTracking';
+import { useTranslation } from 'react-i18next';
 
 type TabKey = 'info' | 'perfil' | 'pois';
 
@@ -21,11 +22,11 @@ const FIRE_RISK_COLORS: Record<string, string> = {
   very_high: '#EF4444',
 };
 
-const FIRE_RISK_LABELS: Record<string, string> = {
-  low: 'Risco Baixo',
-  medium: 'Risco Médio',
-  high: 'Risco Elevado',
-  very_high: 'Risco Muito Elevado',
+const FIRE_RISK_LABEL_KEYS: Record<string, string> = {
+  low: 'details.trail.fireRisk.low',
+  medium: 'details.trail.fireRisk.medium',
+  high: 'details.trail.fireRisk.high',
+  very_high: 'details.trail.fireRisk.veryHigh',
 };
 
 const REGION_LABELS: Record<string, string> = {
@@ -42,6 +43,7 @@ export default function TrailDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState<TabKey>('info');
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
 
@@ -121,9 +123,9 @@ export default function TrailDetailScreen() {
       <View style={[s.container, s.center]}>
         <Stack.Screen options={{ headerShown: false }} />
         <MaterialIcons name="error-outline" size={48} color="#EF4444" />
-        <Text style={s.errorText}>Trilho não encontrado</Text>
+        <Text style={s.errorText}>{t('details.trail.notFound')}</Text>
         <TouchableOpacity style={s.backBtn} onPress={() => router.back()}>
-          <Text style={s.backBtnTxt}>Voltar</Text>
+          <Text style={s.backBtnTxt}>{t('common.back')}</Text>
         </TouchableOpacity>
       </View>
     );
@@ -139,8 +141,8 @@ export default function TrailDetailScreen() {
   const weather = safetyData?.weather as Record<string, any> | undefined;
 
   const trailCanonical = `https://portugal-vivo.app/trail/${id}`;
-  const trailDesc = trail.description ? trail.description.slice(0, 160) : `Trilho ${trail.name} — ${regionLabel || 'Portugal'}`;
-  const trailTitle = `${trail.name} — Trilho em ${regionLabel || 'Portugal'} | Portugal Vivo`;
+  const trailDesc = trail.description ? trail.description.slice(0, 160) : t('details.trail.seoDescription', { name: trail.name, region: regionLabel || 'Portugal' });
+  const trailTitle = t('details.trail.seoTitle', { name: trail.name, region: regionLabel || 'Portugal' });
   const trailSchema = {
     '@context': 'https://schema.org',
     '@type': 'SportsActivityLocation',
@@ -182,7 +184,7 @@ export default function TrailDetailScreen() {
         colors={['#1B3D39', '#2E5E4E']}
         style={[s.header, { paddingTop: insets.top + 8 }]}
       >
-        <TouchableOpacity style={s.backButton} onPress={() => router.back()} accessibilityLabel="Voltar">
+        <TouchableOpacity style={s.backButton} onPress={() => router.back()} accessibilityLabel={t('common.back')}>
           <MaterialIcons name="arrow-back" size={24} color="#FAF8F3" />
         </TouchableOpacity>
 
@@ -229,7 +231,7 @@ export default function TrailDetailScreen() {
               onPress={() => setActiveTab(tab)}
             >
               <Text style={[s.tabLabel, activeTab === tab && s.tabLabelActive]}>
-                {tab === 'info' ? 'Informação' : tab === 'perfil' ? 'Perfil' : 'POIs'}
+                {tab === 'info' ? t('details.trail.tabs.info') : tab === 'perfil' ? t('details.trail.tabs.profile') : t('details.trail.tabs.pois')}
               </Text>
             </TouchableOpacity>
           ))}
@@ -240,7 +242,7 @@ export default function TrailDetailScreen() {
           <View style={s.tabContent}>
             {trail.description ? (
               <View style={s.card}>
-                <Text style={s.cardTitle}>Descrição</Text>
+                <Text style={s.cardTitle}>{t('details.trail.description')}</Text>
                 <Text style={s.bodyText}>{trail.description}</Text>
               </View>
             ) : null}
@@ -248,7 +250,7 @@ export default function TrailDetailScreen() {
             {/* Tags */}
             {trail.tags && trail.tags.length > 0 && (
               <View style={s.card}>
-                <Text style={s.cardTitle}>Etiquetas</Text>
+                <Text style={s.cardTitle}>{t('details.trail.tags')}</Text>
                 <View style={s.tagsRow}>
                   {trail.tags.map((tag) => (
                     <View key={tag} style={s.tag}>
@@ -262,7 +264,7 @@ export default function TrailDetailScreen() {
             {/* Terrain */}
             {trail.terrain_type ? (
               <View style={s.card}>
-                <Text style={s.cardTitle}>Terreno</Text>
+                <Text style={s.cardTitle}>{t('details.trail.terrain')}</Text>
                 <View style={s.terrainRow}>
                   <MaterialIcons name="nature" size={18} color="#22C55E" />
                   <Text style={s.bodyText}>{trail.terrain_type}</Text>
@@ -273,16 +275,16 @@ export default function TrailDetailScreen() {
             {/* Safety alerts */}
             {safetyData && (
               <View style={s.card}>
-                <Text style={s.cardTitle}>Alertas e Condições</Text>
+                <Text style={s.cardTitle}>{t('details.trail.alertsTitle')}</Text>
 
                 {fireRisk && (
                   <View style={[s.alertCard, { borderLeftColor: FIRE_RISK_COLORS[fireRisk] || '#9CA3AF' }]}>
                     <MaterialIcons name="local-fire-department" size={18} color={FIRE_RISK_COLORS[fireRisk] || '#9CA3AF'} />
                     <View style={s.alertTextWrap}>
                       <Text style={[s.alertTitle, { color: FIRE_RISK_COLORS[fireRisk] || '#9CA3AF' }]}>
-                        {FIRE_RISK_LABELS[fireRisk] || 'Risco Desconhecido'}
+                        {FIRE_RISK_LABEL_KEYS[fireRisk] ? t(FIRE_RISK_LABEL_KEYS[fireRisk]) : t('details.trail.fireRisk.unknown')}
                       </Text>
-                      <Text style={s.alertBody}>Incêndio florestal — verifique as autoridades locais.</Text>
+                      <Text style={s.alertBody}>{t('details.trail.fireAlert')}</Text>
                     </View>
                   </View>
                 )}
@@ -291,7 +293,7 @@ export default function TrailDetailScreen() {
                   <View style={[s.alertCard, { borderLeftColor: '#3B82F6' }]}>
                     <MaterialIcons name="wb-cloudy" size={18} color="#3B82F6" />
                     <View style={s.alertTextWrap}>
-                      <Text style={[s.alertTitle, { color: '#3B82F6' }]}>Meteorologia</Text>
+                      <Text style={[s.alertTitle, { color: '#3B82F6' }]}>{t('details.trail.weather')}</Text>
                       <Text style={s.alertBody}>{weather.description}</Text>
                     </View>
                   </View>
@@ -301,8 +303,8 @@ export default function TrailDetailScreen() {
                   <View style={[s.alertCard, { borderLeftColor: '#6366F1' }]}>
                     <MaterialIcons name="air" size={18} color="#6366F1" />
                     <View style={s.alertTextWrap}>
-                      <Text style={[s.alertTitle, { color: '#6366F1' }]}>Vento Forte</Text>
-                      <Text style={s.alertBody}>{windSpeed} km/h — tome precauções.</Text>
+                      <Text style={[s.alertTitle, { color: '#6366F1' }]}>{t('details.trail.strongWind')}</Text>
+                      <Text style={s.alertBody}>{t('details.trail.windAlert', { speed: windSpeed })}</Text>
                     </View>
                   </View>
                 )}
@@ -315,7 +317,7 @@ export default function TrailDetailScreen() {
         {activeTab === 'perfil' && (
           <View style={s.tabContent}>
             <View style={s.card}>
-              <Text style={s.cardTitle}>Perfil de Elevação</Text>
+              <Text style={s.cardTitle}>{t('details.trail.elevationProfile')}</Text>
               {elevProfile.length > 0 ? (
                 <ElevationProfile
                   data={elevProfile}
@@ -325,7 +327,7 @@ export default function TrailDetailScreen() {
               ) : (
                 <View style={s.emptyState}>
                   <MaterialIcons name="terrain" size={40} color="#D1D5DB" />
-                  <Text style={s.emptyText}>Dados de elevação indisponíveis</Text>
+                  <Text style={s.emptyText}>{t('details.trail.noElevationData')}</Text>
                 </View>
               )}
             </View>
@@ -338,7 +340,7 @@ export default function TrailDetailScreen() {
             {pois.length === 0 ? (
               <View style={s.emptyState}>
                 <MaterialIcons name="place" size={40} color="#D1D5DB" />
-                <Text style={s.emptyText}>Nenhum ponto de interesse encontrado</Text>
+                <Text style={s.emptyText}>{t('details.trail.noPois')}</Text>
               </View>
             ) : (
               pois.map((poi: any, idx: number) => (
@@ -354,14 +356,14 @@ export default function TrailDetailScreen() {
                   </View>
                   <View style={s.poiInfo}>
                     <Text style={s.poiName} numberOfLines={1}>
-                      {(poi as any).name || 'Ponto de interesse'}
+                      {(poi as any).name || t('details.trail.poiFallback')}
                     </Text>
                     {(poi as any).category ? (
                       <Text style={s.poiCategory}>{(poi as any).category}</Text>
                     ) : null}
                     {(poi as any).distance_m !== undefined ? (
                       <Text style={s.poiDist}>
-                        {((poi as any).distance_m / 1000).toFixed(1)} km do trilho
+                        {t('details.trail.poiDistance', { km: ((poi as any).distance_m / 1000).toFixed(1) })}
                       </Text>
                     ) : null}
                   </View>
@@ -377,7 +379,7 @@ export default function TrailDetailScreen() {
       <View style={[s.bottomBar, { paddingBottom: insets.bottom + 12 }]}>
         <TouchableOpacity style={s.ctaButton} onPress={openGoogleMaps} activeOpacity={0.85}>
           <MaterialIcons name="directions-walk" size={20} color="#FFFFFF" />
-          <Text style={s.ctaText}>Iniciar Trilho</Text>
+          <Text style={s.ctaText}>{t('details.trail.start')}</Text>
         </TouchableOpacity>
       </View>
     </View>

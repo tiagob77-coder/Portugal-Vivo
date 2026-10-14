@@ -4,6 +4,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import { useTheme } from '../context/ThemeContext';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -39,18 +40,19 @@ interface MusicCardProps {
 
 type MaterialIconName = React.ComponentProps<typeof MaterialIcons>['name'];
 
+// Label translated at render: modulesCulture.musicCard.types.<type>
 const TYPE_CONFIG: Record<
   MusicItem['type'],
-  { color: string; bg: string; label: string; icon: MaterialIconName }
+  { color: string; bg: string; icon: MaterialIconName }
 > = {
-  fado:               { color: '#8B5CF6', bg: '#8B5CF620', label: 'Fado',              icon: 'music-note' },
-  folclore:           { color: '#D946EF', bg: '#D946EF20', label: 'Folclore',          icon: 'groups' },
-  canto_polifonico:   { color: '#0EA5E9', bg: '#0EA5E920', label: 'Canto Polifónico',  icon: 'mic' },
-  canto_tradicional:  { color: '#14B8A6', bg: '#14B8A620', label: 'Canto Tradicional', icon: 'record-voice-over' },
-  danca_tradicional:  { color: '#F97316', bg: '#F9731620', label: 'Dança',             icon: 'directions-run' },
-  instrumento:        { color: '#EAB308', bg: '#EAB30820', label: 'Instrumento',       icon: 'piano' },
-  festival:           { color: '#EC4899', bg: '#EC489920', label: 'Festival',          icon: 'festival' },
-  tuna:               { color: '#6366F1', bg: '#6366F120', label: 'Tuna',              icon: 'school' },
+  fado:               { color: '#8B5CF6', bg: '#8B5CF620', icon: 'music-note' },
+  folclore:           { color: '#D946EF', bg: '#D946EF20', icon: 'groups' },
+  canto_polifonico:   { color: '#0EA5E9', bg: '#0EA5E920', icon: 'mic' },
+  canto_tradicional:  { color: '#14B8A6', bg: '#14B8A620', icon: 'record-voice-over' },
+  danca_tradicional:  { color: '#F97316', bg: '#F9731620', icon: 'directions-run' },
+  instrumento:        { color: '#EAB308', bg: '#EAB30820', icon: 'piano' },
+  festival:           { color: '#EC4899', bg: '#EC489920', icon: 'festival' },
+  tuna:               { color: '#6366F1', bg: '#6366F120', icon: 'school' },
 };
 
 // ─── Component ────────────────────────────────────────────────────────────────
@@ -64,6 +66,7 @@ export default function MusicCard({
   const visibleInstruments = item.instruments?.slice(0, 3) ?? [];
   const extraInstruments = (item.instruments?.length ?? 0) - visibleInstruments.length;
   const { colors } = useTheme();
+  const { t } = useTranslation();
 
   return (
     <TouchableOpacity
@@ -81,7 +84,9 @@ export default function MusicCard({
           <Text style={[styles.itemName, { color: colors.textPrimary }]} numberOfLines={2}>{item.name}</Text>
           <View style={styles.badgeRow}>
             <View style={[styles.typeBadge, { backgroundColor: cfg.bg }]}>
-              <Text style={[styles.typeBadgeText, { color: cfg.color }]}>{cfg.label}</Text>
+              <Text style={[styles.typeBadgeText, { color: cfg.color }]}>
+                {t(`modulesCulture.musicCard.types.${item.type}`)}
+              </Text>
             </View>
             {item.unesco && (
               <View style={styles.unescoBadge}>
@@ -130,7 +135,9 @@ export default function MusicCard({
           ))}
           {extraInstruments > 0 && (
             <View style={[styles.chip, styles.chipExtra]}>
-              <Text style={[styles.chipText, styles.chipExtraText]}>+{extraInstruments} mais</Text>
+              <Text style={[styles.chipText, styles.chipExtraText]}>
+                {t('modulesCulture.shared.more', { count: extraInstruments })}
+              </Text>
             </View>
           )}
         </View>

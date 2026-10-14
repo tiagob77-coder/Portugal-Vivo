@@ -4,27 +4,29 @@ import { useRouter } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useQuery } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
 import { getRoutes } from '../../src/services/api';
 import RouteCard from '../../src/components/RouteCard';
 import { Route } from '../../src/types';
 import { useTheme } from '../../src/context/ThemeContext';
 
 const ROUTE_CATEGORIES = [
-  { id: 'all', name: 'Todas', icon: 'route' },
-  { id: 'peregrino', name: 'Santiago', icon: 'directions-walk' },
-  { id: 'road_trip', name: 'Road Trip', icon: 'directions-car' },
-  { id: 'caminhada', name: 'Trilhos', icon: 'hiking' },
-  { id: 'patrimonio', name: 'Patrimônio', icon: 'castle' },
-  { id: 'natureza', name: 'Natureza', icon: 'forest' },
-  { id: 'gastronomia', name: 'Gastronomia', icon: 'restaurant' },
-  { id: 'cultural', name: 'Cultural', icon: 'museum' },
-  { id: 'bem-estar', name: 'Bem-estar', icon: 'spa' },
-  { id: 'vinho', name: 'Vinho', icon: 'local-bar' },
-  { id: 'religioso', name: 'Religioso', icon: 'church' },
+  { id: 'all', nameKey: 'coreTabs.routes.categories.all', icon: 'route' },
+  { id: 'peregrino', nameKey: 'coreTabs.routes.categories.pilgrim', icon: 'directions-walk' },
+  { id: 'road_trip', nameKey: 'coreTabs.routes.categories.roadTrip', icon: 'directions-car' },
+  { id: 'caminhada', nameKey: 'coreTabs.routes.categories.trails', icon: 'hiking' },
+  { id: 'patrimonio', nameKey: 'coreTabs.routes.categories.heritage', icon: 'castle' },
+  { id: 'natureza', nameKey: 'coreTabs.routes.categories.nature', icon: 'forest' },
+  { id: 'gastronomia', nameKey: 'coreTabs.routes.categories.gastronomy', icon: 'restaurant' },
+  { id: 'cultural', nameKey: 'coreTabs.routes.categories.cultural', icon: 'museum' },
+  { id: 'bem-estar', nameKey: 'coreTabs.routes.categories.wellness', icon: 'spa' },
+  { id: 'vinho', nameKey: 'coreTabs.routes.categories.wine', icon: 'local-bar' },
+  { id: 'religioso', nameKey: 'coreTabs.routes.categories.religious', icon: 'church' },
 ];
 
 export default function RoutesScreen() {
   const { colors } = useTheme();
+  const { t } = useTranslation();
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const [selectedCategory, setSelectedCategory] = useState('all');
@@ -44,8 +46,8 @@ export default function RoutesScreen() {
     <View style={[styles.container, { paddingTop: insets.top, backgroundColor: colors.background }]}>
       {/* Header */}
       <View style={styles.header}>
-        <Text style={[styles.headerTitle, { color: colors.textPrimary }]}>Rotas Temáticas</Text>
-        <Text style={[styles.headerSubtitle, { color: colors.textSecondary }]}>Percursos para descobrir Portugal</Text>
+        <Text style={[styles.headerTitle, { color: colors.textPrimary }]}>{t('routes.title')}</Text>
+        <Text style={[styles.headerSubtitle, { color: colors.textSecondary }]}>{t('coreTabs.routes.subtitle')}</Text>
       </View>
 
       {/* Category Filter */}
@@ -64,7 +66,7 @@ export default function RoutesScreen() {
               selectedCategory === category.id && styles.filterChipActive,
             ]}
             onPress={() => setSelectedCategory(category.id)}
-            accessibilityLabel={`Filtrar rotas por ${category.name}`}
+            accessibilityLabel={t('coreTabs.routes.filterBy', { name: t(category.nameKey) })}
             accessibilityRole="tab"
             accessibilityState={{ selected: selectedCategory === category.id }}
           >
@@ -78,7 +80,7 @@ export default function RoutesScreen() {
               { color: colors.textMuted },
               selectedCategory === category.id && { color: colors.accent },
             ]}>
-              {category.name}
+              {t(category.nameKey)}
             </Text>
           </TouchableOpacity>
         ))}
@@ -102,7 +104,7 @@ export default function RoutesScreen() {
           ) : (
             <View style={styles.emptyState}>
               <MaterialIcons name="route" size={48} color={colors.textMuted} />
-              <Text style={[styles.emptyText, { color: colors.textMuted }]}>Nenhuma rota encontrada</Text>
+              <Text style={[styles.emptyText, { color: colors.textMuted }]}>{t('coreTabs.routes.empty')}</Text>
             </View>
           )
         }

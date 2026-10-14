@@ -8,6 +8,7 @@ import {
   View, Text, StyleSheet, TouchableOpacity,
 } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import { useTheme } from '../context/ThemeContext';
 import OptimizedImage from './OptimizedImage';
 
@@ -87,31 +88,34 @@ const SEASON_ICON: Record<MarineSpecies['season'], React.ComponentProps<typeof M
   migration:    'flight',
 };
 
-const SEASON_LABEL: Record<MarineSpecies['season'], string> = {
-  'year-round': 'Todo o ano',
-  winter:       'Inverno',
-  summer:       'Verão',
-  spring:       'Primavera',
-  autumn:       'Outono',
-  migration:    'Migração',
+const SEASON_LABEL_KEY: Record<MarineSpecies['season'], string> = {
+  'year-round': 'modulesNature.marineCard.seasons.yearRound',
+  winter:       'modulesNature.marineCard.seasons.winter',
+  summer:       'modulesNature.marineCard.seasons.summer',
+  spring:       'modulesNature.marineCard.seasons.spring',
+  autumn:       'modulesNature.marineCard.seasons.autumn',
+  migration:    'modulesNature.marineCard.seasons.migration',
 };
 
-const MONTH_ABBR = ['J', 'F', 'M', 'A', 'M', 'J', 'J', 'A', 'S', 'O', 'N', 'D'];
+const MONTH_ABBR_KEYS = Array.from({ length: 12 }, (_, i) => `modulesNature.months.initial.m${i + 1}`);
 
-const CATEGORY_LABEL: Record<MarineSpecies['category'], string> = {
-  mammal:       'Mamífero',
-  seabird:      'Ave marinha',
-  fish:         'Peixe',
-  invertebrate: 'Invertebrado',
-  plant:        'Planta',
-  reptile:      'Réptil',
+const CATEGORY_LABEL_KEY: Record<MarineSpecies['category'], string> = {
+  mammal:       'modulesNature.marineCard.categories.mammal',
+  seabird:      'modulesNature.marineCard.categories.seabird',
+  fish:         'modulesNature.marineCard.categories.fish',
+  invertebrate: 'modulesNature.marineCard.categories.invertebrate',
+  plant:        'modulesNature.marineCard.categories.plant',
+  reptile:      'modulesNature.marineCard.categories.reptile',
 };
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
 function MarineSpeciesCard({ species, expanded = false, onPress }: MarineSpeciesCardProps) {
+  const { t } = useTranslation();
   const { colors } = useTheme();
   const catColor = CATEGORY_COLOR[species.category];
+  const categoryLabelKey = CATEGORY_LABEL_KEY[species.category];
+  const seasonLabelKey = SEASON_LABEL_KEY[species.season];
   const currentMonth = new Date().getMonth() + 1;
 
   return (
@@ -142,7 +146,7 @@ function MarineSpeciesCard({ species, expanded = false, onPress }: MarineSpecies
           <Text style={[styles.commonName, { color: colors.textPrimary }]}>{species.common_name_pt}</Text>
           <Text style={[styles.scientificName, { color: colors.textMuted }]}>{species.scientific_name}</Text>
           <Text style={[styles.categoryLabel, { color: catColor }]}>
-            {CATEGORY_LABEL[species.category]}
+            {categoryLabelKey ? t(categoryLabelKey) : undefined}
           </Text>
         </View>
       </View>
@@ -152,7 +156,7 @@ function MarineSpeciesCard({ species, expanded = false, onPress }: MarineSpecies
         {/* IUCN badge */}
         <View style={[styles.iucnBadge, { backgroundColor: IUCN_COLOR[species.iucn_status] + '22', borderColor: IUCN_COLOR[species.iucn_status] + '66' }]}>
           <Text style={[styles.iucnText, { color: IUCN_COLOR[species.iucn_status] }]}>
-            IUCN {IUCN_LABEL[species.iucn_status]}
+            {t('modulesNature.marineCard.iucn', { status: IUCN_LABEL[species.iucn_status] })}
           </Text>
         </View>
 
@@ -160,7 +164,7 @@ function MarineSpeciesCard({ species, expanded = false, onPress }: MarineSpecies
         <View style={[styles.seasonBadge, { backgroundColor: catColor + '15', borderColor: catColor + '40' }]}>
           <MaterialIcons name={SEASON_ICON[species.season]} size={11} color={catColor} />
           <Text style={[styles.seasonText, { color: catColor }]}>
-            {SEASON_LABEL[species.season]}
+            {seasonLabelKey ? t(seasonLabelKey) : undefined}
           </Text>
         </View>
 
@@ -175,7 +179,7 @@ function MarineSpeciesCard({ species, expanded = false, onPress }: MarineSpecies
 
       {/* ── Activity months ────────────────────────────────────────────── */}
       <View style={styles.monthsRow}>
-        {MONTH_ABBR.map((abbr, idx) => {
+        {MONTH_ABBR_KEYS.map((abbrKey, idx) => {
           const month = idx + 1;
           const isActive = species.activity_months.includes(month);
           const isCurrent = month === currentMonth;
@@ -192,7 +196,7 @@ function MarineSpeciesCard({ species, expanded = false, onPress }: MarineSpecies
               ]}
             >
               <Text style={[styles.monthLabel, { color: colors.textMuted }, isActive && styles.monthLabelActive]}>
-                {abbr}
+                {t(abbrKey)}
               </Text>
             </View>
           );
@@ -218,14 +222,14 @@ function MarineSpeciesCard({ species, expanded = false, onPress }: MarineSpecies
               {species.habitat !== undefined && (
                 <View style={styles.metaItem}>
                   <MaterialIcons name="terrain" size={13} color={colors.textMuted} />
-                  <Text style={[styles.metaLabel, { color: colors.textMuted }]}>Habitat</Text>
+                  <Text style={[styles.metaLabel, { color: colors.textMuted }]}>{t('modulesNature.marineCard.habitat')}</Text>
                   <Text style={[styles.metaValue, { color: colors.textSecondary }]}>{species.habitat}</Text>
                 </View>
               )}
               {species.depth_range !== undefined && (
                 <View style={styles.metaItem}>
                   <MaterialIcons name="water" size={13} color={colors.textMuted} />
-                  <Text style={[styles.metaLabel, { color: colors.textMuted }]}>Profundidade</Text>
+                  <Text style={[styles.metaLabel, { color: colors.textMuted }]}>{t('modulesNature.marineCard.depth')}</Text>
                   <Text style={[styles.metaValue, { color: colors.textSecondary }]}>{species.depth_range}</Text>
                 </View>
               )}
@@ -234,7 +238,7 @@ function MarineSpeciesCard({ species, expanded = false, onPress }: MarineSpecies
 
           {species.best_spots !== undefined && species.best_spots.length > 0 && (
             <View style={styles.spotsSection}>
-              <Text style={[styles.spotsLabel, { color: colors.textMuted }]}>Melhores locais</Text>
+              <Text style={[styles.spotsLabel, { color: colors.textMuted }]}>{t('modulesNature.marineCard.bestSpots')}</Text>
               <View style={styles.spotsChips}>
                 {species.best_spots.map((spot) => (
                   <View key={spot} style={[styles.spotChip, { borderColor: catColor + '50' }]}>

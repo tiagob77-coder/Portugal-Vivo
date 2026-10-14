@@ -4,6 +4,7 @@ import {
 } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useTranslation } from 'react-i18next';
 import { palette, withOpacity } from '../theme/colors';
 
 const ONBOARDING_KEY = 'onboarding_seen_v1';
@@ -11,20 +12,20 @@ const ONBOARDING_KEY = 'onboarding_seen_v1';
 const STEPS = [
   {
     icon: 'explore',
-    title: 'Descubra Portugal',
-    subtitle: 'Mais de 5.600 locais únicos espalhados por 7 regiões e 39 categorias. De cascatas escondidas a tascas centenárias.',
+    titleKey: 'components.onboardingModal.discover.title',
+    subtitleKey: 'components.onboardingModal.discover.subtitle',
     color: palette.terracotta[500],
   },
   {
     icon: 'route',
-    title: 'Rotas Temáticas',
-    subtitle: 'Percorra rotas curadas como "Aldeias Históricas do Centro" ou "Levadas da Madeira". Cada rota liga os melhores POIs por tema.',
+    titleKey: 'components.onboardingModal.routes.title',
+    subtitleKey: 'components.onboardingModal.routes.subtitle',
     color: '#8B5CF6',
   },
   {
     icon: 'auto-awesome',
-    title: 'POI do Dia',
-    subtitle: 'Todos os dias um local diferente é destacado. Descubra tesouros que não encontra nos guias convencionais.',
+    titleKey: 'components.onboardingModal.poiOfDay.title',
+    subtitleKey: 'components.onboardingModal.poiOfDay.subtitle',
     color: '#22C55E',
   },
 ];
@@ -34,6 +35,7 @@ interface OnboardingModalProps {
 }
 
 export default function OnboardingModal({ onComplete }: OnboardingModalProps) {
+  const { t } = useTranslation();
   const [visible, setVisible] = useState(false);
   const [step, setStep] = useState(0);
   const fadeAnim = useRef(new Animated.Value(0)).current;
@@ -90,7 +92,7 @@ export default function OnboardingModal({ onComplete }: OnboardingModalProps) {
         <View style={styles.card}>
           {/* Skip button */}
           <TouchableOpacity style={styles.skipButton} onPress={dismiss}>
-            <Text style={styles.skipText}>Saltar</Text>
+            <Text style={styles.skipText}>{t('components.onboardingModal.skip')}</Text>
           </TouchableOpacity>
 
           <Animated.View
@@ -105,8 +107,8 @@ export default function OnboardingModal({ onComplete }: OnboardingModalProps) {
             </View>
 
             {/* Text */}
-            <Text style={styles.title}>{current.title}</Text>
-            <Text style={styles.subtitle}>{current.subtitle}</Text>
+            <Text style={styles.title}>{t(current.titleKey)}</Text>
+            <Text style={styles.subtitle}>{t(current.subtitleKey)}</Text>
           </Animated.View>
 
           {/* Dots */}
@@ -129,7 +131,7 @@ export default function OnboardingModal({ onComplete }: OnboardingModalProps) {
             activeOpacity={0.85}
           >
             <Text style={styles.buttonText}>
-              {isLast ? 'Começar a explorar' : 'Seguinte'}
+              {isLast ? t('components.onboardingModal.start') : t('components.onboardingModal.next')}
             </Text>
             <MaterialIcons
               name={isLast ? 'explore' : 'arrow-forward'}

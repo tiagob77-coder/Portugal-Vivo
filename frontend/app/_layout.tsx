@@ -7,9 +7,10 @@ import { AuthProvider, useAuth } from '../src/context/AuthContext';
 import { ThemeProvider, useTheme } from '../src/context/ThemeContext';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import { I18nextProvider } from 'react-i18next';
+import { I18nextProvider, useTranslation } from 'react-i18next';
 import { View, ActivityIndicator, Platform } from 'react-native';
 import i18n, { initI18n } from '../src/i18n';
+import { currentLocale } from '../src/i18n/format';
 import OfflineBanner from '../src/components/OfflineBanner';
 import InstallPrompt from '../src/components/InstallPrompt';
 import CookieBanner from '../src/components/CookieBanner';
@@ -177,6 +178,7 @@ function LuzLayer() {
 
 function ThemedStack() {
   const { colors, isDark } = useTheme();
+  const { t } = useTranslation();
 
   // Register PWA service worker on web
   useEffect(() => {
@@ -239,7 +241,7 @@ function ThemedStack() {
         />
         <Stack.Screen
           name="explore-around"
-          options={{ title: 'Explorar à Volta', presentation: 'card', animation: 'slide_from_bottom' }}
+          options={{ title: t('account.layout.exploreAround'), presentation: 'card', animation: 'slide_from_bottom' }}
         />
         <Stack.Screen
           name="timeline/[region]"
@@ -274,6 +276,26 @@ function ThemedStack() {
   );
 }
 
+/** Document head (web): title and SEO/social metadata in the UI language. */
+function AppHead() {
+  const { t, i18n: i18nInstance } = useTranslation();
+  return (
+    <Head>
+      <title>{t('account.layout.headTitle')}</title>
+      <meta name="description" content={t('account.layout.metaDescription')} />
+      <meta property="og:title" content={t('account.layout.ogTitle')} />
+      <meta property="og:description" content={t('account.layout.ogDescription')} />
+      <meta property="og:type" content="website" />
+      <meta property="og:url" content="https://portugal-vivo.app" />
+      <meta property="og:image" content="https://portugal-vivo.app/og-image.jpg" />
+      <meta property="og:locale" content={currentLocale(i18nInstance.language).replace('-', '_')} />
+      <meta name="twitter:card" content="summary_large_image" />
+      <meta name="viewport" content="width=device-width, initial-scale=1" />
+      <link rel="canonical" href="https://portugal-vivo.app" />
+    </Head>
+  );
+}
+
 export default function RootLayout() {
   const [isI18nReady, setIsI18nReady] = useState(false);
 
@@ -297,19 +319,7 @@ export default function RootLayout() {
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-      <Head>
-        <title>Portugal Vivo — Descubra o Património Cultural de Portugal</title>
-        <meta name="description" content="Explore mais de 3000 pontos de interesse cultural, termas, praias fluviais, castelos, miradouros e gastronomia em Portugal. Planeie roteiros com IA." />
-        <meta property="og:title" content="Portugal Vivo — Património Cultural de Portugal" />
-        <meta property="og:description" content="Descubra o melhor de Portugal: heritage, natureza, gastronomia e aventura. Roteiros inteligentes com IA." />
-        <meta property="og:type" content="website" />
-        <meta property="og:url" content="https://portugal-vivo.app" />
-        <meta property="og:image" content="https://portugal-vivo.app/og-image.jpg" />
-        <meta property="og:locale" content="pt_PT" />
-        <meta name="twitter:card" content="summary_large_image" />
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <link rel="canonical" href="https://portugal-vivo.app" />
-      </Head>
+      <AppHead />
       <ErrorBoundary onError={(error, info) => captureException(error, { componentStack: info.componentStack })}>
         <I18nextProvider i18n={i18n}>
           <SafeAreaProvider>

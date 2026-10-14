@@ -13,20 +13,22 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useQuery } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
 import { typography, shadows, scrimPine } from '../../src/theme';
 import { palette } from '../../src/theme/colors';
 import { useTheme } from '../../src/context/ThemeContext';
 import api, { getBeaches, getBeachBandeiraAzul } from '../../src/services/api';
+import { currentLocale } from '../../src/i18n/format';
 
 const REGIONS = [
-  { id: null, label: 'Todas' },
-  { id: 'Norte', label: 'Norte' },
-  { id: 'Centro', label: 'Centro' },
-  { id: 'Lisboa', label: 'Lisboa' },
-  { id: 'Alentejo', label: 'Alentejo' },
-  { id: 'Algarve', label: 'Algarve' },
-  { id: 'Açores', label: 'Açores' },
-  { id: 'Madeira', label: 'Madeira' },
+  { id: null, labelKey: 'exploreScreens.regions.all' },
+  { id: 'Norte', labelKey: 'exploreScreens.regions.norte' },
+  { id: 'Centro', labelKey: 'exploreScreens.regions.centro' },
+  { id: 'Lisboa', labelKey: 'exploreScreens.regions.lisboa' },
+  { id: 'Alentejo', labelKey: 'exploreScreens.regions.alentejo' },
+  { id: 'Algarve', labelKey: 'exploreScreens.regions.algarve' },
+  { id: 'Açores', labelKey: 'exploreScreens.regions.acores' },
+  { id: 'Madeira', labelKey: 'exploreScreens.regions.madeira' },
 ];
 
 const SURF_COLORS: Record<string, string> = {
@@ -55,21 +57,22 @@ if (Platform.OS !== 'web') {
 
 /** Overlay imersivo de webcam ao vivo (stream in-app + stats da praia). */
 function WebcamLiveOverlay({ cam, onClose }: { cam: any; onClose: () => void }) {
+  const { t } = useTranslation();
   const [clock, setClock] = useState(() => new Date());
 
   useEffect(() => {
-    const t = setInterval(() => setClock(new Date()), 1000);
-    return () => clearInterval(t);
+    const timer = setInterval(() => setClock(new Date()), 1000);
+    return () => clearInterval(timer);
   }, []);
 
-  const timeLabel = clock.toLocaleTimeString('pt-PT', {
+  const timeLabel = clock.toLocaleTimeString(currentLocale(), {
     hour: '2-digit', minute: '2-digit', second: '2-digit',
   });
 
   const stats = [
-    { icon: 'waves' as const, value: cam.surf_level || '—', label: 'Surf' },
-    { icon: 'wb-sunny' as const, value: cam.best_season || '—', label: 'Melhor época' },
-    { icon: 'place' as const, value: cam.region || '—', label: 'Região' },
+    { id: 'surf', icon: 'waves' as const, value: cam.surf_level || '—', label: t('exploreScreens.beachcams.statSurf') },
+    { id: 'season', icon: 'wb-sunny' as const, value: cam.best_season || '—', label: t('exploreScreens.beachcams.statSeason') },
+    { id: 'region', icon: 'place' as const, value: cam.region || '—', label: t('exploreScreens.beachcams.statRegion') },
   ];
 
   return (
@@ -80,7 +83,7 @@ function WebcamLiveOverlay({ cam, onClose }: { cam: any; onClose: () => void }) 
             <iframe
               src={cam.embed_url}
               style={{ width: '100%', height: '100%', border: 'none' } as any}
-              title={`Webcam ao vivo — ${cam.name}`}
+              title={t('exploreScreens.beachcams.iframeTitle', { name: cam.name })}
               allow="autoplay; fullscreen"
               loading="lazy"
             />
@@ -99,25 +102,25 @@ function WebcamLiveOverlay({ cam, onClose }: { cam: any; onClose: () => void }) 
           )}
           <View style={styles.liveRecBadge} pointerEvents="none">
             <View style={styles.liveRecDot} />
-            <Text style={styles.liveRecText}>REC · AO VIVO</Text>
+            <Text style={styles.liveRecText}>{t('exploreScreens.beachcams.recLive')}</Text>
           </View>
           <TouchableOpacity
             style={styles.liveCloseButton}
             onPress={onClose}
             accessibilityRole="button"
-            accessibilityLabel="Fechar webcam ao vivo"
+            accessibilityLabel={t('exploreScreens.beachcams.closeLiveA11y')}
           >
             <MaterialIcons name="close" size={20} color="#FFF" />
           </TouchableOpacity>
           <View style={styles.liveTitleBlock} pointerEvents="none">
             <Text style={styles.liveName}>{cam.name}</Text>
-            <Text style={styles.liveMeta}>{cam.region} · em direto</Text>
+            <Text style={styles.liveMeta}>{t('exploreScreens.beachcams.liveMeta', { region: cam.region })}</Text>
           </View>
           <Text style={styles.liveClock} pointerEvents="none">{timeLabel}</Text>
         </View>
         <View style={styles.liveStatsRow}>
           {stats.map((s) => (
-            <View key={s.label} style={styles.liveStat}>
+            <View key={s.id} style={styles.liveStat}>
               <MaterialIcons name={s.icon} size={18} color="#06B6D4" />
               <Text style={styles.liveStatValue} numberOfLines={1}>{s.value}</Text>
               <Text style={styles.liveStatLabel}>{s.label}</Text>
@@ -129,11 +132,11 @@ function WebcamLiveOverlay({ cam, onClose }: { cam: any; onClose: () => void }) 
               Linking.openURL(cam.embed_url).catch(() => {});
             }}
             accessibilityRole="button"
-            accessibilityLabel="Abrir webcam no browser"
+            accessibilityLabel={t('exploreScreens.beachcams.openInBrowserA11y')}
           >
             <MaterialIcons name="open-in-new" size={18} color="#06B6D4" />
-            <Text style={styles.liveStatValue}>Browser</Text>
-            <Text style={styles.liveStatLabel}>Abrir fonte</Text>
+            <Text style={styles.liveStatValue}>{t('exploreScreens.beachcams.browser')}</Text>
+            <Text style={styles.liveStatLabel}>{t('exploreScreens.beachcams.openSource')}</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -142,6 +145,7 @@ function WebcamLiveOverlay({ cam, onClose }: { cam: any; onClose: () => void }) 
 }
 
 export default function BeachcamsScreen() {
+  const { t } = useTranslation();
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { colors: tc, isDark } = useTheme();
@@ -194,21 +198,21 @@ export default function BeachcamsScreen() {
             onPress={() => router.back()}
             style={[styles.backBtn, { backgroundColor: tc.surfaceAlt }]}
             accessibilityRole="button"
-            accessibilityLabel="Voltar"
+            accessibilityLabel={t('common.back')}
           >
             <MaterialIcons name="arrow-back" size={22} color={tc.textPrimary} />
           </TouchableOpacity>
           <View style={styles.headerContent}>
             <Text style={[styles.headerTitle, { color: tc.textPrimary }]}>
-              Webcams de Praia
+              {t('exploreScreens.beachcams.title')}
             </Text>
             <Text style={[styles.headerSubtitle, { color: tc.textMuted }]}>
-              {beachcams.length} praias ao vivo
+              {t('exploreScreens.beachcams.subtitle', { count: beachcams.length })}
             </Text>
           </View>
           <View style={[styles.liveIndicator, { backgroundColor: 'rgba(220,38,38,0.15)' }]}>
             <View style={styles.liveDot} />
-            <Text style={styles.liveText}>LIVE</Text>
+            <Text style={styles.liveText}>{t('exploreScreens.beachcams.liveBadge')}</Text>
           </View>
         </View>
 
@@ -222,7 +226,7 @@ export default function BeachcamsScreen() {
             onPress={() => setActiveTab('webcams')}
             accessibilityRole="tab"
             accessibilityState={{ selected: activeTab === 'webcams' }}
-            accessibilityLabel="Separador Webcams"
+            accessibilityLabel={t('exploreScreens.beachcams.webcamsTabA11y')}
           >
             <MaterialIcons 
               name="videocam" 
@@ -233,7 +237,7 @@ export default function BeachcamsScreen() {
               styles.tabBtnText, 
               { color: activeTab === 'webcams' ? '#FFF' : tc.textMuted }
             ]}>
-              Webcams
+              {t('exploreScreens.beachcams.webcamsTab')}
             </Text>
           </TouchableOpacity>
           <TouchableOpacity
@@ -244,7 +248,7 @@ export default function BeachcamsScreen() {
             onPress={() => setActiveTab('qualidade')}
             accessibilityRole="tab"
             accessibilityState={{ selected: activeTab === 'qualidade' }}
-            accessibilityLabel="Separador Qualidade da água"
+            accessibilityLabel={t('exploreScreens.beachcams.qualityTabA11y')}
           >
             <MaterialIcons 
               name="water" 
@@ -255,7 +259,7 @@ export default function BeachcamsScreen() {
               styles.tabBtnText, 
               { color: activeTab === 'qualidade' ? '#FFF' : tc.textMuted }
             ]}>
-              Qualidade
+              {t('exploreScreens.beachcams.qualityTab')}
             </Text>
             {baData && (
               <View style={[styles.baBadge, { backgroundColor: tc.surfaceAlt }]}>
@@ -289,13 +293,13 @@ export default function BeachcamsScreen() {
                 onPress={() => setActiveRegion(isActive ? null : reg.id)}
                 accessibilityRole="tab"
                 accessibilityState={{ selected: isActive }}
-                accessibilityLabel={`Filtrar por região: ${reg.label}`}
+                accessibilityLabel={t('exploreScreens.beachcams.filterRegionA11y', { region: t(reg.labelKey) })}
               >
                 <Text style={[
                   styles.filterChipText, 
                   { color: isActive ? '#FFF' : tc.textSecondary }
                 ]}>
-                  {reg.label}
+                  {t(reg.labelKey)}
                 </Text>
               </TouchableOpacity>
             );
@@ -309,7 +313,7 @@ export default function BeachcamsScreen() {
               <View style={[styles.emptyState, { backgroundColor: tc.surface }]}>
                 <MaterialIcons name="videocam-off" size={48} color={tc.textMuted} />
                 <Text style={[styles.emptyText, { color: tc.textMuted }]}>
-                  Nenhuma webcam disponível
+                  {t('exploreScreens.beachcams.noWebcams')}
                 </Text>
               </View>
             ) : (
@@ -322,7 +326,7 @@ export default function BeachcamsScreen() {
                     onPress={() => setLiveCam(cam)}
                     activeOpacity={0.9}
                     accessibilityRole="button"
-                    accessibilityLabel={`Ver webcam ao vivo da praia ${cam.name}`}
+                    accessibilityLabel={t('exploreScreens.beachcams.viewLiveA11y', { name: cam.name })}
                   >
                     {/* Image with gradient overlay */}
                     <View style={styles.camImageContainer}>
@@ -353,7 +357,7 @@ export default function BeachcamsScreen() {
                       {/* Live indicator */}
                       <View style={styles.camLiveIndicator}>
                         <View style={styles.camLiveDot} />
-                        <Text style={styles.camLiveText}>AO VIVO</Text>
+                        <Text style={styles.camLiveText}>{t('exploreScreens.beachcams.liveTag')}</Text>
                       </View>
                     </View>
 
@@ -387,10 +391,10 @@ export default function BeachcamsScreen() {
                         style={[styles.ctaButton, { backgroundColor: tc.accent }]}
                         onPress={() => setLiveCam(cam)}
                         accessibilityRole="button"
-                        accessibilityLabel={`Abrir webcam ao vivo da praia ${cam.name}`}
+                        accessibilityLabel={t('exploreScreens.beachcams.openLiveA11y', { name: cam.name })}
                       >
                         <MaterialIcons name="play-arrow" size={16} color="#FFF" />
-                        <Text style={styles.ctaText}>Ver Webcam ao Vivo</Text>
+                        <Text style={styles.ctaText}>{t('exploreScreens.beachcams.viewLiveCta')}</Text>
                       </TouchableOpacity>
                     </View>
                   </TouchableOpacity>
@@ -407,7 +411,7 @@ export default function BeachcamsScreen() {
               <View style={[styles.emptyState, { backgroundColor: tc.surface }]}>
                 <MaterialIcons name="water" size={48} color={tc.textMuted} />
                 <Text style={[styles.emptyText, { color: tc.textMuted }]}>
-                  A carregar dados APA...
+                  {t('exploreScreens.beachcams.loadingApa')}
                 </Text>
               </View>
             ) : (

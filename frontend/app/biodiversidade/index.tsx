@@ -3,6 +3,7 @@
  * Oceanic dark palette: bg #071828, card #0A2236, accent cyan #06B6D4
  */
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useRegionParam } from '../../src/hooks/useRegionParam';
 import { filterByRegion } from '../../src/utils/regionMatch';
 import RegionFilterBanner from '../../src/components/RegionFilterBanner';
@@ -274,40 +275,40 @@ type SeasonFilter = 'all' | MarineSpecies['season'];
 
 interface CategoryTab {
   key: CategoryFilter;
-  label: string;
+  labelKey: string;
   icon: React.ComponentProps<typeof MaterialIcons>['name'];
   color: string;
 }
 
 interface SeasonTab {
   key: SeasonFilter;
-  label: string;
+  labelKey: string;
   icon: React.ComponentProps<typeof MaterialIcons>['name'];
 }
 
 const CATEGORY_TABS: CategoryTab[] = [
-  { key: 'all',          label: 'Todos',          icon: 'waves',       color: C.accent   },
-  { key: 'mammal',       label: 'Mamíferos',      icon: 'waves',       color: '#0369A1'  },
-  { key: 'seabird',      label: 'Aves',            icon: 'air',         color: '#0891B2'  },
-  { key: 'fish',         label: 'Peixes',          icon: 'set-meal',    color: '#059669'  },
-  { key: 'invertebrate', label: 'Invertebrados',   icon: 'bug-report',  color: '#7C3AED'  },
-  { key: 'plant',        label: 'Plantas',         icon: 'eco',         color: '#16A34A'  },
+  { key: 'all',          labelKey: 'modulesNature.marine.categories.all',          icon: 'waves',       color: C.accent   },
+  { key: 'mammal',       labelKey: 'modulesNature.marine.categories.mammal',       icon: 'waves',       color: '#0369A1'  },
+  { key: 'seabird',      labelKey: 'modulesNature.marine.categories.seabird',      icon: 'air',         color: '#0891B2'  },
+  { key: 'fish',         labelKey: 'modulesNature.marine.categories.fish',         icon: 'set-meal',    color: '#059669'  },
+  { key: 'invertebrate', labelKey: 'modulesNature.marine.categories.invertebrate', icon: 'bug-report',  color: '#7C3AED'  },
+  { key: 'plant',        labelKey: 'modulesNature.marine.categories.plant',        icon: 'eco',         color: '#16A34A'  },
 ];
 
 const SEASON_TABS: SeasonTab[] = [
-  { key: 'all',         label: 'Todos',     icon: 'loop'         },
-  { key: 'winter',      label: 'Inverno',   icon: 'ac-unit'      },
-  { key: 'spring',      label: 'Primavera', icon: 'local-florist'},
-  { key: 'summer',      label: 'Verão',     icon: 'wb-sunny'     },
-  { key: 'autumn',      label: 'Outono',    icon: 'park'         },
-  { key: 'migration',   label: 'Migração',  icon: 'flight'       },
+  { key: 'all',         labelKey: 'modulesNature.marine.seasons.all',       icon: 'loop'         },
+  { key: 'winter',      labelKey: 'modulesNature.marine.seasons.winter',    icon: 'ac-unit'      },
+  { key: 'spring',      labelKey: 'modulesNature.marine.seasons.spring',    icon: 'local-florist'},
+  { key: 'summer',      labelKey: 'modulesNature.marine.seasons.summer',    icon: 'wb-sunny'     },
+  { key: 'autumn',      labelKey: 'modulesNature.marine.seasons.autumn',    icon: 'park'         },
+  { key: 'migration',   labelKey: 'modulesNature.marine.seasons.migration', icon: 'flight'       },
 ];
 
-const SEASON_PT: Record<string, string> = {
-  winter:    'Inverno',
-  spring:    'Primavera',
-  summer:    'Verão',
-  autumn:    'Outono',
+const SEASON_LABEL_KEY: Record<string, string> = {
+  winter:    'modulesNature.marine.seasons.winter',
+  spring:    'modulesNature.marine.seasons.spring',
+  summer:    'modulesNature.marine.seasons.summer',
+  autumn:    'modulesNature.marine.seasons.autumn',
 };
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -323,6 +324,7 @@ function getCurrentSeason(): MarineSpecies['season'] {
 // ─── Main Screen ──────────────────────────────────────────────────────────────
 
 export default function BiodiversidadeScreen() {
+  const { t } = useTranslation();
   const router = useRouter();
   const insets = useSafeAreaInsets();
 
@@ -373,9 +375,9 @@ export default function BiodiversidadeScreen() {
             <MaterialIcons name="arrow-back" size={22} color={C.accent} />
           </TouchableOpacity>
           <View style={styles.headerContent}>
-            <Text style={styles.headerTitle}>Vida Marinha</Text>
+            <Text style={styles.headerTitle}>{t('modulesNature.marine.title')}</Text>
             <Text style={styles.headerSubtitle}>
-              Espécies · Habitats · Avistamentos
+              {t('modulesNature.marine.subtitle')}
             </Text>
           </View>
           <View style={styles.headerIcon}>
@@ -390,7 +392,10 @@ export default function BiodiversidadeScreen() {
           <View style={styles.seasonBannerInner}>
             <MaterialIcons name="wb-sunny" size={16} color={C.amber} />
             <Text style={styles.seasonBannerText}>
-              Época atual: {SEASON_PT[currentSeason]} — {currentSeasonCount} espécies observáveis
+              {t(
+                currentSeasonCount === 1 ? 'modulesNature.marine.seasonBannerOne' : 'modulesNature.marine.seasonBanner',
+                { season: t(SEASON_LABEL_KEY[currentSeason]), count: currentSeasonCount },
+              )}
             </Text>
           </View>
         </View>
@@ -420,7 +425,7 @@ export default function BiodiversidadeScreen() {
                   color={isActive ? '#FFFFFF' : C.textMed}
                 />
                 <Text style={[styles.tabChipLabel, isActive && styles.tabChipLabelActive]}>
-                  {tab.label}
+                  {t(tab.labelKey)}
                 </Text>
               </TouchableOpacity>
             );
@@ -452,7 +457,7 @@ export default function BiodiversidadeScreen() {
                   color={isActive ? C.accent : C.textLight}
                 />
                 <Text style={[styles.seasonChipLabel, isActive && { color: C.accent }]}>
-                  {tab.label}
+                  {t(tab.labelKey)}
                 </Text>
               </TouchableOpacity>
             );
@@ -463,7 +468,9 @@ export default function BiodiversidadeScreen() {
         <View style={styles.summaryRow}>
           <View style={[styles.summaryDot, { backgroundColor: C.accent }]} />
           <Text style={styles.summaryText}>
-            {filtered.length} espécie{filtered.length !== 1 ? 's' : ''} encontrada{filtered.length !== 1 ? 's' : ''}
+            {filtered.length === 1
+              ? t('modulesNature.shared.speciesFoundOne', { count: filtered.length })
+              : t('modulesNature.shared.speciesFound', { count: filtered.length })}
           </Text>
         </View>
 
@@ -483,9 +490,9 @@ export default function BiodiversidadeScreen() {
           {filtered.length === 0 && (
             <View style={styles.emptyState}>
               <MaterialIcons name="search-off" size={40} color={C.textLight} />
-              <Text style={styles.emptyStateTitle}>Sem espécies encontradas</Text>
+              <Text style={styles.emptyStateTitle}>{t('modulesNature.marine.emptyTitle')}</Text>
               <Text style={styles.emptyStateText}>
-                Tente outros filtros de categoria ou época.
+                {t('modulesNature.marine.emptyText')}
               </Text>
             </View>
           )}
@@ -495,7 +502,7 @@ export default function BiodiversidadeScreen() {
         <View style={styles.infoFooter}>
           <MaterialIcons name="info-outline" size={14} color={C.textLight} />
           <Text style={styles.infoFooterText}>
-            Dados: ICNF · OBIS · FishBase · eBird
+            {t('modulesNature.marine.sources')}
           </Text>
         </View>
 

@@ -23,54 +23,86 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import { shadows, palette, withOpacity, fontFamilies } from '../theme';
 
 const serif = fontFamilies.serif;
 
-const FEATURE_LABELS: Record<string, { title: string; desc: string; icon: string; bullets: string[] }> = {
+// i18n keys, translated at render time.
+type FeatureLabelKeys = { titleKey: string; descKey: string; icon: string; bulletKeys: string[] };
+
+const FEATURE_LABELS: Record<string, FeatureLabelKeys> = {
   ai_itinerary: {
-    title: 'Roteiros IA',
-    desc: 'Gere itinerários personalizados com inteligência artificial',
+    titleKey: 'components.premiumGate.features.aiItinerary.title',
+    descKey: 'components.premiumGate.features.aiItinerary.desc',
     icon: 'auto-awesome',
-    bullets: ['Roteiros adaptados ao teu perfil', 'Atualização em tempo real', 'Exportação PDF e GPX'],
+    bulletKeys: [
+      'components.premiumGate.features.aiItinerary.bullet1',
+      'components.premiumGate.features.aiItinerary.bullet2',
+      'components.premiumGate.features.aiItinerary.bullet3',
+    ],
   },
   audio_guides: {
-    title: 'Áudio Guias',
-    desc: 'Ouça narrativas imersivas em 9 vozes diferentes',
+    titleKey: 'components.premiumGate.features.audioGuides.title',
+    descKey: 'components.premiumGate.features.audioGuides.desc',
     icon: 'headphones',
-    bullets: ['9 vozes e estilos narrativos', 'Funciona offline', 'Narração em português e inglês'],
+    bulletKeys: [
+      'components.premiumGate.features.audioGuides.bullet1',
+      'components.premiumGate.features.audioGuides.bullet2',
+      'components.premiumGate.features.audioGuides.bullet3',
+    ],
   },
   offline: {
-    title: 'Modo Offline',
-    desc: 'Faça download de regiões para explorar sem internet',
+    titleKey: 'components.premiumGate.features.offline.title',
+    descKey: 'components.premiumGate.features.offline.desc',
     icon: 'cloud-download',
-    bullets: ['Download de mapas e POIs', 'Narrativas disponíveis offline', 'Sincronização automática'],
+    bulletKeys: [
+      'components.premiumGate.features.offline.bullet1',
+      'components.premiumGate.features.offline.bullet2',
+      'components.premiumGate.features.offline.bullet3',
+    ],
   },
   epochs: {
-    title: 'Épocas Históricas',
-    desc: 'Explore a timeline interativa de Portugal',
+    titleKey: 'components.premiumGate.features.epochs.title',
+    descKey: 'components.premiumGate.features.epochs.desc',
     icon: 'history',
-    bullets: ['Da pré-história ao séc. XXI', 'Filtros por período no mapa', 'Conteúdo exclusivo por época'],
+    bulletKeys: [
+      'components.premiumGate.features.epochs.bullet1',
+      'components.premiumGate.features.epochs.bullet2',
+      'components.premiumGate.features.epochs.bullet3',
+    ],
   },
   collections: {
-    title: 'Coleções Completas',
-    desc: 'Aceda a 12 coleções temáticas exclusivas',
+    titleKey: 'components.premiumGate.features.collections.title',
+    descKey: 'components.premiumGate.features.collections.desc',
     icon: 'collections-bookmark',
-    bullets: ['12 coleções temáticas', 'Rotas pré-definidas', 'Actualizadas mensalmente'],
+    bulletKeys: [
+      'components.premiumGate.features.collections.bullet1',
+      'components.premiumGate.features.collections.bullet2',
+      'components.premiumGate.features.collections.bullet3',
+    ],
   },
   custom_routes: {
-    title: 'Rotas Personalizadas',
-    desc: 'Crie e partilhe as suas próprias rotas',
+    titleKey: 'components.premiumGate.features.customRoutes.title',
+    descKey: 'components.premiumGate.features.customRoutes.desc',
     icon: 'route',
-    bullets: ['Editor de rotas arrastar-e-largar', 'Partilha com amigos', 'Importação de GPX'],
+    bulletKeys: [
+      'components.premiumGate.features.customRoutes.bullet1',
+      'components.premiumGate.features.customRoutes.bullet2',
+      'components.premiumGate.features.customRoutes.bullet3',
+    ],
   },
   export: {
-    title: 'Exportar Roteiros',
-    desc: 'Exporte em PDF e GPX para navegação',
+    titleKey: 'components.premiumGate.features.export.title',
+    descKey: 'components.premiumGate.features.export.desc',
     icon: 'file-download',
-    bullets: ['PDF formatado para impressão', 'GPX para GPS e Garmin', 'Histórico de exportações'],
+    bulletKeys: [
+      'components.premiumGate.features.export.bullet1',
+      'components.premiumGate.features.export.bullet2',
+      'components.premiumGate.features.export.bullet3',
+    ],
   },
 };
 
@@ -90,6 +122,7 @@ export default function PremiumGate({
   inline,
   previewHeight = 120,
 }: PremiumGateProps) {
+  const { t } = useTranslation();
   const { isPremium } = useAuth();
   const { colors: tc } = useTheme();
   const router = useRouter();
@@ -104,11 +137,17 @@ export default function PremiumGate({
     return <>{fallback}</>;
   }
 
-  const info = FEATURE_LABELS[feature] || {
-    title: 'Funcionalidade Premium',
-    desc: 'Esta funcionalidade requer uma subscrição premium',
+  const labelKeys: FeatureLabelKeys = FEATURE_LABELS[feature] || {
+    titleKey: 'components.premiumGate.features.fallback.title',
+    descKey: 'components.premiumGate.features.fallback.desc',
     icon: 'diamond',
-    bullets: ['Acesso completo a todas as funcionalidades'],
+    bulletKeys: ['components.premiumGate.features.fallback.bullet1'],
+  };
+  const info = {
+    title: t(labelKeys.titleKey),
+    desc: t(labelKeys.descKey),
+    icon: labelKeys.icon,
+    bullets: labelKeys.bulletKeys.map((key) => t(key)),
   };
 
   if (inline) {
@@ -159,7 +198,7 @@ export default function PremiumGate({
         <MaterialIcons name="lock" size={14} color={palette.filigrana[500]} />
         <Text style={[styles.unlockText, { color: tc.textPrimary }]}>{info.title}</Text>
         <View style={styles.unlockCta}>
-          <Text style={styles.unlockCtaText}>Desbloquear</Text>
+          <Text style={styles.unlockCtaText}>{t('components.premiumGate.unlock')}</Text>
           <MaterialIcons name="arrow-forward-ios" size={10} color="#fff" />
         </View>
       </TouchableOpacity>
@@ -188,6 +227,7 @@ interface SheetProps {
 }
 
 function PaywallSheet({ visible, onClose, onUpgrade, info, insets, tc }: SheetProps) {
+  const { t } = useTranslation();
   return (
     <Modal
       visible={visible}
@@ -233,9 +273,9 @@ function PaywallSheet({ visible, onClose, onUpgrade, info, insets, tc }: SheetPr
         {/* Pricing */}
         <View style={styles.pricingRow}>
           <View style={[styles.priceCard, { backgroundColor: tc.background, borderColor: tc.borderLight }]}>
-            <Text style={[styles.priceLabel, { color: tc.textMuted }]}>MENSAL</Text>
+            <Text style={[styles.priceLabel, { color: tc.textMuted }]}>{t('components.premiumGate.monthly')}</Text>
             <Text style={[styles.priceAmount, { color: tc.textPrimary }]}>€4.99</Text>
-            <Text style={[styles.pricePer, { color: tc.textMuted }]}>/mês</Text>
+            <Text style={[styles.pricePer, { color: tc.textMuted }]}>{t('components.premiumGate.perMonth')}</Text>
           </View>
           <View
             style={[
@@ -244,21 +284,21 @@ function PaywallSheet({ visible, onClose, onUpgrade, info, insets, tc }: SheetPr
               { borderColor: palette.filigrana[500] },
             ]}
           >
-            <Text style={[styles.priceLabel, { color: palette.filigrana[500] }]}>ANUAL</Text>
+            <Text style={[styles.priceLabel, { color: palette.filigrana[500] }]}>{t('components.premiumGate.yearly')}</Text>
             <Text style={[styles.priceAmount, { color: tc.textPrimary }]}>€39.99</Text>
-            <Text style={[styles.pricePer, { color: palette.filigrana[400] }]}>/ano · -33%</Text>
+            <Text style={[styles.pricePer, { color: palette.filigrana[400] }]}>{t('components.premiumGate.perYear')}</Text>
           </View>
         </View>
 
         {/* Trial note */}
         <Text style={[styles.trialNote, { color: tc.textMuted }]}>
-          7 dias grátis · Cancela quando quiseres
+          {t('components.premiumGate.trialNote')}
         </Text>
 
         {/* CTA */}
         <TouchableOpacity style={styles.ctaBtn} onPress={onUpgrade} activeOpacity={0.85}>
           <MaterialIcons name="diamond" size={18} color="#fff" />
-          <Text style={styles.ctaBtnText}>Experimentar Descobridor</Text>
+          <Text style={styles.ctaBtnText}>{t('components.premiumGate.cta')}</Text>
         </TouchableOpacity>
       </View>
     </Modal>

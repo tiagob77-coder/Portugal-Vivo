@@ -9,6 +9,7 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useQuery } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
 import MaritimeCultureCard, { MaritimeEvent } from '../../src/components/MaritimeCultureCard';
 import { getModuleTheme, withOpacity } from '../../src/theme/colors';
 import { API_BASE } from '../../src/config/api';
@@ -297,16 +298,16 @@ type TypeFilter = 'todos' | MaritimeEvent['type'];
 
 interface TypeTab {
   key: TypeFilter;
-  label: string;
+  labelKey: string;
 }
 
 const TYPE_TABS: TypeTab[] = [
-  { key: 'todos',               label: 'Todos'       },
-  { key: 'procissao_maritima',  label: 'Procissões'  },
-  { key: 'bencao_barcos',       label: 'Bênçãos'     },
-  { key: 'festa_mar',           label: 'Festas'      },
-  { key: 'ritual_religioso',    label: 'Rituais'     },
-  { key: 'tradicao_piscatoria', label: 'Tradições'   },
+  { key: 'todos',               labelKey: 'modulesCoast.culturaMaritima.tabs.todos'               },
+  { key: 'procissao_maritima',  labelKey: 'modulesCoast.culturaMaritima.tabs.procissao_maritima'  },
+  { key: 'bencao_barcos',       labelKey: 'modulesCoast.culturaMaritima.tabs.bencao_barcos'       },
+  { key: 'festa_mar',           labelKey: 'modulesCoast.culturaMaritima.tabs.festa_mar'           },
+  { key: 'ritual_religioso',    labelKey: 'modulesCoast.culturaMaritima.tabs.ritual_religioso'    },
+  { key: 'tradicao_piscatoria', labelKey: 'modulesCoast.culturaMaritima.tabs.tradicao_piscatoria' },
 ];
 
 const TYPE_COLORS: Record<TypeFilter, string> = {
@@ -320,6 +321,19 @@ const TYPE_COLORS: Record<TypeFilter, string> = {
 };
 
 const REGIONS = ['Todos', 'Minho', 'Norte', 'Centro', 'Alentejo', 'Algarve', 'Açores', 'Madeira'];
+
+// Display keys for the region filter values (the values stay in Portuguese —
+// they are compared with event.region).
+const REGION_LABEL_KEYS: Record<string, string> = {
+  'Todos': 'modulesCoast.culturaMaritima.allRegions',
+  'Minho': 'modulesCoast.regions.minho',
+  'Norte': 'modulesCoast.regions.norte',
+  'Centro': 'modulesCoast.regions.centro',
+  'Alentejo': 'modulesCoast.regions.alentejo',
+  'Algarve': 'modulesCoast.regions.algarve',
+  'Açores': 'modulesCoast.regions.acores',
+  'Madeira': 'modulesCoast.regions.madeira',
+};
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -340,6 +354,7 @@ function isEventUpcoming(event: MaritimeEvent): boolean {
 // ─── Main Screen ──────────────────────────────────────────────────────────────
 
 export default function CulturaMaritima() {
+  const { t } = useTranslation();
   const router = useRouter();
   const insets = useSafeAreaInsets();
 
@@ -395,8 +410,8 @@ export default function CulturaMaritima() {
             <MaterialIcons name="arrow-back" size={22} color={C.accent} />
           </TouchableOpacity>
           <View style={styles.headerContent}>
-            <Text style={styles.headerTitle}>Cultura Marítima</Text>
-            <Text style={styles.headerSubtitle}>Rituais · Festas · Procissões ao Mar</Text>
+            <Text style={styles.headerTitle}>{t('modulesCoast.culturaMaritima.title')}</Text>
+            <Text style={styles.headerSubtitle}>{t('modulesCoast.culturaMaritima.subtitle')}</Text>
           </View>
           <View style={styles.headerIcon}>
             <MaterialIcons name="directions-boat" size={20} color={C.accent} />
@@ -426,7 +441,7 @@ export default function CulturaMaritima() {
                 activeOpacity={0.8}
               >
                 <Text style={[styles.tabChipLabel, isActive && styles.tabChipLabelActive]}>
-                  {tab.label}
+                  {t(tab.labelKey)}
                 </Text>
               </TouchableOpacity>
             );
@@ -450,7 +465,7 @@ export default function CulturaMaritima() {
                 activeOpacity={0.8}
               >
                 <Text style={[styles.regionChipText, isActive && styles.regionChipTextActive]}>
-                  {r}
+                  {t(REGION_LABEL_KEYS[r])}
                 </Text>
               </TouchableOpacity>
             );
@@ -462,7 +477,9 @@ export default function CulturaMaritima() {
           <View style={styles.upcomingBanner}>
             <MaterialIcons name="event" size={18} color="#7DD3FC" />
             <Text style={styles.upcomingBannerText}>
-              {upcomingCount} evento{upcomingCount !== 1 ? 's' : ''} nos próximos 30 dias
+              {upcomingCount === 1
+                ? t('modulesCoast.culturaMaritima.upcomingOne', { count: upcomingCount })
+                : t('modulesCoast.culturaMaritima.upcomingMany', { count: upcomingCount })}
             </Text>
           </View>
         )}
@@ -471,7 +488,9 @@ export default function CulturaMaritima() {
         <View style={styles.summaryRow}>
           <View style={[styles.summaryDot, { backgroundColor: activeColor }]} />
           <Text style={styles.summaryText}>
-            {filtered.length} evento{filtered.length !== 1 ? 's' : ''} encontrado{filtered.length !== 1 ? 's' : ''}
+            {filtered.length === 1
+              ? t('modulesCoast.culturaMaritima.foundOne', { count: filtered.length })
+              : t('modulesCoast.culturaMaritima.foundMany', { count: filtered.length })}
           </Text>
         </View>
 
@@ -489,9 +508,9 @@ export default function CulturaMaritima() {
           {filtered.length === 0 && (
             <View style={styles.emptyState}>
               <MaterialIcons name="celebration" size={40} color={C.textLight} />
-              <Text style={styles.emptyStateTitle}>Sem eventos nesta categoria</Text>
+              <Text style={styles.emptyStateTitle}>{t('modulesCoast.culturaMaritima.emptyTitle')}</Text>
               <Text style={styles.emptyStateText}>
-                Tenta outro tipo ou região para descobrir a cultura marítima portuguesa.
+                {t('modulesCoast.culturaMaritima.emptyText')}
               </Text>
             </View>
           )}
@@ -501,7 +520,7 @@ export default function CulturaMaritima() {
         <View style={styles.infoFooter}>
           <MaterialIcons name="info-outline" size={13} color={C.textLight} />
           <Text style={styles.infoFooterText}>
-            Dados: DGPC · Municípios · Associações de Pescadores
+            {t('modulesCoast.culturaMaritima.sources')}
           </Text>
         </View>
 

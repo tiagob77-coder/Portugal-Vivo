@@ -1,9 +1,12 @@
 /**
  * Premium Subscription Page
- * Shows tier comparison, payment method selection (Card, PayPal, MB Way, Multibanco),
- * and integrates with Stripe Checkout for real payments.
+ * Shows tier comparison and takes the payment:
+ * - iOS / Android: App Store / Google Play subscriptions (required by both
+ *   stores for digital content), verified by the backend (services/iap).
+ * - Web: payment method selection (Card, PayPal, MB Way, Multibanco) and
+ *   Stripe Checkout.
  */
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   View,
   Text,
@@ -18,8 +21,10 @@ import {
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { LinearGradient } from 'expo-linear-gradient';
+import { useTranslation } from 'react-i18next';
+import type { TFunction } from 'i18next';
 import { shadows, fontFamilies } from '../src/theme';
 import { useTheme } from '../src/context/ThemeContext';
 import { useAuth } from '../src/context/AuthContext';
@@ -32,21 +37,38 @@ import {
   getSubscriptionStatus,
   logPaywallIntent,
 } from '../src/services/api';
+import {
+  isStoreBillingAvailable,
+  loadStoreCatalog,
+  openStoreSubscriptions,
+  purchaseStoreProduct,
+  restoreStorePurchases,
+} from '../src/services/iap';
 
 const serif = fontFamilies.serif;
 
 const PAYMENT_METHODS = [
-  { id: 'card', name: 'Cartão', icon: 'credit-card', description: 'Visa, Mastercard, Amex' },
-  { id: 'paypal', name: 'PayPal', icon: 'account-balance-wallet', description: 'Conta PayPal' },
-  { id: 'mb_way', name: 'MB Way', icon: 'phone-android', description: 'Pagamento por telemóvel' },
-  { id: 'multibanco', name: 'Multibanco', icon: 'account-balance', description: 'Referência MB' },
+  { id: 'card', nameKey: 'premiumScreen.payment.card', icon: 'credit-card', descriptionKey: 'premiumScreen.payment.cardDesc' },
+  { id: 'paypal', nameKey: 'premiumScreen.payment.paypal', icon: 'account-balance-wallet', descriptionKey: 'premiumScreen.payment.paypalDesc' },
+  { id: 'mb_way', nameKey: 'premiumScreen.payment.mbway', icon: 'phone-android', descriptionKey: 'premiumScreen.payment.mbwayDesc' },
+  { id: 'multibanco', nameKey: 'premiumScreen.payment.multibanco', icon: 'account-balance', descriptionKey: 'premiumScreen.payment.multibancoDesc' },
 ];
+
+const STORE_NAME = Platform.OS === 'ios' ? 'App Store' : 'Google Play';
+
+function errorDetail(error: unknown, t: TFunction, fallbackKey: string): string {
+  const detail = (error as { response?: { data?: { detail?: unknown } } })?.response?.data?.detail;
+  return typeof detail === 'string' ? detail : t(fallbackKey);
+}
 
 export default function PremiumScreen() {
   const router = useRouter();
   const params = useLocalSearchParams();
   const insets = useSafeAreaInsets();
   const { colors: tc } = useTheme();
+  const { t } = useTranslation();
+  const queryClient = useQueryClient();
+  const storeBilling = isStoreBillingAvailable();
   const { isAuthenticated, user, refreshSubscription, isPremium: _isPremium } = useAuth();
   const [selectedTier, setSelectedTier] = useState<string>('premium');
   const [selectedPayment, setSelectedPayment] = useState<string>('card');
@@ -67,6 +89,25 @@ export default function PremiumScreen() {
     enabled: !!userId,
   });
 
+  // Store products with localised prices (native only). Keyed by user so the
+  // account token is fetched again after signing in.
+  const { data: storeCatalog } = useQuery({
+    queryKey: ['store-catalog', userId],
+    queryFn: loadStoreCatalog,
+    enabled: storeBilling,
+    retry: false,
+  });
+  const storeProducts = useMemo(() => storeCatalog?.products ?? [], [storeCatalog]);
+  const storeProduct = storeProducts.find((p) => p.tier === selectedTier);
+  const storePrice = (tier: string) => storeProducts.find((p) => p.tier === tier)?.displayPrice;
+
+  const onSubscriptionChanged = async () => {
+    setShowSuccess(true);
+    await refreshSubscription();
+    queryClient.invalidateQueries({ queryKey: ['subscription-status'] });
+    queryClient.invalidateQueries({ queryKey: ['premium-my-features'] });
+  };
+
   // Handle success redirect from Stripe
   useEffect(() => {
     if (params.success === 'true') {
@@ -79,12 +120,65 @@ export default function PremiumScreen() {
     }
   }, [params.success, refreshSubscription]);
 
+  const handleStorePurchase = async () => {
+    if (!storeProduct) {
+      // Store products not set up yet: same validation signal as the web paywall
+      logPaywallIntent({
+        tier: selectedTier,
+        payment_method: Platform.OS === 'ios' ? 'app_store' : 'google_play',
+        source: 'premium_screen',
+      });
+      Alert.alert(t('premiumScreen.comingSoonTitle'), t('premiumScreen.comingSoonMessage'), [{ text: 'OK' }]);
+      return;
+    }
+    setCheckoutLoading(true);
+    try {
+      const outcome = await purchaseStoreProduct(storeProduct, storeCatalog?.accountToken);
+      if (outcome.status === 'success') {
+        await onSubscriptionChanged();
+      } else if (outcome.status === 'pending') {
+        Alert.alert(t('premiumScreen.pendingTitle'), t('premiumScreen.pendingMessage'));
+      } else if (outcome.status === 'inactive') {
+        Alert.alert(t('premiumScreen.errorTitle'), t('premiumScreen.storeInactive', { store: STORE_NAME }));
+      }
+    } catch (error) {
+      Alert.alert(t('premiumScreen.errorTitle'), errorDetail(error, t, 'premiumScreen.storeError'));
+    } finally {
+      setCheckoutLoading(false);
+    }
+  };
+
+  const handleRestore = async () => {
+    if (!isAuthenticated) {
+      router.push('/auth');
+      return;
+    }
+    setCheckoutLoading(true);
+    try {
+      const active = await restoreStorePurchases();
+      if (active > 0) {
+        await onSubscriptionChanged();
+      } else {
+        Alert.alert(t('premiumScreen.restoreTitle'), t('premiumScreen.restoreNone', { store: STORE_NAME }));
+      }
+    } catch (error) {
+      Alert.alert(t('premiumScreen.errorTitle'), errorDetail(error, t, 'premiumScreen.storeError'));
+    } finally {
+      setCheckoutLoading(false);
+    }
+  };
+
   const handleSubscribe = async () => {
     if (!isAuthenticated) {
-      Alert.alert('Iniciar Sessão', 'Precisa de iniciar sessão para subscrever.', [
-        { text: 'Cancelar', style: 'cancel' },
-        { text: 'Login', onPress: () => router.push('/auth') },
+      Alert.alert(t('premiumScreen.signInTitle'), t('premiumScreen.signInMessage'), [
+        { text: t('premiumScreen.cancel'), style: 'cancel' },
+        { text: t('premiumScreen.login'), onPress: () => router.push('/auth') },
       ]);
+      return;
+    }
+
+    if (storeBilling) {
+      await handleStorePurchase();
       return;
     }
 
@@ -96,8 +190,8 @@ export default function PremiumScreen() {
         source: 'premium_screen',
       });
       Alert.alert(
-        'Brevemente',
-        'O sistema de pagamentos será ativado em breve. Obrigado pelo seu interesse!',
+        t('premiumScreen.comingSoonTitle'),
+        t('premiumScreen.comingSoonMessage'),
         [{ text: 'OK' }]
       );
       return;
@@ -122,15 +216,23 @@ export default function PremiumScreen() {
           await RNLinking.openURL(result.checkout_url);
         }
       }
-    } catch (error: any) {
-      const msg = error?.response?.data?.detail || 'Erro ao criar sessão de pagamento';
-      Alert.alert('Erro', msg);
+    } catch (error) {
+      Alert.alert(t('premiumScreen.errorTitle'), errorDetail(error, t, 'premiumScreen.checkoutError'));
     } finally {
       setCheckoutLoading(false);
     }
   };
 
   const handleManageSubscription = async () => {
+    if (subStatus?.store) {
+      // Store subscriptions are managed (and cancelled) in the store itself
+      try {
+        await openStoreSubscriptions(storeProducts.find((p) => p.tier === subStatus.tier)?.productId);
+      } catch {
+        Alert.alert(t('premiumScreen.errorTitle'), t('premiumScreen.manageStoreError', { store: STORE_NAME }));
+      }
+      return;
+    }
     try {
       setCheckoutLoading(true);
       const result = await createCustomerPortal(userId);
@@ -142,7 +244,7 @@ export default function PremiumScreen() {
         }
       }
     } catch {
-      Alert.alert('Erro', 'Não foi possível abrir o portal de gestão');
+      Alert.alert(t('premiumScreen.errorTitle'), t('premiumScreen.portalError'));
     } finally {
       setCheckoutLoading(false);
     }
@@ -159,6 +261,9 @@ export default function PremiumScreen() {
   const tiers = data?.tiers || [];
   const freeTier = tiers.find(t => t.id === 'free');
   const isSubscribed = subStatus && subStatus.tier !== 'free';
+  const canManage = subStatus?.store ? storeBilling : !!data?.stripe_enabled;
+  // The stores run their own trials (introductory offers); the web trial is Stripe's.
+  const trialDays = storeBilling ? 0 : data?.trial_days;
 
   return (
     <View style={[styles.container, { paddingTop: insets.top, backgroundColor: tc.background }]}>
@@ -175,11 +280,11 @@ export default function PremiumScreen() {
           <MaterialIcons name="diamond" size={48} color="#C9A24B" />
           <Text style={styles.heroTitle}>Portugal Vivo Premium</Text>
           <Text style={styles.heroSubtitle}>
-            Desbloqueie roteiros IA, áudio guias, modo offline e muito mais
+            {t('premiumScreen.heroSubtitle')}
           </Text>
-          {data?.trial_days && !isSubscribed ? (
+          {trialDays && !isSubscribed ? (
             <View style={styles.trialBadge}>
-              <Text style={styles.trialText}>{data.trial_days} dias grátis</Text>
+              <Text style={styles.trialText}>{t('premiumScreen.trialDays', { days: trialDays })}</Text>
             </View>
           ) : null}
         </LinearGradient>
@@ -188,7 +293,7 @@ export default function PremiumScreen() {
         {showSuccess && (
           <View style={styles.successBanner}>
             <MaterialIcons name="check-circle" size={24} color="#FFF" />
-            <Text style={styles.successText}>Subscrição ativada com sucesso! Bem-vindo ao Premium.</Text>
+            <Text style={styles.successText}>{t('premiumScreen.success')}</Text>
           </View>
         )}
 
@@ -198,19 +303,21 @@ export default function PremiumScreen() {
             <MaterialIcons name="verified" size={28} color="#C9A24B" />
             <View style={{ flex: 1 }}>
               <Text style={[styles.subscribedTitle, { color: tc.textPrimary }]}>
-                Plano {subStatus.tier_name} ativo
+                {t('premiumScreen.activePlan', { name: subStatus.tier_name })}
               </Text>
               <Text style={[styles.subscribedDesc, { color: tc.textMuted }]}>
-                Tem acesso a todas as funcionalidades premium
+                {subStatus.store
+                  ? t('premiumScreen.activeViaStore', { store: subStatus.store === 'app_store' ? 'App Store' : 'Google Play' })
+                  : t('premiumScreen.activeDesc')}
               </Text>
             </View>
-            {data?.stripe_enabled && (
+            {canManage && (
               <TouchableOpacity
                 style={styles.manageBtn}
                 onPress={handleManageSubscription}
                 disabled={checkoutLoading}
               >
-                <Text style={styles.manageBtnText}>Gerir</Text>
+                <Text style={styles.manageBtnText}>{t('premiumScreen.manage')}</Text>
               </TouchableOpacity>
             )}
           </View>
@@ -231,8 +338,8 @@ export default function PremiumScreen() {
               color: (subStatus?.days_until_expiry ?? 99) <= 7 ? '#92400E' : '#9A3412',
             }]}>
               {(subStatus?.days_until_expiry ?? 99) <= 7
-                ? `A sua subscrição expira em ${subStatus?.days_until_expiry ?? 0} dia(s). Renove manualmente para não perder acesso premium.`
-                : 'Este método de pagamento não renova automaticamente. Lembre-se de renovar antes do fim do período.'}
+                ? t('premiumScreen.expiresSoon', { days: subStatus?.days_until_expiry ?? 0 })
+                : t('premiumScreen.manualRenewal')}
             </Text>
           </View>
         )}
@@ -246,10 +353,12 @@ export default function PremiumScreen() {
                 onPress={() => setSelectedTier('premium')}
               >
                 <Text style={[styles.tierTabText, selectedTier === 'premium' && styles.tierTabTextActive]}>
-                  Mensal
+                  {t('premiumScreen.monthly')}
                 </Text>
                 <Text style={[styles.tierTabPrice, selectedTier === 'premium' && styles.tierTabTextActive]}>
-                  4,99€/mês
+                  {storePrice('premium')
+                    ? t('premiumScreen.pricePerMonth', { price: storePrice('premium') })
+                    : t('premiumScreen.monthlyPrice')}
                 </Text>
               </TouchableOpacity>
               <TouchableOpacity
@@ -257,10 +366,12 @@ export default function PremiumScreen() {
                 onPress={() => setSelectedTier('annual')}
               >
                 <Text style={[styles.tierTabText, selectedTier === 'annual' && styles.tierTabTextActive]}>
-                  Anual
+                  {t('premiumScreen.annual')}
                 </Text>
                 <Text style={[styles.tierTabPrice, selectedTier === 'annual' && styles.tierTabTextActive]}>
-                  39,99€/ano
+                  {storePrice('annual')
+                    ? t('premiumScreen.pricePerYear', { price: storePrice('annual') })
+                    : t('premiumScreen.annualPrice')}
                 </Text>
                 <View style={styles.saveBadge}>
                   <Text style={styles.saveText}>-33%</Text>
@@ -268,9 +379,10 @@ export default function PremiumScreen() {
               </TouchableOpacity>
             </View>
 
-            {/* Payment Method Selector */}
+            {/* Payment Method Selector (web only: the stores take the payment in the apps) */}
+            {!storeBilling && (
             <View style={styles.paymentSection}>
-              <Text style={[styles.sectionTitle, { color: tc.textPrimary }]}>Método de Pagamento</Text>
+              <Text style={[styles.sectionTitle, { color: tc.textPrimary }]}>{t('premiumScreen.paymentMethod')}</Text>
               <View style={styles.paymentGrid}>
                 {PAYMENT_METHODS.map((pm) => (
                   <TouchableOpacity
@@ -291,10 +403,10 @@ export default function PremiumScreen() {
                       styles.paymentName,
                       { color: selectedPayment === pm.id ? '#C9A24B' : tc.textPrimary },
                     ]}>
-                      {pm.name}
+                      {t(pm.nameKey)}
                     </Text>
                     <Text style={[styles.paymentDesc, { color: tc.textMuted }]}>
-                      {pm.description}
+                      {t(pm.descriptionKey)}
                     </Text>
                     {selectedPayment === pm.id && (
                       <View style={styles.paymentCheck}>
@@ -307,25 +419,26 @@ export default function PremiumScreen() {
               {(selectedPayment === 'mb_way' || selectedPayment === 'multibanco') && (
                 <Text style={[styles.paymentNote, { color: tc.textMuted }]}>
                   {selectedPayment === 'mb_way'
-                    ? 'Pagamento único via MB Way. Renovação manual necessária.'
-                    : 'Será gerada uma referência Multibanco para pagamento em ATM ou homebanking.'}
+                    ? t('premiumScreen.payment.mbwayNote')
+                    : t('premiumScreen.payment.multibancoNote')}
                 </Text>
               )}
             </View>
+            )}
           </>
         )}
 
         {/* Feature Comparison */}
         <View style={styles.comparison}>
           <Text style={[styles.sectionTitle, { color: tc.textPrimary }]}>
-            Comparação de Planos
+            {t('premiumScreen.comparison')}
           </Text>
 
           {/* Column headers */}
           <View style={styles.compHeader}>
             <View style={styles.featureInfo} />
             <View style={styles.featureChecks}>
-              <Text style={styles.headerLabel}>Grátis</Text>
+              <Text style={styles.headerLabel}>{t('premiumScreen.free')}</Text>
               <Text style={[styles.headerLabel, { color: '#C9A24B', fontWeight: '700' }]}>Premium</Text>
             </View>
           </View>
@@ -339,8 +452,12 @@ export default function PremiumScreen() {
             return (
               <View key={feature.id} style={[styles.featureRow, isPremiumOnly && styles.featureRowHighlight]}>
                 <View style={styles.featureInfo}>
-                  <Text style={[styles.featureName, { color: tc.textPrimary }]}>{feature.name}</Text>
-                  <Text style={[styles.featureDesc, { color: tc.textMuted }]}>{feature.description}</Text>
+                  <Text style={[styles.featureName, { color: tc.textPrimary }]}>
+                    {t(`premiumScreen.features.${feature.id}.name`, { defaultValue: feature.name })}
+                  </Text>
+                  <Text style={[styles.featureDesc, { color: tc.textMuted }]}>
+                    {t(`premiumScreen.features.${feature.id}.description`, { defaultValue: feature.description })}
+                  </Text>
                 </View>
                 <View style={styles.featureChecks}>
                   <View style={styles.checkCol}>
@@ -384,9 +501,9 @@ export default function PremiumScreen() {
                   <>
                     <MaterialIcons name="diamond" size={22} color="#FFF" />
                     <Text style={styles.ctaText}>
-                      {data?.trial_days
-                        ? `Começar ${data.trial_days} Dias Grátis`
-                        : 'Subscrever Premium'}
+                      {trialDays
+                        ? t('premiumScreen.startTrial', { days: trialDays })
+                        : t('premiumScreen.subscribe')}
                     </Text>
                   </>
                 )}
@@ -394,25 +511,55 @@ export default function PremiumScreen() {
             </TouchableOpacity>
 
             <Text style={[styles.legalText, { color: tc.textMuted }]}>
-              Cancele a qualquer momento. Sem compromisso.
+              {t('premiumScreen.cancelAnytime')}
             </Text>
 
             {/* Payment Security */}
             <View style={styles.securityRow}>
               <MaterialIcons name="lock" size={14} color={tc.textMuted} />
               <Text style={[styles.securityText, { color: tc.textMuted }]}>
-                Pagamento seguro via Stripe. Os seus dados estão protegidos.
+                {storeBilling ? t('premiumScreen.storeSecure', { store: STORE_NAME }) : t('premiumScreen.stripeSecure')}
               </Text>
             </View>
 
-            {/* Payment Icons Row */}
-            <View style={styles.paymentIconsRow}>
-              <MaterialIcons name="credit-card" size={20} color={tc.textMuted} />
-              <MaterialIcons name="account-balance-wallet" size={20} color={tc.textMuted} />
-              <MaterialIcons name="phone-android" size={20} color={tc.textMuted} />
-              <MaterialIcons name="account-balance" size={20} color={tc.textMuted} />
-            </View>
+            {storeBilling ? (
+              <>
+                {/* Auto-renewal terms the stores require next to the purchase button */}
+                <Text style={[styles.disclosureText, { color: tc.textMuted }]}>
+                  {t('premiumScreen.autoRenewDisclosure', { store: STORE_NAME })}
+                </Text>
+                <View style={styles.legalLinks}>
+                  <TouchableOpacity onPress={() => router.push('/terms')} accessibilityRole="link">
+                    <Text style={styles.legalLink}>{t('premiumScreen.terms')}</Text>
+                  </TouchableOpacity>
+                  <Text style={[styles.legalSeparator, { color: tc.textMuted }]}>·</Text>
+                  <TouchableOpacity onPress={() => router.push('/privacy')} accessibilityRole="link">
+                    <Text style={styles.legalLink}>{t('premiumScreen.privacy')}</Text>
+                  </TouchableOpacity>
+                </View>
+              </>
+            ) : (
+              /* Payment Icons Row */
+              <View style={styles.paymentIconsRow}>
+                <MaterialIcons name="credit-card" size={20} color={tc.textMuted} />
+                <MaterialIcons name="account-balance-wallet" size={20} color={tc.textMuted} />
+                <MaterialIcons name="phone-android" size={20} color={tc.textMuted} />
+                <MaterialIcons name="account-balance" size={20} color={tc.textMuted} />
+              </View>
+            )}
           </>
+        )}
+
+        {/* Restore purchases (required by Apple for subscriptions) */}
+        {storeBilling && (
+          <TouchableOpacity
+            style={styles.restoreBtn}
+            onPress={handleRestore}
+            disabled={checkoutLoading}
+            accessibilityRole="button"
+          >
+            <Text style={[styles.restoreText, { color: tc.textMuted }]}>{t('premiumScreen.restore')}</Text>
+          </TouchableOpacity>
         )}
       </ScrollView>
     </View>
@@ -596,6 +743,24 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
   },
   securityText: { fontSize: 11 },
+  disclosureText: {
+    fontSize: 11,
+    lineHeight: 16,
+    textAlign: 'center',
+    marginTop: 12,
+    paddingHorizontal: 24,
+  },
+  legalLinks: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: 8,
+    marginTop: 8,
+  },
+  legalLink: { fontSize: 12, color: '#C9A24B', fontWeight: '600', textDecorationLine: 'underline' },
+  legalSeparator: { fontSize: 12 },
+  restoreBtn: { alignSelf: 'center', marginTop: 16, marginBottom: 24, padding: 8 },
+  restoreText: { fontSize: 13, textDecorationLine: 'underline' },
   paymentIconsRow: {
     flexDirection: 'row',
     justifyContent: 'center',

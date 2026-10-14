@@ -7,6 +7,8 @@
  * Fonte: protótipo Claude Design (Portugal Vivo App.dc.html), MODULES + MODITEMS.
  */
 
+import type { TFunction } from 'i18next';
+
 export interface ModuleHighlight {
   emoji: string;
   name: string;
@@ -214,7 +216,7 @@ export const highlightDetails: Record<string, HighlightDetail> = {
     history:
       'Ofício feminino de séculos junto ao mar, com escolas próprias que ainda formam rendilheiras.',
   },
-  'Procissiões do mar': {
+  'Procissões do mar': {
     where: 'Todo o litoral, entre junho e setembro',
     lat: 38.6968, lng: -9.4215,
     history:
@@ -372,4 +374,34 @@ export function getHighlight(module: string, name: string): ModuleHighlight | un
 
 export function getHighlightDetail(name: string): HighlightDetail | undefined {
   return highlightDetails[name];
+}
+
+/**
+ * Nome e meta de um destaque na língua da interface. As traduções vivem em
+ * `i18n/areas/moduleContent.json`, indexadas pelo slug do módulo e pelo nome
+ * português (que continua a ser o identificador usado nas rotas).
+ */
+export function localizeHighlight(
+  module: string,
+  highlight: ModuleHighlight,
+  t: TFunction,
+): Pick<ModuleHighlight, 'name' | 'meta'> {
+  const base = `moduleContent.highlights.${module}.${highlight.name}`;
+  return {
+    name: t(`${base}.name`, { defaultValue: highlight.name }),
+    meta: t(`${base}.meta`, { defaultValue: highlight.meta }),
+  };
+}
+
+/** Ficha curada (onde ver e história) na língua da interface, indexada pelo nome. */
+export function localizeHighlightDetail(
+  name: string,
+  detail: HighlightDetail,
+  t: TFunction,
+): Pick<HighlightDetail, 'where' | 'history'> {
+  const base = `moduleContent.highlightDetails.${name}`;
+  return {
+    where: t(`${base}.where`, { defaultValue: detail.where }),
+    history: t(`${base}.history`, { defaultValue: detail.history }),
+  };
 }

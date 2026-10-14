@@ -6,7 +6,7 @@ import Head from 'expo-router/head';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { getHeritageItem, getCategories, generateNarrative, addFavorite, removeFavorite, getAudioGuideForItem, doCheckin, getPoiImages, getDepthContent, ContentDepth, CognitiveProfile } from '../../src/services/api';
+import { getLocalizedHeritageItem, getCategories, generateNarrative, addFavorite, removeFavorite, getAudioGuideForItem, doCheckin, getPoiImages, getDepthContent, ContentDepth, CognitiveProfile } from '../../src/services/api';
 import { useAuth } from '../../src/context/AuthContext';
 import { useFavorites } from '../../src/context/FavoritesContext';
 import { Category } from '../../src/types';
@@ -23,6 +23,8 @@ import SensoryCard from '../../src/components/SensoryCard';
 import NavigationChooser from '../../src/components/NavigationChooser';
 import { trackImpact } from '../../src/services/impactTracking';
 import type { ImpactEventType } from '../../src/services/impactTracking';
+import { useTranslation } from 'react-i18next';
+import { currentLocale } from '../../src/i18n/format';
 
 // Helper to remove markdown formatting from AI-generated text
 const cleanMarkdown = (text: string): string => {
@@ -305,6 +307,7 @@ export default function HeritageDetailScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const queryClient = useQueryClient();
+  const { t, i18n } = useTranslation();
   const { user, isAuthenticated, sessionToken, login, isPremium, refreshUser } = useAuth();
   const [narrativeStyle, setNarrativeStyle] = useState<'storytelling' | 'educational' | 'brief'>('storytelling');
   const [depthLevel, setDepthLevel] = useState<ContentDepth>('snackable');
@@ -332,33 +335,33 @@ export default function HeritageDetailScreen() {
     onSuccess: (data) => {
       if (data.success) {
         const badges = data.new_badges?.map((b: any) => b.name).join(', ');
-        const msg = `+${data.xp_earned} XP${badges ? `\nNovo badge: ${badges}!` : ''}`;
+        const msg = `+${data.xp_earned} XP${badges ? `\n${t('details.heritage.newBadge', { badges })}` : ''}`;
         if (Platform.OS === 'web') {
           window.alert(`${data.message}\n${msg}`);
         } else {
-          Alert.alert('Check-in!', `${data.message}\n${msg}`);
+          Alert.alert(t('details.heritage.checkinTitle'), `${data.message}\n${msg}`);
         }
       } else {
         if (Platform.OS === 'web') {
           window.alert(data.message);
         } else {
-          Alert.alert('Aviso', data.message);
+          Alert.alert(t('details.heritage.warningTitle'), data.message);
         }
       }
     },
     onError: () => {
-      const errMsg = 'Não foi possível fazer check-in. Tente novamente.';
+      const errMsg = t('details.heritage.checkinError');
       if (Platform.OS === 'web') {
         window.alert(errMsg);
       } else {
-        Alert.alert('Erro', errMsg);
+        Alert.alert(t('details.heritage.errorTitle'), errMsg);
       }
     },
   });
 
   const { data: item, isLoading: itemLoading } = useQuery({
-    queryKey: ['heritage', id],
-    queryFn: () => getHeritageItem(id!),
+    queryKey: ['heritage', id, i18n.language],
+    queryFn: () => getLocalizedHeritageItem(id!, i18n.language),
     enabled: !!id,
   });
 
@@ -367,7 +370,7 @@ export default function HeritageDetailScreen() {
     if (Platform.OS !== 'web' || !item || typeof document === 'undefined') return;
 
     const title = `${item.name} — Portugal Vivo`;
-    const desc = item.description?.slice(0, 160) || `Descobre ${item.name} no Portugal Vivo`;
+    const desc = item.description?.slice(0, 160) || t('details.heritage.metaDescription', { name: item.name });
     const image = item.image_url || getItemImage(item.name, item.category);
     const url = window.location.href;
 
@@ -408,7 +411,7 @@ export default function HeritageDetailScreen() {
 
     // Standard meta description
     setMetaName('description', desc);
-  }, [item]);
+  }, [item, t]);
 
   const { data: categories = [] } = useQuery({
     queryKey: ['categories'],
@@ -641,7 +644,7 @@ export default function HeritageDetailScreen() {
     }
     setIsSpeakingDesc(true);
     Speech.speak(item.description, {
-      language: 'pt-PT',
+      language: currentLocale(item.language ?? 'pt'),
       rate: 0.9,
       onDone: () => setIsSpeakingDesc(false),
       onError: () => setIsSpeakingDesc(false),
@@ -708,7 +711,7 @@ export default function HeritageDetailScreen() {
     return (
       <View style={[styles.container, styles.centerContent]}>
         <MaterialIcons name="error-outline" size={48} color="#EF4444" />
-        <Text style={styles.errorText}>Item não encontrado</Text>
+        <Text style={styles.errorText}>{t('details.heritage.notFound')}</Text>
       </View>
     );
   }
@@ -735,26 +738,26 @@ export default function HeritageDetailScreen() {
           festas_festivais: 'Event',
         };
         const CAT_DISPLAY: Record<string, string> = {
-          percursos_pedestres: 'Percurso Pedestre', museus_monumentos: 'Museu',
-          castelos: 'Castelo', praias_bandeira_azul: 'Praia', praias_fluviais: 'Praia Fluvial',
-          aldeias: 'Aldeia', miradouros: 'Miradouro', arqueologia: 'Arqueologia',
-          religioso: 'Património Religioso', restaurantes_gastronomia: 'Gastronomia',
-          enoturismo_vinho: 'Enoturismo', festas_festivais: 'Festas & Festivais',
+          percursos_pedestres: t('details.heritage.seoCategory.walkingTrail'), museus_monumentos: t('details.heritage.seoCategory.museum'),
+          castelos: t('details.heritage.seoCategory.castle'), praias_bandeira_azul: t('details.heritage.seoCategory.beach'), praias_fluviais: t('details.heritage.seoCategory.riverBeach'),
+          aldeias: t('details.heritage.seoCategory.village'), miradouros: t('details.heritage.seoCategory.viewpoint'), arqueologia: t('details.heritage.seoCategory.archaeology'),
+          religioso: t('details.heritage.seoCategory.religious'), restaurantes_gastronomia: t('details.heritage.seoCategory.gastronomy'),
+          enoturismo_vinho: t('details.heritage.seoCategory.wineTourism'), festas_festivais: t('details.heritage.seoCategory.festivals'),
         };
         const REGION_DISPLAY: Record<string, string> = {
           norte: 'Norte', centro: 'Centro', lisboa: 'Lisboa',
           alentejo: 'Alentejo', algarve: 'Algarve', acores: 'Açores', madeira: 'Madeira',
         };
         const schemaType = SCHEMA_TYPE_MAP[item.category] || 'TouristAttraction';
-        const catDisplay = CAT_DISPLAY[item.category] || item.category || 'Destino';
+        const catDisplay = CAT_DISPLAY[item.category] || item.category || t('details.heritage.seoCategory.fallback');
         const locality = (item as any).concelho || (item as any).municipality || '';
         const locationDisplay = locality || REGION_DISPLAY[item.region || ''] || 'Portugal';
         const slug = (item as any).slug || item.id;
         const canonical = `https://portugal-vivo.app/heritage/${slug}`;
         const canonicalEn = `https://portugal-vivo.app/en/heritage/${slug}`;
         const ogImage = item.image_url || 'https://images.unsplash.com/photo-1555881400-74d7acaacd8b?w=1200&q=80';
-        const desc160 = item.description ? item.description.slice(0, 160) : `Descubra ${item.name} em ${locationDisplay}.`;
-        const rawTitle = `${item.name} — ${catDisplay} em ${locationDisplay} | Portugal Vivo`;
+        const desc160 = item.description ? item.description.slice(0, 160) : t('details.heritage.seoDescription', { name: item.name, location: locationDisplay });
+        const rawTitle = t('details.heritage.seoTitle', { name: item.name, category: catDisplay, location: locationDisplay });
         const pageTitle = rawTitle.length <= 60 ? rawTitle : `${item.name} | Portugal Vivo`;
         const coords = (item as any).location?.coordinates || [];
         const schemaOrg = {
@@ -815,7 +818,7 @@ export default function HeritageDetailScreen() {
             <View style={{ flexDirection: 'row', gap: 8 }}>
               <ShareButton
                 title={item.name}
-                description={`Descobre ${item.name} no Portugal Vivo! \u{1F1F5}\u{1F1F9}`}
+                description={t('details.heritage.shareDescription', { name: item.name })}
                 url={`${PUBLIC_URL}/heritage/${id}`}
                 onShare={() => trackPoiEvent('share')}
               />
@@ -883,17 +886,23 @@ export default function HeritageDetailScreen() {
         {/* Description */}
         <View style={styles.section}>
           <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
-            <Text style={styles.sectionTitle}>Descrição</Text>
+            <Text style={styles.sectionTitle}>{t('details.heritage.description')}</Text>
             <TouchableOpacity
               onPress={handleSpeakDescription}
               style={{ flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 10, paddingVertical: 5, borderRadius: 8, backgroundColor: isSpeakingDesc ? '#C49A6C20' : 'transparent' }}
-              accessibilityLabel="Ouvir descrição"
+              accessibilityLabel={t('details.heritage.listenDescription')}
             >
               <MaterialIcons name={isSpeakingDesc ? 'stop' : 'volume-up'} size={18} color="#C49A6C" />
-              <Text style={{ fontSize: 12, color: '#C49A6C', fontWeight: '600' }}>{isSpeakingDesc ? 'Parar' : 'Ouvir'}</Text>
+              <Text style={{ fontSize: 12, color: '#C49A6C', fontWeight: '600' }}>{isSpeakingDesc ? t('details.heritage.stop') : t('details.heritage.listen')}</Text>
             </TouchableOpacity>
           </View>
           <Text style={styles.description}>{item.description}</Text>
+          {!!item.description && i18n.language !== 'pt' && item.language === 'pt' && (
+            <View style={styles.descriptionLangNote}>
+              <MaterialIcons name="translate" size={12} color="#94A3B8" />
+              <Text style={styles.descriptionLangNoteText}>{t('details.heritage.descriptionPtOnly')}</Text>
+            </View>
+          )}
 
           {/* Free brief AI expansion — shown when description is short (<120 chars) */}
           {(item.description?.length ?? 0) < 120 && (
@@ -902,17 +911,17 @@ export default function HeritageDetailScreen() {
                 <TouchableOpacity
                   style={styles.freeResumeButton}
                   onPress={() => setShowFreeResume(true)}
-                  accessibilityLabel="Expandir descrição com resumo gerado por IA"
+                  accessibilityLabel={t('details.heritage.expandWithAi')}
                   accessibilityRole="button"
                 >
                   <MaterialIcons name="auto-fix-high" size={16} color="#C49A6C" />
-                  <Text style={styles.freeResumeButtonText}>Saber mais (resumo IA gratuito)</Text>
+                  <Text style={styles.freeResumeButtonText}>{t('details.heritage.learnMoreFree')}</Text>
                 </TouchableOpacity>
               )}
               {freeResumeLoading && (
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 12 }}>
                   <ActivityIndicator size="small" color="#C49A6C" />
-                  <Text style={{ color: '#94A3B8', fontSize: 13 }}>A gerar resumo...</Text>
+                  <Text style={{ color: '#94A3B8', fontSize: 13 }}>{t('details.heritage.generatingSummary')}</Text>
                 </View>
               )}
               {freeResumeData && (
@@ -921,11 +930,11 @@ export default function HeritageDetailScreen() {
                   <Text style={styles.freeResumeText}>{cleanMarkdown(freeResumeData.narrative)}</Text>
                   <View style={styles.freeResumeFooter}>
                     <MaterialIcons name="auto-awesome" size={12} color="#C49A6C" />
-                    <Text style={styles.freeResumeFooterText}>Resumo gerado por IA</Text>
+                    <Text style={styles.freeResumeFooterText}>{t('details.heritage.aiSummary')}</Text>
                     <TouchableOpacity
                       onPress={() => handleSpeakNarrative(freeResumeData.narrative)}
                       style={styles.freeResumeSpeakBtn}
-                      accessibilityLabel="Ouvir resumo"
+                      accessibilityLabel={t('details.heritage.listenSummary')}
                     >
                       <MaterialIcons
                         name={isSpeakingNarrative ? 'stop' : 'record-voice-over'}
@@ -956,7 +965,7 @@ export default function HeritageDetailScreen() {
         {/* Short Video */}
         {(item as any).video_url && (
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Vídeo</Text>
+            <Text style={styles.sectionTitle}>{t('details.heritage.video')}</Text>
             <PoiVideoPlayer
               videoUrl={(item as any).video_url}
               posterUrl={(item as any).image_url || undefined}
@@ -969,13 +978,13 @@ export default function HeritageDetailScreen() {
         {(item as any).panorama_url && (
           <View style={styles.section}>
             <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-              <Text style={styles.sectionTitle}>Vista 360°</Text>
+              <Text style={styles.sectionTitle}>{t('details.heritage.view360')}</Text>
               <TouchableOpacity
                 onPress={() => setShowPanorama(true)}
                 style={{ flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: '#C49A6C', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 8 }}
               >
                 <MaterialIcons name="360" size={16} color="#fff" />
-                <Text style={{ color: '#fff', fontSize: 13, fontWeight: '700' }}>Abrir Panorama</Text>
+                <Text style={{ color: '#fff', fontSize: 13, fontWeight: '700' }}>{t('details.heritage.openPanorama')}</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -993,7 +1002,7 @@ export default function HeritageDetailScreen() {
         {item.location && (
           <View style={styles.section}>
             <View style={styles.mapHeader}>
-              <Text style={styles.sectionTitle}>Localização no Mapa</Text>
+              <Text style={styles.sectionTitle}>{t('details.heritage.mapLocation')}</Text>
               <TouchableOpacity 
                 style={styles.openMapsButton}
                 onPress={() => {
@@ -1019,7 +1028,7 @@ export default function HeritageDetailScreen() {
                 }}
               >
                 <MaterialIcons name="open-in-new" size={16} color="#C49A6C" />
-                <Text style={styles.openMapsButtonText}>Abrir no Maps</Text>
+                <Text style={styles.openMapsButtonText}>{t('details.heritage.openInMaps')}</Text>
               </TouchableOpacity>
             </View>
             {Platform.OS === 'web' ? (
@@ -1028,7 +1037,7 @@ export default function HeritageDetailScreen() {
                 <iframe
                   src={`https://www.openstreetmap.org/export/embed.html?bbox=${(item.location?.lng || 0) - 0.015},${(item.location?.lat || 0) - 0.008},${(item.location?.lng || 0) + 0.015},${(item.location?.lat || 0) + 0.008}&layer=mapnik&marker=${item.location?.lat},${item.location?.lng}`}
                   style={{ width: '100%', height: '100%', border: 'none' } as any}
-                  title="Localização no mapa"
+                  title={t('details.heritage.mapFrameTitle')}
                   loading="lazy"
                 />
               </View>
@@ -1048,7 +1057,7 @@ export default function HeritageDetailScreen() {
                 <View style={styles.mapTapOverlay} pointerEvents="none">
                   <View style={styles.mapTapHintBottom}>
                     <MaterialIcons name="touch-app" size={14} color="#FFFFFF" />
-                    <Text style={styles.mapTapHintText}>Toque &quot;Abrir no Maps&quot; para navegar</Text>
+                    <Text style={styles.mapTapHintText}>{t('details.heritage.mapTapHint')}</Text>
                   </View>
                 </View>
               </View>
@@ -1069,10 +1078,10 @@ export default function HeritageDetailScreen() {
                 setShowNavChooser(true);
               }}
               accessibilityRole="button"
-              accessibilityLabel="Navegar para o local"
+              accessibilityLabel={t('details.heritage.navigateToPlace')}
             >
               <MaterialIcons name="navigation" size={15} color="#FFF" />
-              <Text style={styles.navigateButtonText}>Navegar para o local</Text>
+              <Text style={styles.navigateButtonText}>{t('details.heritage.navigateToPlace')}</Text>
             </TouchableOpacity>
             <View style={styles.coordsRow}>
               <MaterialIcons name="gps-fixed" size={14} color="#64748B" />
@@ -1094,22 +1103,22 @@ export default function HeritageDetailScreen() {
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <MaterialIcons name="auto-stories" size={20} color="#8B5CF6" />
-            <Text style={styles.sectionTitle}>Narrativa IA</Text>
+            <Text style={styles.sectionTitle}>{t('details.heritage.aiNarrative')}</Text>
           </View>
           
           {!showNarrative ? (
             <View>
               <Text style={styles.narrativeIntro}>
-                Gere uma narrativa personalizada sobre este elemento do património.
+                {t('details.heritage.narrativeIntro')}
               </Text>
               
               {/* Depth Level Selection */}
               <View style={styles.styleSelector}>
                 {[
-                  { id: 'snackable', label: 'Resumo', icon: 'flash-on', time: '30-60s' },
-                  { id: 'historia', label: 'História', icon: 'menu-book', time: '3-5 min' },
-                  { id: 'enciclopedico', label: 'Enciclopédia', icon: 'library-books', time: '7-12 min' },
-                  { id: 'criancas', label: 'Crianças', icon: 'child-care', time: '1-2 min' },
+                  { id: 'snackable', label: t('details.heritage.depth.snackable'), icon: 'flash-on', time: '30-60s' },
+                  { id: 'historia', label: t('details.heritage.depth.history'), icon: 'menu-book', time: '3-5 min' },
+                  { id: 'enciclopedico', label: t('details.heritage.depth.encyclopedia'), icon: 'library-books', time: '7-12 min' },
+                  { id: 'criancas', label: t('details.heritage.depth.kids'), icon: 'child-care', time: '1-2 min' },
                 ].map((level) => (
                   <TouchableOpacity
                     key={level.id}
@@ -1153,28 +1162,28 @@ export default function HeritageDetailScreen() {
                   color="#2E5E4E"
                 />
                 <Text style={styles.generateButtonText}>
-                  {depthLevel === 'snackable' ? 'Gerar Resumo' : isPremium ? 'Gerar Narrativa' : 'Narrativa Premium'}
+                  {depthLevel === 'snackable' ? t('details.heritage.generateSummary') : isPremium ? t('details.heritage.generateNarrative') : t('details.heritage.premiumNarrative')}
                 </Text>
               </TouchableOpacity>
             </View>
           ) : (narrativeLoading || depthLoading) ? (
             <View style={styles.narrativeLoading}>
               <ActivityIndicator size="small" color="#8B5CF6" />
-              <Text style={styles.narrativeLoadingText}>A gerar narrativa...</Text>
+              <Text style={styles.narrativeLoadingText}>{t('details.heritage.generatingNarrative')}</Text>
             </View>
           ) : (depthData || narrativeData) ? (
             <View style={styles.narrativeContent}>
               {(depthData?.source === 'cache' || narrativeData?.generated_at === 'cached') && (
                 <View style={styles.cachedBadge}>
                   <MaterialIcons name="offline-pin" size={12} color="#64748B" />
-                  <Text style={styles.cachedBadgeText}>Guardado offline</Text>
+                  <Text style={styles.cachedBadgeText}>{t('details.heritage.savedOffline')}</Text>
                 </View>
               )}
               {depthData?.credibility && (
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginBottom: 8 }}>
                   <MaterialIcons name="verified" size={12} color={depthData.credibility.confidence_level >= 0.7 ? '#22C55E' : '#F59E0B'} />
                   <Text style={{ fontSize: 10, color: '#94A3B8' }}>
-                    {depthData.credibility.source_type} · confiança {Math.round(depthData.credibility.confidence_level * 100)}%
+                    {t('details.heritage.confidence', { source: depthData.credibility.source_type, percent: Math.round(depthData.credibility.confidence_level * 100) })}
                   </Text>
                 </View>
               )}
@@ -1184,7 +1193,7 @@ export default function HeritageDetailScreen() {
                 <TouchableOpacity
                   style={[styles.narrativeSpeakButton, isSpeakingNarrative && styles.narrativeSpeakButtonActive]}
                   onPress={() => handleSpeakNarrative(depthData?.content || narrativeData?.narrative || '')}
-                  accessibilityLabel={isSpeakingNarrative ? 'Parar leitura' : 'Ouvir narrativa'}
+                  accessibilityLabel={isSpeakingNarrative ? t('details.heritage.stopReading') : t('details.heritage.listenNarrative')}
                   accessibilityRole="button"
                 >
                   <MaterialIcons
@@ -1193,7 +1202,7 @@ export default function HeritageDetailScreen() {
                     color={isSpeakingNarrative ? '#FFFFFF' : '#8B5CF6'}
                   />
                   <Text style={[styles.narrativeSpeakText, isSpeakingNarrative && { color: '#FFFFFF' }]}>
-                    {isSpeakingNarrative ? 'Parar' : 'Ouvir'}
+                    {isSpeakingNarrative ? t('details.heritage.stop') : t('details.heritage.listen')}
                   </Text>
                 </TouchableOpacity>
                 <TouchableOpacity
@@ -1201,7 +1210,7 @@ export default function HeritageDetailScreen() {
                   onPress={() => refetchNarrative()}
                 >
                   <MaterialIcons name="refresh" size={16} color="#8B5CF6" />
-                  <Text style={styles.regenerateButtonText}>Regenerar</Text>
+                  <Text style={styles.regenerateButtonText}>{t('details.heritage.regenerate')}</Text>
                 </TouchableOpacity>
               </View>
             </View>
@@ -1210,7 +1219,7 @@ export default function HeritageDetailScreen() {
 
         {/* Reviews Section */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Avaliações</Text>
+          <Text style={styles.sectionTitle}>{t('details.heritage.reviews')}</Text>
           <ReviewsSection 
             itemId={id as string}
             authToken={sessionToken || undefined}
@@ -1223,7 +1232,7 @@ export default function HeritageDetailScreen() {
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
               <MaterialIcons name="photo-library" size={20} color="#C49A6C" />
-              <Text style={styles.sectionTitle}>Fotos da Comunidade</Text>
+              <Text style={styles.sectionTitle}>{t('details.heritage.communityPhotos')}</Text>
               <View style={styles.photoBadge}>
                 <Text style={styles.photoBadgeText}>{communityPhotos.total}</Text>
               </View>
@@ -1256,10 +1265,10 @@ export default function HeritageDetailScreen() {
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
               <MaterialIcons name="add-a-photo" size={20} color="#C49A6C" />
-              <Text style={styles.sectionTitle}>Contribuir com Foto</Text>
+              <Text style={styles.sectionTitle}>{t('details.heritage.contributePhoto')}</Text>
             </View>
             <Text style={{ fontSize: 13, color: '#64748B', marginBottom: 8 }}>
-              Partilhe as suas fotos deste local com a comunidade.
+              {t('details.heritage.contributePhotoHint')}
             </Text>
             <ImageUpload
               token={sessionToken}
@@ -1269,9 +1278,9 @@ export default function HeritageDetailScreen() {
                 queryClient.invalidateQueries({ queryKey: ['heritage', id] });
                 queryClient.invalidateQueries({ queryKey: ['poi-images', id] });
                 if (Platform.OS === 'web') {
-                  window.alert('Foto adicionada com sucesso!');
+                  window.alert(t('details.heritage.photoAdded'));
                 } else {
-                  Alert.alert('Sucesso', 'Foto adicionada com sucesso!');
+                  Alert.alert(t('details.heritage.successTitle'), t('details.heritage.photoAdded'));
                 }
               }}
             />
@@ -1281,7 +1290,7 @@ export default function HeritageDetailScreen() {
         {/* Tags */}
         {item.tags && item.tags.length > 0 && (
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Tags</Text>
+            <Text style={styles.sectionTitle}>{t('details.heritage.tags')}</Text>
             <View style={styles.tagsContainer}>
               {item.tags.map((tag, index) => (
                 <View key={index} style={styles.tag}>
@@ -1310,11 +1319,11 @@ export default function HeritageDetailScreen() {
               },
             })
           }
-          accessibilityLabel="Viajar no Tempo — ver como este local era no passado"
+          accessibilityLabel={t('details.heritage.timeTravelHint')}
           accessibilityRole="button"
         >
           <MaterialIcons name="camera" size={20} color="#C49A6C" />
-          <Text style={styles.arButtonText}>Time-Travel</Text>
+          <Text style={styles.arButtonText}>{t('details.heritage.timeTravel')}</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
@@ -1333,12 +1342,12 @@ export default function HeritageDetailScreen() {
                 import('react-native').then(({ Linking }) => Linking.openURL(url as string));
               }
             } else {
-              Alert.alert('Localização', 'Coordenadas não disponíveis');
+              Alert.alert(t('details.heritage.location'), t('details.heritage.coordsUnavailable'));
             }
           }}
         >
           <MaterialIcons name="place" size={20} color="#FAF8F3" />
-          <Text style={styles.actionButtonText}>Localização</Text>
+          <Text style={styles.actionButtonText}>{t('details.heritage.location')}</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
@@ -1346,7 +1355,7 @@ export default function HeritageDetailScreen() {
           onPress={() => isPremium ? setShowNarrative(true) : router.push('/premium')}
         >
           <MaterialIcons name={isPremium ? 'auto-stories' : 'lock'} size={20} color="#1B3D39" />
-          <Text style={styles.actionButtonTextPrimary}>{isPremium ? 'Narrativa IA' : 'Narrativa Premium'}</Text>
+          <Text style={styles.actionButtonTextPrimary}>{isPremium ? t('details.heritage.aiNarrative') : t('details.heritage.premiumNarrative')}</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
@@ -1364,7 +1373,7 @@ export default function HeritageDetailScreen() {
             />
           )}
           <Text style={[styles.actionButtonText, (isPlayingAudio || isLoadingAudio) && styles.actionButtonTextActive]}>
-            {!isPremium ? 'Áudio Premium' : isLoadingAudio ? 'A carregar...' : isPlayingAudio ? 'Parar' : 'Ouvir'}
+            {!isPremium ? t('details.heritage.premiumAudio') : isLoadingAudio ? t('common.loading') : isPlayingAudio ? t('details.heritage.stop') : t('details.heritage.listen')}
           </Text>
         </TouchableOpacity>
 
@@ -1372,8 +1381,8 @@ export default function HeritageDetailScreen() {
           style={[styles.actionButton, styles.checkinButton]}
           onPress={() => {
             if (!userLocation) {
-              const msg = 'Ative a localização para fazer check-in.';
-              Platform.OS === 'web' ? window.alert(msg) : Alert.alert('Localização', msg); // eslint-disable-line no-unused-expressions
+              const msg = t('details.heritage.enableLocationForCheckin');
+              Platform.OS === 'web' ? window.alert(msg) : Alert.alert(t('details.heritage.location'), msg); // eslint-disable-line no-unused-expressions
               return;
             }
             checkinMutation.mutate();
@@ -1387,7 +1396,7 @@ export default function HeritageDetailScreen() {
             <MaterialIcons name="check-circle" size={20} color="#FFF" />
           )}
           <Text style={styles.checkinButtonText}>
-            {checkinMutation.isPending ? 'A registar...' : 'Check-in'}
+            {checkinMutation.isPending ? t('details.heritage.checkingIn') : t('details.heritage.checkin')}
           </Text>
         </TouchableOpacity>
 
@@ -1430,7 +1439,7 @@ export default function HeritageDetailScreen() {
           data-testid="bottom-share-button"
         >
           <MaterialIcons name={shareCopied ? 'check' : 'share'} size={20} color={shareCopied ? '#3FA66B' : '#FAF8F3'} />
-          <Text style={[styles.actionButtonText, shareCopied && { color: '#3FA66B' }]}>{shareCopied ? 'Copiado!' : 'Partilhar'}</Text>
+          <Text style={[styles.actionButtonText, shareCopied && { color: '#3FA66B' }]}>{shareCopied ? t('details.heritage.copied') : t('details.heritage.share')}</Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -1587,6 +1596,17 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#C8C3B8',
     lineHeight: 26,
+  },
+  descriptionLangNote: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    marginTop: 8,
+  },
+  descriptionLangNoteText: {
+    fontSize: 12,
+    color: '#94A3B8',
+    fontStyle: 'italic',
   },
   mapPreview: {
     backgroundColor: '#264E41',

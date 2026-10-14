@@ -23,6 +23,22 @@ export const getHeritageItem = async (id: string): Promise<HeritageItem> => {
   });
 };
 
+/**
+ * POI in the UI language. Portuguese is the source content; other languages
+ * get the stored translation merged in (`language` says which one was served,
+ * falling back to "pt" when the POI has no translation yet).
+ */
+export const getLocalizedHeritageItem = async (
+  id: string,
+  lang: string,
+): Promise<HeritageItem & { language?: string }> => {
+  if (!lang || lang === 'pt') return getHeritageItem(id);
+  return cachedGet(`cache_heritage_item_${id}_${lang}`, async () => {
+    const response = await api.get(`/heritage/${id}/localized`, { params: { lang } });
+    return response.data;
+  });
+};
+
 export const getHeritageByCategory = async (category: string): Promise<HeritageItem[]> => {
   return cachedGet(`cache_heritage_cat_${category}`, async () => {
     const response = await api.get(`/heritage/category/${category}`);

@@ -20,7 +20,8 @@
         "NSLocationAlwaysAndWhenInUseUsageDescription": "Receba alertas de locais culturais próximos mesmo quando a app está em segundo plano.",
         "NSCameraUsageDescription": "A realidade aumentada Time-Travel usa a câmara para sobrepor reconstruções históricas ao mundo real",
         "NSPhotoLibraryUsageDescription": "Adicione fotos da sua galeria",
-        "UIBackgroundModes": ["fetch", "remote-notification", "location"]
+        "UIBackgroundModes": ["fetch", "remote-notification", "location"],
+        "CFBundleAllowMixedLocalizations": true
       }
     },
     "android": {
@@ -92,8 +93,15 @@
           "isAndroidBackgroundLocationEnabled": true
         }
       ],
-      "./plugins/withPrivacyManifest.js"
+      "./plugins/withPrivacyManifest.js",
+      "expo-iap"
     ],
+    "locales": {
+      "pt": "./src/i18n/ios/pt.json",
+      "en": "./src/i18n/ios/en.json",
+      "es": "./src/i18n/ios/es.json",
+      "fr": "./src/i18n/ios/fr.json"
+    },
     "experiments": {
       "typedRoutes": true
     }

@@ -11,6 +11,7 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { useQuery } from '@tanstack/react-query';
 import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
+import { useTranslation } from 'react-i18next';
 
 // ========================
 // TYPES
@@ -59,12 +60,12 @@ const C = {
   chipActive: palette.forest[700],
 };
 
-const INTERESTS: { id: InterestId; label: string; emoji: string }[] = [
-  { id: 'natureza', label: 'Natureza', emoji: '🌿' },
-  { id: 'historia', label: 'História', emoji: '🏛️' },
-  { id: 'foto', label: 'Fotografia', emoji: '📸' },
-  { id: 'surf', label: 'Surf', emoji: '🌊' },
-  { id: 'gastronomia', label: 'Gastronomia', emoji: '🍽️' },
+const INTERESTS: { id: InterestId; labelKey: string; emoji: string }[] = [
+  { id: 'natureza', labelKey: 'widgets.aiRecs.interests.natureza', emoji: '🌿' },
+  { id: 'historia', labelKey: 'widgets.aiRecs.interests.historia', emoji: '🏛️' },
+  { id: 'foto', labelKey: 'widgets.aiRecs.interests.foto', emoji: '📸' },
+  { id: 'surf', labelKey: 'widgets.aiRecs.interests.surf', emoji: '🌊' },
+  { id: 'gastronomia', labelKey: 'widgets.aiRecs.interests.gastronomia', emoji: '🍽️' },
 ];
 
 const BASE_RADIUS = 25;
@@ -102,13 +103,14 @@ function RecommendationCard({
   item: RecommendationItem;
   onPress?: () => void;
 }) {
+  const { t } = useTranslation();
   return (
     <TouchableOpacity
       style={styles.card}
       onPress={onPress}
       activeOpacity={0.8}
       accessibilityRole="button"
-      accessibilityLabel={`Ver detalhes de ${item.name}`}
+      accessibilityLabel={t('widgets.aiRecs.viewDetails', { name: item.name })}
     >
       {/* Thumbnail */}
       <View style={styles.thumbContainer}>
@@ -181,6 +183,7 @@ export default function AIRecommendationsSheet({
   const [activeInterests, setActiveInterests] = useState<InterestId[]>([]);
   const [radiusExtra, setRadiusExtra] = useState(0);
   const { isAuthenticated } = useAuth();
+  const { t } = useTranslation();
 
   const radius = BASE_RADIUS + radiusExtra;
 
@@ -221,13 +224,13 @@ export default function AIRecommendationsSheet({
       <View style={styles.header}>
         <View style={styles.headerLeft}>
           <MaterialIcons name="auto-awesome" size={18} color={C.accent} />
-          <Text style={styles.headerTitle}>Recomendações IA</Text>
+          <Text style={styles.headerTitle}>{t('widgets.aiRecs.title')}</Text>
         </View>
         <TouchableOpacity
           onPress={onClose}
           hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
           accessibilityRole="button"
-          accessibilityLabel="Fechar recomendações"
+          accessibilityLabel={t('widgets.aiRecs.close')}
         >
           <MaterialIcons name="close" size={22} color={C.textMuted} />
         </TouchableOpacity>
@@ -241,6 +244,7 @@ export default function AIRecommendationsSheet({
       >
         {INTERESTS.map((interest) => {
           const isActive = activeInterests.includes(interest.id);
+          const label = t(interest.labelKey);
           return (
             <TouchableOpacity
               key={interest.id}
@@ -248,11 +252,11 @@ export default function AIRecommendationsSheet({
               onPress={() => toggleInterest(interest.id)}
               activeOpacity={0.75}
               accessibilityRole="button"
-              accessibilityLabel={`${isActive ? 'Remover filtro' : 'Filtrar por'} ${interest.label}`}
+              accessibilityLabel={isActive ? t('widgets.aiRecs.removeFilter', { label }) : t('widgets.aiRecs.filterBy', { label })}
             >
               <Text style={styles.interestEmoji}>{interest.emoji}</Text>
               <Text style={[styles.interestLabel, isActive && styles.interestLabelActive]}>
-                {interest.label}
+                {label}
               </Text>
             </TouchableOpacity>
           );
@@ -276,9 +280,9 @@ export default function AIRecommendationsSheet({
         {!isAuthenticated ? (
           <View style={styles.emptyState}>
             <MaterialIcons name="lock-outline" size={36} color={C.textMuted} />
-            <Text style={styles.emptyTitle}>Inicia sessão</Text>
+            <Text style={styles.emptyTitle}>{t('widgets.aiRecs.signInTitle')}</Text>
             <Text style={styles.emptyText}>
-              As recomendações IA requerem conta para personalizar o teu perfil.
+              {t('widgets.aiRecs.signInText')}
             </Text>
           </View>
         ) : isLoading ? (
@@ -286,9 +290,9 @@ export default function AIRecommendationsSheet({
         ) : recommendations.length === 0 ? (
           <View style={styles.emptyState}>
             <MaterialIcons name="search-off" size={36} color={C.textMuted} />
-            <Text style={styles.emptyTitle}>Sem resultados</Text>
+            <Text style={styles.emptyTitle}>{t('widgets.aiRecs.noResults')}</Text>
             <Text style={styles.emptyText}>
-              Tenta aumentar o raio ou mudar os interesses.
+              {t('widgets.aiRecs.noResultsText')}
             </Text>
           </View>
         ) : (
@@ -308,11 +312,11 @@ export default function AIRecommendationsSheet({
             onPress={() => setRadiusExtra((prev) => prev + RADIUS_STEP)}
             activeOpacity={0.8}
             accessibilityRole="button"
-            accessibilityLabel={`Expandir raio de pesquisa para ${radius + RADIUS_STEP} km`}
+            accessibilityLabel={t('widgets.aiRecs.expandRadius', { km: radius + RADIUS_STEP })}
           >
             <MaterialIcons name="expand-more" size={18} color={C.accent} />
             <Text style={styles.verMaisText}>
-              Ver mais · raio {radius + RADIUS_STEP}km
+              {t('widgets.aiRecs.seeMore', { km: radius + RADIUS_STEP })}
             </Text>
           </TouchableOpacity>
         )}

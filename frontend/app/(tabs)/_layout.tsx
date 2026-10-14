@@ -3,6 +3,7 @@ import { Tabs } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
 import { View, Platform } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useTranslation } from 'react-i18next';
 import { useTheme } from '../../src/context/ThemeContext';
 import ProximityMonitor from '../../src/components/ProximityMonitor';
 import ErrorBoundary from '../../src/components/ErrorBoundary';
@@ -63,6 +64,7 @@ if (Platform.OS === 'web' && typeof document !== 'undefined') {
 export default function TabLayout() {
   const insets = useSafeAreaInsets();
   const { colors } = useTheme();
+  const { t } = useTranslation();
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }} data-testid="tab-content-wrapper">
@@ -93,7 +95,7 @@ export default function TabLayout() {
         <Tabs.Screen
           name="descobrir"
           options={{
-            title: 'Descobrir',
+            title: t('tabs.discover'),
             tabBarIcon: ({ color }: { color: string }) => (
               <MaterialIcons name="auto-awesome" size={22} color={color} />
             ),
@@ -102,7 +104,7 @@ export default function TabLayout() {
         <Tabs.Screen
           name="mapa"
           options={{
-            title: 'Explorar',
+            title: t('tabs.explore'),
             tabBarIcon: ({ color }: { color: string }) => (
               <MaterialIcons name="explore" size={22} color={color} />
             ),
@@ -111,7 +113,7 @@ export default function TabLayout() {
         <Tabs.Screen
           name="experienciar"
           options={{
-            title: 'Viver',
+            title: t('coreTabs.layout.live'),
             tabBarIcon: ({ color }: { color: string }) => (
               <MaterialIcons name="local-activity" size={22} color={color} />
             ),
@@ -120,7 +122,7 @@ export default function TabLayout() {
         <Tabs.Screen
           name="profile"
           options={{
-            title: 'Eu',
+            title: t('coreTabs.layout.me'),
             tabBarIcon: ({ color }: { color: string }) => (
               <MaterialIcons name="person" size={22} color={color} />
             ),

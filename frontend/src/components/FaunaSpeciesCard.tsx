@@ -7,6 +7,7 @@ import {
   View, Text, StyleSheet, TouchableOpacity,
 } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import { useTheme } from '../context/ThemeContext';
 
 // ─── Interfaces ───────────────────────────────────────────────────────────────
@@ -63,14 +64,21 @@ const CLASS_ICON: Record<FaunaSpecies['class'], React.ComponentProps<typeof Mate
   raca_autocone:'agriculture',
 };
 
-const CLASS_LABEL: Record<FaunaSpecies['class'], string> = {
-  ave:          'Ave',
-  mamifero:     'Mamífero',
-  reptil:       'Réptil',
-  anfibio:      'Anfíbio',
-  peixe:        'Peixe',
-  invertebrado: 'Invertebrado',
-  raca_autocone:'Raça Autóctone',
+const CLASS_LABEL_KEY: Record<FaunaSpecies['class'], string> = {
+  ave:          'modulesNature.faunaCard.classes.ave',
+  mamifero:     'modulesNature.faunaCard.classes.mamifero',
+  reptil:       'modulesNature.faunaCard.classes.reptil',
+  anfibio:      'modulesNature.faunaCard.classes.anfibio',
+  peixe:        'modulesNature.faunaCard.classes.peixe',
+  invertebrado: 'modulesNature.faunaCard.classes.invertebrado',
+  raca_autocone:'modulesNature.faunaCard.classes.racaAutoctone',
+};
+
+const RARITY_LABEL_KEY: Record<FaunaSpecies['rarity_level'], string> = {
+  Comum:   'modulesNature.faunaCard.rarity.comum',
+  Incomum: 'modulesNature.faunaCard.rarity.incomum',
+  Raro:    'modulesNature.faunaCard.rarity.raro',
+  Epico:   'modulesNature.faunaCard.rarity.epico',
 };
 
 const RARITY_COLOR: Record<FaunaSpecies['rarity_level'], string> = {
@@ -88,11 +96,11 @@ const THREAT_COLOR: Record<FaunaSpecies['threat_status'], string> = {
   CR: '#DC2626',
 };
 
-const TIME_LABEL: Record<NonNullable<FaunaSpecies['best_time_of_day']>, string> = {
-  manha:    'Manhã',
-  tarde:    'Tarde',
-  noturno:  'Noturno',
-  qualquer: 'Qualquer hora',
+const TIME_LABEL_KEY: Record<NonNullable<FaunaSpecies['best_time_of_day']>, string> = {
+  manha:    'modulesNature.faunaCard.times.manha',
+  tarde:    'modulesNature.faunaCard.times.tarde',
+  noturno:  'modulesNature.faunaCard.times.noturno',
+  qualquer: 'modulesNature.faunaCard.times.qualquer',
 };
 
 const TIME_ICON: Record<NonNullable<FaunaSpecies['best_time_of_day']>, React.ComponentProps<typeof MaterialIcons>['name']> = {
@@ -105,12 +113,16 @@ const TIME_ICON: Record<NonNullable<FaunaSpecies['best_time_of_day']>, React.Com
 // ─── Component ────────────────────────────────────────────────────────────────
 
 function FaunaSpeciesCard({ species, expanded = false, onPress }: FaunaSpeciesCardProps) {
+  const { t } = useTranslation();
   const { colors } = useTheme();
   const accentColor  = CLASS_COLOR[species.class];
   const classIcon    = CLASS_ICON[species.class];
   const rarityColor  = RARITY_COLOR[species.rarity_level];
 
   const visibleHabitats = species.habitats.slice(0, 3);
+  const classLabelKey   = CLASS_LABEL_KEY[species.class];
+  const rarityLabelKey  = RARITY_LABEL_KEY[species.rarity_level];
+  const timeLabelKey    = species.best_time_of_day ? TIME_LABEL_KEY[species.best_time_of_day] : undefined;
 
   return (
     <TouchableOpacity
@@ -144,7 +156,7 @@ function FaunaSpeciesCard({ species, expanded = false, onPress }: FaunaSpeciesCa
       <View style={styles.badgesRow}>
         {/* Class badge */}
         <View style={[styles.classBadge, { backgroundColor: accentColor + '18', borderColor: accentColor + '40' }]}>
-          <Text style={[styles.classBadgeText, { color: accentColor }]}>{CLASS_LABEL[species.class]}</Text>
+          <Text style={[styles.classBadgeText, { color: accentColor }]}>{classLabelKey ? t(classLabelKey) : undefined}</Text>
         </View>
 
         {/* Rarity badge */}
@@ -152,7 +164,7 @@ function FaunaSpeciesCard({ species, expanded = false, onPress }: FaunaSpeciesCa
           {species.rarity_level === 'Epico' && (
             <MaterialIcons name="star" size={10} color={rarityColor} />
           )}
-          <Text style={[styles.rarityBadgeText, { color: rarityColor }]}>{species.rarity_level}</Text>
+          <Text style={[styles.rarityBadgeText, { color: rarityColor }]}>{rarityLabelKey ? t(rarityLabelKey) : species.rarity_level}</Text>
         </View>
 
         {/* Threat */}
@@ -163,7 +175,7 @@ function FaunaSpeciesCard({ species, expanded = false, onPress }: FaunaSpeciesCa
         {/* Endemic gold badge */}
         {species.tag_endemic && (
           <View style={styles.goldBadge}>
-            <Text style={styles.goldBadgeText}>End&eacute;mico</Text>
+            <Text style={styles.goldBadgeText}>{t('modulesNature.faunaCard.endemic')}</Text>
           </View>
         )}
 
@@ -171,7 +183,7 @@ function FaunaSpeciesCard({ species, expanded = false, onPress }: FaunaSpeciesCa
         {species.tag_in_danger && (
           <View style={styles.dangerBadge}>
             <MaterialIcons name="warning" size={9} color="#FFFFFF" />
-            <Text style={styles.dangerBadgeText}>Em Perigo</Text>
+            <Text style={styles.dangerBadgeText}>{t('modulesNature.faunaCard.inDanger')}</Text>
           </View>
         )}
 
@@ -179,7 +191,7 @@ function FaunaSpeciesCard({ species, expanded = false, onPress }: FaunaSpeciesCa
         {species.is_flagship && (
           <View style={styles.flagshipBadge}>
             <MaterialIcons name="workspace-premium" size={10} color="#FFFFFF" />
-            <Text style={styles.flagshipBadgeText}>Flagship</Text>
+            <Text style={styles.flagshipBadgeText}>{t('modulesNature.faunaCard.flagship')}</Text>
           </View>
         )}
 
@@ -205,7 +217,7 @@ function FaunaSpeciesCard({ species, expanded = false, onPress }: FaunaSpeciesCa
         {species.best_time_of_day && (
           <View style={styles.timeChip}>
             <MaterialIcons name={TIME_ICON[species.best_time_of_day]} size={11} color="#92400E" />
-            <Text style={styles.timeText}>{TIME_LABEL[species.best_time_of_day]}</Text>
+            <Text style={styles.timeText}>{timeLabelKey ? t(timeLabelKey) : undefined}</Text>
           </View>
         )}
         {/* Region */}
@@ -219,7 +231,7 @@ function FaunaSpeciesCard({ species, expanded = false, onPress }: FaunaSpeciesCa
       <View style={styles.habitatRow}>
         {visibleHabitats.map((h) => (
           <View key={h} style={styles.habitatChip}>
-            <Text style={styles.habitatChipText}>{h}</Text>
+            <Text style={styles.habitatChipText}>{t(`modulesNature.habitats.${h}`, { defaultValue: h })}</Text>
           </View>
         ))}
         {species.habitats.length > 3 && (
@@ -240,7 +252,7 @@ function FaunaSpeciesCard({ species, expanded = false, onPress }: FaunaSpeciesCa
             <View style={styles.tipsBlock}>
               <View style={styles.tipsHeader}>
                 <MaterialIcons name="visibility" size={14} color="#D97706" />
-                <Text style={styles.tipsTitle}>Dicas de Observação</Text>
+                <Text style={styles.tipsTitle}>{t('modulesNature.faunaCard.observationTips')}</Text>
               </View>
               <Text style={styles.tipsText}>{species.observation_tips}</Text>
             </View>

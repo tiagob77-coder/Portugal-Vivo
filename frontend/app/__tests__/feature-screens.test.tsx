@@ -4,7 +4,8 @@
  * ar-time-travel, explore-around, nearby, calendar, smart-routes
  */
 import React from 'react';
-import { render } from '@testing-library/react-native';
+import { render, act } from '@testing-library/react-native';
+import i18n from 'i18next';
 
 // ─── expo-router ──────────────────────────────────────────────────────────────
 jest.mock('expo-router', () => ({
@@ -275,5 +276,20 @@ describe('Feature Screens — smoke tests', () => {
     const SmartRoutesScreen = require('../smart-routes').default;
     const { toJSON } = render(<SmartRoutesScreen />);
     expect(toJSON()).toBeTruthy();
+  });
+});
+
+describe('onboarding in English', () => {
+  afterEach(async () => {
+    await act(() => i18n.changeLanguage('pt'));
+  });
+
+  it('renders the welcome slide in English', async () => {
+    await act(() => i18n.changeLanguage('en'));
+    const OnboardingScreen = require('../onboarding').default;
+    const { getByText } = render(<OnboardingScreen />);
+    expect(getByText('WELCOME')).toBeTruthy();
+    expect(getByText('Skip')).toBeTruthy();
+    expect(getByText('Get started')).toBeTruthy();
   });
 });

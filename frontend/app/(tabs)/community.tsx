@@ -4,31 +4,34 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 import api, { getApprovedContributions, createContribution, voteContribution, Contribution, ContributionCreate, getCategories } from '../../src/services/api';
 import { useAuth } from '../../src/context/AuthContext';
 import ImageUpload from '../../src/components/ImageUpload';
 import { useTheme, palette } from '../../src/theme';
+import { currentLocale } from '../../src/i18n/format';
 
 const CONTRIBUTION_TYPES = [
-  { id: 'story', name: 'História', icon: 'auto-stories', color: '#8B5CF6' },
-  { id: 'correction', name: 'Correção', icon: 'edit', color: '#C49A6C' },
-  { id: 'new_item', name: 'Novo Local', icon: 'add-location', color: '#22C55E' },
-  { id: 'photo', name: 'Fotografia', icon: 'photo-camera', color: '#3B82F6' },
+  { id: 'story', labelKey: 'exploreScreens.community.types.story', icon: 'auto-stories', color: '#8B5CF6' },
+  { id: 'correction', labelKey: 'exploreScreens.community.types.correction', icon: 'edit', color: '#C49A6C' },
+  { id: 'new_item', labelKey: 'exploreScreens.community.types.newItem', icon: 'add-location', color: '#22C55E' },
+  { id: 'photo', labelKey: 'exploreScreens.community.types.photo', icon: 'photo-camera', color: '#3B82F6' },
 ];
 
 const REGIONS = [
-  { id: 'norte', name: 'Norte' },
-  { id: 'centro', name: 'Centro' },
-  { id: 'lisboa', name: 'Lisboa' },
-  { id: 'alentejo', name: 'Alentejo' },
-  { id: 'algarve', name: 'Algarve' },
-  { id: 'acores', name: 'Açores' },
-  { id: 'madeira', name: 'Madeira' },
+  { id: 'norte', labelKey: 'exploreScreens.regions.norte' },
+  { id: 'centro', labelKey: 'exploreScreens.regions.centro' },
+  { id: 'lisboa', labelKey: 'exploreScreens.regions.lisboa' },
+  { id: 'alentejo', labelKey: 'exploreScreens.regions.alentejo' },
+  { id: 'algarve', labelKey: 'exploreScreens.regions.algarve' },
+  { id: 'acores', labelKey: 'exploreScreens.regions.acores' },
+  { id: 'madeira', labelKey: 'exploreScreens.regions.madeira' },
 ];
 
 type FeedTab = 'featured' | 'recent' | 'following';
 
 export default function CommunityScreen() {
+  const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const { colors: _colors } = useTheme();
   const queryClient = useQueryClient();
@@ -71,10 +74,10 @@ export default function CommunityScreen() {
       await api.post(`/community/contributions/${id}/report`, { reason });
     },
     onSuccess: () => {
-      Alert.alert('Obrigado', 'Report submetido. A moderação irá analisar.');
+      Alert.alert(t('exploreScreens.community.thanks'), t('exploreScreens.community.reportSubmitted'));
     },
     onError: (e: any) => {
-      Alert.alert('Erro', e?.response?.data?.detail || 'Não foi possível submeter o report.');
+      Alert.alert(t('exploreScreens.community.error'), e?.response?.data?.detail || t('exploreScreens.community.reportError'));
     },
   });
 
@@ -88,11 +91,11 @@ export default function CommunityScreen() {
     onSuccess: () => {
       setShowCreateModal(false);
       setNewContribution({ type: 'story', title: '', content: '', region: 'norte' });
-      Alert.alert('Sucesso', 'A sua contribuição foi submetida para revisão!');
+      Alert.alert(t('exploreScreens.community.success'), t('exploreScreens.community.contributionSubmitted'));
       refetch();
     },
     onError: () => {
-      Alert.alert('Erro', 'Não foi possível submeter a contribuição.');
+      Alert.alert(t('exploreScreens.community.error'), t('exploreScreens.community.contributionError'));
     },
   });
 
@@ -105,11 +108,11 @@ export default function CommunityScreen() {
 
   const handleCreate = () => {
     if (!isAuthenticated) {
-      Alert.alert('Atenção', 'Precisa de iniciar sessão para contribuir.');
+      Alert.alert(t('exploreScreens.community.attention'), t('exploreScreens.community.loginToContribute'));
       return;
     }
     if (!newContribution.title || !newContribution.content) {
-      Alert.alert('Atenção', 'Preencha o título e conteúdo.');
+      Alert.alert(t('exploreScreens.community.attention'), t('exploreScreens.community.fillTitleContent'));
       return;
     }
     createMutation.mutate(newContribution);
@@ -117,7 +120,7 @@ export default function CommunityScreen() {
 
   const handleVote = (id: string) => {
     if (!isAuthenticated) {
-      Alert.alert('Atenção', 'Precisa de iniciar sessão para votar.');
+      Alert.alert(t('exploreScreens.community.attention'), t('exploreScreens.community.loginToVote'));
       return;
     }
     voteMutation.mutate(id);
@@ -125,14 +128,15 @@ export default function CommunityScreen() {
 
   const handleReport = (id: string) => {
     if (!isAuthenticated) {
-      Alert.alert('Atenção', 'Precisa de iniciar sessão para reportar.');
+      Alert.alert(t('exploreScreens.community.attention'), t('exploreScreens.community.loginToReport'));
       return;
     }
-    Alert.alert('Reportar conteúdo', 'Qual o motivo do report?', [
-      { text: 'Cancelar', style: 'cancel' },
-      { text: 'Informação falsa', onPress: () => reportMutation.mutate({ id, reason: 'Informação falsa' }) },
-      { text: 'Conteúdo ofensivo', onPress: () => reportMutation.mutate({ id, reason: 'Conteúdo ofensivo' }) },
-      { text: 'Spam', onPress: () => reportMutation.mutate({ id, reason: 'Spam' }) },
+    // The reason values sent to the backend stay in Portuguese; only the labels are translated.
+    Alert.alert(t('exploreScreens.community.reportTitle'), t('exploreScreens.community.reportQuestion'), [
+      { text: t('common.cancel'), style: 'cancel' },
+      { text: t('exploreScreens.community.reasonFalseInfo'), onPress: () => reportMutation.mutate({ id, reason: 'Informação falsa' }) },
+      { text: t('exploreScreens.community.reasonOffensive'), onPress: () => reportMutation.mutate({ id, reason: 'Conteúdo ofensivo' }) },
+      { text: t('exploreScreens.community.reasonSpam'), onPress: () => reportMutation.mutate({ id, reason: 'Spam' }) },
     ]);
   };
 
@@ -143,7 +147,7 @@ export default function CommunityScreen() {
     : (contributions || []);
 
   const getTypeInfo = (type: string) => {
-    return CONTRIBUTION_TYPES.find(t => t.id === type) || CONTRIBUTION_TYPES[0];
+    return CONTRIBUTION_TYPES.find(ct => ct.id === type) || CONTRIBUTION_TYPES[0];
   };
 
   const renderContributionCard = ({ item }: { item: Contribution }) => {
@@ -153,10 +157,10 @@ export default function CommunityScreen() {
         <View style={styles.contributionHeader}>
           <View style={[styles.typeBadge, { backgroundColor: typeInfo.color + '20' }]}>
             <MaterialIcons name={typeInfo.icon as any} size={14} color={typeInfo.color} />
-            <Text style={[styles.typeBadgeText, { color: typeInfo.color }]}>{typeInfo.name}</Text>
+            <Text style={[styles.typeBadgeText, { color: typeInfo.color }]}>{t(typeInfo.labelKey)}</Text>
           </View>
           <Text style={styles.contributionDate}>
-            {new Date(item.created_at).toLocaleDateString('pt-PT')}
+            {new Date(item.created_at).toLocaleDateString(currentLocale())}
           </Text>
         </View>
         
@@ -168,7 +172,7 @@ export default function CommunityScreen() {
             style={styles.authorInfo}
             onPress={() => router.push(`/profile/${item.user_id}`)}
             accessibilityRole="link"
-            accessibilityLabel={`Ver perfil de ${item.user_name}`}
+            accessibilityLabel={t('exploreScreens.community.viewProfileA11y', { name: item.user_name })}
           >
             <MaterialIcons name="person" size={14} color={palette.gray[500]} />
             <Text style={styles.authorName}>{item.user_name}</Text>
@@ -187,7 +191,7 @@ export default function CommunityScreen() {
             style={styles.voteButton}
             onPress={() => handleVote(item.id)}
             accessibilityRole="button"
-            accessibilityLabel={`Votar na contribuição: ${item.title}`}
+            accessibilityLabel={t('exploreScreens.community.voteA11y', { title: item.title })}
           >
             <MaterialIcons name="thumb-up" size={16} color={palette.terracotta[500]} />
             <Text style={styles.voteCount}>{item.votes}</Text>
@@ -197,7 +201,7 @@ export default function CommunityScreen() {
             style={[styles.voteButton, { marginLeft: 4 }]}
             onPress={() => handleReport(item.id)}
             accessibilityRole="button"
-            accessibilityLabel={`Reportar contribuição: ${item.title}`}
+            accessibilityLabel={t('exploreScreens.community.reportA11y', { title: item.title })}
           >
             <MaterialIcons name="flag" size={15} color={palette.gray[400]} />
           </TouchableOpacity>
@@ -211,14 +215,14 @@ export default function CommunityScreen() {
       {/* Header */}
       <View style={styles.header}>
         <View>
-          <Text style={styles.headerTitle}>Comunidade</Text>
-          <Text style={styles.headerSubtitle}>Partilhe o seu conhecimento</Text>
+          <Text style={styles.headerTitle}>{t('exploreScreens.community.title')}</Text>
+          <Text style={styles.headerSubtitle}>{t('exploreScreens.community.subtitle')}</Text>
         </View>
         <TouchableOpacity
           style={styles.addButton}
           onPress={() => isAuthenticated ? setShowCreateModal(true) : login()}
           accessibilityRole="button"
-          accessibilityLabel="Nova contribuição"
+          accessibilityLabel={t('exploreScreens.community.newContributionA11y')}
         >
           <MaterialIcons name="add" size={24} color={palette.forest[500]} />
         </TouchableOpacity>
@@ -234,7 +238,7 @@ export default function CommunityScreen() {
         {CONTRIBUTION_TYPES.map((type) => (
           <View key={type.id} style={[styles.typeCard, { borderColor: type.color }]}>
             <MaterialIcons name={type.icon as any} size={24} color={type.color} />
-            <Text style={[styles.typeCardText, { color: type.color }]}>{type.name}</Text>
+            <Text style={[styles.typeCardText, { color: type.color }]}>{t(type.labelKey)}</Text>
           </View>
         ))}
       </ScrollView>
@@ -242,9 +246,9 @@ export default function CommunityScreen() {
       {/* Feed tabs */}
       <View style={styles.feedTabs}>
         {([
-          { id: 'featured', label: '⭐ Em Destaque' },
-          { id: 'recent', label: 'Recentes' },
-          { id: 'following', label: 'A Seguir' },
+          { id: 'featured', label: t('exploreScreens.community.tabs.featured') },
+          { id: 'recent', label: t('exploreScreens.community.tabs.recent') },
+          { id: 'following', label: t('exploreScreens.community.tabs.following') },
         ] as { id: FeedTab; label: string }[]).map((tab) => (
           <TouchableOpacity
             key={tab.id}
@@ -252,7 +256,7 @@ export default function CommunityScreen() {
             onPress={() => setFeedTab(tab.id)}
             accessibilityRole="tab"
             accessibilityState={{ selected: feedTab === tab.id }}
-            accessibilityLabel={`Separador ${tab.label}`}
+            accessibilityLabel={t('exploreScreens.community.tabA11y', { label: tab.label })}
           >
             <Text style={[styles.feedTabText, feedTab === tab.id && styles.feedTabTextActive]}>
               {tab.label}
@@ -274,25 +278,25 @@ export default function CommunityScreen() {
           ) : (
             <View style={styles.emptyState}>
               <MaterialIcons name="forum" size={48} color={palette.gray[500]} />
-              <Text style={styles.emptyText}>Ainda não há contribuições</Text>
-              <Text style={styles.emptySubtext}>Seja o primeiro a partilhar!</Text>
+              <Text style={styles.emptyText}>{t('exploreScreens.community.emptyTitle')}</Text>
+              <Text style={styles.emptySubtext}>{t('exploreScreens.community.emptySubtitle')}</Text>
               {isAuthenticated ? (
                 <TouchableOpacity
                   style={styles.emptyButton}
                   onPress={() => setShowCreateModal(true)}
                   accessibilityRole="button"
-                  accessibilityLabel="Criar contribuição"
+                  accessibilityLabel={t('exploreScreens.community.createContribution')}
                 >
-                  <Text style={styles.emptyButtonText}>Criar contribuição</Text>
+                  <Text style={styles.emptyButtonText}>{t('exploreScreens.community.createContribution')}</Text>
                 </TouchableOpacity>
               ) : (
                 <TouchableOpacity
                   style={styles.emptyButton}
                   onPress={login}
                   accessibilityRole="button"
-                  accessibilityLabel="Iniciar sessão"
+                  accessibilityLabel={t('exploreScreens.community.signIn')}
                 >
-                  <Text style={styles.emptyButtonText}>Iniciar sessão</Text>
+                  <Text style={styles.emptyButtonText}>{t('exploreScreens.community.signIn')}</Text>
                 </TouchableOpacity>
               )}
             </View>
@@ -310,11 +314,11 @@ export default function CommunityScreen() {
         <View style={styles.modalOverlay}>
           <View style={[styles.modalContent, { paddingBottom: insets.bottom + 20 }]}>
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Nova Contribuição</Text>
+              <Text style={styles.modalTitle}>{t('exploreScreens.community.modalTitle')}</Text>
               <TouchableOpacity
                 onPress={() => setShowCreateModal(false)}
                 accessibilityRole="button"
-                accessibilityLabel="Fechar"
+                accessibilityLabel={t('common.close')}
               >
                 <MaterialIcons name="close" size={24} color={palette.gray[500]} />
               </TouchableOpacity>
@@ -322,7 +326,7 @@ export default function CommunityScreen() {
 
             <ScrollView showsVerticalScrollIndicator={false}>
               {/* Type Selection */}
-              <Text style={styles.inputLabel}>Tipo de contribuição</Text>
+              <Text style={styles.inputLabel}>{t('exploreScreens.community.typeLabel')}</Text>
               <View style={styles.typeSelector}>
                 {CONTRIBUTION_TYPES.map((type) => (
                   <TouchableOpacity
@@ -337,7 +341,7 @@ export default function CommunityScreen() {
                     onPress={() => setNewContribution({ ...newContribution, type: type.id })}
                     accessibilityRole="tab"
                     accessibilityState={{ selected: newContribution.type === type.id }}
-                    accessibilityLabel={`Tipo de contribuição: ${type.name}`}
+                    accessibilityLabel={t('exploreScreens.community.typeA11y', { type: t(type.labelKey) })}
                   >
                     <MaterialIcons 
                       name={type.icon as any} 
@@ -348,14 +352,14 @@ export default function CommunityScreen() {
                       styles.typeSelectorText,
                       newContribution.type === type.id && { color: type.color },
                     ]}>
-                      {type.name}
+                      {t(type.labelKey)}
                     </Text>
                   </TouchableOpacity>
                 ))}
               </View>
 
               {/* Region Selection */}
-              <Text style={styles.inputLabel}>Região</Text>
+              <Text style={styles.inputLabel}>{t('exploreScreens.community.regionLabel')}</Text>
               <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.regionSelector}>
                 {REGIONS.map((region) => (
                   <TouchableOpacity
@@ -367,35 +371,35 @@ export default function CommunityScreen() {
                     onPress={() => setNewContribution({ ...newContribution, region: region.id })}
                     accessibilityRole="tab"
                     accessibilityState={{ selected: newContribution.region === region.id }}
-                    accessibilityLabel={`Região: ${region.name}`}
+                    accessibilityLabel={t('exploreScreens.community.regionA11y', { region: t(region.labelKey) })}
                   >
                     <Text style={[
                       styles.regionChipText,
                       newContribution.region === region.id && styles.regionChipTextActive,
                     ]}>
-                      {region.name}
+                      {t(region.labelKey)}
                     </Text>
                   </TouchableOpacity>
                 ))}
               </ScrollView>
 
               {/* Title */}
-              <Text style={styles.inputLabel}>Título</Text>
+              <Text style={styles.inputLabel}>{t('exploreScreens.community.titleLabel')}</Text>
               <TextInput
                 style={styles.textInput}
                 value={newContribution.title}
                 onChangeText={(text) => setNewContribution({ ...newContribution, title: text })}
-                placeholder="Dê um título à sua contribuição"
+                placeholder={t('exploreScreens.community.titlePlaceholder')}
                 placeholderTextColor="#64748B"
               />
 
               {/* Content */}
-              <Text style={styles.inputLabel}>Conteúdo</Text>
+              <Text style={styles.inputLabel}>{t('exploreScreens.community.contentLabel')}</Text>
               <TextInput
                 style={[styles.textInput, styles.textArea]}
                 value={newContribution.content}
                 onChangeText={(text) => setNewContribution({ ...newContribution, content: text })}
-                placeholder="Descreva a sua história, correção ou descoberta..."
+                placeholder={t('exploreScreens.community.contentPlaceholder')}
                 placeholderTextColor="#64748B"
                 multiline
                 numberOfLines={6}
@@ -403,7 +407,7 @@ export default function CommunityScreen() {
               />
 
               {/* Photo */}
-              <Text style={styles.inputLabel}>Foto (opcional)</Text>
+              <Text style={styles.inputLabel}>{t('exploreScreens.community.photoLabel')}</Text>
               {sessionToken && (
                 <ImageUpload
                   token={sessionToken}
@@ -422,14 +426,14 @@ export default function CommunityScreen() {
                 disabled={createMutation.isPending}
                 accessibilityRole="button"
                 accessibilityState={{ disabled: createMutation.isPending }}
-                accessibilityLabel="Submeter contribuição"
+                accessibilityLabel={t('exploreScreens.community.submitA11y')}
               >
                 {createMutation.isPending ? (
                   <ActivityIndicator size="small" color="#2E5E4E" />
                 ) : (
                   <>
                     <MaterialIcons name="send" size={20} color="#2E5E4E" />
-                    <Text style={styles.submitButtonText}>Submeter</Text>
+                    <Text style={styles.submitButtonText}>{t('exploreScreens.community.submit')}</Text>
                   </>
                 )}
               </TouchableOpacity>

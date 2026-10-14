@@ -8,7 +8,7 @@
 Uma aplicação móvel (iOS, Android, Web) que transforma o património cultural português em
 experiências imersivas — com narrativas revistas, guias de áudio, mapas e rotas temáticas.
 
-Interface em português (inglês em preparação). Desenhada para o viajante que quer ir além do Google Maps.
+Interface em português, inglês, espanhol e francês (os conteúdos dos POIs aparecem traduzidos à medida que as traduções são geradas). Desenhada para o viajante que quer ir além do Google Maps.
 
 ---
 

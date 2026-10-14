@@ -3,7 +3,8 @@
  * Covers: render, loading state, data display, profile filters
  */
 import React from 'react';
-import { render, fireEvent } from '@testing-library/react-native';
+import { render, fireEvent, act } from '@testing-library/react-native';
+import { changeLanguage } from 'i18next';
 
 // ─── expo-router ──────────────────────────────────────────────────────────────
 jest.mock('expo-router', () => ({
@@ -170,5 +171,25 @@ describe('costa/index', () => {
     const CostaScreen = require('../costa/index').default;
     const { getByText } = render(<CostaScreen />);
     expect(getByText('Costa do Minho')).toBeTruthy();
+  });
+});
+
+describe('costa/index in English', () => {
+  beforeEach(() => {
+    mockUseQuery.mockReturnValue({ data: undefined, isLoading: false, refetch: jest.fn() });
+  });
+
+  afterEach(async () => {
+    await act(() => changeLanguage('pt'));
+    jest.clearAllMocks();
+  });
+
+  it('renders its English copy', async () => {
+    await act(() => changeLanguage('en'));
+    const CostaScreen = require('../costa/index').default;
+    const { getByText, getAllByText } = render(<CostaScreen />);
+    expect(getByText('Coastline')).toBeTruthy();
+    expect(getByText('Surfer')).toBeTruthy();
+    expect(getAllByText('View details').length).toBe(10);
   });
 });

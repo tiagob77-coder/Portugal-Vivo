@@ -20,11 +20,13 @@ import Head from 'expo-router/head';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useQuery } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useTheme } from '../../src/context/ThemeContext';
 import { getCategories } from '../../src/services/api';
 import { PUBLIC_URL } from '../../src/config/api';
 import { trackImpact } from '../../src/services/impactTracking';
+import { currentLocale } from '../../src/i18n/format';
 import {
   getPublicMunicipality,
   getApiErrorStatus,
@@ -44,13 +46,14 @@ function prettyCategory(id: string): string {
 function formatHours(h?: number | null): string | null {
   if (h == null || h <= 0) return null;
   if (h < 1) return `${Math.round(h * 60)} min`;
-  return `${Number.isInteger(h) ? h : h.toFixed(1).replace('.', ',')} h`;
+  return `${Number.isInteger(h) ? h : Number(h.toFixed(1)).toLocaleString(currentLocale())} h`;
 }
 
 function SeoHead({ data, slug }: { data: PublicMunicipalityResponse; slug: string }) {
+  const { t } = useTranslation();
   const p = data.profile;
   const canonical = `${PUBLIC_URL}/destino/${encodeURIComponent(data.slug || slug)}`;
-  const desc = (p.tagline || p.description || `Descubra ${p.display_name} no Portugal Vivo.`).slice(0, 160);
+  const desc = (p.tagline || p.description || t('exploreScreens.destino.seoDescription', { name: p.display_name })).slice(0, 160);
   const image = p.hero_image_url || FALLBACK_OG_IMAGE;
   const title = `${p.display_name} | Portugal Vivo`;
   const schemaOrg = {
@@ -72,7 +75,7 @@ function SeoHead({ data, slug }: { data: PublicMunicipalityResponse; slug: strin
       <meta property="og:image" content={image} />
       <meta property="og:type" content="website" />
       <meta property="og:url" content={canonical} />
-      <meta property="og:locale" content="pt_PT" />
+      <meta property="og:locale" content={currentLocale().replace('-', '_')} />
       <meta property="og:site_name" content="Portugal Vivo" />
       <meta name="twitter:card" content="summary_large_image" />
       <meta name="twitter:title" content={p.display_name} />
@@ -85,6 +88,7 @@ function SeoHead({ data, slug }: { data: PublicMunicipalityResponse; slug: strin
 }
 
 export default function DestinoScreen() {
+  const { t } = useTranslation();
   const { slug: rawSlug } = useLocalSearchParams<{ slug: string }>();
   const slug = Array.isArray(rawSlug) ? rawSlug[0] : rawSlug;
   const router = useRouter();
@@ -119,7 +123,7 @@ export default function DestinoScreen() {
     <TouchableOpacity
       style={[s.backBtn, { top: insets.top + 10 }]}
       onPress={goBack}
-      accessibilityLabel="Voltar"
+      accessibilityLabel={t('common.back')}
       hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
     >
       <MaterialIcons name="arrow-back" size={22} color="#FFFFFF" />
@@ -143,20 +147,20 @@ export default function DestinoScreen() {
         <MaterialIcons name={notFound ? 'location-city' : 'cloud-off'} size={48} color={colors.textMuted} />
         <Text style={[s.stateTitle, { color: colors.textPrimary }]}>
           {notFound
-            ? 'Este município ainda não tem página no Portugal Vivo'
-            : 'Não foi possível carregar esta página'}
+            ? t('exploreScreens.destino.notFound')
+            : t('exploreScreens.destino.loadError')}
         </Text>
         {notFound ? (
           <TouchableOpacity style={[s.btn, { backgroundColor: colors.primary }]} onPress={() => router.replace('/destino')}>
-            <Text style={s.btnText}>Ver municípios parceiros</Text>
+            <Text style={s.btnText}>{t('exploreScreens.destino.seePartners')}</Text>
           </TouchableOpacity>
         ) : (
           <TouchableOpacity style={[s.btn, { backgroundColor: colors.primary }]} onPress={() => refetch()}>
-            <Text style={s.btnText}>Tentar novamente</Text>
+            <Text style={s.btnText}>{t('common.retry')}</Text>
           </TouchableOpacity>
         )}
         <TouchableOpacity onPress={goBack} style={{ paddingVertical: 8 }}>
-          <Text style={[s.link, { color: colors.primary }]}>Voltar</Text>
+          <Text style={[s.link, { color: colors.primary }]}>{t('common.back')}</Text>
         </TouchableOpacity>
       </View>
     );
@@ -210,17 +214,17 @@ export default function DestinoScreen() {
           <View style={[s.statsRow, { backgroundColor: colors.surface, borderColor: colors.borderLight }]}>
             <View style={s.stat}>
               <Text style={[s.statValue, { color: brand }]}>{formatCount(data.stats.pois)}</Text>
-              <Text style={[s.statLabel, { color: colors.textMuted }]}>Locais a descobrir</Text>
+              <Text style={[s.statLabel, { color: colors.textMuted }]}>{t('exploreScreens.destino.statPlaces')}</Text>
             </View>
             <View style={[s.statDivider, { backgroundColor: colors.borderLight }]} />
             <View style={s.stat}>
               <Text style={[s.statValue, { color: brand }]}>{formatCount(data.stats.audio_guides)}</Text>
-              <Text style={[s.statLabel, { color: colors.textMuted }]}>Áudio-guias</Text>
+              <Text style={[s.statLabel, { color: colors.textMuted }]}>{t('exploreScreens.destino.statAudioGuides')}</Text>
             </View>
             <View style={[s.statDivider, { backgroundColor: colors.borderLight }]} />
             <View style={s.stat}>
               <Text style={[s.statValue, { color: brand }]}>{formatCount(data.featured_routes.length)}</Text>
-              <Text style={[s.statLabel, { color: colors.textMuted }]}>Rotas</Text>
+              <Text style={[s.statLabel, { color: colors.textMuted }]}>{t('exploreScreens.destino.statRoutes')}</Text>
             </View>
           </View>
 
@@ -246,7 +250,7 @@ export default function DestinoScreen() {
           {/* Featured POIs */}
           {data.featured_pois.length > 0 && (
             <>
-              <Text style={[s.sectionTitle, { color: colors.textPrimary }]}>Em destaque</Text>
+              <Text style={[s.sectionTitle, { color: colors.textPrimary }]}>{t('exploreScreens.destino.featured')}</Text>
               <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={s.poiRow}>
                 {data.featured_pois.map((poi) => (
                   <TouchableOpacity
@@ -286,7 +290,7 @@ export default function DestinoScreen() {
           {/* Featured routes */}
           {data.featured_routes.length > 0 && (
             <>
-              <Text style={[s.sectionTitle, { color: colors.textPrimary }]}>Rotas sugeridas</Text>
+              <Text style={[s.sectionTitle, { color: colors.textPrimary }]}>{t('exploreScreens.destino.suggestedRoutes')}</Text>
               {data.featured_routes.map((r) => {
                 const duration = formatHours(r.duration_hours);
                 return (
@@ -336,7 +340,7 @@ export default function DestinoScreen() {
                   accessibilityRole="link"
                 >
                   <MaterialIcons name="language" size={18} color="#FFFFFF" />
-                  <Text style={s.contactBtnText}>Website oficial</Text>
+                  <Text style={s.contactBtnText}>{t('exploreScreens.destino.officialWebsite')}</Text>
                 </TouchableOpacity>
               )}
               {!!p.contact_email && (
@@ -346,7 +350,7 @@ export default function DestinoScreen() {
                   accessibilityRole="link"
                 >
                   <MaterialIcons name="mail-outline" size={18} color={brand} />
-                  <Text style={[s.contactBtnOutlineText, { color: brand }]}>Contactar</Text>
+                  <Text style={[s.contactBtnOutlineText, { color: brand }]}>{t('exploreScreens.destino.contact')}</Text>
                 </TouchableOpacity>
               )}
             </View>
@@ -357,7 +361,7 @@ export default function DestinoScreen() {
             <View style={[s.attribution, { borderTopColor: colors.borderLight }]}>
               <MaterialIcons name="verified" size={16} color={colors.textMuted} />
               <Text style={[s.attributionText, { color: colors.textMuted }]}>
-                Página oficial do município no Portugal Vivo
+                {t('exploreScreens.destino.attribution')}
               </Text>
             </View>
           )}

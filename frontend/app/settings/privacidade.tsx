@@ -9,6 +9,7 @@ import { View, Text, StyleSheet, ScrollView, Switch, TouchableOpacity, Platform 
 import { useRouter } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useTranslation } from 'react-i18next';
 import { useTheme } from '../../src/context/ThemeContext';
 import { shadows } from '../../src/theme';
 import { ScreenHeader } from '../../src/components/ui';
@@ -18,6 +19,7 @@ export default function PrivacySettingsScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { colors } = useTheme();
+  const { t } = useTranslation();
   // null while the stored preference is being read
   const [statsEnabled, setStatsEnabled] = useState<boolean | null>(null);
 
@@ -38,22 +40,22 @@ export default function PrivacySettingsScreen() {
 
   return (
     <View style={[s.container, { paddingTop: insets.top, backgroundColor: colors.background }]}>
-      <ScreenHeader title="Privacidade" onBack={() => router.back()} />
+      <ScreenHeader title={t('account.privacy.title')} onBack={() => router.back()} />
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 40 + insets.bottom }}>
-        <Text style={[s.sectionTitle, { color: colors.textMuted }]}>ESTATÍSTICAS DE UTILIZAÇÃO</Text>
+        <Text style={[s.sectionTitle, { color: colors.textMuted }]}>{t('account.privacy.usageStats')}</Text>
 
         <View style={[s.row, { backgroundColor: colors.surface, borderColor: colors.border }]}>
           <MaterialIcons name="insights" size={22} color={on ? colors.accent : colors.textMuted} />
           <View style={s.rowText}>
-            <Text style={[s.rowLabel, { color: colors.textPrimary }]}>Partilhar estatísticas anónimas</Text>
+            <Text style={[s.rowLabel, { color: colors.textPrimary }]}>{t('account.privacy.shareStats')}</Text>
             <Text style={[s.rowSublabel, { color: colors.textMuted }]}>
-              Ajuda os municípios a perceber que locais são visitados. Sem dados pessoais.
+              {t('account.privacy.shareStatsDesc')}
             </Text>
           </View>
           <Switch
             testID="impact-tracking-switch"
-            accessibilityLabel="Partilhar estatísticas anónimas"
+            accessibilityLabel={t('account.privacy.shareStats')}
             value={on}
             disabled={statsEnabled === null}
             onValueChange={onToggleStats}
@@ -64,20 +66,17 @@ export default function PrivacySettingsScreen() {
         </View>
 
         <Text style={[s.hint, { color: colors.textMuted }]}>
-          Contamos apenas ações anónimas (locais e rotas vistos, áudio ouvido, partilhas e
-          pedidos de direções) com um identificador aleatório que muda todos os meses e fica
-          só neste dispositivo. Não enviamos a sua conta, o endereço IP nem a localização.
-          Os eventos são apagados ao fim de 400 dias.
+          {t('account.privacy.hint')}
         </Text>
 
         <TouchableOpacity
           style={s.link}
           onPress={() => router.push('/privacy')}
           accessibilityRole="link"
-          accessibilityLabel="Ler a Política de Privacidade"
+          accessibilityLabel={t('account.privacy.readPolicy')}
         >
           <MaterialIcons name="privacy-tip" size={16} color={colors.accent} />
-          <Text style={[s.linkText, { color: colors.accent }]}>Ler a Política de Privacidade</Text>
+          <Text style={[s.linkText, { color: colors.accent }]}>{t('account.privacy.readPolicy')}</Text>
         </TouchableOpacity>
       </ScrollView>
     </View>

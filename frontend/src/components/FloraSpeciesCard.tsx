@@ -7,6 +7,7 @@ import {
   View, Text, StyleSheet, TouchableOpacity,
 } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import { useTheme } from '../context/ThemeContext';
 
 // ─── Interfaces ───────────────────────────────────────────────────────────────
@@ -54,11 +55,11 @@ const STATUS_ICON: Record<FloraSpecies['status'], React.ComponentProps<typeof Ma
   protegida:  'shield',
 };
 
-const STATUS_LABEL: Record<FloraSpecies['status'], string> = {
-  endemica:   'Endémica',
-  autocone:   'Autocone',
-  introduzida:'Introduzida',
-  protegida:  'Protegida',
+const STATUS_LABEL_KEY: Record<FloraSpecies['status'], string> = {
+  endemica:   'modulesNature.floraCard.status.endemica',
+  autocone:   'modulesNature.floraCard.status.autocone',
+  introduzida:'modulesNature.floraCard.status.introduzida',
+  protegida:  'modulesNature.floraCard.status.protegida',
 };
 
 const THREAT_COLOR: Record<FloraSpecies['threat_status'], string> = {
@@ -70,14 +71,16 @@ const THREAT_COLOR: Record<FloraSpecies['threat_status'], string> = {
   DD: '#6B7280',
 };
 
-const MONTH_SHORT = ['J','F','M','A','M','J','J','A','S','O','N','D'];
+const MONTH_SHORT_KEYS = Array.from({ length: 12 }, (_, i) => `modulesNature.months.initial.m${i + 1}`);
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
 function FloraSpeciesCard({ species, expanded = false, onPress }: FloraSpeciesCardProps) {
+  const { t } = useTranslation();
   const accentColor = STATUS_COLOR[species.status];
   const { colors } = useTheme();
   const statusIcon  = STATUS_ICON[species.status];
+  const statusLabelKey = STATUS_LABEL_KEY[species.status];
 
   const currentMonth = new Date().getMonth() + 1; // 1-12
 
@@ -102,7 +105,9 @@ function FloraSpeciesCard({ species, expanded = false, onPress }: FloraSpeciesCa
       onPress={onPress}
       activeOpacity={0.85}
       accessibilityRole="button"
-      accessibilityLabel={`${expanded ? 'Recolher' : 'Ver detalhes de'} ${species.common_name}`}
+      accessibilityLabel={expanded
+        ? t('modulesNature.floraCard.collapse', { name: species.common_name })
+        : t('modulesNature.floraCard.viewDetails', { name: species.common_name })}
     >
       {/* ── Header ──────────────────────────────────────────────────────────── */}
       <View style={styles.header}>
@@ -117,7 +122,7 @@ function FloraSpeciesCard({ species, expanded = false, onPress }: FloraSpeciesCa
             <Text style={[styles.commonName, { color: colors.textPrimary }]} numberOfLines={1}>{species.common_name}</Text>
             {species.status === 'endemica' && (
               <View style={styles.goldBadge}>
-                <Text style={styles.goldBadgeText}>Endémica</Text>
+                <Text style={styles.goldBadgeText}>{t('modulesNature.floraCard.endemicBadge')}</Text>
               </View>
             )}
           </View>
@@ -135,7 +140,7 @@ function FloraSpeciesCard({ species, expanded = false, onPress }: FloraSpeciesCa
       <View style={styles.badgesRow}>
         {/* Status badge */}
         <View style={[styles.statusBadge, { backgroundColor: accentColor + '18', borderColor: accentColor + '40' }]}>
-          <Text style={[styles.statusBadgeText, { color: accentColor }]}>{STATUS_LABEL[species.status]}</Text>
+          <Text style={[styles.statusBadgeText, { color: accentColor }]}>{statusLabelKey ? t(statusLabelKey) : undefined}</Text>
         </View>
 
         {/* Threat status badge */}
@@ -164,9 +169,9 @@ function FloraSpeciesCard({ species, expanded = false, onPress }: FloraSpeciesCa
 
       {/* ── Flowering bar ───────────────────────────────────────────────────── */}
       <View style={styles.floweringSection}>
-        <Text style={[styles.floweringLabel, { color: colors.textMuted }]}>Floração</Text>
+        <Text style={[styles.floweringLabel, { color: colors.textMuted }]}>{t('modulesNature.floraCard.flowering')}</Text>
         <View style={styles.floweringBar}>
-          {MONTH_SHORT.map((m, idx) => {
+          {MONTH_SHORT_KEYS.map((mKey, idx) => {
             const month = idx + 1;
             const active = isFlowering(month);
             const isCurrent = month === currentMonth;
@@ -180,7 +185,7 @@ function FloraSpeciesCard({ species, expanded = false, onPress }: FloraSpeciesCa
                 ]}
               >
                 <Text style={[styles.monthSquareText, active && styles.monthSquareTextActive]}>
-                  {m}
+                  {t(mKey)}
                 </Text>
               </View>
             );
@@ -192,7 +197,7 @@ function FloraSpeciesCard({ species, expanded = false, onPress }: FloraSpeciesCa
       <View style={styles.habitatRow}>
         {visibleHabitats.map((h) => (
           <View key={h} style={styles.habitatChip}>
-            <Text style={styles.habitatChipText}>{h}</Text>
+            <Text style={styles.habitatChipText}>{t(`modulesNature.habitats.${h}`, { defaultValue: h })}</Text>
           </View>
         ))}
         {species.habitats.length > 3 && (

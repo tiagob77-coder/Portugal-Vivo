@@ -1,0 +1,1418 @@
+{
+  "pt": {
+    "shared": {
+      "all": "Todos",
+      "more": "+{{count}} mais",
+      "monthsShort": {
+        "jan": "Jan",
+        "feb": "Fev",
+        "mar": "Mar",
+        "apr": "Abr",
+        "may": "Mai",
+        "jun": "Jun",
+        "jul": "Jul",
+        "aug": "Ago",
+        "sep": "Set",
+        "oct": "Out",
+        "nov": "Nov",
+        "dec": "Dez"
+      }
+    },
+    "gastronomia": {
+      "title": "Gastronomia Costeira",
+      "subtitle": "Pratos · Tradições · Sabores do Mar",
+      "inSeasonNow": "Em época agora:",
+      "inSeasonCount": "{{count}} pratos",
+      "tabs": {
+        "todos": "Todos",
+        "peixe": "Peixe",
+        "marisco": "Marisco",
+        "sopa": "Sopas",
+        "doce": "Doces",
+        "tradicional": "Tradicionais"
+      },
+      "oneDishFound": "{{count}} prato encontrado",
+      "dishesFound": "{{count}} pratos encontrados",
+      "emptyTitle": "Nenhum prato encontrado",
+      "emptyText": "Tente outra categoria ou região.",
+      "sources": "Dados: DGPC · DGRM · Associações de Pescadores",
+      "dishes": {
+        "caldeirada-peixe": {
+          "storyShort": "O prato mais emblemático da costa portuguesa, com camadas de peixe, batata e tomate cozinhados em vinho branco.",
+          "storyLong": "A caldeirada nasceu nos barcos de pesca, onde os pescadores aproveitavam o peixe partido ou menos nobre para criar um guisado rico e perfumado. Cada região tem a sua versão — a de Setúbal leva congro e enguia; a algarvia, atum e tamboril."
+        },
+        "arroz-lingueirao": {
+          "storyShort": "Arroz cremoso e perfumado com lingueirão da Ria Formosa, um petisco algarvi obrigatório na primavera."
+        },
+        "cataplana-mariscos": {
+          "storyShort": "Cozinhada no utensílio de cobre em forma de concha, a cataplana preserva todos os aromas do mar algarvi.",
+          "storyLong": "A cataplana é tanto o nome do utensílio como do prato. Introduzida pelos mouros há mais de 800 anos, a panela de cobre em forma de amêijoa sela os sabores do marisco, criando um vapor aromático que cozinha tudo perfeitamente."
+        },
+        "polvo-lagareiro": {
+          "storyShort": "Tentáculos de polvo assados no forno com batatas a murro, azeite e alho — simplicidade que sabe a Portugal."
+        },
+        "acorda-bacalhau": {
+          "storyShort": "Sopa espessa de pão alentejano com bacalhau desfiado, coentros e ovo escalfado — comfort food português por excelência.",
+          "storyLong": "A açorda nasceu da necessidade de aproveitar pão duro, transformando o que seria desperdício num prato rico e nutritivo. A versão com bacalhau é a mais popular em Lisboa, enquanto o Alentejo prefere a açorda de alho simples."
+        },
+        "ameijoas-bulhao-pato": {
+          "storyShort": "Amêijoas abertas em azeite, alho, coentros e vinho branco — o petisco mais clássico da tasca portuguesa."
+        },
+        "sapateira-recheada": {
+          "storyShort": "Caranguejo recheado com a sua própria carne misturada com mostarda, pickles e alcaparras — elegância dos mares do Norte."
+        },
+        "caldo-verde-ameijoas": {
+          "storyShort": "Versão marítima do caldo verde minhoto, onde as amêijoas substituem o chouriço para uma sopa do mar surpreendente."
+        },
+        "filetes-choco-setubalense": {
+          "storyShort": "Filetes de choco panados e fritos, servidos com arroz de choco na tinta — especialidade obrigatória de Setúbal.",
+          "storyLong": "O choco é o rei de Setúbal. Os filetes são a preparação mais popular, mas a tinta do choco não se desperdiça — é aproveitada para um arroz negro que acompanha o prato. Diz-se que o prato foi popularizado pelos pescadores da Arrábida."
+        },
+        "percebes-peniche": {
+          "storyShort": "Percebes colhidos nas rochas batidas pelo Atlântico em Peniche — sabor a mar puro que vale cada cêntimo."
+        },
+        "sardinhas-assadas": {
+          "storyShort": "O ícone do verão português — sardinhas gordas de junho e julho assadas na brasa, servidas em pão de milho.",
+          "storyLong": "As sardinhas assadas são o símbolo das festas populares de junho em Lisboa e Porto. As melhores são as de junho e julho, quando estão mais gordas. A tradição diz que devem ser comidas ao ar livre, em papel de jornal, com um copo de vinho verde."
+        },
+        "lampreia-bordalesa": {
+          "storyShort": "Prato de inverno do Minho com lampreia cozinhada no seu próprio sangue com vinho tinto — iguaria medieval única.",
+          "storyLong": "A lampreia é um dos peixes mais antigos do mundo, com mais de 360 milhões de anos. No Minho, é capturada no rio Lima e Minho entre janeiro e abril. A receita à bordalesa é adaptada do estilo francês com vinho tinto e sangue do animal, criando um molho espesso e intenso."
+        },
+        "arroz-linguado-gambas": {
+          "storyShort": "Arroz malandro algarvi com linguado delicado e gambas frescas, perfumado a açafrão e coentros."
+        },
+        "queijadas-sintra-camarao": {
+          "storyShort": "Fusão criativa entre a queijada tradicional de Sintra e camarão da costa, uma reinvenção contemporânea do doce conventual.",
+          "storyLong": "As queijadas de Sintra têm receita secreta desde o século XIII. Esta versão contemporânea, criada por pasteleiros locais, incorpora camarão da costa de Cascais numa massa de requeijão, açúcar e canela, criando um contraste doce-salgado surpreendente."
+        }
+      },
+      "foods": {
+        "robalo": "Robalo",
+        "dourada": "Dourada",
+        "congro": "Congro",
+        "batata": "Batata",
+        "tomate": "Tomate",
+        "cebola": "Cebola",
+        "vinhoBranco": "Vinho branco",
+        "azeite": "Azeite",
+        "lingueirao": "Lingueirão",
+        "arrozCarolino": "Arroz carolino",
+        "alho": "Alho",
+        "coentros": "Coentros",
+        "ameijoa": "Amêijoa",
+        "camarao": "Camarão",
+        "mexilhao": "Mexilhão",
+        "pimento": "Pimento",
+        "linguica": "Linguiça",
+        "polvo": "Polvo",
+        "batataAMurro": "Batata a murro",
+        "salGrosso": "Sal grosso",
+        "cebolaRoxa": "Cebola roxa",
+        "bacalhau": "Bacalhau",
+        "paoAlentejano": "Pão alentejano",
+        "ovo": "Ovo",
+        "pimentaoDoce": "Pimentão doce",
+        "ameijoaBoa": "Amêijoa-boa",
+        "limao": "Limão",
+        "sapateira": "Sapateira",
+        "mostarda": "Mostarda",
+        "pickles": "Pickles",
+        "alcaparras": "Alcaparras",
+        "mayonese": "Mayonese",
+        "whisky": "Whisky",
+        "tabasco": "Tabasco",
+        "couveGalega": "Couve galega",
+        "choco": "Choco",
+        "farinha": "Farinha",
+        "paoRalado": "Pão ralado",
+        "arroz": "Arroz",
+        "tintaDeChoco": "Tinta de choco",
+        "percebe": "Percebe",
+        "louro": "Louro",
+        "aguaDoMar": "Água do mar",
+        "sardinha": "Sardinha",
+        "paoDeMilho": "Pão de milho",
+        "pimentoAssado": "Pimento assado",
+        "lampreia": "Lampreia",
+        "vinhoTinto": "Vinho tinto",
+        "sangueDeLampreia": "Sangue de lampreia",
+        "presunto": "Presunto",
+        "lampreiaDeRio": "Lampreia-de-rio",
+        "linguado": "Linguado",
+        "gamba": "Gamba",
+        "acafrao": "Açafrão",
+        "requeijao": "Requeijão",
+        "acucar": "Açúcar",
+        "canela": "Canela",
+        "massaFolhada": "Massa folhada"
+      }
+    },
+    "gastronomyDishCard": {
+      "types": {
+        "peixe": "Peixe",
+        "marisco": "Marisco",
+        "sopa": "Sopa",
+        "doce": "Doce",
+        "tradicional": "Tradicional",
+        "misto": "Misto"
+      },
+      "recipes": {
+        "guisado": "Guisado",
+        "assado": "Assado",
+        "frito": "Frito",
+        "escabeche": "Escabeche",
+        "caldeirada": "Caldeirada",
+        "cru": "Cru",
+        "fumado": "Fumado"
+      },
+      "env": {
+        "seguro": "Espécie Segura",
+        "moderado": "Moderado",
+        "risco": "Em Risco"
+      },
+      "bestRestaurants": "Melhores restaurantes",
+      "reliability": "Fiabilidade: {{value}}%"
+    },
+    "economia": {
+      "title": "Economia Local",
+      "subtitle": "Mercados · Produtos · Artesãos",
+      "tabs": {
+        "mercados": "Mercados",
+        "artesaos": "Artesãos",
+        "produtos": "Produtos"
+      },
+      "filterBySeason": "Filtrar por época",
+      "marketsCount": "{{count}} mercados e feiras",
+      "artisansCount": "{{count}} ofícios artesanais",
+      "oneProductFound": "{{count}} produto encontrado",
+      "productsFound": "{{count}} produtos encontrados",
+      "emptyTitle": "Sem produtos nesta época",
+      "emptyText": "Tente outro mês ou selecione \"Todos\".",
+      "seeMoreA11y": "Ver mais resultados",
+      "seeMore": "Ver mais ({{count}})",
+      "sources": "Dados curados com base em fontes regionais e tradição oral."
+    },
+    "economyMarketCard": {
+      "types": {
+        "mercado_municipal": "Mercado Municipal",
+        "feira": "Feira",
+        "loja_tradicional": "Loja Tradicional",
+        "coop_produtores": "Cooperativa"
+      },
+      "dop": "DOP",
+      "expand": "Expandir {{name}}",
+      "collapse": "Recolher {{name}}"
+    },
+    "musica": {
+      "title": "Música Tradicional",
+      "subtitle": "Fado · Folclore · Instrumentos · Danças",
+      "tabs": {
+        "todos": "Todos",
+        "fado": "Fado",
+        "folclore": "Folclore",
+        "instrumento": "Instrumentos",
+        "danca": "Danças",
+        "canto": "Canto",
+        "festival": "Festivais",
+        "tuna": "Tunas"
+      },
+      "unescoOne": "{{count}} tradição com reconhecimento UNESCO",
+      "unescoMany": "{{count}} tradições com reconhecimento UNESCO",
+      "oneTraditionFound": "{{count}} tradição encontrada",
+      "traditionsFound": "{{count}} tradições encontradas",
+      "emptyTitle": "Sem tradições nesta categoria",
+      "emptyText": "Tenta outro tipo ou região para descobrir a música tradicional portuguesa.",
+      "sources": "Dados: DGPC · UNESCO · Associações Culturais",
+      "items": {
+        "fado-lisboa": {
+          "description": "O fado lisboeta, canção urbana nascida nos bairros populares, Património Imaterial da Humanidade pela UNESCO desde 2011."
+        },
+        "fado-coimbra": {
+          "description": "Fado académico cantado exclusivamente por homens, ligado à Universidade de Coimbra e às tradições estudantis."
+        },
+        "guitarra-portuguesa": {
+          "description": "Instrumento de cordas dedilhadas com forma de pera, símbolo sonoro do fado e da identidade musical portuguesa."
+        },
+        "rancho-folclorico-minho": {
+          "description": "Grupos de danças e cantares tradicionais minhotos, com trajes coloridos e coreografias ancestrais de celebração comunitária."
+        },
+        "cante-alentejano": {
+          "description": "Canto coral polifónico a duas vozes do Alentejo, Património Imaterial da Humanidade pela UNESCO desde 2014."
+        },
+        "viola-campanica": {
+          "description": "Viola tradicional do Baixo Alentejo, com sonoridade única e papel central no acompanhamento do cante alentejano."
+        },
+        "corridinho-algarvio": {
+          "description": "Dança tradicional rápida e alegre do Algarve, executada em pares com passos giratórios ao som do acordeão."
+        },
+        "pauliteiros-miranda": {
+          "description": "Dança guerreira masculina com paus e espadas, de origem celta, preservada nas terras de Miranda do Douro."
+        },
+        "gaita-foles-transmontana": {
+          "description": "Instrumento de sopro ancestral de Trás-os-Montes, com fole de pele de cabra e ponteiro melódico de madeira."
+        },
+        "adufeiras-monsanto": {
+          "description": "Tradição feminina de canto acompanhado pelo adufe, tambor quadrado de pele dupla, na região raiana da Beira Baixa."
+        },
+        "festival-musicas-mundo": {
+          "description": "Festival internacional de world music em Sines, terra natal de Vasco da Gama, com palcos junto ao mar e artistas de todo o mundo."
+        },
+        "festival-fado-lisboa": {
+          "description": "Festival anual dedicado ao fado em Lisboa, reunindo fadistas consagrados e novas vozes nos palcos da capital."
+        },
+        "tunas-academicas": {
+          "description": "Grupos musicais universitários de tradição secular, com capa e batina, que interpretam serenatas e canções estudantis."
+        },
+        "cavaquinho-minhoto": {
+          "description": "Pequeno cordofone de quatro cordas originário do Minho, antepassado do ukulele havaiano e do cavaquinho brasileiro."
+        }
+      },
+      "instruments": {
+        "guitarraPortuguesa": "Guitarra portuguesa",
+        "violaDeFado": "Viola de fado",
+        "guitarraDeCoimbra": "Guitarra de Coimbra",
+        "viola": "Viola",
+        "guitarraPortuguesaDeLisboa": "Guitarra portuguesa de Lisboa",
+        "concertina": "Concertina",
+        "bombo": "Bombo",
+        "cavaquinho": "Cavaquinho",
+        "ferrinhos": "Ferrinhos",
+        "acordeao": "Acordeão",
+        "harmonica": "Harmónica",
+        "gaitaDeFoles": "Gaita de foles",
+        "caixa": "Caixa",
+        "adufe": "Adufe"
+      }
+    },
+    "musicCard": {
+      "types": {
+        "fado": "Fado",
+        "folclore": "Folclore",
+        "canto_polifonico": "Canto Polifónico",
+        "canto_tradicional": "Canto Tradicional",
+        "danca_tradicional": "Dança",
+        "instrumento": "Instrumento",
+        "festival": "Festival",
+        "tuna": "Tuna"
+      }
+    },
+    "prehistoria": {
+      "title": "Pré-História",
+      "subtitle": "Geossítios · Megalitos · Arte Rupestre · Astronomia",
+      "tabs": {
+        "todos": "Todos",
+        "megalito": "Megalitos",
+        "rupestre": "Arte Rupestre",
+        "geositio": "Geossítios",
+        "astronomia": "Astronomia"
+      },
+      "periodLabel": "Período",
+      "periods": {
+        "Paleolitico": "Paleolítico",
+        "Neolitico": "Neolítico",
+        "Calcolitico": "Calcolítico",
+        "Bronze": "Bronze",
+        "Ferro": "Ferro"
+      },
+      "nextEvent": "Próximo evento",
+      "nextEventDesc": "Solstício de Verão — 21 Jun",
+      "oneSiteFound": "{{count}} sítio encontrado",
+      "sitesFound": "{{count}} sítios encontrados",
+      "emptyTitle": "Sem sítios encontrados",
+      "emptyText": "Tente outro filtro ou selecione \"Todos\".",
+      "sources": "Dados: SIPA/DGPC · LNEG · Parque Arqueológico do Vale do Côa"
+    },
+    "prehistoriaCard": {
+      "categories": {
+        "geositio": "Geossítio",
+        "megalito": "Megalito",
+        "rupestre": "Arte Rupestre",
+        "santuario": "Santuário",
+        "arqueologico": "Arqueológico"
+      },
+      "astro": {
+        "solar": "☀️ Alinhamento Solar",
+        "lunar": "🌙 Alinhamento Lunar",
+        "estelar": "⭐ Estelar",
+        "equinocio": "☀️ Equinócio",
+        "solsticio": "☀️ Solstício"
+      },
+      "ageBc": "{{years}} a.C.",
+      "celestialEvent": "Evento Celeste",
+      "solstice": "Solstício: {{event}}",
+      "equinox": "Equinócio: {{event}}",
+      "orientation": "Orientação: {{degrees}}°"
+    },
+    "sensoryCard": {
+      "title": "Experiência Sensorial",
+      "sound": "Som Ambiente",
+      "aroma": "Aroma",
+      "flavor": "Sabor Local",
+      "photoAngle": "Melhor Ângulo",
+      "speakSound": "Som ambiente: {{label}}"
+    }
+  },
+  "en": {
+    "shared": {
+      "all": "All",
+      "more": "+{{count}} more",
+      "monthsShort": {
+        "jan": "Jan",
+        "feb": "Feb",
+        "mar": "Mar",
+        "apr": "Apr",
+        "may": "May",
+        "jun": "Jun",
+        "jul": "Jul",
+        "aug": "Aug",
+        "sep": "Sep",
+        "oct": "Oct",
+        "nov": "Nov",
+        "dec": "Dec"
+      }
+    },
+    "gastronomia": {
+      "title": "Coastal Cuisine",
+      "subtitle": "Dishes · Traditions · Flavours of the Sea",
+      "inSeasonNow": "In season now:",
+      "inSeasonCount": "{{count}} dishes",
+      "tabs": {
+        "todos": "All",
+        "peixe": "Fish",
+        "marisco": "Seafood",
+        "sopa": "Soups",
+        "doce": "Sweets",
+        "tradicional": "Traditional"
+      },
+      "oneDishFound": "{{count}} dish found",
+      "dishesFound": "{{count}} dishes found",
+      "emptyTitle": "No dishes found",
+      "emptyText": "Try another category or region.",
+      "sources": "Data: DGPC · DGRM · Fishermen’s Associations",
+      "dishes": {
+        "caldeirada-peixe": {
+          "storyShort": "The most iconic dish of the Portuguese coast: layers of fish, potato and tomato cooked in white wine.",
+          "storyLong": "Caldeirada was born on fishing boats, where fishermen used broken or less prized fish to make a rich, fragrant stew. Every region has its own version — Setúbal’s includes conger and eel; the Algarve’s, tuna and monkfish."
+        },
+        "arroz-lingueirao": {
+          "storyShort": "Creamy, fragrant rice with razor clams from the Ria Formosa — an Algarve treat not to be missed in spring."
+        },
+        "cataplana-mariscos": {
+          "storyShort": "Cooked in a shell-shaped copper pan, cataplana locks in all the aromas of the Algarve sea.",
+          "storyLong": "Cataplana is the name of both the pan and the dish. Introduced by the Moors more than 800 years ago, the clam-shaped copper pot seals in the flavours of the seafood, creating an aromatic steam that cooks everything to perfection."
+        },
+        "polvo-lagareiro": {
+          "storyShort": "Octopus tentacles roasted in the oven with punched potatoes, olive oil and garlic — simplicity that tastes of Portugal."
+        },
+        "acorda-bacalhau": {
+          "storyShort": "A thick Alentejo bread soup with flaked salt cod, coriander and a poached egg — Portuguese comfort food at its best.",
+          "storyLong": "Açorda was born from the need to use up stale bread, turning what would have been waste into a rich, nourishing dish. The salt cod version is the most popular in Lisbon, while the Alentejo prefers a simple garlic açorda."
+        },
+        "ameijoas-bulhao-pato": {
+          "storyShort": "Clams opened in olive oil, garlic, coriander and white wine — the most classic snack of the Portuguese tavern."
+        },
+        "sapateira-recheada": {
+          "storyShort": "Crab stuffed with its own meat mixed with mustard, pickles and capers — the elegance of the northern seas."
+        },
+        "caldo-verde-ameijoas": {
+          "storyShort": "A seaside take on Minho’s caldo verde, where clams replace the chouriço for a surprising soup from the sea."
+        },
+        "filetes-choco-setubalense": {
+          "storyShort": "Breaded, fried cuttlefish fillets served with cuttlefish rice cooked in its ink — a must-try Setúbal speciality.",
+          "storyLong": "Cuttlefish is king in Setúbal. Fillets are the most popular preparation, but the ink never goes to waste — it is used for a black rice served alongside. The dish is said to have been popularised by the fishermen of Arrábida."
+        },
+        "percebes-peniche": {
+          "storyShort": "Goose barnacles harvested from Atlantic-battered rocks in Peniche — the pure taste of the sea, worth every cent."
+        },
+        "sardinhas-assadas": {
+          "storyShort": "The icon of the Portuguese summer — plump June and July sardines grilled over charcoal and served on corn bread.",
+          "storyLong": "Grilled sardines are the symbol of the June street festivals in Lisbon and Porto. The best are those of June and July, when they are at their plumpest. Tradition says they should be eaten outdoors, on newspaper, with a glass of vinho verde."
+        },
+        "lampreia-bordalesa": {
+          "storyShort": "A Minho winter dish of lamprey cooked in its own blood with red wine — a unique medieval delicacy.",
+          "storyLong": "The lamprey is one of the oldest fish in the world, more than 360 million years old. In the Minho it is caught in the Lima and Minho rivers between January and April. The bordelaise recipe is adapted from the French style, with red wine and the animal’s blood creating a thick, intense sauce."
+        },
+        "arroz-linguado-gambas": {
+          "storyShort": "Soupy Algarve-style rice with delicate sole and fresh prawns, fragrant with saffron and coriander."
+        },
+        "queijadas-sintra-camarao": {
+          "storyShort": "A creative fusion of the traditional Sintra queijada and coastal prawns — a contemporary reinvention of a convent sweet.",
+          "storyLong": "Sintra’s queijadas have followed a secret recipe since the 13th century. This contemporary version, created by local pastry chefs, adds prawns from the Cascais coast to a filling of fresh cheese, sugar and cinnamon, creating a surprising sweet-and-savoury contrast."
+        }
+      },
+      "foods": {
+        "robalo": "Sea bass",
+        "dourada": "Gilthead bream",
+        "congro": "Conger eel",
+        "batata": "Potato",
+        "tomate": "Tomato",
+        "cebola": "Onion",
+        "vinhoBranco": "White wine",
+        "azeite": "Olive oil",
+        "lingueirao": "Razor clam",
+        "arrozCarolino": "Carolino rice",
+        "alho": "Garlic",
+        "coentros": "Coriander",
+        "ameijoa": "Clam",
+        "camarao": "Prawn",
+        "mexilhao": "Mussels",
+        "pimento": "Pepper",
+        "linguica": "Linguiça sausage",
+        "polvo": "Octopus",
+        "batataAMurro": "Punched potatoes",
+        "salGrosso": "Coarse salt",
+        "cebolaRoxa": "Red onion",
+        "bacalhau": "Salt cod",
+        "paoAlentejano": "Alentejo bread",
+        "ovo": "Egg",
+        "pimentaoDoce": "Sweet paprika",
+        "ameijoaBoa": "Carpet-shell clam",
+        "limao": "Lemon",
+        "sapateira": "Brown crab",
+        "mostarda": "Mustard",
+        "pickles": "Pickles",
+        "alcaparras": "Capers",
+        "mayonese": "Mayonnaise",
+        "whisky": "Whisky",
+        "tabasco": "Tabasco",
+        "couveGalega": "Portuguese kale",
+        "choco": "Cuttlefish",
+        "farinha": "Flour",
+        "paoRalado": "Breadcrumbs",
+        "arroz": "Rice",
+        "tintaDeChoco": "Cuttlefish ink",
+        "percebe": "Goose barnacle",
+        "louro": "Bay leaf",
+        "aguaDoMar": "Seawater",
+        "sardinha": "Sardine",
+        "paoDeMilho": "Corn bread",
+        "pimentoAssado": "Roasted pepper",
+        "lampreia": "Lamprey",
+        "vinhoTinto": "Red wine",
+        "sangueDeLampreia": "Lamprey blood",
+        "presunto": "Cured ham",
+        "lampreiaDeRio": "Lamprey",
+        "linguado": "Sole",
+        "gamba": "Red prawn",
+        "acafrao": "Saffron",
+        "requeijao": "Fresh whey cheese",
+        "acucar": "Sugar",
+        "canela": "Cinnamon",
+        "massaFolhada": "Puff pastry"
+      }
+    },
+    "gastronomyDishCard": {
+      "types": {
+        "peixe": "Fish",
+        "marisco": "Seafood",
+        "sopa": "Soup",
+        "doce": "Sweet",
+        "tradicional": "Traditional",
+        "misto": "Mixed"
+      },
+      "recipes": {
+        "guisado": "Stew",
+        "assado": "Roasted",
+        "frito": "Fried",
+        "escabeche": "Escabeche",
+        "caldeirada": "Fish stew",
+        "cru": "Raw",
+        "fumado": "Smoked"
+      },
+      "env": {
+        "seguro": "Sustainable species",
+        "moderado": "Moderate",
+        "risco": "At risk"
+      },
+      "bestRestaurants": "Best restaurants",
+      "reliability": "Reliability: {{value}}%"
+    },
+    "economia": {
+      "title": "Local Economy",
+      "subtitle": "Markets · Products · Artisans",
+      "tabs": {
+        "mercados": "Markets",
+        "artesaos": "Artisans",
+        "produtos": "Products"
+      },
+      "filterBySeason": "Filter by season",
+      "marketsCount": "{{count}} markets and fairs",
+      "artisansCount": "{{count}} traditional crafts",
+      "oneProductFound": "{{count}} product found",
+      "productsFound": "{{count}} products found",
+      "emptyTitle": "No products in season",
+      "emptyText": "Try another month or select \"All\".",
+      "seeMoreA11y": "Show more results",
+      "seeMore": "Show more ({{count}})",
+      "sources": "Data curated from regional sources and oral tradition."
+    },
+    "economyMarketCard": {
+      "types": {
+        "mercado_municipal": "Municipal market",
+        "feira": "Fair",
+        "loja_tradicional": "Traditional shop",
+        "coop_produtores": "Cooperative"
+      },
+      "dop": "PDO",
+      "expand": "Expand {{name}}",
+      "collapse": "Collapse {{name}}"
+    },
+    "musica": {
+      "title": "Traditional Music",
+      "subtitle": "Fado · Folklore · Instruments · Dances",
+      "tabs": {
+        "todos": "All",
+        "fado": "Fado",
+        "folclore": "Folklore",
+        "instrumento": "Instruments",
+        "danca": "Dances",
+        "canto": "Singing",
+        "festival": "Festivals",
+        "tuna": "Student bands"
+      },
+      "unescoOne": "{{count}} UNESCO-recognised tradition",
+      "unescoMany": "{{count}} UNESCO-recognised traditions",
+      "oneTraditionFound": "{{count}} tradition found",
+      "traditionsFound": "{{count}} traditions found",
+      "emptyTitle": "No traditions in this category",
+      "emptyText": "Try another type or region to discover traditional Portuguese music.",
+      "sources": "Data: DGPC · UNESCO · Cultural Associations",
+      "items": {
+        "fado-lisboa": {
+          "description": "Lisbon fado, the urban song born in the city’s working-class neighbourhoods, UNESCO Intangible Cultural Heritage of Humanity since 2011."
+        },
+        "fado-coimbra": {
+          "description": "Academic fado sung exclusively by men, tied to the University of Coimbra and its student traditions."
+        },
+        "guitarra-portuguesa": {
+          "description": "A pear-shaped plucked string instrument, the signature sound of fado and of Portugal’s musical identity."
+        },
+        "rancho-folclorico-minho": {
+          "description": "Groups performing traditional Minho songs and dances, with colourful costumes and age-old choreographies of community celebration."
+        },
+        "cante-alentejano": {
+          "description": "Two-part polyphonic choral singing from the Alentejo, UNESCO Intangible Cultural Heritage of Humanity since 2014."
+        },
+        "viola-campanica": {
+          "description": "A traditional guitar from the Lower Alentejo, with a unique sound and a central role in accompanying cante alentejano."
+        },
+        "corridinho-algarvio": {
+          "description": "A fast, joyful traditional dance from the Algarve, performed in pairs with spinning steps to the sound of the accordion."
+        },
+        "pauliteiros-miranda": {
+          "description": "A male warrior dance with sticks and swords, of Celtic origin, preserved in the lands of Miranda do Douro."
+        },
+        "gaita-foles-transmontana": {
+          "description": "An ancient wind instrument from Trás-os-Montes, with a goatskin bag and a wooden melody chanter."
+        },
+        "adufeiras-monsanto": {
+          "description": "A women’s singing tradition accompanied by the adufe, a square double-skinned drum, in the border region of Beira Baixa."
+        },
+        "festival-musicas-mundo": {
+          "description": "An international world music festival in Sines, birthplace of Vasco da Gama, with seaside stages and artists from all over the world."
+        },
+        "festival-fado-lisboa": {
+          "description": "An annual festival dedicated to fado in Lisbon, bringing together renowned fadistas and new voices on the capital’s stages."
+        },
+        "tunas-academicas": {
+          "description": "Centuries-old university music groups in traditional cape and gown, performing serenades and student songs."
+        },
+        "cavaquinho-minhoto": {
+          "description": "A small four-string instrument from the Minho, ancestor of the Hawaiian ukulele and the Brazilian cavaquinho."
+        }
+      },
+      "instruments": {
+        "guitarraPortuguesa": "Portuguese guitar",
+        "violaDeFado": "Fado guitar",
+        "guitarraDeCoimbra": "Coimbra guitar",
+        "viola": "Guitar",
+        "guitarraPortuguesaDeLisboa": "Lisbon Portuguese guitar",
+        "concertina": "Concertina",
+        "bombo": "Bass drum",
+        "cavaquinho": "Cavaquinho",
+        "ferrinhos": "Triangle",
+        "acordeao": "Accordion",
+        "harmonica": "Harmonica",
+        "gaitaDeFoles": "Bagpipes",
+        "caixa": "Snare drum",
+        "adufe": "Adufe frame drum"
+      }
+    },
+    "musicCard": {
+      "types": {
+        "fado": "Fado",
+        "folclore": "Folklore",
+        "canto_polifonico": "Polyphonic singing",
+        "canto_tradicional": "Traditional singing",
+        "danca_tradicional": "Dance",
+        "instrumento": "Instrument",
+        "festival": "Festival",
+        "tuna": "Student band"
+      }
+    },
+    "prehistoria": {
+      "title": "Prehistory",
+      "subtitle": "Geosites · Megaliths · Rock Art · Astronomy",
+      "tabs": {
+        "todos": "All",
+        "megalito": "Megaliths",
+        "rupestre": "Rock Art",
+        "geositio": "Geosites",
+        "astronomia": "Astronomy"
+      },
+      "periodLabel": "Period",
+      "periods": {
+        "Paleolitico": "Palaeolithic",
+        "Neolitico": "Neolithic",
+        "Calcolitico": "Chalcolithic",
+        "Bronze": "Bronze Age",
+        "Ferro": "Iron Age"
+      },
+      "nextEvent": "Next event",
+      "nextEventDesc": "Summer solstice — 21 Jun",
+      "oneSiteFound": "{{count}} site found",
+      "sitesFound": "{{count}} sites found",
+      "emptyTitle": "No sites found",
+      "emptyText": "Try another filter or select \"All\".",
+      "sources": "Data: SIPA/DGPC · LNEG · Côa Valley Archaeological Park"
+    },
+    "prehistoriaCard": {
+      "categories": {
+        "geositio": "Geosite",
+        "megalito": "Megalith",
+        "rupestre": "Rock art",
+        "santuario": "Sanctuary",
+        "arqueologico": "Archaeological"
+      },
+      "astro": {
+        "solar": "☀️ Solar alignment",
+        "lunar": "🌙 Lunar alignment",
+        "estelar": "⭐ Stellar",
+        "equinocio": "☀️ Equinox",
+        "solsticio": "☀️ Solstice"
+      },
+      "ageBc": "{{years}} BC",
+      "celestialEvent": "Celestial event",
+      "solstice": "Solstice: {{event}}",
+      "equinox": "Equinox: {{event}}",
+      "orientation": "Orientation: {{degrees}}°"
+    },
+    "sensoryCard": {
+      "title": "Sensory Experience",
+      "sound": "Ambient sound",
+      "aroma": "Aroma",
+      "flavor": "Local flavour",
+      "photoAngle": "Best angle",
+      "speakSound": "Ambient sound: {{label}}"
+    }
+  },
+  "es": {
+    "shared": {
+      "all": "Todos",
+      "more": "+{{count}} más",
+      "monthsShort": {
+        "jan": "Ene",
+        "feb": "Feb",
+        "mar": "Mar",
+        "apr": "Abr",
+        "may": "May",
+        "jun": "Jun",
+        "jul": "Jul",
+        "aug": "Ago",
+        "sep": "Sep",
+        "oct": "Oct",
+        "nov": "Nov",
+        "dec": "Dic"
+      }
+    },
+    "gastronomia": {
+      "title": "Gastronomía costera",
+      "subtitle": "Platos · Tradiciones · Sabores del mar",
+      "inSeasonNow": "De temporada ahora:",
+      "inSeasonCount": "{{count}} platos",
+      "tabs": {
+        "todos": "Todos",
+        "peixe": "Pescado",
+        "marisco": "Marisco",
+        "sopa": "Sopas",
+        "doce": "Dulces",
+        "tradicional": "Tradicionales"
+      },
+      "oneDishFound": "{{count}} plato encontrado",
+      "dishesFound": "{{count}} platos encontrados",
+      "emptyTitle": "No se han encontrado platos",
+      "emptyText": "Prueba otra categoría o región.",
+      "sources": "Datos: DGPC · DGRM · Asociaciones de Pescadores",
+      "dishes": {
+        "caldeirada-peixe": {
+          "storyShort": "El plato más emblemático de la costa portuguesa, con capas de pescado, patata y tomate cocinadas en vino blanco.",
+          "storyLong": "La caldeirada nació en los barcos de pesca, donde los pescadores aprovechaban el pescado roto o menos noble para preparar un guiso rico y aromático. Cada región tiene su versión: la de Setúbal lleva congrio y anguila; la del Algarve, atún y rape."
+        },
+        "arroz-lingueirao": {
+          "storyShort": "Arroz cremoso y aromático con navajas de la Ria Formosa, una tapa algarveña imprescindible en primavera."
+        },
+        "cataplana-mariscos": {
+          "storyShort": "Cocinada en el recipiente de cobre con forma de concha, la cataplana conserva todos los aromas del mar del Algarve.",
+          "storyLong": "Cataplana es tanto el nombre del recipiente como del plato. Introducida por los moros hace más de 800 años, la olla de cobre con forma de almeja sella los sabores del marisco y crea un vapor aromático que lo cocina todo a la perfección."
+        },
+        "polvo-lagareiro": {
+          "storyShort": "Tentáculos de pulpo asados al horno con patatas a murro, aceite de oliva y ajo: sencillez con sabor a Portugal."
+        },
+        "acorda-bacalhau": {
+          "storyShort": "Sopa espesa de pan alentejano con bacalao desmigado, cilantro y huevo escalfado: la comida reconfortante portuguesa por excelencia.",
+          "storyLong": "La açorda nació de la necesidad de aprovechar el pan duro, transformando lo que sería desperdicio en un plato rico y nutritivo. La versión con bacalao es la más popular en Lisboa, mientras que el Alentejo prefiere la açorda de ajo sencilla."
+        },
+        "ameijoas-bulhao-pato": {
+          "storyShort": "Almejas abiertas en aceite de oliva, ajo, cilantro y vino blanco: la tapa más clásica de la tasca portuguesa."
+        },
+        "sapateira-recheada": {
+          "storyShort": "Buey de mar relleno de su propia carne mezclada con mostaza, encurtidos y alcaparras: la elegancia de los mares del norte."
+        },
+        "caldo-verde-ameijoas": {
+          "storyShort": "Versión marinera del caldo verde del Miño, en la que las almejas sustituyen al chorizo para una sorprendente sopa de mar."
+        },
+        "filetes-choco-setubalense": {
+          "storyShort": "Filetes de sepia rebozados y fritos, servidos con arroz de sepia en su tinta: especialidad imprescindible de Setúbal.",
+          "storyLong": "La sepia es la reina de Setúbal. Los filetes son la preparación más popular, pero la tinta no se desperdicia: se aprovecha para un arroz negro que acompaña el plato. Se dice que lo popularizaron los pescadores de la Arrábida."
+        },
+        "percebes-peniche": {
+          "storyShort": "Percebes recogidos en las rocas batidas por el Atlántico en Peniche: sabor a mar puro que vale cada céntimo."
+        },
+        "sardinhas-assadas": {
+          "storyShort": "El icono del verano portugués: sardinas gordas de junio y julio asadas a la brasa, servidas sobre pan de maíz.",
+          "storyLong": "Las sardinas asadas son el símbolo de las fiestas populares de junio en Lisboa y Oporto. Las mejores son las de junio y julio, cuando están más gordas. La tradición dice que deben comerse al aire libre, sobre papel de periódico, con un vaso de vinho verde."
+        },
+        "lampreia-bordalesa": {
+          "storyShort": "Plato de invierno del Miño con lamprea cocinada en su propia sangre con vino tinto: un manjar medieval único.",
+          "storyLong": "La lamprea es uno de los peces más antiguos del mundo, con más de 360 millones de años. En el Miño se captura en los ríos Limia y Miño entre enero y abril. La receta a la bordelesa se adapta del estilo francés con vino tinto y la sangre del animal, creando una salsa espesa e intensa."
+        },
+        "arroz-linguado-gambas": {
+          "storyShort": "Arroz caldoso del Algarve con un delicado lenguado y gambas frescas, perfumado con azafrán y cilantro."
+        },
+        "queijadas-sintra-camarao": {
+          "storyShort": "Fusión creativa entre la queijada tradicional de Sintra y gambas de la costa, una reinvención contemporánea del dulce conventual.",
+          "storyLong": "Las queijadas de Sintra tienen receta secreta desde el siglo XIII. Esta versión contemporánea, creada por pasteleros locales, incorpora gambas de la costa de Cascais a una masa de requesón, azúcar y canela, creando un sorprendente contraste dulce-salado."
+        }
+      },
+      "foods": {
+        "robalo": "Lubina",
+        "dourada": "Dorada",
+        "congro": "Congrio",
+        "batata": "Patata",
+        "tomate": "Tomate",
+        "cebola": "Cebolla",
+        "vinhoBranco": "Vino blanco",
+        "azeite": "Aceite de oliva",
+        "lingueirao": "Navaja",
+        "arrozCarolino": "Arroz carolino",
+        "alho": "Ajo",
+        "coentros": "Cilantro",
+        "ameijoa": "Almeja",
+        "camarao": "Langostino",
+        "mexilhao": "Mejillones",
+        "pimento": "Pimiento",
+        "linguica": "Longaniza",
+        "polvo": "Pulpo",
+        "batataAMurro": "Patatas a murro",
+        "salGrosso": "Sal gruesa",
+        "cebolaRoxa": "Cebolla morada",
+        "bacalhau": "Bacalao",
+        "paoAlentejano": "Pan alentejano",
+        "ovo": "Huevo",
+        "pimentaoDoce": "Pimentón dulce",
+        "ameijoaBoa": "Almeja fina",
+        "limao": "Limón",
+        "sapateira": "Buey de mar",
+        "mostarda": "Mostaza",
+        "pickles": "Encurtidos",
+        "alcaparras": "Alcaparras",
+        "mayonese": "Mayonesa",
+        "whisky": "Whisky",
+        "tabasco": "Tabasco",
+        "couveGalega": "Berza gallega",
+        "choco": "Sepia",
+        "farinha": "Harina",
+        "paoRalado": "Pan rallado",
+        "arroz": "Arroz",
+        "tintaDeChoco": "Tinta de sepia",
+        "percebe": "Percebe",
+        "louro": "Laurel",
+        "aguaDoMar": "Agua de mar",
+        "sardinha": "Sardina",
+        "paoDeMilho": "Pan de maíz",
+        "pimentoAssado": "Pimiento asado",
+        "lampreia": "Lamprea",
+        "vinhoTinto": "Vino tinto",
+        "sangueDeLampreia": "Sangre de lamprea",
+        "presunto": "Jamón curado",
+        "lampreiaDeRio": "Lamprea",
+        "linguado": "Lenguado",
+        "gamba": "Gamba roja",
+        "acafrao": "Azafrán",
+        "requeijao": "Requesón",
+        "acucar": "Azúcar",
+        "canela": "Canela",
+        "massaFolhada": "Hojaldre"
+      }
+    },
+    "gastronomyDishCard": {
+      "types": {
+        "peixe": "Pescado",
+        "marisco": "Marisco",
+        "sopa": "Sopa",
+        "doce": "Dulce",
+        "tradicional": "Tradicional",
+        "misto": "Mixto"
+      },
+      "recipes": {
+        "guisado": "Guiso",
+        "assado": "Asado",
+        "frito": "Frito",
+        "escabeche": "Escabeche",
+        "caldeirada": "Caldeirada",
+        "cru": "Crudo",
+        "fumado": "Ahumado"
+      },
+      "env": {
+        "seguro": "Especie segura",
+        "moderado": "Moderado",
+        "risco": "En riesgo"
+      },
+      "bestRestaurants": "Mejores restaurantes",
+      "reliability": "Fiabilidad: {{value}} %"
+    },
+    "economia": {
+      "title": "Economía local",
+      "subtitle": "Mercados · Productos · Artesanos",
+      "tabs": {
+        "mercados": "Mercados",
+        "artesaos": "Artesanos",
+        "produtos": "Productos"
+      },
+      "filterBySeason": "Filtrar por temporada",
+      "marketsCount": "{{count}} mercados y ferias",
+      "artisansCount": "{{count}} oficios artesanales",
+      "oneProductFound": "{{count}} producto encontrado",
+      "productsFound": "{{count}} productos encontrados",
+      "emptyTitle": "No hay productos de temporada",
+      "emptyText": "Prueba otro mes o selecciona «Todos».",
+      "seeMoreA11y": "Ver más resultados",
+      "seeMore": "Ver más ({{count}})",
+      "sources": "Datos seleccionados a partir de fuentes regionales y de la tradición oral."
+    },
+    "economyMarketCard": {
+      "types": {
+        "mercado_municipal": "Mercado municipal",
+        "feira": "Feria",
+        "loja_tradicional": "Tienda tradicional",
+        "coop_produtores": "Cooperativa"
+      },
+      "dop": "DOP",
+      "expand": "Desplegar {{name}}",
+      "collapse": "Contraer {{name}}"
+    },
+    "musica": {
+      "title": "Música tradicional",
+      "subtitle": "Fado · Folclore · Instrumentos · Danzas",
+      "tabs": {
+        "todos": "Todos",
+        "fado": "Fado",
+        "folclore": "Folclore",
+        "instrumento": "Instrumentos",
+        "danca": "Danzas",
+        "canto": "Canto",
+        "festival": "Festivales",
+        "tuna": "Tunas"
+      },
+      "unescoOne": "{{count}} tradición reconocida por la UNESCO",
+      "unescoMany": "{{count}} tradiciones reconocidas por la UNESCO",
+      "oneTraditionFound": "{{count}} tradición encontrada",
+      "traditionsFound": "{{count}} tradiciones encontradas",
+      "emptyTitle": "No hay tradiciones en esta categoría",
+      "emptyText": "Prueba otro tipo o región para descubrir la música tradicional portuguesa.",
+      "sources": "Datos: DGPC · UNESCO · Asociaciones Culturales",
+      "items": {
+        "fado-lisboa": {
+          "description": "El fado lisboeta, canción urbana nacida en los barrios populares, Patrimonio Inmaterial de la Humanidad por la UNESCO desde 2011."
+        },
+        "fado-coimbra": {
+          "description": "Fado académico cantado exclusivamente por hombres, ligado a la Universidad de Coímbra y a las tradiciones estudiantiles."
+        },
+        "guitarra-portuguesa": {
+          "description": "Instrumento de cuerda pulsada con forma de pera, símbolo sonoro del fado y de la identidad musical portuguesa."
+        },
+        "rancho-folclorico-minho": {
+          "description": "Grupos de danzas y cantos tradicionales del Miño, con trajes coloridos y coreografías ancestrales de celebración comunitaria."
+        },
+        "cante-alentejano": {
+          "description": "Canto coral polifónico a dos voces del Alentejo, Patrimonio Inmaterial de la Humanidad por la UNESCO desde 2014."
+        },
+        "viola-campanica": {
+          "description": "Guitarra tradicional del Bajo Alentejo, de sonoridad única y papel central en el acompañamiento del cante alentejano."
+        },
+        "corridinho-algarvio": {
+          "description": "Danza tradicional rápida y alegre del Algarve, bailada en parejas con pasos giratorios al son del acordeón."
+        },
+        "pauliteiros-miranda": {
+          "description": "Danza guerrera masculina con palos y espadas, de origen celta, preservada en las tierras de Miranda do Douro."
+        },
+        "gaita-foles-transmontana": {
+          "description": "Instrumento de viento ancestral de Trás-os-Montes, con fuelle de piel de cabra y puntero melódico de madera."
+        },
+        "adufeiras-monsanto": {
+          "description": "Tradición femenina de canto acompañado por el adufe, tambor cuadrado de doble piel, en la región fronteriza de la Beira Baixa."
+        },
+        "festival-musicas-mundo": {
+          "description": "Festival internacional de músicas del mundo en Sines, tierra natal de Vasco da Gama, con escenarios junto al mar y artistas de todo el mundo."
+        },
+        "festival-fado-lisboa": {
+          "description": "Festival anual dedicado al fado en Lisboa, que reúne a fadistas consagrados y nuevas voces en los escenarios de la capital."
+        },
+        "tunas-academicas": {
+          "description": "Grupos musicales universitarios de tradición secular, con capa y sotana, que interpretan serenatas y canciones estudiantiles."
+        },
+        "cavaquinho-minhoto": {
+          "description": "Pequeño cordófono de cuatro cuerdas originario del Miño, antepasado del ukelele hawaiano y del cavaquinho brasileño."
+        }
+      },
+      "instruments": {
+        "guitarraPortuguesa": "Guitarra portuguesa",
+        "violaDeFado": "Guitarra de fado",
+        "guitarraDeCoimbra": "Guitarra de Coímbra",
+        "viola": "Guitarra",
+        "guitarraPortuguesaDeLisboa": "Guitarra portuguesa de Lisboa",
+        "concertina": "Concertina",
+        "bombo": "Bombo",
+        "cavaquinho": "Cavaquinho",
+        "ferrinhos": "Triángulo",
+        "acordeao": "Acordeón",
+        "harmonica": "Armónica",
+        "gaitaDeFoles": "Gaita de fole",
+        "caixa": "Caja",
+        "adufe": "Adufe"
+      }
+    },
+    "musicCard": {
+      "types": {
+        "fado": "Fado",
+        "folclore": "Folclore",
+        "canto_polifonico": "Canto polifónico",
+        "canto_tradicional": "Canto tradicional",
+        "danca_tradicional": "Danza",
+        "instrumento": "Instrumento",
+        "festival": "Festival",
+        "tuna": "Tuna"
+      }
+    },
+    "prehistoria": {
+      "title": "Prehistoria",
+      "subtitle": "Geositios · Megalitos · Arte rupestre · Astronomía",
+      "tabs": {
+        "todos": "Todos",
+        "megalito": "Megalitos",
+        "rupestre": "Arte rupestre",
+        "geositio": "Geositios",
+        "astronomia": "Astronomía"
+      },
+      "periodLabel": "Período",
+      "periods": {
+        "Paleolitico": "Paleolítico",
+        "Neolitico": "Neolítico",
+        "Calcolitico": "Calcolítico",
+        "Bronze": "Edad del Bronce",
+        "Ferro": "Edad del Hierro"
+      },
+      "nextEvent": "Próximo evento",
+      "nextEventDesc": "Solsticio de verano — 21 jun",
+      "oneSiteFound": "{{count}} sitio encontrado",
+      "sitesFound": "{{count}} sitios encontrados",
+      "emptyTitle": "No se han encontrado sitios",
+      "emptyText": "Prueba otro filtro o selecciona «Todos».",
+      "sources": "Datos: SIPA/DGPC · LNEG · Parque Arqueológico del Valle del Côa"
+    },
+    "prehistoriaCard": {
+      "categories": {
+        "geositio": "Geositio",
+        "megalito": "Megalito",
+        "rupestre": "Arte rupestre",
+        "santuario": "Santuario",
+        "arqueologico": "Arqueológico"
+      },
+      "astro": {
+        "solar": "☀️ Alineación solar",
+        "lunar": "🌙 Alineación lunar",
+        "estelar": "⭐ Estelar",
+        "equinocio": "☀️ Equinoccio",
+        "solsticio": "☀️ Solsticio"
+      },
+      "ageBc": "{{years}} a. C.",
+      "celestialEvent": "Evento celeste",
+      "solstice": "Solsticio: {{event}}",
+      "equinox": "Equinoccio: {{event}}",
+      "orientation": "Orientación: {{degrees}}°"
+    },
+    "sensoryCard": {
+      "title": "Experiencia sensorial",
+      "sound": "Sonido ambiente",
+      "aroma": "Aroma",
+      "flavor": "Sabor local",
+      "photoAngle": "Mejor ángulo",
+      "speakSound": "Sonido ambiente: {{label}}"
+    }
+  },
+  "fr": {
+    "shared": {
+      "all": "Tous",
+      "more": "+{{count}} de plus",
+      "monthsShort": {
+        "jan": "Jan",
+        "feb": "Fév",
+        "mar": "Mar",
+        "apr": "Avr",
+        "may": "Mai",
+        "jun": "Juin",
+        "jul": "Juil",
+        "aug": "Août",
+        "sep": "Sep",
+        "oct": "Oct",
+        "nov": "Nov",
+        "dec": "Déc"
+      }
+    },
+    "gastronomia": {
+      "title": "Gastronomie côtière",
+      "subtitle": "Plats · Traditions · Saveurs de la mer",
+      "inSeasonNow": "De saison en ce moment :",
+      "inSeasonCount": "{{count}} plats",
+      "tabs": {
+        "todos": "Tous",
+        "peixe": "Poisson",
+        "marisco": "Fruits de mer",
+        "sopa": "Soupes",
+        "doce": "Desserts",
+        "tradicional": "Traditionnels"
+      },
+      "oneDishFound": "{{count}} plat trouvé",
+      "dishesFound": "{{count}} plats trouvés",
+      "emptyTitle": "Aucun plat trouvé",
+      "emptyText": "Essayez une autre catégorie ou région.",
+      "sources": "Données : DGPC · DGRM · Associations de pêcheurs",
+      "dishes": {
+        "caldeirada-peixe": {
+          "storyShort": "Le plat le plus emblématique de la côte portugaise : des couches de poisson, de pommes de terre et de tomates cuites au vin blanc.",
+          "storyLong": "La caldeirada est née sur les bateaux de pêche, où les pêcheurs utilisaient le poisson abîmé ou moins noble pour préparer un ragoût riche et parfumé. Chaque région a sa version : celle de Setúbal contient du congre et de l’anguille ; celle de l’Algarve, du thon et de la lotte."
+        },
+        "arroz-lingueirao": {
+          "storyShort": "Riz crémeux et parfumé aux couteaux de la Ria Formosa, une spécialité de l’Algarve incontournable au printemps."
+        },
+        "cataplana-mariscos": {
+          "storyShort": "Cuisinée dans l’ustensile en cuivre en forme de coquillage, la cataplana préserve tous les arômes de la mer de l’Algarve.",
+          "storyLong": "La cataplana désigne à la fois l’ustensile et le plat. Introduite par les Maures il y a plus de 800 ans, la marmite en cuivre en forme de palourde enferme les saveurs des fruits de mer et crée une vapeur aromatique qui cuit tout à la perfection."
+        },
+        "polvo-lagareiro": {
+          "storyShort": "Tentacules de poulpe rôtis au four avec des pommes de terre écrasées, de l’huile d’olive et de l’ail — une simplicité qui a le goût du Portugal."
+        },
+        "acorda-bacalhau": {
+          "storyShort": "Soupe épaisse de pain de l’Alentejo avec morue effilochée, coriandre et œuf poché — le plat réconfortant portugais par excellence.",
+          "storyLong": "L’açorda est née du besoin d’utiliser le pain rassis, transformant ce qui aurait été gaspillé en un plat riche et nourrissant. La version à la morue est la plus populaire à Lisbonne, tandis que l’Alentejo préfère la simple açorda à l’ail."
+        },
+        "ameijoas-bulhao-pato": {
+          "storyShort": "Palourdes ouvertes à l’huile d’olive, à l’ail, à la coriandre et au vin blanc — l’en-cas le plus classique des tavernes portugaises."
+        },
+        "sapateira-recheada": {
+          "storyShort": "Tourteau farci de sa propre chair mêlée de moutarde, de pickles et de câpres — l’élégance des mers du Nord."
+        },
+        "caldo-verde-ameijoas": {
+          "storyShort": "Version marine du caldo verde du Minho, où les palourdes remplacent le chouriço pour une surprenante soupe de la mer."
+        },
+        "filetes-choco-setubalense": {
+          "storyShort": "Filets de seiche panés et frits, servis avec un riz à la seiche à l’encre — une spécialité incontournable de Setúbal.",
+          "storyLong": "La seiche est reine à Setúbal. Les filets en sont la préparation la plus populaire, mais l’encre ne se perd pas : elle sert à un riz noir qui accompagne le plat. On dit que ce plat a été popularisé par les pêcheurs de l’Arrábida."
+        },
+        "percebes-peniche": {
+          "storyShort": "Pouces-pieds récoltés sur les rochers battus par l’Atlantique à Peniche — le goût pur de la mer, qui vaut chaque centime."
+        },
+        "sardinhas-assadas": {
+          "storyShort": "L’icône de l’été portugais — de belles sardines de juin et juillet grillées sur la braise, servies sur du pain de maïs.",
+          "storyLong": "Les sardines grillées sont le symbole des fêtes populaires de juin à Lisbonne et à Porto. Les meilleures sont celles de juin et juillet, quand elles sont les plus grasses. La tradition veut qu’on les mange en plein air, sur du papier journal, avec un verre de vinho verde."
+        },
+        "lampreia-bordalesa": {
+          "storyShort": "Plat d’hiver du Minho à base de lamproie cuite dans son propre sang avec du vin rouge — un mets médiéval unique.",
+          "storyLong": "La lamproie est l’un des plus anciens poissons du monde, apparue il y a plus de 360 millions d’années. Dans le Minho, on la pêche dans les fleuves Lima et Minho entre janvier et avril. La recette à la bordelaise s’inspire du style français, avec du vin rouge et le sang de l’animal, pour une sauce épaisse et intense."
+        },
+        "arroz-linguado-gambas": {
+          "storyShort": "Riz moelleux à la mode de l’Algarve avec une sole délicate et des crevettes fraîches, parfumé au safran et à la coriandre."
+        },
+        "queijadas-sintra-camarao": {
+          "storyShort": "Une fusion créative entre la queijada traditionnelle de Sintra et les crevettes de la côte, réinvention contemporaine d’une douceur conventuelle.",
+          "storyLong": "Les queijadas de Sintra suivent une recette secrète depuis le XIIIe siècle. Cette version contemporaine, créée par des pâtissiers locaux, intègre des crevettes de la côte de Cascais dans une pâte de fromage frais, de sucre et de cannelle, pour un surprenant contraste sucré-salé."
+        }
+      },
+      "foods": {
+        "robalo": "Bar",
+        "dourada": "Dorade royale",
+        "congro": "Congre",
+        "batata": "Pomme de terre",
+        "tomate": "Tomate",
+        "cebola": "Oignon",
+        "vinhoBranco": "Vin blanc",
+        "azeite": "Huile d’olive",
+        "lingueirao": "Couteau",
+        "arrozCarolino": "Riz carolino",
+        "alho": "Ail",
+        "coentros": "Coriandre",
+        "ameijoa": "Palourde",
+        "camarao": "Crevette",
+        "mexilhao": "Moules",
+        "pimento": "Poivron",
+        "linguica": "Saucisse linguiça",
+        "polvo": "Poulpe",
+        "batataAMurro": "Pommes de terre écrasées",
+        "salGrosso": "Gros sel",
+        "cebolaRoxa": "Oignon rouge",
+        "bacalhau": "Morue",
+        "paoAlentejano": "Pain de l’Alentejo",
+        "ovo": "Œuf",
+        "pimentaoDoce": "Paprika doux",
+        "ameijoaBoa": "Palourde croisée",
+        "limao": "Citron",
+        "sapateira": "Tourteau",
+        "mostarda": "Moutarde",
+        "pickles": "Pickles",
+        "alcaparras": "Câpres",
+        "mayonese": "Mayonnaise",
+        "whisky": "Whisky",
+        "tabasco": "Tabasco",
+        "couveGalega": "Chou galicien",
+        "choco": "Seiche",
+        "farinha": "Farine",
+        "paoRalado": "Chapelure",
+        "arroz": "Riz",
+        "tintaDeChoco": "Encre de seiche",
+        "percebe": "Pouce-pied",
+        "louro": "Laurier",
+        "aguaDoMar": "Eau de mer",
+        "sardinha": "Sardine",
+        "paoDeMilho": "Pain de maïs",
+        "pimentoAssado": "Poivron grillé",
+        "lampreia": "Lamproie",
+        "vinhoTinto": "Vin rouge",
+        "sangueDeLampreia": "Sang de lamproie",
+        "presunto": "Jambon cru",
+        "lampreiaDeRio": "Lamproie",
+        "linguado": "Sole",
+        "gamba": "Crevette rouge",
+        "acafrao": "Safran",
+        "requeijao": "Fromage frais",
+        "acucar": "Sucre",
+        "canela": "Cannelle",
+        "massaFolhada": "Pâte feuilletée"
+      }
+    },
+    "gastronomyDishCard": {
+      "types": {
+        "peixe": "Poisson",
+        "marisco": "Fruits de mer",
+        "sopa": "Soupe",
+        "doce": "Dessert",
+        "tradicional": "Traditionnel",
+        "misto": "Mixte"
+      },
+      "recipes": {
+        "guisado": "Ragoût",
+        "assado": "Rôti",
+        "frito": "Frit",
+        "escabeche": "Escabèche",
+        "caldeirada": "Caldeirada",
+        "cru": "Cru",
+        "fumado": "Fumé"
+      },
+      "env": {
+        "seguro": "Espèce durable",
+        "moderado": "Modéré",
+        "risco": "Menacée"
+      },
+      "bestRestaurants": "Meilleurs restaurants",
+      "reliability": "Fiabilité : {{value}} %"
+    },
+    "economia": {
+      "title": "Économie locale",
+      "subtitle": "Marchés · Produits · Artisans",
+      "tabs": {
+        "mercados": "Marchés",
+        "artesaos": "Artisans",
+        "produtos": "Produits"
+      },
+      "filterBySeason": "Filtrer par saison",
+      "marketsCount": "{{count}} marchés et foires",
+      "artisansCount": "{{count}} métiers artisanaux",
+      "oneProductFound": "{{count}} produit trouvé",
+      "productsFound": "{{count}} produits trouvés",
+      "emptyTitle": "Aucun produit de saison",
+      "emptyText": "Essayez un autre mois ou sélectionnez « Tous ».",
+      "seeMoreA11y": "Voir plus de résultats",
+      "seeMore": "Voir plus ({{count}})",
+      "sources": "Données sélectionnées à partir de sources régionales et de la tradition orale."
+    },
+    "economyMarketCard": {
+      "types": {
+        "mercado_municipal": "Marché municipal",
+        "feira": "Foire",
+        "loja_tradicional": "Boutique traditionnelle",
+        "coop_produtores": "Coopérative"
+      },
+      "dop": "AOP",
+      "expand": "Développer {{name}}",
+      "collapse": "Réduire {{name}}"
+    },
+    "musica": {
+      "title": "Musique traditionnelle",
+      "subtitle": "Fado · Folklore · Instruments · Danses",
+      "tabs": {
+        "todos": "Tous",
+        "fado": "Fado",
+        "folclore": "Folklore",
+        "instrumento": "Instruments",
+        "danca": "Danses",
+        "canto": "Chant",
+        "festival": "Festivals",
+        "tuna": "Estudiantinas"
+      },
+      "unescoOne": "{{count}} tradition reconnue par l’UNESCO",
+      "unescoMany": "{{count}} traditions reconnues par l’UNESCO",
+      "oneTraditionFound": "{{count}} tradition trouvée",
+      "traditionsFound": "{{count}} traditions trouvées",
+      "emptyTitle": "Aucune tradition dans cette catégorie",
+      "emptyText": "Essayez un autre type ou une autre région pour découvrir la musique traditionnelle portugaise.",
+      "sources": "Données : DGPC · UNESCO · Associations culturelles",
+      "items": {
+        "fado-lisboa": {
+          "description": "Le fado de Lisbonne, chanson urbaine née dans les quartiers populaires, inscrit au Patrimoine culturel immatériel de l’humanité par l’UNESCO depuis 2011."
+        },
+        "fado-coimbra": {
+          "description": "Fado universitaire chanté exclusivement par des hommes, lié à l’Université de Coimbra et aux traditions étudiantes."
+        },
+        "guitarra-portuguesa": {
+          "description": "Instrument à cordes pincées en forme de poire, symbole sonore du fado et de l’identité musicale portugaise."
+        },
+        "rancho-folclorico-minho": {
+          "description": "Groupes de danses et de chants traditionnels du Minho, aux costumes colorés et aux chorégraphies ancestrales de célébration collective."
+        },
+        "cante-alentejano": {
+          "description": "Chant choral polyphonique à deux voix de l’Alentejo, inscrit au Patrimoine culturel immatériel de l’humanité par l’UNESCO depuis 2014."
+        },
+        "viola-campanica": {
+          "description": "Guitare traditionnelle du Bas-Alentejo, à la sonorité unique et au rôle central dans l’accompagnement du cante alentejano."
+        },
+        "corridinho-algarvio": {
+          "description": "Danse traditionnelle rapide et joyeuse de l’Algarve, exécutée en couple avec des pas tournoyants au son de l’accordéon."
+        },
+        "pauliteiros-miranda": {
+          "description": "Danse guerrière masculine avec bâtons et épées, d’origine celte, préservée sur les terres de Miranda do Douro."
+        },
+        "gaita-foles-transmontana": {
+          "description": "Instrument à vent ancestral du Trás-os-Montes, avec une poche en peau de chèvre et un chalumeau mélodique en bois."
+        },
+        "adufeiras-monsanto": {
+          "description": "Tradition féminine de chant accompagné par l’adufe, tambour carré à double peau, dans la région frontalière de la Beira Baixa."
+        },
+        "festival-musicas-mundo": {
+          "description": "Festival international de musiques du monde à Sines, ville natale de Vasco de Gama, avec des scènes en bord de mer et des artistes du monde entier."
+        },
+        "festival-fado-lisboa": {
+          "description": "Festival annuel consacré au fado à Lisbonne, réunissant fadistes reconnus et nouvelles voix sur les scènes de la capitale."
+        },
+        "tunas-academicas": {
+          "description": "Groupes musicaux universitaires de tradition séculaire, en cape et soutane, qui interprètent sérénades et chansons estudiantines."
+        },
+        "cavaquinho-minhoto": {
+          "description": "Petit cordophone à quatre cordes originaire du Minho, ancêtre du ukulélé hawaïen et du cavaquinho brésilien."
+        }
+      },
+      "instruments": {
+        "guitarraPortuguesa": "Guitare portugaise",
+        "violaDeFado": "Guitare de fado",
+        "guitarraDeCoimbra": "Guitare de Coimbra",
+        "viola": "Guitare",
+        "guitarraPortuguesaDeLisboa": "Guitare portugaise de Lisbonne",
+        "concertina": "Concertina",
+        "bombo": "Grosse caisse",
+        "cavaquinho": "Cavaquinho",
+        "ferrinhos": "Triangle",
+        "acordeao": "Accordéon",
+        "harmonica": "Harmonica",
+        "gaitaDeFoles": "Cornemuse",
+        "caixa": "Caisse claire",
+        "adufe": "Adufe"
+      }
+    },
+    "musicCard": {
+      "types": {
+        "fado": "Fado",
+        "folclore": "Folklore",
+        "canto_polifonico": "Chant polyphonique",
+        "canto_tradicional": "Chant traditionnel",
+        "danca_tradicional": "Danse",
+        "instrumento": "Instrument",
+        "festival": "Festival",
+        "tuna": "Estudiantina"
+      }
+    },
+    "prehistoria": {
+      "title": "Préhistoire",
+      "subtitle": "Géosites · Mégalithes · Art rupestre · Astronomie",
+      "tabs": {
+        "todos": "Tous",
+        "megalito": "Mégalithes",
+        "rupestre": "Art rupestre",
+        "geositio": "Géosites",
+        "astronomia": "Astronomie"
+      },
+      "periodLabel": "Période",
+      "periods": {
+        "Paleolitico": "Paléolithique",
+        "Neolitico": "Néolithique",
+        "Calcolitico": "Chalcolithique",
+        "Bronze": "Âge du bronze",
+        "Ferro": "Âge du fer"
+      },
+      "nextEvent": "Prochain événement",
+      "nextEventDesc": "Solstice d’été — 21 juin",
+      "oneSiteFound": "{{count}} site trouvé",
+      "sitesFound": "{{count}} sites trouvés",
+      "emptyTitle": "Aucun site trouvé",
+      "emptyText": "Essayez un autre filtre ou sélectionnez « Tous ».",
+      "sources": "Données : SIPA/DGPC · LNEG · Parc archéologique de la vallée du Côa"
+    },
+    "prehistoriaCard": {
+      "categories": {
+        "geositio": "Géosite",
+        "megalito": "Mégalithe",
+        "rupestre": "Art rupestre",
+        "santuario": "Sanctuaire",
+        "arqueologico": "Archéologique"
+      },
+      "astro": {
+        "solar": "☀️ Alignement solaire",
+        "lunar": "🌙 Alignement lunaire",
+        "estelar": "⭐ Stellaire",
+        "equinocio": "☀️ Équinoxe",
+        "solsticio": "☀️ Solstice"
+      },
+      "ageBc": "{{years}} av. J.-C.",
+      "celestialEvent": "Événement céleste",
+      "solstice": "Solstice : {{event}}",
+      "equinox": "Équinoxe : {{event}}",
+      "orientation": "Orientation : {{degrees}}°"
+    },
+    "sensoryCard": {
+      "title": "Expérience sensorielle",
+      "sound": "Ambiance sonore",
+      "aroma": "Arôme",
+      "flavor": "Saveur locale",
+      "photoAngle": "Meilleur angle",
+      "speakSound": "Ambiance sonore : {{label}}"
+    }
+  }
+}

@@ -2,6 +2,7 @@
  * Atlas de Flora — native flora, endemisms and flowering calendar explorer
  */
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useRegionParam } from '../../src/hooks/useRegionParam';
 import { filterByRegion } from '../../src/utils/regionMatch';
 import RegionFilterBanner from '../../src/components/RegionFilterBanner';
@@ -274,20 +275,20 @@ type TabKey = 'todos' | 'endemicas' | 'protegidas' | 'montanha' | 'dunas' | 'lau
 
 interface Tab {
   key: TabKey;
-  label: string;
+  labelKey: string;
 }
 
 const TABS: Tab[] = [
-  { key: 'todos',       label: 'Todos' },
-  { key: 'endemicas',   label: 'Endémicas' },
-  { key: 'protegidas',  label: 'Protegidas' },
-  { key: 'montanha',    label: 'Alta Montanha' },
-  { key: 'dunas',       label: 'Dunas' },
-  { key: 'laurissilva', label: 'Laurissilva' },
-  { key: 'humidas',     label: 'Zonas Húmidas' },
+  { key: 'todos',       labelKey: 'modulesNature.flora.tabs.todos' },
+  { key: 'endemicas',   labelKey: 'modulesNature.flora.tabs.endemicas' },
+  { key: 'protegidas',  labelKey: 'modulesNature.flora.tabs.protegidas' },
+  { key: 'montanha',    labelKey: 'modulesNature.flora.tabs.montanha' },
+  { key: 'dunas',       labelKey: 'modulesNature.flora.tabs.dunas' },
+  { key: 'laurissilva', labelKey: 'modulesNature.flora.tabs.laurissilva' },
+  { key: 'humidas',     labelKey: 'modulesNature.flora.tabs.humidas' },
 ];
 
-const MONTH_NAMES = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+const MONTH_NAME_KEYS = Array.from({ length: 12 }, (_, i) => `modulesNature.months.short.m${i + 1}`);
 
 function isFlowering(species: FloraSpecies, month: number): boolean {
   const s = species.flowering_start_month;
@@ -310,6 +311,7 @@ function filterByTab(data: FloraSpecies[], tab: TabKey): FloraSpecies[] {
 // ─── Main Screen ──────────────────────────────────────────────────────────────
 
 export default function FloraScreen() {
+  const { t } = useTranslation();
   const router = useRouter();
   const insets = useSafeAreaInsets();
 
@@ -365,8 +367,8 @@ export default function FloraScreen() {
             <MaterialIcons name="arrow-back" size={22} color={C.accent} />
           </TouchableOpacity>
           <View style={styles.headerContent}>
-            <Text style={styles.headerTitle}>Atlas de Flora</Text>
-            <Text style={styles.headerSubtitle}>Flora Silvestre · Endemismos · Calendário de Floração</Text>
+            <Text style={styles.headerTitle}>{t('modulesNature.flora.title')}</Text>
+            <Text style={styles.headerSubtitle}>{t('modulesNature.flora.subtitle')}</Text>
           </View>
           <View style={styles.headerIcon}>
             <MaterialIcons name="eco" size={20} color={C.accent} />
@@ -379,7 +381,13 @@ export default function FloraScreen() {
         <View style={styles.seasonalBanner}>
           <MaterialIcons name="local-florist" size={16} color={C.accent} />
           <Text style={styles.seasonalText}>
-            A florir agora: <Text style={styles.seasonalCount}>{floweringNow} espécies</Text> em {MONTH_NAMES[currentMonth - 1]}
+            {t('modulesNature.flora.floweringNowLabel')}{' '}
+            <Text style={styles.seasonalCount}>
+              {floweringNow === 1
+                ? t('modulesNature.flora.floweringCountOne', { count: floweringNow })
+                : t('modulesNature.flora.floweringCount', { count: floweringNow })}
+            </Text>
+            {' '}{t('modulesNature.flora.inMonth', { month: t(MONTH_NAME_KEYS[currentMonth - 1]) })}
           </Text>
         </View>
 
@@ -400,7 +408,7 @@ export default function FloraScreen() {
                 activeOpacity={0.8}
               >
                 <Text style={[styles.tabChipLabel, isActive && styles.tabChipLabelActive]}>
-                  {tab.label}
+                  {t(tab.labelKey)}
                 </Text>
               </TouchableOpacity>
             );
@@ -411,7 +419,7 @@ export default function FloraScreen() {
         <View style={styles.monthSection}>
           <View style={styles.monthHeader}>
             <MaterialIcons name="calendar-today" size={12} color={C.textLight} />
-            <Text style={styles.monthHeaderText}>Filtrar por mês de floração</Text>
+            <Text style={styles.monthHeaderText}>{t('modulesNature.flora.monthFilterTitle')}</Text>
           </View>
           <ScrollView
             horizontal
@@ -423,10 +431,10 @@ export default function FloraScreen() {
               onPress={() => setMonthFilter(null)}
             >
               <Text style={[styles.monthChipText, monthFilter === null && styles.monthChipTextActive]}>
-                Todos
+                {t('modulesNature.flora.allMonths')}
               </Text>
             </TouchableOpacity>
-            {MONTH_NAMES.map((name, idx) => {
+            {MONTH_NAME_KEYS.map((nameKey, idx) => {
               const month = idx + 1;
               const isActive = monthFilter === month;
               const isCurrent = month === currentMonth;
@@ -445,7 +453,7 @@ export default function FloraScreen() {
                     isActive && styles.monthChipTextActive,
                     isCurrent && !isActive && styles.monthChipTextCurrent,
                   ]}>
-                    {name}
+                    {t(nameKey)}
                   </Text>
                 </TouchableOpacity>
               );
@@ -457,7 +465,9 @@ export default function FloraScreen() {
         <View style={styles.summaryRow}>
           <View style={[styles.summaryDot, { backgroundColor: C.accent }]} />
           <Text style={styles.summaryText}>
-            {filtered.length} espécie{filtered.length !== 1 ? 's' : ''} encontrada{filtered.length !== 1 ? 's' : ''}
+            {filtered.length === 1
+              ? t('modulesNature.shared.speciesFoundOne', { count: filtered.length })
+              : t('modulesNature.shared.speciesFound', { count: filtered.length })}
           </Text>
         </View>
 
@@ -481,9 +491,9 @@ export default function FloraScreen() {
           {!isLoading && filtered.length === 0 && (
             <View style={styles.emptyState}>
               <MaterialIcons name="eco" size={40} color={C.textLight} />
-              <Text style={styles.emptyStateTitle}>Sem espécies neste filtro</Text>
+              <Text style={styles.emptyStateTitle}>{t('modulesNature.shared.emptyTitle')}</Text>
               <Text style={styles.emptyStateText}>
-                Tente outro mês ou categoria.
+                {t('modulesNature.flora.emptyText')}
               </Text>
             </View>
           )}
@@ -493,7 +503,7 @@ export default function FloraScreen() {
         <View style={styles.infoFooter}>
           <MaterialIcons name="info-outline" size={14} color={C.textLight} />
           <Text style={styles.infoFooterText}>
-            Dados: ICNF · Lista Vermelha · Flora-On
+            {t('modulesNature.flora.sources')}
           </Text>
         </View>
 

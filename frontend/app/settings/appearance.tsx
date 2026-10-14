@@ -14,12 +14,13 @@ import {
 import { useRouter } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useTranslation } from 'react-i18next';
 import { useTheme, COLOR_VISION_LABELS, REGION_ACCENT_NAMES } from '../../src/context/ThemeContext';
 import type { ColorVisionMode, ThemeMode } from '../../src/context/ThemeContext';
 import { shadows } from '../../src/theme';
 import { ScreenHeader } from '../../src/components/ui';
-import { LUZ_OPTIONS, luzHint, luzDefinition } from '../../src/theme/luz';
-import type { LuzPeriod } from '../../src/theme/luz';
+import { LUZ_OPTIONS, luzNow, luzDefinition } from '../../src/theme/luz';
+import type { LuzMode, LuzPeriod } from '../../src/theme/luz';
 
 // ─── Cores de preview para daltonismo ────────────────────────────────────────
 
@@ -39,6 +40,15 @@ export default function AppearanceScreen() {
     colors, isDark, mode, setMode, colorVision, setColorVision,
     regionAccent, setRegionAccent, luz, luzActive, setLuz,
   } = useTheme();
+  const { t } = useTranslation();
+
+  // Texto de apoio da Luz de Portugal (equivalente traduzido de luzHint)
+  const luzLabel = (id: LuzMode) => t(`account.appearance.luz.${id}`);
+  const luzHintText = (() => {
+    if (luz === 'off') return t('account.appearance.luzHintOff');
+    if (luz === 'auto') return t('account.appearance.luzHintAuto', { period: luzLabel(luzNow()).toLowerCase() });
+    return t('account.appearance.luzHintFixed', { period: luzLabel(luzDefinition(luz as LuzPeriod).id).toLowerCase() });
+  })();
 
   const Section = ({ title }: { title: string }) => (
     <Text style={[s.sectionTitle, { color: colors.textMuted }]}>{title.toUpperCase()}</Text>
@@ -63,16 +73,16 @@ export default function AppearanceScreen() {
   return (
     <View style={[s.container, { paddingTop: insets.top, backgroundColor: colors.background }]}>
       {/* Header */}
-      <ScreenHeader title="Aparência" onBack={() => router.back()} />
+      <ScreenHeader title={t('account.appearance.title')} onBack={() => router.back()} />
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 40 }}>
         {/* ── Tema ──────────────────────────────────────────────────────────── */}
-        <Section title="Tema" />
+        <Section title={t('account.appearance.theme')} />
         <View style={s.group}>
           {([
-            { id: 'light', label: 'Claro', icon: 'light-mode', sub: 'Fundo branco' },
-            { id: 'dark',  label: 'Escuro', icon: 'dark-mode', sub: 'Fundo escuro' },
-            { id: 'system', label: 'Automático', icon: 'brightness-auto', sub: 'Segue o sistema' },
+            { id: 'light', label: t('account.appearance.themeLight'), icon: 'light-mode', sub: t('account.appearance.themeLightSub') },
+            { id: 'dark',  label: t('account.appearance.themeDark'), icon: 'dark-mode', sub: t('account.appearance.themeDarkSub') },
+            { id: 'system', label: t('account.appearance.themeSystem'), icon: 'brightness-auto', sub: t('account.appearance.themeSystemSub') },
           ] as { id: ThemeMode; label: string; icon: string; sub: string }[]).map(opt => (
             <OptionRow
               key={opt.id}
@@ -85,9 +95,9 @@ export default function AppearanceScreen() {
         </View>
 
         {/* ── Luz de Portugal ───────────────────────────────────────────────── */}
-        <Section title="Luz de Portugal" />
+        <Section title={t('account.appearance.luzTitle')} />
         <Text style={[s.hint, { color: colors.textMuted }]}>
-          {luzHint(luz)}
+          {luzHintText}
         </Text>
         <View style={s.luzChips}>
           {LUZ_OPTIONS.map(opt => {
@@ -107,13 +117,13 @@ export default function AppearanceScreen() {
                 activeOpacity={0.75}
                 accessibilityRole="button"
                 accessibilityState={{ selected: on }}
-                accessibilityLabel={`Luz de Portugal: ${opt.label}`}
+                accessibilityLabel={t('account.appearance.luzA11y', { option: luzLabel(opt.id) })}
               >
                 {swatch
                   ? <View style={[s.luzSwatch, { backgroundColor: swatch }]} />
                   : <MaterialIcons name={opt.icon as never} size={15} color={on ? '#FFF' : colors.textSecondary} />}
                 <Text style={[s.luzChipText, { color: on ? '#FFF' : colors.textSecondary }]}>
-                  {opt.label}
+                  {luzLabel(opt.id)}
                 </Text>
               </TouchableOpacity>
             );
@@ -121,14 +131,14 @@ export default function AppearanceScreen() {
         </View>
         {luzActive !== 'off' && (
           <Text style={[s.hint, { color: colors.textMuted, marginTop: 8 }]}>
-            A luz acompanha a hora do dia e suaviza-se sobre fotografias e mapas.
+            {t('account.appearance.luzFollows')}
           </Text>
         )}
 
         {/* ── Visão de cores ────────────────────────────────────────────────── */}
-        <Section title="Modo de visão de cores" />
+        <Section title={t('account.appearance.colorVisionTitle')} />
         <Text style={[s.hint, { color: colors.textMuted }]}>
-          Adapta as cores da interface para diferentes tipos de visão.
+          {t('account.appearance.colorVisionHint')}
         </Text>
         <View style={s.group}>
           {(Object.keys(COLOR_VISION_LABELS) as ColorVisionMode[]).map(cv => {
@@ -148,11 +158,11 @@ export default function AppearanceScreen() {
                 </View>
                 <View style={{ flex: 1 }}>
                   <Text style={[s.rowLabel, { color: colors.textPrimary }]}>
-                    {COLOR_VISION_LABELS[cv]}
+                    {t(`account.appearance.colorVision.${cv}`)}
                   </Text>
                   {cv !== 'normal' && (
                     <Text style={[s.rowSublabel, { color: colors.textMuted }]}>
-                      Paleta adaptada para maior contraste
+                      {t('account.appearance.adaptedPalette')}
                     </Text>
                   )}
                 </View>
@@ -165,14 +175,14 @@ export default function AppearanceScreen() {
         </View>
 
         {/* ── Pack visual por região ────────────────────────────────────────── */}
-        <Section title="Pack visual por região" />
+        <Section title={t('account.appearance.regionPackTitle')} />
         <Text style={[s.hint, { color: colors.textMuted }]}>
-          Personaliza as cores de destaque com a paleta da região activa.
+          {t('account.appearance.regionPackHint')}
         </Text>
         <View style={s.group}>
           <OptionRow
-            label="Nenhum (padrão)"
-            sublabel="Paleta Portugal Vivo"
+            label={t('account.appearance.regionNone')}
+            sublabel={t('account.appearance.regionNoneSub')}
             selected={!regionAccent}
             onPress={() => setRegionAccent(null)}
           />

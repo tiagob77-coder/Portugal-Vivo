@@ -12,9 +12,15 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useQuery } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
 import { getModuleTheme, withOpacity, onColor } from '../../../../src/theme/colors';
-import { getModuleNarrative } from '../../../../src/data/moduleNarratives';
-import { getHighlight, getHighlightDetail } from '../../../../src/data/moduleHighlights';
+import { getModuleNarrative, localizeModuleNarrative } from '../../../../src/data/moduleNarratives';
+import {
+  getHighlight,
+  getHighlightDetail,
+  localizeHighlight,
+  localizeHighlightDetail,
+} from '../../../../src/data/moduleHighlights';
 import { formatDistance, nearest } from '../../../../src/utils/geo';
 import NavigationChooser from '../../../../src/components/NavigationChooser';
 import { getMapItems } from '../../../../src/services/api';
@@ -30,6 +36,7 @@ interface NearbyPoi {
 export default function HighlightDetailScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const { t: tr } = useTranslation();
   const { module, name } = useLocalSearchParams<{ module: string; name: string }>();
   const [navOpen, setNavOpen] = useState(false);
 
@@ -66,18 +73,22 @@ export default function HighlightDetailScreen() {
       <View style={[s.container, { backgroundColor: t.bg, paddingTop: insets.top }]}>
         <TouchableOpacity onPress={() => router.back()} style={s.backInline}>
           <MaterialIcons name="arrow-back" size={22} color={t.textPrimary} />
-          <Text style={[s.backText, { color: t.textPrimary }]}>Voltar</Text>
+          <Text style={[s.backText, { color: t.textPrimary }]}>{tr('common.back')}</Text>
         </TouchableOpacity>
         <Text style={[s.missing, { color: t.textSecondary }]}>
-          Destaque não encontrado.
+          {tr('moduleContent.highlightDetail.notFound')}
         </Text>
       </View>
     );
   }
 
+  const moduleText = localizeModuleNarrative(slug, narrative, tr);
+  const highlightText = localizeHighlight(slug, highlight, tr);
+  const detailText = detail ? localizeHighlightDetail(highlightName, detail, tr) : undefined;
+
   // Sem ficha curada, recai na leitura do próprio módulo
-  const where = detail?.where ?? narrative.story;
-  const history = detail?.history ?? narrative.story;
+  const where = detailText?.where ?? moduleText.story;
+  const history = detailText?.history ?? moduleText.story;
 
   return (
     <View style={[s.container, { backgroundColor: t.bg }]}>
@@ -88,27 +99,27 @@ export default function HighlightDetailScreen() {
             onPress={() => router.back()}
             style={[s.backBtn, { backgroundColor: t.card }]}
             accessibilityRole="button"
-            accessibilityLabel="Voltar"
+            accessibilityLabel={tr('common.back')}
           >
             <MaterialIcons name="arrow-back" size={21} color={t.textPrimary} />
           </TouchableOpacity>
           <View style={[s.modulePill, { backgroundColor: withOpacity(t.accent, 0.15) }]}>
             <MaterialIcons name={narrative.icon} size={14} color={t.accent} />
-            <Text style={[s.modulePillText, { color: t.accent }]}>{narrative.label}</Text>
+            <Text style={[s.modulePillText, { color: t.accent }]}>{moduleText.label}</Text>
           </View>
         </View>
 
         <View style={s.titleBlock}>
           <Text style={s.emoji}>{highlight.emoji}</Text>
-          <Text style={[s.title, { color: t.textPrimary }]}>{highlight.name}</Text>
-          <Text style={[s.meta, { color: t.textMuted }]}>{highlight.meta}</Text>
+          <Text style={[s.title, { color: t.textPrimary }]}>{highlightText.name}</Text>
+          <Text style={[s.meta, { color: t.textMuted }]}>{highlightText.meta}</Text>
         </View>
 
         {/* ── Localização ────────────────────────────────────────────────── */}
         <View style={[s.card, { backgroundColor: t.card, borderColor: withOpacity(t.accent, 0.2) }]}>
           <View style={s.cardHead}>
             <MaterialIcons name="place" size={18} color={t.accent} />
-            <Text style={[s.cardTitle, { color: t.textPrimary }]}>Onde ver</Text>
+            <Text style={[s.cardTitle, { color: t.textPrimary }]}>{tr('moduleContent.highlightDetail.whereToSee')}</Text>
           </View>
           <Text style={[s.body, { color: t.textSecondary }]}>{where}</Text>
 
@@ -120,7 +131,7 @@ export default function HighlightDetailScreen() {
                 accessibilityRole="button"
               >
                 <MaterialIcons name="navigation" size={16} color={onColor(t.accent)} />
-                <Text style={[s.actionText, { color: onColor(t.accent) }]}>Navegar</Text>
+                <Text style={[s.actionText, { color: onColor(t.accent) }]}>{tr('moduleContent.highlightDetail.navigate')}</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={[s.action, s.actionGhost, { borderColor: t.accent }]}
@@ -128,7 +139,7 @@ export default function HighlightDetailScreen() {
                 accessibilityRole="button"
               >
                 <MaterialIcons name="map" size={16} color={t.accent} />
-                <Text style={[s.actionText, { color: t.accent }]}>Ver no mapa</Text>
+                <Text style={[s.actionText, { color: t.accent }]}>{tr('moduleContent.highlightDetail.viewOnMap')}</Text>
               </TouchableOpacity>
             </View>
           )}
@@ -138,7 +149,7 @@ export default function HighlightDetailScreen() {
         <View style={s.section}>
           <View style={s.cardHead}>
             <MaterialIcons name="history-edu" size={18} color={t.accent} />
-            <Text style={[s.cardTitle, { color: t.textPrimary }]}>História</Text>
+            <Text style={[s.cardTitle, { color: t.textPrimary }]}>{tr('moduleContent.highlightDetail.history')}</Text>
           </View>
           <Text style={[s.body, { color: t.textSecondary }]}>{history}</Text>
         </View>
@@ -148,14 +159,14 @@ export default function HighlightDetailScreen() {
           <View style={s.section}>
             <View style={s.cardHead}>
               <MaterialIcons name="explore" size={18} color={t.accent} />
-              <Text style={[s.cardTitle, { color: t.textPrimary }]}>Onde ver na base</Text>
+              <Text style={[s.cardTitle, { color: t.textPrimary }]}>{tr('moduleContent.highlightDetail.nearby')}</Text>
             </View>
 
             {poisLoading && <ActivityIndicator color={t.accent} style={{ marginTop: 12 }} />}
 
             {!poisLoading && nearbyPois.length === 0 && (
               <Text style={[s.body, { color: t.textMuted }]}>
-                Ainda sem locais georreferenciados nesta categoria.
+                {tr('moduleContent.highlightDetail.nearbyEmpty')}
               </Text>
             )}
 
@@ -185,7 +196,7 @@ export default function HighlightDetailScreen() {
         <View style={s.section}>
           <View style={s.cardHead}>
             <MaterialIcons name="hub" size={18} color={t.accent} />
-            <Text style={[s.cardTitle, { color: t.textPrimary }]}>Continuar a explorar</Text>
+            <Text style={[s.cardTitle, { color: t.textPrimary }]}>{tr('moduleContent.highlightDetail.continueExploring')}</Text>
           </View>
 
           <TouchableOpacity
@@ -194,7 +205,9 @@ export default function HighlightDetailScreen() {
             accessibilityRole="button"
           >
             <MaterialIcons name={narrative.icon} size={18} color={t.accent} />
-            <Text style={[s.linkText, { color: t.textPrimary }]}>Voltar a {narrative.label}</Text>
+            <Text style={[s.linkText, { color: t.textPrimary }]}>
+              {tr('moduleContent.highlightDetail.backTo', { module: moduleText.label })}
+            </Text>
             <MaterialIcons name="chevron-right" size={20} color={t.textMuted} />
           </TouchableOpacity>
 
@@ -206,7 +219,7 @@ export default function HighlightDetailScreen() {
             accessibilityRole="button"
           >
             <MaterialIcons name="menu-book" size={18} color={t.accent} />
-            <Text style={[s.linkText, { color: t.textPrimary }]}>Explorar na Enciclopédia</Text>
+            <Text style={[s.linkText, { color: t.textPrimary }]}>{tr('moduleContent.highlightDetail.encyclopedia')}</Text>
             <MaterialIcons name="chevron-right" size={20} color={t.textMuted} />
           </TouchableOpacity>
 
@@ -216,7 +229,9 @@ export default function HighlightDetailScreen() {
             accessibilityRole="button"
           >
             <MaterialIcons name="search" size={18} color={t.accent} />
-            <Text style={[s.linkText, { color: t.textPrimary }]}>Pesquisar “{highlight.name}”</Text>
+            <Text style={[s.linkText, { color: t.textPrimary }]}>
+              {tr('moduleContent.highlightDetail.search', { name: highlightText.name })}
+            </Text>
             <MaterialIcons name="chevron-right" size={20} color={t.textMuted} />
           </TouchableOpacity>
         </View>
@@ -226,7 +241,7 @@ export default function HighlightDetailScreen() {
         <NavigationChooser
           visible={navOpen}
           onClose={() => setNavOpen(false)}
-          name={highlight.name}
+          name={highlightText.name}
           lat={detail.lat}
           lng={detail.lng}
         />

@@ -4,10 +4,12 @@ import { Text, StyleSheet, Animated } from 'react-native';
 import NetInfo from '@react-native-community/netinfo';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useTranslation } from 'react-i18next';
 import { useTheme } from '../context/ThemeContext';
 import offlineCache from '../services/offlineCache';
 
 export default function OfflineBanner() {
+  const { t } = useTranslation();
   const { colors: _colors } = useTheme();
   const insets = useSafeAreaInsets();
   const [status, setStatus] = useState<'online' | 'offline' | 'back-online' | null>(null);
@@ -50,8 +52,10 @@ export default function OfflineBanner() {
   const bg = isOffline ? '#F59E0B' : '#22C55E';
   const icon = isOffline ? 'cloud-off' : 'cloud-done';
   const text = isOffline
-    ? `Modo Offline${pendingCount > 0 ? ` - ${pendingCount} ações pendentes` : ' - dados locais'}`
-    : 'De volta online';
+    ? pendingCount > 0
+      ? t(pendingCount === 1 ? 'components.offlineBanner.offlinePendingOne' : 'components.offlineBanner.offlinePending', { count: pendingCount })
+      : t('components.offlineBanner.offlineLocal')
+    : t('components.offlineBanner.backOnline');
 
   return (
     <Animated.View

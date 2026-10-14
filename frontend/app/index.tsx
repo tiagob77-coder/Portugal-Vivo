@@ -9,11 +9,14 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useQuery } from '@tanstack/react-query';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useTranslation } from 'react-i18next';
+import type { TFunction } from 'i18next';
 import api, { getStats, getTopScoredItems, getStories, TopScoredItem, StoryItem } from '../src/services/api';
 import { regionImages, scrimPine } from '../src/theme';
 import { useTheme } from '../src/context/ThemeContext';
 import { palette, categoryColors, withOpacity } from '../src/theme/colors';
 import { useResponsive } from '../src/hooks/useResponsive';
+import { currentLocale } from '../src/i18n/format';
 
 if (Platform.OS === 'web' && typeof document !== 'undefined') {
   const link = document.createElement('link');
@@ -28,20 +31,20 @@ const bodyFont = Platform.OS === 'web' ? 'DM Sans, system-ui, sans-serif' : unde
 const HERO_IMAGE = 'https://upload.wikimedia.org/wikipedia/commons/thumb/8/87/Ribeira_do_Porto_%28Portugal%29.jpg/1280px-Ribeira_do_Porto_%28Portugal%29.jpg';
 
 const REGIONS = [
-  { id: 'norte', name: 'Norte', desc: 'Do Minho ao Douro, granito e vinho verde', items: 714 },
-  { id: 'centro', name: 'Centro', desc: 'Serras, aldeias históricas e tradições vivas', items: 704 },
-  { id: 'lisboa', name: 'Lisboa', desc: 'Capital de luz, fado e azulejos', items: 310 },
-  { id: 'alentejo', name: 'Alentejo', desc: 'Planícies douradas, cortiça e silêncio', items: 280 },
-  { id: 'algarve', name: 'Algarve', desc: 'Falésias, mar turquesa e cataplanas', items: 123 },
-  { id: 'acores', name: 'Açores', desc: 'Vulcões, lagoas e verde infinito', items: 95 },
-  { id: 'madeira', name: 'Madeira', desc: 'Laurissilva, levadas e flores', items: 85 },
+  { id: 'norte', name: 'Norte', descKey: 'account.landing.regionDescs.norte', items: 714 },
+  { id: 'centro', name: 'Centro', descKey: 'account.landing.regionDescs.centro', items: 704 },
+  { id: 'lisboa', name: 'Lisboa', descKey: 'account.landing.regionDescs.lisboa', items: 310 },
+  { id: 'alentejo', name: 'Alentejo', descKey: 'account.landing.regionDescs.alentejo', items: 280 },
+  { id: 'algarve', name: 'Algarve', descKey: 'account.landing.regionDescs.algarve', items: 123 },
+  { id: 'acores', name: 'Açores', descKey: 'account.landing.regionDescs.acores', items: 95 },
+  { id: 'madeira', name: 'Madeira', descKey: 'account.landing.regionDescs.madeira', items: 85 },
 ];
 
 const ACTION_CARDS = [
   {
     id: 'nearby',
-    title: 'Perto de Mim',
-    desc: 'Descobre o que está à tua volta',
+    titleKey: 'account.landing.actions.nearby.title',
+    descKey: 'account.landing.actions.nearby.desc',
     icon: 'place',
     image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/5/5a/Pena_Palace_in_Sintra_-_panorama_%28cropped%29.jpg/640px-Pena_Palace_in_Sintra_-_panorama_%28cropped%29.jpg',
     route: '/(tabs)/mapa',
@@ -49,8 +52,8 @@ const ACTION_CARDS = [
   },
   {
     id: 'explore',
-    title: 'Explorar Património',
-    desc: 'Caminha por vilas onde o tempo parou',
+    titleKey: 'account.landing.actions.explore.title',
+    descKey: 'account.landing.actions.explore.desc',
     icon: 'account-balance',
     image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/05/Panorama_of_Lisbon_%2811977231484%29.jpg/640px-Panorama_of_Lisbon_%2811977231484%29.jpg',
     route: '/(tabs)/descobrir',
@@ -58,8 +61,8 @@ const ACTION_CARDS = [
   },
   {
     id: 'gastro',
-    title: 'Gastronomia',
-    desc: 'Sabores autênticos de cada região',
+    titleKey: 'account.landing.actions.gastro.title',
+    descKey: 'account.landing.actions.gastro.desc',
     icon: 'restaurant',
     image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/3/3f/Douro_Vinhateiro2.jpg/640px-Douro_Vinhateiro2.jpg',
     route: '/(tabs)/descobrir',
@@ -67,8 +70,8 @@ const ACTION_CARDS = [
   },
   {
     id: 'trails',
-    title: 'Trilhos & Natureza',
-    desc: 'Percursos selecionados entre serras e rios',
+    titleKey: 'account.landing.actions.trails.title',
+    descKey: 'account.landing.actions.trails.desc',
     icon: 'terrain',
     image: regionImages.acores,
     route: '/trilhos',
@@ -76,15 +79,15 @@ const ACTION_CARDS = [
   },
 ];
 
-const NEWSLETTER_INTERESTS = ['Natureza', 'Património', 'Gastronomia', 'Praias', 'Trilhos', 'Eventos', 'Termas', 'Surf'];
+const NEWSLETTER_INTERESTS = ['nature', 'heritage', 'gastronomy', 'beaches', 'trails', 'events', 'spas', 'surf'];
 
-const NAV_ITEMS = ['Mapa', 'Regiões', 'Categorias', 'Tesouros', 'Newsletter'];
+const NAV_ITEMS = ['map', 'regions', 'categories', 'treasures', 'newsletter'];
 
-function getGreeting(): string {
+function getGreeting(t: TFunction): string {
   const h = new Date().getHours();
-  if (h < 12) return 'Bom dia';
-  if (h < 19) return 'Boa tarde';
-  return 'Boa noite';
+  if (h < 12) return t('discovery.goodMorning');
+  if (h < 19) return t('discovery.goodAfternoon');
+  return t('discovery.goodEvening');
 }
 
 function makeStyles(C: Record<string, string>) {
@@ -198,6 +201,7 @@ export default function WelcomeScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { width, isPhone } = useResponsive();
+  const { t } = useTranslation();
   const [searchQuery, setSearchQuery] = useState('');
   const [email, setEmail] = useState('');
   const [emailSent, setEmailSent] = useState(false);
@@ -246,7 +250,7 @@ export default function WelcomeScreen() {
   }, [fadeAnim, slideAnim]);
 
   const isWide = !isPhone;
-  const greeting = getGreeting();
+  const greeting = getGreeting(t);
 
   const descobertas = topScored && topScored.length > 0
     ? topScored.slice(0, 6).map((item: TopScoredItem) => ({
@@ -276,7 +280,7 @@ export default function WelcomeScreen() {
             <View style={s.navLinks}>
               {NAV_ITEMS.map((item) => (
                 <TouchableOpacity key={item} style={s.navLink}>
-                  <Text style={s.navLinkText}>{item}</Text>
+                  <Text style={s.navLinkText}>{t(`account.landing.nav.${item}`)}</Text>
                 </TouchableOpacity>
               ))}
             </View>
@@ -302,9 +306,9 @@ export default function WelcomeScreen() {
               style={s.heroGrad}
             >
               <Animated.View style={[s.heroContent, { opacity: fadeAnim, transform: [{ translateY: slideAnim }] }]}>
-                <Text style={s.greeting} data-testid="greeting">{greeting}, explorador</Text>
-                <Text style={s.heroTitle} data-testid="hero-title">Bem-vindo à tua{'\n'}jornada portuguesa</Text>
-                <Text style={s.heroSub}>Descobre histórias antigas, sabores únicos e{'\n'}caminhos onde o tempo parou</Text>
+                <Text style={s.greeting} data-testid="greeting">{t('account.landing.greeting', { greeting })}</Text>
+                <Text style={s.heroTitle} data-testid="hero-title">{t('account.landing.heroTitle')}</Text>
+                <Text style={s.heroSub}>{t('account.landing.heroSub')}</Text>
               </Animated.View>
             </LinearGradient>
           </ImageBackground>
@@ -313,7 +317,7 @@ export default function WelcomeScreen() {
             <MaterialIcons name="search" size={22} color={C.textLight} />
             <TextInput
               style={s.searchInput}
-              placeholder="O que procuras em Portugal?"
+              placeholder={t('account.landing.searchPlaceholder')}
               placeholderTextColor={C.textMuted}
               value={searchQuery}
               onChangeText={setSearchQuery}
@@ -326,30 +330,30 @@ export default function WelcomeScreen() {
             <View style={[s.statBox, { backgroundColor: palette.forest[50] }]}>
               <MaterialIcons name="place" size={20} color={C.statGreen} />
               <Text style={[s.statVal, { color: C.statGreen }]}>
-                {stats?.total_items ? stats.total_items.toLocaleString('pt-PT') : '5.678'}
+                {stats?.total_items ? stats.total_items.toLocaleString(currentLocale()) : t('account.landing.placesFallback')}
               </Text>
-              <Text style={s.statLabel}>lugares</Text>
+              <Text style={s.statLabel}>{t('account.landing.statPlaces')}</Text>
             </View>
             <View style={[s.statBox, { backgroundColor: palette.terracotta[50] }]}>
               <MaterialIcons name="explore" size={20} color={C.statOrange} />
               <Text style={[s.statVal, { color: C.statOrange }]}>
                 {stats?.total_routes || '20'}
               </Text>
-              <Text style={s.statLabel}>aventuras</Text>
+              <Text style={s.statLabel}>{t('account.landing.statAdventures')}</Text>
             </View>
             <View style={[s.statBox, { backgroundColor: palette.ocean[50] }]}>
               <MaterialIcons name="flag" size={20} color={C.statBlue} />
               <Text style={[s.statVal, { color: C.statBlue }]}>
                 {stats?.regions?.length || '7'}
               </Text>
-              <Text style={s.statLabel}>regiões</Text>
+              <Text style={s.statLabel}>{t('account.landing.statRegions')}</Text>
             </View>
           </View>
         </View>
 
         <View style={s.section} data-testid="aventura-section">
-          <Text style={s.sectionTitle}>Começa a tua aventura</Text>
-          <Text style={s.sectionSub}>Escolhe o que o coração te pedir</Text>
+          <Text style={s.sectionTitle}>{t('account.landing.adventureTitle')}</Text>
+          <Text style={s.sectionSub}>{t('account.landing.adventureSub')}</Text>
 
           <View style={s.actionGrid}>
             {ACTION_CARDS.map((card) => (
@@ -373,8 +377,8 @@ export default function WelcomeScreen() {
                     <View style={[s.actionIconWrap, { backgroundColor: withOpacity(card.color, 0.5) }]}>
                       <MaterialIcons name={card.icon as any} size={18} color={palette.white} />
                     </View>
-                    <Text style={s.actionTitle}>{card.title}</Text>
-                    <Text style={s.actionDesc}>{card.desc}</Text>
+                    <Text style={s.actionTitle}>{t(card.titleKey)}</Text>
+                    <Text style={s.actionDesc}>{t(card.descKey)}</Text>
                   </LinearGradient>
                 </ImageBackground>
               </TouchableOpacity>
@@ -385,11 +389,11 @@ export default function WelcomeScreen() {
         <View style={s.section} data-testid="regioes-section">
           <View style={s.sectionHeader}>
             <View>
-              <Text style={s.sectionLabel}>REGIÕES</Text>
-              <Text style={s.sectionTitle}>Cada Região, uma História</Text>
+              <Text style={s.sectionLabel}>{t('account.landing.regionsLabel')}</Text>
+              <Text style={s.sectionTitle}>{t('account.landing.regionsTitle')}</Text>
             </View>
             <TouchableOpacity style={s.seeAllBtn} onPress={() => router.push('/(tabs)/mapa')}>
-              <Text style={s.seeAllText}>Ver todas</Text>
+              <Text style={s.seeAllText}>{t('account.landing.seeAllRegions')}</Text>
               <MaterialIcons name="arrow-forward" size={16} color={C.forestLight} />
             </TouchableOpacity>
           </View>
@@ -414,10 +418,10 @@ export default function WelcomeScreen() {
                     style={s.regionCardGrad}
                   >
                     <Text style={s.regionName}>{region.name}</Text>
-                    <Text style={s.regionDesc} numberOfLines={1}>{region.desc}</Text>
+                    <Text style={s.regionDesc} numberOfLines={1}>{t(region.descKey)}</Text>
                     <View style={s.regionStats}>
                       <MaterialIcons name="place" size={12} color={C.mint} />
-                      <Text style={s.regionStatText}>{region.items} experiências</Text>
+                      <Text style={s.regionStatText}>{t('account.landing.experiences', { count: region.items })}</Text>
                     </View>
                   </LinearGradient>
                 </ImageBackground>
@@ -430,11 +434,11 @@ export default function WelcomeScreen() {
           <View style={s.section} data-testid="descobertas-section">
             <View style={s.sectionHeader}>
               <View>
-                <Text style={s.sectionLabel}>TESOUROS</Text>
-                <Text style={s.sectionTitle}>Descobertas Raras</Text>
+                <Text style={s.sectionLabel}>{t('account.landing.treasuresLabel')}</Text>
+                <Text style={s.sectionTitle}>{t('account.landing.treasuresTitle')}</Text>
               </View>
               <TouchableOpacity style={s.seeAllBtn} onPress={() => router.push('/(tabs)/descobrir')}>
-                <Text style={s.seeAllText}>Ver todos</Text>
+                <Text style={s.seeAllText}>{t('account.landing.seeAllTreasures')}</Text>
                 <MaterialIcons name="arrow-forward" size={16} color={C.forestLight} />
               </TouchableOpacity>
             </View>
@@ -472,8 +476,8 @@ export default function WelcomeScreen() {
 
         {stories && stories.length > 0 && (
           <View style={s.section} data-testid="historias">
-            <Text style={s.sectionLabel}>HISTORIAS</Text>
-            <Text style={s.sectionTitle}>Historias que Inspiram</Text>
+            <Text style={s.sectionLabel}>{t('account.landing.storiesLabel')}</Text>
+            <Text style={s.sectionTitle}>{t('account.landing.storiesTitle')}</Text>
 
             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={s.storyScroll}>
               {stories.map((story: StoryItem, i: number) => (
@@ -498,7 +502,7 @@ export default function WelcomeScreen() {
                     <Text style={s.storyTitle}>{story.title}</Text>
                     <Text style={s.storyDesc} numberOfLines={2}>{story.description}</Text>
                     <View style={s.storyFooter}>
-                      <Text style={s.storyReadMore}>Ler historia</Text>
+                      <Text style={s.storyReadMore}>{t('account.landing.readStory')}</Text>
                       <MaterialIcons name="arrow-forward" size={14} color={C.forestLight} />
                     </View>
                   </View>
@@ -510,13 +514,13 @@ export default function WelcomeScreen() {
 
         <View style={s.nlSection} data-testid="newsletter">
           <View style={s.nlContent}>
-            <Text style={s.nlTitle}>Recebe as Melhores Dicas</Text>
-            <Text style={s.nlSub}>Junta-te a uma comunidade de viajantes apaixonados por Portugal.</Text>
+            <Text style={s.nlTitle}>{t('account.landing.newsletterTitle')}</Text>
+            <Text style={s.nlSub}>{t('account.landing.newsletterSub')}</Text>
 
             <View style={s.nlInterests}>
               {NEWSLETTER_INTERESTS.map((interest) => (
                 <View key={interest} style={s.nlChip}>
-                  <Text style={s.nlChipText}>{interest}</Text>
+                  <Text style={s.nlChipText}>{t(`account.landing.interests.${interest}`)}</Text>
                 </View>
               ))}
             </View>
@@ -524,7 +528,7 @@ export default function WelcomeScreen() {
             <View style={s.nlInputRow}>
               <TextInput
                 style={s.nlInput}
-                placeholder="O teu email"
+                placeholder={t('account.landing.emailPlaceholder')}
                 placeholderTextColor={C.textMuted}
                 value={email}
                 onChangeText={setEmail}
@@ -545,10 +549,10 @@ export default function WelcomeScreen() {
                 }}
                 data-testid="newsletter-submit"
               >
-                <Text style={s.nlBtnText}>{emailSent ? 'Subscrito!' : 'Subscrever'}</Text>
+                <Text style={s.nlBtnText}>{emailSent ? t('account.landing.subscribed') : t('account.landing.subscribe')}</Text>
               </TouchableOpacity>
             </View>
-            <Text style={s.nlDisclaimer}>Sem spam. Cancela quando quiseres.</Text>
+            <Text style={s.nlDisclaimer}>{t('account.landing.disclaimer')}</Text>
           </View>
         </View>
 
@@ -561,34 +565,34 @@ export default function WelcomeScreen() {
                 </View>
                 <Text style={s.footerLogo}>Portugal Vivo</Text>
               </View>
-              <Text style={s.footerDesc}>Um mapa vivo onde cada regiao respira historias, sabores e caminhos. Descobre Portugal de uma forma unica e autentica.</Text>
+              <Text style={s.footerDesc}>{t('account.landing.footerDesc')}</Text>
             </View>
             {isWide && (
               <>
                 <View style={s.footerCol}>
-                  <Text style={s.footerColTitle}>Regioes</Text>
+                  <Text style={s.footerColTitle}>{t('account.landing.footerRegions')}</Text>
                   {['Norte', 'Centro', 'Lisboa', 'Alentejo', 'Algarve', 'Acores', 'Madeira'].map((r) => (
                     <Text key={r} style={s.footerLink}>{r}</Text>
                   ))}
                 </View>
                 <View style={s.footerCol}>
-                  <Text style={s.footerColTitle}>Categorias</Text>
-                  {['Patrimonio', 'Gastronomia', 'Natureza', 'Experiencias', 'Termas'].map((c) => (
-                    <Text key={c} style={s.footerLink}>{c}</Text>
+                  <Text style={s.footerColTitle}>{t('account.landing.footerCategories')}</Text>
+                  {['heritage', 'gastronomy', 'nature', 'experiences', 'spas'].map((c) => (
+                    <Text key={c} style={s.footerLink}>{t(`account.landing.footerCategoryLinks.${c}`)}</Text>
                   ))}
                 </View>
                 <View style={s.footerCol}>
-                  <Text style={s.footerColTitle}>Sobre</Text>
-                  {['Quem Somos', 'Contacto', 'Parcerias', 'Termos de Uso', 'Privacidade'].map((a) => (
-                    <Text key={a} style={s.footerLink}>{a}</Text>
+                  <Text style={s.footerColTitle}>{t('account.landing.footerAbout')}</Text>
+                  {['whoWeAre', 'contact', 'partnerships', 'terms', 'privacy'].map((a) => (
+                    <Text key={a} style={s.footerLink}>{t(`account.landing.footerAboutLinks.${a}`)}</Text>
                   ))}
                 </View>
               </>
             )}
           </View>
           <View style={s.footerBottom}>
-            <Text style={s.footerCopy}>2026 Portugal Vivo. Todos os direitos reservados.</Text>
-            <Text style={s.footerMade}>Feito com amor em Portugal</Text>
+            <Text style={s.footerCopy}>{t('account.landing.copyright')}</Text>
+            <Text style={s.footerMade}>{t('account.landing.madeWithLove')}</Text>
           </View>
         </View>
       </ScrollView>

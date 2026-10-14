@@ -10,6 +10,7 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useQuery } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
 import CulturalRouteCard, { CulturalRoute } from '../../src/components/CulturalRouteCard';
 import { listCulturalRoutes } from '../../src/services/api/cultural';
 import { getModuleTheme, withOpacity } from '../../src/theme/colors';
@@ -37,22 +38,35 @@ type FamilyFilter = 'todos' | CulturalRoute['family'];
 
 interface FamilyTab {
   key: FamilyFilter;
-  label: string;
+  labelKey: string;
   icon: React.ComponentProps<typeof MaterialIcons>['name'];
   color: string;
 }
 
 const FAMILY_TABS: FamilyTab[] = [
-  { key: 'todos',        label: 'Todas',        icon: 'auto-awesome',    color: '#A855F7' },
-  { key: 'musicais',     label: 'Musicais',     icon: 'music-note',      color: '#8B5CF6' },
-  { key: 'danca',        label: 'Danca',        icon: 'directions-run',  color: '#EC4899' },
-  { key: 'festas',       label: 'Festas',       icon: 'celebration',     color: '#F59E0B' },
-  { key: 'trajes',       label: 'Trajes',       icon: 'checkroom',       color: '#06B6D4' },
-  { key: 'instrumentos', label: 'Instrumentos', icon: 'piano',           color: '#10B981' },
-  { key: 'integradas',   label: 'Integradas',   icon: 'auto-awesome',    color: '#EF4444' },
+  { key: 'todos',        labelKey: 'modulesRoutes.rotasCulturais.families.todos',        icon: 'auto-awesome',    color: '#A855F7' },
+  { key: 'musicais',     labelKey: 'modulesRoutes.rotasCulturais.families.musicais',     icon: 'music-note',      color: '#8B5CF6' },
+  { key: 'danca',        labelKey: 'modulesRoutes.rotasCulturais.families.danca',        icon: 'directions-run',  color: '#EC4899' },
+  { key: 'festas',       labelKey: 'modulesRoutes.rotasCulturais.families.festas',       icon: 'celebration',     color: '#F59E0B' },
+  { key: 'trajes',       labelKey: 'modulesRoutes.rotasCulturais.families.trajes',       icon: 'checkroom',       color: '#06B6D4' },
+  { key: 'instrumentos', labelKey: 'modulesRoutes.rotasCulturais.families.instrumentos', icon: 'piano',           color: '#10B981' },
+  { key: 'integradas',   labelKey: 'modulesRoutes.rotasCulturais.families.integradas',   icon: 'auto-awesome',    color: '#EF4444' },
 ];
 
-const REGIONS = ['Todas', 'Minho', 'Porto', 'Douro', 'Lisboa', 'Alentejo', 'Algarve', 'Acores', 'Madeira'];
+// `value` is matched against the route region/municipalities; `labelKey` is only for display.
+const REGIONS: { value: string; labelKey: string }[] = [
+  { value: 'Todas',    labelKey: 'modulesRoutes.rotasCulturais.regions.all' },
+  { value: 'Minho',    labelKey: 'modulesRoutes.rotasCulturais.regions.minho' },
+  { value: 'Porto',    labelKey: 'modulesRoutes.rotasCulturais.regions.porto' },
+  { value: 'Douro',    labelKey: 'modulesRoutes.rotasCulturais.regions.douro' },
+  { value: 'Lisboa',   labelKey: 'modulesRoutes.rotasCulturais.regions.lisboa' },
+  { value: 'Alentejo', labelKey: 'modulesRoutes.rotasCulturais.regions.alentejo' },
+  { value: 'Algarve',  labelKey: 'modulesRoutes.rotasCulturais.regions.algarve' },
+  { value: 'Acores',   labelKey: 'modulesRoutes.rotasCulturais.regions.acores' },
+  { value: 'Madeira',  labelKey: 'modulesRoutes.rotasCulturais.regions.madeira' },
+];
+
+type MapLayerState = Omit<HubMapLayer, 'label'> & { labelKey: string };
 
 const ROUTES_DATA: CulturalRoute[] = [
   {
@@ -231,19 +245,21 @@ const ROUTES_DATA: CulturalRoute[] = [
 export default function RotasCulturais() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const { t } = useTranslation();
 
   const [familyFilter, setFamilyFilter] = useState<FamilyFilter>('todos');
   const [regionFilter, setRegionFilter] = useState<string>('Todas');
   const [search, setSearch] = useState('');
 
-  const [mapLayers, setMapLayers] = useState<HubMapLayer[]>([
-    { id: 'routes',    label: 'Rotas',     icon: 'route',          color: '#A855F7', active: true  },
-    { id: 'heritage',  label: 'Património', icon: 'account-balance', color: '#F59E0B', active: false },
-    { id: 'events',    label: 'Eventos',    icon: 'event',           color: '#EC4899', active: false },
-    { id: 'trails',    label: 'Trilhos',    icon: 'terrain',         color: '#22C55E', active: false },
-    { id: 'unesco',    label: 'UNESCO',     icon: 'verified',        color: '#06B6D4', active: true  },
-    { id: 'gastronomy',label: 'Gastronomia',icon: 'restaurant',      color: '#EF4444', active: false },
+  const [mapLayers, setMapLayers] = useState<MapLayerState[]>([
+    { id: 'routes',    labelKey: 'modulesRoutes.rotasCulturais.layers.routes',     icon: 'route',          color: '#A855F7', active: true  },
+    { id: 'heritage',  labelKey: 'modulesRoutes.rotasCulturais.layers.heritage',   icon: 'account-balance', color: '#F59E0B', active: false },
+    { id: 'events',    labelKey: 'modulesRoutes.rotasCulturais.layers.events',     icon: 'event',           color: '#EC4899', active: false },
+    { id: 'trails',    labelKey: 'modulesRoutes.rotasCulturais.layers.trails',     icon: 'terrain',         color: '#22C55E', active: false },
+    { id: 'unesco',    labelKey: 'modulesRoutes.rotasCulturais.layers.unesco',     icon: 'verified',        color: '#06B6D4', active: true  },
+    { id: 'gastronomy',labelKey: 'modulesRoutes.rotasCulturais.layers.gastronomy', icon: 'restaurant',      color: '#EF4444', active: false },
   ]);
+  const hubLayers: HubMapLayer[] = mapLayers.map(({ labelKey, ...layer }) => ({ ...layer, label: t(labelKey) }));
 
   const { data: apiRoutes } = useQuery({
     queryKey: ['cultural-routes-list'],
@@ -260,7 +276,7 @@ export default function RotasCulturais() {
       municipality: s.municipality,
       type: s.type,
       family: r.family,
-      color: FAMILY_TABS.find((t) => t.key === r.family)?.color,
+      color: FAMILY_TABS.find((tab) => tab.key === r.family)?.color,
     }))
   );
 
@@ -287,7 +303,7 @@ export default function RotasCulturais() {
       r.municipalities.some((m) => m.toLowerCase().includes(q)) ||
       (r.instruments ?? []).some((i) => i.toLowerCase().includes(q)) ||
       (r.dances ?? []).some((d) => d.toLowerCase().includes(q)) ||
-      (r.tags ?? []).some((t) => t.toLowerCase().includes(q));
+      (r.tags ?? []).some((tag) => tag.toLowerCase().includes(q));
     return matchFamily && matchRegion && matchSearch;
   });
 
@@ -299,7 +315,7 @@ export default function RotasCulturais() {
     setFamilyFilter(key);
   };
 
-  const activeTab = FAMILY_TABS.find((t) => t.key === familyFilter);
+  const activeTab = FAMILY_TABS.find((tab) => tab.key === familyFilter);
   const activeColor = activeTab?.color || '#A855F7';
 
   return (
@@ -314,9 +330,9 @@ export default function RotasCulturais() {
             <MaterialIcons name="arrow-back" size={22} color={C.accent} />
           </TouchableOpacity>
           <View style={styles.headerContent}>
-            <Text style={styles.headerTitle}>Rotas Culturais</Text>
+            <Text style={styles.headerTitle}>{t('modulesRoutes.rotasCulturais.title')}</Text>
             <Text style={styles.headerSubtitle}>
-              M&uacute;sica &middot; Dan&ccedil;a &middot; Festas &middot; Trajes &middot; Instrumentos
+              {t('modulesRoutes.rotasCulturais.subtitle')}
             </Text>
           </View>
           <View style={styles.headerIcon}>
@@ -329,15 +345,15 @@ export default function RotasCulturais() {
           style={styles.en2Card}
           onPress={() => router.push('/en2')}
           accessibilityRole="button"
-          accessibilityLabel="Abrir a rota EN2"
+          accessibilityLabel={t('modulesRoutes.rotasCulturais.en2A11y')}
         >
           <View style={styles.en2Shield}>
             <Text style={styles.en2ShieldText}>N2</Text>
           </View>
           <View style={styles.en2Body}>
-            <Text style={styles.en2Title}>EN2 &middot; a Route 66 portuguesa</Text>
+            <Text style={styles.en2Title}>{t('modulesRoutes.rotasCulturais.en2Title')}</Text>
             <Text style={styles.en2Sub}>
-              738,5 km de Chaves a Faro &middot; 11 distritos &middot; passaporte de carimbos
+              {t('modulesRoutes.rotasCulturais.en2Sub')}
             </Text>
           </View>
           <MaterialIcons name="chevron-right" size={20} color="#E0B877" />
@@ -349,7 +365,7 @@ export default function RotasCulturais() {
         <View style={styles.premiumBanner}>
           <MaterialIcons name="star" size={18} color="#FCD34D" />
           <Text style={styles.premiumBannerText}>
-            {routes.length} rotas premium &middot; {unescoCount} UNESCO &middot; 6 fam&iacute;lias culturais
+            {t('modulesRoutes.rotasCulturais.premiumBanner', { routes: routes.length, unesco: unescoCount })}
           </Text>
         </View>
 
@@ -358,7 +374,7 @@ export default function RotasCulturais() {
           <MaterialIcons name="search" size={20} color={C.textMed} />
           <TextInput
             style={styles.searchInput}
-            placeholder="Procurar rota, instrumento, região…"
+            placeholder={t('modulesRoutes.rotasCulturais.searchPlaceholder')}
             placeholderTextColor={C.textMed}
             value={search}
             onChangeText={setSearch}
@@ -366,7 +382,7 @@ export default function RotasCulturais() {
             autoCorrect={false}
           />
           {search ? (
-            <TouchableOpacity onPress={() => setSearch('')} accessibilityRole="button" accessibilityLabel="Limpar pesquisa">
+            <TouchableOpacity onPress={() => setSearch('')} accessibilityRole="button" accessibilityLabel={t('modulesRoutes.shared.clearSearch')}>
               <MaterialIcons name="close" size={18} color={C.textMed} />
             </TouchableOpacity>
           ) : null}
@@ -376,7 +392,7 @@ export default function RotasCulturais() {
         <View style={styles.hubMapWrap}>
           <CulturalHubMap
             stops={mapStops}
-            layers={mapLayers}
+            layers={hubLayers}
             onLayerToggle={handleLayerToggle}
           />
         </View>
@@ -413,7 +429,7 @@ export default function RotasCulturais() {
                   style={{ marginRight: 4 }}
                 />
                 <Text style={[styles.tabChipLabel, isActive && styles.tabChipLabelActive]}>
-                  {tab.label}
+                  {t(tab.labelKey)}
                 </Text>
               </TouchableOpacity>
             );
@@ -428,16 +444,16 @@ export default function RotasCulturais() {
           contentContainerStyle={styles.regionContent}
         >
           {REGIONS.map((r) => {
-            const isActive = regionFilter === r;
+            const isActive = regionFilter === r.value;
             return (
               <TouchableOpacity
-                key={r}
+                key={r.value}
                 style={[styles.regionChip, isActive && styles.regionChipActive]}
-                onPress={() => setRegionFilter(r)}
+                onPress={() => setRegionFilter(r.value)}
                 activeOpacity={0.8}
               >
                 <Text style={[styles.regionChipText, isActive && styles.regionChipTextActive]}>
-                  {r}
+                  {t(r.labelKey)}
                 </Text>
               </TouchableOpacity>
             );
@@ -448,7 +464,9 @@ export default function RotasCulturais() {
         <View style={styles.summaryRow}>
           <View style={[styles.summaryDot, { backgroundColor: activeColor }]} />
           <Text style={styles.summaryText}>
-            {filtered.length} rota{filtered.length !== 1 ? 's' : ''} encontrada{filtered.length !== 1 ? 's' : ''}
+            {filtered.length === 1
+              ? t('modulesRoutes.rotasCulturais.foundOne', { count: filtered.length })
+              : t('modulesRoutes.rotasCulturais.found', { count: filtered.length })}
           </Text>
         </View>
 
@@ -466,9 +484,9 @@ export default function RotasCulturais() {
           {filtered.length === 0 && (
             <View style={styles.emptyState}>
               <MaterialIcons name="explore" size={40} color={C.textLight} />
-              <Text style={styles.emptyStateTitle}>Sem rotas nesta categoria</Text>
+              <Text style={styles.emptyStateTitle}>{t('modulesRoutes.rotasCulturais.emptyTitle')}</Text>
               <Text style={styles.emptyStateText}>
-                Tenta outra fam&iacute;lia ou regi&atilde;o para descobrir rotas culturais.
+                {t('modulesRoutes.rotasCulturais.emptyText')}
               </Text>
             </View>
           )}
@@ -478,7 +496,7 @@ export default function RotasCulturais() {
         <View style={styles.infoFooter}>
           <MaterialIcons name="info-outline" size={13} color={C.textLight} />
           <Text style={styles.infoFooterText}>
-            Dados: DGPC &middot; UNESCO &middot; Munic&iacute;pios &middot; Conselho da Europa
+            {t('modulesRoutes.rotasCulturais.sources')}
           </Text>
         </View>
 

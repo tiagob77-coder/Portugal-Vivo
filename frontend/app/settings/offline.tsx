@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator
 import { Stack, useRouter } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useTranslation } from 'react-i18next';
 import { useTheme } from '../../src/context/ThemeContext';
 import { useAuth } from '../../src/context/AuthContext';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -27,11 +28,11 @@ interface ThematicPackage {
   offline_note: string;
 }
 
-const TYPE_LABELS: Record<string, string> = {
-  parque_natural: 'Parque Natural',
-  parque_nacional: 'Parque Nacional',
-  centro_historico: 'Centro Histórico',
-  rota_tematica: 'Rota Temática',
+const TYPE_LABEL_KEYS: Record<string, string> = {
+  parque_natural: 'account.offline.typeLabels.parqueNatural',
+  parque_nacional: 'account.offline.typeLabels.parqueNacional',
+  centro_historico: 'account.offline.typeLabels.centroHistorico',
+  rota_tematica: 'account.offline.typeLabels.rotaTematica',
 };
 
 const formatEta = (sec: number) => {
@@ -65,6 +66,7 @@ const REGION_COLORS: Record<string, string> = {
 
 export default function OfflineSettingsPage() {
   const { colors } = useTheme();
+  const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const { isPremium } = useAuth();
@@ -100,11 +102,11 @@ export default function OfflineSettingsPage() {
         [pkgId]: { downloaded: true, downloading: false, progress: 100, lastSync: new Date().toISOString(), sizeMb: data.size_breakdown?.total_mb || 0 },
       }));
     } catch {
-      const msg = 'Não foi possível descarregar o pacote.';
-      if (Platform.OS === 'web') { window.alert(msg); } else { Alert.alert('Erro', msg); }
+      const msg = t('account.offline.downloadPackageFailed');
+      if (Platform.OS === 'web') { window.alert(msg); } else { Alert.alert(t('account.offline.error'), msg); }
       setThematicDownloads(prev => ({ ...prev, [pkgId]: { ...prev[pkgId], downloading: false, progress: 0 } }));
     }
-  }, [isPremium, router]);
+  }, [isPremium, router, t]);
 
   const removeThematic = useCallback(async (pkgId: string) => {
     await AsyncStorage.removeItem(`offline_thematic_${pkgId}`);
@@ -169,11 +171,11 @@ export default function OfflineSettingsPage() {
       }));
       setTotalUsedMb(prev => prev + (data.package_size_mb || 0));
     } catch {
-      const msg = 'Não foi possível descarregar. Verifique a ligação.';
-      if (Platform.OS === 'web') { window.alert(msg); } else { Alert.alert('Erro', msg); }
+      const msg = t('account.offline.downloadFailed');
+      if (Platform.OS === 'web') { window.alert(msg); } else { Alert.alert(t('account.offline.error'), msg); }
       setDownloads(prev => ({ ...prev, [regionId]: { ...prev[regionId], downloading: false, progress: 0 } }));
     }
-  }, [isPremium, router]);
+  }, [isPremium, router, t]);
 
   const [downloadingAll, setDownloadingAll] = useState(false);
 
@@ -200,22 +202,22 @@ export default function OfflineSettingsPage() {
       await downloadRegion(region.id);
     }
     setDownloadingAll(false);
-    const msg = 'Todas as regioes foram descarregadas!';
-    if (Platform.OS === 'web') { window.alert(msg); } else { Alert.alert('Sucesso', msg); }
-  }, [regions, downloads, downloadRegion, isPremium, router]);
+    const msg = t('account.offline.allDownloaded');
+    if (Platform.OS === 'web') { window.alert(msg); } else { Alert.alert(t('account.offline.success'), msg); }
+  }, [regions, downloads, downloadRegion, isPremium, router, t]);
 
   const removeAll = useCallback(async () => {
     for (const region of regions) {
       await removeRegion(region.id);
     }
-    const msg = 'Todos os dados offline foram removidos.';
-    if (Platform.OS === 'web') { window.alert(msg); } else { Alert.alert('Removido', msg); }
-  }, [regions, removeRegion]);
+    const msg = t('account.offline.allRemoved');
+    if (Platform.OS === 'web') { window.alert(msg); } else { Alert.alert(t('account.offline.removed'), msg); }
+  }, [regions, removeRegion, t]);
 
   const downloadedCount = Object.values(downloads).filter(d => d.downloaded).length;
 
   const formatDate = (iso: string | null) => {
-    if (!iso) return 'Nunca';
+    if (!iso) return t('account.offline.never');
     const d = new Date(iso);
     return `${d.getDate().toString().padStart(2, '0')}/${(d.getMonth() + 1).toString().padStart(2, '0')}/${d.getFullYear()} ${d.getHours().toString().padStart(2, '0')}:${d.getMinutes().toString().padStart(2, '0')}`;
   };
@@ -229,7 +231,7 @@ export default function OfflineSettingsPage() {
         <TouchableOpacity onPress={() => router.back()} data-testid="offline-back-btn">
           <MaterialIcons name="arrow-back" size={24} color={colors.textPrimary} />
         </TouchableOpacity>
-        <Text style={[styles.headerTitle, { color: colors.textPrimary }]}>Dados Offline</Text>
+        <Text style={[styles.headerTitle, { color: colors.textPrimary }]}>{t('account.offline.title')}</Text>
         <View style={{ width: 24 }} />
       </View>
 
@@ -242,8 +244,8 @@ export default function OfflineSettingsPage() {
           >
             <MaterialIcons name="lock" size={20} color="#FFF" />
             <View style={{ flex: 1 }}>
-              <Text style={styles.premiumBannerTitle}>Funcionalidade Premium</Text>
-              <Text style={styles.premiumBannerDesc}>Faça upgrade para guardar regiões offline</Text>
+              <Text style={styles.premiumBannerTitle}>{t('account.offline.premiumFeature')}</Text>
+              <Text style={styles.premiumBannerDesc}>{t('account.offline.premiumUpgrade')}</Text>
             </View>
             <MaterialIcons name="arrow-forward" size={18} color="#FFF" />
           </TouchableOpacity>
@@ -253,9 +255,9 @@ export default function OfflineSettingsPage() {
         <View style={[styles.summaryCard, { backgroundColor: colors.surface, borderColor: colors.border }]} data-testid="storage-summary">
           <MaterialIcons name="storage" size={28} color={colors.accent} />
           <View style={{ flex: 1, marginLeft: 12 }}>
-            <Text style={[styles.summaryTitle, { color: colors.textPrimary }]}>Armazenamento</Text>
+            <Text style={[styles.summaryTitle, { color: colors.textPrimary }]}>{t('offline.storage')}</Text>
             <Text style={[styles.summaryValue, { color: colors.textMuted }]}>
-              {totalUsedMb.toFixed(1)} MB utilizados
+              {t('account.offline.mbUsed', { mb: totalUsedMb.toFixed(1) })}
             </Text>
           </View>
           <View style={[styles.countBadge, { backgroundColor: colors.accent + '20' }]}>
@@ -279,7 +281,7 @@ export default function OfflineSettingsPage() {
               <MaterialIcons name="cloud-download" size={18} color="#FFF" />
             )}
             <Text style={styles.bulkBtnText}>
-              {downloadingAll ? 'A descarregar...' : 'Descarregar Tudo'}
+              {downloadingAll ? t('offline.downloading') : t('account.offline.downloadAll')}
             </Text>
           </TouchableOpacity>
           {downloadedCount > 0 && (
@@ -290,7 +292,7 @@ export default function OfflineSettingsPage() {
               data-testid="remove-all-btn"
             >
               <MaterialIcons name="delete-sweep" size={18} color="#EF4444" />
-              <Text style={[styles.bulkBtnText, { color: '#EF4444' }]}>Remover Tudo</Text>
+              <Text style={[styles.bulkBtnText, { color: '#EF4444' }]}>{t('account.offline.removeAll')}</Text>
             </TouchableOpacity>
           )}
         </View>
@@ -298,8 +300,8 @@ export default function OfflineSettingsPage() {
         {/* Tab selector */}
         <View style={[styles.tabRow, { borderColor: colors.border }]}>
           {[
-            { id: 'regions' as const, label: 'Regiões', icon: 'map' },
-            { id: 'thematic' as const, label: 'Temáticos', icon: 'park' },
+            { id: 'regions' as const, label: t('account.offline.tabRegions'), icon: 'map' },
+            { id: 'thematic' as const, label: t('account.offline.tabThematic'), icon: 'park' },
           ].map((tab) => (
             <TouchableOpacity
               key={tab.id}
@@ -317,7 +319,7 @@ export default function OfflineSettingsPage() {
 
         {/* Regions tab */}
         {activeTab === 'regions' && <>
-        <Text style={[styles.sectionTitle, { color: colors.textPrimary }]}>Regiões de Portugal</Text>
+        <Text style={[styles.sectionTitle, { color: colors.textPrimary }]}>{t('account.offline.regionsTitle')}</Text>
 
         {loading ? (
           <ActivityIndicator size="large" color={colors.accent} style={{ marginTop: 40 }} />
@@ -339,7 +341,7 @@ export default function OfflineSettingsPage() {
                   </Text>
                   {state.lastSync && (
                     <Text style={[styles.syncDate, { color: colors.textMuted }]}>
-                      Atualizado: {formatDate(state.lastSync)}
+                      {t('account.offline.updated', { date: formatDate(state.lastSync) })}
                     </Text>
                   )}
                   {/* Progress bar */}
@@ -379,7 +381,7 @@ export default function OfflineSettingsPage() {
                     data-testid={`download-${region.id}`}
                   >
                     <MaterialIcons name="cloud-download" size={16} color="#FFF" />
-                    <Text style={styles.downloadText}>Guardar</Text>
+                    <Text style={styles.downloadText}>{t('account.offline.save')}</Text>
                   </TouchableOpacity>
                 )}
               </View>
@@ -391,16 +393,16 @@ export default function OfflineSettingsPage() {
         <View style={styles.infoBox} data-testid="offline-info">
           <MaterialIcons name="info-outline" size={16} color={colors.textMuted} />
           <Text style={[styles.infoText, { color: colors.textMuted }]}>
-            Os dados offline incluem POIs, rotas e eventos de cada região. Recomendamos atualizar a cada 7 dias.
+            {t('account.offline.regionsInfo')}
           </Text>
         </View>
         </>}
 
         {/* Thematic packages tab */}
         {activeTab === 'thematic' && <>
-          <Text style={[styles.sectionTitle, { color: colors.textPrimary }]}>Pacotes Temáticos</Text>
+          <Text style={[styles.sectionTitle, { color: colors.textPrimary }]}>{t('account.offline.thematicTitle')}</Text>
           <Text style={[styles.sectionDesc, { color: colors.textMuted }]}>
-            Parques naturais, centros históricos e rotas especiais com conteúdo curado.
+            {t('account.offline.thematicDesc')}
           </Text>
 
           {thematicPackages.length === 0 ? (
@@ -421,7 +423,7 @@ export default function OfflineSettingsPage() {
                       </Text>
                       <View style={[styles.typeBadge, { backgroundColor: pkg.color + '18' }]}>
                         <Text style={[styles.typeLabel, { color: pkg.color }]}>
-                          {TYPE_LABELS[pkg.type] || pkg.type}
+                          {TYPE_LABEL_KEYS[pkg.type] ? t(TYPE_LABEL_KEYS[pkg.type]) : pkg.type}
                         </Text>
                       </View>
                     </View>
@@ -496,7 +498,7 @@ export default function OfflineSettingsPage() {
                     <View style={{ flexDirection: 'row', gap: 8 }}>
                       <View style={[styles.downloadedBadge, { backgroundColor: '#22C55E15' }]}>
                         <MaterialIcons name="check-circle" size={14} color="#22C55E" />
-                        <Text style={{ color: '#22C55E', fontSize: 12, fontWeight: '600' }}>Guardado</Text>
+                        <Text style={{ color: '#22C55E', fontSize: 12, fontWeight: '600' }}>{t('account.offline.saved')}</Text>
                       </View>
                       <TouchableOpacity
                         onPress={() => removeThematic(pkg.id)}
@@ -511,7 +513,7 @@ export default function OfflineSettingsPage() {
                       style={[styles.downloadBtn, { backgroundColor: pkg.color }]}
                     >
                       <MaterialIcons name="cloud-download" size={16} color="#FFF" />
-                      <Text style={styles.downloadText}>Descarregar</Text>
+                      <Text style={styles.downloadText}>{t('account.offline.download')}</Text>
                     </TouchableOpacity>
                   )}
                 </View>
@@ -522,7 +524,7 @@ export default function OfflineSettingsPage() {
           <View style={styles.infoBox}>
             <MaterialIcons name="info-outline" size={16} color={colors.textMuted} />
             <Text style={[styles.infoText, { color: colors.textMuted }]}>
-              Pacotes temáticos são otimizados para zonas com má cobertura de rede. Válidos por 7 dias.
+              {t('account.offline.thematicInfo')}
             </Text>
           </View>
         </>}

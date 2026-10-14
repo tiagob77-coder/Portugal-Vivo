@@ -1,0 +1,2710 @@
+{
+  "pt": {
+    "historySection": {
+      "heading": "História"
+    },
+    "highlightsSection": {
+      "heading": "Destaques",
+      "openA11y": "Abrir destaque {{name}}"
+    },
+    "highlightDetail": {
+      "notFound": "Destaque não encontrado.",
+      "whereToSee": "Onde ver",
+      "navigate": "Navegar",
+      "viewOnMap": "Ver no mapa",
+      "history": "História",
+      "nearby": "Onde ver na base",
+      "nearbyEmpty": "Ainda sem locais georreferenciados nesta categoria.",
+      "continueExploring": "Continuar a explorar",
+      "backTo": "Voltar a {{module}}",
+      "encyclopedia": "Explorar na Enciclopédia",
+      "search": "Pesquisar “{{name}}”"
+    },
+    "modules": {
+      "biodiversidade": {
+        "label": "Biodiversidade Marinha",
+        "story": "A costa portuguesa junta águas frias de afloramento e correntes subtropicais — uma das maiores diversidades marinhas da Europa, protegida por uma rede de áreas marinhas que começou nas ilhas.",
+        "milestones": {
+          "0": {
+            "year": "1981",
+            "title": "Reserva Natural das Berlengas",
+            "desc": "Primeiro grande reforço de proteção marinha no litoral continental."
+          },
+          "1": {
+            "year": "1987",
+            "title": "Parque Natural da Ria Formosa",
+            "desc": "Sistema lagunar com ilhas-barreira e berçário de espécies costeiras."
+          },
+          "2": {
+            "year": "1998",
+            "title": "Parque Marinho Luiz Saldanha",
+            "desc": "Arrábida — primeiro parque marinho em águas continentais portuguesas."
+          },
+          "3": {
+            "year": "2021",
+            "title": "Selvagens",
+            "desc": "Área marinha totalmente protegida de referência no Atlântico Norte."
+          }
+        }
+      },
+      "flora": {
+        "label": "Flora Endémica",
+        "story": "Do Atlântico à montanha, Portugal guarda floras que não existem em mais nenhum lugar — relíquias do Terciário nas ilhas e endemismos ibéricos no continente.",
+        "milestones": {
+          "0": {
+            "year": "Séc. XV",
+            "title": "Laurissilva descrita",
+            "desc": "Os primeiros colonos da Madeira encontram uma floresta de louros com milhões de anos."
+          },
+          "1": {
+            "year": "1976",
+            "title": "Parque Natural da Serra da Estrela",
+            "desc": "Proteção da flora de altitude do continente."
+          },
+          "2": {
+            "year": "1999",
+            "title": "Laurissilva — UNESCO",
+            "desc": "Património Mundial Natural; maior mancha de laurissilva do mundo."
+          }
+        }
+      },
+      "fauna": {
+        "label": "Fauna & Habitats",
+        "story": "A fauna ibérica sobreviveu nos vazios do interior. Hoje o lobo e o lince são o termómetro do estado dos habitats — e as zonas húmidas são escala obrigatória das rotas migratórias atlânticas.",
+        "milestones": {
+          "0": {
+            "year": "1988",
+            "title": "Lobo-ibérico protegido",
+            "desc": "Lei de proteção total da espécie em Portugal."
+          },
+          "1": {
+            "year": "2015",
+            "title": "Regresso do lince-ibérico",
+            "desc": "Primeiras libertações no Vale do Guadiana."
+          },
+          "2": {
+            "year": "Todo o ano",
+            "title": "Rotas migratórias",
+            "desc": "Ria Formosa, Sado e Tejo como paragem do corredor atlântico."
+          }
+        }
+      },
+      "gastronomia": {
+        "label": "Gastronomia Costeira",
+        "story": "A cozinha do litoral nasceu do que a maré dava: peixe humilde, marisco de rocha e caldos de partilha. Cada técnica — assar, cataplanar, escabechar — conta uma rota de comércio.",
+        "milestones": {
+          "0": {
+            "year": "Herança árabe",
+            "title": "Cataplana",
+            "desc": "Cozinha em vapor fechado, assinatura do Algarve."
+          },
+          "1": {
+            "year": "Séc. XIX",
+            "title": "Sardinha assada",
+            "desc": "Da faina para a rua — hoje símbolo dos Santos Populares."
+          },
+          "2": {
+            "year": "Hoje",
+            "title": "Percebes regulados",
+            "desc": "Apanha licenciada na Costa Vicentina para travar a sobre-exploração."
+          }
+        }
+      },
+      "cultura-maritima": {
+        "label": "Cultura Marítima",
+        "story": "Antes das estradas havia o mar e a ria. As artes de pesca, os barcos e as procissiões do mar são o arquivo vivo dessa economia — e continuam a acontecer nas mesmas praias.",
+        "milestones": {
+          "0": {
+            "year": "Tradição",
+            "title": "Arte Xávega",
+            "desc": "Arrasto puxado para terra na costa central — hoje demonstração e património."
+          },
+          "1": {
+            "year": "Ria de Aveiro",
+            "title": "Moliceiros",
+            "desc": "Barcos de colheita de moliço, decorados com painéis narrativos."
+          },
+          "2": {
+            "year": "Anual",
+            "title": "Procissões do mar",
+            "desc": "Festas de N.ª Sr.ª dos Navegantes ao longo de todo o litoral."
+          }
+        }
+      },
+      "infraestrutura": {
+        "label": "Infraestrutura Natural",
+        "story": "A engenharia pública virou atração: passadiços, ecopistas e pontes suspensas abriram paisagens que antes só os locais conheciam — e mudaram a economia de vales inteiros.",
+        "milestones": {
+          "0": {
+            "year": "2002",
+            "title": "Alqueva enche",
+            "desc": "Maior lago artificial da Europa; redesenha o Alentejo."
+          },
+          "1": {
+            "year": "2015",
+            "title": "Passadiços do Paiva",
+            "desc": "8,7 km sobre o rio; modelo replicado em todo o país."
+          },
+          "2": {
+            "year": "2021",
+            "title": "516 Arouca",
+            "desc": "Ponte pedonal suspensa de 516 m sobre o Paiva."
+          }
+        }
+      },
+      "economia": {
+        "label": "Economia Local",
+        "story": "A economia local é feita de denominações, mercados e ofícios. O Douro inventou a ideia moderna de região demarcada — e o mapa DOP continua a ser o melhor guia de sabores.",
+        "milestones": {
+          "0": {
+            "year": "1756",
+            "title": "Região Demarcada do Douro",
+            "desc": "A primeira região vinícola demarcada e regulada do mundo."
+          },
+          "1": {
+            "year": "Séc. XX",
+            "title": "Mercados municipais",
+            "desc": "Bolhão, Ribeira e Livramento fixam o comércio de proximidade."
+          },
+          "2": {
+            "year": "2022",
+            "title": "Bolhão reabre",
+            "desc": "Reabilitação devolve o mercado histórico ao Porto."
+          }
+        }
+      },
+      "prehistoria": {
+        "label": "Pré-História & Astronomia",
+        "story": "O sul de Portugal tem uma das maiores concentrações megalíticas da Europa — e, por cima, o céu mais escuro do continente. Pedra e estrelas contam a mesma história de orientação.",
+        "milestones": {
+          "0": {
+            "year": "c. 6000 a.C.",
+            "title": "Cromeleque dos Almendres",
+            "desc": "Recinto megalítico alinhado com os solstícios, perto de Évora."
+          },
+          "1": {
+            "year": "1994",
+            "title": "Descoberta do Côa",
+            "desc": "Gravuras paleolíticas ao ar livre; UNESCO em 1998."
+          },
+          "2": {
+            "year": "2011",
+            "title": "Dark Sky Alqueva",
+            "desc": "Primeiro destino do mundo certificado Starlight."
+          }
+        }
+      },
+      "costa": {
+        "label": "Costa & Litoral",
+        "story": "1 800 km de costa em quatro realidades: arribas, dunas, estuários e ilhas-barreira. A Bandeira Azul e as reservas de surf transformaram a orla em infraestrutura de lazer regulada.",
+        "milestones": {
+          "0": {
+            "year": "1984",
+            "title": "Arriba Fóssil da Caparica",
+            "desc": "Paisagem protegida — arquivo geológico à vista."
+          },
+          "1": {
+            "year": "1987",
+            "title": "Bandeira Azul",
+            "desc": "Portugal adere ao programa; hoje líder europeu por praia."
+          },
+          "2": {
+            "year": "2011",
+            "title": "Reserva Mundial de Surf",
+            "desc": "Ericeira — a primeira da Europa."
+          }
+        }
+      },
+      "musica": {
+        "label": "Música Tradicional",
+        "story": "Duas músicas portuguesas são Património Imaterial da Humanidade. Entre o fado urbano e o cante coletivo do Alentejo cabe todo um país — e instrumentos que viajaram o mundo.",
+        "milestones": {
+          "0": {
+            "year": "2011",
+            "title": "Fado — UNESCO",
+            "desc": "Património Imaterial; Lisboa e Coimbra como escolas distintas."
+          },
+          "1": {
+            "year": "2014",
+            "title": "Cante Alentejano — UNESCO",
+            "desc": "Canto polifónico sem instrumentos, de raiz coletiva."
+          },
+          "2": {
+            "year": "Emigração",
+            "title": "Do cavaquinho ao ukulele",
+            "desc": "O machete madeirense chega ao Havaí com os emigrantes."
+          }
+        }
+      },
+      "rotas-culturais": {
+        "label": "Rotas Culturais",
+        "story": "As festas são o calendário real do país. Ligadas em rota, revelam continuidades — máscaras de inverno, romarias de verão, ciclos agrícolas — que nenhum monumento isolado mostra.",
+        "milestones": {
+          "0": {
+            "year": "Raiz medieval",
+            "title": "Tabuleiros de Tomar",
+            "desc": "Cortejo de pão e flores, de quatro em quatro anos."
+          },
+          "1": {
+            "year": "Séc. XVIII",
+            "title": "Sr.ª da Agonia",
+            "desc": "Viana do Castelo — romaria, traje e ouro do Minho."
+          },
+          "2": {
+            "year": "2019",
+            "title": "Caretos de Podence — UNESCO",
+            "desc": "Máscaras de entrudo de Trás-os-Montes."
+          }
+        }
+      },
+      "inclusivo": {
+        "label": "Turismo Inclusivo",
+        "story": "Acessibilidade não é um equipamento, é uma cadeia: chegar, estacionar, entrar, usar e sair. O Portugal Vivo trata a informação de apoio como dado verificável — praia a praia, percurso a percurso.",
+        "milestones": {
+          "0": {
+            "year": "2005",
+            "title": "Praia Acessível — Praia para Todos",
+            "desc": "Programa nacional que criou passadeiras, apoio balnear e cadeira anfíbia em praias vigiadas."
+          },
+          "1": {
+            "year": "2017",
+            "title": "Rede de percursos acessíveis",
+            "desc": "Passadiços e ecovias em plataforma contínua passam a ser projetados sem degraus."
+          },
+          "2": {
+            "year": "Hoje",
+            "title": "443 praias Bandeira Azul",
+            "desc": "Uma parte crescente com apoio verificado a mobilidade reduzida na época balnear."
+          }
+        }
+      }
+    },
+    "highlights": {
+      "biodiversidade": {
+        "Sardinha-europeia": {
+          "name": "Sardinha-europeia",
+          "meta": "Sardina pilchardus · costa atlântica"
+        },
+        "Golfinho-comum": {
+          "name": "Golfinho-comum",
+          "meta": "Delphinus delphis · Sado e Algarve"
+        },
+        "Cavalo-marinho": {
+          "name": "Cavalo-marinho",
+          "meta": "Hippocampus guttulatus · Ria Formosa"
+        },
+        "Polvo-comum": {
+          "name": "Polvo-comum",
+          "meta": "Octopus vulgaris · litoral rochoso"
+        }
+      },
+      "flora": {
+        "Dragoeiro": {
+          "name": "Dragoeiro",
+          "meta": "Dracaena draco · Madeira e Porto Santo"
+        },
+        "Massaroco": {
+          "name": "Massaroco",
+          "meta": "Echium candicans · Madeira"
+        },
+        "Esteva": {
+          "name": "Esteva",
+          "meta": "Cistus ladanifer · Alentejo interior"
+        },
+        "Urze-da-madeira": {
+          "name": "Urze-da-madeira",
+          "meta": "Erica maderensis · maciço montanhoso"
+        }
+      },
+      "fauna": {
+        "Lince-ibérico": {
+          "name": "Lince-ibérico",
+          "meta": "Lynx pardinus · Vale do Guadiana"
+        },
+        "Lobo-ibérico": {
+          "name": "Lobo-ibérico",
+          "meta": "Canis lupus signatus · Trás-os-Montes"
+        },
+        "Águia-de-Bonelli": {
+          "name": "Águia-de-Bonelli",
+          "meta": "Aquila fasciata · vales do Tejo e Douro"
+        },
+        "Flamingo-rosado": {
+          "name": "Flamingo-rosado",
+          "meta": "Ria Formosa e estuário do Sado"
+        }
+      },
+      "gastronomia": {
+        "Caldeirada à fragateira": {
+          "name": "Caldeirada à fragateira",
+          "meta": "Peixe do dia · costa de Lisboa"
+        },
+        "Percebes da Costa Vicentina": {
+          "name": "Percebes da Costa Vicentina",
+          "meta": "Marisco · Alentejo e Algarve"
+        },
+        "Cataplana de marisco": {
+          "name": "Cataplana de marisco",
+          "meta": "Algarve"
+        },
+        "Sardinha assada": {
+          "name": "Sardinha assada",
+          "meta": "Santos Populares · Lisboa"
+        }
+      },
+      "cultura-maritima": {
+        "Arte Xávega": {
+          "name": "Arte Xávega",
+          "meta": "Pesca tradicional · Praia de Mira"
+        },
+        "Barcos moliceiros": {
+          "name": "Barcos moliceiros",
+          "meta": "Ria de Aveiro"
+        },
+        "Rendas de bilros": {
+          "name": "Rendas de bilros",
+          "meta": "Vila do Conde e Peniche"
+        },
+        "Procissões do mar": {
+          "name": "Procissões do mar",
+          "meta": "N.ª Sr.ª dos Navegantes"
+        }
+      },
+      "infraestrutura": {
+        "Passadiços do Paiva": {
+          "name": "Passadiços do Paiva",
+          "meta": "Arouca · 8,7 km sobre o rio"
+        },
+        "Ecopista do Dão": {
+          "name": "Ecopista do Dão",
+          "meta": "49 km · Viseu–Santa Comba Dão"
+        },
+        "516 Arouca": {
+          "name": "516 Arouca",
+          "meta": "Ponte suspensa · 516 m"
+        },
+        "Barragem do Alqueva": {
+          "name": "Barragem do Alqueva",
+          "meta": "Maior lago artificial da Europa"
+        }
+      },
+      "economia": {
+        "Queijo Serra da Estrela DOP": {
+          "name": "Queijo Serra da Estrela DOP",
+          "meta": "Produtores · Beira Interior"
+        },
+        "Vinho do Porto": {
+          "name": "Vinho do Porto",
+          "meta": "Quintas do Douro"
+        },
+        "Mercado do Bolhão": {
+          "name": "Mercado do Bolhão",
+          "meta": "Porto"
+        },
+        "Olaria de Barcelos": {
+          "name": "Olaria de Barcelos",
+          "meta": "Ofícios e artesanato"
+        }
+      },
+      "prehistoria": {
+        "Cromeleque dos Almendres": {
+          "name": "Cromeleque dos Almendres",
+          "meta": "Évora · c. 6000 a.C."
+        },
+        "Gravuras do Côa": {
+          "name": "Gravuras do Côa",
+          "meta": "Património Mundial UNESCO"
+        },
+        "Dark Sky Alqueva": {
+          "name": "Dark Sky Alqueva",
+          "meta": "1.ª reserva Starlight do mundo"
+        },
+        "Anta Grande do Zambujeiro": {
+          "name": "Anta Grande do Zambujeiro",
+          "meta": "Maior dólmen da Península"
+        }
+      },
+      "costa": {
+        "443 praias Bandeira Azul": {
+          "name": "443 praias Bandeira Azul",
+          "meta": "Recorde nacional 2026"
+        },
+        "Arriba Fóssil da Caparica": {
+          "name": "Arriba Fóssil da Caparica",
+          "meta": "Paisagem protegida"
+        },
+        "Reserva Mundial de Surf": {
+          "name": "Reserva Mundial de Surf",
+          "meta": "Ericeira"
+        },
+        "Ilhas Barreira": {
+          "name": "Ilhas Barreira",
+          "meta": "Ria Formosa · Algarve"
+        }
+      },
+      "musica": {
+        "Fado": {
+          "name": "Fado",
+          "meta": "Património Imaterial UNESCO · Lisboa e Coimbra"
+        },
+        "Cante Alentejano": {
+          "name": "Cante Alentejano",
+          "meta": "UNESCO · coros do Baixo Alentejo"
+        },
+        "Cavaquinho minhoto": {
+          "name": "Cavaquinho minhoto",
+          "meta": "Instrumento tradicional"
+        },
+        "Bombos de Lavacolhos": {
+          "name": "Bombos de Lavacolhos",
+          "meta": "Beira Baixa"
+        }
+      },
+      "inclusivo": {
+        "Praias acessíveis": {
+          "name": "Praias acessíveis",
+          "meta": "Cadeira anfíbia e passadeira até à água"
+        },
+        "Passadiços em plataforma": {
+          "name": "Passadiços em plataforma",
+          "meta": "Percursos contínuos sem degraus"
+        },
+        "Alojamento pet-friendly": {
+          "name": "Alojamento pet-friendly",
+          "meta": "Rede nacional sinalizada"
+        },
+        "Rotas para famílias": {
+          "name": "Rotas para famílias",
+          "meta": "Percursos curtos com apoio"
+        }
+      },
+      "rotas-culturais": {
+        "Rota do Fado": {
+          "name": "Rota do Fado",
+          "meta": "Lisboa · Alfama e Mouraria"
+        },
+        "Rota do Folclore": {
+          "name": "Rota do Folclore",
+          "meta": "Minho e Ribatejo"
+        },
+        "Rota das Festas e Romarias": {
+          "name": "Rota das Festas e Romarias",
+          "meta": "140 festas na base"
+        },
+        "Rota dos Moinhos": {
+          "name": "Rota dos Moinhos",
+          "meta": "Oeste"
+        }
+      }
+    },
+    "highlightDetails": {
+      "Sardinha-europeia": {
+        "where": "Costa atlântica — Peniche, Matosinhos, Setúbal",
+        "history": "Sustentou conservas e comunidades inteiras: a sardinha ditou o calendário da faina e a economia de vilas do litoral desde o século XIX."
+      },
+      "Golfinho-comum": {
+        "where": "Estuário do Sado e costa algarvia",
+        "history": "A população residente do Sado é uma das poucas da Europa a viver dentro de um estuário, acompanhada cientificamente há décadas."
+      },
+      "Cavalo-marinho": {
+        "where": "Ria Formosa — Olhão e Faro",
+        "history": "A Ria Formosa chegou a ter uma das maiores populações do mundo; o declínio desde os anos 2000 tornou-a caso de estudo de conservação."
+      },
+      "Polvo-comum": {
+        "where": "Litoral rochoso — Algarve e Costa Vicentina",
+        "history": "A pesca com alcatruzes de barro, hoje substituídos por covos, é uma das artes mais antigas do litoral algarvio."
+      },
+      "Dragoeiro": {
+        "where": "Madeira e Porto Santo",
+        "history": "A resina “sangue-de-dragão” foi bem de exportação na Madeira quinhentista, usada em tinturaria e medicina."
+      },
+      "Massaroco": {
+        "where": "Madeira — Pico do Arieiro e Paul da Serra",
+        "history": "Endemismo madeirense que coloniza clareiras da laurissilva e floresce em torres azuis na primavera."
+      },
+      "Esteva": {
+        "where": "Alentejo interior e Beira Baixa",
+        "history": "Do ládano da esteva sai um dos fixadores da perfumaria; a planta é pioneira na recuperação de solos pobres."
+      },
+      "Urze-da-madeira": {
+        "where": "Maciço montanhoso da Madeira",
+        "history": "Domina o urzal de altitude acima da laurissilva, habitat protegido pela Rede Natura 2000."
+      },
+      "Lince-ibérico": {
+        "where": "Vale do Guadiana — Mértola e Serpa",
+        "history": "Extinto em Portugal no final do século XX, regressou em 2015 num dos programas de reintrodução mais bem-sucedidos da Europa."
+      },
+      "Lobo-ibérico": {
+        "where": "Trás-os-Montes, Peneda-Gerês e Douro Internacional",
+        "history": "Protegido por lei desde 1988; quase toda a população portuguesa vive a norte do rio Douro."
+      },
+      "Águia-de-Bonelli": {
+        "where": "Vales do Tejo e Douro Internacional",
+        "history": "Recuperou de mínimos históricos com vigilância de ninhos e combate ao envenenamento ilegal."
+      },
+      "Flamingo-rosado": {
+        "where": "Ria Formosa e estuário do Sado",
+        "history": "As salinas abandonadas tornaram-se refúgio: a espécie passou de visitante rara a presença de todo o ano."
+      },
+      "Caldeirada à fragateira": {
+        "where": "Costa e estuário de Lisboa",
+        "history": "Nasceu a bordo das fragatas do Tejo, feita com o peixe que não se vendia — cozinha de necessidade tornada património."
+      },
+      "Percebes da Costa Vicentina": {
+        "where": "Costa Vicentina — de Odeceixe a Sagres",
+        "history": "Apanhados nas arribas batidas pelo mar, com licenças limitadas desde os anos 2000 para travar a sobre-exploração."
+      },
+      "Cataplana de marisco": {
+        "where": "Algarve",
+        "history": "A panela de cobre fechada tem raiz na cozinha árabe do Gharb al-Andalus: cozinha a vapor sem perder aroma."
+      },
+      "Sardinha assada": {
+        "where": "Lisboa e todo o litoral, no verão",
+        "history": "Da faina para as ruas dos Santos Populares — o cheiro a sardinha assada é o marcador sazonal das cidades ribeirinhas."
+      },
+      "Arte Xávega": {
+        "where": "Praia de Mira, Torreira e Costa Nova",
+        "history": "Arrasto puxado para terra, antes por juntas de bois e hoje por tratores; sobrevive como património vivo da costa central."
+      },
+      "Barcos moliceiros": {
+        "where": "Ria de Aveiro",
+        "history": "Recolhiam moliço para fertilizar os campos; os painéis pintados na proa eram humor e crónica social da ria."
+      },
+      "Rendas de bilros": {
+        "where": "Vila do Conde e Peniche",
+        "history": "Ofício feminino de séculos junto ao mar, com escolas próprias que ainda formam rendilheiras."
+      },
+      "Passadiços do Paiva": {
+        "where": "Arouca — 8,7 km sobre o rio Paiva",
+        "history": "Inaugurados em 2015, transformaram um vale fechado num destino nacional e criaram um modelo copiado por dezenas de municípios."
+      },
+      "Ecopista do Dão": {
+        "where": "Viseu – Santa Comba Dão · 49 km",
+        "history": "Construída sobre a antiga linha ferroviária do Dão, desativada em 1988 e devolvida ao público como via ciclável."
+      },
+      "516 Arouca": {
+        "where": "Arouca — ponte suspensa de 516 m",
+        "history": "Aberta em 2021 sobre o desfiladeiro do Paiva; foi a maior ponte pedonal suspensa do mundo à data."
+      },
+      "Barragem do Alqueva": {
+        "where": "Alentejo — Moura, Portel e Reguengos",
+        "history": "O enchimento a partir de 2002 criou o maior lago artificial da Europa e mudou a agricultura alentejana."
+      },
+      "Queijo Serra da Estrela DOP": {
+        "where": "Beira Interior — Seia, Gouveia, Celorico",
+        "history": "Feito com leite cru de ovelha bordaleira e coalho de cardo, em produção sazonal de inverno."
+      },
+      "Vinho do Porto": {
+        "where": "Douro — Régua, Pinhão e Vila Nova de Gaia",
+        "history": "Nasce na primeira região demarcada do mundo (1756) e envelhece nas caves de Gaia desde o comércio inglês do século XVIII."
+      },
+      "Mercado do Bolhão": {
+        "where": "Porto — Rua Formosa",
+        "history": "Aberto em 1914 e reabilitado até 2022, mantém bancas de família que atravessaram gerações."
+      },
+      "Olaria de Barcelos": {
+        "where": "Barcelos e Galegos",
+        "history": "Da louça utilitária ao Galo de Barcelos: a figuração de Rosa Ramalho levou a olaria minhota aos museus."
+      },
+      "Cromeleque dos Almendres": {
+        "where": "Évora — Nossa Senhora de Guadalupe",
+        "history": "Cerca de 95 menires erguidos desde c. 6000 a.C., com alinhamentos solares — o maior recinto megalítico da Península."
+      },
+      "Gravuras do Côa": {
+        "where": "Vila Nova de Foz Côa",
+        "history": "Descobertas em 1994 durante a construção de uma barragem que foi travada; Património Mundial em 1998."
+      },
+      "Dark Sky Alqueva": {
+        "where": "Alentejo — Monsaraz, Reguengos e Mourão",
+        "history": "Primeiro destino do mundo certificado Starlight (2011), com iluminação pública adaptada em vários concelhos."
+      },
+      "Anta Grande do Zambujeiro": {
+        "where": "Valverde, Évora",
+        "history": "Câmara megalítica com esteios de 8 m, escavada nos anos 1960 — o maior dólmen da Península Ibérica."
+      },
+      "443 praias Bandeira Azul": {
+        "where": "Todo o país",
+        "history": "Portugal adere ao programa em 1987 e tornou-se referência europeia em galardões por quilómetro de costa."
+      },
+      "Arriba Fóssil da Caparica": {
+        "where": "Almada e Sesimbra",
+        "history": "Paisagem protegida desde 1984: 13 km de arriba que registam milhões de anos de sedimentos."
+      },
+      "Reserva Mundial de Surf": {
+        "where": "Ericeira — de Ribeira d’Ilhas a São Lourenço",
+        "history": "Primeira reserva mundial de surf da Europa (2011), com sete ondas de classe mundial em 4 km de costa."
+      },
+      "Ilhas Barreira": {
+        "where": "Ria Formosa — Culatra, Armona e Tavira",
+        "history": "Cordão de ilhas em movimento que protege a ria e sustenta comunidades de mariscadores como a Culatra."
+      },
+      "Fado": {
+        "where": "Lisboa — Alfama e Mouraria · Coimbra",
+        "history": "Nasceu nos bairros portuários de Lisboa no século XIX; Património Imaterial da Humanidade desde 2011."
+      },
+      "Cante Alentejano": {
+        "where": "Baixo Alentejo — Serpa, Cuba e Aljustrel",
+        "history": "Canto coral sem instrumentos, das ceifas e das minas; reconhecido pela UNESCO em 2014."
+      },
+      "Cavaquinho minhoto": {
+        "where": "Minho — Braga, Guimarães e Amarante",
+        "history": "Parente do machete madeirense que os emigrantes levaram ao Havaí, onde deu origem ao ukulele."
+      },
+      "Bombos de Lavacolhos": {
+        "where": "Fundão — Lavacolhos, Beira Baixa",
+        "history": "Grupos de bombos que marcam romarias e ciclos agrícolas com toques transmitidos oralmente."
+      },
+      "Rota do Fado": {
+        "where": "Lisboa — Alfama, Mouraria e Bairro Alto",
+        "history": "Liga casas de fado, museus e ruas onde o género se fixou depois de sair das tabernas."
+      },
+      "Rota do Folclore": {
+        "where": "Minho e Ribatejo",
+        "history": "Ranchos e trajes que codificaram a identidade regional a partir do século XIX."
+      },
+      "Rota das Festas e Romarias": {
+        "where": "Todo o país",
+        "history": "Do Entrudo transmontano às romarias de agosto: o calendário festivo é o verdadeiro mapa cultural português."
+      },
+      "Rota dos Moinhos": {
+        "where": "Oeste — Óbidos, Bombarral e Peniche",
+        "history": "Moinhos de vento e azenhas que moíam o cereal da região até à eletrificação do século XX."
+      },
+      "Procissões do mar": {
+        "where": "Todo o litoral, entre junho e setembro",
+        "history": "As comunidades de pesca levam a padroeira ao mar para bendizer a faina e recordar os que não voltaram."
+      }
+    }
+  },
+  "en": {
+    "historySection": {
+      "heading": "History"
+    },
+    "highlightsSection": {
+      "heading": "Highlights",
+      "openA11y": "Open highlight {{name}}"
+    },
+    "highlightDetail": {
+      "notFound": "Highlight not found.",
+      "whereToSee": "Where to see it",
+      "navigate": "Directions",
+      "viewOnMap": "View on map",
+      "history": "History",
+      "nearby": "Nearby places in the app",
+      "nearbyEmpty": "No geolocated places in this category yet.",
+      "continueExploring": "Keep exploring",
+      "backTo": "Back to {{module}}",
+      "encyclopedia": "Explore in the Encyclopedia",
+      "search": "Search for “{{name}}”"
+    },
+    "modules": {
+      "biodiversidade": {
+        "label": "Marine Biodiversity",
+        "story": "Portugal's coast is where cold upwelling waters meet subtropical currents — home to some of the richest marine life in Europe, protected by a network of marine areas that began on the islands.",
+        "milestones": {
+          "0": {
+            "year": "1981",
+            "title": "Berlengas Nature Reserve",
+            "desc": "The first major boost to marine protection on the mainland coast."
+          },
+          "1": {
+            "year": "1987",
+            "title": "Ria Formosa Natural Park",
+            "desc": "A lagoon system with barrier islands and a nursery for coastal species."
+          },
+          "2": {
+            "year": "1998",
+            "title": "Luiz Saldanha Marine Park",
+            "desc": "Arrábida — the first marine park in mainland Portuguese waters."
+          },
+          "3": {
+            "year": "2021",
+            "title": "Selvagens Islands",
+            "desc": "A benchmark fully protected marine area in the North Atlantic."
+          }
+        }
+      },
+      "flora": {
+        "label": "Endemic Flora",
+        "story": "From the Atlantic to the mountains, Portugal is home to plants found nowhere else on Earth — Tertiary relics on the islands and Iberian endemics on the mainland.",
+        "milestones": {
+          "0": {
+            "year": "15th c.",
+            "title": "Laurisilva described",
+            "desc": "Madeira's first settlers find a laurel forest that is millions of years old."
+          },
+          "1": {
+            "year": "1976",
+            "title": "Serra da Estrela Natural Park",
+            "desc": "Protecting the mainland's high-mountain flora."
+          },
+          "2": {
+            "year": "1999",
+            "title": "Laurisilva — UNESCO",
+            "desc": "Natural World Heritage Site; the largest area of laurel forest in the world."
+          }
+        }
+      },
+      "fauna": {
+        "label": "Wildlife & Habitats",
+        "story": "Iberian wildlife survived in the empty spaces of the interior. Today the wolf and the lynx are the barometer of habitat health — and the wetlands are an essential stopover on the Atlantic migratory flyways.",
+        "milestones": {
+          "0": {
+            "year": "1988",
+            "title": "Iberian wolf protected",
+            "desc": "A law gives the species full protection in Portugal."
+          },
+          "1": {
+            "year": "2015",
+            "title": "The Iberian lynx returns",
+            "desc": "First releases in the Guadiana Valley."
+          },
+          "2": {
+            "year": "All year",
+            "title": "Migratory routes",
+            "desc": "The Ria Formosa, the Sado and the Tagus as stopovers on the Atlantic flyway."
+          }
+        }
+      },
+      "gastronomia": {
+        "label": "Coastal Cuisine",
+        "story": "Coastal cooking was born of whatever the tide brought in: humble fish, rock shellfish and stews made for sharing. Every technique — grilling, cooking in a cataplana, pickling in escabeche — tells the story of a trade route.",
+        "milestones": {
+          "0": {
+            "year": "Arab heritage",
+            "title": "Cataplana",
+            "desc": "Cooking in sealed steam, the Algarve's signature."
+          },
+          "1": {
+            "year": "19th c.",
+            "title": "Grilled sardines",
+            "desc": "From the fishing boats to the streets — now the symbol of the Popular Saints festivals."
+          },
+          "2": {
+            "year": "Today",
+            "title": "Regulated goose barnacles",
+            "desc": "Licensed harvesting on the Costa Vicentina to curb over-exploitation."
+          }
+        }
+      },
+      "cultura-maritima": {
+        "label": "Maritime Culture",
+        "story": "Before there were roads, there were the sea and the lagoon. Fishing methods, boats and sea processions are the living archive of that economy — and they still take place on the same beaches.",
+        "milestones": {
+          "0": {
+            "year": "Tradition",
+            "title": "Arte Xávega",
+            "desc": "Seine nets hauled up the beach on the central coast — now a demonstration and a heritage tradition."
+          },
+          "1": {
+            "year": "Ria de Aveiro",
+            "title": "Moliceiros",
+            "desc": "Boats once used to harvest seaweed (moliço), decorated with painted storytelling panels."
+          },
+          "2": {
+            "year": "Every year",
+            "title": "Sea processions",
+            "desc": "Festivals of Our Lady of the Navigators all along the coast."
+          }
+        }
+      },
+      "infraestrutura": {
+        "label": "Natural Infrastructure",
+        "story": "Public engineering became an attraction: boardwalks, greenways and suspension bridges opened up landscapes once known only to locals — and transformed the economy of entire valleys.",
+        "milestones": {
+          "0": {
+            "year": "2002",
+            "title": "Alqueva fills up",
+            "desc": "Europe's largest artificial lake; it reshapes the Alentejo."
+          },
+          "1": {
+            "year": "2015",
+            "title": "Paiva Walkways",
+            "desc": "8.7 km above the river; a model copied across the country."
+          },
+          "2": {
+            "year": "2021",
+            "title": "516 Arouca",
+            "desc": "A 516 m pedestrian suspension bridge over the Paiva."
+          }
+        }
+      },
+      "economia": {
+        "label": "Local Economy",
+        "story": "The local economy is made of protected designations, markets and crafts. The Douro invented the modern idea of a demarcated region — and the PDO map is still the best guide to flavour.",
+        "milestones": {
+          "0": {
+            "year": "1756",
+            "title": "Douro Demarcated Region",
+            "desc": "The world's first demarcated and regulated wine region."
+          },
+          "1": {
+            "year": "20th c.",
+            "title": "Municipal markets",
+            "desc": "Bolhão, Ribeira and Livramento anchor neighbourhood trade."
+          },
+          "2": {
+            "year": "2022",
+            "title": "Bolhão reopens",
+            "desc": "Restoration gives the historic market back to Porto."
+          }
+        }
+      },
+      "prehistoria": {
+        "label": "Prehistory & Astronomy",
+        "story": "Southern Portugal has one of Europe's greatest concentrations of megaliths — and, above them, the darkest skies on the continent. Stone and stars tell the same story of orientation.",
+        "milestones": {
+          "0": {
+            "year": "c. 6000 BC",
+            "title": "Almendres Cromlech",
+            "desc": "A megalithic enclosure aligned with the solstices, near Évora."
+          },
+          "1": {
+            "year": "1994",
+            "title": "Côa rock art discovered",
+            "desc": "Open-air Palaeolithic engravings; UNESCO-listed in 1998."
+          },
+          "2": {
+            "year": "2011",
+            "title": "Dark Sky Alqueva",
+            "desc": "The world's first Starlight-certified destination."
+          }
+        }
+      },
+      "costa": {
+        "label": "Coast & Shoreline",
+        "story": "1,800 km of coastline in four guises: cliffs, dunes, estuaries and barrier islands. The Blue Flag and surf reserves have turned the shoreline into regulated leisure infrastructure.",
+        "milestones": {
+          "0": {
+            "year": "1984",
+            "title": "Caparica Fossil Cliff",
+            "desc": "Protected landscape — a geological archive in plain sight."
+          },
+          "1": {
+            "year": "1987",
+            "title": "Blue Flag",
+            "desc": "Portugal joins the programme; today one of Europe's leaders, beach for beach."
+          },
+          "2": {
+            "year": "2011",
+            "title": "World Surfing Reserve",
+            "desc": "Ericeira — the first in Europe."
+          }
+        }
+      },
+      "musica": {
+        "label": "Traditional Music",
+        "story": "Two Portuguese musical traditions are UNESCO Intangible Cultural Heritage. Between urban fado and the communal cante of the Alentejo lies an entire country — and instruments that travelled the world.",
+        "milestones": {
+          "0": {
+            "year": "2011",
+            "title": "Fado — UNESCO",
+            "desc": "Intangible Heritage; Lisbon and Coimbra as distinct schools."
+          },
+          "1": {
+            "year": "2014",
+            "title": "Cante Alentejano — UNESCO",
+            "desc": "Unaccompanied polyphonic singing with communal roots."
+          },
+          "2": {
+            "year": "Emigration",
+            "title": "From cavaquinho to ukulele",
+            "desc": "The Madeiran machete reaches Hawaii with emigrants."
+          }
+        }
+      },
+      "rotas-culturais": {
+        "label": "Cultural Routes",
+        "story": "Festivals are the country's real calendar. Linked into routes, they reveal continuities — winter masks, summer pilgrimages, farming cycles — that no single monument can show.",
+        "milestones": {
+          "0": {
+            "year": "Medieval roots",
+            "title": "Tabuleiros de Tomar",
+            "desc": "A procession of bread and flowers, held every four years."
+          },
+          "1": {
+            "year": "18th c.",
+            "title": "Senhora da Agonia",
+            "desc": "Viana do Castelo — pilgrimage festival, folk costume and Minho gold."
+          },
+          "2": {
+            "year": "2019",
+            "title": "Caretos de Podence — UNESCO",
+            "desc": "Carnival masks from Trás-os-Montes."
+          }
+        }
+      },
+      "inclusivo": {
+        "label": "Inclusive Tourism",
+        "story": "Accessibility isn't a piece of equipment, it's a chain: getting there, parking, getting in, using the place and leaving. Portugal Vivo treats accessibility information as verifiable data — beach by beach, route by route.",
+        "milestones": {
+          "0": {
+            "year": "2005",
+            "title": "Accessible Beach — Beach for All",
+            "desc": "A national programme that introduced beach walkways, bathing assistance and amphibious wheelchairs on lifeguarded beaches."
+          },
+          "1": {
+            "year": "2017",
+            "title": "Network of accessible routes",
+            "desc": "Boardwalks and greenways on a continuous level surface are now designed step-free."
+          },
+          "2": {
+            "year": "Today",
+            "title": "443 Blue Flag beaches",
+            "desc": "A growing share with verified support for people with reduced mobility during the bathing season."
+          }
+        }
+      }
+    },
+    "highlights": {
+      "biodiversidade": {
+        "Sardinha-europeia": {
+          "name": "European sardine",
+          "meta": "Sardina pilchardus · Atlantic coast"
+        },
+        "Golfinho-comum": {
+          "name": "Common dolphin",
+          "meta": "Delphinus delphis · Sado and Algarve"
+        },
+        "Cavalo-marinho": {
+          "name": "Seahorse",
+          "meta": "Hippocampus guttulatus · Ria Formosa"
+        },
+        "Polvo-comum": {
+          "name": "Common octopus",
+          "meta": "Octopus vulgaris · rocky coast"
+        }
+      },
+      "flora": {
+        "Dragoeiro": {
+          "name": "Dragon tree",
+          "meta": "Dracaena draco · Madeira and Porto Santo"
+        },
+        "Massaroco": {
+          "name": "Pride of Madeira",
+          "meta": "Echium candicans · Madeira"
+        },
+        "Esteva": {
+          "name": "Gum rockrose",
+          "meta": "Cistus ladanifer · inland Alentejo"
+        },
+        "Urze-da-madeira": {
+          "name": "Madeira heath",
+          "meta": "Erica maderensis · mountain massif"
+        }
+      },
+      "fauna": {
+        "Lince-ibérico": {
+          "name": "Iberian lynx",
+          "meta": "Lynx pardinus · Guadiana Valley"
+        },
+        "Lobo-ibérico": {
+          "name": "Iberian wolf",
+          "meta": "Canis lupus signatus · Trás-os-Montes"
+        },
+        "Águia-de-Bonelli": {
+          "name": "Bonelli's eagle",
+          "meta": "Aquila fasciata · Tagus and Douro valleys"
+        },
+        "Flamingo-rosado": {
+          "name": "Greater flamingo",
+          "meta": "Ria Formosa and Sado estuary"
+        }
+      },
+      "gastronomia": {
+        "Caldeirada à fragateira": {
+          "name": "Fragateira fish stew",
+          "meta": "Catch of the day · Lisbon coast"
+        },
+        "Percebes da Costa Vicentina": {
+          "name": "Costa Vicentina goose barnacles",
+          "meta": "Shellfish · Alentejo and Algarve"
+        },
+        "Cataplana de marisco": {
+          "name": "Seafood cataplana",
+          "meta": "Algarve"
+        },
+        "Sardinha assada": {
+          "name": "Grilled sardines",
+          "meta": "Popular Saints festivals · Lisbon"
+        }
+      },
+      "cultura-maritima": {
+        "Arte Xávega": {
+          "name": "Arte Xávega",
+          "meta": "Traditional fishing · Praia de Mira"
+        },
+        "Barcos moliceiros": {
+          "name": "Moliceiro boats",
+          "meta": "Ria de Aveiro"
+        },
+        "Rendas de bilros": {
+          "name": "Bobbin lace",
+          "meta": "Vila do Conde and Peniche"
+        },
+        "Procissões do mar": {
+          "name": "Sea processions",
+          "meta": "Our Lady of the Navigators"
+        }
+      },
+      "infraestrutura": {
+        "Passadiços do Paiva": {
+          "name": "Paiva Walkways",
+          "meta": "Arouca · 8.7 km above the river"
+        },
+        "Ecopista do Dão": {
+          "name": "Dão Greenway",
+          "meta": "49 km · Viseu–Santa Comba Dão"
+        },
+        "516 Arouca": {
+          "name": "516 Arouca",
+          "meta": "Suspension bridge · 516 m"
+        },
+        "Barragem do Alqueva": {
+          "name": "Alqueva Dam",
+          "meta": "Europe's largest artificial lake"
+        }
+      },
+      "economia": {
+        "Queijo Serra da Estrela DOP": {
+          "name": "Serra da Estrela PDO cheese",
+          "meta": "Producers · Beira Interior"
+        },
+        "Vinho do Porto": {
+          "name": "Port wine",
+          "meta": "Douro wine estates"
+        },
+        "Mercado do Bolhão": {
+          "name": "Bolhão Market",
+          "meta": "Porto"
+        },
+        "Olaria de Barcelos": {
+          "name": "Barcelos pottery",
+          "meta": "Crafts and trades"
+        }
+      },
+      "prehistoria": {
+        "Cromeleque dos Almendres": {
+          "name": "Almendres Cromlech",
+          "meta": "Évora · c. 6000 BC"
+        },
+        "Gravuras do Côa": {
+          "name": "Côa rock art",
+          "meta": "UNESCO World Heritage"
+        },
+        "Dark Sky Alqueva": {
+          "name": "Dark Sky Alqueva",
+          "meta": "World's 1st Starlight reserve"
+        },
+        "Anta Grande do Zambujeiro": {
+          "name": "Great Dolmen of Zambujeiro",
+          "meta": "Largest dolmen in Iberia"
+        }
+      },
+      "costa": {
+        "443 praias Bandeira Azul": {
+          "name": "443 Blue Flag beaches",
+          "meta": "National record 2026"
+        },
+        "Arriba Fóssil da Caparica": {
+          "name": "Caparica Fossil Cliff",
+          "meta": "Protected landscape"
+        },
+        "Reserva Mundial de Surf": {
+          "name": "World Surfing Reserve",
+          "meta": "Ericeira"
+        },
+        "Ilhas Barreira": {
+          "name": "Barrier islands",
+          "meta": "Ria Formosa · Algarve"
+        }
+      },
+      "musica": {
+        "Fado": {
+          "name": "Fado",
+          "meta": "UNESCO Intangible Heritage · Lisbon and Coimbra"
+        },
+        "Cante Alentejano": {
+          "name": "Cante Alentejano",
+          "meta": "UNESCO · Baixo Alentejo choirs"
+        },
+        "Cavaquinho minhoto": {
+          "name": "Minho cavaquinho",
+          "meta": "Traditional instrument"
+        },
+        "Bombos de Lavacolhos": {
+          "name": "Lavacolhos bass drums",
+          "meta": "Beira Baixa"
+        }
+      },
+      "inclusivo": {
+        "Praias acessíveis": {
+          "name": "Accessible beaches",
+          "meta": "Amphibious wheelchair and walkway to the water"
+        },
+        "Passadiços em plataforma": {
+          "name": "Level boardwalks",
+          "meta": "Continuous step-free routes"
+        },
+        "Alojamento pet-friendly": {
+          "name": "Pet-friendly stays",
+          "meta": "Signposted national network"
+        },
+        "Rotas para famílias": {
+          "name": "Family routes",
+          "meta": "Short routes with facilities"
+        }
+      },
+      "rotas-culturais": {
+        "Rota do Fado": {
+          "name": "Fado Route",
+          "meta": "Lisbon · Alfama and Mouraria"
+        },
+        "Rota do Folclore": {
+          "name": "Folklore Route",
+          "meta": "Minho and Ribatejo"
+        },
+        "Rota das Festas e Romarias": {
+          "name": "Festivals & Pilgrimages Route",
+          "meta": "140 festivals in the app"
+        },
+        "Rota dos Moinhos": {
+          "name": "Windmill Route",
+          "meta": "Oeste"
+        }
+      }
+    },
+    "highlightDetails": {
+      "Sardinha-europeia": {
+        "where": "Atlantic coast — Peniche, Matosinhos, Setúbal",
+        "history": "It sustained canneries and entire communities: since the 19th century the sardine has set the fishing calendar and shaped the economy of coastal towns."
+      },
+      "Golfinho-comum": {
+        "where": "Sado estuary and the Algarve coast",
+        "history": "The Sado's resident population is one of the few in Europe to live inside an estuary, and has been followed by scientists for decades."
+      },
+      "Cavalo-marinho": {
+        "where": "Ria Formosa — Olhão and Faro",
+        "history": "The Ria Formosa once had one of the largest populations in the world; its decline since the 2000s has made it a conservation case study."
+      },
+      "Polvo-comum": {
+        "where": "Rocky coast — Algarve and Costa Vicentina",
+        "history": "Fishing with clay pots, now replaced by traps, is one of the oldest fishing methods on the Algarve coast."
+      },
+      "Dragoeiro": {
+        "where": "Madeira and Porto Santo",
+        "history": "Its “dragon’s blood” resin was exported from 16th-century Madeira and used for dyeing and medicine."
+      },
+      "Massaroco": {
+        "where": "Madeira — Pico do Arieiro and Paul da Serra",
+        "history": "A Madeiran endemic that colonises clearings in the laurel forest and blooms in tall blue spires in spring."
+      },
+      "Esteva": {
+        "where": "Inland Alentejo and Beira Baixa",
+        "history": "Its labdanum resin is one of perfumery's fixatives; the plant is a pioneer in restoring poor soils."
+      },
+      "Urze-da-madeira": {
+        "where": "Madeira's mountain massif",
+        "history": "It dominates the high-altitude heathland above the laurel forest, a habitat protected under Natura 2000."
+      },
+      "Lince-ibérico": {
+        "where": "Guadiana Valley — Mértola and Serpa",
+        "history": "Extinct in Portugal by the end of the 20th century, it returned in 2015 in one of Europe's most successful reintroduction programmes."
+      },
+      "Lobo-ibérico": {
+        "where": "Trás-os-Montes, Peneda-Gerês and Douro Internacional",
+        "history": "Protected by law since 1988; almost all of Portugal's wolves live north of the Douro river."
+      },
+      "Águia-de-Bonelli": {
+        "where": "Tagus valleys and Douro Internacional",
+        "history": "It has recovered from historic lows thanks to nest monitoring and the fight against illegal poisoning."
+      },
+      "Flamingo-rosado": {
+        "where": "Ria Formosa and Sado estuary",
+        "history": "Abandoned salt pans became a refuge: the species went from rare visitor to year-round resident."
+      },
+      "Caldeirada à fragateira": {
+        "where": "Lisbon coast and estuary",
+        "history": "Born aboard the Tagus sailing barges (fragatas), made with the fish that didn't sell — cooking out of necessity turned heritage."
+      },
+      "Percebes da Costa Vicentina": {
+        "where": "Costa Vicentina — from Odeceixe to Sagres",
+        "history": "Harvested from wave-battered cliffs, with limited licences since the 2000s to curb over-exploitation."
+      },
+      "Cataplana de marisco": {
+        "where": "Algarve",
+        "history": "The sealed copper pan has its roots in the Arab cuisine of Gharb al-Andalus: it steams food without losing any aroma."
+      },
+      "Sardinha assada": {
+        "where": "Lisbon and the whole coast, in summer",
+        "history": "From the fishing boats to the streets of the Popular Saints festivals — the smell of grilled sardines marks the season in riverside cities."
+      },
+      "Arte Xávega": {
+        "where": "Praia de Mira, Torreira and Costa Nova",
+        "history": "Nets hauled ashore, once by teams of oxen and now by tractors; it survives as living heritage on the central coast."
+      },
+      "Barcos moliceiros": {
+        "where": "Ria de Aveiro",
+        "history": "They gathered seaweed (moliço) to fertilise the fields; the panels painted on their bows were the lagoon's humour and social commentary."
+      },
+      "Rendas de bilros": {
+        "where": "Vila do Conde and Peniche",
+        "history": "A centuries-old women's craft by the sea, with its own schools still training lacemakers today."
+      },
+      "Passadiços do Paiva": {
+        "where": "Arouca — 8.7 km along the Paiva river",
+        "history": "Opened in 2015, they turned a secluded valley into a national destination and created a model copied by dozens of municipalities."
+      },
+      "Ecopista do Dão": {
+        "where": "Viseu – Santa Comba Dão · 49 km",
+        "history": "Built on the old Dão railway line, closed in 1988 and given back to the public as a cycle path."
+      },
+      "516 Arouca": {
+        "where": "Arouca — 516 m suspension bridge",
+        "history": "Opened in 2021 over the Paiva gorge; at the time it was the longest pedestrian suspension bridge in the world."
+      },
+      "Barragem do Alqueva": {
+        "where": "Alentejo — Moura, Portel and Reguengos",
+        "history": "Filling it from 2002 onwards created Europe's largest artificial lake and transformed farming in the Alentejo."
+      },
+      "Queijo Serra da Estrela DOP": {
+        "where": "Beira Interior — Seia, Gouveia, Celorico",
+        "history": "Made from raw Bordaleira ewe's milk curdled with thistle, in a seasonal winter production."
+      },
+      "Vinho do Porto": {
+        "where": "Douro — Régua, Pinhão and Vila Nova de Gaia",
+        "history": "It is born in the world's first demarcated region (1756) and has aged in the Gaia cellars since the English trade of the 18th century."
+      },
+      "Mercado do Bolhão": {
+        "where": "Porto — Rua Formosa",
+        "history": "Opened in 1914 and restored up to 2022, it keeps family-run stalls that have been passed down through generations."
+      },
+      "Olaria de Barcelos": {
+        "where": "Barcelos and Galegos",
+        "history": "From everyday tableware to the Barcelos Rooster: Rosa Ramalho's figurines took Minho pottery into museums."
+      },
+      "Cromeleque dos Almendres": {
+        "where": "Évora — Nossa Senhora de Guadalupe",
+        "history": "Around 95 menhirs raised from c. 6000 BC, with solar alignments — the largest megalithic enclosure in the Iberian Peninsula."
+      },
+      "Gravuras do Côa": {
+        "where": "Vila Nova de Foz Côa",
+        "history": "Discovered in 1994 during the building of a dam, which was then halted; a World Heritage Site since 1998."
+      },
+      "Dark Sky Alqueva": {
+        "where": "Alentejo — Monsaraz, Reguengos and Mourão",
+        "history": "The world's first Starlight-certified destination (2011), with adapted street lighting in several municipalities."
+      },
+      "Anta Grande do Zambujeiro": {
+        "where": "Valverde, Évora",
+        "history": "A megalithic chamber with 8 m standing stones, excavated in the 1960s — the largest dolmen in the Iberian Peninsula."
+      },
+      "443 praias Bandeira Azul": {
+        "where": "Nationwide",
+        "history": "Portugal joined the programme in 1987 and has become a European benchmark for awards per kilometre of coastline."
+      },
+      "Arriba Fóssil da Caparica": {
+        "where": "Almada and Sesimbra",
+        "history": "A protected landscape since 1984: 13 km of cliffs recording millions of years of sediment."
+      },
+      "Reserva Mundial de Surf": {
+        "where": "Ericeira — from Ribeira d'Ilhas to São Lourenço",
+        "history": "Europe's first World Surfing Reserve (2011), with seven world-class waves along 4 km of coast."
+      },
+      "Ilhas Barreira": {
+        "where": "Ria Formosa — Culatra, Armona and Tavira",
+        "history": "A shifting chain of islands that shelters the lagoon and supports shellfish-gathering communities such as Culatra."
+      },
+      "Fado": {
+        "where": "Lisbon — Alfama and Mouraria · Coimbra",
+        "history": "Born in Lisbon's harbourside neighbourhoods in the 19th century; UNESCO Intangible Cultural Heritage since 2011."
+      },
+      "Cante Alentejano": {
+        "where": "Baixo Alentejo — Serpa, Cuba and Aljustrel",
+        "history": "Unaccompanied choral singing born in the harvest fields and the mines; recognised by UNESCO in 2014."
+      },
+      "Cavaquinho minhoto": {
+        "where": "Minho — Braga, Guimarães and Amarante",
+        "history": "A relative of the Madeiran machete that emigrants took to Hawaii, where it gave rise to the ukulele."
+      },
+      "Bombos de Lavacolhos": {
+        "where": "Fundão — Lavacolhos, Beira Baixa",
+        "history": "Bass-drum groups that mark pilgrimages and farming cycles with rhythms passed down by ear."
+      },
+      "Rota do Fado": {
+        "where": "Lisbon — Alfama, Mouraria and Bairro Alto",
+        "history": "It links fado houses, museums and the streets where the genre settled after leaving the taverns."
+      },
+      "Rota do Folclore": {
+        "where": "Minho and Ribatejo",
+        "history": "Folk dance groups (ranchos) and costumes that codified regional identity from the 19th century onwards."
+      },
+      "Rota das Festas e Romarias": {
+        "where": "Nationwide",
+        "history": "From Carnival (Entrudo) in Trás-os-Montes to the August pilgrimages: the festive calendar is Portugal's true cultural map."
+      },
+      "Rota dos Moinhos": {
+        "where": "Oeste — Óbidos, Bombarral and Peniche",
+        "history": "Windmills and watermills that ground the region's grain until electrification in the 20th century."
+      },
+      "Procissões do mar": {
+        "where": "All along the coast, from June to September",
+        "history": "Fishing communities carry their patron saint out to sea to bless the fishing season and remember those who never came back."
+      }
+    }
+  },
+  "es": {
+    "historySection": {
+      "heading": "Historia"
+    },
+    "highlightsSection": {
+      "heading": "Destacados",
+      "openA11y": "Abrir destacado {{name}}"
+    },
+    "highlightDetail": {
+      "notFound": "Destacado no encontrado.",
+      "whereToSee": "Dónde verlo",
+      "navigate": "Cómo llegar",
+      "viewOnMap": "Ver en el mapa",
+      "history": "Historia",
+      "nearby": "Lugares cercanos en la app",
+      "nearbyEmpty": "Todavía no hay lugares georreferenciados en esta categoría.",
+      "continueExploring": "Seguir explorando",
+      "backTo": "Volver a {{module}}",
+      "encyclopedia": "Explorar en la Enciclopedia",
+      "search": "Buscar «{{name}}»"
+    },
+    "modules": {
+      "biodiversidade": {
+        "label": "Biodiversidad marina",
+        "story": "La costa portuguesa reúne aguas frías de afloramiento y corrientes subtropicales — una de las mayores diversidades marinas de Europa, protegida por una red de áreas marinas que empezó en las islas.",
+        "milestones": {
+          "0": {
+            "year": "1981",
+            "title": "Reserva Natural de las Berlengas",
+            "desc": "Primer gran refuerzo de la protección marina en el litoral continental."
+          },
+          "1": {
+            "year": "1987",
+            "title": "Parque Natural de la Ria Formosa",
+            "desc": "Sistema lagunar con islas barrera y criadero de especies costeras."
+          },
+          "2": {
+            "year": "1998",
+            "title": "Parque Marino Luiz Saldanha",
+            "desc": "Arrábida — primer parque marino en aguas continentales portuguesas."
+          },
+          "3": {
+            "year": "2021",
+            "title": "Islas Salvajes",
+            "desc": "Área marina totalmente protegida de referencia en el Atlántico Norte."
+          }
+        }
+      },
+      "flora": {
+        "label": "Flora endémica",
+        "story": "Del Atlántico a la montaña, Portugal conserva floras que no existen en ningún otro lugar — reliquias del Terciario en las islas y endemismos ibéricos en el continente.",
+        "milestones": {
+          "0": {
+            "year": "Siglo XV",
+            "title": "Laurisilva descrita",
+            "desc": "Los primeros colonos de Madeira encuentran un bosque de laureles con millones de años."
+          },
+          "1": {
+            "year": "1976",
+            "title": "Parque Natural de la Serra da Estrela",
+            "desc": "Protección de la flora de alta montaña del continente."
+          },
+          "2": {
+            "year": "1999",
+            "title": "Laurisilva — UNESCO",
+            "desc": "Patrimonio Mundial Natural; la mayor mancha de laurisilva del mundo."
+          }
+        }
+      },
+      "fauna": {
+        "label": "Fauna y hábitats",
+        "story": "La fauna ibérica sobrevivió en los vacíos del interior. Hoy el lobo y el lince son el termómetro del estado de los hábitats — y los humedales son escala obligada de las rutas migratorias atlánticas.",
+        "milestones": {
+          "0": {
+            "year": "1988",
+            "title": "Lobo ibérico protegido",
+            "desc": "Ley de protección total de la especie en Portugal."
+          },
+          "1": {
+            "year": "2015",
+            "title": "Regreso del lince ibérico",
+            "desc": "Primeras liberaciones en el valle del Guadiana."
+          },
+          "2": {
+            "year": "Todo el año",
+            "title": "Rutas migratorias",
+            "desc": "Ria Formosa, Sado y Tajo como parada del corredor atlántico."
+          }
+        }
+      },
+      "gastronomia": {
+        "label": "Gastronomía costera",
+        "story": "La cocina del litoral nació de lo que daba la marea: pescado humilde, marisco de roca y caldos para compartir. Cada técnica — asar, cocinar en cataplana, escabechar — cuenta una ruta comercial.",
+        "milestones": {
+          "0": {
+            "year": "Herencia árabe",
+            "title": "Cataplana",
+            "desc": "Cocina al vapor en recipiente cerrado, sello del Algarve."
+          },
+          "1": {
+            "year": "Siglo XIX",
+            "title": "Sardinas asadas",
+            "desc": "De la faena pesquera a la calle — hoy símbolo de los Santos Populares."
+          },
+          "2": {
+            "year": "Hoy",
+            "title": "Percebes regulados",
+            "desc": "Recogida con licencia en la Costa Vicentina para frenar la sobreexplotación."
+          }
+        }
+      },
+      "cultura-maritima": {
+        "label": "Cultura marítima",
+        "story": "Antes de las carreteras estaban el mar y la ría. Las artes de pesca, los barcos y las procesiones marítimas son el archivo vivo de esa economía — y siguen celebrándose en las mismas playas.",
+        "milestones": {
+          "0": {
+            "year": "Tradición",
+            "title": "Arte Xávega",
+            "desc": "Arrastre tirado hacia tierra en la costa central — hoy demostración y patrimonio."
+          },
+          "1": {
+            "year": "Ria de Aveiro",
+            "title": "Moliceiros",
+            "desc": "Barcos para la recogida de moliço (algas), decorados con paneles narrativos."
+          },
+          "2": {
+            "year": "Anual",
+            "title": "Procesiones marítimas",
+            "desc": "Fiestas de Nuestra Señora de los Navegantes a lo largo de todo el litoral."
+          }
+        }
+      },
+      "infraestrutura": {
+        "label": "Infraestructura natural",
+        "story": "La ingeniería pública se convirtió en atracción: pasarelas, vías verdes y puentes colgantes abrieron paisajes que antes solo conocían los lugareños — y cambiaron la economía de valles enteros.",
+        "milestones": {
+          "0": {
+            "year": "2002",
+            "title": "Se llena el Alqueva",
+            "desc": "El mayor lago artificial de Europa; redibuja el Alentejo."
+          },
+          "1": {
+            "year": "2015",
+            "title": "Pasarelas del Paiva",
+            "desc": "8,7 km sobre el río; modelo replicado en todo el país."
+          },
+          "2": {
+            "year": "2021",
+            "title": "516 Arouca",
+            "desc": "Puente peatonal colgante de 516 m sobre el Paiva."
+          }
+        }
+      },
+      "economia": {
+        "label": "Economía local",
+        "story": "La economía local está hecha de denominaciones, mercados y oficios. El Duero inventó la idea moderna de región demarcada — y el mapa DOP sigue siendo la mejor guía de sabores.",
+        "milestones": {
+          "0": {
+            "year": "1756",
+            "title": "Región Demarcada del Duero",
+            "desc": "La primera región vinícola demarcada y regulada del mundo."
+          },
+          "1": {
+            "year": "Siglo XX",
+            "title": "Mercados municipales",
+            "desc": "Bolhão, Ribeira y Livramento consolidan el comercio de proximidad."
+          },
+          "2": {
+            "year": "2022",
+            "title": "Reabre el Bolhão",
+            "desc": "La rehabilitación devuelve el mercado histórico a Oporto."
+          }
+        }
+      },
+      "prehistoria": {
+        "label": "Prehistoria y astronomía",
+        "story": "El sur de Portugal tiene una de las mayores concentraciones megalíticas de Europa — y, encima, el cielo más oscuro del continente. Piedra y estrellas cuentan la misma historia de orientación.",
+        "milestones": {
+          "0": {
+            "year": "c. 6000 a. C.",
+            "title": "Crómlech de los Almendres",
+            "desc": "Recinto megalítico alineado con los solsticios, cerca de Évora."
+          },
+          "1": {
+            "year": "1994",
+            "title": "Descubrimiento del Côa",
+            "desc": "Grabados paleolíticos al aire libre; UNESCO en 1998."
+          },
+          "2": {
+            "year": "2011",
+            "title": "Dark Sky Alqueva",
+            "desc": "Primer destino del mundo con certificación Starlight."
+          }
+        }
+      },
+      "costa": {
+        "label": "Costa y litoral",
+        "story": "1800 km de costa en cuatro realidades: acantilados, dunas, estuarios e islas barrera. La Bandera Azul y las reservas de surf han convertido el litoral en infraestructura de ocio regulada.",
+        "milestones": {
+          "0": {
+            "year": "1984",
+            "title": "Acantilado Fósil de Caparica",
+            "desc": "Paisaje protegido — archivo geológico a la vista."
+          },
+          "1": {
+            "year": "1987",
+            "title": "Bandera Azul",
+            "desc": "Portugal se adhiere al programa; hoy líder europeo por playa."
+          },
+          "2": {
+            "year": "2011",
+            "title": "Reserva Mundial de Surf",
+            "desc": "Ericeira — la primera de Europa."
+          }
+        }
+      },
+      "musica": {
+        "label": "Música tradicional",
+        "story": "Dos músicas portuguesas son Patrimonio Inmaterial de la Humanidad. Entre el fado urbano y el cante colectivo del Alentejo cabe todo un país — y unos instrumentos que viajaron por el mundo.",
+        "milestones": {
+          "0": {
+            "year": "2011",
+            "title": "Fado — UNESCO",
+            "desc": "Patrimonio Inmaterial; Lisboa y Coímbra como escuelas distintas."
+          },
+          "1": {
+            "year": "2014",
+            "title": "Cante Alentejano — UNESCO",
+            "desc": "Canto polifónico sin instrumentos, de raíz colectiva."
+          },
+          "2": {
+            "year": "Emigración",
+            "title": "Del cavaquinho al ukelele",
+            "desc": "El machete madeirense llega a Hawái con los emigrantes."
+          }
+        }
+      },
+      "rotas-culturais": {
+        "label": "Rutas culturales",
+        "story": "Las fiestas son el verdadero calendario del país. Unidas en ruta, revelan continuidades — máscaras de invierno, romerías de verano, ciclos agrícolas — que ningún monumento aislado muestra.",
+        "milestones": {
+          "0": {
+            "year": "Raíz medieval",
+            "title": "Tabuleiros de Tomar",
+            "desc": "Cortejo de pan y flores, cada cuatro años."
+          },
+          "1": {
+            "year": "Siglo XVIII",
+            "title": "Señora de la Agonía",
+            "desc": "Viana do Castelo — romería, traje y oro del Minho."
+          },
+          "2": {
+            "year": "2019",
+            "title": "Caretos de Podence — UNESCO",
+            "desc": "Máscaras de carnaval de Trás-os-Montes."
+          }
+        }
+      },
+      "inclusivo": {
+        "label": "Turismo inclusivo",
+        "story": "La accesibilidad no es un equipamiento, es una cadena: llegar, aparcar, entrar, usar y salir. Portugal Vivo trata la información de apoyo como dato verificable — playa a playa, recorrido a recorrido.",
+        "milestones": {
+          "0": {
+            "year": "2005",
+            "title": "Playa Accesible — Playa para Todos",
+            "desc": "Programa nacional que creó pasarelas, asistencia al baño y sillas anfibias en playas vigiladas."
+          },
+          "1": {
+            "year": "2017",
+            "title": "Red de recorridos accesibles",
+            "desc": "Pasarelas y vías verdes en plataforma continua pasan a diseñarse sin escalones."
+          },
+          "2": {
+            "year": "Hoy",
+            "title": "443 playas con Bandera Azul",
+            "desc": "Una parte creciente con apoyo verificado a la movilidad reducida en la temporada de baño."
+          }
+        }
+      }
+    },
+    "highlights": {
+      "biodiversidade": {
+        "Sardinha-europeia": {
+          "name": "Sardina europea",
+          "meta": "Sardina pilchardus · costa atlántica"
+        },
+        "Golfinho-comum": {
+          "name": "Delfín común",
+          "meta": "Delphinus delphis · Sado y Algarve"
+        },
+        "Cavalo-marinho": {
+          "name": "Caballito de mar",
+          "meta": "Hippocampus guttulatus · Ria Formosa"
+        },
+        "Polvo-comum": {
+          "name": "Pulpo común",
+          "meta": "Octopus vulgaris · litoral rocoso"
+        }
+      },
+      "flora": {
+        "Dragoeiro": {
+          "name": "Drago",
+          "meta": "Dracaena draco · Madeira y Porto Santo"
+        },
+        "Massaroco": {
+          "name": "Orgullo de Madeira",
+          "meta": "Echium candicans · Madeira"
+        },
+        "Esteva": {
+          "name": "Jara pringosa",
+          "meta": "Cistus ladanifer · interior del Alentejo"
+        },
+        "Urze-da-madeira": {
+          "name": "Brezo de Madeira",
+          "meta": "Erica maderensis · macizo montañoso"
+        }
+      },
+      "fauna": {
+        "Lince-ibérico": {
+          "name": "Lince ibérico",
+          "meta": "Lynx pardinus · valle del Guadiana"
+        },
+        "Lobo-ibérico": {
+          "name": "Lobo ibérico",
+          "meta": "Canis lupus signatus · Trás-os-Montes"
+        },
+        "Águia-de-Bonelli": {
+          "name": "Águila perdicera",
+          "meta": "Aquila fasciata · valles del Tajo y del Duero"
+        },
+        "Flamingo-rosado": {
+          "name": "Flamenco común",
+          "meta": "Ria Formosa y estuario del Sado"
+        }
+      },
+      "gastronomia": {
+        "Caldeirada à fragateira": {
+          "name": "Caldeirada a la fragateira",
+          "meta": "Pescado del día · costa de Lisboa"
+        },
+        "Percebes da Costa Vicentina": {
+          "name": "Percebes de la Costa Vicentina",
+          "meta": "Marisco · Alentejo y Algarve"
+        },
+        "Cataplana de marisco": {
+          "name": "Cataplana de marisco",
+          "meta": "Algarve"
+        },
+        "Sardinha assada": {
+          "name": "Sardinas asadas",
+          "meta": "Santos Populares · Lisboa"
+        }
+      },
+      "cultura-maritima": {
+        "Arte Xávega": {
+          "name": "Arte Xávega",
+          "meta": "Pesca tradicional · Praia de Mira"
+        },
+        "Barcos moliceiros": {
+          "name": "Barcos moliceiros",
+          "meta": "Ria de Aveiro"
+        },
+        "Rendas de bilros": {
+          "name": "Encaje de bolillos",
+          "meta": "Vila do Conde y Peniche"
+        },
+        "Procissões do mar": {
+          "name": "Procesiones marítimas",
+          "meta": "Nuestra Señora de los Navegantes"
+        }
+      },
+      "infraestrutura": {
+        "Passadiços do Paiva": {
+          "name": "Pasarelas del Paiva",
+          "meta": "Arouca · 8,7 km sobre el río"
+        },
+        "Ecopista do Dão": {
+          "name": "Vía verde del Dão",
+          "meta": "49 km · Viseu–Santa Comba Dão"
+        },
+        "516 Arouca": {
+          "name": "516 Arouca",
+          "meta": "Puente colgante · 516 m"
+        },
+        "Barragem do Alqueva": {
+          "name": "Presa de Alqueva",
+          "meta": "El mayor lago artificial de Europa"
+        }
+      },
+      "economia": {
+        "Queijo Serra da Estrela DOP": {
+          "name": "Queso Serra da Estrela DOP",
+          "meta": "Productores · Beira Interior"
+        },
+        "Vinho do Porto": {
+          "name": "Vino de Oporto",
+          "meta": "Quintas del Duero"
+        },
+        "Mercado do Bolhão": {
+          "name": "Mercado do Bolhão",
+          "meta": "Oporto"
+        },
+        "Olaria de Barcelos": {
+          "name": "Alfarería de Barcelos",
+          "meta": "Oficios y artesanía"
+        }
+      },
+      "prehistoria": {
+        "Cromeleque dos Almendres": {
+          "name": "Crómlech de los Almendres",
+          "meta": "Évora · c. 6000 a. C."
+        },
+        "Gravuras do Côa": {
+          "name": "Grabados del Côa",
+          "meta": "Patrimonio Mundial UNESCO"
+        },
+        "Dark Sky Alqueva": {
+          "name": "Dark Sky Alqueva",
+          "meta": "1.ª reserva Starlight del mundo"
+        },
+        "Anta Grande do Zambujeiro": {
+          "name": "Gran Dolmen de Zambujeiro",
+          "meta": "El mayor dolmen de la Península"
+        }
+      },
+      "costa": {
+        "443 praias Bandeira Azul": {
+          "name": "443 playas con Bandera Azul",
+          "meta": "Récord nacional 2026"
+        },
+        "Arriba Fóssil da Caparica": {
+          "name": "Acantilado Fósil de Caparica",
+          "meta": "Paisaje protegido"
+        },
+        "Reserva Mundial de Surf": {
+          "name": "Reserva Mundial de Surf",
+          "meta": "Ericeira"
+        },
+        "Ilhas Barreira": {
+          "name": "Islas barrera",
+          "meta": "Ria Formosa · Algarve"
+        }
+      },
+      "musica": {
+        "Fado": {
+          "name": "Fado",
+          "meta": "Patrimonio Inmaterial UNESCO · Lisboa y Coímbra"
+        },
+        "Cante Alentejano": {
+          "name": "Cante Alentejano",
+          "meta": "UNESCO · coros del Bajo Alentejo"
+        },
+        "Cavaquinho minhoto": {
+          "name": "Cavaquinho del Minho",
+          "meta": "Instrumento tradicional"
+        },
+        "Bombos de Lavacolhos": {
+          "name": "Bombos de Lavacolhos",
+          "meta": "Beira Baixa"
+        }
+      },
+      "inclusivo": {
+        "Praias acessíveis": {
+          "name": "Playas accesibles",
+          "meta": "Silla anfibia y pasarela hasta el agua"
+        },
+        "Passadiços em plataforma": {
+          "name": "Pasarelas en plataforma",
+          "meta": "Recorridos continuos sin escalones"
+        },
+        "Alojamento pet-friendly": {
+          "name": "Alojamiento pet-friendly",
+          "meta": "Red nacional señalizada"
+        },
+        "Rotas para famílias": {
+          "name": "Rutas para familias",
+          "meta": "Recorridos cortos con apoyo"
+        }
+      },
+      "rotas-culturais": {
+        "Rota do Fado": {
+          "name": "Ruta del Fado",
+          "meta": "Lisboa · Alfama y Mouraria"
+        },
+        "Rota do Folclore": {
+          "name": "Ruta del Folclore",
+          "meta": "Minho y Ribatejo"
+        },
+        "Rota das Festas e Romarias": {
+          "name": "Ruta de Fiestas y Romerías",
+          "meta": "140 fiestas en la app"
+        },
+        "Rota dos Moinhos": {
+          "name": "Ruta de los Molinos",
+          "meta": "Oeste"
+        }
+      }
+    },
+    "highlightDetails": {
+      "Sardinha-europeia": {
+        "where": "Costa atlántica — Peniche, Matosinhos, Setúbal",
+        "history": "Sostuvo conserveras y comunidades enteras: la sardina marcó el calendario de la pesca y la economía de los pueblos del litoral desde el siglo XIX."
+      },
+      "Golfinho-comum": {
+        "where": "Estuario del Sado y costa del Algarve",
+        "history": "La población residente del Sado es una de las pocas de Europa que vive dentro de un estuario, con seguimiento científico desde hace décadas."
+      },
+      "Cavalo-marinho": {
+        "where": "Ria Formosa — Olhão y Faro",
+        "history": "La Ria Formosa llegó a tener una de las mayores poblaciones del mundo; el declive desde los años 2000 la convirtió en un caso de estudio de conservación."
+      },
+      "Polvo-comum": {
+        "where": "Litoral rocoso — Algarve y Costa Vicentina",
+        "history": "La pesca con alcatruces de barro, hoy sustituidos por nasas, es una de las artes más antiguas del litoral del Algarve."
+      },
+      "Dragoeiro": {
+        "where": "Madeira y Porto Santo",
+        "history": "La resina «sangre de drago» fue un producto de exportación en la Madeira del siglo XVI, usada en tintorería y medicina."
+      },
+      "Massaroco": {
+        "where": "Madeira — Pico do Arieiro y Paul da Serra",
+        "history": "Endemismo madeirense que coloniza los claros de la laurisilva y florece en torres azules en primavera."
+      },
+      "Esteva": {
+        "where": "Interior del Alentejo y Beira Baixa",
+        "history": "Del ládano de la jara se obtiene uno de los fijadores de la perfumería; la planta es pionera en la recuperación de suelos pobres."
+      },
+      "Urze-da-madeira": {
+        "where": "Macizo montañoso de Madeira",
+        "history": "Domina el brezal de altitud por encima de la laurisilva, hábitat protegido por la Red Natura 2000."
+      },
+      "Lince-ibérico": {
+        "where": "Valle del Guadiana — Mértola y Serpa",
+        "history": "Extinguido en Portugal a finales del siglo XX, regresó en 2015 en uno de los programas de reintroducción más exitosos de Europa."
+      },
+      "Lobo-ibérico": {
+        "where": "Trás-os-Montes, Peneda-Gerês y Douro Internacional",
+        "history": "Protegido por ley desde 1988; casi todos los lobos de Portugal viven al norte del río Duero."
+      },
+      "Águia-de-Bonelli": {
+        "where": "Valles del Tajo y Douro Internacional",
+        "history": "Se recuperó de mínimos históricos gracias a la vigilancia de nidos y la lucha contra el envenenamiento ilegal."
+      },
+      "Flamingo-rosado": {
+        "where": "Ria Formosa y estuario del Sado",
+        "history": "Las salinas abandonadas se convirtieron en refugio: la especie pasó de visitante rara a presencia durante todo el año."
+      },
+      "Caldeirada à fragateira": {
+        "where": "Costa y estuario de Lisboa",
+        "history": "Nació a bordo de las fragatas del Tajo, hecha con el pescado que no se vendía — cocina de necesidad convertida en patrimonio."
+      },
+      "Percebes da Costa Vicentina": {
+        "where": "Costa Vicentina — de Odeceixe a Sagres",
+        "history": "Recogidos en acantilados batidos por el mar, con licencias limitadas desde los años 2000 para frenar la sobreexplotación."
+      },
+      "Cataplana de marisco": {
+        "where": "Algarve",
+        "history": "La olla de cobre cerrada tiene raíz en la cocina árabe del Gharb al-Ándalus: cocina al vapor sin perder aroma."
+      },
+      "Sardinha assada": {
+        "where": "Lisboa y todo el litoral, en verano",
+        "history": "De la faena pesquera a las calles de los Santos Populares — el olor a sardina asada marca la temporada en las ciudades ribereñas."
+      },
+      "Arte Xávega": {
+        "where": "Praia de Mira, Torreira y Costa Nova",
+        "history": "Arrastre tirado hacia tierra, antes por yuntas de bueyes y hoy por tractores; sobrevive como patrimonio vivo de la costa central."
+      },
+      "Barcos moliceiros": {
+        "where": "Ria de Aveiro",
+        "history": "Recogían moliço (algas) para fertilizar los campos; los paneles pintados en la proa eran humor y crónica social de la ría."
+      },
+      "Rendas de bilros": {
+        "where": "Vila do Conde y Peniche",
+        "history": "Oficio femenino de siglos junto al mar, con escuelas propias que aún forman encajeras."
+      },
+      "Passadiços do Paiva": {
+        "where": "Arouca — 8,7 km sobre el río Paiva",
+        "history": "Inauguradas en 2015, transformaron un valle cerrado en un destino nacional y crearon un modelo copiado por decenas de municipios."
+      },
+      "Ecopista do Dão": {
+        "where": "Viseu – Santa Comba Dão · 49 km",
+        "history": "Construida sobre la antigua línea ferroviaria del Dão, desactivada en 1988 y devuelta al público como vía ciclista."
+      },
+      "516 Arouca": {
+        "where": "Arouca — puente colgante de 516 m",
+        "history": "Abierto en 2021 sobre el desfiladero del Paiva; fue en su momento el mayor puente peatonal colgante del mundo."
+      },
+      "Barragem do Alqueva": {
+        "where": "Alentejo — Moura, Portel y Reguengos",
+        "history": "El llenado a partir de 2002 creó el mayor lago artificial de Europa y cambió la agricultura alentejana."
+      },
+      "Queijo Serra da Estrela DOP": {
+        "where": "Beira Interior — Seia, Gouveia, Celorico",
+        "history": "Elaborado con leche cruda de oveja bordaleira y cuajo de cardo, en producción estacional de invierno."
+      },
+      "Vinho do Porto": {
+        "where": "Duero — Régua, Pinhão y Vila Nova de Gaia",
+        "history": "Nace en la primera región demarcada del mundo (1756) y envejece en las bodegas de Gaia desde el comercio inglés del siglo XVIII."
+      },
+      "Mercado do Bolhão": {
+        "where": "Oporto — Rua Formosa",
+        "history": "Abierto en 1914 y rehabilitado hasta 2022, mantiene puestos familiares que han pasado de generación en generación."
+      },
+      "Olaria de Barcelos": {
+        "where": "Barcelos y Galegos",
+        "history": "De la loza utilitaria al Gallo de Barcelos: las figuras de Rosa Ramalho llevaron la alfarería del Minho a los museos."
+      },
+      "Cromeleque dos Almendres": {
+        "where": "Évora — Nossa Senhora de Guadalupe",
+        "history": "Unos 95 menhires erigidos desde c. 6000 a. C., con alineaciones solares — el mayor recinto megalítico de la Península."
+      },
+      "Gravuras do Côa": {
+        "where": "Vila Nova de Foz Côa",
+        "history": "Descubiertos en 1994 durante la construcción de una presa que fue paralizada; Patrimonio Mundial en 1998."
+      },
+      "Dark Sky Alqueva": {
+        "where": "Alentejo — Monsaraz, Reguengos y Mourão",
+        "history": "Primer destino del mundo con certificación Starlight (2011), con alumbrado público adaptado en varios municipios."
+      },
+      "Anta Grande do Zambujeiro": {
+        "where": "Valverde, Évora",
+        "history": "Cámara megalítica con ortostatos de 8 m, excavada en los años 1960 — el mayor dolmen de la península ibérica."
+      },
+      "443 praias Bandeira Azul": {
+        "where": "Todo el país",
+        "history": "Portugal se adhirió al programa en 1987 y se ha convertido en referencia europea en galardones por kilómetro de costa."
+      },
+      "Arriba Fóssil da Caparica": {
+        "where": "Almada y Sesimbra",
+        "history": "Paisaje protegido desde 1984: 13 km de acantilado que registran millones de años de sedimentos."
+      },
+      "Reserva Mundial de Surf": {
+        "where": "Ericeira — de Ribeira d'Ilhas a São Lourenço",
+        "history": "Primera reserva mundial de surf de Europa (2011), con siete olas de categoría mundial en 4 km de costa."
+      },
+      "Ilhas Barreira": {
+        "where": "Ria Formosa — Culatra, Armona y Tavira",
+        "history": "Cordón de islas en movimiento que protege la ría y sustenta comunidades de mariscadores como la de Culatra."
+      },
+      "Fado": {
+        "where": "Lisboa — Alfama y Mouraria · Coímbra",
+        "history": "Nació en los barrios portuarios de Lisboa en el siglo XIX; Patrimonio Inmaterial de la Humanidad desde 2011."
+      },
+      "Cante Alentejano": {
+        "where": "Bajo Alentejo — Serpa, Cuba y Aljustrel",
+        "history": "Canto coral sin instrumentos, de las siegas y las minas; reconocido por la UNESCO en 2014."
+      },
+      "Cavaquinho minhoto": {
+        "where": "Minho — Braga, Guimarães y Amarante",
+        "history": "Pariente del machete madeirense que los emigrantes llevaron a Hawái, donde dio origen al ukelele."
+      },
+      "Bombos de Lavacolhos": {
+        "where": "Fundão — Lavacolhos, Beira Baixa",
+        "history": "Grupos de bombos que marcan romerías y ciclos agrícolas con toques transmitidos oralmente."
+      },
+      "Rota do Fado": {
+        "where": "Lisboa — Alfama, Mouraria y Bairro Alto",
+        "history": "Une casas de fado, museos y calles donde el género se asentó tras salir de las tabernas."
+      },
+      "Rota do Folclore": {
+        "where": "Minho y Ribatejo",
+        "history": "Ranchos folclóricos y trajes que codificaron la identidad regional a partir del siglo XIX."
+      },
+      "Rota das Festas e Romarias": {
+        "where": "Todo el país",
+        "history": "Del Entrudo de Trás-os-Montes a las romerías de agosto: el calendario festivo es el verdadero mapa cultural portugués."
+      },
+      "Rota dos Moinhos": {
+        "where": "Oeste — Óbidos, Bombarral y Peniche",
+        "history": "Molinos de viento y aceñas que molían el cereal de la región hasta la electrificación del siglo XX."
+      },
+      "Procissões do mar": {
+        "where": "Todo el litoral, entre junio y septiembre",
+        "history": "Las comunidades pesqueras llevan a su patrona al mar para bendecir la faena y recordar a los que no volvieron."
+      }
+    }
+  },
+  "fr": {
+    "historySection": {
+      "heading": "Histoire"
+    },
+    "highlightsSection": {
+      "heading": "Incontournables",
+      "openA11y": "Ouvrir l'incontournable {{name}}"
+    },
+    "highlightDetail": {
+      "notFound": "Incontournable introuvable.",
+      "whereToSee": "Où le voir",
+      "navigate": "Y aller",
+      "viewOnMap": "Voir sur la carte",
+      "history": "Histoire",
+      "nearby": "Lieux à proximité dans l'app",
+      "nearbyEmpty": "Pas encore de lieux géolocalisés dans cette catégorie.",
+      "continueExploring": "Continuer à explorer",
+      "backTo": "Retour à {{module}}",
+      "encyclopedia": "Explorer dans l'Encyclopédie",
+      "search": "Rechercher « {{name}} »"
+    },
+    "modules": {
+      "biodiversidade": {
+        "label": "Biodiversité marine",
+        "story": "La côte portugaise réunit des eaux froides d'upwelling et des courants subtropicaux — l'une des plus grandes diversités marines d'Europe, protégée par un réseau d'aires marines né dans les îles.",
+        "milestones": {
+          "0": {
+            "year": "1981",
+            "title": "Réserve naturelle des Berlengas",
+            "desc": "Premier grand renforcement de la protection marine sur le littoral continental."
+          },
+          "1": {
+            "year": "1987",
+            "title": "Parc naturel de la Ria Formosa",
+            "desc": "Système lagunaire aux îles-barrières, nurserie d'espèces côtières."
+          },
+          "2": {
+            "year": "1998",
+            "title": "Parc marin Luiz Saldanha",
+            "desc": "Arrábida — premier parc marin dans les eaux continentales portugaises."
+          },
+          "3": {
+            "year": "2021",
+            "title": "Îles Selvagens",
+            "desc": "Aire marine intégralement protégée de référence dans l'Atlantique Nord."
+          }
+        }
+      },
+      "flora": {
+        "label": "Flore endémique",
+        "story": "De l'Atlantique à la montagne, le Portugal abrite des flores qui n'existent nulle part ailleurs — reliques du Tertiaire dans les îles et endémismes ibériques sur le continent.",
+        "milestones": {
+          "0": {
+            "year": "XVe s.",
+            "title": "Laurisylve décrite",
+            "desc": "Les premiers colons de Madère découvrent une forêt de lauriers vieille de millions d'années."
+          },
+          "1": {
+            "year": "1976",
+            "title": "Parc naturel de la Serra da Estrela",
+            "desc": "Protection de la flore d'altitude du continent."
+          },
+          "2": {
+            "year": "1999",
+            "title": "Laurisylve — UNESCO",
+            "desc": "Patrimoine mondial naturel ; la plus grande laurisylve du monde."
+          }
+        }
+      },
+      "fauna": {
+        "label": "Faune & habitats",
+        "story": "La faune ibérique a survécu dans les espaces vides de l'intérieur. Aujourd'hui, le loup et le lynx sont le baromètre de l'état des habitats — et les zones humides sont une escale incontournable des voies migratoires atlantiques.",
+        "milestones": {
+          "0": {
+            "year": "1988",
+            "title": "Loup ibérique protégé",
+            "desc": "Loi de protection intégrale de l'espèce au Portugal."
+          },
+          "1": {
+            "year": "2015",
+            "title": "Retour du lynx ibérique",
+            "desc": "Premiers lâchers dans la vallée du Guadiana."
+          },
+          "2": {
+            "year": "Toute l'année",
+            "title": "Routes migratoires",
+            "desc": "Ria Formosa, Sado et Tage, haltes du couloir atlantique."
+          }
+        }
+      },
+      "gastronomia": {
+        "label": "Gastronomie côtière",
+        "story": "La cuisine du littoral est née de ce que la marée apportait : poisson modeste, fruits de mer de rocher et bouillons à partager. Chaque technique — griller, cuire en cataplana, mariner en escabèche — raconte une route commerciale.",
+        "milestones": {
+          "0": {
+            "year": "Héritage arabe",
+            "title": "Cataplana",
+            "desc": "Cuisson à l'étouffée en récipient fermé, signature de l'Algarve."
+          },
+          "1": {
+            "year": "XIXe s.",
+            "title": "Sardines grillées",
+            "desc": "De la pêche à la rue — aujourd'hui symbole des fêtes des Santos Populares."
+          },
+          "2": {
+            "year": "Aujourd'hui",
+            "title": "Pouces-pieds réglementés",
+            "desc": "Récolte sous licence sur la Costa Vicentina pour freiner la surexploitation."
+          }
+        }
+      },
+      "cultura-maritima": {
+        "label": "Culture maritime",
+        "story": "Avant les routes, il y avait la mer et la lagune. Les techniques de pêche, les bateaux et les processions en mer sont l'archive vivante de cette économie — et ont toujours lieu sur les mêmes plages.",
+        "milestones": {
+          "0": {
+            "year": "Tradition",
+            "title": "Arte Xávega",
+            "desc": "Senne halée jusqu'à la plage sur la côte centrale — aujourd'hui démonstration et patrimoine."
+          },
+          "1": {
+            "year": "Ria de Aveiro",
+            "title": "Moliceiros",
+            "desc": "Bateaux de récolte du moliço (algues), ornés de panneaux narratifs."
+          },
+          "2": {
+            "year": "Chaque année",
+            "title": "Processions en mer",
+            "desc": "Fêtes de Notre-Dame des Navigateurs tout le long du littoral."
+          }
+        }
+      },
+      "infraestrutura": {
+        "label": "Infrastructure naturelle",
+        "story": "L'ingénierie publique est devenue une attraction : passerelles, voies vertes et ponts suspendus ont ouvert des paysages que seuls les habitants connaissaient — et transformé l'économie de vallées entières.",
+        "milestones": {
+          "0": {
+            "year": "2002",
+            "title": "Mise en eau d'Alqueva",
+            "desc": "Le plus grand lac artificiel d'Europe ; il redessine l'Alentejo."
+          },
+          "1": {
+            "year": "2015",
+            "title": "Passerelles du Paiva",
+            "desc": "8,7 km au-dessus de la rivière ; un modèle reproduit dans tout le pays."
+          },
+          "2": {
+            "year": "2021",
+            "title": "516 Arouca",
+            "desc": "Passerelle suspendue de 516 m au-dessus du Paiva."
+          }
+        }
+      },
+      "economia": {
+        "label": "Économie locale",
+        "story": "L'économie locale est faite d'appellations, de marchés et de métiers. Le Douro a inventé l'idée moderne de région délimitée — et la carte des AOP reste le meilleur guide des saveurs.",
+        "milestones": {
+          "0": {
+            "year": "1756",
+            "title": "Région délimitée du Douro",
+            "desc": "La première région viticole délimitée et réglementée au monde."
+          },
+          "1": {
+            "year": "XXe s.",
+            "title": "Marchés municipaux",
+            "desc": "Bolhão, Ribeira et Livramento ancrent le commerce de proximité."
+          },
+          "2": {
+            "year": "2022",
+            "title": "Réouverture du Bolhão",
+            "desc": "La réhabilitation rend le marché historique à Porto."
+          }
+        }
+      },
+      "prehistoria": {
+        "label": "Préhistoire & astronomie",
+        "story": "Le sud du Portugal abrite l'une des plus fortes concentrations mégalithiques d'Europe — et, au-dessus, le ciel le plus noir du continent. Pierres et étoiles racontent la même histoire d'orientation.",
+        "milestones": {
+          "0": {
+            "year": "v. 6000 av. J.-C.",
+            "title": "Cromlech des Almendres",
+            "desc": "Enceinte mégalithique alignée sur les solstices, près d'Évora."
+          },
+          "1": {
+            "year": "1994",
+            "title": "Découverte du Côa",
+            "desc": "Gravures paléolithiques en plein air ; UNESCO en 1998."
+          },
+          "2": {
+            "year": "2011",
+            "title": "Dark Sky Alqueva",
+            "desc": "Première destination au monde certifiée Starlight."
+          }
+        }
+      },
+      "costa": {
+        "label": "Côte & littoral",
+        "story": "1 800 km de côtes aux quatre visages : falaises, dunes, estuaires et îles-barrières. Le Pavillon Bleu et les réserves de surf ont fait du littoral une infrastructure de loisirs réglementée.",
+        "milestones": {
+          "0": {
+            "year": "1984",
+            "title": "Falaise fossile de Caparica",
+            "desc": "Paysage protégé — une archive géologique à ciel ouvert."
+          },
+          "1": {
+            "year": "1987",
+            "title": "Pavillon Bleu",
+            "desc": "Le Portugal rejoint le programme ; aujourd'hui leader européen par plage."
+          },
+          "2": {
+            "year": "2011",
+            "title": "Réserve mondiale de surf",
+            "desc": "Ericeira — la première d'Europe."
+          }
+        }
+      },
+      "musica": {
+        "label": "Musique traditionnelle",
+        "story": "Deux musiques portugaises sont inscrites au patrimoine immatériel de l'humanité. Entre le fado urbain et le cante collectif de l'Alentejo tient tout un pays — et des instruments qui ont fait le tour du monde.",
+        "milestones": {
+          "0": {
+            "year": "2011",
+            "title": "Fado — UNESCO",
+            "desc": "Patrimoine immatériel ; Lisbonne et Coimbra, deux écoles distinctes."
+          },
+          "1": {
+            "year": "2014",
+            "title": "Cante Alentejano — UNESCO",
+            "desc": "Chant polyphonique sans instruments, aux racines collectives."
+          },
+          "2": {
+            "year": "Émigration",
+            "title": "Du cavaquinho au ukulélé",
+            "desc": "Le machete madérien arrive à Hawaï avec les émigrants."
+          }
+        }
+      },
+      "rotas-culturais": {
+        "label": "Itinéraires culturels",
+        "story": "Les fêtes sont le vrai calendrier du pays. Reliées en itinéraire, elles révèlent des continuités — masques d'hiver, pèlerinages d'été, cycles agricoles — qu'aucun monument isolé ne montre.",
+        "milestones": {
+          "0": {
+            "year": "Racines médiévales",
+            "title": "Tabuleiros de Tomar",
+            "desc": "Cortège de pain et de fleurs, tous les quatre ans."
+          },
+          "1": {
+            "year": "XVIIIe s.",
+            "title": "Senhora da Agonia",
+            "desc": "Viana do Castelo — pèlerinage, costume et or du Minho."
+          },
+          "2": {
+            "year": "2019",
+            "title": "Caretos de Podence — UNESCO",
+            "desc": "Masques de carnaval du Trás-os-Montes."
+          }
+        }
+      },
+      "inclusivo": {
+        "label": "Tourisme inclusif",
+        "story": "L'accessibilité n'est pas un équipement, c'est une chaîne : arriver, se garer, entrer, utiliser et repartir. Portugal Vivo traite l'information d'accessibilité comme une donnée vérifiable — plage par plage, parcours par parcours.",
+        "milestones": {
+          "0": {
+            "year": "2005",
+            "title": "Plage accessible — Plage pour tous",
+            "desc": "Programme national qui a créé des cheminements, une aide à la baignade et des fauteuils amphibies sur les plages surveillées."
+          },
+          "1": {
+            "year": "2017",
+            "title": "Réseau de parcours accessibles",
+            "desc": "Passerelles et voies vertes en plateforme continue sont désormais conçues sans marches."
+          },
+          "2": {
+            "year": "Aujourd'hui",
+            "title": "443 plages Pavillon Bleu",
+            "desc": "Une part croissante avec une aide vérifiée aux personnes à mobilité réduite pendant la saison balnéaire."
+          }
+        }
+      }
+    },
+    "highlights": {
+      "biodiversidade": {
+        "Sardinha-europeia": {
+          "name": "Sardine commune",
+          "meta": "Sardina pilchardus · côte atlantique"
+        },
+        "Golfinho-comum": {
+          "name": "Dauphin commun",
+          "meta": "Delphinus delphis · Sado et Algarve"
+        },
+        "Cavalo-marinho": {
+          "name": "Hippocampe",
+          "meta": "Hippocampus guttulatus · Ria Formosa"
+        },
+        "Polvo-comum": {
+          "name": "Poulpe commun",
+          "meta": "Octopus vulgaris · littoral rocheux"
+        }
+      },
+      "flora": {
+        "Dragoeiro": {
+          "name": "Dragonnier",
+          "meta": "Dracaena draco · Madère et Porto Santo"
+        },
+        "Massaroco": {
+          "name": "Vipérine de Madère",
+          "meta": "Echium candicans · Madère"
+        },
+        "Esteva": {
+          "name": "Ciste ladanifère",
+          "meta": "Cistus ladanifer · Alentejo intérieur"
+        },
+        "Urze-da-madeira": {
+          "name": "Bruyère de Madère",
+          "meta": "Erica maderensis · massif montagneux"
+        }
+      },
+      "fauna": {
+        "Lince-ibérico": {
+          "name": "Lynx pardelle",
+          "meta": "Lynx pardinus · vallée du Guadiana"
+        },
+        "Lobo-ibérico": {
+          "name": "Loup ibérique",
+          "meta": "Canis lupus signatus · Trás-os-Montes"
+        },
+        "Águia-de-Bonelli": {
+          "name": "Aigle de Bonelli",
+          "meta": "Aquila fasciata · vallées du Tage et du Douro"
+        },
+        "Flamingo-rosado": {
+          "name": "Flamant rose",
+          "meta": "Ria Formosa et estuaire du Sado"
+        }
+      },
+      "gastronomia": {
+        "Caldeirada à fragateira": {
+          "name": "Caldeirada à la fragateira",
+          "meta": "Poisson du jour · côte de Lisbonne"
+        },
+        "Percebes da Costa Vicentina": {
+          "name": "Pouces-pieds de la Costa Vicentina",
+          "meta": "Fruits de mer · Alentejo et Algarve"
+        },
+        "Cataplana de marisco": {
+          "name": "Cataplana de fruits de mer",
+          "meta": "Algarve"
+        },
+        "Sardinha assada": {
+          "name": "Sardines grillées",
+          "meta": "Santos Populares · Lisbonne"
+        }
+      },
+      "cultura-maritima": {
+        "Arte Xávega": {
+          "name": "Arte Xávega",
+          "meta": "Pêche traditionnelle · Praia de Mira"
+        },
+        "Barcos moliceiros": {
+          "name": "Bateaux moliceiros",
+          "meta": "Ria de Aveiro"
+        },
+        "Rendas de bilros": {
+          "name": "Dentelle aux fuseaux",
+          "meta": "Vila do Conde et Peniche"
+        },
+        "Procissões do mar": {
+          "name": "Processions en mer",
+          "meta": "Notre-Dame des Navigateurs"
+        }
+      },
+      "infraestrutura": {
+        "Passadiços do Paiva": {
+          "name": "Passerelles du Paiva",
+          "meta": "Arouca · 8,7 km au-dessus de la rivière"
+        },
+        "Ecopista do Dão": {
+          "name": "Voie verte du Dão",
+          "meta": "49 km · Viseu–Santa Comba Dão"
+        },
+        "516 Arouca": {
+          "name": "516 Arouca",
+          "meta": "Pont suspendu · 516 m"
+        },
+        "Barragem do Alqueva": {
+          "name": "Barrage d'Alqueva",
+          "meta": "Plus grand lac artificiel d'Europe"
+        }
+      },
+      "economia": {
+        "Queijo Serra da Estrela DOP": {
+          "name": "Fromage Serra da Estrela AOP",
+          "meta": "Producteurs · Beira Interior"
+        },
+        "Vinho do Porto": {
+          "name": "Vin de Porto",
+          "meta": "Quintas du Douro"
+        },
+        "Mercado do Bolhão": {
+          "name": "Marché du Bolhão",
+          "meta": "Porto"
+        },
+        "Olaria de Barcelos": {
+          "name": "Poterie de Barcelos",
+          "meta": "Métiers et artisanat"
+        }
+      },
+      "prehistoria": {
+        "Cromeleque dos Almendres": {
+          "name": "Cromlech des Almendres",
+          "meta": "Évora · v. 6000 av. J.-C."
+        },
+        "Gravuras do Côa": {
+          "name": "Gravures du Côa",
+          "meta": "Patrimoine mondial UNESCO"
+        },
+        "Dark Sky Alqueva": {
+          "name": "Dark Sky Alqueva",
+          "meta": "1re réserve Starlight au monde"
+        },
+        "Anta Grande do Zambujeiro": {
+          "name": "Grand dolmen de Zambujeiro",
+          "meta": "Plus grand dolmen de la péninsule Ibérique"
+        }
+      },
+      "costa": {
+        "443 praias Bandeira Azul": {
+          "name": "443 plages Pavillon Bleu",
+          "meta": "Record national 2026"
+        },
+        "Arriba Fóssil da Caparica": {
+          "name": "Falaise fossile de Caparica",
+          "meta": "Paysage protégé"
+        },
+        "Reserva Mundial de Surf": {
+          "name": "Réserve mondiale de surf",
+          "meta": "Ericeira"
+        },
+        "Ilhas Barreira": {
+          "name": "Îles-barrières",
+          "meta": "Ria Formosa · Algarve"
+        }
+      },
+      "musica": {
+        "Fado": {
+          "name": "Fado",
+          "meta": "Patrimoine immatériel UNESCO · Lisbonne et Coimbra"
+        },
+        "Cante Alentejano": {
+          "name": "Cante Alentejano",
+          "meta": "UNESCO · chœurs du Baixo Alentejo"
+        },
+        "Cavaquinho minhoto": {
+          "name": "Cavaquinho du Minho",
+          "meta": "Instrument traditionnel"
+        },
+        "Bombos de Lavacolhos": {
+          "name": "Tambours de Lavacolhos",
+          "meta": "Beira Baixa"
+        }
+      },
+      "inclusivo": {
+        "Praias acessíveis": {
+          "name": "Plages accessibles",
+          "meta": "Fauteuil amphibie et cheminement jusqu'à l'eau"
+        },
+        "Passadiços em plataforma": {
+          "name": "Passerelles de plain-pied",
+          "meta": "Parcours continus sans marches"
+        },
+        "Alojamento pet-friendly": {
+          "name": "Hébergements acceptant les animaux",
+          "meta": "Réseau national signalé"
+        },
+        "Rotas para famílias": {
+          "name": "Itinéraires en famille",
+          "meta": "Parcours courts avec services"
+        }
+      },
+      "rotas-culturais": {
+        "Rota do Fado": {
+          "name": "Route du fado",
+          "meta": "Lisbonne · Alfama et Mouraria"
+        },
+        "Rota do Folclore": {
+          "name": "Route du folklore",
+          "meta": "Minho et Ribatejo"
+        },
+        "Rota das Festas e Romarias": {
+          "name": "Route des fêtes et pèlerinages",
+          "meta": "140 fêtes dans l'app"
+        },
+        "Rota dos Moinhos": {
+          "name": "Route des moulins",
+          "meta": "Oeste"
+        }
+      }
+    },
+    "highlightDetails": {
+      "Sardinha-europeia": {
+        "where": "Côte atlantique — Peniche, Matosinhos, Setúbal",
+        "history": "Elle a fait vivre des conserveries et des communautés entières : depuis le XIXe siècle, la sardine rythme le calendrier de la pêche et l'économie des villes du littoral."
+      },
+      "Golfinho-comum": {
+        "where": "Estuaire du Sado et côte de l'Algarve",
+        "history": "La population résidente du Sado est l'une des rares d'Europe à vivre dans un estuaire, suivie par les scientifiques depuis des décennies."
+      },
+      "Cavalo-marinho": {
+        "where": "Ria Formosa — Olhão et Faro",
+        "history": "La Ria Formosa a abrité l'une des plus grandes populations au monde ; son déclin depuis les années 2000 en a fait un cas d'école de la conservation."
+      },
+      "Polvo-comum": {
+        "where": "Littoral rocheux — Algarve et Costa Vicentina",
+        "history": "La pêche aux pots en terre cuite, aujourd'hui remplacés par des casiers, est l'une des plus anciennes techniques du littoral de l'Algarve."
+      },
+      "Dragoeiro": {
+        "where": "Madère et Porto Santo",
+        "history": "Sa résine « sang-de-dragon » était exportée depuis Madère au XVIe siècle, utilisée en teinturerie et en médecine."
+      },
+      "Massaroco": {
+        "where": "Madère — Pico do Arieiro et Paul da Serra",
+        "history": "Endémique de Madère, elle colonise les clairières de la laurisylve et fleurit en hauts épis bleus au printemps."
+      },
+      "Esteva": {
+        "where": "Alentejo intérieur et Beira Baixa",
+        "history": "Le labdanum du ciste est l'un des fixateurs de la parfumerie ; la plante est pionnière dans la reconquête des sols pauvres."
+      },
+      "Urze-da-madeira": {
+        "where": "Massif montagneux de Madère",
+        "history": "Elle domine la lande d'altitude au-dessus de la laurisylve, habitat protégé par le réseau Natura 2000."
+      },
+      "Lince-ibérico": {
+        "where": "Vallée du Guadiana — Mértola et Serpa",
+        "history": "Disparu du Portugal à la fin du XXe siècle, il est revenu en 2015 grâce à l'un des programmes de réintroduction les plus réussis d'Europe."
+      },
+      "Lobo-ibérico": {
+        "where": "Trás-os-Montes, Peneda-Gerês et Douro Internacional",
+        "history": "Protégé par la loi depuis 1988 ; presque tous les loups du Portugal vivent au nord du Douro."
+      },
+      "Águia-de-Bonelli": {
+        "where": "Vallées du Tage et Douro Internacional",
+        "history": "Elle s'est remise de ses plus bas historiques grâce à la surveillance des nids et à la lutte contre l'empoisonnement illégal."
+      },
+      "Flamingo-rosado": {
+        "where": "Ria Formosa et estuaire du Sado",
+        "history": "Les salines abandonnées sont devenues un refuge : l'espèce, autrefois visiteuse rare, est désormais présente toute l'année."
+      },
+      "Caldeirada à fragateira": {
+        "where": "Côte et estuaire de Lisbonne",
+        "history": "Née à bord des fragatas, les barges du Tage, avec le poisson invendu — une cuisine de nécessité devenue patrimoine."
+      },
+      "Percebes da Costa Vicentina": {
+        "where": "Costa Vicentina — d'Odeceixe à Sagres",
+        "history": "Récoltés sur des falaises battues par la mer, avec des licences limitées depuis les années 2000 pour freiner la surexploitation."
+      },
+      "Cataplana de marisco": {
+        "where": "Algarve",
+        "history": "La marmite en cuivre fermée trouve ses racines dans la cuisine arabe du Gharb al-Andalus : elle cuit à la vapeur sans perdre d'arômes."
+      },
+      "Sardinha assada": {
+        "where": "Lisbonne et tout le littoral, en été",
+        "history": "De la pêche aux rues des Santos Populares — l'odeur de sardine grillée annonce la saison dans les villes au bord de l'eau."
+      },
+      "Arte Xávega": {
+        "where": "Praia de Mira, Torreira et Costa Nova",
+        "history": "Filets halés jusqu'à la plage, autrefois par des attelages de bœufs et aujourd'hui par des tracteurs ; elle survit comme patrimoine vivant de la côte centrale."
+      },
+      "Barcos moliceiros": {
+        "where": "Ria de Aveiro",
+        "history": "Ils récoltaient le moliço (algues) pour fertiliser les champs ; les panneaux peints à la proue étaient l'humour et la chronique sociale de la lagune."
+      },
+      "Rendas de bilros": {
+        "where": "Vila do Conde et Peniche",
+        "history": "Un savoir-faire féminin séculaire au bord de la mer, avec ses propres écoles qui forment encore des dentellières."
+      },
+      "Passadiços do Paiva": {
+        "where": "Arouca — 8,7 km le long de la rivière Paiva",
+        "history": "Inaugurées en 2015, elles ont transformé une vallée isolée en destination nationale et créé un modèle copié par des dizaines de communes."
+      },
+      "Ecopista do Dão": {
+        "where": "Viseu – Santa Comba Dão · 49 km",
+        "history": "Aménagée sur l'ancienne ligne ferroviaire du Dão, fermée en 1988 et rendue au public sous forme de piste cyclable."
+      },
+      "516 Arouca": {
+        "where": "Arouca — pont suspendu de 516 m",
+        "history": "Ouvert en 2021 au-dessus des gorges du Paiva ; c'était alors le plus long pont suspendu piéton du monde."
+      },
+      "Barragem do Alqueva": {
+        "where": "Alentejo — Moura, Portel et Reguengos",
+        "history": "Sa mise en eau à partir de 2002 a créé le plus grand lac artificiel d'Europe et transformé l'agriculture de l'Alentejo."
+      },
+      "Queijo Serra da Estrela DOP": {
+        "where": "Beira Interior — Seia, Gouveia, Celorico",
+        "history": "Fabriqué avec du lait cru de brebis bordaleira et de la présure de chardon, en production saisonnière d'hiver."
+      },
+      "Vinho do Porto": {
+        "where": "Douro — Régua, Pinhão et Vila Nova de Gaia",
+        "history": "Il naît dans la première région délimitée au monde (1756) et vieillit dans les caves de Gaia depuis le commerce anglais du XVIIIe siècle."
+      },
+      "Mercado do Bolhão": {
+        "where": "Porto — Rua Formosa",
+        "history": "Ouvert en 1914 et réhabilité jusqu'en 2022, il conserve des étals familiaux transmis de génération en génération."
+      },
+      "Olaria de Barcelos": {
+        "where": "Barcelos et Galegos",
+        "history": "De la vaisselle utilitaire au Coq de Barcelos : les figurines de Rosa Ramalho ont fait entrer la poterie du Minho dans les musées."
+      },
+      "Cromeleque dos Almendres": {
+        "where": "Évora — Nossa Senhora de Guadalupe",
+        "history": "Quelque 95 menhirs dressés depuis env. 6000 av. J.-C., aux alignements solaires — la plus grande enceinte mégalithique de la péninsule Ibérique."
+      },
+      "Gravuras do Côa": {
+        "where": "Vila Nova de Foz Côa",
+        "history": "Découvertes en 1994 lors de la construction d'un barrage, finalement abandonné ; patrimoine mondial en 1998."
+      },
+      "Dark Sky Alqueva": {
+        "where": "Alentejo — Monsaraz, Reguengos et Mourão",
+        "history": "Première destination au monde certifiée Starlight (2011), avec un éclairage public adapté dans plusieurs communes."
+      },
+      "Anta Grande do Zambujeiro": {
+        "where": "Valverde, Évora",
+        "history": "Chambre mégalithique aux orthostates de 8 m, fouillée dans les années 1960 — le plus grand dolmen de la péninsule Ibérique."
+      },
+      "443 praias Bandeira Azul": {
+        "where": "Tout le pays",
+        "history": "Le Portugal a rejoint le programme en 1987 et est devenu une référence européenne en labels par kilomètre de côte."
+      },
+      "Arriba Fóssil da Caparica": {
+        "where": "Almada et Sesimbra",
+        "history": "Paysage protégé depuis 1984 : 13 km de falaise qui conservent des millions d'années de sédiments."
+      },
+      "Reserva Mundial de Surf": {
+        "where": "Ericeira — de Ribeira d'Ilhas à São Lourenço",
+        "history": "Première réserve mondiale de surf d'Europe (2011), avec sept vagues de classe mondiale sur 4 km de côte."
+      },
+      "Ilhas Barreira": {
+        "where": "Ria Formosa — Culatra, Armona et Tavira",
+        "history": "Un cordon d'îles mouvantes qui protège la lagune et fait vivre des communautés de pêcheurs à pied comme celle de Culatra."
+      },
+      "Fado": {
+        "where": "Lisbonne — Alfama et Mouraria · Coimbra",
+        "history": "Né dans les quartiers portuaires de Lisbonne au XIXe siècle ; patrimoine culturel immatériel de l'humanité depuis 2011."
+      },
+      "Cante Alentejano": {
+        "where": "Baixo Alentejo — Serpa, Cuba et Aljustrel",
+        "history": "Chant choral sans instruments, né des moissons et des mines ; reconnu par l'UNESCO en 2014."
+      },
+      "Cavaquinho minhoto": {
+        "where": "Minho — Braga, Guimarães et Amarante",
+        "history": "Parent du machete madérien que les émigrants ont emporté à Hawaï, où il a donné naissance au ukulélé."
+      },
+      "Bombos de Lavacolhos": {
+        "where": "Fundão — Lavacolhos, Beira Baixa",
+        "history": "Des groupes de tambours qui rythment pèlerinages et cycles agricoles avec des frappes transmises oralement."
+      },
+      "Rota do Fado": {
+        "where": "Lisbonne — Alfama, Mouraria et Bairro Alto",
+        "history": "Elle relie maisons de fado, musées et rues où le genre s'est installé après avoir quitté les tavernes."
+      },
+      "Rota do Folclore": {
+        "where": "Minho et Ribatejo",
+        "history": "Groupes folkloriques (ranchos) et costumes qui ont codifié l'identité régionale à partir du XIXe siècle."
+      },
+      "Rota das Festas e Romarias": {
+        "where": "Tout le pays",
+        "history": "De l'Entrudo du Trás-os-Montes aux pèlerinages d'août : le calendrier festif est la véritable carte culturelle du Portugal."
+      },
+      "Rota dos Moinhos": {
+        "where": "Oeste — Óbidos, Bombarral et Peniche",
+        "history": "Moulins à vent et moulins à eau qui moulaient le grain de la région jusqu'à l'électrification du XXe siècle."
+      },
+      "Procissões do mar": {
+        "where": "Tout le littoral, de juin à septembre",
+        "history": "Les communautés de pêcheurs portent leur sainte patronne en mer pour bénir la pêche et se souvenir de ceux qui ne sont pas revenus."
+      }
+    }
+  }
+}

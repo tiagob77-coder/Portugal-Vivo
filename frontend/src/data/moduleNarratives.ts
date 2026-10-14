@@ -1,6 +1,7 @@
 import type React from 'react';
 import type { MaterialIcons } from '@expo/vector-icons';
 import type { Href } from 'expo-router';
+import type { TFunction } from 'i18next';
 
 /**
  * Narrativas dos módulos temáticos — história, marcos e ligações cruzadas
@@ -107,7 +108,7 @@ export const moduleNarratives: Record<string, ModuleNarrative> = {
     milestones: [
       { year: 'Tradição', title: 'Arte Xávega', desc: 'Arrasto puxado para terra na costa central — hoje demonstração e património.' },
       { year: 'Ria de Aveiro', title: 'Moliceiros', desc: 'Barcos de colheita de moliço, decorados com painéis narrativos.' },
-      { year: 'Anual', title: 'Procissiões do mar', desc: 'Festas de N.ª Sr.ª dos Navegantes ao longo de todo o litoral.' },
+      { year: 'Anual', title: 'Procissões do mar', desc: 'Festas de N.ª Sr.ª dos Navegantes ao longo de todo o litoral.' },
     ],
     categories: ['Faróis', 'Pérolas de Portugal'],
   },
@@ -225,4 +226,26 @@ export function getLinkedModules(slug: string): (ModuleNarrative & { slug: strin
   return narrative.links
     .map((s) => (moduleNarratives[s] ? { ...moduleNarratives[s], slug: s } : null))
     .filter((m): m is ModuleNarrative & { slug: string } => m !== null);
+}
+
+/**
+ * Texto editorial de um módulo na língua da interface. As traduções vivem em
+ * `i18n/areas/moduleContent.json`, indexadas pelo slug (e pela posição do marco);
+ * o português continua a ser o texto deste ficheiro.
+ */
+export function localizeModuleNarrative(
+  slug: string,
+  narrative: ModuleNarrative,
+  t: TFunction,
+): Pick<ModuleNarrative, 'label' | 'story' | 'milestones'> {
+  const base = `moduleContent.modules.${slug}`;
+  return {
+    label: t(`${base}.label`, { defaultValue: narrative.label }),
+    story: t(`${base}.story`, { defaultValue: narrative.story }),
+    milestones: narrative.milestones.map((m, i) => ({
+      year: t(`${base}.milestones.${i}.year`, { defaultValue: m.year }),
+      title: t(`${base}.milestones.${i}.title`, { defaultValue: m.title }),
+      desc: t(`${base}.milestones.${i}.desc`, { defaultValue: m.desc }),
+    })),
+  };
 }

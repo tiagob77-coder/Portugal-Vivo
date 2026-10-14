@@ -4,6 +4,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import { useTheme } from '../context/ThemeContext';
 import { palette } from '../theme';
 import { borderRadius, spacing } from '../theme/spacing';
@@ -57,11 +58,12 @@ const C = {
 
 // ─── Type Badge Config ────────────────────────────────────────────────────────
 
-const TYPE_BADGE: Record<string, { label: string; color: string; bg: string }> = {
-  mercado_municipal: { label: 'Mercado Municipal', color: '#D97706', bg: '#FEF3C7' },
-  feira:             { label: 'Feira',              color: '#EA580C', bg: '#FFEDD5' },
-  loja_tradicional:  { label: 'Loja Tradicional',   color: '#92400E', bg: '#FEF3C7' },
-  coop_produtores:   { label: 'Cooperativa',        color: '#15803D', bg: '#DCFCE7' },
+// Label translated at render: modulesCulture.economyMarketCard.types.<type>
+const TYPE_BADGE: Record<string, { color: string; bg: string }> = {
+  mercado_municipal: { color: '#D97706', bg: '#FEF3C7' },
+  feira:             { color: '#EA580C', bg: '#FFEDD5' },
+  loja_tradicional:  { color: '#92400E', bg: '#FEF3C7' },
+  coop_produtores:   { color: '#15803D', bg: '#DCFCE7' },
 };
 
 // ─── Category Icon Map ────────────────────────────────────────────────────────
@@ -78,7 +80,8 @@ const CATEGORY_ICON: Record<string, MaterialIconName> = {
 
 // ─── Month Abbreviations ──────────────────────────────────────────────────────
 
-const MONTH_ABBR = ['J', 'F', 'M', 'A', 'M', 'J', 'J', 'A', 'S', 'O', 'N', 'D'];
+// Initial of the translated short month name (modulesCulture.shared.monthsShort.<key>)
+const MONTH_KEYS = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'];
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
@@ -115,10 +118,12 @@ function TagsRow({ tags }: { tags: string[] }) {
 }
 
 function SeasonDots({ season }: { season: number[] }) {
+  const { t } = useTranslation();
   const currentMonth = new Date().getMonth() + 1;
   return (
     <View style={subStyles.seasonRow}>
-      {MONTH_ABBR.map((abbr, idx) => {
+      {MONTH_KEYS.map((monthKey, idx) => {
+        const abbr = t(`modulesCulture.shared.monthsShort.${monthKey}`).charAt(0);
         const month = idx + 1;
         const inSeason = season.includes(month);
         const isCurrent = month === currentMonth;
@@ -150,6 +155,7 @@ function SeasonDots({ season }: { season: number[] }) {
 
 function MarketContent({ item, expanded }: { item: EconomyMarketCardProps['item']; expanded: boolean }) {
   const { colors } = useTheme();
+  const { t } = useTranslation();
   const typeConf = item.type ? TYPE_BADGE[item.type] : null;
   const topProducts = (item.products ?? []).slice(0, 3);
 
@@ -169,7 +175,7 @@ function MarketContent({ item, expanded }: { item: EconomyMarketCardProps['item'
         {typeConf && (
           <View style={[styles.typeBadge, { backgroundColor: typeConf.bg }]}>
             <Text style={[styles.typeBadgeText, { color: typeConf.color }]}>
-              {typeConf.label}
+              {t(`modulesCulture.economyMarketCard.types.${item.type}`)}
             </Text>
           </View>
         )}
@@ -260,6 +266,7 @@ function ArtisanContent({ item, expanded }: { item: EconomyMarketCardProps['item
 
 function ProductContent({ item, expanded }: { item: EconomyMarketCardProps['item']; expanded: boolean }) {
   const { colors } = useTheme();
+  const { t } = useTranslation();
   const iconName: MaterialIconName = item.category
     ? (CATEGORY_ICON[item.category] ?? 'local-grocery-store')
     : 'local-grocery-store';
@@ -282,7 +289,7 @@ function ProductContent({ item, expanded }: { item: EconomyMarketCardProps['item
         </View>
         {item.dop && (
           <View style={styles.dopBadge}>
-            <Text style={styles.dopBadgeText}>DOP</Text>
+            <Text style={styles.dopBadgeText}>{t('modulesCulture.economyMarketCard.dop')}</Text>
           </View>
         )}
       </View>
@@ -309,6 +316,7 @@ function EconomyMarketCard({
   onPress,
 }: EconomyMarketCardProps) {
   const { colors } = useTheme();
+  const { t } = useTranslation();
   const accentColor =
     variant === 'market'  ? C.market  :
     variant === 'artisan' ? C.artisan :
@@ -321,7 +329,11 @@ function EconomyMarketCard({
         activeOpacity={0.85}
         style={styles.inner}
         accessibilityRole="button"
-        accessibilityLabel={`${expanded ? 'Recolher' : 'Expandir'} ${item.name}`}
+        accessibilityLabel={
+          expanded
+            ? t('modulesCulture.economyMarketCard.collapse', { name: item.name })
+            : t('modulesCulture.economyMarketCard.expand', { name: item.name })
+        }
       >
         {/* Left accent bar */}
         <View style={[styles.accentBar, { backgroundColor: accentColor }]} />

@@ -4,6 +4,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 
 export interface Playlist {
   id: string;
@@ -69,11 +70,15 @@ export const DEFAULT_PLAYLISTS: Playlist[] = [
 ];
 
 export default function CulturalHubPlaylists({ playlists, onSelect }: Props) {
+  const { t } = useTranslation();
+  // Playlists are keyed by id; unknown ones (from the API) show their own text.
+  const text = (pl: Playlist, field: 'title' | 'subtitle' | 'tag') =>
+    t(`modulesRoutes.culturalHub.playlists.${pl.id}.${field}`, { defaultValue: pl[field] ?? '' });
   return (
     <View style={styles.wrapper}>
       <View style={styles.titleRow}>
         <MaterialIcons name="playlist-play" size={15} color="#A855F7" />
-        <Text style={styles.title}>Playlists Temáticas</Text>
+        <Text style={styles.title}>{t('modulesRoutes.culturalHub.playlistsTitle')}</Text>
       </View>
       <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.scroll}>
         {playlists.map((pl) => (
@@ -83,14 +88,18 @@ export default function CulturalHubPlaylists({ playlists, onSelect }: Props) {
             </View>
             {pl.tag && (
               <View style={[styles.tag, { backgroundColor: pl.color + '25' }]}>
-                <Text style={[styles.tagText, { color: pl.color }]}>{pl.tag}</Text>
+                <Text style={[styles.tagText, { color: pl.color }]}>{text(pl, 'tag')}</Text>
               </View>
             )}
-            <Text style={styles.cardTitle} numberOfLines={2}>{pl.title}</Text>
-            <Text style={styles.cardSub} numberOfLines={2}>{pl.subtitle}</Text>
+            <Text style={styles.cardTitle} numberOfLines={2}>{text(pl, 'title')}</Text>
+            <Text style={styles.cardSub} numberOfLines={2}>{text(pl, 'subtitle')}</Text>
             <View style={styles.routeCount}>
               <MaterialIcons name="route" size={11} color="#6B7280" />
-              <Text style={styles.routeCountText}>{pl.routeIds.length} rotas</Text>
+              <Text style={styles.routeCountText}>
+                {pl.routeIds.length === 1
+                  ? t('modulesRoutes.culturalHub.routesOne')
+                  : t('modulesRoutes.culturalHub.routes', { count: pl.routeIds.length })}
+              </Text>
             </View>
           </TouchableOpacity>
         ))}
