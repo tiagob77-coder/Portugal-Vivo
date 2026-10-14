@@ -12,6 +12,7 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useQuery } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
 import { getFeaturedTrails, FeaturedTrail } from '../../src/services/api/routes';
 import FeaturedTrailCard from '../../src/components/FeaturedTrailCard';
 
@@ -24,16 +25,25 @@ const C = {
 };
 
 const DIFFICULTIES = [
-  { key: 'facil', label: 'Fácil', color: '#16A34A' },
-  { key: 'moderado', label: 'Moderado', color: '#F59E0B' },
-  { key: 'dificil', label: 'Difícil', color: '#EA580C' },
+  { key: 'facil', labelKey: 'modulesRoutes.trail.difficulty.facil', color: '#16A34A' },
+  { key: 'moderado', labelKey: 'modulesRoutes.trail.difficulty.moderado', color: '#F59E0B' },
+  { key: 'dificil', labelKey: 'modulesRoutes.trail.difficulty.dificil', color: '#EA580C' },
 ];
 
-const REGIONS = ['Norte', 'Centro', 'Lisboa', 'Alentejo', 'Açores', 'Madeira'];
+// `value` is the region sent to the API; `labelKey` is only for display.
+const REGIONS = [
+  { value: 'Norte', labelKey: 'modulesRoutes.trilhos.regions.norte' },
+  { value: 'Centro', labelKey: 'modulesRoutes.trilhos.regions.centro' },
+  { value: 'Lisboa', labelKey: 'modulesRoutes.trilhos.regions.lisboa' },
+  { value: 'Alentejo', labelKey: 'modulesRoutes.trilhos.regions.alentejo' },
+  { value: 'Açores', labelKey: 'modulesRoutes.trilhos.regions.acores' },
+  { value: 'Madeira', labelKey: 'modulesRoutes.trilhos.regions.madeira' },
+];
 
 export default function FeaturedTrailsScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const { t } = useTranslation();
 
   const [difficulty, setDifficulty] = useState('');
   const [region, setRegion] = useState('');
@@ -58,11 +68,11 @@ export default function FeaturedTrailsScreen() {
         <TouchableOpacity
           onPress={() => router.back()}
           accessibilityRole="button"
-          accessibilityLabel="Voltar"
+          accessibilityLabel={t('common.back')}
         >
           <MaterialIcons name="arrow-back" size={24} color={C.textDark} />
         </TouchableOpacity>
-        <Text style={styles.title}>Trilhos em destaque</Text>
+        <Text style={styles.title}>{t('modulesRoutes.trilhos.title')}</Text>
         <View style={styles.headerSpacer} />
       </View>
 
@@ -70,7 +80,7 @@ export default function FeaturedTrailsScreen() {
         <MaterialIcons name="search" size={20} color={C.textMed} />
         <TextInput
           style={styles.searchInput}
-          placeholder="Procurar trilho…"
+          placeholder={t('modulesRoutes.trilhos.searchPlaceholder')}
           placeholderTextColor={C.textMed}
           value={search}
           onChangeText={setSearch}
@@ -78,7 +88,7 @@ export default function FeaturedTrailsScreen() {
           autoCorrect={false}
         />
         {search ? (
-          <TouchableOpacity onPress={() => setSearch('')} accessibilityRole="button" accessibilityLabel="Limpar pesquisa">
+          <TouchableOpacity onPress={() => setSearch('')} accessibilityRole="button" accessibilityLabel={t('modulesRoutes.shared.clearSearch')}>
             <MaterialIcons name="close" size={18} color={C.textMed} />
           </TouchableOpacity>
         ) : null}
@@ -88,31 +98,33 @@ export default function FeaturedTrailsScreen() {
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chipsRow}>
           {DIFFICULTIES.map((d) => {
             const active = difficulty === d.key;
+            const label = t(d.labelKey);
             return (
               <TouchableOpacity
                 key={d.key}
                 style={[styles.chip, active && { backgroundColor: d.color, borderColor: d.color }]}
                 onPress={() => setDifficulty(active ? '' : d.key)}
                 accessibilityRole="button"
-                accessibilityLabel={`Dificuldade ${d.label}`}
+                accessibilityLabel={t('modulesRoutes.trilhos.difficultyA11y', { level: label })}
               >
-                <Text style={[styles.chipText, active && styles.chipTextActive]}>{d.label}</Text>
+                <Text style={[styles.chipText, active && styles.chipTextActive]}>{label}</Text>
               </TouchableOpacity>
             );
           })}
         </ScrollView>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chipsRow}>
           {REGIONS.map((r) => {
-            const active = region === r;
+            const active = region === r.value;
+            const label = t(r.labelKey);
             return (
               <TouchableOpacity
-                key={r}
+                key={r.value}
                 style={[styles.chip, active && styles.chipActive]}
-                onPress={() => setRegion(active ? '' : r)}
+                onPress={() => setRegion(active ? '' : r.value)}
                 accessibilityRole="button"
-                accessibilityLabel={`Região ${r}`}
+                accessibilityLabel={t('modulesRoutes.trilhos.regionA11y', { region: label })}
               >
-                <Text style={[styles.chipText, active && styles.chipTextActive]}>{r}</Text>
+                <Text style={[styles.chipText, active && styles.chipTextActive]}>{label}</Text>
               </TouchableOpacity>
             );
           })}
@@ -127,7 +139,7 @@ export default function FeaturedTrailsScreen() {
         <View style={styles.center}>
           <MaterialIcons name="hiking" size={40} color={C.textMed} />
           <Text style={styles.emptyText}>
-            {hasFilters ? 'Sem trilhos para esta pesquisa.' : 'Sem trilhos disponíveis.'}
+            {hasFilters ? t('modulesRoutes.trilhos.emptyFiltered') : t('modulesRoutes.trilhos.empty')}
           </Text>
         </View>
       ) : (

@@ -9,6 +9,7 @@ import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 import { getModuleTheme, withOpacity, onColor } from '../../theme/colors';
 import { getModuleNarrative, getLinkedModules } from '../../data/moduleNarratives';
 
@@ -18,10 +19,11 @@ interface Props {
 
 export function ModuleLinks({ module }: Props) {
   const router = useRouter();
+  const { t } = useTranslation();
   const narrative = getModuleNarrative(module);
   if (!narrative) return null;
 
-  const t = getModuleTheme(module);
+  const theme = getModuleTheme(module);
   const linked = getLinkedModules(module);
   // A primeira categoria é a mais representativa do módulo
   const encyclopediaQuery = narrative.categories[0];
@@ -29,51 +31,54 @@ export function ModuleLinks({ module }: Props) {
   return (
     <View style={s.section} testID="module-links">
       <View style={s.headingRow}>
-        <MaterialIcons name="hub" size={20} color={t.accent} />
-        <Text style={[s.heading, { color: t.textPrimary }]}>Ligações</Text>
+        <MaterialIcons name="hub" size={20} color={theme.accent} />
+        <Text style={[s.heading, { color: theme.textPrimary }]}>{t('modulesRoutes.moduleLinks.heading')}</Text>
       </View>
 
-      {linked.map((m) => (
-        <TouchableOpacity
-          key={m.slug}
-          style={[s.row, { backgroundColor: t.card, borderColor: withOpacity(t.accent, 0.2) }]}
-          onPress={() => router.push(m.route)}
-          activeOpacity={0.75}
-          accessibilityRole="button"
-          accessibilityLabel={`Abrir módulo ${m.label}`}
-        >
-          <View style={[s.rowIcon, { backgroundColor: withOpacity(t.accent, 0.15) }]}>
-            <MaterialIcons name={m.icon} size={19} color={t.accent} />
-          </View>
-          <View style={s.rowBody}>
-            <Text style={[s.rowTitle, { color: t.textPrimary }]}>{m.label}</Text>
-            <Text style={[s.rowDesc, { color: t.textMuted }]} numberOfLines={2}>
-              {m.story}
-            </Text>
-          </View>
-          <MaterialIcons name="chevron-right" size={20} color={t.textMuted} />
-        </TouchableOpacity>
-      ))}
+      {linked.map((m) => {
+        const label = t(`modulesRoutes.modules.${m.slug}.label`, { defaultValue: m.label });
+        return (
+          <TouchableOpacity
+            key={m.slug}
+            style={[s.row, { backgroundColor: theme.card, borderColor: withOpacity(theme.accent, 0.2) }]}
+            onPress={() => router.push(m.route)}
+            activeOpacity={0.75}
+            accessibilityRole="button"
+            accessibilityLabel={t('modulesRoutes.moduleLinks.openModule', { module: label })}
+          >
+            <View style={[s.rowIcon, { backgroundColor: withOpacity(theme.accent, 0.15) }]}>
+              <MaterialIcons name={m.icon} size={19} color={theme.accent} />
+            </View>
+            <View style={s.rowBody}>
+              <Text style={[s.rowTitle, { color: theme.textPrimary }]}>{label}</Text>
+              <Text style={[s.rowDesc, { color: theme.textMuted }]} numberOfLines={2}>
+                {t(`modulesRoutes.modules.${m.slug}.story`, { defaultValue: m.story })}
+              </Text>
+            </View>
+            <MaterialIcons name="chevron-right" size={20} color={theme.textMuted} />
+          </TouchableOpacity>
+        );
+      })}
 
       <View style={s.ctaRow}>
         <TouchableOpacity
-          style={[s.cta, { backgroundColor: t.accent }]}
+          style={[s.cta, { backgroundColor: theme.accent }]}
           onPress={() => router.push({ pathname: '/encyclopedia', params: { q: encyclopediaQuery } })}
           activeOpacity={0.85}
           accessibilityRole="button"
         >
-          <MaterialIcons name="menu-book" size={17} color={onColor(t.accent)} />
-          <Text style={[s.ctaText, { color: onColor(t.accent) }]}>Enciclopédia</Text>
+          <MaterialIcons name="menu-book" size={17} color={onColor(theme.accent)} />
+          <Text style={[s.ctaText, { color: onColor(theme.accent) }]}>{t('modulesRoutes.moduleLinks.encyclopedia')}</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
-          style={[s.cta, s.ctaGhost, { borderColor: t.accent }]}
+          style={[s.cta, s.ctaGhost, { borderColor: theme.accent }]}
           onPress={() => router.push('/(tabs)/mapa')}
           activeOpacity={0.85}
           accessibilityRole="button"
         >
-          <MaterialIcons name="map" size={17} color={t.accent} />
-          <Text style={[s.ctaText, { color: t.accent }]}>Ver no mapa</Text>
+          <MaterialIcons name="map" size={17} color={theme.accent} />
+          <Text style={[s.ctaText, { color: theme.accent }]}>{t('modulesRoutes.moduleLinks.seeOnMap')}</Text>
         </TouchableOpacity>
       </View>
     </View>

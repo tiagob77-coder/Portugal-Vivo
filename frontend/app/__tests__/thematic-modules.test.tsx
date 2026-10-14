@@ -4,7 +4,10 @@
  * biodiversidade, cultura-maritima, infraestrutura, prehistoria
  */
 import React from 'react';
-import { render } from '@testing-library/react-native';
+import { act, render } from '@testing-library/react-native';
+import { changeLanguage } from 'i18next';
+import ModuleGuideCta from '../../src/components/module/ModuleGuideCta';
+import ModuleLinks from '../../src/components/module/ModuleLinks';
 
 // ─── expo-router ──────────────────────────────────────────────────────────────
 jest.mock('expo-router', () => ({
@@ -183,5 +186,29 @@ describe('Thematic Modules — smoke tests', () => {
     const PrehistoriaScreen = require('../prehistoria/index').default;
     const { toJSON } = render(<PrehistoriaScreen />);
     expect(toJSON()).toBeTruthy();
+  });
+});
+
+describe('Thematic modules — guide CTA and links in English', () => {
+  afterEach(async () => {
+    await act(async () => {
+      await changeLanguage('pt');
+    });
+  });
+
+  it('renders the guide CTA and module links copy in English', async () => {
+    await act(async () => {
+      await changeLanguage('en');
+    });
+    const { getByText, getByLabelText } = render(
+      <>
+        <ModuleGuideCta module="rotas-culturais" />
+        <ModuleLinks module="rotas-culturais" />
+      </>,
+    );
+    expect(getByText('Exploration Guide')).toBeTruthy();
+    expect(getByText('Connections')).toBeTruthy();
+    expect(getByText('Traditional Music')).toBeTruthy();
+    expect(getByLabelText('Open Traditional Music module')).toBeTruthy();
   });
 });

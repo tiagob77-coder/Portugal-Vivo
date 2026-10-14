@@ -1,6 +1,1282 @@
 {
-  "pt": {},
-  "en": {},
-  "es": {},
-  "fr": {}
+  "pt": {
+    "shared": {
+      "clearSearch": "Limpar pesquisa",
+      "premium": "Premium",
+      "oneDay": "{{count}} dia",
+      "days": "{{count}} dias",
+      "festivals": "Festivais associados",
+      "months": {
+        "jan": "Jan",
+        "feb": "Fev",
+        "mar": "Mar",
+        "apr": "Abr",
+        "may": "Mai",
+        "jun": "Jun",
+        "jul": "Jul",
+        "aug": "Ago",
+        "sep": "Set",
+        "oct": "Out",
+        "nov": "Nov",
+        "dec": "Dez"
+      },
+      "families": {
+        "musicais": "Musical",
+        "danca": "Dança",
+        "festas": "Festas",
+        "trajes": "Trajes",
+        "instrumentos": "Instrumentos",
+        "integradas": "Integrada"
+      }
+    },
+    "rotasCulturais": {
+      "title": "Rotas Culturais",
+      "subtitle": "Música · Dança · Festas · Trajes · Instrumentos",
+      "en2A11y": "Abrir a rota EN2",
+      "en2Title": "EN2 · a Route 66 portuguesa",
+      "en2Sub": "738,5 km de Chaves a Faro · 11 distritos · passaporte de carimbos",
+      "premiumBanner": "{{routes}} rotas premium · {{unesco}} UNESCO · 6 famílias culturais",
+      "searchPlaceholder": "Procurar rota, instrumento, região…",
+      "families": {
+        "todos": "Todas",
+        "musicais": "Musicais",
+        "danca": "Danca",
+        "festas": "Festas",
+        "trajes": "Trajes",
+        "instrumentos": "Instrumentos",
+        "integradas": "Integradas"
+      },
+      "regions": {
+        "all": "Todas",
+        "minho": "Minho",
+        "porto": "Porto",
+        "douro": "Douro",
+        "lisboa": "Lisboa",
+        "alentejo": "Alentejo",
+        "algarve": "Algarve",
+        "acores": "Acores",
+        "madeira": "Madeira"
+      },
+      "layers": {
+        "routes": "Rotas",
+        "heritage": "Património",
+        "events": "Eventos",
+        "trails": "Trilhos",
+        "unesco": "UNESCO",
+        "gastronomy": "Gastronomia"
+      },
+      "foundOne": "{{count}} rota encontrada",
+      "found": "{{count}} rotas encontradas",
+      "emptyTitle": "Sem rotas nesta categoria",
+      "emptyText": "Tenta outra família ou região para descobrir rotas culturais.",
+      "sources": "Dados: DGPC · UNESCO · Municípios · Conselho da Europa"
+    },
+    "rotaDetail": {
+      "title": "Rota cultural",
+      "loadError": "Não foi possível carregar a rota.",
+      "oneStop": "{{count}} paragens",
+      "stopsCount": "{{count}} paragens",
+      "routeTrace": "Traçado da rota",
+      "about": "Sobre a rota",
+      "upcomingEvents": "Eventos a acontecer",
+      "stops": "Paragens",
+      "instruments": "Instrumentos",
+      "dances": "Danças",
+      "gastronomy": "Gastronomia",
+      "costumes": "Trajes",
+      "voices": "Vozes & oralidade",
+      "bestTime": "Melhor altura"
+    },
+    "routeCard": {
+      "mappedStopsOne": "{{count}} paragens mapeadas",
+      "mappedStops": "{{count}} paragens mapeadas"
+    },
+    "trilhos": {
+      "title": "Trilhos em destaque",
+      "searchPlaceholder": "Procurar trilho…",
+      "difficultyA11y": "Dificuldade {{level}}",
+      "regionA11y": "Região {{region}}",
+      "emptyFiltered": "Sem trilhos para esta pesquisa.",
+      "empty": "Sem trilhos disponíveis.",
+      "regions": {
+        "norte": "Norte",
+        "centro": "Centro",
+        "lisboa": "Lisboa",
+        "alentejo": "Alentejo",
+        "acores": "Açores",
+        "madeira": "Madeira"
+      }
+    },
+    "trail": {
+      "difficulty": {
+        "facil": "Fácil",
+        "moderado": "Moderado",
+        "dificil": "Difícil",
+        "muitoDificil": "Muito difícil"
+      }
+    },
+    "trailDetail": {
+      "title": "Trilho",
+      "loadError": "Não foi possível carregar o trilho.",
+      "distance": "Distância",
+      "duration": "Duração",
+      "maxElevation": "Cota máx.",
+      "rating": "Avaliação",
+      "geometryPending": "Geometria por confirmar",
+      "geometryReady": "Traçado no mapa",
+      "routeTrace": "Traçado do percurso",
+      "about": "Sobre o trilho",
+      "reviewTitle": "Destaques de quem já foi",
+      "highlights": "Destaques",
+      "openA11y": "Ver {{name}} no AllTrails",
+      "open": "Ver no AllTrails",
+      "attribution": "Conteúdo e dados do trilho © AllTrails"
+    },
+    "inclusivo": {
+      "title": "Turismo Inclusivo",
+      "subtitle": "Portugal para todos",
+      "intro": "Praias, percursos e equipamentos acessíveis — informação verificada para mobilidade reduzida, famílias e animais.",
+      "regionLabel": "REGIÃO",
+      "regions": {
+        "norte": "Norte",
+        "centro": "Centro",
+        "lisboa": "Lisboa e Vale do Tejo",
+        "alentejo": "Alentejo",
+        "algarve": "Algarve",
+        "acores": "Açores",
+        "madeira": "Madeira"
+      },
+      "readsTitle": {
+        "norte": "Acessibilidade no Norte",
+        "centro": "Acessibilidade no Centro",
+        "lisboa": "Acessibilidade no Lisboa e Vale do Tejo",
+        "alentejo": "Acessibilidade no Alentejo",
+        "algarve": "Acessibilidade no Algarve",
+        "acores": "Acessibilidade no Açores",
+        "madeira": "Acessibilidade no Madeira"
+      },
+      "footer": "Confirme sempre o apoio disponível junto do posto de praia ou do município.",
+      "reads": {
+        "norte": {
+          "r1": {
+            "title": "Praias acessíveis de Matosinhos a Vila do Conde",
+            "desc": "Passadeira até à água, cadeira anfíbia e apoio de nadador-salvador na época balnear — confirme no posto de praia."
+          },
+          "r2": {
+            "title": "Metro do Porto e frente ribeirinha",
+            "desc": "Toda a rede tem elevador e piso tátil; a marginal do Douro dá um percurso plano até à Foz."
+          },
+          "r3": {
+            "title": "Ecopistas do Tâmega e do Corgo",
+            "desc": "Antigas linhas férreas em plataforma contínua, sem degraus e com desnível mínimo."
+          }
+        },
+        "centro": {
+          "r1": {
+            "title": "Museus e centros de ciência acessíveis",
+            "desc": "Museu Vista Alegre, Ciência Viva de Aveiro e Museu do Papel têm circuito completo sem degraus."
+          },
+          "r2": {
+            "title": "Passadiços do Mondego em troço plano",
+            "desc": "O troço junto à Ponte da Mucela é o mais regular; os acessos de Góis têm estacionamento adaptado."
+          },
+          "r3": {
+            "title": "Aldeias históricas — planear a visita",
+            "desc": "Piódão e Monsanto têm calçada irregular e declives: escolha os miradouros com estacionamento próximo e apoio."
+          }
+        },
+        "lisboa": {
+          "r1": {
+            "title": "Praias com cadeira anfíbia na Caparica e Cascais",
+            "desc": "Várias praias têm passadeira, cadeira anfíbia e apoio de banho assistido entre junho e setembro."
+          },
+          "r2": {
+            "title": "Metro, elevadores e Belém",
+            "desc": "Quase todas as estações têm elevador; a frente ribeirinha de Belém a Algés é plana e contínua."
+          },
+          "r3": {
+            "title": "Museus com apoio adaptado",
+            "desc": "Gulbenkian, MAAT e Oceanário têm percursos acessíveis, visitas em LGP e material tátil por marcação."
+          }
+        },
+        "alentejo": {
+          "r1": {
+            "title": "Évora acessível no centro histórico",
+            "desc": "O circuito Templo–Sé–Praça do Giraldo tem calçada regularizada; peça o mapa acessível no posto de turismo."
+          },
+          "r2": {
+            "title": "Alqueva e barcos com acesso",
+            "desc": "Os cais de Amieira têm rampas e há embarcações com embarque adaptado por marcação."
+          },
+          "r3": {
+            "title": "Observação de céu escuro sem trilho",
+            "desc": "As sessões Dark Sky fazem-se em plataformas com acesso de carro — não exigem caminhada."
+          }
+        },
+        "algarve": {
+          "r1": {
+            "title": "Rede de praias acessíveis do sotavento",
+            "desc": "A maior concentração do país: passadeira, cadeira anfíbia e apoio balnear em praias de Faro a Monte Gordo."
+          },
+          "r2": {
+            "title": "Passadiços da Ria Formosa em Marim",
+            "desc": "Plataforma contínua com painéis e miradouros, adequada a cadeira de rodas com acompanhante."
+          },
+          "r3": {
+            "title": "Ecovia do Litoral em troços planos",
+            "desc": "Os segmentos de Tavira a Cabanas e da Praia de Faro são planos e pavimentados."
+          }
+        },
+        "acores": {
+          "r1": {
+            "title": "Frentes de mar acessíveis",
+            "desc": "Ponta Delgada, Angra e Horta têm marginais planas, com miradouros e piscinas com rampa."
+          },
+          "r2": {
+            "title": "Furnas e caldeiras com acesso de carro",
+            "desc": "O percurso das caldeiras e o Terra Nostra permitem ver a atividade geotérmica sem trilho."
+          },
+          "r3": {
+            "title": "Observação de cetáceos com embarque assistido",
+            "desc": "Alguns operadores têm barco com acesso facilitado — confirme sempre por telefone na véspera."
+          }
+        },
+        "madeira": {
+          "r1": {
+            "title": "Funchal e teleféricos",
+            "desc": "A baixa, a marginal e o teleférico do Monte formam um circuito acessível com vista de encosta."
+          },
+          "r2": {
+            "title": "Miradouros com acesso adaptado",
+            "desc": "Cabo Girão tem skywalk com piso regular e estacionamento adaptado, sem necessidade de caminhada."
+          },
+          "r3": {
+            "title": "Piscinas naturais com estrutura",
+            "desc": "Porto Moniz tem acesso adaptado ao complexo principal, com vestiários e rampa."
+          }
+        }
+      }
+    },
+    "moduleGuideCta": {
+      "a11y": "Abrir Guia de Exploração de {{module}}",
+      "title": "Guia de Exploração",
+      "desc": "Experiências, transportes e acessibilidade, região a região"
+    },
+    "moduleLinks": {
+      "heading": "Ligações",
+      "openModule": "Abrir módulo {{module}}",
+      "encyclopedia": "Enciclopédia",
+      "seeOnMap": "Ver no mapa"
+    },
+    "modules": {
+      "biodiversidade": {
+        "label": "Biodiversidade Marinha",
+        "story": "A costa portuguesa junta águas frias de afloramento e correntes subtropicais — uma das maiores diversidades marinhas da Europa, protegida por uma rede de áreas marinhas que começou nas ilhas."
+      },
+      "flora": {
+        "label": "Flora Endémica",
+        "story": "Do Atlântico à montanha, Portugal guarda floras que não existem em mais nenhum lugar — relíquias do Terciário nas ilhas e endemismos ibéricos no continente."
+      },
+      "fauna": {
+        "label": "Fauna & Habitats",
+        "story": "A fauna ibérica sobreviveu nos vazios do interior. Hoje o lobo e o lince são o termómetro do estado dos habitats — e as zonas húmidas são escala obrigatória das rotas migratórias atlânticas."
+      },
+      "gastronomia": {
+        "label": "Gastronomia Costeira",
+        "story": "A cozinha do litoral nasceu do que a maré dava: peixe humilde, marisco de rocha e caldos de partilha. Cada técnica — assar, cataplanar, escabechar — conta uma rota de comércio."
+      },
+      "cultura-maritima": {
+        "label": "Cultura Marítima",
+        "story": "Antes das estradas havia o mar e a ria. As artes de pesca, os barcos e as procissiões do mar são o arquivo vivo dessa economia — e continuam a acontecer nas mesmas praias."
+      },
+      "infraestrutura": {
+        "label": "Infraestrutura Natural",
+        "story": "A engenharia pública virou atração: passadiços, ecopistas e pontes suspensas abriram paisagens que antes só os locais conheciam — e mudaram a economia de vales inteiros."
+      },
+      "economia": {
+        "label": "Economia Local",
+        "story": "A economia local é feita de denominações, mercados e ofícios. O Douro inventou a ideia moderna de região demarcada — e o mapa DOP continua a ser o melhor guia de sabores."
+      },
+      "prehistoria": {
+        "label": "Pré-História & Astronomia",
+        "story": "O sul de Portugal tem uma das maiores concentrações megalíticas da Europa — e, por cima, o céu mais escuro do continente. Pedra e estrelas contam a mesma história de orientação."
+      },
+      "costa": {
+        "label": "Costa & Litoral",
+        "story": "1 800 km de costa em quatro realidades: arribas, dunas, estuários e ilhas-barreira. A Bandeira Azul e as reservas de surf transformaram a orla em infraestrutura de lazer regulada."
+      },
+      "musica": {
+        "label": "Música Tradicional",
+        "story": "Duas músicas portuguesas são Património Imaterial da Humanidade. Entre o fado urbano e o cante coletivo do Alentejo cabe todo um país — e instrumentos que viajaram o mundo."
+      },
+      "rotas-culturais": {
+        "label": "Rotas Culturais",
+        "story": "As festas são o calendário real do país. Ligadas em rota, revelam continuidades — máscaras de inverno, romarias de verão, ciclos agrícolas — que nenhum monumento isolado mostra."
+      },
+      "inclusivo": {
+        "label": "Turismo Inclusivo",
+        "story": "Acessibilidade não é um equipamento, é uma cadeia: chegar, estacionar, entrar, usar e sair. O Portugal Vivo trata a informação de apoio como dado verificável — praia a praia, percurso a percurso."
+      }
+    }
+  },
+  "en": {
+    "shared": {
+      "clearSearch": "Clear search",
+      "premium": "Premium",
+      "oneDay": "{{count}} day",
+      "days": "{{count}} days",
+      "festivals": "Related festivals",
+      "months": {
+        "jan": "Jan",
+        "feb": "Feb",
+        "mar": "Mar",
+        "apr": "Apr",
+        "may": "May",
+        "jun": "Jun",
+        "jul": "Jul",
+        "aug": "Aug",
+        "sep": "Sep",
+        "oct": "Oct",
+        "nov": "Nov",
+        "dec": "Dec"
+      },
+      "families": {
+        "musicais": "Music",
+        "danca": "Dance",
+        "festas": "Festivals",
+        "trajes": "Costumes",
+        "instrumentos": "Instruments",
+        "integradas": "Integrated"
+      }
+    },
+    "rotasCulturais": {
+      "title": "Cultural Routes",
+      "subtitle": "Music · Dance · Festivals · Costumes · Instruments",
+      "en2A11y": "Open the EN2 route",
+      "en2Title": "EN2 · Portugal's Route 66",
+      "en2Sub": "738.5 km from Chaves to Faro · 11 districts · stamp passport",
+      "premiumBanner": "{{routes}} premium routes · {{unesco}} UNESCO · 6 cultural families",
+      "searchPlaceholder": "Search route, instrument, region…",
+      "families": {
+        "todos": "All",
+        "musicais": "Music",
+        "danca": "Dance",
+        "festas": "Festivals",
+        "trajes": "Costumes",
+        "instrumentos": "Instruments",
+        "integradas": "Integrated"
+      },
+      "regions": {
+        "all": "All",
+        "minho": "Minho",
+        "porto": "Porto",
+        "douro": "Douro",
+        "lisboa": "Lisbon",
+        "alentejo": "Alentejo",
+        "algarve": "Algarve",
+        "acores": "Azores",
+        "madeira": "Madeira"
+      },
+      "layers": {
+        "routes": "Routes",
+        "heritage": "Heritage",
+        "events": "Events",
+        "trails": "Trails",
+        "unesco": "UNESCO",
+        "gastronomy": "Food & drink"
+      },
+      "foundOne": "{{count}} route found",
+      "found": "{{count}} routes found",
+      "emptyTitle": "No routes in this category",
+      "emptyText": "Try another family or region to discover cultural routes.",
+      "sources": "Data: DGPC · UNESCO · Municipalities · Council of Europe"
+    },
+    "rotaDetail": {
+      "title": "Cultural route",
+      "loadError": "We couldn't load this route.",
+      "oneStop": "{{count}} stop",
+      "stopsCount": "{{count}} stops",
+      "routeTrace": "Route map",
+      "about": "About the route",
+      "upcomingEvents": "Upcoming events",
+      "stops": "Stops",
+      "instruments": "Instruments",
+      "dances": "Dances",
+      "gastronomy": "Food & drink",
+      "costumes": "Costumes",
+      "voices": "Voices & oral tradition",
+      "bestTime": "Best time to go"
+    },
+    "routeCard": {
+      "mappedStopsOne": "{{count}} mapped stop",
+      "mappedStops": "{{count}} mapped stops"
+    },
+    "trilhos": {
+      "title": "Featured trails",
+      "searchPlaceholder": "Search trails…",
+      "difficultyA11y": "Difficulty {{level}}",
+      "regionA11y": "Region {{region}}",
+      "emptyFiltered": "No trails match this search.",
+      "empty": "No trails available.",
+      "regions": {
+        "norte": "North",
+        "centro": "Centre",
+        "lisboa": "Lisbon",
+        "alentejo": "Alentejo",
+        "acores": "Azores",
+        "madeira": "Madeira"
+      }
+    },
+    "trail": {
+      "difficulty": {
+        "facil": "Easy",
+        "moderado": "Moderate",
+        "dificil": "Hard",
+        "muitoDificil": "Very hard"
+      }
+    },
+    "trailDetail": {
+      "title": "Trail",
+      "loadError": "We couldn't load this trail.",
+      "distance": "Distance",
+      "duration": "Duration",
+      "maxElevation": "Max. altitude",
+      "rating": "Rating",
+      "geometryPending": "Track to be confirmed",
+      "geometryReady": "Track on the map",
+      "routeTrace": "Trail map",
+      "about": "About the trail",
+      "reviewTitle": "Highlights from hikers",
+      "highlights": "Highlights",
+      "openA11y": "View {{name}} on AllTrails",
+      "open": "View on AllTrails",
+      "attribution": "Trail content and data © AllTrails"
+    },
+    "inclusivo": {
+      "title": "Inclusive Tourism",
+      "subtitle": "Portugal for everyone",
+      "intro": "Accessible beaches, trails and facilities — verified information for people with reduced mobility, families and pets.",
+      "regionLabel": "REGION",
+      "regions": {
+        "norte": "North",
+        "centro": "Centre",
+        "lisboa": "Lisbon & Tagus Valley",
+        "alentejo": "Alentejo",
+        "algarve": "Algarve",
+        "acores": "Azores",
+        "madeira": "Madeira"
+      },
+      "readsTitle": {
+        "norte": "Accessibility in the North",
+        "centro": "Accessibility in the Centre",
+        "lisboa": "Accessibility in Lisbon & the Tagus Valley",
+        "alentejo": "Accessibility in the Alentejo",
+        "algarve": "Accessibility in the Algarve",
+        "acores": "Accessibility in the Azores",
+        "madeira": "Accessibility in Madeira"
+      },
+      "footer": "Always confirm the support available with the beach post or the local council.",
+      "reads": {
+        "norte": {
+          "r1": {
+            "title": "Accessible beaches from Matosinhos to Vila do Conde",
+            "desc": "Boardwalk down to the water, amphibious wheelchair and lifeguard support during the bathing season — check at the beach post."
+          },
+          "r2": {
+            "title": "Porto Metro and the riverside",
+            "desc": "The whole network has lifts and tactile paving; the Douro waterfront offers a level route all the way to Foz."
+          },
+          "r3": {
+            "title": "Tâmega and Corgo greenways",
+            "desc": "Former railway lines on a continuous surface, step-free and with minimal gradient."
+          }
+        },
+        "centro": {
+          "r1": {
+            "title": "Accessible museums and science centres",
+            "desc": "Museu Vista Alegre, Ciência Viva in Aveiro and the Paper Museum offer a complete step-free circuit."
+          },
+          "r2": {
+            "title": "Mondego boardwalks on a level stretch",
+            "desc": "The section by Ponte da Mucela is the most even; the Góis access points have adapted parking."
+          },
+          "r3": {
+            "title": "Historic villages — plan your visit",
+            "desc": "Piódão and Monsanto have uneven cobbles and slopes: choose viewpoints with nearby parking and assistance."
+          }
+        },
+        "lisboa": {
+          "r1": {
+            "title": "Beaches with amphibious wheelchairs in Caparica and Cascais",
+            "desc": "Several beaches have a boardwalk, an amphibious wheelchair and assisted bathing between June and September."
+          },
+          "r2": {
+            "title": "Metro, lifts and Belém",
+            "desc": "Almost every station has a lift; the waterfront from Belém to Algés is level and continuous."
+          },
+          "r3": {
+            "title": "Museums with adapted support",
+            "desc": "Gulbenkian, MAAT and the Oceanário have accessible routes, tours in Portuguese Sign Language and tactile materials by appointment."
+          }
+        },
+        "alentejo": {
+          "r1": {
+            "title": "Accessible Évora in the historic centre",
+            "desc": "The Temple–Cathedral–Praça do Giraldo circuit has smoothed cobbles; ask for the accessible map at the tourist office."
+          },
+          "r2": {
+            "title": "Alqueva and accessible boats",
+            "desc": "The Amieira piers have ramps and some boats offer adapted boarding by appointment."
+          },
+          "r3": {
+            "title": "Dark-sky stargazing with no trail",
+            "desc": "Dark Sky sessions take place on platforms reachable by car — no walking required."
+          }
+        },
+        "algarve": {
+          "r1": {
+            "title": "Accessible beach network in the eastern Algarve",
+            "desc": "The country's highest concentration: boardwalks, amphibious wheelchairs and bathing support on beaches from Faro to Monte Gordo."
+          },
+          "r2": {
+            "title": "Ria Formosa boardwalks at Marim",
+            "desc": "A continuous platform with information panels and viewpoints, suitable for wheelchair users with a companion."
+          },
+          "r3": {
+            "title": "Coastal Ecovia on level stretches",
+            "desc": "The Tavira to Cabanas and Praia de Faro sections are flat and paved."
+          }
+        },
+        "acores": {
+          "r1": {
+            "title": "Accessible seafronts",
+            "desc": "Ponta Delgada, Angra and Horta have level promenades, with viewpoints and pools with ramps."
+          },
+          "r2": {
+            "title": "Furnas and the hot springs by car",
+            "desc": "The caldeiras route and Terra Nostra let you see the geothermal activity without a trail."
+          },
+          "r3": {
+            "title": "Whale watching with assisted boarding",
+            "desc": "Some operators have boats with easier access — always confirm by phone the day before."
+          }
+        },
+        "madeira": {
+          "r1": {
+            "title": "Funchal and the cable cars",
+            "desc": "The old town, the seafront and the Monte cable car form an accessible circuit with hillside views."
+          },
+          "r2": {
+            "title": "Viewpoints with adapted access",
+            "desc": "Cabo Girão has a skywalk with an even surface and adapted parking, no walking needed."
+          },
+          "r3": {
+            "title": "Natural pools with facilities",
+            "desc": "Porto Moniz has adapted access to the main complex, with changing rooms and a ramp."
+          }
+        }
+      }
+    },
+    "moduleGuideCta": {
+      "a11y": "Open the {{module}} Exploration Guide",
+      "title": "Exploration Guide",
+      "desc": "Experiences, transport and accessibility, region by region"
+    },
+    "moduleLinks": {
+      "heading": "Connections",
+      "openModule": "Open {{module}} module",
+      "encyclopedia": "Encyclopedia",
+      "seeOnMap": "See on map"
+    },
+    "modules": {
+      "biodiversidade": {
+        "label": "Marine Biodiversity",
+        "story": "The Portuguese coast brings together cold upwelling waters and subtropical currents — one of the richest marine diversities in Europe, protected by a network of marine areas that began in the islands."
+      },
+      "flora": {
+        "label": "Endemic Flora",
+        "story": "From the Atlantic to the mountains, Portugal shelters plant life found nowhere else — Tertiary relics on the islands and Iberian endemics on the mainland."
+      },
+      "fauna": {
+        "label": "Wildlife & Habitats",
+        "story": "Iberian wildlife survived in the empty interior. Today the wolf and the lynx are the barometer of the habitats' health — and the wetlands are a must-stop on the Atlantic migration routes."
+      },
+      "gastronomia": {
+        "label": "Coastal Cuisine",
+        "story": "Coastal cooking was born of what the tide brought in: humble fish, rock seafood and broths made for sharing. Every technique — grilling, cooking in a cataplana, pickling in escabeche — tells of a trade route."
+      },
+      "cultura-maritima": {
+        "label": "Maritime Culture",
+        "story": "Before the roads there were the sea and the lagoon. Fishing crafts, boats and sea processions are the living archive of that economy — and they still take place on the same beaches."
+      },
+      "infraestrutura": {
+        "label": "Natural Infrastructure",
+        "story": "Public engineering became an attraction: boardwalks, greenways and suspension bridges opened up landscapes once known only to locals — and changed the economy of entire valleys."
+      },
+      "economia": {
+        "label": "Local Economy",
+        "story": "The local economy is made of appellations, markets and crafts. The Douro invented the modern idea of a demarcated region — and the PDO map is still the best guide to flavour."
+      },
+      "prehistoria": {
+        "label": "Prehistory & Astronomy",
+        "story": "Southern Portugal has one of the greatest concentrations of megaliths in Europe — and, above it, the darkest sky on the continent. Stone and stars tell the same story of orientation."
+      },
+      "costa": {
+        "label": "Coast & Shoreline",
+        "story": "1,800 km of coastline in four settings: cliffs, dunes, estuaries and barrier islands. The Blue Flag and the surf reserves have turned the shoreline into regulated leisure infrastructure."
+      },
+      "musica": {
+        "label": "Traditional Music",
+        "story": "Two Portuguese musical traditions are Intangible Cultural Heritage of Humanity. Between urban fado and the collective cante of the Alentejo lies a whole country — and instruments that travelled the world."
+      },
+      "rotas-culturais": {
+        "label": "Cultural Routes",
+        "story": "Festivals are the country's true calendar. Linked into routes, they reveal continuities — winter masks, summer pilgrimages, farming cycles — that no single monument can show."
+      },
+      "inclusivo": {
+        "label": "Inclusive Tourism",
+        "story": "Accessibility is not a piece of equipment, it is a chain: arriving, parking, getting in, using and leaving. Portugal Vivo treats support information as verifiable data — beach by beach, trail by trail."
+      }
+    }
+  },
+  "es": {
+    "shared": {
+      "clearSearch": "Borrar búsqueda",
+      "premium": "Premium",
+      "oneDay": "{{count}} día",
+      "days": "{{count}} días",
+      "festivals": "Festivales asociados",
+      "months": {
+        "jan": "Ene",
+        "feb": "Feb",
+        "mar": "Mar",
+        "apr": "Abr",
+        "may": "May",
+        "jun": "Jun",
+        "jul": "Jul",
+        "aug": "Ago",
+        "sep": "Sep",
+        "oct": "Oct",
+        "nov": "Nov",
+        "dec": "Dic"
+      },
+      "families": {
+        "musicais": "Musical",
+        "danca": "Danza",
+        "festas": "Fiestas",
+        "trajes": "Trajes",
+        "instrumentos": "Instrumentos",
+        "integradas": "Integrada"
+      }
+    },
+    "rotasCulturais": {
+      "title": "Rutas culturales",
+      "subtitle": "Música · Danza · Fiestas · Trajes · Instrumentos",
+      "en2A11y": "Abrir la ruta EN2",
+      "en2Title": "EN2 · la Ruta 66 portuguesa",
+      "en2Sub": "738,5 km de Chaves a Faro · 11 distritos · pasaporte de sellos",
+      "premiumBanner": "{{routes}} rutas premium · {{unesco}} UNESCO · 6 familias culturales",
+      "searchPlaceholder": "Buscar ruta, instrumento, región…",
+      "families": {
+        "todos": "Todas",
+        "musicais": "Musicales",
+        "danca": "Danza",
+        "festas": "Fiestas",
+        "trajes": "Trajes",
+        "instrumentos": "Instrumentos",
+        "integradas": "Integradas"
+      },
+      "regions": {
+        "all": "Todas",
+        "minho": "Miño",
+        "porto": "Oporto",
+        "douro": "Duero",
+        "lisboa": "Lisboa",
+        "alentejo": "Alentejo",
+        "algarve": "Algarve",
+        "acores": "Azores",
+        "madeira": "Madeira"
+      },
+      "layers": {
+        "routes": "Rutas",
+        "heritage": "Patrimonio",
+        "events": "Eventos",
+        "trails": "Senderos",
+        "unesco": "UNESCO",
+        "gastronomy": "Gastronomía"
+      },
+      "foundOne": "{{count}} ruta encontrada",
+      "found": "{{count}} rutas encontradas",
+      "emptyTitle": "No hay rutas en esta categoría",
+      "emptyText": "Prueba otra familia o región para descubrir rutas culturales.",
+      "sources": "Datos: DGPC · UNESCO · Municipios · Consejo de Europa"
+    },
+    "rotaDetail": {
+      "title": "Ruta cultural",
+      "loadError": "No se ha podido cargar la ruta.",
+      "oneStop": "{{count}} parada",
+      "stopsCount": "{{count}} paradas",
+      "routeTrace": "Trazado de la ruta",
+      "about": "Sobre la ruta",
+      "upcomingEvents": "Próximos eventos",
+      "stops": "Paradas",
+      "instruments": "Instrumentos",
+      "dances": "Danzas",
+      "gastronomy": "Gastronomía",
+      "costumes": "Trajes",
+      "voices": "Voces y oralidad",
+      "bestTime": "Mejor época"
+    },
+    "routeCard": {
+      "mappedStopsOne": "{{count}} parada en el mapa",
+      "mappedStops": "{{count}} paradas en el mapa"
+    },
+    "trilhos": {
+      "title": "Senderos destacados",
+      "searchPlaceholder": "Buscar sendero…",
+      "difficultyA11y": "Dificultad {{level}}",
+      "regionA11y": "Región {{region}}",
+      "emptyFiltered": "No hay senderos para esta búsqueda.",
+      "empty": "No hay senderos disponibles.",
+      "regions": {
+        "norte": "Norte",
+        "centro": "Centro",
+        "lisboa": "Lisboa",
+        "alentejo": "Alentejo",
+        "acores": "Azores",
+        "madeira": "Madeira"
+      }
+    },
+    "trail": {
+      "difficulty": {
+        "facil": "Fácil",
+        "moderado": "Moderado",
+        "dificil": "Difícil",
+        "muitoDificil": "Muy difícil"
+      }
+    },
+    "trailDetail": {
+      "title": "Sendero",
+      "loadError": "No se ha podido cargar el sendero.",
+      "distance": "Distancia",
+      "duration": "Duración",
+      "maxElevation": "Altitud máx.",
+      "rating": "Valoración",
+      "geometryPending": "Trazado por confirmar",
+      "geometryReady": "Trazado en el mapa",
+      "routeTrace": "Trazado del recorrido",
+      "about": "Sobre el sendero",
+      "reviewTitle": "Lo más destacado de quienes ya fueron",
+      "highlights": "Destacados",
+      "openA11y": "Ver {{name}} en AllTrails",
+      "open": "Ver en AllTrails",
+      "attribution": "Contenido y datos del sendero © AllTrails"
+    },
+    "inclusivo": {
+      "title": "Turismo inclusivo",
+      "subtitle": "Portugal para todos",
+      "intro": "Playas, recorridos e instalaciones accesibles — información verificada para personas con movilidad reducida, familias y mascotas.",
+      "regionLabel": "REGIÓN",
+      "regions": {
+        "norte": "Norte",
+        "centro": "Centro",
+        "lisboa": "Lisboa y Valle del Tajo",
+        "alentejo": "Alentejo",
+        "algarve": "Algarve",
+        "acores": "Azores",
+        "madeira": "Madeira"
+      },
+      "readsTitle": {
+        "norte": "Accesibilidad en el Norte",
+        "centro": "Accesibilidad en el Centro",
+        "lisboa": "Accesibilidad en Lisboa y el Valle del Tajo",
+        "alentejo": "Accesibilidad en el Alentejo",
+        "algarve": "Accesibilidad en el Algarve",
+        "acores": "Accesibilidad en las Azores",
+        "madeira": "Accesibilidad en Madeira"
+      },
+      "footer": "Confirme siempre la asistencia disponible en el puesto de playa o en el ayuntamiento.",
+      "reads": {
+        "norte": {
+          "r1": {
+            "title": "Playas accesibles de Matosinhos a Vila do Conde",
+            "desc": "Pasarela hasta el agua, silla anfibia y apoyo de socorrista en temporada de baño — confírmelo en el puesto de playa."
+          },
+          "r2": {
+            "title": "Metro de Oporto y ribera",
+            "desc": "Toda la red tiene ascensor y pavimento táctil; el paseo del Duero ofrece un recorrido llano hasta Foz."
+          },
+          "r3": {
+            "title": "Vías verdes del Tâmega y del Corgo",
+            "desc": "Antiguas líneas férreas en plataforma continua, sin escalones y con desnivel mínimo."
+          }
+        },
+        "centro": {
+          "r1": {
+            "title": "Museos y centros de ciencia accesibles",
+            "desc": "El Museu Vista Alegre, el Ciência Viva de Aveiro y el Museu do Papel tienen un circuito completo sin escalones."
+          },
+          "r2": {
+            "title": "Pasarelas del Mondego en tramo llano",
+            "desc": "El tramo junto al Ponte da Mucela es el más regular; los accesos de Góis tienen aparcamiento adaptado."
+          },
+          "r3": {
+            "title": "Aldeas históricas — planificar la visita",
+            "desc": "Piódão y Monsanto tienen empedrado irregular y pendientes: elija miradores con aparcamiento cercano y apoyo."
+          }
+        },
+        "lisboa": {
+          "r1": {
+            "title": "Playas con silla anfibia en Caparica y Cascais",
+            "desc": "Varias playas tienen pasarela, silla anfibia y baño asistido entre junio y septiembre."
+          },
+          "r2": {
+            "title": "Metro, ascensores y Belém",
+            "desc": "Casi todas las estaciones tienen ascensor; el frente ribereño de Belém a Algés es llano y continuo."
+          },
+          "r3": {
+            "title": "Museos con apoyo adaptado",
+            "desc": "Gulbenkian, MAAT y el Oceanário tienen recorridos accesibles, visitas en lengua de signos portuguesa y material táctil con cita previa."
+          }
+        },
+        "alentejo": {
+          "r1": {
+            "title": "Évora accesible en el centro histórico",
+            "desc": "El circuito Templo–Catedral–Praça do Giraldo tiene el empedrado regularizado; pida el mapa accesible en la oficina de turismo."
+          },
+          "r2": {
+            "title": "Alqueva y barcos accesibles",
+            "desc": "Los muelles de Amieira tienen rampas y hay embarcaciones con embarque adaptado con cita previa."
+          },
+          "r3": {
+            "title": "Observación de cielo oscuro sin sendero",
+            "desc": "Las sesiones Dark Sky se hacen en plataformas con acceso en coche — no exigen caminar."
+          }
+        },
+        "algarve": {
+          "r1": {
+            "title": "Red de playas accesibles del sotavento",
+            "desc": "La mayor concentración del país: pasarela, silla anfibia y apoyo al baño en playas de Faro a Monte Gordo."
+          },
+          "r2": {
+            "title": "Pasarelas de la Ria Formosa en Marim",
+            "desc": "Plataforma continua con paneles y miradores, adecuada para silla de ruedas con acompañante."
+          },
+          "r3": {
+            "title": "Ecovía del Litoral en tramos llanos",
+            "desc": "Los tramos de Tavira a Cabanas y de la Praia de Faro son llanos y pavimentados."
+          }
+        },
+        "acores": {
+          "r1": {
+            "title": "Paseos marítimos accesibles",
+            "desc": "Ponta Delgada, Angra y Horta tienen paseos llanos, con miradores y piscinas con rampa."
+          },
+          "r2": {
+            "title": "Furnas y calderas con acceso en coche",
+            "desc": "El recorrido de las calderas y el Terra Nostra permiten ver la actividad geotérmica sin sendero."
+          },
+          "r3": {
+            "title": "Avistamiento de cetáceos con embarque asistido",
+            "desc": "Algunos operadores tienen barcos con acceso facilitado — confírmelo siempre por teléfono la víspera."
+          }
+        },
+        "madeira": {
+          "r1": {
+            "title": "Funchal y los teleféricos",
+            "desc": "El centro, el paseo marítimo y el teleférico de Monte forman un circuito accesible con vistas a la ladera."
+          },
+          "r2": {
+            "title": "Miradores con acceso adaptado",
+            "desc": "El Cabo Girão tiene un skywalk con suelo regular y aparcamiento adaptado, sin necesidad de caminar."
+          },
+          "r3": {
+            "title": "Piscinas naturales con instalaciones",
+            "desc": "Porto Moniz tiene acceso adaptado al complejo principal, con vestuarios y rampa."
+          }
+        }
+      }
+    },
+    "moduleGuideCta": {
+      "a11y": "Abrir la Guía de exploración de {{module}}",
+      "title": "Guía de exploración",
+      "desc": "Experiencias, transporte y accesibilidad, región a región"
+    },
+    "moduleLinks": {
+      "heading": "Conexiones",
+      "openModule": "Abrir módulo {{module}}",
+      "encyclopedia": "Enciclopedia",
+      "seeOnMap": "Ver en el mapa"
+    },
+    "modules": {
+      "biodiversidade": {
+        "label": "Biodiversidad marina",
+        "story": "La costa portuguesa reúne aguas frías de afloramiento y corrientes subtropicales — una de las mayores diversidades marinas de Europa, protegida por una red de áreas marinas que nació en las islas."
+      },
+      "flora": {
+        "label": "Flora endémica",
+        "story": "Del Atlántico a la montaña, Portugal guarda floras que no existen en ningún otro lugar — reliquias del Terciario en las islas y endemismos ibéricos en el continente."
+      },
+      "fauna": {
+        "label": "Fauna y hábitats",
+        "story": "La fauna ibérica sobrevivió en los vacíos del interior. Hoy el lobo y el lince son el termómetro del estado de los hábitats — y los humedales son escala obligada de las rutas migratorias atlánticas."
+      },
+      "gastronomia": {
+        "label": "Gastronomía costera",
+        "story": "La cocina del litoral nació de lo que traía la marea: pescado humilde, marisco de roca y caldos para compartir. Cada técnica — asar, cocinar en cataplana, escabechar — cuenta una ruta comercial."
+      },
+      "cultura-maritima": {
+        "label": "Cultura marítima",
+        "story": "Antes de las carreteras estaban el mar y la ría. Las artes de pesca, los barcos y las procesiones del mar son el archivo vivo de esa economía — y siguen celebrándose en las mismas playas."
+      },
+      "infraestrutura": {
+        "label": "Infraestructura natural",
+        "story": "La ingeniería pública se convirtió en atracción: pasarelas, vías verdes y puentes colgantes abrieron paisajes que antes solo conocían los lugareños — y cambiaron la economía de valles enteros."
+      },
+      "economia": {
+        "label": "Economía local",
+        "story": "La economía local está hecha de denominaciones, mercados y oficios. El Duero inventó la idea moderna de región demarcada — y el mapa DOP sigue siendo la mejor guía de sabores."
+      },
+      "prehistoria": {
+        "label": "Prehistoria y astronomía",
+        "story": "El sur de Portugal tiene una de las mayores concentraciones megalíticas de Europa — y, por encima, el cielo más oscuro del continente. Piedra y estrellas cuentan la misma historia de orientación."
+      },
+      "costa": {
+        "label": "Costa y litoral",
+        "story": "1800 km de costa en cuatro realidades: acantilados, dunas, estuarios e islas barrera. La Bandera Azul y las reservas de surf han convertido el litoral en una infraestructura de ocio regulada."
+      },
+      "musica": {
+        "label": "Música tradicional",
+        "story": "Dos músicas portuguesas son Patrimonio Inmaterial de la Humanidad. Entre el fado urbano y el cante colectivo del Alentejo cabe todo un país — e instrumentos que viajaron por el mundo."
+      },
+      "rotas-culturais": {
+        "label": "Rutas culturales",
+        "story": "Las fiestas son el verdadero calendario del país. Unidas en ruta, revelan continuidades — máscaras de invierno, romerías de verano, ciclos agrícolas — que ningún monumento aislado muestra."
+      },
+      "inclusivo": {
+        "label": "Turismo inclusivo",
+        "story": "La accesibilidad no es un equipamiento, es una cadena: llegar, aparcar, entrar, usar y salir. Portugal Vivo trata la información de apoyo como un dato verificable — playa a playa, recorrido a recorrido."
+      }
+    }
+  },
+  "fr": {
+    "shared": {
+      "clearSearch": "Effacer la recherche",
+      "premium": "Premium",
+      "oneDay": "{{count}} jour",
+      "days": "{{count}} jours",
+      "festivals": "Festivals associés",
+      "months": {
+        "jan": "Janv.",
+        "feb": "Févr.",
+        "mar": "Mars",
+        "apr": "Avr.",
+        "may": "Mai",
+        "jun": "Juin",
+        "jul": "Juil.",
+        "aug": "Août",
+        "sep": "Sept.",
+        "oct": "Oct.",
+        "nov": "Nov.",
+        "dec": "Déc."
+      },
+      "families": {
+        "musicais": "Musique",
+        "danca": "Danse",
+        "festas": "Fêtes",
+        "trajes": "Costumes",
+        "instrumentos": "Instruments",
+        "integradas": "Intégrée"
+      }
+    },
+    "rotasCulturais": {
+      "title": "Itinéraires culturels",
+      "subtitle": "Musique · Danse · Fêtes · Costumes · Instruments",
+      "en2A11y": "Ouvrir l'itinéraire EN2",
+      "en2Title": "EN2 · la Route 66 portugaise",
+      "en2Sub": "738,5 km de Chaves à Faro · 11 districts · passeport à tampons",
+      "premiumBanner": "{{routes}} itinéraires premium · {{unesco}} UNESCO · 6 familles culturelles",
+      "searchPlaceholder": "Rechercher un itinéraire, un instrument, une région…",
+      "families": {
+        "todos": "Toutes",
+        "musicais": "Musique",
+        "danca": "Danse",
+        "festas": "Fêtes",
+        "trajes": "Costumes",
+        "instrumentos": "Instruments",
+        "integradas": "Intégrées"
+      },
+      "regions": {
+        "all": "Toutes",
+        "minho": "Minho",
+        "porto": "Porto",
+        "douro": "Douro",
+        "lisboa": "Lisbonne",
+        "alentejo": "Alentejo",
+        "algarve": "Algarve",
+        "acores": "Açores",
+        "madeira": "Madère"
+      },
+      "layers": {
+        "routes": "Itinéraires",
+        "heritage": "Patrimoine",
+        "events": "Événements",
+        "trails": "Sentiers",
+        "unesco": "UNESCO",
+        "gastronomy": "Gastronomie"
+      },
+      "foundOne": "{{count}} itinéraire trouvé",
+      "found": "{{count}} itinéraires trouvés",
+      "emptyTitle": "Aucun itinéraire dans cette catégorie",
+      "emptyText": "Essayez une autre famille ou région pour découvrir des itinéraires culturels.",
+      "sources": "Données : DGPC · UNESCO · Municipalités · Conseil de l'Europe"
+    },
+    "rotaDetail": {
+      "title": "Itinéraire culturel",
+      "loadError": "Impossible de charger l'itinéraire.",
+      "oneStop": "{{count}} étape",
+      "stopsCount": "{{count}} étapes",
+      "routeTrace": "Tracé de l'itinéraire",
+      "about": "À propos de l'itinéraire",
+      "upcomingEvents": "Événements à venir",
+      "stops": "Étapes",
+      "instruments": "Instruments",
+      "dances": "Danses",
+      "gastronomy": "Gastronomie",
+      "costumes": "Costumes",
+      "voices": "Voix & oralité",
+      "bestTime": "Meilleure période"
+    },
+    "routeCard": {
+      "mappedStopsOne": "{{count}} étape cartographiée",
+      "mappedStops": "{{count}} étapes cartographiées"
+    },
+    "trilhos": {
+      "title": "Sentiers à la une",
+      "searchPlaceholder": "Rechercher un sentier…",
+      "difficultyA11y": "Difficulté {{level}}",
+      "regionA11y": "Région {{region}}",
+      "emptyFiltered": "Aucun sentier pour cette recherche.",
+      "empty": "Aucun sentier disponible.",
+      "regions": {
+        "norte": "Nord",
+        "centro": "Centre",
+        "lisboa": "Lisbonne",
+        "alentejo": "Alentejo",
+        "acores": "Açores",
+        "madeira": "Madère"
+      }
+    },
+    "trail": {
+      "difficulty": {
+        "facil": "Facile",
+        "moderado": "Modéré",
+        "dificil": "Difficile",
+        "muitoDificil": "Très difficile"
+      }
+    },
+    "trailDetail": {
+      "title": "Sentier",
+      "loadError": "Impossible de charger le sentier.",
+      "distance": "Distance",
+      "duration": "Durée",
+      "maxElevation": "Altitude max.",
+      "rating": "Note",
+      "geometryPending": "Tracé à confirmer",
+      "geometryReady": "Tracé sur la carte",
+      "routeTrace": "Tracé du parcours",
+      "about": "À propos du sentier",
+      "reviewTitle": "Les points forts selon les randonneurs",
+      "highlights": "Points forts",
+      "openA11y": "Voir {{name}} sur AllTrails",
+      "open": "Voir sur AllTrails",
+      "attribution": "Contenu et données du sentier © AllTrails"
+    },
+    "inclusivo": {
+      "title": "Tourisme inclusif",
+      "subtitle": "Le Portugal pour tous",
+      "intro": "Plages, parcours et équipements accessibles — des informations vérifiées pour les personnes à mobilité réduite, les familles et les animaux.",
+      "regionLabel": "RÉGION",
+      "regions": {
+        "norte": "Nord",
+        "centro": "Centre",
+        "lisboa": "Lisbonne et vallée du Tage",
+        "alentejo": "Alentejo",
+        "algarve": "Algarve",
+        "acores": "Açores",
+        "madeira": "Madère"
+      },
+      "readsTitle": {
+        "norte": "Accessibilité dans le Nord",
+        "centro": "Accessibilité dans le Centre",
+        "lisboa": "Accessibilité à Lisbonne et dans la vallée du Tage",
+        "alentejo": "Accessibilité dans l'Alentejo",
+        "algarve": "Accessibilité dans l'Algarve",
+        "acores": "Accessibilité aux Açores",
+        "madeira": "Accessibilité à Madère"
+      },
+      "footer": "Vérifiez toujours l'assistance disponible auprès du poste de plage ou de la mairie.",
+      "reads": {
+        "norte": {
+          "r1": {
+            "title": "Plages accessibles de Matosinhos à Vila do Conde",
+            "desc": "Passerelle jusqu'à l'eau, fauteuil amphibie et assistance des sauveteurs pendant la saison balnéaire — renseignez-vous au poste de plage."
+          },
+          "r2": {
+            "title": "Métro de Porto et bord du fleuve",
+            "desc": "Tout le réseau dispose d'ascenseurs et de bandes podotactiles ; les quais du Douro offrent un parcours plat jusqu'à Foz."
+          },
+          "r3": {
+            "title": "Voies vertes du Tâmega et du Corgo",
+            "desc": "Anciennes voies ferrées sur plateforme continue, sans marches et avec un dénivelé minimal."
+          }
+        },
+        "centro": {
+          "r1": {
+            "title": "Musées et centres de sciences accessibles",
+            "desc": "Le Musée Vista Alegre, le Ciência Viva d'Aveiro et le Musée du Papier proposent un circuit complet sans marches."
+          },
+          "r2": {
+            "title": "Passerelles du Mondego sur un tronçon plat",
+            "desc": "Le tronçon près du Ponte da Mucela est le plus régulier ; les accès de Góis disposent d'un parking adapté."
+          },
+          "r3": {
+            "title": "Villages historiques — préparer la visite",
+            "desc": "Piódão et Monsanto ont des pavés irréguliers et des pentes : choisissez les belvédères avec parking à proximité et assistance."
+          }
+        },
+        "lisboa": {
+          "r1": {
+            "title": "Plages avec fauteuil amphibie à Caparica et Cascais",
+            "desc": "Plusieurs plages disposent d'une passerelle, d'un fauteuil amphibie et d'une aide à la baignade entre juin et septembre."
+          },
+          "r2": {
+            "title": "Métro, ascenseurs et Belém",
+            "desc": "Presque toutes les stations ont un ascenseur ; les quais de Belém à Algés sont plats et continus."
+          },
+          "r3": {
+            "title": "Musées avec accueil adapté",
+            "desc": "La Gulbenkian, le MAAT et l'Oceanário proposent des parcours accessibles, des visites en langue des signes portugaise et du matériel tactile sur réservation."
+          }
+        },
+        "alentejo": {
+          "r1": {
+            "title": "Évora accessible dans le centre historique",
+            "desc": "Le circuit Temple–Cathédrale–Praça do Giraldo a des pavés aplanis ; demandez le plan accessible à l'office de tourisme."
+          },
+          "r2": {
+            "title": "Alqueva et bateaux accessibles",
+            "desc": "Les quais d'Amieira ont des rampes et certains bateaux proposent un embarquement adapté sur réservation."
+          },
+          "r3": {
+            "title": "Observation du ciel noir sans sentier",
+            "desc": "Les séances Dark Sky ont lieu sur des plateformes accessibles en voiture — aucune marche nécessaire."
+          }
+        },
+        "algarve": {
+          "r1": {
+            "title": "Réseau de plages accessibles du Sotavento",
+            "desc": "La plus forte concentration du pays : passerelle, fauteuil amphibie et aide à la baignade sur les plages de Faro à Monte Gordo."
+          },
+          "r2": {
+            "title": "Passerelles de la Ria Formosa à Marim",
+            "desc": "Plateforme continue avec panneaux et belvédères, adaptée au fauteuil roulant avec accompagnateur."
+          },
+          "r3": {
+            "title": "Ecovia du littoral sur les tronçons plats",
+            "desc": "Les tronçons de Tavira à Cabanas et de la Praia de Faro sont plats et revêtus."
+          }
+        },
+        "acores": {
+          "r1": {
+            "title": "Fronts de mer accessibles",
+            "desc": "Ponta Delgada, Angra et Horta ont des promenades plates, avec belvédères et piscines dotées de rampes."
+          },
+          "r2": {
+            "title": "Furnas et caldeiras accessibles en voiture",
+            "desc": "Le parcours des caldeiras et le Terra Nostra permettent de voir l'activité géothermique sans sentier."
+          },
+          "r3": {
+            "title": "Observation des cétacés avec embarquement assisté",
+            "desc": "Certains opérateurs ont des bateaux à accès facilité — confirmez toujours par téléphone la veille."
+          }
+        },
+        "madeira": {
+          "r1": {
+            "title": "Funchal et les téléphériques",
+            "desc": "La ville basse, le front de mer et le téléphérique de Monte forment un circuit accessible avec vue sur les coteaux."
+          },
+          "r2": {
+            "title": "Belvédères à accès adapté",
+            "desc": "Le Cabo Girão possède un skywalk au sol régulier et un parking adapté, sans besoin de marcher."
+          },
+          "r3": {
+            "title": "Piscines naturelles aménagées",
+            "desc": "Porto Moniz dispose d'un accès adapté au complexe principal, avec vestiaires et rampe."
+          }
+        }
+      }
+    },
+    "moduleGuideCta": {
+      "a11y": "Ouvrir le guide d'exploration {{module}}",
+      "title": "Guide d'exploration",
+      "desc": "Expériences, transports et accessibilité, région par région"
+    },
+    "moduleLinks": {
+      "heading": "Liens",
+      "openModule": "Ouvrir le module {{module}}",
+      "encyclopedia": "Encyclopédie",
+      "seeOnMap": "Voir sur la carte"
+    },
+    "modules": {
+      "biodiversidade": {
+        "label": "Biodiversité marine",
+        "story": "La côte portugaise réunit des eaux froides de remontée et des courants subtropicaux — l'une des plus grandes diversités marines d'Europe, protégée par un réseau d'aires marines né dans les îles."
+      },
+      "flora": {
+        "label": "Flore endémique",
+        "story": "De l'Atlantique à la montagne, le Portugal abrite des flores qui n'existent nulle part ailleurs — reliques du Tertiaire dans les îles et endémismes ibériques sur le continent."
+      },
+      "fauna": {
+        "label": "Faune & habitats",
+        "story": "La faune ibérique a survécu dans les vides de l'intérieur. Aujourd'hui, le loup et le lynx sont le thermomètre de l'état des habitats — et les zones humides sont une escale obligée des routes migratoires atlantiques."
+      },
+      "gastronomia": {
+        "label": "Gastronomie côtière",
+        "story": "La cuisine du littoral est née de ce que la marée apportait : poisson modeste, fruits de mer de rocher et bouillons à partager. Chaque technique — griller, cuire en cataplana, mariner en escabèche — raconte une route commerciale."
+      },
+      "cultura-maritima": {
+        "label": "Culture maritime",
+        "story": "Avant les routes, il y avait la mer et la lagune. Les arts de la pêche, les bateaux et les processions en mer sont l'archive vivante de cette économie — et ils continuent sur les mêmes plages."
+      },
+      "infraestrutura": {
+        "label": "Infrastructure naturelle",
+        "story": "L'ingénierie publique est devenue une attraction : passerelles, voies vertes et ponts suspendus ont ouvert des paysages que seuls les habitants connaissaient — et ont changé l'économie de vallées entières."
+      },
+      "economia": {
+        "label": "Économie locale",
+        "story": "L'économie locale est faite d'appellations, de marchés et de métiers. Le Douro a inventé l'idée moderne de région délimitée — et la carte AOP reste le meilleur guide des saveurs."
+      },
+      "prehistoria": {
+        "label": "Préhistoire & astronomie",
+        "story": "Le sud du Portugal possède l'une des plus fortes concentrations mégalithiques d'Europe — et, au-dessus, le ciel le plus noir du continent. Pierres et étoiles racontent la même histoire d'orientation."
+      },
+      "costa": {
+        "label": "Côte & littoral",
+        "story": "1 800 km de côte en quatre réalités : falaises, dunes, estuaires et îles-barrières. Le Pavillon Bleu et les réserves de surf ont fait du littoral une infrastructure de loisirs réglementée."
+      },
+      "musica": {
+        "label": "Musique traditionnelle",
+        "story": "Deux musiques portugaises sont inscrites au Patrimoine immatériel de l'humanité. Entre le fado urbain et le cante collectif de l'Alentejo tient tout un pays — et des instruments qui ont voyagé dans le monde entier."
+      },
+      "rotas-culturais": {
+        "label": "Itinéraires culturels",
+        "story": "Les fêtes sont le vrai calendrier du pays. Reliées en itinéraire, elles révèlent des continuités — masques d'hiver, pèlerinages d'été, cycles agricoles — qu'aucun monument isolé ne montre."
+      },
+      "inclusivo": {
+        "label": "Tourisme inclusif",
+        "story": "L'accessibilité n'est pas un équipement, c'est une chaîne : arriver, se garer, entrer, utiliser et repartir. Portugal Vivo traite l'information d'assistance comme une donnée vérifiable — plage par plage, parcours par parcours."
+      }
+    }
+  }
 }

@@ -8,6 +8,7 @@ import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 import { getModuleTheme, withOpacity, onColor } from '../../theme/colors';
 import { getModuleNarrative } from '../../data/moduleNarratives';
 
@@ -17,30 +18,32 @@ interface Props {
 
 export function ModuleGuideCta({ module }: Props) {
   const router = useRouter();
+  const { t } = useTranslation();
   const narrative = getModuleNarrative(module);
   if (!narrative) return null;
 
-  const t = getModuleTheme(module);
+  const theme = getModuleTheme(module);
+  const moduleLabel = t(`modulesRoutes.modules.${module}.label`, { defaultValue: narrative.label });
 
   return (
     <TouchableOpacity
-      style={[s.card, { backgroundColor: t.card, borderColor: withOpacity(t.accent, 0.28) }]}
+      style={[s.card, { backgroundColor: theme.card, borderColor: withOpacity(theme.accent, 0.28) }]}
       onPress={() => router.push({ pathname: '/guia', params: { module } })}
       activeOpacity={0.85}
       accessibilityRole="button"
-      accessibilityLabel={`Abrir Guia de Exploração de ${narrative.label}`}
+      accessibilityLabel={t('modulesRoutes.moduleGuideCta.a11y', { module: moduleLabel })}
       testID="module-guide-cta"
     >
-      <View style={[s.icon, { backgroundColor: t.accent }]}>
-        <MaterialIcons name="explore" size={19} color={onColor(t.accent)} />
+      <View style={[s.icon, { backgroundColor: theme.accent }]}>
+        <MaterialIcons name="explore" size={19} color={onColor(theme.accent)} />
       </View>
       <View style={s.body}>
-        <Text style={[s.title, { color: t.textPrimary }]}>Guia de Exploração</Text>
-        <Text style={[s.desc, { color: t.textMuted }]}>
-          Experiências, transportes e acessibilidade, região a região
+        <Text style={[s.title, { color: theme.textPrimary }]}>{t('modulesRoutes.moduleGuideCta.title')}</Text>
+        <Text style={[s.desc, { color: theme.textMuted }]}>
+          {t('modulesRoutes.moduleGuideCta.desc')}
         </Text>
       </View>
-      <MaterialIcons name="chevron-right" size={20} color={t.textMuted} />
+      <MaterialIcons name="chevron-right" size={20} color={theme.textMuted} />
     </TouchableOpacity>
   );
 }

@@ -4,6 +4,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import { useTheme } from '../context/ThemeContext';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -57,19 +58,19 @@ type MaterialIconName = React.ComponentProps<typeof MaterialIcons>['name'];
 
 const FAMILY_CONFIG: Record<
   CulturalRoute['family'],
-  { color: string; bg: string; label: string; icon: MaterialIconName }
+  { color: string; bg: string; labelKey: string; icon: MaterialIconName }
 > = {
-  musicais:      { color: '#8B5CF6', bg: '#8B5CF620', label: 'Musical',      icon: 'music-note' },
-  danca:         { color: '#EC4899', bg: '#EC489920', label: 'Dança',        icon: 'directions-run' },
-  festas:        { color: '#F59E0B', bg: '#F59E0B20', label: 'Festas',       icon: 'celebration' },
-  trajes:        { color: '#06B6D4', bg: '#06B6D420', label: 'Trajes',       icon: 'checkroom' },
-  instrumentos:  { color: '#10B981', bg: '#10B98120', label: 'Instrumentos', icon: 'piano' },
-  integradas:    { color: '#EF4444', bg: '#EF444420', label: 'Integrada',    icon: 'auto-awesome' },
+  musicais:      { color: '#8B5CF6', bg: '#8B5CF620', labelKey: 'modulesRoutes.shared.families.musicais',     icon: 'music-note' },
+  danca:         { color: '#EC4899', bg: '#EC489920', labelKey: 'modulesRoutes.shared.families.danca',        icon: 'directions-run' },
+  festas:        { color: '#F59E0B', bg: '#F59E0B20', labelKey: 'modulesRoutes.shared.families.festas',       icon: 'celebration' },
+  trajes:        { color: '#06B6D4', bg: '#06B6D420', labelKey: 'modulesRoutes.shared.families.trajes',       icon: 'checkroom' },
+  instrumentos:  { color: '#10B981', bg: '#10B98120', labelKey: 'modulesRoutes.shared.families.instrumentos', icon: 'piano' },
+  integradas:    { color: '#EF4444', bg: '#EF444420', labelKey: 'modulesRoutes.shared.families.integradas',   icon: 'auto-awesome' },
 };
 
-const MONTH_NAMES = [
-  'Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun',
-  'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez',
+const MONTH_KEYS = [
+  'jan', 'feb', 'mar', 'apr', 'may', 'jun',
+  'jul', 'aug', 'sep', 'oct', 'nov', 'dec',
 ];
 
 // ─── Component ────────────────────────────────────────────────────────────────
@@ -80,8 +81,11 @@ function CulturalRouteCard({
   onPress,
 }: CulturalRouteCardProps) {
   const { colors } = useTheme();
+  const { t } = useTranslation();
   const cfg = FAMILY_CONFIG[route.family];
-  const bestMonthsStr = route.best_months.map((m) => MONTH_NAMES[m - 1]).join(' · ');
+  const bestMonthsStr = route.best_months
+    .map((m) => (MONTH_KEYS[m - 1] ? t(`modulesRoutes.shared.months.${MONTH_KEYS[m - 1]}`) : ''))
+    .join(' · ');
   const visibleInstruments = route.instruments?.slice(0, 3) ?? [];
   const visibleGastronomy = route.gastronomy?.slice(0, 3) ?? [];
   const visibleDances = route.dances?.slice(0, 3) ?? [];
@@ -102,7 +106,7 @@ function CulturalRouteCard({
           <Text style={[styles.routeName, { color: colors.textPrimary }]} numberOfLines={2}>{route.name}</Text>
           <View style={styles.badgeRow}>
             <View style={[styles.familyBadge, { backgroundColor: cfg.bg }]}>
-              <Text style={[styles.familyBadgeText, { color: cfg.color }]}>{cfg.label}</Text>
+              <Text style={[styles.familyBadgeText, { color: cfg.color }]}>{t(cfg.labelKey)}</Text>
             </View>
             {route.unesco && (
               <View style={styles.unescoBadge}>
@@ -112,7 +116,7 @@ function CulturalRouteCard({
             {route.premium && (
               <View style={styles.premiumBadge}>
                 <MaterialIcons name="star" size={10} color="#F59E0B" />
-                <Text style={styles.premiumBadgeText}>Premium</Text>
+                <Text style={styles.premiumBadgeText}>{t('modulesRoutes.shared.premium')}</Text>
               </View>
             )}
           </View>
@@ -138,7 +142,11 @@ function CulturalRouteCard({
 
       <View style={styles.row}>
         <MaterialIcons name="schedule" size={13} color="#94A3B8" />
-        <Text style={styles.rowText}>{route.duration_days} dia{route.duration_days > 1 ? 's' : ''}</Text>
+        <Text style={styles.rowText}>
+          {route.duration_days > 1
+            ? t('modulesRoutes.shared.days', { count: route.duration_days })
+            : t('modulesRoutes.shared.oneDay', { count: route.duration_days })}
+        </Text>
         <View style={styles.monthsBadge}>
           <Text style={styles.monthsText}>{bestMonthsStr}</Text>
         </View>
@@ -148,7 +156,11 @@ function CulturalRouteCard({
       {route.stops && route.stops.length > 0 && (
         <View style={styles.row}>
           <MaterialIcons name="pin-drop" size={13} color="#94A3B8" />
-          <Text style={styles.rowText}>{route.stops.length} paragens mapeadas</Text>
+          <Text style={styles.rowText}>
+            {route.stops.length === 1
+              ? t('modulesRoutes.routeCard.mappedStopsOne', { count: route.stops.length })
+              : t('modulesRoutes.routeCard.mappedStops', { count: route.stops.length })}
+          </Text>
         </View>
       )}
 
@@ -200,7 +212,7 @@ function CulturalRouteCard({
       {/* ── Festivals ───────────────────────────────────────────────────── */}
       {expanded && route.festivals && route.festivals.length > 0 && (
         <View style={styles.expandedSection}>
-          <Text style={styles.expandedLabel}>Festivais associados</Text>
+          <Text style={styles.expandedLabel}>{t('modulesRoutes.shared.festivals')}</Text>
           {route.festivals.map((f) => (
             <View key={f} style={styles.festivalRow}>
               <MaterialIcons name="event" size={12} color="#A78BFA" />
