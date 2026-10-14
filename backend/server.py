@@ -845,6 +845,10 @@ api_router.include_router(municipal_admin_router)
 api_router.include_router(impact_router)
 api_router.include_router(municipios_public_router)
 
+# ── In-app purchases (App Store / Google Play) → same subscriptions as Stripe ─
+from iap_api import iap_router
+api_router.include_router(iap_router)
+
 # ── Seasonal Event Triggers ───────────────────────────────────────────────────
 from seasonal_triggers_api import seasonal_router, set_seasonal_auth, set_seasonal_llm_key
 set_seasonal_auth(require_auth, require_admin)

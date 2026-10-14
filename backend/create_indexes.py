@@ -139,6 +139,14 @@ async def create_all_indexes(db):
     await db.heritage_items.create_index("audio_featured_by", sparse=True, name="idx_heritage_audio_featured")
     logger.info("  municipal_subscriptions/profiles/impact_events: 5 indexes created (impact TTL 400d)")
 
+    # In-app purchases (iap_api) - one row per store purchase, account links, notification ledger
+    await db.subscriptions.create_index(
+        "store_original_id", unique=True, name="idx_subs_store_original",
+        partialFilterExpression={"store_original_id": {"$exists": True}})
+    await db.iap_account_tokens.create_index("token", unique=True, name="idx_iap_account_token")
+    await db.iap_notifications.create_index("received_at", expireAfterSeconds=90 * 24 * 3600, name="idx_iap_notif_ttl")
+    logger.info("  subscriptions(store)/iap_account_tokens/iap_notifications: 3 indexes created")
+
     # user_progress
     await db.user_progress.create_index("user_id", unique=True, name="idx_progress_userid")
     await db.user_progress.create_index("total_points", name="idx_progress_points")

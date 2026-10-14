@@ -339,6 +339,8 @@ async def get_subscription_status(user_id: str, current_user: User = Depends(req
             "payment_method": payment_method,
             "requires_manual_renewal": requires_manual_renewal,
             "days_until_expiry": days_until_expiry,
+            "store": sub.get("store"),
+            "auto_renew": sub.get("auto_renew"),
         }
 
     return {
