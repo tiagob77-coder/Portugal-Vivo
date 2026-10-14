@@ -1,0 +1,89 @@
+name: Translate POI sheets (EN/ES/FR)
+
+# Manual only. Fills poi_translations, which /api/heritage/{id}/localized
+# merges into the POI sheet, with one gpt-4o-mini call per POI.
+# Idempotent: translations made from the current text and manual ones are
+# skipped, so a run that hits the time budget can simply be started again.
+on:
+  workflow_dispatch:
+    inputs:
+      languages:
+        description: 'Target languages, separated by spaces'
+        required: false
+        default: 'en es fr'
+      limit:
+        description: 'Max POIs to translate (0 = all)'
+        required: false
+        default: '0'
+      dry_run:
+        description: 'Only count what is missing'
+        type: boolean
+        default: false
+      rpm:
+        description: 'Max LLM calls per minute'
+        required: false
+        default: '120'
+      concurrency:
+        description: 'POIs translated in parallel'
+        required: false
+        default: '12'
+
+concurrency:
+  group: translate-pois
+  cancel-in-progress: false
+
+jobs:
+  translate:
+    name: Translate POI sheets
+    runs-on: ubuntu-latest
+    timeout-minutes: 350
+
+    env:
+      MONGO_URL:        ${{ secrets.MONGO_URL }}
+      DB_NAME:          ${{ secrets.DB_NAME || 'portugal_vivo' }}
+      OPENAI_API_KEY:   ${{ secrets.OPENAI_API_KEY }}
+      EMERGENT_LLM_KEY: ${{ secrets.EMERGENT_LLM_KEY }}
+      LANGUAGES:        ${{ inputs.languages || 'en es fr' }}
+      LIMIT:            ${{ inputs.limit || '0' }}
+      RPM:              ${{ inputs.rpm || '120' }}
+      CONCURRENCY:      ${{ inputs.concurrency || '12' }}
+      DRY_RUN:          ${{ inputs.dry_run && '--dry-run' || '' }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Verify secrets
+        run: |
+          if [ -z "${MONGO_URL}" ]; then
+            echo "::error::MONGO_URL secret is not configured."
+            exit 1
+          fi
+          if [ -z "${DRY_RUN}" ] && [ -z "${OPENAI_API_KEY}" ] && [ -z "${EMERGENT_LLM_KEY}" ]; then
+            echo "::error::Add an OPENAI_API_KEY (or EMERGENT_LLM_KEY) repository secret to translate."
+            exit 1
+          fi
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.11'
+          cache: pip
+          cache-dependency-path: backend/requirements.txt
+
+      - name: Install dependencies
+        working-directory: backend
+        run: pip install -r requirements.txt || (sleep 5 && pip install -r requirements.txt)
+
+      - name: Translate
+        working-directory: backend
+        # LANGUAGES is split into words on purpose; argparse rejects anything
+        # but en/es/fr and non-numeric limits.
+        run: |
+          python scripts/translate_pois.py \
+            --languages ${LANGUAGES} \
+            --limit "${LIMIT}" \
+            --rpm "${RPM}" \
+            --concurrency "${CONCURRENCY}" \
+            --max-minutes 330 \
+            ${DRY_RUN}

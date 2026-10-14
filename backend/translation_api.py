@@ -47,6 +47,7 @@ class BatchTranslateRequest(BaseModel):
     category_filter: Optional[str] = None
     region_filter: Optional[str] = None
     dry_run: bool = Field(False, description="If true, only return estimates without translating")
+    concurrency: int = Field(4, ge=1, le=16, description="POIs translated in parallel")
 
 
 class ManualTranslationUpdate(BaseModel):
@@ -117,6 +118,7 @@ async def batch_translate(
         category_filter=body.category_filter,
         region_filter=body.region_filter,
         dry_run=body.dry_run,
+        concurrency=body.concurrency,
     )
     return stats
 
