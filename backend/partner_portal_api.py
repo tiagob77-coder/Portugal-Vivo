@@ -275,6 +275,7 @@ async def list_partner_pois(
     page: int = Query(1, ge=1),
     page_size: int = Query(25, ge=1, le=100),
     tier: Optional[str] = Query(None),
+    order: Literal["asc", "desc"] = Query("asc", description="asc = mais críticos primeiro; desc = melhores primeiro"),
     current_user: dict = Depends(_current_user),
 ):
     """Lista de POIs do território do parceiro com health score."""
@@ -319,7 +320,7 @@ async def list_partner_pois(
     if tier:
         scored = [s for s in scored if s["tier"] == tier]
 
-    scored.sort(key=lambda x: x["score"])  # mais críticos primeiro
+    scored.sort(key=lambda x: x["score"], reverse=order == "desc")  # asc: mais críticos primeiro
 
     skip = (page - 1) * page_size
     page_items = scored[skip: skip + page_size]

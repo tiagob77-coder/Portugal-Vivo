@@ -261,6 +261,8 @@ async def test_public_profile_lifecycle(client):
                              json={**profile, "website": "http://inseguro.pt"})).status_code == 422
     assert (await client.put("/api/municipal/me/profile",
                              json={**profile, "featured_poi_ids": ["l1"]})).status_code == 422
+    assert (await client.put("/api/municipal/me/profile",
+                             json={**profile, "featured_route_ids": ["nao-existe"]})).status_code == 422
     assert (await client.put("/api/municipal/me/profile", json=profile)).status_code == 200
 
     client.state.tenant = _tenant(TenantRole.EDITOR)
@@ -306,6 +308,9 @@ async def test_municipal_user_gets_implicit_org_and_can_publish(client, db):
     client.state.user_id = "u-cm"
     body = (await client.get("/api/partner/pois")).json()
     assert {p["id"] for p in body["pois"]} == {"e1", "e2", "e3"}
+    asc = [p["score"] for p in body["pois"]]
+    desc = [p["score"] for p in (await client.get("/api/partner/pois", params={"order": "desc"})).json()["pois"]]
+    assert asc == sorted(asc) and desc == sorted(desc, reverse=True) and desc[0] > asc[0]
     assert all(p["status"] == "published" for p in body["pois"])
 
     resp = await client.patch("/api/partner/pois/e2/draft", json={"status": "draft"})

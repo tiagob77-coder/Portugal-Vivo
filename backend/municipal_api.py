@@ -822,6 +822,11 @@ async def update_my_profile(
             {"$and": [{"id": {"$in": payload.featured_poi_ids}}, territory]})
         if found != len(set(payload.featured_poi_ids)):
             raise HTTPException(status_code=422, detail="Há POIs em destaque fora do território do município")
+    if payload.featured_route_ids:
+        routes = await db.routes.count_documents({"id": {"$in": payload.featured_route_ids}})
+        trails = await db.trails.count_documents({"id": {"$in": payload.featured_route_ids}})
+        if routes + trails < len(set(payload.featured_route_ids)):
+            raise HTTPException(status_code=422, detail="Há rotas em destaque que não existem")
 
     doc = {**payload.model_dump(), "municipality_id": municipality, "updated_at": _now(),
            "updated_by": tenant.user_id}

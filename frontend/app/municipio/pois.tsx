@@ -23,6 +23,13 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '../../src/services/api';
 import { shadows } from '../../src/theme';
 import { useAuth } from '../../src/context/AuthContext';
+import {
+  getFeaturedAudioGuides,
+  featureAudioGuide,
+  unfeatureAudioGuide,
+  getApiErrorStatus,
+  getApiErrorMessage,
+} from '../../src/services/api/municipal';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -43,6 +50,7 @@ interface PoisResponse {
 // ─── Constants ────────────────────────────────────────────────────────────────
 
 const ACCENT = '#2E5E4E';
+const AUDIO_COLOR = '#7C3AED';
 const BG = '#F8FAFC';
 const isWeb = Platform.OS === 'web';
 
@@ -93,6 +101,14 @@ function matchesSearch(poi: Poi, query: string): boolean {
     poi.category?.toLowerCase().includes(q) ||
     poi.region?.toLowerCase().includes(q)
   );
+}
+
+function notify(title: string, message: string) {
+  if (Platform.OS === 'web') {
+    if (typeof window !== 'undefined') window.alert(`${title}\n\n${message}`);
+  } else {
+    Alert.alert(title, message);
+  }
 }
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
@@ -154,14 +170,22 @@ function PoiRow({
   onEdit,
   onDelete,
   onTogglePublish,
+  audioFeatured,
+  audioBusy,
+  onToggleAudio,
 }: {
   poi: Poi;
   onEdit: (poi: Poi) => void;
   onDelete: (poi: Poi) => void;
   onTogglePublish: (poi: Poi) => void;
+  /** null = audio guides unavailable for this user (action hidden) */
+  audioFeatured: boolean | null;
+  audioBusy: boolean;
+  onToggleAudio: (poi: Poi) => void;
 }) {
   const color = getHealthColor(poi.content_health_score);
   const isPublished = poi.status === 'published';
+  const audioLabel = audioFeatured ? 'Remover destaque' : 'Destacar áudio';
 
   if (isWeb) {
     // Table row style on web
@@ -170,7 +194,15 @@ function PoiRow({
         <View style={[s.healthDot, { backgroundColor: color }]} />
         <View style={s.colName}>
           <Text style={s.poiName} numberOfLines={1}>{poi.name}</Text>
-          <Text style={s.poiRegion}>{poi.region}</Text>
+          <View style={s.nameMetaRow}>
+            <Text style={s.poiRegion}>{poi.region}</Text>
+            {audioFeatured && (
+              <View style={s.audioBadge}>
+                <MaterialIcons name="headphones" size={10} color={AUDIO_COLOR} />
+                <Text style={s.audioBadgeText}>Áudio em destaque</Text>
+              </View>
+            )}
+          </View>
         </View>
         <View style={s.colCategory}>
           <View style={[s.catBadge, { backgroundColor: color + '18' }]}>
@@ -206,6 +238,22 @@ function PoiRow({
               color={isPublished ? '#F59E0B' : ACCENT}
             />
           </TouchableOpacity>
+          {audioFeatured !== null && (
+            <TouchableOpacity
+              style={[s.actionBtn, audioFeatured && s.actionBtnAudioOn]}
+              onPress={() => onToggleAudio(poi)}
+              disabled={audioBusy}
+              hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
+              accessibilityRole="button"
+              accessibilityLabel={audioLabel}
+            >
+              {audioBusy ? (
+                <ActivityIndicator size="small" color={AUDIO_COLOR} />
+              ) : (
+                <MaterialIcons name={audioFeatured ? 'headset-off' : 'headphones'} size={16} color={AUDIO_COLOR} />
+              )}
+            </TouchableOpacity>
+          )}
           <TouchableOpacity
             style={s.actionBtn}
             onPress={() => onDelete(poi)}
@@ -243,6 +291,9 @@ function PoiRow({
         </View>
         {!!poi.region && (
           <Text style={s.poiRegion}>{poi.region}</Text>
+        )}
+        {audioFeatured && (
+          <MaterialIcons name="headphones" size={13} color={AUDIO_COLOR} accessibilityLabel="Áudio em destaque" />
         )}
         <View style={{ flex: 1 }} />
         <Text style={[s.scoreText, { color }]}>
@@ -283,6 +334,23 @@ function PoiRow({
           <Text style={[s.mobileActionText, { color: '#EF4444' }]}>Eliminar</Text>
         </TouchableOpacity>
       </View>
+
+      {audioFeatured !== null && (
+        <TouchableOpacity
+          style={[s.mobileActionBtn, s.mobileAudioBtn, audioFeatured && s.actionBtnAudioOn]}
+          onPress={() => onToggleAudio(poi)}
+          disabled={audioBusy}
+          activeOpacity={0.7}
+          accessibilityRole="button"
+        >
+          {audioBusy ? (
+            <ActivityIndicator size="small" color={AUDIO_COLOR} />
+          ) : (
+            <MaterialIcons name={audioFeatured ? 'headset-off' : 'headphones'} size={15} color={AUDIO_COLOR} />
+          )}
+          <Text style={[s.mobileActionText, { color: AUDIO_COLOR }]}>{audioLabel}</Text>
+        </TouchableOpacity>
+      )}
     </TouchableOpacity>
   );
 }
@@ -292,7 +360,7 @@ function PoiRow({
 export default function MunicipioPois() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const { sessionToken } = useAuth();
+  const { sessionToken, user } = useAuth();
   const queryClient = useQueryClient();
   const _params = useLocalSearchParams<{ new?: string }>(); // eslint-disable-line @typescript-eslint/no-unused-vars
 
@@ -351,6 +419,41 @@ export default function MunicipioPois() {
       queryClient.invalidateQueries({ queryKey: ['partner-metrics'] });
     },
   });
+
+  // ── Featured audio guides (municipal plan quota) ────────────────────────────
+
+  const { data: audioData, error: audioError } = useQuery({
+    queryKey: ['municipal-audio-guides', user?.user_id ?? null],
+    queryFn: getFeaturedAudioGuides,
+    retry: false,
+  });
+  const featuredAudioIds = new Set((audioData?.items ?? []).map((i) => i.id));
+  const audioAvailable = !!audioData && !audioError;
+
+  const audioMutation = useMutation({
+    mutationFn: async (poi: Poi) => {
+      if (featuredAudioIds.has(poi.id)) await unfeatureAudioGuide(poi.id);
+      else await featureAudioGuide(poi.id);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['municipal-audio-guides'] });
+      queryClient.invalidateQueries({ queryKey: ['municipal-subscription'] });
+    },
+    onError: (err) => {
+      const status = getApiErrorStatus(err);
+      const message =
+        status === 402
+          ? 'Os áudio-guias em destaque fazem parte dos planos municipais.'
+          : status === 404
+            ? 'Este POI não pertence ao território do município.'
+            : getApiErrorMessage(err, 'Não foi possível atualizar o destaque do áudio-guia.');
+      notify(status === 403 ? 'Quota de áudio-guias' : 'Áudio-guias', message);
+    },
+  });
+
+  const handleToggleAudio = useCallback((poi: Poi) => {
+    audioMutation.mutate(poi);
+  }, [audioMutation]);
 
   // ── Handlers ────────────────────────────────────────────────────────────────
 
@@ -515,6 +618,9 @@ export default function MunicipioPois() {
         {!isLoading && (
           <Text style={s.countText}>
             {filtered.length} {filtered.length === 1 ? 'POI encontrado' : 'POIs encontrados'}
+            {audioAvailable
+              ? ` · Áudio-guias em destaque: ${audioData.used}${audioData.max != null ? `/${audioData.max}` : ''}`
+              : ''}
           </Text>
         )}
 
@@ -554,6 +660,9 @@ export default function MunicipioPois() {
                 onEdit={handleEdit}
                 onDelete={handleDelete}
                 onTogglePublish={handleTogglePublish}
+                audioFeatured={audioAvailable ? featuredAudioIds.has(item.id) : null}
+                audioBusy={audioMutation.isPending && audioMutation.variables?.id === item.id}
+                onToggleAudio={handleToggleAudio}
               />
             )}
             ListEmptyComponent={
@@ -811,6 +920,25 @@ const s = StyleSheet.create({
     fontSize: 11,
     color: '#94A3B8',
   },
+  nameMetaRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  audioBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 3,
+    backgroundColor: '#F3E8FF',
+    borderRadius: 4,
+    paddingHorizontal: 5,
+    paddingVertical: 1,
+  },
+  audioBadgeText: {
+    fontSize: 10,
+    fontWeight: '600',
+    color: AUDIO_COLOR,
+  },
   catBadge: {
     borderRadius: 4,
     paddingHorizontal: 7,
@@ -856,6 +984,14 @@ const s = StyleSheet.create({
     justifyContent: 'center',
     borderWidth: 1,
     borderColor: '#E2E8F0',
+  },
+  actionBtnAudioOn: {
+    backgroundColor: '#F3E8FF',
+    borderColor: '#DDD6FE',
+  },
+  mobileAudioBtn: {
+    flex: 0,
+    marginTop: 6,
   },
   // Action buttons (mobile)
   mobileActionBtn: {
