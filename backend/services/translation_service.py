@@ -88,7 +88,8 @@ def _parse_batch(raw: str, source: Dict[str, Any], languages: List[str]) -> Dict
             continue
         if len(tags) != len(source["tags"]):
             continue
-        if (source["name"] and not name.strip()) or (source["description"] and not description.strip()):
+        if any(source[field] and not value.strip()
+               for field, value in (("name", name), ("description", description), ("address", address))):
             continue
         parsed[lang] = {
             "name": name.strip(),
@@ -222,7 +223,9 @@ class TranslationService:
 
         source = _source_fields(item)
         all_source_text = " ".join([source["name"], source["description"], " ".join(source["tags"]), source["address"]])
-        tokens_per_language = await self._estimate_tokens(all_source_text) * 2  # input + output
+        source_tokens = await self._estimate_tokens(all_source_text)
+        # The source is sent once for every language: split the input, count the output per language.
+        tokens_per_language = source_tokens + max(1, source_tokens // len(languages))
         source_hash = self._content_hash(item)
 
         try:

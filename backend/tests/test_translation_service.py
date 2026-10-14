@@ -33,6 +33,7 @@ class FakeLLM:
     def __init__(self):
         self.calls = []
         self.drop_tag_for = set()  # languages answered with a wrong tag count
+        self.blank_address_for = set()  # languages answered without the address
         self.fail = False
 
     async def __call__(self, prompt=None, *, messages=None, response_format=None, **kwargs):
@@ -54,6 +55,8 @@ class FakeLLM:
                     "tags": tags,
                     "address": f"[{lang}] {source['address']}" if source["address"] else "",
                 }
+                if lang in self.blank_address_for:
+                    out[lang]["address"] = ""
             return json.dumps(out, ensure_ascii=False)
         lang = re.search(r"to ([a-z]{2})\.", user).group(1)
         return f"[{lang}] " + user.split("\n\n", 1)[1]
@@ -109,6 +112,14 @@ async def test_a_language_with_the_wrong_shape_falls_back_to_field_by_field(db, 
     es = await _translation(db, "poi-1", "es")
     assert es["tags"] == ["[es] gótico", "[es] UNESCO"]
     assert (await _translation(db, "poi-1", "en"))["tags"] == ["[en] gótico", "[en] UNESCO"]
+
+
+async def test_a_dropped_address_falls_back_instead_of_being_cached(db, llm):
+    llm.blank_address_for = {"fr"}
+    await ts.TranslationService(db).translate_poi("poi-1", ["fr"])
+
+    assert llm.calls == ["batch"] + ["field"] * 5
+    assert (await _translation(db, "poi-1", "fr"))["address"] == "[fr] Largo Infante Dom Henrique"
 
 
 async def test_an_unavailable_llm_is_retried_then_reported_without_storing(db, llm):
