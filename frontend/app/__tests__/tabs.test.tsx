@@ -281,9 +281,16 @@ jest.mock('../../src/components/ImageUpload', () => ({
 
 // ─── Tests ────────────────────────────────────────────────────────────────────
 
-// The first test in this file pays for loading the tab screens cold (with
-// coverage on a busy CI runner that alone exceeded Jest's 5 s default).
+// Loading the tab screens cold is the slow part (a large module graph, with
+// coverage instrumentation on a busy CI runner it has taken over 20 s). Do it
+// once here, under the hook's own timeout, so each test only pays for its
+// render.
 jest.setTimeout(20000);
+beforeAll(() => {
+  require('../(tabs)/index');
+  require('../(tabs)/descobrir');
+  require('../(tabs)/mapa');
+}, 120000);
 
 describe('Tab Screens — English UI', () => {
   afterEach(async () => {
