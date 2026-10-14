@@ -281,6 +281,10 @@ jest.mock('../../src/components/ImageUpload', () => ({
 
 // ─── Tests ────────────────────────────────────────────────────────────────────
 
+// The first test in this file pays for loading the tab screens cold (with
+// coverage on a busy CI runner that alone exceeded Jest's 5 s default).
+jest.setTimeout(20000);
+
 describe('Tab Screens — English UI', () => {
   afterEach(async () => {
     await act(() => i18n.changeLanguage('pt')); // eslint-disable-line import/no-named-as-default-member
