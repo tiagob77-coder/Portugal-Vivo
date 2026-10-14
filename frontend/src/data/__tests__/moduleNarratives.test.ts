@@ -1,10 +1,19 @@
+import { changeLanguage, t } from 'i18next';
 import {
   moduleNarratives,
   MODULE_SLUGS,
   getModuleNarrative,
   getLinkedModules,
+  localizeModuleNarrative,
 } from '../moduleNarratives';
-import { moduleHighlights, highlightDetails, getHighlight, getHighlightDetail } from '../moduleHighlights';
+import {
+  moduleHighlights,
+  highlightDetails,
+  getHighlight,
+  getHighlightDetail,
+  localizeHighlight,
+  localizeHighlightDetail,
+} from '../moduleHighlights';
 import { moduleThemes } from '../../theme/colors';
 
 describe('data/moduleNarratives', () => {
@@ -103,5 +112,40 @@ describe('data/moduleHighlights', () => {
     // 5 destaques (praias acessíveis, etc.) não têm ficha — o ecrã recai no módulo
     expect(getHighlightDetail('Praias acessíveis')).toBeUndefined();
     expect(getHighlightDetail('Sardinha-europeia')).toBeDefined();
+  });
+});
+
+describe('tradução do conteúdo editorial', () => {
+  afterEach(async () => {
+    await changeLanguage('pt');
+  });
+
+  it('em português devolve exatamente o texto dos ficheiros de dados', () => {
+    MODULE_SLUGS.forEach(slug => {
+      const n = moduleNarratives[slug];
+      expect(localizeModuleNarrative(slug, n, t)).toEqual({
+        label: n.label,
+        story: n.story,
+        milestones: n.milestones,
+      });
+    });
+    Object.entries(moduleHighlights).forEach(([slug, hs]) =>
+      hs.forEach(h => expect(localizeHighlight(slug, h, t)).toEqual({ name: h.name, meta: h.meta })),
+    );
+    Object.entries(highlightDetails).forEach(([name, d]) =>
+      expect(localizeHighlightDetail(name, d, t)).toEqual({ where: d.where, history: d.history }),
+    );
+  });
+
+  it('em inglês traduz narrativa, destaque e ficha', async () => {
+    await changeLanguage('en');
+    const costa = localizeModuleNarrative('costa', moduleNarratives.costa, t);
+    expect(costa.label).toBe('Coast & Shoreline');
+    expect(costa.milestones[1].title).toBe('Blue Flag');
+
+    const sardinha = getHighlight('biodiversidade', 'Sardinha-europeia')!;
+    expect(localizeHighlight('biodiversidade', sardinha, t).name).toBe('European sardine');
+    expect(localizeHighlightDetail('Sardinha-europeia', highlightDetails['Sardinha-europeia'], t).where)
+      .toBe('Atlantic coast — Peniche, Matosinhos, Setúbal');
   });
 });

@@ -8,8 +8,9 @@ import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 import { getModuleTheme, withOpacity } from '../../theme/colors';
-import { moduleHighlights } from '../../data/moduleHighlights';
+import { moduleHighlights, localizeHighlight } from '../../data/moduleHighlights';
 
 interface Props {
   module: string;
@@ -17,6 +18,7 @@ interface Props {
 
 export function ModuleHighlights({ module }: Props) {
   const router = useRouter();
+  const { t: tr } = useTranslation();
   const highlights = moduleHighlights[module];
   if (!highlights?.length) return null;
 
@@ -26,11 +28,13 @@ export function ModuleHighlights({ module }: Props) {
     <View style={s.section} testID="module-highlights">
       <View style={s.headingRow}>
         <MaterialIcons name="auto-awesome" size={20} color={t.accent} />
-        <Text style={[s.heading, { color: t.textPrimary }]}>Destaques</Text>
+        <Text style={[s.heading, { color: t.textPrimary }]}>{tr('moduleContent.highlightsSection.heading')}</Text>
       </View>
 
       <View style={s.grid}>
-        {highlights.map((h) => (
+        {highlights.map((h) => {
+          const text = localizeHighlight(module, h, tr);
+          return (
           <TouchableOpacity
             key={h.name}
             style={[s.card, { backgroundColor: t.card, borderColor: withOpacity(t.accent, 0.2) }]}
@@ -42,17 +46,18 @@ export function ModuleHighlights({ module }: Props) {
             }
             activeOpacity={0.8}
             accessibilityRole="button"
-            accessibilityLabel={`Abrir destaque ${h.name}`}
+            accessibilityLabel={tr('moduleContent.highlightsSection.openA11y', { name: text.name })}
           >
             <Text style={s.emoji}>{h.emoji}</Text>
             <Text style={[s.name, { color: t.textPrimary }]} numberOfLines={2}>
-              {h.name}
+              {text.name}
             </Text>
             <Text style={[s.meta, { color: t.textMuted }]} numberOfLines={2}>
-              {h.meta}
+              {text.meta}
             </Text>
           </TouchableOpacity>
-        ))}
+          );
+        })}
       </View>
     </View>
   );

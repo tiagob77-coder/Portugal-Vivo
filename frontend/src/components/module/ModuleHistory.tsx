@@ -7,8 +7,9 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import { getModuleTheme, withOpacity } from '../../theme/colors';
-import { getModuleNarrative } from '../../data/moduleNarratives';
+import { getModuleNarrative, localizeModuleNarrative } from '../../data/moduleNarratives';
 
 interface Props {
   /** Slug do módulo, e.g. 'biodiversidade' */
@@ -16,23 +17,25 @@ interface Props {
 }
 
 export function ModuleHistory({ module }: Props) {
+  const { t: tr } = useTranslation();
   const narrative = getModuleNarrative(module);
   if (!narrative) return null;
 
   const t = getModuleTheme(module);
+  const text = localizeModuleNarrative(module, narrative, tr);
 
   return (
     <View style={s.section} testID="module-history">
       <View style={s.headingRow}>
         <MaterialIcons name="history-edu" size={20} color={t.accent} />
-        <Text style={[s.heading, { color: t.textPrimary }]}>História</Text>
+        <Text style={[s.heading, { color: t.textPrimary }]}>{tr('moduleContent.historySection.heading')}</Text>
       </View>
 
-      <Text style={[s.story, { color: t.textSecondary }]}>{narrative.story}</Text>
+      <Text style={[s.story, { color: t.textSecondary }]}>{text.story}</Text>
 
       <View style={s.timeline}>
-        {narrative.milestones.map((m, i) => {
-          const last = i === narrative.milestones.length - 1;
+        {text.milestones.map((m, i) => {
+          const last = i === text.milestones.length - 1;
           return (
             <View key={`${m.year}-${m.title}`} style={s.milestone}>
               {/* Calha: marcador + linha de ligação ao marco seguinte */}
