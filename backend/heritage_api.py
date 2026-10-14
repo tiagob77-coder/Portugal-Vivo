@@ -9,7 +9,8 @@ from typing import List, Optional
 from models.api_models import HeritageItem, AccessibilityInfo, User
 from shared_constants import CATEGORIES, REGIONS, MAIN_CATEGORIES, SUBCATEGORIES, SUBCATEGORIES_BY_MAIN, SUBCATEGORY_MAP, MAIN_CATEGORY_MAP, sanitize_regex
 from shared_utils import DatabaseHolder, clamp_pagination
-from territory import PUBLISHED_POI_FILTER
+from auth_api import get_current_user
+from territory import PUBLISHED_POI_FILTER, municipality_slug, resolve_poi_municipality
 
 logger = logging.getLogger(__name__)
 
@@ -184,14 +185,16 @@ async def get_heritage_items(
 async def get_heritage_by_category(category: str, limit: int = 100):
     """Get heritage items by category"""
     resolved = CATEGORY_ALIASES.get(category, category)
-    items = await _db_holder.db.heritage_items.find({"category": resolved}, {"_id": 0}).limit(limit).to_list(limit)
+    query = {"category": resolved, **PUBLISHED_POI_FILTER}
+    items = await _db_holder.db.heritage_items.find(query, {"_id": 0}).limit(limit).to_list(limit)
     return [HeritageItem(**item) for item in items]
 
 
 @heritage_router.get("/heritage/region/{region}", response_model=List[HeritageItem])
 async def get_heritage_by_region(region: str, limit: int = 100):
     """Get heritage items by region"""
-    items = await _db_holder.db.heritage_items.find({"region": region}, {"_id": 0}).limit(limit).to_list(limit)
+    query = {"region": region, **PUBLISHED_POI_FILTER}
+    items = await _db_holder.db.heritage_items.find(query, {"_id": 0}).limit(limit).to_list(limit)
     return [HeritageItem(**item) for item in items]
 
 
@@ -202,6 +205,7 @@ async def get_top_scored_items(limit_per_cat: int = 1):
         {"$match": {
             "location.lat": {"$exists": True, "$ne": None},
             "image_url": {"$exists": True, "$ne": None, "$ne": ""},
+            **PUBLISHED_POI_FILTER,
         }},
         {"$addFields": {
             "iq_score_computed": {
@@ -249,6 +253,7 @@ async def get_stories():
             "image_url": {"$exists": True, "$ne": None, "$ne": ""},
             "description": {"$exists": True},
             "$expr": {"$gte": [{"$strLenCP": {"$ifNull": ["$description", ""]}}, 80]},
+            **PUBLISHED_POI_FILTER,
         }},
         {"$addFields": {
             "desc_len": {"$strLenCP": "$description"},
@@ -293,10 +298,27 @@ async def get_stories():
     return stories
 
 
+async def _can_preview_unpublished(request: Request, item: dict) -> bool:
+    """Unpublished (draft or archived) POIs stay readable by admins and by the
+    owning municipality's users, so the municipal panel can preview them."""
+    user = await get_current_user(request)
+    if not user:
+        return False
+    user_doc = await _db_holder.db.users.find_one({"user_id": user.user_id}, {"_id": 0}) or {}
+    role = user_doc.get("tenant_role") or user_doc.get("role")
+    if role in ("admin", "admin_global"):
+        return True
+    owner = resolve_poi_municipality(item)
+    tenant_mun = user_doc.get("municipality_id") or user.municipality_id
+    return bool(owner and tenant_mun and municipality_slug(tenant_mun) == owner)
+
+
 @heritage_router.get("/heritage/{item_id}", response_model=HeritageItem)
-async def get_heritage_item(item_id: str):
+async def get_heritage_item(item_id: str, request: Request):
     """Get a single heritage item"""
     item = await _db_holder.db.heritage_items.find_one({"id": item_id}, {"_id": 0})
+    if item and item.get("is_published") is False and not await _can_preview_unpublished(request, item):
+        item = None
     if not item:
         raise HTTPException(status_code=404, detail="Item not found")
     return HeritageItem(**item)
@@ -386,7 +408,8 @@ async def get_night_explorer_items():
     ]
     query = {
         "location.lat": {"$exists": True, "$ne": None},
-        "category": {"$in": night_categories}
+        "category": {"$in": night_categories},
+        **PUBLISHED_POI_FILTER,
     }
     projection = {
         "_id": 0, "id": 1, "name": 1, "description": 1, "category": 1,
@@ -473,7 +496,7 @@ async def get_accessible_heritage(
     limit: int = 50
 ):
     """Get heritage items filtered by accessibility features"""
-    query = {}
+    query = dict(PUBLISHED_POI_FILTER)
     if region:
         query["region"] = region
     if category:

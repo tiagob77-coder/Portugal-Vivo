@@ -293,7 +293,7 @@ export default function DestinoScreen() {
                   <TouchableOpacity
                     key={r.id}
                     style={[s.routeCard, { backgroundColor: colors.surface, borderColor: colors.borderLight }]}
-                    onPress={() => router.push(`/route/${r.id}`)}
+                    onPress={() => router.push(r.kind === 'trail' ? `/trail/${r.id}` : `/route/${r.id}`)}
                     activeOpacity={0.85}
                     accessibilityRole="link"
                     accessibilityLabel={r.name}

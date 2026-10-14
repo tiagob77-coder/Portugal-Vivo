@@ -181,8 +181,16 @@ async def _require_active(db: AsyncIOMotorDatabase, municipality: str, tenant: T
 
 
 async def _poi_usage(db: AsyncIOMotorDatabase, municipality: str, raw_id: Optional[str] = None) -> Tuple[int, int]:
-    """(curated POIs managed by the municipality, featured audio guides)."""
-    ids = {municipality, municipality.replace("-", "_")} | ({raw_id} if raw_id else set())
+    """(curated POIs managed by the municipality, featured audio guides).
+
+    Counts POIs under the canonical slug and under the subscription's
+    ``municipality_aliases`` (historic ids), the same ids _territory reads.
+    """
+    sub = await get_subscription(db, municipality) or {}
+    ids = {raw_id} if raw_id else set()
+    for mun_id in (municipality, *(sub.get("municipality_aliases") or [])):
+        slug = municipality_slug(mun_id)
+        ids |= {mun_id, slug, slug.replace("-", "_")}
     curated = await db.heritage_items.count_documents({"municipality_id": {"$in": sorted(ids)}})
     audio = await db.heritage_items.count_documents({"audio_featured_by": municipality})
     return curated, audio
@@ -882,11 +890,19 @@ async def get_public_profile(slug: str, db: AsyncIOMotorDatabase = Depends(get_d
         featured = await db.heritage_items.find(
             {"$and": [territory, {"image_url": {"$regex": "^http"}}]}, poi_fields).limit(6).to_list(6)
     routes = []
-    if profile.get("featured_route_ids"):
-        routes = await db.routes.find(
-            {"id": {"$in": profile["featured_route_ids"]}},
-            {"_id": 0, "id": 1, "name": 1, "description": 1, "image_url": 1, "duration_hours": 1},
-        ).to_list(6)
+    route_ids = profile.get("featured_route_ids") or []
+    if route_ids:
+        # Profile validation accepts both curated routes and GPX trails.
+        fields = {"_id": 0, "id": 1, "name": 1, "description": 1, "image_url": 1}
+        routes = [{**r, "kind": "route"} for r in await db.routes.find(
+            {"id": {"$in": route_ids}}, {**fields, "duration_hours": 1}).to_list(6)]
+        seen = {r["id"] for r in routes}
+        async for t in db.trails.find({"id": {"$in": [i for i in route_ids if i not in seen]}},
+                                      {**fields, "estimated_hours": 1}):
+            t["duration_hours"] = t.pop("estimated_hours", None)
+            routes.append({**t, "kind": "trail"})
+        order = {rid: n for n, rid in enumerate(route_ids)}
+        routes = sorted(routes, key=lambda r: order.get(r["id"], 99))[:6]
     audio_count = await db.heritage_items.count_documents({"audio_featured_by": municipality})
     return {
         "slug": municipality,

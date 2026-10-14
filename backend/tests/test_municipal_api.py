@@ -166,6 +166,21 @@ async def test_poi_quota(db, client):
 
 
 @pytest.mark.anyio
+async def test_poi_quota_counts_alias_ids(db, client):
+    await db.heritage_items.insert_many([
+        {"id": f"a{n}", "name": f"Antigo {n}", "municipality_id": "CM-Evora"} for n in range(5)])
+    resp = await client.put("/api/admin/municipal/subscriptions/evora", json={
+        "plan": "essencial", "status": "pilot", "concelhos": ["Évora"], "municipality_aliases": ["CM-Evora"]})
+    assert resp.status_code == 200, resp.text
+    usage = (await client.get("/api/municipal/me/subscription")).json()["usage"]
+    assert usage["curated_pois"] == 6  # e3 + 5 sob o alias histórico
+    await enforce_poi_quota(db, "evora", 74)
+    with pytest.raises(HTTPException) as exc:
+        await enforce_poi_quota(db, "evora", 75)
+    assert exc.value.status_code == 403
+
+
+@pytest.mark.anyio
 async def test_audio_guide_quota(client, monkeypatch):
     import municipal_api
     await _activate(client)
@@ -263,6 +278,10 @@ async def test_public_profile_lifecycle(client):
                              json={**profile, "featured_poi_ids": ["l1"]})).status_code == 422
     assert (await client.put("/api/municipal/me/profile",
                              json={**profile, "featured_route_ids": ["nao-existe"]})).status_code == 422
+    assert (await client.put("/api/municipal/me/profile",
+                             json={**profile, "featured_route_ids": ["t1", "r1"]})).status_code == 200
+    routes = (await client.get("/api/municipios/evora")).json()["featured_routes"]
+    assert [(r["id"], r["kind"]) for r in routes] == [("t1", "trail"), ("r1", "route")]
     assert (await client.put("/api/municipal/me/profile", json=profile)).status_code == 200
 
     client.state.tenant = _tenant(TenantRole.EDITOR)

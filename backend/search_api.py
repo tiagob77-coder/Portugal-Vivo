@@ -7,6 +7,7 @@ from pydantic import BaseModel
 from typing import List, Optional
 from shared_constants import sanitize_regex
 from shared_utils import DatabaseHolder, clamp_pagination
+from territory import PUBLISHED_POI_FILTER
 
 search_router = APIRouter()
 
@@ -36,7 +37,7 @@ async def advanced_search(filters: SearchFilters):
     fragments that don't tokenise cleanly.
     """
     skip, limit = clamp_pagination(filters.skip, filters.limit, max_limit=100)
-    query: dict = {}
+    query: dict = dict(PUBLISHED_POI_FILTER)
 
     use_text = bool(filters.query) and len(filters.query.strip()) >= 3
     if use_text:
@@ -119,7 +120,7 @@ async def search_suggestions(q: str, limit: int = 5):
 
     safe_q = sanitize_regex(q)
     name_matches = await _db_holder.db.heritage_items.find(
-        {"name": {"$regex": f"^{safe_q}", "$options": "i"}},
+        {"name": {"$regex": f"^{safe_q}", "$options": "i"}, **PUBLISHED_POI_FILTER},
         {"_id": 0, "id": 1, "name": 1, "category": 1}
     ).limit(limit).to_list(limit)
 
@@ -179,7 +180,7 @@ async def search_suggestions(q: str, limit: int = 5):
 async def popular_searches():
     """Get popular search terms and trending items"""
     trending = await _db_holder.db.heritage_items.find(
-        {},
+        dict(PUBLISHED_POI_FILTER),
         {"_id": 0, "id": 1, "name": 1, "category": 1, "image_url": 1}
     ).sort("created_at", -1).limit(5).to_list(5)
 
@@ -251,6 +252,7 @@ async def global_search(q: str, limit: int = 20):
             {"description": regex_filter},
             {"tags": regex_filter},
         ]}
+    poi_query.update(PUBLISHED_POI_FILTER)
 
     route_query = {"$or": [
         {"name": regex_filter},

@@ -390,7 +390,10 @@ describe('destino', () => {
       profile: { ...PROFILE.profile, website: 'https://www.cmav.pt' },
       stats: { pois: 42, audio_guides: 3, categories: [{ category: 'castelos', count: 5 }] },
       featured_pois: [{ id: 'p1', name: 'Paço de Giela', category: 'castelos', image_url: null, micro_pitch: 'Torre medieval' }],
-      featured_routes: [{ id: 'r1', name: 'Ecovia do Vez', description: 'Ao longo do rio', image_url: null, duration_hours: 2.5 }],
+      featured_routes: [
+        { id: 'r1', name: 'Ecovia do Vez', description: 'Ao longo do rio', image_url: null, duration_hours: 2.5, kind: 'route' },
+        { id: 't1', name: 'PR3 Trilho do Sistelo', description: null, image_url: null, duration_hours: 3, kind: 'trail' },
+      ],
       plan_white_label: false,
     });
     const { rerender } = renderWithClient(<Destino />);
@@ -400,6 +403,8 @@ describe('destino', () => {
     expect(mockRouter.push).toHaveBeenCalledWith('/heritage/p1');
     fireEvent.press(screen.getByText('Ecovia do Vez'));
     expect(mockRouter.push).toHaveBeenCalledWith('/route/r1');
+    fireEvent.press(screen.getByText('PR3 Trilho do Sistelo'));
+    expect(mockRouter.push).toHaveBeenCalledWith('/trail/t1');
     rerender(<Destino />);
     expect(trackImpact).toHaveBeenCalledTimes(1);
     expect(trackImpact).toHaveBeenCalledWith({ event_type: 'profile_view', municipality: 'arcos-de-valdevez' });

@@ -234,6 +234,8 @@ export interface PublicMunicipalityRoute {
   description?: string | null;
   image_url?: string | null;
   duration_hours?: number | null;
+  /** 'trail' opens the GPX trail screen; 'route' (default) the curated route. */
+  kind?: 'route' | 'trail';
 }
 
 export interface PublicMunicipalityResponse {
