@@ -1,6 +1,430 @@
 {
-  "pt": {},
-  "en": {},
-  "es": {},
-  "fr": {}
+  "pt": {
+    "heroSubtitle": "Desbloqueie roteiros IA, áudio guias, modo offline e muito mais",
+    "trialDays": "{{days}} dias grátis",
+    "success": "Subscrição ativada com sucesso! Bem-vindo ao Premium.",
+    "activePlan": "Plano {{name}} ativo",
+    "activeDesc": "Tem acesso a todas as funcionalidades premium",
+    "activeViaStore": "Subscrição gerida através de {{store}}",
+    "manage": "Gerir",
+    "expiresSoon": "A sua subscrição expira em {{days}} dia(s). Renove manualmente para não perder acesso premium.",
+    "manualRenewal": "Este método de pagamento não renova automaticamente. Lembre-se de renovar antes do fim do período.",
+    "monthly": "Mensal",
+    "monthlyPrice": "4,99€/mês",
+    "pricePerMonth": "{{price}}/mês",
+    "annual": "Anual",
+    "annualPrice": "39,99€/ano",
+    "pricePerYear": "{{price}}/ano",
+    "paymentMethod": "Método de Pagamento",
+    "comparison": "Comparação de Planos",
+    "free": "Grátis",
+    "startTrial": "Começar {{days}} Dias Grátis",
+    "subscribe": "Subscrever Premium",
+    "cancelAnytime": "Cancele a qualquer momento. Sem compromisso.",
+    "stripeSecure": "Pagamento seguro via Stripe. Os seus dados estão protegidos.",
+    "storeSecure": "Pagamento seguro via {{store}}.",
+    "autoRenewDisclosure": "A subscrição renova automaticamente pelo mesmo preço e período, salvo se for cancelada pelo menos 24 horas antes do fim do período em curso. O pagamento é cobrado na sua conta {{store}} ao confirmar a compra. Pode gerir ou cancelar a subscrição nas definições da conta {{store}}.",
+    "terms": "Termos de Utilização",
+    "privacy": "Política de Privacidade",
+    "restore": "Restaurar compras",
+    "restoreTitle": "Restaurar compras",
+    "restoreNone": "Não encontrámos subscrições ativas nesta conta {{store}}.",
+    "signInTitle": "Iniciar Sessão",
+    "signInMessage": "Precisa de iniciar sessão para subscrever.",
+    "cancel": "Cancelar",
+    "login": "Login",
+    "comingSoonTitle": "Brevemente",
+    "comingSoonMessage": "O sistema de pagamentos será ativado em breve. Obrigado pelo seu interesse!",
+    "pendingTitle": "Pagamento pendente",
+    "pendingMessage": "A compra aguarda aprovação. O Premium fica ativo assim que a loja a confirmar.",
+    "errorTitle": "Erro",
+    "storeInactive": "A loja ({{store}}) indica que esta subscrição não está ativa.",
+    "storeError": "Não foi possível concluir a compra. Tente novamente.",
+    "checkoutError": "Erro ao criar sessão de pagamento",
+    "manageStoreError": "Não foi possível abrir a gestão de subscrições ({{store}}).",
+    "portalError": "Não foi possível abrir o portal de gestão",
+    "payment": {
+      "card": "Cartão",
+      "cardDesc": "Visa, Mastercard, Amex",
+      "paypal": "PayPal",
+      "paypalDesc": "Conta PayPal",
+      "mbway": "MB Way",
+      "mbwayDesc": "Pagamento por telemóvel",
+      "multibanco": "Multibanco",
+      "multibancoDesc": "Referência MB",
+      "mbwayNote": "Pagamento único via MB Way. Renovação manual necessária.",
+      "multibancoNote": "Será gerada uma referência Multibanco para pagamento em ATM ou homebanking."
+    },
+    "features": {
+      "map": {
+        "name": "Mapa Interativo",
+        "description": "6 camadas e clustering"
+      },
+      "discovery": {
+        "name": "Feed de Descoberta",
+        "description": "POIs com IQ Score"
+      },
+      "favorites": {
+        "name": "Favoritos",
+        "description": "Guardar locais favoritos"
+      },
+      "search": {
+        "name": "Pesquisa Global",
+        "description": "Por nome, região e categoria"
+      },
+      "calendar": {
+        "name": "Calendário de Eventos",
+        "description": "Festas e tradições"
+      },
+      "routes": {
+        "name": "Rotas Curadas",
+        "description": "Até 3 consultas/dia"
+      },
+      "badges": {
+        "name": "Badges Básicos",
+        "description": "Sistema de conquistas"
+      },
+      "ai_itinerary": {
+        "name": "Roteiros IA",
+        "description": "Itinerários personalizados"
+      },
+      "audio_guides": {
+        "name": "Áudio Guias",
+        "description": "Narrativas com voz IA"
+      },
+      "offline": {
+        "name": "Modo Offline",
+        "description": "Download de regiões"
+      },
+      "epochs": {
+        "name": "Épocas Históricas",
+        "description": "Timeline interativa"
+      },
+      "collections": {
+        "name": "Coleções Completas",
+        "description": "12 coleções temáticas"
+      }
+    }
+  },
+  "en": {
+    "heroSubtitle": "Unlock AI itineraries, audio guides, offline mode and much more",
+    "trialDays": "{{days}} days free",
+    "success": "Subscription activated! Welcome to Premium.",
+    "activePlan": "{{name}} plan active",
+    "activeDesc": "You have access to every premium feature",
+    "activeViaStore": "Subscription managed through {{store}}",
+    "manage": "Manage",
+    "expiresSoon": "Your subscription expires in {{days}} day(s). Renew it manually to keep premium access.",
+    "manualRenewal": "This payment method does not renew automatically. Remember to renew before the period ends.",
+    "monthly": "Monthly",
+    "monthlyPrice": "€4.99/month",
+    "pricePerMonth": "{{price}}/month",
+    "annual": "Annual",
+    "annualPrice": "€39.99/year",
+    "pricePerYear": "{{price}}/year",
+    "paymentMethod": "Payment Method",
+    "comparison": "Compare Plans",
+    "free": "Free",
+    "startTrial": "Start {{days}}-Day Free Trial",
+    "subscribe": "Subscribe to Premium",
+    "cancelAnytime": "Cancel anytime. No commitment.",
+    "stripeSecure": "Secure payment via Stripe. Your data is protected.",
+    "storeSecure": "Secure payment via {{store}}.",
+    "autoRenewDisclosure": "Your subscription renews automatically at the same price and for the same period unless cancelled at least 24 hours before the end of the current period. Payment is charged to your {{store}} account when you confirm the purchase. You can manage or cancel it in your {{store}} account settings.",
+    "terms": "Terms of Use",
+    "privacy": "Privacy Policy",
+    "restore": "Restore purchases",
+    "restoreTitle": "Restore purchases",
+    "restoreNone": "We found no active subscriptions on this {{store}} account.",
+    "signInTitle": "Sign In",
+    "signInMessage": "You need to sign in to subscribe.",
+    "cancel": "Cancel",
+    "login": "Sign in",
+    "comingSoonTitle": "Coming soon",
+    "comingSoonMessage": "Payments will be switched on soon. Thank you for your interest!",
+    "pendingTitle": "Payment pending",
+    "pendingMessage": "Your purchase is awaiting approval. Premium switches on as soon as the store confirms it.",
+    "errorTitle": "Error",
+    "storeInactive": "{{store}} reports that this subscription is not active.",
+    "storeError": "The purchase could not be completed. Please try again.",
+    "checkoutError": "Could not start the payment",
+    "manageStoreError": "Could not open subscription management ({{store}}).",
+    "portalError": "Could not open the management portal",
+    "payment": {
+      "card": "Card",
+      "cardDesc": "Visa, Mastercard, Amex",
+      "paypal": "PayPal",
+      "paypalDesc": "PayPal account",
+      "mbway": "MB Way",
+      "mbwayDesc": "Pay with your phone",
+      "multibanco": "Multibanco",
+      "multibancoDesc": "MB reference",
+      "mbwayNote": "One-off payment via MB Way. Manual renewal required.",
+      "multibancoNote": "A Multibanco reference will be generated to pay at an ATM or through online banking."
+    },
+    "features": {
+      "map": {
+        "name": "Interactive Map",
+        "description": "6 layers and clustering"
+      },
+      "discovery": {
+        "name": "Discovery Feed",
+        "description": "Places ranked by IQ Score"
+      },
+      "favorites": {
+        "name": "Favourites",
+        "description": "Save your favourite places"
+      },
+      "search": {
+        "name": "Global Search",
+        "description": "By name, region and category"
+      },
+      "calendar": {
+        "name": "Events Calendar",
+        "description": "Festivals and traditions"
+      },
+      "routes": {
+        "name": "Curated Routes",
+        "description": "Up to 3 views a day"
+      },
+      "badges": {
+        "name": "Basic Badges",
+        "description": "Achievement system"
+      },
+      "ai_itinerary": {
+        "name": "AI Itineraries",
+        "description": "Personalised itineraries"
+      },
+      "audio_guides": {
+        "name": "Audio Guides",
+        "description": "Stories narrated by AI voices"
+      },
+      "offline": {
+        "name": "Offline Mode",
+        "description": "Download whole regions"
+      },
+      "epochs": {
+        "name": "Historical Eras",
+        "description": "Interactive timeline"
+      },
+      "collections": {
+        "name": "Full Collections",
+        "description": "12 themed collections"
+      }
+    }
+  },
+  "es": {
+    "heroSubtitle": "Desbloquea itinerarios IA, audioguías, modo sin conexión y mucho más",
+    "trialDays": "{{days}} días gratis",
+    "success": "¡Suscripción activada! Bienvenido a Premium.",
+    "activePlan": "Plan {{name}} activo",
+    "activeDesc": "Tienes acceso a todas las funciones premium",
+    "activeViaStore": "Suscripción gestionada a través de {{store}}",
+    "manage": "Gestionar",
+    "expiresSoon": "Tu suscripción caduca en {{days}} día(s). Renuévala manualmente para no perder el acceso premium.",
+    "manualRenewal": "Este método de pago no se renueva automáticamente. Recuerda renovar antes de que termine el periodo.",
+    "monthly": "Mensual",
+    "monthlyPrice": "4,99 €/mes",
+    "pricePerMonth": "{{price}}/mes",
+    "annual": "Anual",
+    "annualPrice": "39,99 €/año",
+    "pricePerYear": "{{price}}/año",
+    "paymentMethod": "Método de pago",
+    "comparison": "Comparación de planes",
+    "free": "Gratis",
+    "startTrial": "Empezar {{days}} días gratis",
+    "subscribe": "Suscribirse a Premium",
+    "cancelAnytime": "Cancela cuando quieras. Sin compromiso.",
+    "stripeSecure": "Pago seguro con Stripe. Tus datos están protegidos.",
+    "storeSecure": "Pago seguro con {{store}}.",
+    "autoRenewDisclosure": "La suscripción se renueva automáticamente al mismo precio y por el mismo periodo, salvo que se cancele al menos 24 horas antes del final del periodo en curso. El pago se carga en tu cuenta de {{store}} al confirmar la compra. Puedes gestionarla o cancelarla en los ajustes de tu cuenta de {{store}}.",
+    "terms": "Términos de uso",
+    "privacy": "Política de privacidad",
+    "restore": "Restaurar compras",
+    "restoreTitle": "Restaurar compras",
+    "restoreNone": "No hemos encontrado suscripciones activas en esta cuenta de {{store}}.",
+    "signInTitle": "Iniciar sesión",
+    "signInMessage": "Necesitas iniciar sesión para suscribirte.",
+    "cancel": "Cancelar",
+    "login": "Iniciar sesión",
+    "comingSoonTitle": "Próximamente",
+    "comingSoonMessage": "Los pagos se activarán muy pronto. ¡Gracias por tu interés!",
+    "pendingTitle": "Pago pendiente",
+    "pendingMessage": "La compra está pendiente de aprobación. Premium se activará en cuanto la tienda la confirme.",
+    "errorTitle": "Error",
+    "storeInactive": "{{store}} indica que esta suscripción no está activa.",
+    "storeError": "No se ha podido completar la compra. Inténtalo de nuevo.",
+    "checkoutError": "Error al crear la sesión de pago",
+    "manageStoreError": "No se ha podido abrir la gestión de suscripciones ({{store}}).",
+    "portalError": "No se ha podido abrir el portal de gestión",
+    "payment": {
+      "card": "Tarjeta",
+      "cardDesc": "Visa, Mastercard, Amex",
+      "paypal": "PayPal",
+      "paypalDesc": "Cuenta PayPal",
+      "mbway": "MB Way",
+      "mbwayDesc": "Pago con el móvil",
+      "multibanco": "Multibanco",
+      "multibancoDesc": "Referencia MB",
+      "mbwayNote": "Pago único con MB Way. Requiere renovación manual.",
+      "multibancoNote": "Se generará una referencia Multibanco para pagar en un cajero o por banca online."
+    },
+    "features": {
+      "map": {
+        "name": "Mapa interactivo",
+        "description": "6 capas y agrupación"
+      },
+      "discovery": {
+        "name": "Feed de descubrimiento",
+        "description": "Lugares con IQ Score"
+      },
+      "favorites": {
+        "name": "Favoritos",
+        "description": "Guarda tus lugares favoritos"
+      },
+      "search": {
+        "name": "Búsqueda global",
+        "description": "Por nombre, región y categoría"
+      },
+      "calendar": {
+        "name": "Calendario de eventos",
+        "description": "Fiestas y tradiciones"
+      },
+      "routes": {
+        "name": "Rutas seleccionadas",
+        "description": "Hasta 3 consultas al día"
+      },
+      "badges": {
+        "name": "Insignias básicas",
+        "description": "Sistema de logros"
+      },
+      "ai_itinerary": {
+        "name": "Itinerarios IA",
+        "description": "Itinerarios personalizados"
+      },
+      "audio_guides": {
+        "name": "Audioguías",
+        "description": "Narraciones con voz IA"
+      },
+      "offline": {
+        "name": "Modo sin conexión",
+        "description": "Descarga de regiones"
+      },
+      "epochs": {
+        "name": "Épocas históricas",
+        "description": "Cronología interactiva"
+      },
+      "collections": {
+        "name": "Colecciones completas",
+        "description": "12 colecciones temáticas"
+      }
+    }
+  },
+  "fr": {
+    "heroSubtitle": "Débloquez les itinéraires IA, les audioguides, le mode hors ligne et bien plus",
+    "trialDays": "{{days}} jours gratuits",
+    "success": "Abonnement activé ! Bienvenue dans Premium.",
+    "activePlan": "Formule {{name}} active",
+    "activeDesc": "Vous avez accès à toutes les fonctionnalités premium",
+    "activeViaStore": "Abonnement géré via {{store}}",
+    "manage": "Gérer",
+    "expiresSoon": "Votre abonnement expire dans {{days}} jour(s). Renouvelez-le manuellement pour garder l'accès premium.",
+    "manualRenewal": "Ce moyen de paiement ne se renouvelle pas automatiquement. Pensez à renouveler avant la fin de la période.",
+    "monthly": "Mensuel",
+    "monthlyPrice": "4,99 €/mois",
+    "pricePerMonth": "{{price}}/mois",
+    "annual": "Annuel",
+    "annualPrice": "39,99 €/an",
+    "pricePerYear": "{{price}}/an",
+    "paymentMethod": "Moyen de paiement",
+    "comparison": "Comparaison des formules",
+    "free": "Gratuit",
+    "startTrial": "Commencer {{days}} jours gratuits",
+    "subscribe": "S'abonner à Premium",
+    "cancelAnytime": "Résiliez à tout moment. Sans engagement.",
+    "stripeSecure": "Paiement sécurisé via Stripe. Vos données sont protégées.",
+    "storeSecure": "Paiement sécurisé via {{store}}.",
+    "autoRenewDisclosure": "L'abonnement se renouvelle automatiquement au même prix et pour la même durée, sauf résiliation au moins 24 heures avant la fin de la période en cours. Le paiement est débité de votre compte {{store}} à la confirmation de l'achat. Vous pouvez le gérer ou le résilier dans les réglages de votre compte {{store}}.",
+    "terms": "Conditions d'utilisation",
+    "privacy": "Politique de confidentialité",
+    "restore": "Restaurer les achats",
+    "restoreTitle": "Restaurer les achats",
+    "restoreNone": "Aucun abonnement actif trouvé sur ce compte {{store}}.",
+    "signInTitle": "Se connecter",
+    "signInMessage": "Vous devez vous connecter pour vous abonner.",
+    "cancel": "Annuler",
+    "login": "Connexion",
+    "comingSoonTitle": "Bientôt disponible",
+    "comingSoonMessage": "Les paiements seront activés très bientôt. Merci de votre intérêt !",
+    "pendingTitle": "Paiement en attente",
+    "pendingMessage": "Votre achat est en attente d'approbation. Premium s'activera dès que la boutique l'aura confirmé.",
+    "errorTitle": "Erreur",
+    "storeInactive": "{{store}} indique que cet abonnement n'est pas actif.",
+    "storeError": "L'achat n'a pas pu être finalisé. Veuillez réessayer.",
+    "checkoutError": "Impossible de lancer le paiement",
+    "manageStoreError": "Impossible d'ouvrir la gestion des abonnements ({{store}}).",
+    "portalError": "Impossible d'ouvrir le portail de gestion",
+    "payment": {
+      "card": "Carte",
+      "cardDesc": "Visa, Mastercard, Amex",
+      "paypal": "PayPal",
+      "paypalDesc": "Compte PayPal",
+      "mbway": "MB Way",
+      "mbwayDesc": "Paiement par téléphone",
+      "multibanco": "Multibanco",
+      "multibancoDesc": "Référence MB",
+      "mbwayNote": "Paiement unique via MB Way. Renouvellement manuel nécessaire.",
+      "multibancoNote": "Une référence Multibanco sera générée pour payer au distributeur ou via la banque en ligne."
+    },
+    "features": {
+      "map": {
+        "name": "Carte interactive",
+        "description": "6 couches et regroupement"
+      },
+      "discovery": {
+        "name": "Fil de découverte",
+        "description": "Lieux classés par IQ Score"
+      },
+      "favorites": {
+        "name": "Favoris",
+        "description": "Enregistrez vos lieux préférés"
+      },
+      "search": {
+        "name": "Recherche globale",
+        "description": "Par nom, région et catégorie"
+      },
+      "calendar": {
+        "name": "Calendrier des événements",
+        "description": "Fêtes et traditions"
+      },
+      "routes": {
+        "name": "Itinéraires sélectionnés",
+        "description": "Jusqu'à 3 consultations par jour"
+      },
+      "badges": {
+        "name": "Badges de base",
+        "description": "Système de récompenses"
+      },
+      "ai_itinerary": {
+        "name": "Itinéraires IA",
+        "description": "Itinéraires personnalisés"
+      },
+      "audio_guides": {
+        "name": "Audioguides",
+        "description": "Récits lus par une voix IA"
+      },
+      "offline": {
+        "name": "Mode hors ligne",
+        "description": "Téléchargement de régions"
+      },
+      "epochs": {
+        "name": "Époques historiques",
+        "description": "Frise chronologique interactive"
+      },
+      "collections": {
+        "name": "Collections complètes",
+        "description": "12 collections thématiques"
+      }
+    }
+  }
 }

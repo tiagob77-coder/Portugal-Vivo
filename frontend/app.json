@@ -92,7 +92,8 @@
           "isAndroidBackgroundLocationEnabled": true
         }
       ],
-      "./plugins/withPrivacyManifest.js"
+      "./plugins/withPrivacyManifest.js",
+      "expo-iap"
     ],
     "experiments": {
       "typedRoutes": true

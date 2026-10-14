@@ -48,6 +48,9 @@ export interface SubscriptionStatus {
   payment_method?: string;
   requires_manual_renewal?: boolean;
   days_until_expiry?: number | null;
+  /** Set when the subscription was bought in the App Store / Google Play. */
+  store?: 'app_store' | 'google_play' | null;
+  auto_renew?: boolean | null;
 }
 
 export interface CheckoutResponse {
@@ -123,5 +126,37 @@ export const checkFeatureAccess = async (
   _userId: string, featureId: string
 ): Promise<{ has_access: boolean; user_tier: string; upgrade_needed: boolean }> => {
   const response = await api.get(`/premium/check-feature/${featureId}`);
+  return response.data;
+};
+
+// ─── In-app purchases (App Store / Google Play) ──────────────────────────────
+
+export interface IapCatalogResponse {
+  products: { tier: 'premium' | 'annual'; product_id: string; name: string; reference_price_eur: number }[];
+  /** Only for signed-in users: passed to the store so the purchase is tied to this account. */
+  account_token?: string;
+}
+
+export interface StoreVerifyResponse {
+  active: boolean;
+  status: 'active' | 'inactive';
+  tier: string;
+  store: 'app_store' | 'google_play';
+  expires_at: string | null;
+  auto_renew: boolean | null;
+}
+
+export const getIapProducts = async (): Promise<IapCatalogResponse> => {
+  const response = await api.get('/iap/products');
+  return response.data;
+};
+
+/** Server-side check of a store purchase; grants the tier when the store confirms it. */
+export const verifyStorePurchase = async (payload: {
+  platform: 'ios' | 'android';
+  product_id: string;
+  purchase_token: string;
+}): Promise<StoreVerifyResponse> => {
+  const response = await api.post('/iap/verify', payload);
   return response.data;
 };

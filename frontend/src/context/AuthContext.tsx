@@ -7,6 +7,7 @@ import { exchangeSession, getCurrentUser, logout as apiLogout, getSubscriptionSt
 import { API_URL, AUTH_URL } from '../config/api';
 import { User } from '../types';
 import { eventBus } from '../services/eventBus';
+import { isStoreBillingAvailable, syncStorePurchases } from '../services/iap';
 import logger from '../utils/logger';
 
 interface AuthSessionData extends User {
@@ -163,6 +164,27 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     await secureStorage.removeItem('user_id');
     eventBus.emit('user.logout');
   };
+
+  // iOS/Android: once per signed-in user, re-send the purchases the store still
+  // holds. Credits a purchase whose verification failed and picks up renewals
+  // if a store notification was missed (services/iap.native.ts).
+  const signedInId = (user as AuthSessionData | null)?.id;
+  useEffect(() => {
+    if (!signedInId || !isStoreBillingAvailable()) return;
+    let cancelled = false;
+    syncStorePurchases().then(async (active) => {
+      if (cancelled || active === 0) return;
+      try {
+        const status = await getSubscriptionStatus(signedInId);
+        if (!cancelled) setPremiumTier(status.tier || 'free');
+      } catch (_error) {
+        // keep the current tier; the next refresh will catch up
+      }
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [signedInId]);
 
   const refreshSubscription = async () => {
     const authUser = user as AuthSessionData | null;

@@ -51,6 +51,21 @@ jest.mock('@react-native-community/netinfo', () => ({
   __esModule: true,
 }));
 
+// expo-iap is a native module (StoreKit / Play Billing): stub it for Jest.
+jest.mock('expo-iap', () => ({
+  initConnection: jest.fn(() => Promise.resolve(true)),
+  endConnection: jest.fn(() => Promise.resolve(true)),
+  fetchProducts: jest.fn(() => Promise.resolve([])),
+  getAvailablePurchases: jest.fn(() => Promise.resolve([])),
+  requestPurchase: jest.fn(() => Promise.resolve(null)),
+  finishTransaction: jest.fn(() => Promise.resolve()),
+  restorePurchases: jest.fn(() => Promise.resolve()),
+  deepLinkToSubscriptions: jest.fn(() => Promise.resolve()),
+  purchaseUpdatedListener: jest.fn(() => ({ remove: jest.fn() })),
+  purchaseErrorListener: jest.fn(() => ({ remove: jest.fn() })),
+  isUserCancelledError: jest.fn((error) => error?.code === 'user-cancelled'),
+}));
+
 // Initialise i18n synchronously in Portuguese so screens render their
 // original copy in tests (see src/i18n/testing.ts).
 require('./src/i18n/testing').initTestI18n();
