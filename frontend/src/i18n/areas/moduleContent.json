@@ -126,7 +126,7 @@
           },
           "2": {
             "year": "Anual",
-            "title": "Procissiões do mar",
+            "title": "Procissões do mar",
             "desc": "Festas de N.ª Sr.ª dos Navegantes ao longo de todo o litoral."
           }
         }
@@ -574,10 +574,6 @@
         "where": "Vila do Conde e Peniche",
         "history": "Ofício feminino de séculos junto ao mar, com escolas próprias que ainda formam rendilheiras."
       },
-      "Procissiões do mar": {
-        "where": "Todo o litoral, entre junho e setembro",
-        "history": "As comunidades de pesca levam a padroeira ao mar para bendizer a faina e recordar os que não voltaram."
-      },
       "Passadiços do Paiva": {
         "where": "Arouca — 8,7 km sobre o rio Paiva",
         "history": "Inaugurados em 2015, transformaram um vale fechado num destino nacional e criaram um modelo copiado por dezenas de municípios."
@@ -673,6 +669,10 @@
       "Rota dos Moinhos": {
         "where": "Oeste — Óbidos, Bombarral e Peniche",
         "history": "Moinhos de vento e azenhas que moíam o cereal da região até à eletrificação do século XX."
+      },
+      "Procissões do mar": {
+        "where": "Todo o litoral, entre junho e setembro",
+        "history": "As comunidades de pesca levam a padroeira ao mar para bendizer a faina e recordar os que não voltaram."
       }
     }
   },
@@ -1251,10 +1251,6 @@
         "where": "Vila do Conde and Peniche",
         "history": "A centuries-old women's craft by the sea, with its own schools still training lacemakers today."
       },
-      "Procissiões do mar": {
-        "where": "All along the coast, from June to September",
-        "history": "Fishing communities carry their patron saint out to sea to bless the fishing season and remember those who never came back."
-      },
       "Passadiços do Paiva": {
         "where": "Arouca — 8.7 km along the Paiva river",
         "history": "Opened in 2015, they turned a secluded valley into a national destination and created a model copied by dozens of municipalities."
@@ -1350,6 +1346,10 @@
       "Rota dos Moinhos": {
         "where": "Oeste — Óbidos, Bombarral and Peniche",
         "history": "Windmills and watermills that ground the region's grain until electrification in the 20th century."
+      },
+      "Procissões do mar": {
+        "where": "All along the coast, from June to September",
+        "history": "Fishing communities carry their patron saint out to sea to bless the fishing season and remember those who never came back."
       }
     }
   },
@@ -1928,10 +1928,6 @@
         "where": "Vila do Conde y Peniche",
         "history": "Oficio femenino de siglos junto al mar, con escuelas propias que aún forman encajeras."
       },
-      "Procissiões do mar": {
-        "where": "Todo el litoral, entre junio y septiembre",
-        "history": "Las comunidades pesqueras llevan a su patrona al mar para bendecir la faena y recordar a los que no volvieron."
-      },
       "Passadiços do Paiva": {
         "where": "Arouca — 8,7 km sobre el río Paiva",
         "history": "Inauguradas en 2015, transformaron un valle cerrado en un destino nacional y crearon un modelo copiado por decenas de municipios."
@@ -2027,6 +2023,10 @@
       "Rota dos Moinhos": {
         "where": "Oeste — Óbidos, Bombarral y Peniche",
         "history": "Molinos de viento y aceñas que molían el cereal de la región hasta la electrificación del siglo XX."
+      },
+      "Procissões do mar": {
+        "where": "Todo el litoral, entre junio y septiembre",
+        "history": "Las comunidades pesqueras llevan a su patrona al mar para bendecir la faena y recordar a los que no volvieron."
       }
     }
   },
@@ -2605,10 +2605,6 @@
         "where": "Vila do Conde et Peniche",
         "history": "Un savoir-faire féminin séculaire au bord de la mer, avec ses propres écoles qui forment encore des dentellières."
       },
-      "Procissiões do mar": {
-        "where": "Tout le littoral, de juin à septembre",
-        "history": "Les communautés de pêcheurs portent leur sainte patronne en mer pour bénir la pêche et se souvenir de ceux qui ne sont pas revenus."
-      },
       "Passadiços do Paiva": {
         "where": "Arouca — 8,7 km le long de la rivière Paiva",
         "history": "Inaugurées en 2015, elles ont transformé une vallée isolée en destination nationale et créé un modèle copié par des dizaines de communes."
@@ -2704,6 +2700,10 @@
       "Rota dos Moinhos": {
         "where": "Oeste — Óbidos, Bombarral et Peniche",
         "history": "Moulins à vent et moulins à eau qui moulaient le grain de la région jusqu'à l'électrification du XXe siècle."
+      },
+      "Procissões do mar": {
+        "where": "Tout le littoral, de juin à septembre",
+        "history": "Les communautés de pêcheurs portent leur sainte patronne en mer pour bénir la pêche et se souvenir de ceux qui ne sont pas revenus."
       }
     }
   }

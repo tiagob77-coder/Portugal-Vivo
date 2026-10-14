@@ -108,7 +108,7 @@ export const moduleNarratives: Record<string, ModuleNarrative> = {
     milestones: [
       { year: 'Tradição', title: 'Arte Xávega', desc: 'Arrasto puxado para terra na costa central — hoje demonstração e património.' },
       { year: 'Ria de Aveiro', title: 'Moliceiros', desc: 'Barcos de colheita de moliço, decorados com painéis narrativos.' },
-      { year: 'Anual', title: 'Procissiões do mar', desc: 'Festas de N.ª Sr.ª dos Navegantes ao longo de todo o litoral.' },
+      { year: 'Anual', title: 'Procissões do mar', desc: 'Festas de N.ª Sr.ª dos Navegantes ao longo de todo o litoral.' },
     ],
     categories: ['Faróis', 'Pérolas de Portugal'],
   },

@@ -216,7 +216,7 @@ export const highlightDetails: Record<string, HighlightDetail> = {
     history:
       'Ofício feminino de séculos junto ao mar, com escolas próprias que ainda formam rendilheiras.',
   },
-  'Procissiões do mar': {
+  'Procissões do mar': {
     where: 'Todo o litoral, entre junho e setembro',
     lat: 38.6968, lng: -9.4215,
     history:

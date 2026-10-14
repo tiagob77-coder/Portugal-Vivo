@@ -109,9 +109,11 @@ describe('data/moduleHighlights', () => {
   });
 
   it('destaques sem ficha curada degradam para undefined, não rebentam', () => {
-    // 5 destaques (praias acessíveis, etc.) não têm ficha — o ecrã recai no módulo
+    // 4 destaques (praias acessíveis, etc.) não têm ficha — o ecrã recai no módulo
     expect(getHighlightDetail('Praias acessíveis')).toBeUndefined();
     expect(getHighlightDetail('Sardinha-europeia')).toBeDefined();
+    // a ficha está registada com o mesmo nome do destaque (antes: "Procissiões")
+    expect(getHighlightDetail('Procissões do mar')).toBeDefined();
   });
 });
 
