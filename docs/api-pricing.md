@@ -7,20 +7,27 @@
 
 ## O que está disponível na API
 
-| Endpoint | Descrição |
-|---|---|
-| `GET /heritage` | Lista de POIs com coordenadas, categoria, região e metadados |
-| `GET /heritage/{id}` | Detalhe de um POI com narrativa completa gerada por IA |
-| `GET /routes` | Rotas temáticas curadas (trilhos, gastronómicas, históricas) |
-| `GET /routes/{id}` | Rota com GPX, perfil de elevação e POIs ao longo do percurso |
-| `GET /narratives/{poi_id}` | Narrativa em formato texto + áudio (URL) para um POI |
-| `GET /map/items` | POIs filtrados por região/categoria para integração em mapas |
-| `GET /weather/{region}` | Condições meteorológicas actuais e previsão (via IPMA) |
-| `GET /events` | Eventos culturais e festivais por região e data |
+Base URL: `https://api.portugalvivo.pt/api/v1` · Autenticação: cabeçalho `X-API-Key`
 
-**Formato:** JSON
-**Autenticação:** API Key por header (`X-API-Key`)
-**Rate limit:** por plano (ver abaixo)
+| Endpoint | Descrição | Plano mínimo |
+|---|---|---|
+| `GET /v1/heritage` | POIs publicados com coordenadas, categoria, região e concelho. Filtros `category`, `region`, `municipality`, `bbox`, paginação | Explorador |
+| `GET /v1/heritage/{id}` | Detalhe de um POI com narrativa | Explorador |
+| `GET /v1/routes` | Rotas temáticas curadas | Explorador |
+| `GET /v1/routes/{id}` | Rota com os POIs ordenados | Explorador |
+| `GET /v1/map/items` | Pontos leves (id, nome, categoria, lat/lng) para mapas, com `bbox` | Explorador |
+| `GET /v1/narratives/{poi_id}` | Narrativas publicadas do POI (texto); link de áudio nos planos Pro+ | Parceiro |
+| `GET /v1/events` | Eventos culturais e festivais (região, concelho, mês) | Parceiro |
+| `GET /v1/weather/{location}` | Previsão a 5 dias (IPMA) | Parceiro |
+| `GET /v1/audio/{poi_id}` | Áudio-guia MP3 (base64) | Pro |
+| `GET /v1/usage` | Plano e consumo do mês da chave (não conta para a quota) | Todos |
+| `GET /v1/plans` | Catálogo de planos (público) | — |
+
+**Formato:** JSON `{"data": …, "meta": {…}, "attribution": "…"}` (sem `attribution` nos planos white-label)
+**Quotas:** mensais por chave; cabeçalhos `X-RateLimit-Limit` e `X-RateLimit-Remaining` em cada resposta
+**Erros:** `401` chave em falta/inválida/suspensa · `403` funcionalidade fora do plano · `429` quota mensal esgotada
+
+> Os endpoints sem `/v1` servem a app Portugal Vivo e não estão licenciados a terceiros.
 
 ---
 
@@ -105,8 +112,9 @@
 
 ## Como começar
 
-1. **Pedir acesso antecipado:** enviar email para [api@portugavivo.pt]
-2. **Receber API key** de teste (plano Explorador gratuito por 30 dias)
+1. **Pedir acesso:** `POST /api/v1/access-requests` (organização, contacto, caso de uso, plano pretendido)
+   ou email para api@portugalvivo.pt
+2. **Receber a API key** (mostrada uma única vez; plano Explorador gratuito)
 3. **Integrar e validar** com os vossos dados reais
 4. **Activar plano pago** quando prontos para produção
 

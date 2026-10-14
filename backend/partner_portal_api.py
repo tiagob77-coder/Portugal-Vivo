@@ -11,6 +11,10 @@ Modelo:
   - Parceiro submete actualizações como drafts → pipeline toolkit existente
   - Parceiro vê métricas básicas do seu território
 
+Acesso: utilizadores com organização aprovada (partner_orgs) ou utilizadores
+municipais do RBAC multi-tenant (tenant_role municipio/editor/viewer com
+municipality_id) — estes últimos recebem uma organização implícita.
+
 Collections:
   partner_orgs  — organizações parceiras
   content_drafts — drafts submetidos (reusa pipeline toolkit)
@@ -22,6 +26,8 @@ Rotas:
   GET    /partner/pois                    — POIs do meu território (auth)
   GET    /partner/pois/{poi_id}           — detalhe + health score (auth)
   POST   /partner/pois/{poi_id}/draft     — submeter actualização (auth)
+  PATCH  /partner/pois/{poi_id}/draft     — publicar / despublicar POI (auth, escrita)
+  DELETE /partner/pois/{poi_id}           — arquivar POI do território (auth, municipio)
   GET    /partner/drafts                  — meus drafts pendentes (auth)
   GET    /partner/metrics                 — métricas do território (auth)
   GET    /partner/health-summary          — distribuição de saúde (auth)
@@ -32,10 +38,12 @@ Rotas:
 import logging
 import uuid
 from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Literal, Optional
 
-from fastapi import APIRouter, Depends, HTTPException, Query
-from pydantic import BaseModel, EmailStr, Field
+from fastapi import APIRouter, Depends, HTTPException, Query, Request
+from pydantic import BaseModel, Field
+
+from territory import municipality_slug, territory_filter
 
 logger = logging.getLogger(__name__)
 
@@ -61,23 +69,84 @@ def set_partner_auth(require_auth, require_admin) -> None:
     _require_admin = require_admin
 
 
+async def _current_user(request: Request) -> Dict[str, Any]:
+    """Utilizador autenticado (auth injectada por server.py via set_partner_auth)."""
+    if _require_auth is None:
+        raise HTTPException(503, "Autenticação não configurada")
+    user = await _require_auth(request)
+    return {"user_id": user.user_id, "email": getattr(user, "email", ""), "name": getattr(user, "name", "")}
+
+
+async def _current_admin(request: Request) -> Dict[str, Any]:
+    """Administrador autenticado."""
+    if _require_admin is None:
+        raise HTTPException(503, "Autenticação não configurada")
+    user = await _require_admin(request)
+    return {"user_id": user.user_id, "email": getattr(user, "email", ""), "name": getattr(user, "name", "")}
+
+
 # ─── Helpers ─────────────────────────────────────────────────────────────────
+
+TENANT_ROLES = {"municipio", "editor", "viewer"}
+WRITE_ACCESS = {"owner", "municipio", "editor"}
+DELETE_ACCESS = {"owner", "municipio"}
+
 
 def _now() -> datetime:
     return datetime.now(timezone.utc)
 
 
+async def _municipal_org(user_id: str) -> Optional[Dict[str, Any]]:
+    """Organização implícita para utilizadores municipais do RBAC multi-tenant."""
+    user_doc = await _db()["users"].find_one(
+        {"user_id": user_id}, {"_id": 0, "tenant_role": 1, "role": 1, "municipality_id": 1}
+    )
+    if not user_doc:
+        return None
+    role = user_doc.get("tenant_role") or user_doc.get("role")
+    municipality_id = user_doc.get("municipality_id")
+    if role not in TENANT_ROLES or not municipality_id:
+        return None
+    slug = municipality_slug(municipality_id)
+    sub = await _db()["municipal_subscriptions"].find_one({"municipality_id": slug}, {"_id": 0}) or {}
+    profile = await _db()["municipal_profiles"].find_one({"municipality_id": slug}, {"_id": 0, "display_name": 1}) or {}
+    name = profile.get("display_name") or slug.replace("-", " ").title()
+    return {
+        "org_id": f"mun:{slug}",
+        "name": name,
+        "type": "municipio",
+        "concelhos": list(sub.get("concelhos") or []) or [name],
+        "municipality_ids": [municipality_id, slug, *(sub.get("municipality_aliases") or [])],
+        "access": role,
+        "approved": True,
+    }
+
+
 async def _get_org_for_user(user_id: str) -> Optional[Dict[str, Any]]:
     # _db() raises a 500 itself when init_database() never ran.
-    return await _db()["partner_orgs"].find_one({"user_id": user_id, "approved": True})
+    org = await _db()["partner_orgs"].find_one({"user_id": user_id, "approved": True})
+    if org:
+        org["access"] = "owner"
+        return org
+    return await _municipal_org(user_id)
 
 
-async def _require_partner(current_user: dict) -> Dict[str, Any]:
-    """Verifica que o user tem uma org aprovada. Devolve a org."""
+async def _require_partner(current_user: dict, access: Optional[set] = None) -> Dict[str, Any]:
+    """Verifica que o user tem uma org aprovada (ou é municipal) e o nível de acesso pedido."""
     org = await _get_org_for_user(current_user.get("user_id", ""))
     if not org:
         raise HTTPException(403, "Sem organização parceira aprovada. Registe-se em POST /partner/register")
+    if access is not None and org.get("access") not in access:
+        raise HTTPException(403, "Sem permissão para esta operação")
     return org
+
+
+def _territory(org: Dict[str, Any]) -> Dict[str, Any]:
+    return territory_filter(org.get("municipality_ids") or [], org.get("concelhos") or [])
+
+
+def _in_territory(org: Dict[str, Any], extra: Dict[str, Any]) -> Dict[str, Any]:
+    return {"$and": [extra, _territory(org)]}
 
 
 # ─── Health score inline (reutiliza lógica sem importar o módulo) ─────────────
@@ -154,12 +223,9 @@ class OrgApproveRequest(BaseModel):
 # ─── Endpoints de registo / perfil ───────────────────────────────────────────
 
 @partner_router.post("/register", status_code=201)
-async def register_org(payload: OrgRegisterRequest, current_user: dict = Depends(lambda: {"user_id": "anon"})):
+async def register_org(payload: OrgRegisterRequest, current_user: dict = Depends(_current_user)):
     """Registar uma nova organização parceira (fica pendente até aprovação de admin)."""
     # _db() raises a 500 itself when init_database() never ran.
-
-    if _require_auth:
-        pass  # auth é injectado via Depends em server.py
 
     user_id = current_user.get("user_id", "")
 
@@ -192,7 +258,7 @@ async def register_org(payload: OrgRegisterRequest, current_user: dict = Depends
 
 
 @partner_router.get("/profile")
-async def get_partner_profile(current_user: dict = Depends(lambda: {"user_id": "anon"})):
+async def get_partner_profile(current_user: dict = Depends(_current_user)):
     """Perfil da organização parceira do utilizador autenticado."""
     # _db() raises a 500 itself when init_database() never ran.
     user_id = current_user.get("user_id", "")
@@ -209,38 +275,43 @@ async def list_partner_pois(
     page: int = Query(1, ge=1),
     page_size: int = Query(25, ge=1, le=100),
     tier: Optional[str] = Query(None),
-    current_user: dict = Depends(lambda: {"user_id": "anon"}),
+    order: Literal["asc", "desc"] = Query("asc", description="asc = mais críticos primeiro; desc = melhores primeiro"),
+    current_user: dict = Depends(_current_user),
 ):
     """Lista de POIs do território do parceiro com health score."""
     # _db() raises a 500 itself when init_database() never ran.
 
     org = await _require_partner(current_user)
     concelhos = org.get("concelhos", [])
-    if not concelhos:
-        return {"items": [], "total": 0, "page": page, "page_size": page_size}
 
     projection = {
-        "id": 1, "name": 1, "category": 1, "region": 1, "concelho": 1,
+        "id": 1, "name": 1, "category": 1, "region": 1, "concelho": 1, "location": 1,
         "image_url": 1, "description": 1, "micro_pitch": 1, "descricao_curta": 1,
-        "local_story": 1, "historia_local": 1,
+        "local_story": 1, "historia_local": 1, "is_published": 1,
         "created_at": 1, "last_edited_at": 1, "iq_results": 1,
         "_id": 0,
     }
 
-    cursor = _db()["heritage_items"].find({"concelho": {"$in": concelhos}}, projection)
+    cursor = _db()["heritage_items"].find({**_territory(org), "deleted_at": None}, projection)
     raw = await cursor.to_list(length=2000)
 
     scored = []
     for item in raw:
         score = _quick_health(item)
         t = _tier(score)
+        poi_id = item.get("id", "")
         scored.append({
-            "poi_id": item.get("id", ""),
+            "poi_id": poi_id,
+            "id": poi_id,
             "name": item.get("name", ""),
             "category": item.get("category", ""),
+            "region": item.get("region", ""),
             "concelho": item.get("concelho", ""),
+            "location": item.get("location"),
             "score": score,
+            "content_health_score": score,
             "tier": t,
+            "status": "draft" if item.get("is_published") is False else "published",
             "has_image": bool((item.get("image_url") or "").startswith("http")),
             "has_narrative": bool((item.get("micro_pitch") or "").strip()),
             "last_edited_at": item.get("last_edited_at"),
@@ -249,31 +320,30 @@ async def list_partner_pois(
     if tier:
         scored = [s for s in scored if s["tier"] == tier]
 
-    scored.sort(key=lambda x: x["score"])  # mais críticos primeiro
+    scored.sort(key=lambda x: x["score"], reverse=order == "desc")  # asc: mais críticos primeiro
 
     skip = (page - 1) * page_size
+    page_items = scored[skip: skip + page_size]
     return {
-        "items": scored[skip: skip + page_size],
+        "items": page_items,
+        "pois": page_items,  # contrato usado por app/municipio/pois.tsx
         "total": len(scored),
         "page": page,
         "page_size": page_size,
         "org_name": org.get("name"),
         "concelhos": concelhos,
+        "access": org.get("access"),
     }
 
 
 @partner_router.get("/pois/{poi_id}")
-async def get_partner_poi(poi_id: str, current_user: dict = Depends(lambda: {"user_id": "anon"})):
+async def get_partner_poi(poi_id: str, current_user: dict = Depends(_current_user)):
     """Detalhe de um POI do território do parceiro."""
     # _db() raises a 500 itself when init_database() never ran.
 
     org = await _require_partner(current_user)
-    concelhos = org.get("concelhos", [])
 
-    item = await _db()["heritage_items"].find_one(
-        {"id": poi_id, "concelho": {"$in": concelhos}},
-        {"_id": 0},
-    )
+    item = await _db()["heritage_items"].find_one(_in_territory(org, {"id": poi_id}), {"_id": 0})
     if not item:
         raise HTTPException(404, "POI não encontrado no vosso território")
 
@@ -297,7 +367,7 @@ async def get_partner_poi(poi_id: str, current_user: dict = Depends(lambda: {"us
 async def submit_partner_draft(
     poi_id: str,
     payload: PartnerDraftRequest,
-    current_user: dict = Depends(lambda: {"user_id": "anon"}),
+    current_user: dict = Depends(_current_user),
 ):
     """
     Submeter uma actualização de conteúdo para um POI.
@@ -305,12 +375,11 @@ async def submit_partner_draft(
     """
     # _db() raises a 500 itself when init_database() never ran.
 
-    org = await _require_partner(current_user)
-    concelhos = org.get("concelhos", [])
+    org = await _require_partner(current_user, WRITE_ACCESS)
 
     # Verificar que o POI pertence ao território do parceiro
     poi = await _db()["heritage_items"].find_one(
-        {"id": poi_id, "concelho": {"$in": concelhos}},
+        _in_territory(org, {"id": poi_id}),
         {"id": 1, "name": 1, "category": 1, "region": 1, "_id": 0},
     )
     if not poi:
@@ -367,12 +436,55 @@ async def submit_partner_draft(
     }
 
 
+class PublishStatusRequest(BaseModel):
+    status: Literal["published", "draft"]
+
+
+@partner_router.patch("/pois/{poi_id}/draft")
+async def set_partner_poi_status(
+    poi_id: str,
+    payload: PublishStatusRequest,
+    current_user: dict = Depends(_current_user),
+):
+    """Publicar ou despublicar um POI do território (despublicado sai das listagens públicas)."""
+    org = await _require_partner(current_user, WRITE_ACCESS)
+    result = await _db()["heritage_items"].update_one(
+        _in_territory(org, {"id": poi_id, "deleted_at": None}),
+        {"$set": {
+            "is_published": payload.status == "published",
+            "last_edited_at": _now(),
+            "last_edited_by": current_user.get("user_id", ""),
+        }},
+    )
+    if result.matched_count == 0:
+        raise HTTPException(404, "POI não encontrado no vosso território")
+    logger.info("[partner] POI %s → %s por org %s", poi_id, payload.status, org.get("org_id"))
+    return {"poi_id": poi_id, "status": payload.status}
+
+
+@partner_router.delete("/pois/{poi_id}", status_code=204)
+async def archive_partner_poi(poi_id: str, current_user: dict = Depends(_current_user)):
+    """Arquivar um POI do território (soft delete: deixa de ser público, mantém histórico)."""
+    org = await _require_partner(current_user, DELETE_ACCESS)
+    result = await _db()["heritage_items"].update_one(
+        _in_territory(org, {"id": poi_id, "deleted_at": None}),
+        {"$set": {
+            "is_published": False,
+            "deleted_at": _now(),
+            "deleted_by": current_user.get("user_id", ""),
+        }},
+    )
+    if result.matched_count == 0:
+        raise HTTPException(404, "POI não encontrado no vosso território")
+    logger.info("[partner] POI %s arquivado por org %s", poi_id, org.get("org_id"))
+
+
 # ─── Listar drafts do parceiro ────────────────────────────────────────────────
 
 @partner_router.get("/drafts")
 async def list_partner_drafts(
     status: Optional[str] = Query(None),
-    current_user: dict = Depends(lambda: {"user_id": "anon"}),
+    current_user: dict = Depends(_current_user),
 ):
     """Drafts submetidos pela organização parceira."""
     # _db() raises a 500 itself when init_database() never ran.
@@ -390,22 +502,18 @@ async def list_partner_drafts(
 # ─── Métricas do território ───────────────────────────────────────────────────
 
 @partner_router.get("/metrics")
-async def get_partner_metrics(current_user: dict = Depends(lambda: {"user_id": "anon"})):
+async def get_partner_metrics(current_user: dict = Depends(_current_user)):
     """Métricas básicas do território gerido pelo parceiro."""
     # _db() raises a 500 itself when init_database() never ran.
 
     org = await _require_partner(current_user)
     concelhos = org.get("concelhos", [])
 
-    total_pois = await _db()["heritage_items"].count_documents({"concelho": {"$in": concelhos}})
-    with_image = await _db()["heritage_items"].count_documents({
-        "concelho": {"$in": concelhos},
-        "image_url": {"$exists": True, "$ne": "", "$ne": None},
-    })
-    with_narrative = await _db()["heritage_items"].count_documents({
-        "concelho": {"$in": concelhos},
-        "micro_pitch": {"$exists": True, "$ne": ""},
-    })
+    total_pois = await _db()["heritage_items"].count_documents(_territory(org))
+    with_image = await _db()["heritage_items"].count_documents(
+        _in_territory(org, {"image_url": {"$exists": True, "$nin": ["", None]}}))
+    with_narrative = await _db()["heritage_items"].count_documents(
+        _in_territory(org, {"micro_pitch": {"$exists": True, "$nin": ["", None]}}))
     pending_drafts = await _db()["content_drafts"].count_documents({
         "author_org_id": org.get("org_id", ""),
         "status": {"$in": ["draft", "enriching", "enriched", "reviewing", "reviewed"]},
@@ -429,12 +537,11 @@ async def get_partner_metrics(current_user: dict = Depends(lambda: {"user_id": "
 
 
 @partner_router.get("/health-summary")
-async def get_partner_health_summary(current_user: dict = Depends(lambda: {"user_id": "anon"})):
+async def get_partner_health_summary(current_user: dict = Depends(_current_user)):
     """Distribuição de health scores no território do parceiro."""
     # _db() raises a 500 itself when init_database() never ran.
 
     org = await _require_partner(current_user)
-    concelhos = org.get("concelhos", [])
 
     projection = {
         "id": 1, "image_url": 1, "description": 1, "micro_pitch": 1,
@@ -443,7 +550,7 @@ async def get_partner_health_summary(current_user: dict = Depends(lambda: {"user
         "_id": 0,
     }
 
-    cursor = _db()["heritage_items"].find({"concelho": {"$in": concelhos}}, projection)
+    cursor = _db()["heritage_items"].find(_territory(org), projection)
     raw = await cursor.to_list(length=2000)
 
     tiers: Dict[str, int] = {"healthy": 0, "attention": 0, "stale": 0, "critical": 0}
@@ -466,7 +573,7 @@ async def get_partner_health_summary(current_user: dict = Depends(lambda: {"user
 @partner_router.get("/orgs")
 async def list_orgs(
     approved: Optional[bool] = Query(None),
-    current_user: dict = Depends(lambda: {"user_id": "anon"}),
+    current_user: dict = Depends(_current_admin),
 ):
     """Lista todas as organizações parceiras (admin)."""
     # _db() raises a 500 itself when init_database() never ran.
@@ -484,7 +591,7 @@ async def list_orgs(
 async def approve_org(
     org_id: str,
     payload: OrgApproveRequest,
-    current_user: dict = Depends(lambda: {"user_id": "anon"}),
+    current_user: dict = Depends(_current_admin),
 ):
     """Aprovar ou rejeitar uma organização parceira (admin)."""
     # _db() raises a 500 itself when init_database() never ran.

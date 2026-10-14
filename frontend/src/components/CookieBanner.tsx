@@ -3,10 +3,14 @@
  *
  * The Portugal Vivo backend issues exactly one cookie: ``session_token``,
  * which is strictly necessary for authentication and therefore exempt
- * from the ePrivacy / RGPD opt-in requirement. There is no analytics
- * cookie, no advertising cookie, no third-party tracker. The banner is
+ * from the ePrivacy / RGPD opt-in requirement. There is no advertising
+ * cookie and no third-party tracker. The only measurement is first-party
+ * anonymous usage statistics (src/services/impactTracking.ts — no account
+ * id, no IP, monthly-rotating random visitor id kept on the device), which
+ * the user can switch off in Definições → Privacidade. The banner is
  * therefore *informative* rather than *blocking*: it tells the user what
- * we use, links to the Privacy Policy, and dismisses on acknowledgement.
+ * we use, links to the Privacy Policy and the opt-out, and dismisses on
+ * acknowledgement.
  *
  * Consent is persisted to AsyncStorage so the strip stays gone after the
  * first dismissal. If the user clears storage or visits from a fresh
@@ -21,7 +25,6 @@ import {
   StyleSheet,
   TouchableOpacity,
   Platform,
-  Linking,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter } from 'expo-router';
@@ -61,10 +64,19 @@ export default function CookieBanner() {
       <View style={styles.row}>
         <MaterialIcons name="cookie" size={22} color="#C49A6C" style={styles.icon} />
         <View style={styles.copy}>
-          <Text style={styles.title}>Cookies estritamente necessários</Text>
+          <Text style={styles.title}>Cookies e estatísticas anónimas</Text>
           <Text style={styles.body}>
-            Usamos apenas um cookie de sessão para o manter ligado. Não temos cookies de
-            publicidade nem de tracking.{' '}
+            Só usamos um cookie de sessão — sem cookies de publicidade nem rastreadores de
+            terceiros. As estatísticas de utilização são anónimas e podem ser desativadas
+            em{' '}
+            <Text
+              style={styles.link}
+              onPress={() => router.push('/settings/privacidade')}
+              accessibilityRole="link"
+            >
+              Definições
+            </Text>
+            .{' '}
             <Text
               style={styles.link}
               onPress={() => router.push('/privacy')}
@@ -72,7 +84,6 @@ export default function CookieBanner() {
             >
               Saber mais
             </Text>
-            .
           </Text>
         </View>
         <TouchableOpacity

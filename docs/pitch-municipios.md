@@ -6,26 +6,28 @@
 ## O que é o Portugal Vivo?
 
 Uma aplicação móvel (iOS, Android, Web) que transforma o património cultural português em
-experiências imersivas — com narrativas por inteligência artificial, guias de áudio, mapas
-offline e rotas temáticas.
+experiências imersivas — com narrativas revistas, guias de áudio, mapas e rotas temáticas.
 
-Disponível em português e inglês. Desenhada para o viajante que quer ir além do Google Maps.
+Interface em português (inglês em preparação). Desenhada para o viajante que quer ir além do Google Maps.
 
 ---
 
 ## O que oferecemos ao Município
 
 ### Perfil Municipal Dedicado
-- Página de destino exclusiva com identidade visual do município
-- Listagem completa dos vossos POIs (monumentos, museus, igrejas, paisagens, gastronomia)
-- Narrativas em IA escritas com base em informação fornecida pela câmara — rigor histórico garantido
-- Guias de áudio produzidos em colaboração com os vossos técnicos de cultura
+- Página pública do município (`/destino/{concelho}`) com identidade visual própria (cor, logótipo, imagem)
+- POIs e rotas em destaque escolhidos pela câmara
+- Narrativas com base em informação fornecida pela câmara — revisão editorial garantida
+- Áudio-guias em destaque, produzidos em colaboração com os vossos técnicos de cultura
 
-### Dashboard de Impacto (acesso exclusivo à câmara)
-- Número de visitas digitais por POI
-- Origem geográfica dos utilizadores (nacional vs. internacional)
-- Rotas mais percorridas no território
-- Relatório mensal em PDF para relatórios de actividade e candidaturas a fundos
+### Painel Municipal (acesso exclusivo à câmara)
+- Gestão dos POIs do território: publicar, despublicar, arquivar, importar Excel/CSV
+- **Painel de impacto:** visitantes únicos, visualizações por POI, áudio-guias ouvidos,
+  rotas iniciadas, leituras de QR code, origem nacional vs. internacional
+- **Relatório mensal em PDF** para relatórios de atividade e candidaturas a fundos
+- Equipa com perfis município / editor / leitor
+
+Estatísticas anónimas: sem identificação de utilizadores nem endereços IP (RGPD).
 
 ### Visibilidade nos Canais Portugal Vivo
 - Destaque na secção "Descobrir Portugal" da app
@@ -36,26 +38,26 @@ Disponível em português e inglês. Desenhada para o viajante que quer ir além
 
 ## Modelo de Parceria
 
-| Componente | Incluído |
-|---|---|
-| Criação do perfil municipal | Sim |
-| Importação e enriquecimento de POIs | Até 150 POIs no 1.º ano |
-| Narrativas IA por POI | Sim |
-| Guias de áudio (produção conjunta) | Até 20 no 1.º ano |
-| Dashboard de métricas | Sim |
-| Suporte técnico | Sim |
-| Actualização anual de conteúdo | Sim |
+| Escalão | Para quem | POIs curados | Áudio-guias em destaque | Preço anual (+ IVA) |
+|---|---|---|---|---|
+| **Essencial** | Até 20 mil hab. / baixa densidade | até 80 | 10 | 2.900 € |
+| **Território** | 20 a 100 mil hab. | até 150 | 20 | 4.900 € |
+| **Destino** | > 100 mil hab. ou marca própria (white-label) | ilimitados | 40 | 9.900 € |
 
-**Investimento anual:** a partir de €2.500 + IVA / ano
-
-*Elegível para financiamento PRR (componente de digitalização do turismo) e Portugal 2030.*
-*Podemos fornecer toda a documentação necessária para candidaturas.*
+- **Setup** (onboarding, importação e enriquecimento inicial, formação): 2.500 € + IVA, uma vez
+- **Piloto de 3 meses** antes da subscrição anual
+- A subscrição anual dos escalões Essencial e Território fica abaixo dos 5.000 € (ajuste direto
+  simplificado); com o setup, o 1.º ano de qualquer escalão fica abaixo dos 20.000 €
+- Elegível como "plataforma tecnológica" em candidaturas municipais — por exemplo, o
+  programa **Crescer com o Turismo** (Turismo de Portugal, candidaturas até 31/12/2026,
+  taxa base 60% + 20% em territórios de baixa densidade) e avisos Portugal 2030
+- Podemos fornecer toda a documentação necessária para candidaturas
 
 ---
 
 ## Porquê agora?
 
-- Os fundos PRR para digitalização cultural estão activos em 2025–2026
+- O programa Crescer com o Turismo financia projetos municipais até 31/12/2026 (ou até esgotar a dotação)
 - Os viajantes pesquisam destinos no telemóvel antes e durante a visita
 - Municípios com presença digital forte captam mais visitantes independentes (sem pacote)
 - Só um município por sub-região terá perfil exclusivo no Portugal Vivo

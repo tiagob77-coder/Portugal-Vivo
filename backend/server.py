@@ -831,6 +831,20 @@ from partner_portal_api import partner_router, set_partner_auth
 set_partner_auth(require_auth, require_admin)
 api_router.include_router(partner_router)
 
+# ── B2B Partner API (API keys + versioned /v1) ────────────────────────────────
+from api_keys_api import api_keys_admin_router, api_keys_public_router
+from partner_api_v1 import partner_api_v1_router
+api_router.include_router(api_keys_public_router)
+api_router.include_router(api_keys_admin_router)
+api_router.include_router(partner_api_v1_router)
+
+# ── B2G Municipal plans, impact analytics, reports and public profiles ───────
+from municipal_api import municipal_router, municipal_admin_router, impact_router, municipios_public_router
+api_router.include_router(municipal_router)
+api_router.include_router(municipal_admin_router)
+api_router.include_router(impact_router)
+api_router.include_router(municipios_public_router)
+
 # ── Seasonal Event Triggers ───────────────────────────────────────────────────
 from seasonal_triggers_api import seasonal_router, set_seasonal_auth, set_seasonal_llm_key
 set_seasonal_auth(require_auth, require_admin)

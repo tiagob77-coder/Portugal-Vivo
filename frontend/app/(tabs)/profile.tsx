@@ -17,6 +17,7 @@ import {
   stopWebProximityPolling,
 } from '../../src/services/backgroundTasks';
 import type { GamificationProfile, SubscriptionStatus } from '../../src/services/api';
+import { getMySubscription } from '../../src/services/api/municipal';
 import EmptyState from '../../src/components/EmptyState';
 import HeritageCard from '../../src/components/HeritageCard';
 import BrandLogo from '../../src/components/BrandLogo';
@@ -55,6 +56,13 @@ function ProfileScreen() {
     queryKey: ['subscription-status', userId],
     queryFn: () => getSubscriptionStatus(userId),
     enabled: isAuthenticated && !!userId,
+  });
+  // Municipal panel entry: only for municipal users (401/403 → query errors → hidden)
+  const { data: municipalAccess } = useQuery({
+    queryKey: ['municipal-subscription', userId ?? null],
+    queryFn: getMySubscription,
+    enabled: isAuthenticated,
+    retry: false,
   });
   const [notificationsEnabled, setNotificationsEnabled] = useState(false);
   const [advancedExpanded, setAdvancedExpanded] = useState(false);
@@ -216,6 +224,9 @@ function ProfileScreen() {
     { icon: 'analytics', label: 'O Meu Progresso', color: colors.accent, route: '/dashboard' },
     { icon: 'near-me', label: 'Perto de Mim', color: colors.success, route: '/nearby' },
     { icon: 'alt-route', label: 'Planear Viagem', color: colors.info, route: '/route-planner' },
+    ...(isAuthenticated && municipalAccess
+      ? [{ icon: 'location-city', label: 'Painel Municipal', color: colors.primary, route: '/municipio' }]
+      : []),
   ];
 
   // Ferramentas avançadas — colapsável, visível em sub-menu
@@ -417,6 +428,18 @@ function ProfileScreen() {
                 <MaterialIcons name="palette" size={24} color="#A855F7" />
               </View>
               <Text style={[styles.actionText, { color: colors.textPrimary }]}>Aparência Avançada</Text>
+              <MaterialIcons name="chevron-right" size={20} color={colors.textMuted} />
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.actionButton}
+              onPress={() => router.push('/settings/privacidade')}
+              accessibilityLabel="Privacidade e estatísticas anónimas"
+              accessibilityRole="button"
+            >
+              <View style={[styles.actionIcon, { backgroundColor: colors.primary + '15' }]}>
+                <MaterialIcons name="privacy-tip" size={24} color={colors.primary} />
+              </View>
+              <Text style={[styles.actionText, { color: colors.textPrimary }]}>Privacidade</Text>
               <MaterialIcons name="chevron-right" size={20} color={colors.textMuted} />
             </TouchableOpacity>
             <TouchableOpacity

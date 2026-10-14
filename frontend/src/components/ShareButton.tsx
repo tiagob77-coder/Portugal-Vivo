@@ -10,6 +10,8 @@ interface ShareButtonProps {
   iconSize?: number;
   iconColor?: string;
   style?: ViewStyle;
+  /** Called once the content was shared or the link copied (not on cancel). */
+  onShare?: () => void;
 }
 
 const copyToClipboardWeb = (text: string): boolean => {
@@ -28,7 +30,7 @@ const copyToClipboardWeb = (text: string): boolean => {
   }
 };
 
-export const ShareButton = ({ title, description, url, iconSize = 24, iconColor = palette.gray[50], style }: ShareButtonProps) => {
+export const ShareButton = ({ title, description, url, iconSize = 24, iconColor = palette.gray[50], style, onShare }: ShareButtonProps) => {
   const [copied, setCopied] = React.useState(false);
 
   const handleShare = async () => {
@@ -40,6 +42,7 @@ export const ShareButton = ({ title, description, url, iconSize = 24, iconColor 
       if (navigator.share) {
         try {
           await navigator.share({ title, text: description, url: shareUrl });
+          onShare?.();
           return;
         } catch { /* user cancelled or not supported, fallback to clipboard */ }
       }
@@ -53,9 +56,11 @@ export const ShareButton = ({ title, description, url, iconSize = 24, iconColor 
       if (success) {
         setCopied(true);
         setTimeout(() => setCopied(false), 2500);
+        onShare?.();
       }
     } else {
-      await Share.share({ title, message });
+      const result = await Share.share({ title, message });
+      if (result.action !== Share.dismissedAction) onShare?.();
     }
   };
 
