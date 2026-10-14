@@ -18,6 +18,11 @@ import Pois from '../municipio/pois';
 import Destinos from '../destino/index';
 import Destino from '../destino/[slug]';
 
+// Seven screens rendered in one suite: the first render pays the lazy
+// react-native module loading, which under coverage on a busy CI runner has
+// exceeded Jest's 5 s default (passes in <300 ms locally).
+jest.setTimeout(20000);
+
 // ─── expo-router ──────────────────────────────────────────────────────────────
 const mockRouter = { push: jest.fn(), back: jest.fn(), replace: jest.fn(), canGoBack: jest.fn(() => true) };
 let mockParams: Record<string, string> = {};
