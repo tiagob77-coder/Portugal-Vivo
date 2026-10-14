@@ -317,6 +317,62 @@
         "label": "Turismo Inclusivo",
         "story": "Acessibilidade não é um equipamento, é uma cadeia: chegar, estacionar, entrar, usar e sair. O Portugal Vivo trata a informação de apoio como dado verificável — praia a praia, percurso a percurso."
       }
+    },
+    "culturalHub": {
+      "calendarTitle": "Calendário Cultural",
+      "playlistsTitle": "Playlists Temáticas",
+      "routes": "{{count}} rotas",
+      "routesOne": "1 rota",
+      "webOnly3d": "Mapa 3D disponível na versão web",
+      "months": {
+        "1": "Jan",
+        "2": "Fev",
+        "3": "Mar",
+        "4": "Abr",
+        "5": "Mai",
+        "6": "Jun",
+        "7": "Jul",
+        "8": "Ago",
+        "9": "Set",
+        "10": "Out",
+        "11": "Nov",
+        "12": "Dez"
+      },
+      "highlights": {
+        "2": "Carnaval",
+        "4": "Páscoa",
+        "6": "São João",
+        "7": "Arraiais",
+        "8": "Verão",
+        "12": "Natal"
+      },
+      "playlists": {
+        "pl_unesco": {
+          "title": "Rota UNESCO",
+          "subtitle": "Apenas Património da Humanidade",
+          "tag": "UNESCO"
+        },
+        "pl_norte": {
+          "title": "Norte Profundo",
+          "subtitle": "Minho, Douro, Trás-os-Montes",
+          "tag": "5 rotas"
+        },
+        "pl_fim_semana": {
+          "title": "Fim de Semana Cultural",
+          "subtitle": "Rotas de 2-3 dias",
+          "tag": "Curtas"
+        },
+        "pl_musica": {
+          "title": "Músicas de Portugal",
+          "subtitle": "Fado, Gaita, Adufe, Brinquinho",
+          "tag": "Musicais"
+        },
+        "pl_grande": {
+          "title": "Grande Viagem",
+          "subtitle": "Portugal de Norte a Sul — 14 dias",
+          "tag": "Premium"
+        }
+      }
     }
   },
   "en": {
@@ -636,6 +692,62 @@
       "inclusivo": {
         "label": "Inclusive Tourism",
         "story": "Accessibility is not a piece of equipment, it is a chain: arriving, parking, getting in, using and leaving. Portugal Vivo treats support information as verifiable data — beach by beach, trail by trail."
+      }
+    },
+    "culturalHub": {
+      "calendarTitle": "Cultural Calendar",
+      "playlistsTitle": "Themed Playlists",
+      "routes": "{{count}} routes",
+      "routesOne": "1 route",
+      "webOnly3d": "3D map available on the web version",
+      "months": {
+        "1": "Jan",
+        "2": "Feb",
+        "3": "Mar",
+        "4": "Apr",
+        "5": "May",
+        "6": "Jun",
+        "7": "Jul",
+        "8": "Aug",
+        "9": "Sep",
+        "10": "Oct",
+        "11": "Nov",
+        "12": "Dec"
+      },
+      "highlights": {
+        "2": "Carnival",
+        "4": "Easter",
+        "6": "St John's",
+        "7": "Street fairs",
+        "8": "Summer",
+        "12": "Christmas"
+      },
+      "playlists": {
+        "pl_unesco": {
+          "title": "UNESCO Route",
+          "subtitle": "World Heritage only",
+          "tag": "UNESCO"
+        },
+        "pl_norte": {
+          "title": "Deep North",
+          "subtitle": "Minho, Douro, Trás-os-Montes",
+          "tag": "5 routes"
+        },
+        "pl_fim_semana": {
+          "title": "Cultural Weekend",
+          "subtitle": "2–3 day routes",
+          "tag": "Short"
+        },
+        "pl_musica": {
+          "title": "Music of Portugal",
+          "subtitle": "Fado, bagpipes, adufe, brinquinho",
+          "tag": "Music"
+        },
+        "pl_grande": {
+          "title": "Grand Tour",
+          "subtitle": "Portugal from north to south — 14 days",
+          "tag": "Premium"
+        }
       }
     }
   },
@@ -957,6 +1069,62 @@
         "label": "Turismo inclusivo",
         "story": "La accesibilidad no es un equipamiento, es una cadena: llegar, aparcar, entrar, usar y salir. Portugal Vivo trata la información de apoyo como un dato verificable — playa a playa, recorrido a recorrido."
       }
+    },
+    "culturalHub": {
+      "calendarTitle": "Calendario cultural",
+      "playlistsTitle": "Listas temáticas",
+      "routes": "{{count}} rutas",
+      "routesOne": "1 ruta",
+      "webOnly3d": "Mapa 3D disponible en la versión web",
+      "months": {
+        "1": "Ene",
+        "2": "Feb",
+        "3": "Mar",
+        "4": "Abr",
+        "5": "May",
+        "6": "Jun",
+        "7": "Jul",
+        "8": "Ago",
+        "9": "Sep",
+        "10": "Oct",
+        "11": "Nov",
+        "12": "Dic"
+      },
+      "highlights": {
+        "2": "Carnaval",
+        "4": "Semana Santa",
+        "6": "San Juan",
+        "7": "Verbenas",
+        "8": "Verano",
+        "12": "Navidad"
+      },
+      "playlists": {
+        "pl_unesco": {
+          "title": "Ruta UNESCO",
+          "subtitle": "Solo Patrimonio de la Humanidad",
+          "tag": "UNESCO"
+        },
+        "pl_norte": {
+          "title": "Norte profundo",
+          "subtitle": "Minho, Duero, Trás-os-Montes",
+          "tag": "5 rutas"
+        },
+        "pl_fim_semana": {
+          "title": "Fin de semana cultural",
+          "subtitle": "Rutas de 2-3 días",
+          "tag": "Cortas"
+        },
+        "pl_musica": {
+          "title": "Músicas de Portugal",
+          "subtitle": "Fado, gaita, adufe, brinquinho",
+          "tag": "Musicales"
+        },
+        "pl_grande": {
+          "title": "Gran viaje",
+          "subtitle": "Portugal de norte a sur — 14 días",
+          "tag": "Premium"
+        }
+      }
     }
   },
   "fr": {
@@ -1276,6 +1444,62 @@
       "inclusivo": {
         "label": "Tourisme inclusif",
         "story": "L'accessibilité n'est pas un équipement, c'est une chaîne : arriver, se garer, entrer, utiliser et repartir. Portugal Vivo traite l'information d'assistance comme une donnée vérifiable — plage par plage, parcours par parcours."
+      }
+    },
+    "culturalHub": {
+      "calendarTitle": "Calendrier culturel",
+      "playlistsTitle": "Sélections thématiques",
+      "routes": "{{count}} itinéraires",
+      "routesOne": "1 itinéraire",
+      "webOnly3d": "Carte 3D disponible sur la version web",
+      "months": {
+        "1": "Janv",
+        "2": "Févr",
+        "3": "Mars",
+        "4": "Avr",
+        "5": "Mai",
+        "6": "Juin",
+        "7": "Juil",
+        "8": "Août",
+        "9": "Sept",
+        "10": "Oct",
+        "11": "Nov",
+        "12": "Déc"
+      },
+      "highlights": {
+        "2": "Carnaval",
+        "4": "Pâques",
+        "6": "Saint-Jean",
+        "7": "Fêtes de rue",
+        "8": "Été",
+        "12": "Noël"
+      },
+      "playlists": {
+        "pl_unesco": {
+          "title": "Route UNESCO",
+          "subtitle": "Uniquement le Patrimoine mondial",
+          "tag": "UNESCO"
+        },
+        "pl_norte": {
+          "title": "Nord profond",
+          "subtitle": "Minho, Douro, Trás-os-Montes",
+          "tag": "5 itinéraires"
+        },
+        "pl_fim_semana": {
+          "title": "Week-end culturel",
+          "subtitle": "Itinéraires de 2-3 jours",
+          "tag": "Courts"
+        },
+        "pl_musica": {
+          "title": "Musiques du Portugal",
+          "subtitle": "Fado, cornemuse, adufe, brinquinho",
+          "tag": "Musique"
+        },
+        "pl_grande": {
+          "title": "Grand voyage",
+          "subtitle": "Le Portugal du nord au sud — 14 jours",
+          "tag": "Premium"
+        }
       }
     }
   }

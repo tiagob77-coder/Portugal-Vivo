@@ -5,6 +5,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, ScrollView } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import { palette } from '../theme';
 import { borderRadius, spacing } from '../theme/spacing';
 
@@ -42,6 +43,7 @@ export function buildTimelineMonths(bestMonths: number[][]): TimelineMonth[] {
 }
 
 export default function CulturalHubTimeline({ months, accentColor = '#A855F7' }: Props) {
+  const { t } = useTranslation();
   const max = Math.max(...months.map((m) => m.routeCount), 1);
   const now = new Date().getMonth() + 1;
 
@@ -49,7 +51,7 @@ export default function CulturalHubTimeline({ months, accentColor = '#A855F7' }:
     <View style={styles.wrapper}>
       <View style={styles.titleRow}>
         <MaterialIcons name="timeline" size={15} color={accentColor} />
-        <Text style={[styles.title, { color: accentColor }]}>Calendário Cultural</Text>
+        <Text style={[styles.title, { color: accentColor }]}>{t('modulesRoutes.culturalHub.calendarTitle')}</Text>
       </View>
       <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.scroll}>
         {months.map((m) => {
@@ -58,14 +60,18 @@ export default function CulturalHubTimeline({ months, accentColor = '#A855F7' }:
           return (
             <View key={m.month} style={[styles.monthCol, isNow && { borderColor: accentColor, borderWidth: 1, borderRadius: 8 }]}>
               {m.highlight ? (
-                <Text style={[styles.highlight, { color: accentColor }]} numberOfLines={1}>{m.highlight}</Text>
+                <Text style={[styles.highlight, { color: accentColor }]} numberOfLines={1}>
+                  {t(`modulesRoutes.culturalHub.highlights.${m.month}`, { defaultValue: m.highlight })}
+                </Text>
               ) : (
                 <Text style={styles.highlightSpacer}> </Text>
               )}
               <View style={styles.barTrack}>
                 <View style={[styles.bar, { height: barH, backgroundColor: isNow ? accentColor : accentColor + '55' }]} />
               </View>
-              <Text style={[styles.monthLabel, isNow && { color: accentColor, fontWeight: '700' }]}>{m.label}</Text>
+              <Text style={[styles.monthLabel, isNow && { color: accentColor, fontWeight: '700' }]}>
+                {t(`modulesRoutes.culturalHub.months.${m.month}`, { defaultValue: m.label })}
+              </Text>
               <Text style={styles.count}>{m.routeCount}</Text>
             </View>
           );
