@@ -1,3 +1,4 @@
+import { changeLanguage, t } from 'i18next';
 import {
   guideRegions,
   guideModuleLenses,
@@ -5,6 +6,10 @@ import {
   getGuideRegion,
   getGuideExperiences,
   getGuideAngle,
+  localizeGuideRegion,
+  localizeGuideExperiences,
+  guideAngleText,
+  guideRegionPhrase,
 } from '../explorationGuide';
 import { MODULE_SLUGS } from '../moduleNarratives';
 
@@ -101,5 +106,31 @@ describe('data/explorationGuide — experiências', () => {
     expect(getGuideExperiences('costa', 'norte')).toHaveLength(3);
     expect(getGuideExperiences('inexistente', 'norte')).toEqual([]);
     expect(getGuideExperiences('costa', 'inexistente')).toEqual([]);
+  });
+});
+
+describe('data/explorationGuide — tradução', () => {
+  afterEach(async () => {
+    await changeLanguage('pt');
+  });
+
+  it('em português os textos traduzidos são exactamente os do ficheiro de dados', () => {
+    guideRegions.forEach(r => expect(localizeGuideRegion(r, t)).toEqual(r));
+    Object.entries(guideExperiences).forEach(([slug, byRegion]) =>
+      Object.keys(byRegion).forEach(rid =>
+        expect(localizeGuideExperiences(slug, rid, t)).toEqual(getGuideExperiences(slug, rid)),
+      ),
+    );
+    Object.keys(guideModuleLenses).forEach(slug =>
+      guideRegions.forEach(r => expect(guideAngleText(slug, r.id, t)).toBe(getGuideAngle(slug, r.id))),
+    );
+  });
+
+  it('em inglês traduz a região, as frases e as experiências', async () => {
+    await changeLanguage('en');
+    const acores = localizeGuideRegion(getGuideRegion('acores')!, t);
+    expect(acores.label).toBe('Azores');
+    expect(guideRegionPhrase(getGuideRegion('norte')!, 'inRegion', t)).toBe('in the North');
+    expect(localizeGuideExperiences('costa', 'algarve', t)[0].title).toBe('Benagil and Marinha caves');
   });
 });

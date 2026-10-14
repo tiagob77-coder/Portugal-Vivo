@@ -7,7 +7,13 @@
  *
  * Fonte: protótipo Claude Design (Portugal Vivo App.dc.html) —
  * GR_REGIONS / GR_MOD / GR_EXPS.
+ *
+ * Os textos abaixo são o original em português; as traduções vivem na área
+ * i18n `guidesEn2` (chaves `guidesEn2.guide.*`, pelos ids de região/módulo e
+ * pelo índice de cada entrada) e resolvem-se com os helpers `guide*Text` /
+ * `localizeGuide*` no fim do ficheiro.
  */
+import type { TFunction } from 'i18next';
 
 export interface TransportNote {
   label: string;
@@ -921,4 +927,94 @@ export function getGuideExperiences(module: string, region: string): GuideExperi
 export function getGuideAngle(module: string, region: string): string {
   const m = guideModuleLenses[module];
   return m?.angles[region] ?? m?.lens ?? '';
+}
+
+// ── Tradução (área i18n guidesEn2) ────────────────────────────────────────
+// O português é sempre o próprio dado (defaultValue), por isso a UI em PT
+// não muda e uma chave em falta nunca deixa o ecrã vazio.
+
+const I18N_PREFIX = 'guidesEn2.guide';
+
+export type GuideRegionTextField =
+  'label' | 'chip' | 'sub' | 'hook' | 'best' | 'mobility' | 'kids' | 'pets';
+
+/** Um campo de texto da região na língua da UI (e.g. `label`, `sub`). */
+export function guideRegionText(
+  region: GuideRegion,
+  field: GuideRegionTextField,
+  t: TFunction,
+): string {
+  return t(`${I18N_PREFIX}.regions.${region.id}.${field}`, { defaultValue: region[field] });
+}
+
+/**
+ * Formas da região para encaixar em frases: `theRegion` ("the North",
+ * "le Nord"), `inRegion` ("in the North", "aux Açores") e `ofRegion`
+ * ("of the North", "du Nord"). Em português são o rótulo tal como as frases
+ * do ecrã sempre o usaram ("Norte", "em Norte", "de Norte").
+ */
+export type GuideRegionPhrase = 'theRegion' | 'inRegion' | 'ofRegion';
+
+const PT_REGION_PHRASE: Record<GuideRegionPhrase, (label: string) => string> = {
+  theRegion: (label) => label,
+  inRegion: (label) => `em ${label}`,
+  ofRegion: (label) => `de ${label}`,
+};
+
+export function guideRegionPhrase(
+  region: GuideRegion,
+  phrase: GuideRegionPhrase,
+  t: TFunction,
+): string {
+  return t(`${I18N_PREFIX}.regions.${region.id}.${phrase}`, {
+    defaultValue: PT_REGION_PHRASE[phrase](region.label),
+  });
+}
+
+/** Cópia da região com todos os textos na língua da UI. */
+export function localizeGuideRegion(region: GuideRegion, t: TFunction): GuideRegion {
+  const base = `${I18N_PREFIX}.regions.${region.id}`;
+  return {
+    ...region,
+    label: guideRegionText(region, 'label', t),
+    chip: guideRegionText(region, 'chip', t),
+    sub: guideRegionText(region, 'sub', t),
+    hook: guideRegionText(region, 'hook', t),
+    best: guideRegionText(region, 'best', t),
+    mobility: guideRegionText(region, 'mobility', t),
+    kids: guideRegionText(region, 'kids', t),
+    pets: guideRegionText(region, 'pets', t),
+    transports: region.transports.map((note, i) => ({
+      label: t(`${base}.transports.${i}.label`, { defaultValue: note.label }),
+      text: t(`${base}.transports.${i}.text`, { defaultValue: note.text }),
+    })),
+    alerts: region.alerts.map((a, i) => t(`${base}.alerts.${i}`, { defaultValue: a })),
+  };
+}
+
+/** Experiências de uma combinação, na língua da UI. */
+export function localizeGuideExperiences(
+  module: string,
+  region: string,
+  t: TFunction,
+): GuideExperience[] {
+  const base = `${I18N_PREFIX}.experiences.${module}.${region}`;
+  return getGuideExperiences(module, region).map((e, i) => ({
+    title: t(`${base}.${i}.title`, { defaultValue: e.title }),
+    desc: t(`${base}.${i}.desc`, { defaultValue: e.desc }),
+  }));
+}
+
+/** Lente editorial do módulo, na língua da UI ('' se o módulo não existir). */
+export function guideLensText(module: string, t: TFunction): string {
+  const lens = guideModuleLenses[module]?.lens;
+  return lens ? t(`${I18N_PREFIX}.lenses.${module}.lens`, { defaultValue: lens }) : '';
+}
+
+/** `getGuideAngle` na língua da UI, com a mesma queda para a lente. */
+export function guideAngleText(module: string, region: string, t: TFunction): string {
+  const angle = guideModuleLenses[module]?.angles[region];
+  return angle
+    ? t(`${I18N_PREFIX}.lenses.${module}.angles.${region}`, { defaultValue: angle })
+    : guideLensText(module, t);
 }

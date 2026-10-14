@@ -15,15 +15,18 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useQuery } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
 import { getModuleTheme, withOpacity, onColor } from '../../src/theme/colors';
 import {
-  guideRegions, getGuideRegion, getGuideExperiences, getGuideAngle,
-  guideModuleLenses,
+  guideRegions, getGuideRegion, localizeGuideRegion, localizeGuideExperiences,
+  guideAngleText, guideLensText, guideRegionText, guideRegionPhrase,
+  type GuideRegionPhrase,
 } from '../../src/data/explorationGuide';
 import { moduleNarratives, getModuleNarrative, MODULE_SLUGS } from '../../src/data/moduleNarratives';
 import { useDefaultRegion } from '../../src/hooks/useDefaultRegion';
 import { getMapItems } from '../../src/services/api';
 import { matchesRegion } from '../../src/utils/regionMatch';
+import { currentLocale } from '../../src/i18n/format';
 
 interface GuidePoi {
   id?: string;
@@ -40,6 +43,8 @@ export default function ExplorationGuideScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const params = useLocalSearchParams<{ module?: string; region?: string }>();
+  // `t` é o tema do módulo neste ecrã; a tradução fica em `tx`
+  const { t: tx } = useTranslation();
 
   const moduleSlug = params.module && moduleNarratives[params.module]
     ? params.module
@@ -47,12 +52,16 @@ export default function ExplorationGuideScreen() {
   const regionId = useDefaultRegion(params.region, params.region);
 
   const narrative = getModuleNarrative(moduleSlug);
-  const region = getGuideRegion(regionId);
+  const rawRegion = getGuideRegion(regionId);
+  const region = rawRegion ? localizeGuideRegion(rawRegion, tx) : undefined;
   const t = getModuleTheme(moduleSlug);
 
-  const experiences = getGuideExperiences(moduleSlug, regionId);
-  const angle = getGuideAngle(moduleSlug, regionId);
-  const lens = guideModuleLenses[moduleSlug]?.lens ?? '';
+  const experiences = localizeGuideExperiences(moduleSlug, regionId, tx);
+  const angle = guideAngleText(moduleSlug, regionId, tx);
+  const lens = guideLensText(moduleSlug, tx);
+  /** Nome do módulo na língua da UI (o português é o da narrativa). */
+  const moduleLabel = (slug: string) =>
+    tx(`guidesEn2.guide.modules.${slug}`, { defaultValue: moduleNarratives[slug]?.label ?? '' });
 
   // POIs da base nas categorias do módulo, filtrados pela região
   const { data: poisData, isLoading } = useQuery({
@@ -75,17 +84,19 @@ export default function ExplorationGuideScreen() {
   const setRegion = (id: string) =>
     router.setParams({ module: moduleSlug, region: id });
 
-  if (!narrative || !region) {
+  if (!narrative || !rawRegion || !region) {
     return (
       <View style={[s.container, { backgroundColor: t.bg, paddingTop: insets.top }]}>
         <Text style={[s.body, { color: t.textSecondary, padding: 20 }]}>
-          Guia indisponível para esta combinação.
+          {tx('guidesEn2.guide.unavailable')}
         </Text>
       </View>
     );
   }
 
   const accentText = onColor(t.accent);
+  /** A região numa frase ("the North", "dans le Nord"…). */
+  const regionPhrase = (p: GuideRegionPhrase) => guideRegionPhrase(rawRegion, p, tx);
   const poiMeta = (p: GuidePoi) =>
     [p.category, p.concelho].filter(Boolean).join(' · ');
 
@@ -98,15 +109,15 @@ export default function ExplorationGuideScreen() {
             onPress={() => router.back()}
             style={[s.backBtn, { backgroundColor: t.card }]}
             accessibilityRole="button"
-            accessibilityLabel="Voltar"
+            accessibilityLabel={tx('common.back')}
           >
             <MaterialIcons name="arrow-back" size={21} color={t.textPrimary} />
           </TouchableOpacity>
           <View style={{ flex: 1 }}>
             <Text style={[s.kicker, { color: t.accent }]}>
-              Guia de Exploração · {region.label}
+              {tx('guidesEn2.guide.kicker', { region: region.label })}
             </Text>
-            <Text style={[s.title, { color: t.textPrimary }]}>{narrative.label}</Text>
+            <Text style={[s.title, { color: t.textPrimary }]}>{moduleLabel(moduleSlug)}</Text>
             <Text style={[s.sub, { color: t.textMuted }]}>{region.sub}</Text>
           </View>
           <View style={[s.headerIcon, { backgroundColor: withOpacity(t.accent, 0.15) }]}>
@@ -115,7 +126,7 @@ export default function ExplorationGuideScreen() {
         </View>
 
         {/* ── Seletores ──────────────────────────────────────────────────── */}
-        <Text style={[s.chipLabel, { color: t.textMuted }]}>REGIÃO</Text>
+        <Text style={[s.chipLabel, { color: t.textMuted }]}>{tx('guidesEn2.guide.regionLabel')}</Text>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={s.chipRow}>
           {guideRegions.map((r) => {
             const on = r.id === regionId;
@@ -131,14 +142,14 @@ export default function ExplorationGuideScreen() {
                 accessibilityState={{ selected: on }}
               >
                 <Text style={[s.chipText, { color: on ? accentText : t.textSecondary }]}>
-                  {r.chip}
+                  {guideRegionText(r, 'chip', tx)}
                 </Text>
               </TouchableOpacity>
             );
           })}
         </ScrollView>
 
-        <Text style={[s.chipLabel, { color: t.textMuted, marginTop: 16 }]}>CATEGORIA</Text>
+        <Text style={[s.chipLabel, { color: t.textMuted, marginTop: 16 }]}>{tx('guidesEn2.guide.categoryLabel')}</Text>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={s.chipRow}>
           {MODULE_SLUGS.map((slug) => {
             const on = slug === moduleSlug;
@@ -154,7 +165,7 @@ export default function ExplorationGuideScreen() {
                 accessibilityState={{ selected: on }}
               >
                 <Text style={[s.chipText, { color: on ? accentText : t.textSecondary }]}>
-                  {moduleNarratives[slug].label}
+                  {moduleLabel(slug)}
                 </Text>
               </TouchableOpacity>
             );
@@ -164,10 +175,13 @@ export default function ExplorationGuideScreen() {
         {/* ── História ───────────────────────────────────────────────────── */}
         <View style={s.section}>
           <Text style={[s.intro, { color: t.textMuted }]}>
-            Hoje exploramos {region.label} na categoria {narrative.label}.
+            {tx('guidesEn2.guide.intro', {
+              region: regionPhrase('theRegion'),
+              category: moduleLabel(moduleSlug),
+            })}
           </Text>
           <Text style={[s.sectionTitle, { color: t.textPrimary }]}>
-            O coração de {region.label}
+            {tx('guidesEn2.guide.heartOf', { ofRegion: regionPhrase('ofRegion') })}
           </Text>
           <Text style={[s.body, { color: t.textSecondary }]}>{angle}</Text>
           <Text style={[s.body, { color: t.textSecondary, marginTop: 10 }]}>
@@ -178,7 +192,7 @@ export default function ExplorationGuideScreen() {
         {/* ── Experiências sugeridas ─────────────────────────────────────── */}
         {experiences.length > 0 && (
           <View style={s.section}>
-            <Text style={[s.sectionTitle, { color: t.textPrimary }]}>Experiências sugeridas</Text>
+            <Text style={[s.sectionTitle, { color: t.textPrimary }]}>{tx('guidesEn2.guide.suggested')}</Text>
             {experiences.map((exp, i) => {
               // Cada experiência ancora, quando existe, um POI real da região
               const poi = topPois[i];
@@ -224,13 +238,17 @@ export default function ExplorationGuideScreen() {
 
         {/* ── Onde ver na base ───────────────────────────────────────────── */}
         <View style={s.section}>
-          <Text style={[s.sectionTitle, { color: t.textPrimary }]}>Onde ver na base</Text>
+          <Text style={[s.sectionTitle, { color: t.textPrimary }]}>{tx('guidesEn2.guide.whereToSee')}</Text>
           {isLoading && <ActivityIndicator color={t.accent} style={{ marginTop: 10 }} />}
           {!isLoading && (
             <Text style={[s.dbLine, { color: t.textMuted }]}>
-              {regionPois.length.toLocaleString('pt-PT')}{' '}
-              {regionPois.length === 1 ? 'local desta categoria' : 'locais desta categoria'} em{' '}
-              {region.label}
+              {tx(
+                regionPois.length === 1 ? 'guidesEn2.guide.dbCountOne' : 'guidesEn2.guide.dbCount',
+                {
+                  n: regionPois.length.toLocaleString(currentLocale()),
+                  inRegion: regionPhrase('inRegion'),
+                },
+              )}
             </Text>
           )}
           {topPois.slice(0, 4).map((p) => (
@@ -252,9 +270,9 @@ export default function ExplorationGuideScreen() {
 
         {/* ── Informação prática ─────────────────────────────────────────── */}
         <View style={s.section}>
-          <Text style={[s.sectionTitle, { color: t.textPrimary }]}>Informação prática</Text>
+          <Text style={[s.sectionTitle, { color: t.textPrimary }]}>{tx('guidesEn2.guide.practical')}</Text>
 
-          <Text style={[s.subHead, { color: t.accent }]}>TRANSPORTES</Text>
+          <Text style={[s.subHead, { color: t.accent }]}>{tx('guidesEn2.guide.transports')}</Text>
           {region.transports.map((tr) => (
             <View key={tr.label} style={s.infoRow}>
               <MaterialIcons name="commute" size={16} color={t.accent} style={s.infoIcon} />
@@ -265,11 +283,11 @@ export default function ExplorationGuideScreen() {
             </View>
           ))}
 
-          <Text style={[s.subHead, { color: t.accent, marginTop: 16 }]}>CLIMA E ALERTAS</Text>
+          <Text style={[s.subHead, { color: t.accent, marginTop: 16 }]}>{tx('guidesEn2.guide.climate')}</Text>
           <View style={s.infoRow}>
             <MaterialIcons name="wb-sunny" size={16} color={t.accent} style={s.infoIcon} />
             <View style={{ flex: 1 }}>
-              <Text style={[s.infoLabel, { color: t.textPrimary }]}>Melhor época</Text>
+              <Text style={[s.infoLabel, { color: t.textPrimary }]}>{tx('guidesEn2.guide.bestTime')}</Text>
               <Text style={[s.infoText, { color: t.textSecondary }]}>{region.best}</Text>
             </View>
           </View>
@@ -280,11 +298,11 @@ export default function ExplorationGuideScreen() {
             </View>
           ))}
 
-          <Text style={[s.subHead, { color: t.accent, marginTop: 16 }]}>ACESSIBILIDADE</Text>
+          <Text style={[s.subHead, { color: t.accent, marginTop: 16 }]}>{tx('guidesEn2.guide.accessibility')}</Text>
           {([
-            { icon: 'accessible', label: 'Mobilidade reduzida', text: region.mobility },
-            { icon: 'child-care', label: 'Crianças', text: region.kids },
-            { icon: 'pets', label: 'Animais', text: region.pets },
+            { icon: 'accessible', label: tx('guidesEn2.guide.mobility'), text: region.mobility },
+            { icon: 'child-care', label: tx('guidesEn2.guide.kids'), text: region.kids },
+            { icon: 'pets', label: tx('guidesEn2.guide.pets'), text: region.pets },
           ] as const).map((a) => (
             <View key={a.label} style={s.infoRow}>
               <MaterialIcons name={a.icon} size={16} color={t.accent} style={s.infoIcon} />
@@ -298,21 +316,23 @@ export default function ExplorationGuideScreen() {
 
         {/* ── Ferramentas ────────────────────────────────────────────────── */}
         <View style={s.section}>
-          <Text style={[s.sectionTitle, { color: t.textPrimary }]}>Ferramentas</Text>
+          <Text style={[s.sectionTitle, { color: t.textPrimary }]}>{tx('guidesEn2.guide.tools')}</Text>
           {([
             {
-              icon: 'commute', label: 'Mobilidade Total',
-              desc: `Horários e ligações para chegar ao interior de ${region.label}.`,
+              icon: 'commute', label: tx('guidesEn2.guide.toolMobility'),
+              desc: tx('guidesEn2.guide.toolMobilityDesc', {
+                ofRegion: regionPhrase('ofRegion'),
+              }),
               go: () => router.push('/(tabs)/mapa' as never),
             },
             {
-              icon: 'waves', label: 'Ondas & Surf',
-              desc: 'Marés e praias em tempo real para surf e banhos em segurança.',
+              icon: 'waves', label: tx('guidesEn2.guide.toolSurf'),
+              desc: tx('guidesEn2.guide.toolSurfDesc'),
               go: () => router.push('/beachcams' as never),
             },
             {
-              icon: 'accessible', label: 'Portugal Para Todos',
-              desc: 'Praias acessíveis, alojamento pet-friendly e rotas para famílias.',
+              icon: 'accessible', label: tx('guidesEn2.guide.toolInclusive'),
+              desc: tx('guidesEn2.guide.toolInclusiveDesc'),
               go: () => setModule('inclusivo'),
             },
           ] as const).map((tool) => (
@@ -344,7 +364,7 @@ export default function ExplorationGuideScreen() {
             accessibilityRole="button"
           >
             <MaterialIcons name="menu-book" size={17} color={accentText} />
-            <Text style={[s.ctaText, { color: accentText }]}>Enciclopédia</Text>
+            <Text style={[s.ctaText, { color: accentText }]}>{tx('guidesEn2.guide.encyclopedia')}</Text>
           </TouchableOpacity>
           <TouchableOpacity
             style={[s.cta, s.ctaGhost, { borderColor: t.accent }]}
@@ -352,7 +372,7 @@ export default function ExplorationGuideScreen() {
             accessibilityRole="button"
           >
             <MaterialIcons name={narrative.icon} size={17} color={t.accent} />
-            <Text style={[s.ctaText, { color: t.accent }]}>Ver módulo</Text>
+            <Text style={[s.ctaText, { color: t.accent }]}>{tx('guidesEn2.guide.viewModule')}</Text>
           </TouchableOpacity>
         </View>
       </ScrollView>

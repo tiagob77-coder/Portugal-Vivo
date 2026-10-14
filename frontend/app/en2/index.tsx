@@ -13,6 +13,7 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useQuery } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
 import {
   EN2_INTRO, EN2_FACTS, EN2_HISTORY, EN2_SECTIONS, EN2_MUST_SEE,
   EN2_DISTRICTS, EN2_WAYPOINTS, EN2_START, EN2_END, sectionWaypoints,
@@ -21,6 +22,7 @@ import { useEn2Passport } from '../../src/hooks/useEn2Passport';
 import { withinCorridor } from '../../src/utils/geo';
 import { getMapItems } from '../../src/services/api';
 import NavigationChooser from '../../src/components/NavigationChooser';
+import { currentLocale } from '../../src/i18n/format';
 
 /** Paleta própria da EN2 — asfalto e sinalética dourada. */
 const C = {
@@ -53,6 +55,7 @@ interface CorridorPoi {
 export default function En2Screen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const { t } = useTranslation();
   const [openSection, setOpenSection] = useState<string | null>(EN2_SECTIONS[0].n);
   const [corridorLimit, setCorridorLimit] = useState(CORRIDOR_PAGE);
   const [navTarget, setNavTarget] = useState<{ name: string; lat: number; lng: number } | null>(null);
@@ -83,34 +86,34 @@ export default function En2Screen() {
             onPress={() => router.back()}
             style={s.backBtn}
             accessibilityRole="button"
-            accessibilityLabel="Voltar"
+            accessibilityLabel={t('common.back')}
           >
             <MaterialIcons name="arrow-back" size={21} color={C.text} />
           </TouchableOpacity>
           <View style={{ flex: 1 }}>
-            <Text style={s.kicker}>ROTA PREMIUM</Text>
+            <Text style={s.kicker}>{t('guidesEn2.en2.kicker')}</Text>
             <Text style={s.title}>EN2</Text>
-            <Text style={s.subtitle}>A Route 66 portuguesa</Text>
+            <Text style={s.subtitle}>{t('guidesEn2.en2.subtitle')}</Text>
           </View>
           <View style={s.shield}>
             <Text style={s.shieldText}>N2</Text>
           </View>
         </View>
 
-        <Text style={s.intro}>{EN2_INTRO}</Text>
+        <Text style={s.intro}>{t('guidesEn2.en2.intro', { defaultValue: EN2_INTRO })}</Text>
 
         <View style={s.factRow}>
-          {EN2_FACTS.map((f) => (
+          {EN2_FACTS.map((f, i) => (
             <View key={f.label} style={s.fact}>
               <MaterialIcons name={f.icon} size={15} color={C.accent} />
-              <Text style={s.factText}>{f.label}</Text>
+              <Text style={s.factText}>{t(`guidesEn2.en2.facts.${i}`, { defaultValue: f.label })}</Text>
             </View>
           ))}
         </View>
 
         {/* ── História ───────────────────────────────────────────────────── */}
         <View style={s.section}>
-          <Text style={s.sectionTitle}>História</Text>
+          <Text style={s.sectionTitle}>{t('guidesEn2.en2.historyTitle')}</Text>
           {EN2_HISTORY.map((h, i) => {
             const last = i === EN2_HISTORY.length - 1;
             return (
@@ -120,9 +123,11 @@ export default function En2Screen() {
                   {!last && <View style={s.line} />}
                 </View>
                 <View style={[s.milestoneBody, last && { paddingBottom: 0 }]}>
-                  <Text style={s.year}>{h.year}</Text>
-                  <Text style={s.milestoneTitle}>{h.title}</Text>
-                  <Text style={s.body}>{h.desc}</Text>
+                  <Text style={s.year}>{t(`guidesEn2.en2.history.${i}.year`, { defaultValue: h.year })}</Text>
+                  <Text style={s.milestoneTitle}>
+                    {t(`guidesEn2.en2.history.${i}.title`, { defaultValue: h.title })}
+                  </Text>
+                  <Text style={s.body}>{t(`guidesEn2.en2.history.${i}.desc`, { defaultValue: h.desc })}</Text>
                 </View>
               </View>
             );
@@ -131,7 +136,7 @@ export default function En2Screen() {
 
         {/* ── Troços ─────────────────────────────────────────────────────── */}
         <View style={s.section}>
-          <Text style={s.sectionTitle}>Os 6 troços</Text>
+          <Text style={s.sectionTitle}>{t('guidesEn2.en2.sectionsTitle')}</Text>
           {EN2_SECTIONS.map((sec) => {
             const open = openSection === sec.n;
             const stops = sectionWaypoints(sec);
@@ -149,7 +154,9 @@ export default function En2Screen() {
                   </View>
                   <View style={{ flex: 1, minWidth: 0 }}>
                     <Text style={s.trocoTitle}>{sec.title}</Text>
-                    <Text style={s.trocoMeta}>{sec.meta}</Text>
+                    <Text style={s.trocoMeta}>
+                      {t(`guidesEn2.en2.sections.${sec.n}.meta`, { defaultValue: sec.meta })}
+                    </Text>
                   </View>
                   <MaterialIcons
                     name={open ? 'expand-less' : 'expand-more'}
@@ -160,11 +167,15 @@ export default function En2Screen() {
 
                 {open && (
                   <View style={s.trocoBody}>
-                    <Text style={s.body}>{sec.desc}</Text>
-                    {sec.highlights.map((h) => (
+                    <Text style={s.body}>
+                      {t(`guidesEn2.en2.sections.${sec.n}.desc`, { defaultValue: sec.desc })}
+                    </Text>
+                    {sec.highlights.map((h, hi) => (
                       <View key={h} style={s.hlRow}>
                         <MaterialIcons name="star-outline" size={15} color={C.accent} />
-                        <Text style={s.hlText}>{h}</Text>
+                        <Text style={s.hlText}>
+                          {t(`guidesEn2.en2.sections.${sec.n}.highlights.${hi}`, { defaultValue: h })}
+                        </Text>
                       </View>
                     ))}
                     <View style={s.trocoActions}>
@@ -174,7 +185,7 @@ export default function En2Screen() {
                         accessibilityRole="button"
                       >
                         <MaterialIcons name="navigation" size={15} color={C.onAccent} />
-                        <Text style={s.actionPrimaryText}>Começar aqui</Text>
+                        <Text style={s.actionPrimaryText}>{t('guidesEn2.en2.startHere')}</Text>
                       </TouchableOpacity>
                       <TouchableOpacity
                         style={s.actionGhost}
@@ -182,7 +193,7 @@ export default function En2Screen() {
                         accessibilityRole="button"
                       >
                         <MaterialIcons name="map" size={15} color={C.accent} />
-                        <Text style={s.actionGhostText}>Troço no mapa</Text>
+                        <Text style={s.actionGhostText}>{t('guidesEn2.en2.sectionOnMap')}</Text>
                       </TouchableOpacity>
                     </View>
                   </View>
@@ -194,22 +205,22 @@ export default function En2Screen() {
 
         {/* ── Locais a não perder ────────────────────────────────────────── */}
         <View style={s.section}>
-          <Text style={s.sectionTitle}>A não perder</Text>
-          <Text style={s.sectionSub}>{EN2_MUST_SEE.length} paragens ao longo dos 738,5 km</Text>
-          {EN2_MUST_SEE.map((m) => (
+          <Text style={s.sectionTitle}>{t('guidesEn2.en2.mustSeeTitle')}</Text>
+          <Text style={s.sectionSub}>{t('guidesEn2.en2.mustSeeSub', { n: EN2_MUST_SEE.length })}</Text>
+          {EN2_MUST_SEE.map((m, i) => (
             <TouchableOpacity
               key={m.name}
               style={s.mustRow}
               onPress={() => setNavTarget({ name: m.name, lat: m.lat, lng: m.lng })}
               accessibilityRole="button"
-              accessibilityLabel={`Navegar para ${m.name}`}
+              accessibilityLabel={t('guidesEn2.en2.navigateTo', { name: m.name })}
             >
               <View style={s.kmBadge}>
                 <Text style={s.kmText}>{m.km.replace('km ', '')}</Text>
               </View>
               <View style={{ flex: 1, minWidth: 0 }}>
                 <Text style={s.mustName}>{m.name}</Text>
-                <Text style={s.mustSub}>{m.sub}</Text>
+                <Text style={s.mustSub}>{t(`guidesEn2.en2.mustSee.${i}.sub`, { defaultValue: m.sub })}</Text>
               </View>
               <MaterialIcons name="navigation" size={17} color={C.accent} />
             </TouchableOpacity>
@@ -218,9 +229,9 @@ export default function En2Screen() {
 
         {/* ── Passaporte ─────────────────────────────────────────────────── */}
         <View style={s.section}>
-          <Text style={s.sectionTitle}>Passaporte EN2</Text>
+          <Text style={s.sectionTitle}>{t('guidesEn2.en2.passport')}</Text>
           <Text style={s.sectionSub}>
-            Carimbe os {passport.total} distritos que atravessar
+            {t('guidesEn2.en2.passportSub', { total: passport.total })}
           </Text>
 
           <View style={s.progressWrap}>
@@ -242,7 +253,7 @@ export default function En2Screen() {
                   onPress={() => passport.toggle(d.name)}
                   accessibilityRole="checkbox"
                   accessibilityState={{ checked: on }}
-                  accessibilityLabel={`Carimbo ${d.name}`}
+                  accessibilityLabel={t('guidesEn2.en2.stamp', { name: d.name })}
                 >
                   <MaterialIcons
                     name={on ? 'check-circle' : d.icon}
@@ -261,7 +272,7 @@ export default function En2Screen() {
             <View style={s.seal}>
               <MaterialIcons name="workspace-premium" size={22} color={C.accent} />
               <Text style={s.sealText}>
-                Chaves a Faro, os {passport.total} distritos carimbados. Fez a EN2 inteira.
+                {t('guidesEn2.en2.passportComplete', { total: passport.total })}
               </Text>
             </View>
           )}
@@ -272,18 +283,21 @@ export default function En2Screen() {
               style={s.resetBtn}
               accessibilityRole="button"
             >
-              <Text style={s.resetText}>Limpar carimbos</Text>
+              <Text style={s.resetText}>{t('guidesEn2.en2.resetStamps')}</Text>
             </TouchableOpacity>
           )}
         </View>
 
         {/* ── POIs no caminho ────────────────────────────────────────────── */}
         <View style={s.section}>
-          <Text style={s.sectionTitle}>No caminho</Text>
+          <Text style={s.sectionTitle}>{t('guidesEn2.en2.onTheWay')}</Text>
           <Text style={s.sectionSub}>
             {isLoading
-              ? 'A calcular o corredor…'
-              : `${corridorPois.length.toLocaleString('pt-PT')} locais a menos de ${CORRIDOR_WIDTH_KM} km do eixo`}
+              ? t('guidesEn2.en2.corridorLoading')
+              : t(
+                corridorPois.length === 1 ? 'guidesEn2.en2.corridorCountOne' : 'guidesEn2.en2.corridorCount',
+                { n: corridorPois.length.toLocaleString(currentLocale()), km: CORRIDOR_WIDTH_KM },
+              )}
           </Text>
 
           {isLoading && <ActivityIndicator color={C.accent} style={{ marginTop: 12 }} />}
@@ -301,7 +315,7 @@ export default function En2Screen() {
               <View style={{ flex: 1, minWidth: 0 }}>
                 <Text style={s.poiName} numberOfLines={1}>{point.name}</Text>
                 <Text style={s.poiMeta} numberOfLines={1}>
-                  {[point.category, `a ${offsetKm.toFixed(0)} km da estrada`]
+                  {[point.category, t('guidesEn2.en2.offset', { km: offsetKm.toFixed(0) })]
                     .filter(Boolean)
                     .join(' · ')}
                 </Text>
@@ -316,14 +330,14 @@ export default function En2Screen() {
               onPress={() => setCorridorLimit((n) => n + CORRIDOR_PAGE)}
               accessibilityRole="button"
             >
-              <Text style={s.moreText}>Ver mais locais</Text>
+              <Text style={s.moreText}>{t('guidesEn2.en2.morePlaces')}</Text>
             </TouchableOpacity>
           )}
         </View>
 
         {/* ── Fazer a viagem ─────────────────────────────────────────────── */}
         <View style={s.section}>
-          <Text style={s.sectionTitle}>Fazer a viagem</Text>
+          <Text style={s.sectionTitle}>{t('guidesEn2.en2.makeTrip')}</Text>
           <TouchableOpacity
             style={s.tripPrimary}
             onPress={() =>
@@ -340,7 +354,7 @@ export default function En2Screen() {
             accessibilityRole="button"
           >
             <MaterialIcons name="edit-calendar" size={17} color={C.onAccent} />
-            <Text style={s.tripPrimaryText}>Gerar roteiro Chaves → Faro</Text>
+            <Text style={s.tripPrimaryText}>{t('guidesEn2.en2.generateTrip')}</Text>
           </TouchableOpacity>
 
           <View style={s.tripRow}>
@@ -350,7 +364,7 @@ export default function En2Screen() {
               accessibilityRole="button"
             >
               <MaterialIcons name="map" size={15} color={C.accent} />
-              <Text style={s.actionGhostText}>Rota no mapa</Text>
+              <Text style={s.actionGhostText}>{t('guidesEn2.en2.routeOnMap')}</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={s.actionGhost}
@@ -358,7 +372,7 @@ export default function En2Screen() {
               accessibilityRole="button"
             >
               <MaterialIcons name="search" size={15} color={C.accent} />
-              <Text style={s.actionGhostText}>Pesquisar</Text>
+              <Text style={s.actionGhostText}>{t('common.search')}</Text>
             </TouchableOpacity>
           </View>
         </View>

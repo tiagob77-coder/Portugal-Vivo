@@ -26,7 +26,7 @@ import {
 } from '../../src/services/api';
 import { useTheme, scrimPine } from '../../src/theme';
 import { getModuleTheme, withOpacity } from '../../src/theme/colors';
-import { guideRegions } from '../../src/data/explorationGuide';
+import { guideRegions, guideRegionText } from '../../src/data/explorationGuide';
 import { useDefaultRegion } from '../../src/hooks/useDefaultRegion';
 import SmartImage from '../../src/components/SmartImage';
 import ErrorBoundary from '../../src/components/ErrorBoundary';
@@ -103,8 +103,8 @@ function ExperienciarTab() {
   const popularCardWidth = Math.min(260, width * 0.7);
   // Região de partida dos guias — resolvida por GPS/onboarding, com fallback
   const currentRegion = useDefaultRegion();
-  const currentRegionLabel =
-    guideRegions.find((r) => r.id === currentRegion)?.label ?? '';
+  const currentGuideRegion = guideRegions.find((r) => r.id === currentRegion);
+  const currentRegionLabel = currentGuideRegion ? guideRegionText(currentGuideRegion, 'label', t) : '';
   const [token, setToken] = useState<string | null>(null);
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [selectedDay, setSelectedDay] = useState<number | null>(null);
@@ -457,16 +457,16 @@ function ExperienciarTab() {
                   }]}
                   onPress={() => router.push({ pathname: '/guia', params: { region: r.id } })}
                   accessibilityRole="button"
-                  accessibilityLabel={t('coreTabs.experience.openGuide', { region: r.label })}
+                  accessibilityLabel={t('coreTabs.experience.openGuide', { region: guideRegionText(r, 'label', t) })}
                 >
                   {here && (
                     <View style={[styles.guideBadge, { backgroundColor: colors.accent }]}>
                       <Text style={styles.guideBadgeText}>{t('coreTabs.experience.youAreHere')}</Text>
                     </View>
                   )}
-                  <Text style={[styles.guideName, { color: colors.text }]}>{r.label}</Text>
+                  <Text style={[styles.guideName, { color: colors.text }]}>{guideRegionText(r, 'label', t)}</Text>
                   <Text style={[styles.guideSub, { color: colors.textMuted }]} numberOfLines={2}>
-                    {r.sub}
+                    {guideRegionText(r, 'sub', t)}
                   </Text>
                 </TouchableOpacity>
               );
