@@ -50,3 +50,7 @@ jest.mock('@react-native-community/netinfo', () => ({
   },
   __esModule: true,
 }));
+
+// Initialise i18n synchronously in Portuguese so screens render their
+// original copy in tests (see src/i18n/testing.ts).
+require('./src/i18n/testing').initTestI18n();

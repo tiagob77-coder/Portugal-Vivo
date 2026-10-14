@@ -3,10 +3,7 @@ import { initReactI18next } from 'react-i18next';
 import * as Localization from 'expo-localization';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-import pt from './locales/pt.json';
-import en from './locales/en.json';
-import es from './locales/es.json';
-import fr from './locales/fr.json';
+import { resources, SUPPORTED_LANGUAGES } from './resources';
 
 const LANGUAGE_KEY = '@patrimonio_language';
 
@@ -17,20 +14,15 @@ export const LANGUAGES = [
   { code: 'fr', name: 'Français', flag: '🇫🇷' },
 ];
 
-const resources = {
-  pt: { translation: pt },
-  en: { translation: en },
-  es: { translation: es },
-  fr: { translation: fr },
-};
-
-const getDeviceLanguage = () => {
-  const locale = Localization.getLocales()[0]?.languageCode || 'pt';
-  // Check if we support this language
-  if (['pt', 'en', 'es', 'fr'].includes(locale)) {
+export const getDeviceLanguage = () => {
+  const locale = Localization.getLocales()[0]?.languageCode;
+  if (!locale) return 'pt';
+  if ((SUPPORTED_LANGUAGES as readonly string[]).includes(locale)) {
     return locale;
   }
-  return 'pt'; // Default to Portuguese
+  // A visitor whose device runs in a language we don't ship (German, Dutch…)
+  // reads English far more often than Portuguese.
+  return 'en';
 };
 
 export const initI18n = async () => {
@@ -46,6 +38,11 @@ export const initI18n = async () => {
   }
 
   const language = savedLanguage || getDeviceLanguage();
+
+  if (i18n.isInitialized) {
+    await i18n.changeLanguage(language); // eslint-disable-line import/no-named-as-default-member
+    return i18n;
+  }
 
   await i18n // eslint-disable-line import/no-named-as-default-member
     .use(initReactI18next)

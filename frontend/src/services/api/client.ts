@@ -11,6 +11,7 @@ import offlineCache from '../offlineCache';
 import { API_BASE } from '../../config/api';
 import { secureStorage } from '../../utils/secureStorage';
 import logger from '../../utils/logger';
+import i18n from '../../i18n';
 
 const api = axios.create({
   baseURL: API_BASE,
@@ -41,6 +42,11 @@ api.interceptors.request.use(async (config) => {
       // Storage read failure — send the request unauthenticated and let
       // the server decide. Public endpoints will still work.
     }
+  }
+  // Lets language-aware endpoints (e.g. /heritage/{id}/localized) answer in
+  // the UI language; everything else ignores it.
+  if (headers && !headers['Accept-Language'] && i18n.language) {
+    headers['Accept-Language'] = i18n.language;
   }
   return config;
 });

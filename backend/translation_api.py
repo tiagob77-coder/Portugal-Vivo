@@ -9,6 +9,7 @@ from pydantic import BaseModel, Field
 from shared_utils import DatabaseHolder, clamp_pagination
 from services.translation_service import TranslationService, SUPPORTED_LANGUAGES
 from models.api_models import User
+from heritage_api import can_preview_unpublished
 
 translation_router = APIRouter()
 
@@ -266,8 +267,10 @@ async def get_localized_heritage(item_id: str, request: Request, lang: Optional[
                 target_lang = code
                 break
 
-    # Fetch the original item
+    # Fetch the original item (unpublished POIs follow the /heritage/{id} rule)
     item = await db.heritage_items.find_one({"id": item_id}, {"_id": 0})
+    if item and item.get("is_published") is False and not await can_preview_unpublished(request, item):
+        item = None
     if not item:
         raise HTTPException(404, "Item not found")
 
