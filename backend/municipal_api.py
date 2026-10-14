@@ -398,6 +398,13 @@ async def ingest_impact_events(
                 poi_mun[p["id"]] = resolve_poi_municipality(p)
         for r in routes:
             route_mun[r["id"]] = resolve_poi_municipality(r) or poi_mun.get(first_items.get(r["id"]))
+        # Trails (app/trail/[id].tsx) live in their own collection and send route_id = trail id
+        unresolved = sorted(route_ids - set(route_mun))
+        if unresolved:
+            async for t in db.trails.find(
+                {"id": {"$in": unresolved}}, {"_id": 0, "id": 1, "municipality_id": 1, "concelho": 1}
+            ):
+                route_mun[t["id"]] = resolve_poi_municipality(t)
 
     now = _now()
     docs = []
@@ -494,8 +501,11 @@ async def compute_impact(db: AsyncIOMotorDatabase, municipality: str, start: dat
         {"$sort": {"starts": -1, "views": -1}},
         {"$limit": 10},
     ])]
-    route_names = {r["id"]: r.get("name") async for r in db.routes.find(
-        {"id": {"$in": [t["_id"] for t in top_routes]}}, {"_id": 0, "id": 1, "name": 1})}
+    top_ids = [t["_id"] for t in top_routes]
+    route_names = {r["id"]: r.get("name") async for r in db.trails.find(
+        {"id": {"$in": top_ids}}, {"_id": 0, "id": 1, "name": 1})}
+    route_names.update({r["id"]: r.get("name") async for r in db.routes.find(
+        {"id": {"$in": top_ids}}, {"_id": 0, "id": 1, "name": 1})})
     top_routes = [{"route_id": t["_id"], "name": route_names.get(t["_id"], t["_id"]),
                    "views": t["views"], "starts": t["starts"]} for t in top_routes]
 

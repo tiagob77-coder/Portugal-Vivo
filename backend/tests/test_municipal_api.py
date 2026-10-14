@@ -57,6 +57,7 @@ async def db():
         {"id": "l1", "name": "Torre de Belém", "category": "monumento", "concelho": "Lisboa"},
     ])
     await database.routes.insert_one({"id": "r1", "name": "Évora Romana", "items": ["e1", "e2"]})
+    await database.trails.insert_one({"id": "t1", "name": "PR1 Ecopista de Évora", "concelho": "Évora"})
     return database
 
 
@@ -218,20 +219,22 @@ async def test_impact_dashboard_and_pdf_report(client):
         {"event_type": "poi_view", "poi_id": "e2", "session_id": "sessao-xx01"},
         {"event_type": "route_start", "route_id": "r1", "session_id": "sessao-pt01", "locale": "pt-PT"},
         {"event_type": "poi_view", "poi_id": "l1", "session_id": "sessao-lx01", "locale": "pt-PT"},
+        {"event_type": "route_start", "route_id": "t1", "session_id": "sessao-pt01", "locale": "pt-PT"},
+        {"event_type": "route_start", "route_id": "t1", "session_id": "sessao-uk01", "locale": "en-GB"},
     ]
     await client.post("/api/impact/events", json={"events": events})
 
     impact = (await client.get("/api/municipal/me/impact")).json()
     totals = impact["totals"]
-    assert totals["poi_views"] == 3 and totals["audio_plays"] == 1 and totals["route_starts"] == 1
+    assert totals["poi_views"] == 3 and totals["audio_plays"] == 1 and totals["route_starts"] == 3
     assert totals["unique_visitors"] == 3  # Lisboa não conta
     assert impact["top_pois"][0] == {"poi_id": "e1", "name": "Templo Romano", "views": 2,
                                      "audio_plays": 1, "interactions": 3}
-    assert impact["top_routes"][0]["name"] == "Évora Romana"
+    assert [r["name"] for r in impact["top_routes"]] == ["PR1 Ecopista de Évora", "Évora Romana"]
     nvi = impact["national_vs_international"]
     assert nvi == {"national_sessions": 1, "international_sessions": 1, "unknown_sessions": 1,
                    "international_pct": 50.0}
-    assert sum(sum(v for k, v in d.items() if k != "date") for d in impact["daily"]) == 5
+    assert sum(sum(v for k, v in d.items() if k != "date") for d in impact["daily"]) == 7
 
     period = NOW.strftime("%Y-%m")
     pdf = await client.get(f"/api/municipal/me/reports/{period}.pdf")

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, ImageBackground, Platform, Linking, Alert } from 'react-native';
 import { useLocalSearchParams, useRouter, Stack } from 'expo-router';
 import Head from 'expo-router/head';
@@ -11,6 +11,7 @@ import * as Location from 'expo-location';
 import { ShareButton } from '../../src/components/ShareButton';
 import { PUBLIC_URL } from '../../src/config/api';
 import logger from '../../src/utils/logger';
+import { trackImpact } from '../../src/services/impactTracking';
 
 // Conditional import for WebView
 let WebView: any = null;
@@ -71,6 +72,15 @@ export default function RouteDetailScreen() {
     queryFn: () => getRoute(id!),
     enabled: !!id,
   });
+
+  // Anonymous impact stats (municipal dashboard) — one view per route id.
+  const trackedRouteRef = useRef<string | null>(null);
+  useEffect(() => {
+    const routeId = route?.id;
+    if (!routeId || trackedRouteRef.current === routeId) return;
+    trackedRouteRef.current = routeId;
+    void trackImpact({ event_type: 'route_view', route_id: routeId });
+  }, [route?.id]);
 
   const { data: items = [] } = useQuery({
     queryKey: ['routeItems', id],
@@ -251,6 +261,8 @@ if (window.maplibregl) { initMap(); } else { window.addEventListener('load', ini
 </html>`;
 
   const openNavigation = () => {
+    const routeId = route?.id || id;
+    if (routeId) void trackImpact({ event_type: 'route_start', route_id: routeId });
     const destination = `${routeStartCoords.lat},${routeStartCoords.lng}`;
     const _label = encodeURIComponent(route?.name || 'Destino');
     

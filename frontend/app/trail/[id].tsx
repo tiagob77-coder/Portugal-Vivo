@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, Linking, Platform } from 'react-native';
 import { useLocalSearchParams, useRouter, Stack } from 'expo-router';
 import Head from 'expo-router/head';
@@ -10,6 +10,7 @@ import { getTrail, getTrailElevation, getTrailPOIs, getTrailSafety } from '../..
 import ElevationProfile from '../../src/components/ElevationProfile';
 import TrailTechnicalCard from '../../src/components/TrailTechnicalCard';
 import { colors } from '../../src/theme';
+import { trackImpact } from '../../src/services/impactTracking';
 
 type TabKey = 'info' | 'perfil' | 'pois';
 
@@ -64,6 +65,16 @@ export default function TrailDetailScreen() {
     enabled: !!id,
   });
 
+  // Anonymous impact stats (municipal dashboard). Trails come from /trails
+  // (own collection, not heritage items), so they are reported as routes.
+  const trackedTrailRef = useRef<string | null>(null);
+  useEffect(() => {
+    const trailId = trail?.id;
+    if (!trailId || trackedTrailRef.current === trailId) return;
+    trackedTrailRef.current = trailId;
+    void trackImpact({ event_type: 'route_view', route_id: trailId });
+  }, [trail?.id]);
+
   const { data: elevationData } = useQuery({
     queryKey: ['trailElevation', id],
     queryFn: () => getTrailElevation(id!),
@@ -85,6 +96,7 @@ export default function TrailDetailScreen() {
   const openGoogleMaps = () => {
     const firstPoint = trail?.points?.[0];
     if (!firstPoint) return;
+    if (trail?.id) void trackImpact({ event_type: 'route_start', route_id: trail.id });
     const dest = `${firstPoint.lat},${firstPoint.lng}`;
     const url = `https://www.google.com/maps/dir/?api=1&destination=${dest}&travelmode=walking`;
     if (Platform.OS === 'web') {

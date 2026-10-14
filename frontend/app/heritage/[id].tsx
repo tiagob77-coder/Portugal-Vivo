@@ -21,6 +21,8 @@ import PoiVideoPlayer from '../../src/components/PoiVideoPlayer';
 import Panorama360View from '../../src/components/Panorama360View';
 import SensoryCard from '../../src/components/SensoryCard';
 import NavigationChooser from '../../src/components/NavigationChooser';
+import { trackImpact } from '../../src/services/impactTracking';
+import type { ImpactEventType } from '../../src/services/impactTracking';
 
 // Helper to remove markdown formatting from AI-generated text
 const cleanMarkdown = (text: string): string => {
@@ -297,7 +299,9 @@ const getItemImage = (name: string, category: string): string => {
 };
 
 export default function HeritageDetailScreen() {
-  const { id } = useLocalSearchParams<{ id: string }>();
+  const { id, src, source } = useLocalSearchParams<{ id: string; src?: string; source?: string }>();
+  // Municipal QR codes (on-site plaques) should link to /heritage/<id>?src=qr
+  const fromQr = src === 'qr' || source === 'qr';
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const queryClient = useQueryClient();
@@ -495,6 +499,21 @@ export default function HeritageDetailScreen() {
     }
   }, [item]);
 
+  // Anonymous impact stats (municipal dashboard) — one view per POI id.
+  const trackedPoiRef = useRef<string | null>(null);
+  useEffect(() => {
+    const poiId = item?.id;
+    if (!poiId || trackedPoiRef.current === poiId) return;
+    trackedPoiRef.current = poiId;
+    if (fromQr) void trackImpact({ event_type: 'qr_scan', poi_id: poiId, source: 'qr' });
+    void trackImpact({ event_type: 'poi_view', poi_id: poiId, ...(fromQr ? { source: 'qr' } : {}) });
+  }, [item?.id, fromQr]);
+
+  const trackPoiEvent = (event_type: ImpactEventType) => {
+    const poiId = item?.id || id;
+    if (poiId) void trackImpact({ event_type, poi_id: poiId });
+  };
+
   // Cleanup audio on unmount
   useEffect(() => {
     return () => {
@@ -508,6 +527,9 @@ export default function HeritageDetailScreen() {
   // Tracks whether the active playback is remote (mp3 Sound) or on-device
   // (expo-speech fallback) so the stop toggle hits the right engine.
   const audioModeRef = useRef<'remote' | 'device' | null>(null);
+  // Clear the mode on unmount so a late speech "done" event (some browsers
+  // fire it on cancel) is not counted as a completed listen.
+  useEffect(() => () => { audioModeRef.current = null; }, []);
 
   // Handle audio guide — real TTS from backend, with a graceful on-device
   // fallback so the "Ouvir" button is never dead (Premium feature).
@@ -518,14 +540,16 @@ export default function HeritageDetailScreen() {
     }
     // Toggle: stop whatever is currently playing.
     if (isPlayingAudio) {
-      if (audioModeRef.current === 'device') {
+      const mode = audioModeRef.current;
+      // Reset before stopping so the stop is never reported as audio_complete.
+      audioModeRef.current = null;
+      if (mode === 'device') {
         Speech.stop();
       } else if (sound) {
         await sound.stopAsync();
         await sound.unloadAsync();
         setSound(null);
       }
-      audioModeRef.current = null;
       setIsPlayingAudio(false);
       return;
     }
@@ -546,6 +570,7 @@ export default function HeritageDetailScreen() {
           { shouldPlay: true },
           (status) => {
             if (status.isLoaded && status.didJustFinish) {
+              trackPoiEvent('audio_complete');
               setIsPlayingAudio(false);
               newSound.unloadAsync();
               setSound(null);
@@ -556,15 +581,21 @@ export default function HeritageDetailScreen() {
         setSound(newSound);
         audioModeRef.current = 'remote';
         setIsPlayingAudio(true);
+        trackPoiEvent('audio_play');
       } else if (audioResult.text) {
         // No remote provider / TTS failed — read the narration with the
         // on-device voice so the experience still works in the pilot.
         audioModeRef.current = 'device';
         setIsPlayingAudio(true);
+        trackPoiEvent('audio_play');
         Speech.speak(audioResult.text, {
           language: 'pt-PT',
           rate: 0.9,
-          onDone: () => { setIsPlayingAudio(false); audioModeRef.current = null; },
+          onDone: () => {
+            if (audioModeRef.current === 'device') trackPoiEvent('audio_complete');
+            setIsPlayingAudio(false);
+            audioModeRef.current = null;
+          },
           onError: () => { setIsPlayingAudio(false); audioModeRef.current = null; },
           onStopped: () => { setIsPlayingAudio(false); audioModeRef.current = null; },
         });
@@ -636,6 +667,8 @@ export default function HeritageDetailScreen() {
   });
 
   const toggleFavorite = () => {
+    // Only additions count for the impact stats (not removals)
+    if (!isFavorite) trackPoiEvent('favorite');
     // Use offline favorites (AsyncStorage) — works without login
     handleToggleFavorite();
   };
@@ -784,6 +817,7 @@ export default function HeritageDetailScreen() {
                 title={item.name}
                 description={`Descobre ${item.name} no Portugal Vivo! \u{1F1F5}\u{1F1F9}`}
                 url={`${PUBLIC_URL}/heritage/${id}`}
+                onShare={() => trackPoiEvent('share')}
               />
               <TouchableOpacity 
                 style={[styles.favoriteButton, isFavorite && styles.favoriteButtonActive]} 
@@ -963,6 +997,7 @@ export default function HeritageDetailScreen() {
               <TouchableOpacity 
                 style={styles.openMapsButton}
                 onPress={() => {
+                  trackPoiEvent('directions');
                   const googleMapsUrl = `https://www.google.com/maps/search/?api=1&query=${item.location?.lat},${item.location?.lng}`;
                   const appleMapsUrl = `https://maps.apple.com/?q=${item.location?.lat},${item.location?.lng}`;
                   
@@ -1029,7 +1064,10 @@ export default function HeritageDetailScreen() {
             )}
             <TouchableOpacity
               style={styles.navigateButton}
-              onPress={() => setShowNavChooser(true)}
+              onPress={() => {
+                trackPoiEvent('directions');
+                setShowNavChooser(true);
+              }}
               accessibilityRole="button"
               accessibilityLabel="Navegar para o local"
             >
@@ -1283,6 +1321,7 @@ export default function HeritageDetailScreen() {
           style={styles.actionButton}
           onPress={() => {
             if (item.location) {
+              trackPoiEvent('directions');
               const url = Platform.select({
                 ios: `maps://app?daddr=${item.location?.lat},${item.location?.lng}`,
                 android: `google.navigation:q=${item.location?.lat},${item.location?.lng}`,
@@ -1355,6 +1394,7 @@ export default function HeritageDetailScreen() {
         <TouchableOpacity 
           style={styles.actionButton}
           onPress={async () => {
+            trackPoiEvent('share');
             const shareUrl = Platform.OS === 'web' ? window.location.href : '';
             const shareText = `${item.name}\n${item.description?.substring(0, 100)}\n\n${shareUrl}`;
             if (Platform.OS === 'web') {

@@ -8,7 +8,7 @@ import Head from 'expo-router/head';
 // Date of last revision shown to the user. Update whenever the substantive
 // content of this page changes — auditors and DPAs rely on this date as the
 // effective version of the policy that the user agreed to.
-const LAST_UPDATED = '14 de maio de 2026';
+const LAST_UPDATED = '14 de outubro de 2026';
 
 export default function PrivacyScreen() {
   const router = useRouter();
@@ -80,9 +80,54 @@ export default function PrivacyScreen() {
             <B>Telemetria de erros:</B> através do Sentry, sem dados pessoais associados
             (PII desativada — apenas tipo de erro, rota e versão).
           </Bullet>
+          <Bullet>
+            <B>Estatísticas anónimas de utilização:</B> eventos sem identificação pessoal,
+            descritos na secção 3.
+          </Bullet>
         </Section>
 
-        <Section title="3. Finalidades e bases legais">
+        <Section title="3. Estatísticas anónimas de utilização">
+          <P>
+            Para ajudar os municípios parceiros a perceber que locais e rotas são visitados,
+            a aplicação envia eventos anónimos de utilização para os servidores do Portugal
+            Vivo. Não usamos serviços de análise de terceiros.
+          </P>
+          <Bullet>
+            <B>O que é recolhido:</B> o tipo de evento (ver um local ou uma rota, ouvir o
+            áudio-guia, pedir direções, partilhar, adicionar aos favoritos, ler um código
+            QR), o identificador do local ou da rota, a plataforma (iOS, Android ou web), o
+            idioma do dispositivo e, quando disponível, o país de origem indicado pela rede
+            de distribuição que recebe o pedido.
+          </Bullet>
+          <Bullet>
+            <B>Finalidade:</B> produzir estatísticas agregadas de impacto (por exemplo,
+            visitas mensais a um monumento) para os municípios parceiros. Os municípios só
+            têm acesso a totais agregados, nunca a eventos individuais.
+          </Bullet>
+          <Bullet>
+            <B>O que não é recolhido:</B> o identificador da sua conta, o endereço IP ou a
+            sua localização precisa. Os eventos não ficam associados à sua conta, mesmo com
+            sessão iniciada.
+          </Bullet>
+          <Bullet>
+            <B>Identificador de visitante:</B> um valor aleatório, guardado apenas no seu
+            dispositivo, que muda todos os meses. Serve só para contar visitantes únicos em
+            cada mês e não permite ligar a atividade de meses diferentes. No servidor é
+            ainda transformado (hash) antes de ser guardado.
+          </Bullet>
+          <Bullet>
+            <B>Conservação:</B> os eventos são apagados automaticamente ao fim de 400 dias.
+            Os relatórios entregues aos municípios contêm apenas valores agregados.
+          </Bullet>
+          <Bullet>
+            <B>Como desativar:</B> em{' '}
+            <Link onPress={() => router.push('/settings/privacidade')}>Definições → Privacidade</Link>,
+            desligue &quot;Partilhar estatísticas anónimas&quot;. A partir desse momento não é
+            enviado nenhum evento a partir deste dispositivo.
+          </Bullet>
+        </Section>
+
+        <Section title="4. Finalidades e bases legais">
           <Bullet>
             <B>Execução do contrato</B> (art.º 6.º, n.º 1, b) RGPD): autenticação, gestão
             de conta, manutenção de favoritos e itinerários.
@@ -95,16 +140,20 @@ export default function PrivacyScreen() {
           <Bullet>
             <B>Interesse legítimo</B> (art.º 6.º, n.º 1, f) RGPD): segurança da plataforma,
             prevenção de fraude e análise agregada de utilização (sem identificação
-            individual).
+            individual). Pode opor-se às estatísticas anónimas em Definições → Privacidade.
           </Bullet>
         </Section>
 
-        <Section title="4. Com quem partilhamos">
+        <Section title="5. Com quem partilhamos">
           <Bullet>
             <B>Subcontratantes</B> sujeitos a contratos de tratamento conformes ao art.º
             28.º RGPD: MongoDB Atlas (alojamento de BD), Cloudinary (alojamento de
             imagens), Stripe (pagamentos premium), Sentry (monitorização de erros) e o
             fornecedor de modelo de linguagem usado para gerar narrativas.
+          </Bullet>
+          <Bullet>
+            <B>Municípios parceiros:</B> recebem apenas estatísticas agregadas de
+            utilização dos locais e rotas do seu território, nunca dados individuais.
           </Bullet>
           <Bullet>
             <B>Não vendemos</B> dados pessoais a terceiros nem fazemos profiling para
@@ -116,7 +165,7 @@ export default function PrivacyScreen() {
           </Bullet>
         </Section>
 
-        <Section title="5. Quanto tempo guardamos">
+        <Section title="6. Quanto tempo guardamos">
           <Bullet>
             <B>Conta ativa:</B> enquanto a conta existir.
           </Bullet>
@@ -131,9 +180,13 @@ export default function PrivacyScreen() {
           <Bullet>
             <B>Logs operacionais:</B> 30 dias.
           </Bullet>
+          <Bullet>
+            <B>Estatísticas anónimas de utilização:</B> eventos apagados após 400 dias;
+            relatórios apenas com valores agregados.
+          </Bullet>
         </Section>
 
-        <Section title="6. Os seus direitos">
+        <Section title="7. Os seus direitos">
           <P>
             Pode, a qualquer momento, exercer os direitos garantidos pelo RGPD:
           </P>
@@ -154,7 +207,7 @@ export default function PrivacyScreen() {
           </Bullet>
         </Section>
 
-        <Section title="7. Segurança">
+        <Section title="8. Segurança">
           <Bullet>
             Palavras-passe armazenadas com bcrypt; comunicação cifrada com TLS 1.2 ou
             superior; tokens de sessão HTTP-only e secure; rate-limiting e proteção CSRF.
@@ -165,14 +218,14 @@ export default function PrivacyScreen() {
           </Bullet>
         </Section>
 
-        <Section title="8. Menores">
+        <Section title="9. Menores">
           <P>
             A plataforma não se dirige a menores de 14 anos. Se tomarmos conhecimento de
             que uma conta foi criada por um menor sem consentimento parental, eliminá-la-emos.
           </P>
         </Section>
 
-        <Section title="9. Alterações a esta política">
+        <Section title="10. Alterações a esta política">
           <P>
             Eventuais alterações são anunciadas com 30 dias de antecedência por e-mail e
             dentro da aplicação. A versão em vigor é sempre a publicada nesta página com a
