@@ -1,6 +1,1950 @@
 {
-  "pt": {},
-  "en": {},
-  "es": {},
-  "fr": {}
+  "pt": {
+    "regions": {
+      "minho": "Minho",
+      "norte": "Norte",
+      "centro": "Centro",
+      "lisboa": "Lisboa",
+      "alentejo": "Alentejo",
+      "algarve": "Algarve",
+      "acores": "Açores",
+      "madeira": "Madeira"
+    },
+    "costa": {
+      "title": "Linha de Costa",
+      "subtitle": "Minho → Algarve",
+      "north": "Norte",
+      "south": "Sul",
+      "zoneToExplore": "{{count}} zona a explorar",
+      "zonesToExplore": "{{count}} zonas a explorar",
+      "profiles": {
+        "surfista": "Surfista",
+        "familia": "Família",
+        "fotografo": "Fotógrafo",
+        "natureza": "Natureza"
+      },
+      "emptyFilter": "Nenhuma zona com pontuação ≥ 4 para este perfil.",
+      "viewDetails": "Ver detalhes",
+      "localLegend": "Lenda Local",
+      "biodiversity": "Biodiversidade",
+      "zones": {
+        "minho": {
+          "description": "Costa rochosa e agreste a norte do rio Minho, com praias selvagens e dunas intactas. O verde galego funde-se com o azul atlântico numa paisagem única.",
+          "legend": "Diz a lenda que as Mouras Encantadas habitam as grutas costeiras do Minho, e que nas noites de lua cheia se ouve o seu canto a guiar os pescadores perdidos em segurança até à costa.",
+          "species": {
+            "0": "Lontra-europeia (Lutra lutra)",
+            "1": "Cegonha-branca (Ciconia ciconia)",
+            "2": "Garça-real (Ardea cinerea)"
+          }
+        },
+        "viana": {
+          "description": "Entre o Lima e o Neiva, praias extensas de areia fina alternam com estuários ricos em aves. Viana do Castelo domina a paisagem com a sua basílica no alto do monte.",
+          "legend": "A lenda de Viana conta que uma sereia chamada Viana se apaixonou por um pescador local e, ao não poder viver em terra, transformou-se no próprio rio Lima para o acompanhar eternamente.",
+          "species": {
+            "0": "Corvina (Argyrosomus regius)",
+            "1": "Maçarico-real (Numenius arquata)",
+            "2": "Linguado (Solea solea)"
+          }
+        },
+        "esposende": {
+          "description": "O Parque Natural do Litoral Norte protege dunas e lagoas costeiras únicas. Praias desertas e o estuário do Cávado criam habitats de exceção para aves migratórias.",
+          "legend": "Os pescadores de Esposende guardam a memória do Homem do Nevoeiro, um espírito que surge nas manhãs de bruma para guiar as embarcações através das barras traiçoeiras do Cávado.",
+          "species": {
+            "0": "Perna-longa (Himantopus himantopus)",
+            "1": "Saraiva-comum (Gallinago gallinago)",
+            "2": "Borboleta-monarca (Danaus plexippus)"
+          }
+        },
+        "porto": {
+          "description": "Das praias urbanas de Matosinhos às ondas míticas de Matosinhos e Foz do Douro, esta é a costa mais dinâmica do norte. Cultura, gastronomia e surf em perfeita simbiose.",
+          "legend": "A Coca de Matosinhos é um dragão marinho da mitologia local que, segundo a tradição, surge nos mares tempestuosos de inverno e só é domado pela intercessão de São Mateus, padroeiro dos pescadores.",
+          "species": {
+            "0": "Gaivota-argêntea (Larus argentatus)",
+            "1": "Corvo-marinho (Phalacrocorax carbo)",
+            "2": "Robalo (Dicentrarchus labrax)"
+          }
+        },
+        "aveiro": {
+          "description": "A Ria de Aveiro cria uma paisagem única de lagunas, salinas e canais. A costa atlântica exposta às suas costas esconde praias absolutamente selvagens acessíveis apenas a pé.",
+          "legend": "Conta-se que a Ria de Aveiro foi criada pelas lágrimas da Infanta Santa Joana ao contemplar, do alto do seu mosteiro, a beleza incomensurável do pôr do sol sobre as lagoas e salinas douradas.",
+          "species": {
+            "0": "Flamingo-rosa (Phoenicopterus roseus)",
+            "1": "Lontra-europeia (Lutra lutra)",
+            "2": "Enguia-europeia (Anguilla anguilla)"
+          }
+        },
+        "coimbra": {
+          "description": "A Figueira da Foz marca a foz do Mondego num litoral de praias enormes e ondas consistentes. Boa onda para surfistas e amplas extensões para famílias em dias calmos.",
+          "legend": "A lenda do Peixe Rei da Figueira narra que um peixe gigante e luminoso habita as profundezas da barra do Mondego e que, quando o avistam, é sinal de tempestade iminente.",
+          "species": {
+            "0": "Toirão (Mustela putorius)",
+            "1": "Rola-turca (Streptopelia decaocto)",
+            "2": "Robalo (Dicentrarchus labrax)"
+          }
+        },
+        "peniche": {
+          "description": "Peniche é capital do surf português. Supertubos é uma das ondas mais perfeitas do mundo. A Berlenga, ilha-reserva natural, emerge no oceano como um mundo à parte.",
+          "legend": "A Ilha da Berlenga guarda o lendário Castelo dos Cavaleiros de Malta, onde se diz que os templários esconderam um tesouro incalculável em cavernas submarinas acessíveis apenas durante os equinócios.",
+          "species": {
+            "0": "Airo-comum (Uria aalge)",
+            "1": "Alcatraz (Morus bassanus)",
+            "2": "Lagosta-europeia (Homarus gammarus)"
+          }
+        },
+        "sintra": {
+          "description": "O Cabo da Roca marca o ponto mais ocidental da Europa continental. Praias dramáticas entre falésias de granito e vegetação de neblina criam uma atmosfera verdadeiramente mágica.",
+          "legend": "No Cabo da Roca, Camões escreveu \"Aqui... onde a terra se acaba e o mar começa.\" A lenda local afirma que nas noites sem lua os espíritos dos navegadores perdidos se reúnem na ponta extrema da rocha para contemplar a eternidade do Atlântico.",
+          "species": {
+            "0": "Falcão-peregrino (Falco peregrinus)",
+            "1": "Golfinho-comum (Delphinus delphis)",
+            "2": "Narciso-de-Sintra (Narcissus calcicola)"
+          }
+        },
+        "setubal": {
+          "description": "A Arrábida esconde praias de água turquesa e calcário branco que parecem pertencer ao Mediterrâneo. O Parque Natural protege um dos últimos ecossistemas marinhos virgens de Portugal.",
+          "legend": "Os monges franciscanos que fundaram o convento da Arrábida no século XVI acreditavam que o local era habitado por espíritos da floresta que protegiam os mergulhadores das tempestades e dos afogamentos.",
+          "species": {
+            "0": "Golfinho-roaz (Tursiops truncatus)",
+            "1": "Camaleão (Chamaeleo chamaeleon)",
+            "2": "Lince-ibérico (Lynx pardinus)"
+          }
+        },
+        "algarve": {
+          "description": "As falésias douradas de calcário e grés, a água cristalina e as grutas naturais tornam o Algarve num dos litorais mais fotogénicos do mundo. Praias de todos os perfis, do surf ao lazer familiar.",
+          "legend": "A Gruta de Benagil, com o seu oculus natural aberto ao céu, é chamada pelos pescadores locais de \"Olho de Deus\". Diz a lenda que no verão, ao meio-dia, a luz que entra pela abertura ilumina por breves instantes o rosto dos que a merecem.",
+          "species": {
+            "0": "Tartaruga-careta (Caretta caretta)",
+            "1": "Atum-rabilho (Thunnus thynnus)",
+            "2": "Polvo-comum (Octopus vulgaris)"
+          }
+        }
+      }
+    },
+    "coastalData": {
+      "tides": "Marés",
+      "tideRising": "Enchente",
+      "tideFalling": "Vazante",
+      "waves": "Ondas",
+      "wind": "Vento",
+      "safety": "Segurança",
+      "safetyLevels": {
+        "veryHigh": "Segura",
+        "high": "Boa",
+        "medium": "Atenção",
+        "low": "Perigosa",
+        "unknown": "Desconhecida"
+      },
+      "bestSeason": "Melhor época:",
+      "seasons": {
+        "summer": "Verão",
+        "springAutumn": "Primavera / Outono",
+        "autumnWinter": "Outono / Inverno",
+        "springSummer": "Primavera / Verão"
+      },
+      "windDirections": {
+        "n": "N",
+        "no": "NO",
+        "nw": "NW",
+        "w": "W"
+      }
+    },
+    "culturaMaritima": {
+      "title": "Cultura Marítima",
+      "subtitle": "Rituais · Festas · Procissões ao Mar",
+      "tabs": {
+        "todos": "Todos",
+        "procissao_maritima": "Procissões",
+        "bencao_barcos": "Bênçãos",
+        "festa_mar": "Festas",
+        "ritual_religioso": "Rituais",
+        "tradicao_piscatoria": "Tradições"
+      },
+      "allRegions": "Todos",
+      "upcomingOne": "{{count}} evento nos próximos 30 dias",
+      "upcomingMany": "{{count}} eventos nos próximos 30 dias",
+      "foundOne": "{{count}} evento encontrado",
+      "foundMany": "{{count}} eventos encontrados",
+      "emptyTitle": "Sem eventos nesta categoria",
+      "emptyText": "Tenta outro tipo ou região para descobrir a cultura marítima portuguesa.",
+      "sources": "Dados: DGPC · Municípios · Associações de Pescadores"
+    },
+    "maritimeCard": {
+      "types": {
+        "procissao_maritima": "Procissão",
+        "bencao_barcos": "Bênção",
+        "festa_mar": "Festa do Mar",
+        "ritual_religioso": "Ritual",
+        "tradicao_piscatoria": "Tradição",
+        "banho_santo": "Banho Santo"
+      },
+      "frequency": {
+        "anual": "Anual",
+        "sazonal": "Sazonal",
+        "irregular": "Irregular"
+      },
+      "upcoming": "Próximo",
+      "boats": "{{count}} barcos",
+      "moreActivities": "+{{count}} mais"
+    },
+    "infraestrutura": {
+      "title": "Infraestrutura Natural",
+      "subtitle": "Passadiços · Pontes · Ecovias · Miradouros",
+      "tabs": {
+        "todos": "Todos",
+        "passadico": "Passadiços",
+        "ponte_suspensa": "Pontes Suspensas",
+        "ecovia": "Ecovias",
+        "miradouro": "Miradouros",
+        "torre_observacao": "Torres"
+      },
+      "access": {
+        "todos": "Todos",
+        "acessivel": "Acessível",
+        "familia": "Família",
+        "cao": "Cão"
+      },
+      "filterByAccessibility": "Filtrar por acessibilidade",
+      "foundOne": "{{count}} infraestrutura encontrada",
+      "foundMany": "{{count}} infraestruturas encontradas",
+      "emptyTitle": "Sem resultados",
+      "emptyText": "Tente alterar o tipo ou remover os filtros de acessibilidade.",
+      "sources": "Dados: ICNF · Municípios · Turismo de Portugal"
+    },
+    "infraCard": {
+      "types": {
+        "passadico": "Passadiço",
+        "ponte_suspensa": "Ponte Suspensa",
+        "ecovia": "Ecovia",
+        "miradouro": "Miradouro",
+        "torre_observacao": "Torre Observação",
+        "via_verde": "Via Verde"
+      },
+      "access": {
+        "livre": "Livre",
+        "condicionado": "Condicionado",
+        "pago": "Pago"
+      },
+      "difficulty": {
+        "facil": "Fácil",
+        "media": "Média",
+        "dificil": "Difícil"
+      },
+      "accessible": "Acessível",
+      "family": "Família",
+      "dog": "Cão",
+      "seasons": {
+        "spring": "Primavera",
+        "summer": "Verão",
+        "autumn": "Outono",
+        "winter": "Inverno"
+      }
+    },
+    "maritimeEvents": {
+      "agonia-viana": {
+        "dateStart": "Agosto (3ª semana)",
+        "dateEnd": "3 dias",
+        "descShort": "A maior romaria do norte de Portugal com procissão fluvial iluminada e barcos engalanados no Lima.",
+        "descLong": "Celebrada desde o século XVIII, a Festa da Agonia reúne centenas de milhar de peregrinos. O ponto alto é a procissão fluvial noturna com barcaças ornamentadas e fogos de artifício sobre o Rio Lima. O traje vianês e as ranchos folclóricos dão cor ao cortejo terrestre.",
+        "activities": {
+          "0": "Procissão fluvial",
+          "1": "Ranchos folclóricos",
+          "2": "Traje vianês"
+        }
+      },
+      "banho-santo-bartolomeu": {
+        "dateStart": "24 de Agosto",
+        "descShort": "Ritual ancestral pré-cristão de imersão no mar ao amanhecer, sob a proteção de São Bartolomeu.",
+        "descLong": "Uma das mais antigas tradições do litoral minhoto, o Banho Santo combina fé cristã e magia popular pré-romana. Na madrugada de 24 de agosto os devotos entram no Atlântico para se purificarem. Acredita-se que o mar neste dia cura doenças de pele e afasta o mau-olhado.",
+        "activities": {
+          "0": "Imersão ritual ao amanhecer",
+          "1": "Missa na praia",
+          "2": "Penitência"
+        },
+        "dishes": {
+          "0": "Caldeirada de peixe",
+          "1": "Broa de milho"
+        }
+      },
+      "bencao-bacalhoeiros-ilhavo": {
+        "dateStart": "Junho",
+        "descShort": "Cerimónia de bênção das embarcações de pesca do bacalhau antes da partida para os mares do Norte.",
+        "descLong": "Ílhavo foi durante séculos o centro da frota bacalhoeira portuguesa. A cerimónia de bênção dos navios antes da partida para a Terra Nova e a Gronelândia é um ritual emocionante com missa, bênção do bispo e despedida das famílias no cais.",
+        "activities": {
+          "0": "Bênção episcopal",
+          "1": "Missa dos pescadores",
+          "2": "Cortejo de bandeiras"
+        },
+        "dishes": {
+          "1": "Caldeirada de bacalhau"
+        }
+      },
+      "bencao-boa-viagem-matosinhos": {
+        "dateStart": "Junho (última semana)",
+        "descShort": "Impressionante procissão marítima com mais de 100 barcos ornamentados no mar de Matosinhos.",
+        "descLong": "Uma das maiores procissões marítimas de Portugal, com a imagem da Nossa Senhora da Boa Viagem transportada em barcaça ricamente ornamentada, acompanhada por centenas de embarcações de pesca, veleiros e barcos de recreio. A procissão terrestre percorre a cidade com bandas filarmónicas e grupos folclóricos.",
+        "activities": {
+          "0": "Procissão marítima",
+          "1": "Cortejo terrestre",
+          "2": "Fogo de artifício"
+        },
+        "dishes": {
+          "0": "Sardinhas assadas"
+        }
+      },
+      "festa-mar-matosinhos": {
+        "dateStart": "Junho",
+        "descShort": "Festival gastronómico e cultural que celebra o mar, a pesca e as sardinhas grelhadas em ambiente de arraial.",
+        "descLong": "A Festa do Mar é o grande arraial de Matosinhos, com música ao vivo, arraial popular, gastronomia piscatória e animação cultural. As sardinhas assadas na brasa são o ex-libris do evento, acompanhadas por vinho verde e pão de milho.",
+        "activities": {
+          "0": "Sardinhas na brasa",
+          "1": "Música ao vivo",
+          "2": "Arraial popular"
+        },
+        "dishes": {
+          "0": "Sardinhas assadas",
+          "1": "Camarão cozido",
+          "2": "Polvo grelhado"
+        }
+      },
+      "procissao-pescadores-nazare": {
+        "dateStart": "Setembro (8 Set. — N. Sra. da Nazaré)",
+        "descShort": "Procissão solene em honra de Nossa Senhora da Nazaré, padroeira dos pescadores, com traje típico listrado.",
+        "descLong": "A procissão integra as festas em honra de Nossa Senhora da Nazaré, padroeira dos pescadores. As mulheres vestem os sete saiões listados do traje típico nazareno. Os pescadores carregam a imagem da santa em andor ornamentado com redes e âncoras.",
+        "activities": {
+          "0": "Procissão com andor",
+          "1": "Traje típico",
+          "2": "Missa campal"
+        },
+        "dishes": {
+          "0": "Caldeirada de peixe nazarena",
+          "2": "Percebes"
+        }
+      },
+      "nossa-senhora-assuncao-povoa": {
+        "dateStart": "15 de Agosto",
+        "descShort": "Festa maior da cidade com arraial, procissão ao mar e a tradicional queima de barcos votivos.",
+        "activities": {
+          "0": "Procissão ao mar",
+          "1": "Queima de barcos",
+          "2": "Arraial popular"
+        },
+        "dishes": {
+          "0": "Sopa de peixe",
+          "1": "Arroz de lingueirão"
+        }
+      },
+      "senhor-navegantes-aveiro": {
+        "dateStart": "Agosto",
+        "descShort": "Romaria fluvial na Ria de Aveiro com moliceiros ornamentados e procissão pela laguna.",
+        "descLong": "A romaria percorre a Ria de Aveiro em moliceiros ricamente ornamentados a flores e papel crepe. A imagem do Senhor dos Navegantes é transportada no barco principal, acompanhada por dezenas de embarcações tradicionais.",
+        "activities": {
+          "0": "Procissão fluvial",
+          "1": "Moliceiros ornamentados",
+          "2": "Bênção das embarcações"
+        },
+        "dishes": {
+          "1": "Caldeirada de enguias",
+          "2": "Salicórnia"
+        }
+      },
+      "santo-cristo-milagres-acores": {
+        "dateStart": "Maio (5º domingo após a Páscoa)",
+        "descShort": "A maior manifestação religiosa dos Açores, com procissão solene e pétalas de flores nas ruas de Ponta Delgada.",
+        "descLong": "As Festas do Senhor Santo Cristo dos Milagres são o maior evento religioso dos Açores e da diáspora açoriana. A procissão percorre ruas cobertas de pétalas de flores e hortênsias, com a imagem do Senhor transportada por irmandades vestidas de gala. Peregrinos de todo o mundo participam.",
+        "activities": {
+          "0": "Procissão solene",
+          "1": "Tapetes de flores",
+          "2": "Missa pontifical"
+        },
+        "dishes": {
+          "1": "Caldo de nabos"
+        }
+      },
+      "arte-xavega-nazare": {
+        "dateStart": "Verão (Junho – Setembro)",
+        "descShort": "Pesca artesanal milenar com redes arrastadas à mão da praia por bois ou tratores, uma das últimas tradições vivas do litoral.",
+        "descLong": "A arte xávega é uma técnica de pesca de cerco arrastado desde terra, documentada em Portugal desde o século XV. Na Nazaré, pescadores lançam redes do mar com embarcações de proa alta e arrastam-nas para a praia. Antigamente puxadas por juntas de bois, hoje com tratores, mas mantendo a técnica original.",
+        "activities": {
+          "0": "Arrastão de redes",
+          "1": "Lota do peixe",
+          "2": "Demonstrações públicas"
+        },
+        "dishes": {
+          "0": "Peixe fresco na lota",
+          "1": "Petingas fritas",
+          "2": "Caldeirada"
+        }
+      },
+      "procissao-fluvial-douro": {
+        "dateStart": "Junho (festas de São João)",
+        "descShort": "Procissão fluvial no Douro integrada nas festividades de São João do Porto, com barcos rabelos iluminados.",
+        "descLong": "No âmbito das Festas de São João, uma procissão fluvial percorre o Douro com barcos rabelos decorados e iluminados. A ponte D. Luís serve de pano de fundo para os fogos de artifício que encerram a celebração.",
+        "activities": {
+          "0": "Barcos rabelos iluminados",
+          "1": "Fogos do Douro",
+          "2": "Música popular"
+        },
+        "dishes": {
+          "0": "Tripas à moda do Porto",
+          "2": "Vinho do Porto"
+        }
+      },
+      "festas-mar-sesimbra": {
+        "dateStart": "Agosto",
+        "descShort": "Festival de verão em Sesimbra com gastronomia piscatória, música e procissão ao mar no Atlântico.",
+        "activities": {
+          "0": "Procissão ao mar",
+          "1": "Arraial popular",
+          "2": "Concertos"
+        },
+        "dishes": {
+          "0": "Choco frito",
+          "1": "Linguado grelhado"
+        }
+      },
+      "bencao-frota-olhao": {
+        "dateStart": "Outubro",
+        "descShort": "Cerimónia de bênção das embarcações piscatórias de Olhão antes da temporada de outono-inverno.",
+        "activities": {
+          "0": "Bênção episcopal",
+          "1": "Desfile de barcos",
+          "2": "Missa dos pescadores"
+        },
+        "dishes": {
+          "0": "Cataplana de marisco",
+          "1": "Atum grelhado"
+        }
+      },
+      "sao-pedro-peniche": {
+        "dateStart": "29 de Junho",
+        "descShort": "Celebração do padroeiro dos pescadores em Peniche, com missa, procissão ao cais e arraial na cidade.",
+        "descLong": "São Pedro é celebrado em toda a costa portuguesa, mas em Peniche a festa adquire particular expressão dada a importância histórica da pesca. A procissão parte da Igreja de São Pedro e desce ao cais onde os barcos aguardam enfeitados. Segue arraial popular com sardinhada e música pimba.",
+        "activities": {
+          "0": "Procissão ao cais",
+          "1": "Bênção dos barcos",
+          "2": "Sardinhada popular"
+        },
+        "dishes": {
+          "0": "Sardinhas assadas",
+          "1": "Percebes de Peniche",
+          "2": "Lagosta suada"
+        }
+      }
+    },
+    "infraItems": {
+      "passadicos-paiva": {
+        "descShort": "Um dos trilhos de passadiço mais icónicos da Europa, com 8,7 km ao longo do rio Paiva entre penedos e quedas de água.",
+        "descLong": "Classificado como um dos melhores trilhos do mundo, os Passadiços do Paiva atravessam a Geopark Arouca ao longo do rio Paiva. O percurso oferece vistas deslumbrantes sobre as gargantas fluviais e a rica biodiversidade da região.",
+        "hours": "Aberto diariamente 8h-19h (época alta)"
+      },
+      "passadico-sete-lagoas": {
+        "descShort": "Percurso de 2,1 km junto às lagoas glaciares do Parque Nacional da Peneda-Gerês, com flora endémica e paisagem intocada."
+      },
+      "passadico-carreco": {
+        "descShort": "Passadiço costeiro de 1,2 km sobre o Atlântico, com vistas sobre a costa verde do Minho e acesso a praias isoladas."
+      },
+      "ponte-516-arouca": {
+        "descShort": "A mais longa ponte suspensa pedonal do mundo com 516 m de comprimento e 175 m de altura sobre o rio Paiva.",
+        "descLong": "Inaugurada em 2021, a Ponte 516 Arouca detém o recorde mundial de ponte pedonal suspensa mais longa. A travessia oferece vistas vertiginosas sobre o canhão do rio Paiva e a paisagem granítica da Serra da Freita.",
+        "safety": "Proibida a crianças com menos de 1 m de altura. Não recomendada a pessoas com vertigem.",
+        "hours": "Ter-Dom 9h-18h (bilheteira fecha às 17h)"
+      },
+      "ponte-rio-paiva": {
+        "descShort": "Ponte suspensa de 252 m sobre o rio Paiva, ponto de partida e chegada dos Passadiços do Paiva."
+      },
+      "ecovia-tamega": {
+        "descShort": "Antiga linha ferroviária do Tâmega reconvertida em percurso de 35 km para ciclistas e pedestres ao longo do rio.",
+        "descLong": "Percorre a antiga Linha do Tâmega, desativada em 2009, atravessando viadutos, tuneis e aldeias históricas entre Amarante e Chaves."
+      },
+      "ecovia-litoral-norte": {
+        "descShort": "Itinerário costeiro de 22 km entre praias, dunas e estuários da costa verde do Alto Minho."
+      },
+      "via-verde-dao": {
+        "descShort": "Antiga Linha do Dão reconvertida em 48 km de via verde para ciclismo e pedestrianismo entre Viseu e Santa Comba Dão.",
+        "descLong": "Inaugurada em 2017, a Via Verde do Dão é uma das mais completas vias verdes do país. Atravessa vales vinhateiros, albufeiras e aldeias rurais numa experiência imersiva no Dão profundo.",
+        "hours": "Aberto todo o ano"
+      },
+      "miradouro-sao-jeronimo": {
+        "descShort": "Ponto mais alto da Serra da Estrela com vistas de 360° sobre planaltos glaciares, lagoas e a Cova da Beira.",
+        "safety": "Estrada pode estar cortada por neve de novembro a março. Verificar condições antes de partir."
+      },
+      "miradouro-portas-rodao": {
+        "descShort": "Vista privilegiada sobre o corte geológico do rio Tejo nas Portas do Ródão, habitat do abutre-do-egipto."
+      },
+      "miradouro-facho": {
+        "descShort": "Pico volcânico no extremo leste da Madeira com vista panorâmica sobre o Oceano Atlântico, Porto Santo e as Desertas."
+      },
+      "miradouro-ponta-madrugada": {
+        "descShort": "O ponto mais oriental dos Açores e de toda a União Europeia, com vistas sobre o Atlântico ao nascer do sol."
+      },
+      "torre-paul-arzila": {
+        "descShort": "Torre de observação ornitológica na Reserva Natural do Paul de Arzila, habitat de garças, patos e espécies migratórias raras.",
+        "hours": "Aberto durante o dia, sem restrições"
+      },
+      "passadico-algares": {
+        "descShort": "Passadiço familiar de acesso à praia fluvial do rio Zêzere em Constância, com zonas de lazer e sombra natural."
+      }
+    }
+  },
+  "en": {
+    "regions": {
+      "minho": "Minho",
+      "norte": "North",
+      "centro": "Centre",
+      "lisboa": "Lisbon",
+      "alentejo": "Alentejo",
+      "algarve": "Algarve",
+      "acores": "Azores",
+      "madeira": "Madeira"
+    },
+    "costa": {
+      "title": "Coastline",
+      "subtitle": "Minho → Algarve",
+      "north": "North",
+      "south": "South",
+      "zoneToExplore": "{{count}} zone to explore",
+      "zonesToExplore": "{{count}} zones to explore",
+      "profiles": {
+        "surfista": "Surfer",
+        "familia": "Family",
+        "fotografo": "Photographer",
+        "natureza": "Nature"
+      },
+      "emptyFilter": "No zones score ≥ 4 for this profile.",
+      "viewDetails": "View details",
+      "localLegend": "Local Legend",
+      "biodiversity": "Biodiversity",
+      "zones": {
+        "minho": {
+          "description": "A rugged, rocky coast in the far north by the River Minho, with wild beaches and untouched dunes. Galician green melts into Atlantic blue in a one-of-a-kind landscape.",
+          "legend": "Legend has it that the Enchanted Moorish Maidens dwell in the coastal caves of the Minho, and that on full-moon nights their song can be heard guiding lost fishermen safely back to shore.",
+          "species": {
+            "0": "Eurasian otter (Lutra lutra)",
+            "1": "White stork (Ciconia ciconia)",
+            "2": "Grey heron (Ardea cinerea)"
+          }
+        },
+        "viana": {
+          "description": "Between the Lima and Neiva rivers, long beaches of fine sand alternate with estuaries teeming with birds. Viana do Castelo dominates the landscape with its basilica high on the hill.",
+          "legend": "The legend of Viana tells of a mermaid named Viana who fell in love with a local fisherman and, unable to live on land, became the River Lima itself so she could stay by his side for ever.",
+          "species": {
+            "0": "Meagre (Argyrosomus regius)",
+            "1": "Eurasian curlew (Numenius arquata)",
+            "2": "Common sole (Solea solea)"
+          }
+        },
+        "esposende": {
+          "description": "The Litoral Norte Natural Park protects unique dunes and coastal lagoons. Deserted beaches and the Cávado estuary create exceptional habitats for migratory birds.",
+          "legend": "The fishermen of Esposende keep alive the memory of the Fog Man, a spirit who appears on misty mornings to guide boats across the treacherous sandbars of the Cávado.",
+          "species": {
+            "0": "Black-winged stilt (Himantopus himantopus)",
+            "1": "Common snipe (Gallinago gallinago)",
+            "2": "Monarch butterfly (Danaus plexippus)"
+          }
+        },
+        "porto": {
+          "description": "From the city beaches of Matosinhos to the legendary waves of Matosinhos and Foz do Douro, this is the liveliest coast in the north. Culture, food and surf in perfect harmony.",
+          "legend": "The Coca of Matosinhos is a sea dragon from local mythology which, tradition says, rises from the stormy winter seas and can only be tamed through the intercession of Saint Matthew, patron of fishermen.",
+          "species": {
+            "0": "European herring gull (Larus argentatus)",
+            "1": "Great cormorant (Phalacrocorax carbo)",
+            "2": "European sea bass (Dicentrarchus labrax)"
+          }
+        },
+        "aveiro": {
+          "description": "The Ria de Aveiro creates a unique landscape of lagoons, salt pans and canals. Behind it, the exposed Atlantic shore hides utterly wild beaches reachable only on foot.",
+          "legend": "It is said that the Ria de Aveiro was formed from the tears of Princess Saint Joan as she gazed, from high in her convent, at the boundless beauty of the sunset over the golden lagoons and salt pans.",
+          "species": {
+            "0": "Greater flamingo (Phoenicopterus roseus)",
+            "1": "Eurasian otter (Lutra lutra)",
+            "2": "European eel (Anguilla anguilla)"
+          }
+        },
+        "coimbra": {
+          "description": "Figueira da Foz marks the mouth of the Mondego on a coastline of huge beaches and consistent waves. Good surf for surfers and wide stretches of sand for families on calm days.",
+          "legend": "The legend of the King Fish of Figueira tells of a giant, glowing fish living in the depths of the Mondego bar; whenever it is sighted, a storm is on its way.",
+          "species": {
+            "0": "European polecat (Mustela putorius)",
+            "1": "Eurasian collared dove (Streptopelia decaocto)",
+            "2": "European sea bass (Dicentrarchus labrax)"
+          }
+        },
+        "peniche": {
+          "description": "Peniche is the capital of Portuguese surfing. Supertubos is one of the most perfect waves in the world. Berlenga, an island nature reserve, rises from the ocean like a world apart.",
+          "legend": "Berlenga Island guards the legendary Castle of the Knights of Malta, where the Templars are said to have hidden a priceless treasure in underwater caves reachable only during the equinoxes.",
+          "species": {
+            "0": "Common guillemot (Uria aalge)",
+            "1": "Northern gannet (Morus bassanus)",
+            "2": "European lobster (Homarus gammarus)"
+          }
+        },
+        "sintra": {
+          "description": "Cabo da Roca marks the westernmost point of mainland Europe. Dramatic beaches between granite cliffs and mist-loving vegetation create a truly magical atmosphere.",
+          "legend": "At Cabo da Roca, Camões wrote \"Here... where the land ends and the sea begins.\" Local legend says that on moonless nights the spirits of lost navigators gather at the very tip of the rock to contemplate the eternity of the Atlantic.",
+          "species": {
+            "0": "Peregrine falcon (Falco peregrinus)",
+            "1": "Common dolphin (Delphinus delphis)",
+            "2": "Sintra daffodil (Narcissus calcicola)"
+          }
+        },
+        "setubal": {
+          "description": "Arrábida hides beaches of turquoise water and white limestone that seem to belong to the Mediterranean. Its Natural Park protects one of the last pristine marine ecosystems in Portugal.",
+          "legend": "The Franciscan monks who founded the Arrábida convent in the 16th century believed the place was inhabited by forest spirits who protected divers from storms and drowning.",
+          "species": {
+            "0": "Bottlenose dolphin (Tursiops truncatus)",
+            "1": "Mediterranean chameleon (Chamaeleo chamaeleon)",
+            "2": "Iberian lynx (Lynx pardinus)"
+          }
+        },
+        "algarve": {
+          "description": "Golden cliffs of limestone and sandstone, crystal-clear water and natural sea caves make the Algarve one of the most photogenic coastlines in the world. Beaches for every taste, from surfing to family fun.",
+          "legend": "Benagil Cave, with its natural oculus open to the sky, is called the \"Eye of God\" by local fishermen. Legend has it that at noon in summer, the light pouring through the opening briefly lights up the faces of those who deserve it.",
+          "species": {
+            "0": "Loggerhead turtle (Caretta caretta)",
+            "1": "Atlantic bluefin tuna (Thunnus thynnus)",
+            "2": "Common octopus (Octopus vulgaris)"
+          }
+        }
+      }
+    },
+    "coastalData": {
+      "tides": "Tides",
+      "tideRising": "Rising",
+      "tideFalling": "Falling",
+      "waves": "Waves",
+      "wind": "Wind",
+      "safety": "Safety",
+      "safetyLevels": {
+        "veryHigh": "Safe",
+        "high": "Good",
+        "medium": "Caution",
+        "low": "Dangerous",
+        "unknown": "Unknown"
+      },
+      "bestSeason": "Best time:",
+      "seasons": {
+        "summer": "Summer",
+        "springAutumn": "Spring / Autumn",
+        "autumnWinter": "Autumn / Winter",
+        "springSummer": "Spring / Summer"
+      },
+      "windDirections": {
+        "n": "N",
+        "no": "NW",
+        "nw": "NW",
+        "w": "W"
+      }
+    },
+    "culturaMaritima": {
+      "title": "Maritime Culture",
+      "subtitle": "Rituals · Festivals · Sea Processions",
+      "tabs": {
+        "todos": "All",
+        "procissao_maritima": "Processions",
+        "bencao_barcos": "Blessings",
+        "festa_mar": "Festivals",
+        "ritual_religioso": "Rituals",
+        "tradicao_piscatoria": "Traditions"
+      },
+      "allRegions": "All",
+      "upcomingOne": "{{count}} event in the next 30 days",
+      "upcomingMany": "{{count}} events in the next 30 days",
+      "foundOne": "{{count}} event found",
+      "foundMany": "{{count}} events found",
+      "emptyTitle": "No events in this category",
+      "emptyText": "Try another type or region to discover Portugal’s maritime culture.",
+      "sources": "Data: DGPC · Municipalities · Fishermen’s Associations"
+    },
+    "maritimeCard": {
+      "types": {
+        "procissao_maritima": "Procession",
+        "bencao_barcos": "Blessing",
+        "festa_mar": "Sea Festival",
+        "ritual_religioso": "Ritual",
+        "tradicao_piscatoria": "Tradition",
+        "banho_santo": "Holy Bath"
+      },
+      "frequency": {
+        "anual": "Annual",
+        "sazonal": "Seasonal",
+        "irregular": "Irregular"
+      },
+      "upcoming": "Upcoming",
+      "boats": "{{count}} boats",
+      "moreActivities": "+{{count}} more"
+    },
+    "infraestrutura": {
+      "title": "Natural Infrastructure",
+      "subtitle": "Boardwalks · Bridges · Greenways · Viewpoints",
+      "tabs": {
+        "todos": "All",
+        "passadico": "Boardwalks",
+        "ponte_suspensa": "Suspension Bridges",
+        "ecovia": "Greenways",
+        "miradouro": "Viewpoints",
+        "torre_observacao": "Towers"
+      },
+      "access": {
+        "todos": "All",
+        "acessivel": "Accessible",
+        "familia": "Family",
+        "cao": "Dogs"
+      },
+      "filterByAccessibility": "Filter by accessibility",
+      "foundOne": "{{count}} site found",
+      "foundMany": "{{count}} sites found",
+      "emptyTitle": "No results",
+      "emptyText": "Try changing the type or removing the accessibility filters.",
+      "sources": "Data: ICNF · Municipalities · Turismo de Portugal"
+    },
+    "infraCard": {
+      "types": {
+        "passadico": "Boardwalk",
+        "ponte_suspensa": "Suspension Bridge",
+        "ecovia": "Greenway",
+        "miradouro": "Viewpoint",
+        "torre_observacao": "Observation Tower",
+        "via_verde": "Rail Trail"
+      },
+      "access": {
+        "livre": "Free",
+        "condicionado": "Restricted",
+        "pago": "Paid"
+      },
+      "difficulty": {
+        "facil": "Easy",
+        "media": "Moderate",
+        "dificil": "Hard"
+      },
+      "accessible": "Accessible",
+      "family": "Family",
+      "dog": "Dogs",
+      "seasons": {
+        "spring": "Spring",
+        "summer": "Summer",
+        "autumn": "Autumn",
+        "winter": "Winter"
+      }
+    },
+    "maritimeEvents": {
+      "agonia-viana": {
+        "dateStart": "August (3rd week)",
+        "dateEnd": "3 days",
+        "descShort": "The largest pilgrimage festival in northern Portugal, with an illuminated river procession and decked-out boats on the Lima.",
+        "descLong": "Celebrated since the 18th century, the Festa da Agonia draws hundreds of thousands of pilgrims. The highlight is the night-time river procession with decorated barges and fireworks over the River Lima. Traditional Viana costumes and folk groups bring colour to the street parade.",
+        "activities": {
+          "0": "River procession",
+          "1": "Folk dance groups",
+          "2": "Viana costume"
+        }
+      },
+      "banho-santo-bartolomeu": {
+        "dateStart": "24 August",
+        "descShort": "An ancient pre-Christian ritual of bathing in the sea at dawn, under the protection of Saint Bartholomew.",
+        "descLong": "One of the oldest traditions of the Minho coast, the Holy Bath blends Christian faith with pre-Roman folk magic. In the early hours of 24 August, the faithful walk into the Atlantic to purify themselves. On this day the sea is believed to cure skin ailments and ward off the evil eye.",
+        "activities": {
+          "0": "Ritual dip at dawn",
+          "1": "Mass on the beach",
+          "2": "Penance"
+        },
+        "dishes": {
+          "0": "Fish stew",
+          "1": "Cornbread"
+        }
+      },
+      "bencao-bacalhoeiros-ilhavo": {
+        "dateStart": "June",
+        "descShort": "Blessing ceremony for the cod-fishing boats before they set sail for the northern seas.",
+        "descLong": "For centuries Ílhavo was the home of Portugal’s cod-fishing fleet. The blessing of the ships before they left for Newfoundland and Greenland is a moving ritual, with Mass, the bishop’s blessing and families saying farewell on the quay.",
+        "activities": {
+          "0": "Bishop’s blessing",
+          "1": "Fishermen’s Mass",
+          "2": "Flag parade"
+        },
+        "dishes": {
+          "1": "Cod stew"
+        }
+      },
+      "bencao-boa-viagem-matosinhos": {
+        "dateStart": "June (last week)",
+        "descShort": "A spectacular sea procession with more than 100 decorated boats off Matosinhos.",
+        "descLong": "One of the largest sea processions in Portugal: the statue of Our Lady of Safe Voyage is carried on a richly decorated barge, escorted by hundreds of fishing boats, sailing boats and pleasure craft. On land, the procession winds through the town with brass bands and folk groups.",
+        "activities": {
+          "0": "Sea procession",
+          "1": "Street parade",
+          "2": "Fireworks"
+        },
+        "dishes": {
+          "0": "Grilled sardines"
+        }
+      },
+      "festa-mar-matosinhos": {
+        "dateStart": "June",
+        "descShort": "A food and culture festival celebrating the sea, fishing and grilled sardines in a lively street-party atmosphere.",
+        "descLong": "The Festa do Mar is Matosinhos’ big street party, with live music, festivities, fishermen’s food and cultural events. Chargrilled sardines are the star of the show, served with vinho verde and corn bread.",
+        "activities": {
+          "0": "Chargrilled sardines",
+          "1": "Live music",
+          "2": "Street party"
+        },
+        "dishes": {
+          "0": "Grilled sardines",
+          "1": "Boiled prawns",
+          "2": "Grilled octopus"
+        }
+      },
+      "procissao-pescadores-nazare": {
+        "dateStart": "September (8 Sept — Our Lady of Nazaré)",
+        "descShort": "A solemn procession in honour of Our Lady of Nazaré, patron saint of fishermen, with traditional striped costumes.",
+        "descLong": "The procession is part of the festivities honouring Our Lady of Nazaré, patron saint of fishermen. Women wear the seven striped petticoats of the traditional Nazaré costume, while fishermen carry the statue of the Virgin on a float adorned with nets and anchors.",
+        "activities": {
+          "0": "Procession with float",
+          "1": "Traditional costume",
+          "2": "Open-air Mass"
+        },
+        "dishes": {
+          "0": "Nazaré-style fish stew",
+          "2": "Goose barnacles"
+        }
+      },
+      "nossa-senhora-assuncao-povoa": {
+        "dateStart": "15 August",
+        "descShort": "The town’s biggest festival, with a street party, a procession to the sea and the traditional burning of votive boats.",
+        "activities": {
+          "0": "Procession to the sea",
+          "1": "Boat burning",
+          "2": "Street party"
+        },
+        "dishes": {
+          "0": "Fish soup",
+          "1": "Razor clam rice"
+        }
+      },
+      "senhor-navegantes-aveiro": {
+        "dateStart": "August",
+        "descShort": "A river pilgrimage on the Ria de Aveiro with decorated moliceiro boats and a procession across the lagoon.",
+        "descLong": "The pilgrimage sails across the Ria de Aveiro in moliceiro boats lavishly decorated with flowers and crêpe paper. The statue of the Lord of Navigators rides in the lead boat, escorted by dozens of traditional vessels.",
+        "activities": {
+          "0": "River procession",
+          "1": "Decorated moliceiros",
+          "2": "Blessing of the boats"
+        },
+        "dishes": {
+          "1": "Eel stew",
+          "2": "Samphire"
+        }
+      },
+      "santo-cristo-milagres-acores": {
+        "dateStart": "May (5th Sunday after Easter)",
+        "descShort": "The largest religious celebration in the Azores, with a solemn procession and flower petals carpeting the streets of Ponta Delgada.",
+        "descLong": "The Festivals of the Lord Holy Christ of Miracles are the largest religious event in the Azores and among the Azorean diaspora. The procession moves through streets carpeted with flower petals and hydrangeas, the statue carried by brotherhoods in full regalia. Pilgrims come from all over the world.",
+        "activities": {
+          "0": "Solemn procession",
+          "1": "Flower carpets",
+          "2": "Pontifical Mass"
+        },
+        "dishes": {
+          "1": "Turnip broth"
+        }
+      },
+      "arte-xavega-nazare": {
+        "dateStart": "Summer (June – September)",
+        "descShort": "Age-old artisanal fishing with nets hauled onto the beach by oxen or tractors — one of the last living traditions of the coast.",
+        "descLong": "Arte xávega is a beach-seine fishing technique recorded in Portugal since the 15th century. In Nazaré, fishermen set their nets at sea from high-prowed boats and haul them up onto the beach. Once pulled by teams of oxen and now by tractors, it still follows the original technique.",
+        "activities": {
+          "0": "Net hauling",
+          "1": "Fish auction",
+          "2": "Public demonstrations"
+        },
+        "dishes": {
+          "0": "Fresh fish at the auction",
+          "1": "Fried baby sardines",
+          "2": "Fish stew"
+        }
+      },
+      "procissao-fluvial-douro": {
+        "dateStart": "June (São João festivities)",
+        "descShort": "A river procession on the Douro during Porto’s São João festivities, with illuminated rabelo boats.",
+        "descLong": "As part of the São João festivities, a river procession of decorated, illuminated rabelo boats makes its way along the Douro. The Dom Luís bridge provides the backdrop for the fireworks that close the celebration.",
+        "activities": {
+          "0": "Illuminated rabelo boats",
+          "1": "Douro fireworks",
+          "2": "Folk music"
+        },
+        "dishes": {
+          "0": "Porto-style tripe",
+          "2": "Port wine"
+        }
+      },
+      "festas-mar-sesimbra": {
+        "dateStart": "August",
+        "descShort": "A summer festival in Sesimbra with fishermen’s food, music and a procession out to sea on the Atlantic.",
+        "activities": {
+          "0": "Procession to the sea",
+          "1": "Street party",
+          "2": "Concerts"
+        },
+        "dishes": {
+          "0": "Fried cuttlefish",
+          "1": "Grilled sole"
+        }
+      },
+      "bencao-frota-olhao": {
+        "dateStart": "October",
+        "descShort": "Blessing ceremony for Olhão’s fishing boats before the autumn–winter season.",
+        "activities": {
+          "0": "Bishop’s blessing",
+          "1": "Boat parade",
+          "2": "Fishermen’s Mass"
+        },
+        "dishes": {
+          "0": "Seafood cataplana",
+          "1": "Grilled tuna"
+        }
+      },
+      "sao-pedro-peniche": {
+        "dateStart": "29 June",
+        "descShort": "Peniche celebrates the patron saint of fishermen with Mass, a procession to the quay and a street party in town.",
+        "descLong": "Saint Peter is celebrated all along the Portuguese coast, but in Peniche the festival is especially vibrant given the town’s fishing heritage. The procession leaves the Church of São Pedro and heads down to the quay, where the boats wait dressed in their finery. A street party follows, with a sardine feast and Portuguese pop music.",
+        "activities": {
+          "0": "Procession to the quay",
+          "1": "Blessing of the boats",
+          "2": "Sardine feast"
+        },
+        "dishes": {
+          "0": "Grilled sardines",
+          "1": "Peniche goose barnacles",
+          "2": "Lobster stew"
+        }
+      }
+    },
+    "infraItems": {
+      "passadicos-paiva": {
+        "descShort": "One of Europe’s most iconic boardwalk trails, running 8.7 km along the River Paiva past boulders and waterfalls.",
+        "descLong": "Rated among the best trails in the world, the Passadiços do Paiva cross the Arouca Geopark along the River Paiva. The route offers stunning views over the river gorges and the region’s rich biodiversity.",
+        "hours": "Open daily 8 am–7 pm (high season)"
+      },
+      "passadico-sete-lagoas": {
+        "descShort": "A 2.1 km route beside the glacial lakes of Peneda-Gerês National Park, with endemic plants and unspoilt scenery."
+      },
+      "passadico-carreco": {
+        "descShort": "A 1.2 km coastal boardwalk above the Atlantic, with views of the green Minho coast and access to secluded beaches."
+      },
+      "ponte-516-arouca": {
+        "descShort": "The world’s longest pedestrian suspension bridge: 516 m long and 175 m above the River Paiva.",
+        "descLong": "Opened in 2021, Ponte 516 Arouca holds the world record for the longest pedestrian suspension bridge. The crossing offers dizzying views over the River Paiva canyon and the granite landscape of the Serra da Freita.",
+        "safety": "Not allowed for children under 1 m tall. Not recommended for people with vertigo.",
+        "hours": "Tue–Sun 9 am–6 pm (ticket office closes at 5 pm)"
+      },
+      "ponte-rio-paiva": {
+        "descShort": "A 252 m suspension bridge over the River Paiva, the start and end point of the Passadiços do Paiva."
+      },
+      "ecovia-tamega": {
+        "descShort": "The old Tâmega railway line, converted into a 35 km riverside route for cyclists and walkers.",
+        "descLong": "It follows the old Tâmega Line, closed in 2009, crossing viaducts, tunnels and historic villages between Amarante and Chaves."
+      },
+      "ecovia-litoral-norte": {
+        "descShort": "A 22 km coastal route through the beaches, dunes and estuaries of the green Alto Minho coast."
+      },
+      "via-verde-dao": {
+        "descShort": "The old Dão railway line, converted into a 48 km greenway for cycling and walking between Viseu and Santa Comba Dão.",
+        "descLong": "Opened in 2017, the Via Verde do Dão is one of the most complete greenways in the country. It crosses wine valleys, reservoirs and rural villages for an immersive journey into the heart of the Dão.",
+        "hours": "Open all year round"
+      },
+      "miradouro-sao-jeronimo": {
+        "descShort": "The highest point of the Serra da Estrela, with 360° views over glacial plateaus, lakes and the Cova da Beira.",
+        "safety": "The road may be closed by snow from November to March. Check conditions before setting off."
+      },
+      "miradouro-portas-rodao": {
+        "descShort": "A superb view over the Tagus river gorge at Portas do Ródão, home to the Egyptian vulture."
+      },
+      "miradouro-facho": {
+        "descShort": "A volcanic peak at the eastern tip of Madeira with panoramic views over the Atlantic Ocean, Porto Santo and the Desertas Islands."
+      },
+      "miradouro-ponta-madrugada": {
+        "descShort": "The easternmost point of the Azores and of the whole European Union, with views over the Atlantic at sunrise."
+      },
+      "torre-paul-arzila": {
+        "descShort": "A birdwatching tower in the Paul de Arzila Nature Reserve, home to herons, ducks and rare migratory species.",
+        "hours": "Open during daylight hours, no restrictions"
+      },
+      "passadico-algares": {
+        "descShort": "A family-friendly boardwalk leading to the river beach on the Zêzere in Constância, with leisure areas and natural shade."
+      }
+    }
+  },
+  "es": {
+    "regions": {
+      "minho": "Miño",
+      "norte": "Norte",
+      "centro": "Centro",
+      "lisboa": "Lisboa",
+      "alentejo": "Alentejo",
+      "algarve": "Algarve",
+      "acores": "Azores",
+      "madeira": "Madeira"
+    },
+    "costa": {
+      "title": "Línea de Costa",
+      "subtitle": "Miño → Algarve",
+      "north": "Norte",
+      "south": "Sur",
+      "zoneToExplore": "{{count}} zona por explorar",
+      "zonesToExplore": "{{count}} zonas por explorar",
+      "profiles": {
+        "surfista": "Surfista",
+        "familia": "Familia",
+        "fotografo": "Fotógrafo",
+        "natureza": "Naturaleza"
+      },
+      "emptyFilter": "Ninguna zona con puntuación ≥ 4 para este perfil.",
+      "viewDetails": "Ver detalles",
+      "localLegend": "Leyenda local",
+      "biodiversity": "Biodiversidad",
+      "zones": {
+        "minho": {
+          "description": "Costa rocosa y agreste en el extremo norte, junto al río Miño, con playas salvajes y dunas intactas. El verde gallego se funde con el azul atlántico en un paisaje único.",
+          "legend": "Cuenta la leyenda que las Mouras Encantadas habitan las grutas costeras del Miño y que, en las noches de luna llena, se oye su canto guiando a los pescadores perdidos sanos y salvos hasta la costa.",
+          "species": {
+            "0": "Nutria europea (Lutra lutra)",
+            "1": "Cigüeña blanca (Ciconia ciconia)",
+            "2": "Garza real (Ardea cinerea)"
+          }
+        },
+        "viana": {
+          "description": "Entre el Limia y el Neiva, extensas playas de arena fina se alternan con estuarios ricos en aves. Viana do Castelo domina el paisaje con su basílica en lo alto del monte.",
+          "legend": "La leyenda de Viana cuenta que una sirena llamada Viana se enamoró de un pescador local y, al no poder vivir en tierra, se transformó en el propio río Limia para acompañarlo eternamente.",
+          "species": {
+            "0": "Corvina (Argyrosomus regius)",
+            "1": "Zarapito real (Numenius arquata)",
+            "2": "Lenguado (Solea solea)"
+          }
+        },
+        "esposende": {
+          "description": "El Parque Natural del Litoral Norte protege dunas y lagunas costeras únicas. Playas desiertas y el estuario del Cávado crean hábitats excepcionales para las aves migratorias.",
+          "legend": "Los pescadores de Esposende conservan la memoria del Hombre de la Niebla, un espíritu que aparece en las mañanas de bruma para guiar a las embarcaciones a través de las traicioneras barras del Cávado.",
+          "species": {
+            "0": "Cigüeñuela común (Himantopus himantopus)",
+            "1": "Agachadiza común (Gallinago gallinago)",
+            "2": "Mariposa monarca (Danaus plexippus)"
+          }
+        },
+        "porto": {
+          "description": "De las playas urbanas de Matosinhos a las míticas olas de Matosinhos y Foz do Douro, esta es la costa más dinámica del norte. Cultura, gastronomía y surf en perfecta simbiosis.",
+          "legend": "La Coca de Matosinhos es un dragón marino de la mitología local que, según la tradición, surge en los mares tempestuosos del invierno y solo se doma por intercesión de San Mateo, patrón de los pescadores.",
+          "species": {
+            "0": "Gaviota argéntea (Larus argentatus)",
+            "1": "Cormorán grande (Phalacrocorax carbo)",
+            "2": "Lubina (Dicentrarchus labrax)"
+          }
+        },
+        "aveiro": {
+          "description": "La Ría de Aveiro crea un paisaje único de lagunas, salinas y canales. La costa atlántica expuesta a sus espaldas esconde playas totalmente salvajes, accesibles solo a pie.",
+          "legend": "Se cuenta que la Ría de Aveiro nació de las lágrimas de la infanta Santa Juana al contemplar, desde lo alto de su monasterio, la inconmensurable belleza de la puesta de sol sobre las lagunas y salinas doradas.",
+          "species": {
+            "0": "Flamenco común (Phoenicopterus roseus)",
+            "1": "Nutria europea (Lutra lutra)",
+            "2": "Anguila europea (Anguilla anguilla)"
+          }
+        },
+        "coimbra": {
+          "description": "Figueira da Foz marca la desembocadura del Mondego en un litoral de playas enormes y olas constantes. Buenas olas para los surfistas y amplias extensiones para las familias en los días tranquilos.",
+          "legend": "La leyenda del Pez Rey de Figueira narra que un pez gigante y luminoso habita las profundidades de la barra del Mondego y que, cuando lo avistan, es señal de tormenta inminente.",
+          "species": {
+            "0": "Turón (Mustela putorius)",
+            "1": "Tórtola turca (Streptopelia decaocto)",
+            "2": "Lubina (Dicentrarchus labrax)"
+          }
+        },
+        "peniche": {
+          "description": "Peniche es la capital del surf portugués. Supertubos es una de las olas más perfectas del mundo. La Berlenga, isla reserva natural, emerge del océano como un mundo aparte.",
+          "legend": "La isla de la Berlenga guarda el legendario Castillo de los Caballeros de Malta, donde se dice que los templarios escondieron un tesoro incalculable en cuevas submarinas accesibles solo durante los equinoccios.",
+          "species": {
+            "0": "Arao común (Uria aalge)",
+            "1": "Alcatraz atlántico (Morus bassanus)",
+            "2": "Bogavante europeo (Homarus gammarus)"
+          }
+        },
+        "sintra": {
+          "description": "El Cabo da Roca marca el punto más occidental de la Europa continental. Playas espectaculares entre acantilados de granito y vegetación de niebla crean una atmósfera verdaderamente mágica.",
+          "legend": "En el Cabo da Roca, Camões escribió «Aquí... donde la tierra se acaba y el mar comienza». La leyenda local afirma que en las noches sin luna los espíritus de los navegantes perdidos se reúnen en la punta extrema de la roca para contemplar la eternidad del Atlántico.",
+          "species": {
+            "0": "Halcón peregrino (Falco peregrinus)",
+            "1": "Delfín común (Delphinus delphis)",
+            "2": "Narciso de Sintra (Narcissus calcicola)"
+          }
+        },
+        "setubal": {
+          "description": "La Arrábida esconde playas de agua turquesa y caliza blanca que parecen del Mediterráneo. El Parque Natural protege uno de los últimos ecosistemas marinos vírgenes de Portugal.",
+          "legend": "Los monjes franciscanos que fundaron el convento de la Arrábida en el siglo XVI creían que el lugar estaba habitado por espíritus del bosque que protegían a los buceadores de las tormentas y los ahogamientos.",
+          "species": {
+            "0": "Delfín mular (Tursiops truncatus)",
+            "1": "Camaleón común (Chamaeleo chamaeleon)",
+            "2": "Lince ibérico (Lynx pardinus)"
+          }
+        },
+        "algarve": {
+          "description": "Los acantilados dorados de caliza y arenisca, el agua cristalina y las grutas naturales hacen del Algarve uno de los litorales más fotogénicos del mundo. Playas para todos los gustos, del surf al ocio en familia.",
+          "legend": "La Gruta de Benagil, con su óculo natural abierto al cielo, es llamada por los pescadores locales el «Ojo de Dios». Cuenta la leyenda que en verano, a mediodía, la luz que entra por la abertura ilumina por breves instantes el rostro de quienes lo merecen.",
+          "species": {
+            "0": "Tortuga boba (Caretta caretta)",
+            "1": "Atún rojo (Thunnus thynnus)",
+            "2": "Pulpo común (Octopus vulgaris)"
+          }
+        }
+      }
+    },
+    "coastalData": {
+      "tides": "Mareas",
+      "tideRising": "Subiendo",
+      "tideFalling": "Bajando",
+      "waves": "Olas",
+      "wind": "Viento",
+      "safety": "Seguridad",
+      "safetyLevels": {
+        "veryHigh": "Segura",
+        "high": "Buena",
+        "medium": "Precaución",
+        "low": "Peligrosa",
+        "unknown": "Desconocida"
+      },
+      "bestSeason": "Mejor época:",
+      "seasons": {
+        "summer": "Verano",
+        "springAutumn": "Primavera / Otoño",
+        "autumnWinter": "Otoño / Invierno",
+        "springSummer": "Primavera / Verano"
+      },
+      "windDirections": {
+        "n": "N",
+        "no": "NO",
+        "nw": "NO",
+        "w": "O"
+      }
+    },
+    "culturaMaritima": {
+      "title": "Cultura Marítima",
+      "subtitle": "Rituales · Fiestas · Procesiones al Mar",
+      "tabs": {
+        "todos": "Todos",
+        "procissao_maritima": "Procesiones",
+        "bencao_barcos": "Bendiciones",
+        "festa_mar": "Fiestas",
+        "ritual_religioso": "Rituales",
+        "tradicao_piscatoria": "Tradiciones"
+      },
+      "allRegions": "Todas",
+      "upcomingOne": "{{count}} evento en los próximos 30 días",
+      "upcomingMany": "{{count}} eventos en los próximos 30 días",
+      "foundOne": "{{count}} evento encontrado",
+      "foundMany": "{{count}} eventos encontrados",
+      "emptyTitle": "No hay eventos en esta categoría",
+      "emptyText": "Prueba otro tipo o región para descubrir la cultura marítima portuguesa.",
+      "sources": "Datos: DGPC · Municipios · Asociaciones de Pescadores"
+    },
+    "maritimeCard": {
+      "types": {
+        "procissao_maritima": "Procesión",
+        "bencao_barcos": "Bendición",
+        "festa_mar": "Fiesta del Mar",
+        "ritual_religioso": "Ritual",
+        "tradicao_piscatoria": "Tradición",
+        "banho_santo": "Baño Santo"
+      },
+      "frequency": {
+        "anual": "Anual",
+        "sazonal": "Estacional",
+        "irregular": "Irregular"
+      },
+      "upcoming": "Próximo",
+      "boats": "{{count}} barcos",
+      "moreActivities": "+{{count}} más"
+    },
+    "infraestrutura": {
+      "title": "Infraestructura Natural",
+      "subtitle": "Pasarelas · Puentes · Ecovías · Miradores",
+      "tabs": {
+        "todos": "Todos",
+        "passadico": "Pasarelas",
+        "ponte_suspensa": "Puentes colgantes",
+        "ecovia": "Ecovías",
+        "miradouro": "Miradores",
+        "torre_observacao": "Torres"
+      },
+      "access": {
+        "todos": "Todos",
+        "acessivel": "Accesible",
+        "familia": "Familia",
+        "cao": "Perros"
+      },
+      "filterByAccessibility": "Filtrar por accesibilidad",
+      "foundOne": "{{count}} infraestructura encontrada",
+      "foundMany": "{{count}} infraestructuras encontradas",
+      "emptyTitle": "Sin resultados",
+      "emptyText": "Prueba a cambiar el tipo o a quitar los filtros de accesibilidad.",
+      "sources": "Datos: ICNF · Municipios · Turismo de Portugal"
+    },
+    "infraCard": {
+      "types": {
+        "passadico": "Pasarela",
+        "ponte_suspensa": "Puente colgante",
+        "ecovia": "Ecovía",
+        "miradouro": "Mirador",
+        "torre_observacao": "Torre de observación",
+        "via_verde": "Vía verde"
+      },
+      "access": {
+        "livre": "Libre",
+        "condicionado": "Restringido",
+        "pago": "De pago"
+      },
+      "difficulty": {
+        "facil": "Fácil",
+        "media": "Media",
+        "dificil": "Difícil"
+      },
+      "accessible": "Accesible",
+      "family": "Familia",
+      "dog": "Perros",
+      "seasons": {
+        "spring": "Primavera",
+        "summer": "Verano",
+        "autumn": "Otoño",
+        "winter": "Invierno"
+      }
+    },
+    "maritimeEvents": {
+      "agonia-viana": {
+        "dateStart": "Agosto (3.ª semana)",
+        "dateEnd": "3 días",
+        "descShort": "La mayor romería del norte de Portugal, con procesión fluvial iluminada y barcos engalanados en el Limia.",
+        "descLong": "Celebrada desde el siglo XVIII, la Fiesta de la Agonía reúne a cientos de miles de peregrinos. El momento culminante es la procesión fluvial nocturna con barcazas engalanadas y fuegos artificiales sobre el río Limia. El traje vianés y los grupos folclóricos dan color al desfile por tierra.",
+        "activities": {
+          "0": "Procesión fluvial",
+          "1": "Grupos folclóricos",
+          "2": "Traje vianés"
+        }
+      },
+      "banho-santo-bartolomeu": {
+        "dateStart": "24 de agosto",
+        "descShort": "Ritual ancestral precristiano de inmersión en el mar al amanecer, bajo la protección de San Bartolomé.",
+        "descLong": "Una de las tradiciones más antiguas del litoral del Miño, el Baño Santo combina fe cristiana y magia popular prerromana. En la madrugada del 24 de agosto los devotos entran en el Atlántico para purificarse. Se cree que ese día el mar cura las enfermedades de la piel y aleja el mal de ojo.",
+        "activities": {
+          "0": "Inmersión ritual al amanecer",
+          "1": "Misa en la playa",
+          "2": "Penitencia"
+        },
+        "dishes": {
+          "0": "Caldereta de pescado",
+          "1": "Pan de maíz"
+        }
+      },
+      "bencao-bacalhoeiros-ilhavo": {
+        "dateStart": "Junio",
+        "descShort": "Ceremonia de bendición de los barcos bacaladeros antes de partir hacia los mares del Norte.",
+        "descLong": "Durante siglos, Ílhavo fue el centro de la flota bacaladera portuguesa. La ceremonia de bendición de los barcos antes de partir hacia Terranova y Groenlandia es un ritual emotivo, con misa, bendición del obispo y despedida de las familias en el muelle.",
+        "activities": {
+          "0": "Bendición episcopal",
+          "1": "Misa de los pescadores",
+          "2": "Desfile de banderas"
+        },
+        "dishes": {
+          "1": "Caldereta de bacalao"
+        }
+      },
+      "bencao-boa-viagem-matosinhos": {
+        "dateStart": "Junio (última semana)",
+        "descShort": "Impresionante procesión marítima con más de 100 barcos engalanados en el mar de Matosinhos.",
+        "descLong": "Una de las mayores procesiones marítimas de Portugal, con la imagen de Nuestra Señora del Buen Viaje transportada en una barcaza ricamente engalanada y acompañada por cientos de barcos de pesca, veleros y embarcaciones de recreo. La procesión terrestre recorre la ciudad con bandas de música y grupos folclóricos.",
+        "activities": {
+          "0": "Procesión marítima",
+          "1": "Desfile por tierra",
+          "2": "Fuegos artificiales"
+        },
+        "dishes": {
+          "0": "Sardinas asadas"
+        }
+      },
+      "festa-mar-matosinhos": {
+        "dateStart": "Junio",
+        "descShort": "Festival gastronómico y cultural que celebra el mar, la pesca y las sardinas a la parrilla en ambiente de verbena.",
+        "descLong": "La Fiesta del Mar es la gran verbena de Matosinhos, con música en directo, fiesta popular, gastronomía marinera y animación cultural. Las sardinas asadas a la brasa son el emblema del evento, acompañadas de vinho verde y pan de maíz.",
+        "activities": {
+          "0": "Sardinas a la brasa",
+          "1": "Música en directo",
+          "2": "Verbena popular"
+        },
+        "dishes": {
+          "0": "Sardinas asadas",
+          "1": "Gambas cocidas",
+          "2": "Pulpo a la parrilla"
+        }
+      },
+      "procissao-pescadores-nazare": {
+        "dateStart": "Septiembre (8 sept. — N.ª Sra. de Nazaré)",
+        "descShort": "Procesión solemne en honor de Nuestra Señora de Nazaré, patrona de los pescadores, con el típico traje de rayas.",
+        "descLong": "La procesión forma parte de las fiestas en honor de Nuestra Señora de Nazaré, patrona de los pescadores. Las mujeres visten las siete faldas de rayas del traje típico nazareno. Los pescadores llevan la imagen de la Virgen en unas andas adornadas con redes y anclas.",
+        "activities": {
+          "0": "Procesión con andas",
+          "1": "Traje típico",
+          "2": "Misa de campaña"
+        },
+        "dishes": {
+          "0": "Caldereta de pescado nazarena",
+          "2": "Percebes"
+        }
+      },
+      "nossa-senhora-assuncao-povoa": {
+        "dateStart": "15 de agosto",
+        "descShort": "La gran fiesta de la ciudad, con verbena, procesión al mar y la tradicional quema de barcos votivos.",
+        "activities": {
+          "0": "Procesión al mar",
+          "1": "Quema de barcos",
+          "2": "Verbena popular"
+        },
+        "dishes": {
+          "0": "Sopa de pescado",
+          "1": "Arroz con navajas"
+        }
+      },
+      "senhor-navegantes-aveiro": {
+        "dateStart": "Agosto",
+        "descShort": "Romería fluvial en la Ría de Aveiro con moliceiros engalanados y procesión por la laguna.",
+        "descLong": "La romería recorre la Ría de Aveiro en moliceiros ricamente adornados con flores y papel crepé. La imagen del Señor de los Navegantes viaja en el barco principal, acompañada por decenas de embarcaciones tradicionales.",
+        "activities": {
+          "0": "Procesión fluvial",
+          "1": "Moliceiros engalanados",
+          "2": "Bendición de las embarcaciones"
+        },
+        "dishes": {
+          "1": "Caldereta de anguilas",
+          "2": "Salicornia"
+        }
+      },
+      "santo-cristo-milagres-acores": {
+        "dateStart": "Mayo (5.º domingo después de Pascua)",
+        "descShort": "La mayor manifestación religiosa de las Azores, con procesión solemne y pétalos de flores en las calles de Ponta Delgada.",
+        "descLong": "Las Fiestas del Señor Santo Cristo de los Milagros son el mayor acontecimiento religioso de las Azores y de la diáspora azoriana. La procesión recorre calles cubiertas de pétalos de flores e hortensias, con la imagen del Señor llevada por cofradías vestidas de gala. Participan peregrinos de todo el mundo.",
+        "activities": {
+          "0": "Procesión solemne",
+          "1": "Alfombras de flores",
+          "2": "Misa pontifical"
+        },
+        "dishes": {
+          "1": "Caldo de nabos"
+        }
+      },
+      "arte-xavega-nazare": {
+        "dateStart": "Verano (junio – septiembre)",
+        "descShort": "Pesca artesanal milenaria con redes arrastradas desde la playa por bueyes o tractores, una de las últimas tradiciones vivas del litoral.",
+        "descLong": "El arte xávega es una técnica de pesca de cerco arrastrado desde tierra, documentada en Portugal desde el siglo XV. En Nazaré, los pescadores echan las redes al mar desde barcas de proa alta y las arrastran hasta la playa. Antes tiraban de ellas yuntas de bueyes; hoy, tractores, pero se mantiene la técnica original.",
+        "activities": {
+          "0": "Arrastre de redes",
+          "1": "Lonja de pescado",
+          "2": "Demostraciones públicas"
+        },
+        "dishes": {
+          "0": "Pescado fresco en la lonja",
+          "1": "Sardinillas fritas",
+          "2": "Caldereta"
+        }
+      },
+      "procissao-fluvial-douro": {
+        "dateStart": "Junio (fiestas de San Juan)",
+        "descShort": "Procesión fluvial en el Duero dentro de las fiestas de San Juan de Oporto, con barcos rabelos iluminados.",
+        "descLong": "En el marco de las Fiestas de San Juan, una procesión fluvial recorre el Duero con barcos rabelos decorados e iluminados. El puente D. Luís sirve de telón de fondo para los fuegos artificiales que cierran la celebración.",
+        "activities": {
+          "0": "Barcos rabelos iluminados",
+          "1": "Fuegos del Duero",
+          "2": "Música popular"
+        },
+        "dishes": {
+          "0": "Callos a la moda de Oporto",
+          "2": "Vino de Oporto"
+        }
+      },
+      "festas-mar-sesimbra": {
+        "dateStart": "Agosto",
+        "descShort": "Festival de verano en Sesimbra con gastronomía marinera, música y procesión al mar en el Atlántico.",
+        "activities": {
+          "0": "Procesión al mar",
+          "1": "Verbena popular",
+          "2": "Conciertos"
+        },
+        "dishes": {
+          "0": "Sepia frita",
+          "1": "Lenguado a la parrilla"
+        }
+      },
+      "bencao-frota-olhao": {
+        "dateStart": "Octubre",
+        "descShort": "Ceremonia de bendición de los barcos pesqueros de Olhão antes de la temporada de otoño-invierno.",
+        "activities": {
+          "0": "Bendición episcopal",
+          "1": "Desfile de barcos",
+          "2": "Misa de los pescadores"
+        },
+        "dishes": {
+          "0": "Cataplana de marisco",
+          "1": "Atún a la parrilla"
+        }
+      },
+      "sao-pedro-peniche": {
+        "dateStart": "29 de junio",
+        "descShort": "Celebración del patrón de los pescadores en Peniche, con misa, procesión al muelle y verbena en la ciudad.",
+        "descLong": "San Pedro se celebra en toda la costa portuguesa, pero en Peniche la fiesta cobra especial relevancia por la importancia histórica de la pesca. La procesión sale de la Iglesia de São Pedro y baja al muelle, donde esperan los barcos engalanados. Le sigue una verbena con sardinada y música pimba.",
+        "activities": {
+          "0": "Procesión al muelle",
+          "1": "Bendición de los barcos",
+          "2": "Sardinada popular"
+        },
+        "dishes": {
+          "0": "Sardinas asadas",
+          "1": "Percebes de Peniche",
+          "2": "Langosta guisada"
+        }
+      }
+    },
+    "infraItems": {
+      "passadicos-paiva": {
+        "descShort": "Una de las pasarelas de madera más icónicas de Europa, con 8,7 km a lo largo del río Paiva entre peñascos y cascadas.",
+        "descLong": "Considerados uno de los mejores senderos del mundo, los Passadiços do Paiva atraviesan el Geoparque de Arouca a lo largo del río Paiva. El recorrido ofrece vistas espectaculares de las gargantas fluviales y de la rica biodiversidad de la región.",
+        "hours": "Abierto todos los días de 8 h a 19 h (temporada alta)"
+      },
+      "passadico-sete-lagoas": {
+        "descShort": "Recorrido de 2,1 km junto a las lagunas glaciares del Parque Nacional de Peneda-Gerês, con flora endémica y un paisaje intacto."
+      },
+      "passadico-carreco": {
+        "descShort": "Pasarela costera de 1,2 km sobre el Atlántico, con vistas a la costa verde del Miño y acceso a playas aisladas."
+      },
+      "ponte-516-arouca": {
+        "descShort": "El puente colgante peatonal más largo del mundo, con 516 m de longitud y 175 m de altura sobre el río Paiva.",
+        "descLong": "Inaugurado en 2021, el Ponte 516 Arouca ostenta el récord mundial de puente colgante peatonal más largo. La travesía ofrece vistas vertiginosas sobre el cañón del río Paiva y el paisaje granítico de la Serra da Freita.",
+        "safety": "Prohibido a niños de menos de 1 m de altura. No recomendado para personas con vértigo.",
+        "hours": "Mar-Dom 9 h-18 h (la taquilla cierra a las 17 h)"
+      },
+      "ponte-rio-paiva": {
+        "descShort": "Puente colgante de 252 m sobre el río Paiva, punto de salida y llegada de los Passadiços do Paiva."
+      },
+      "ecovia-tamega": {
+        "descShort": "Antigua línea ferroviaria del Támega reconvertida en un recorrido de 35 km para ciclistas y peatones a lo largo del río.",
+        "descLong": "Recorre la antigua Línea del Támega, desactivada en 2009, atravesando viaductos, túneles y aldeas históricas entre Amarante y Chaves."
+      },
+      "ecovia-litoral-norte": {
+        "descShort": "Itinerario costero de 22 km entre playas, dunas y estuarios de la costa verde del Alto Miño."
+      },
+      "via-verde-dao": {
+        "descShort": "Antigua Línea del Dão reconvertida en 48 km de vía verde para ciclismo y senderismo entre Viseu y Santa Comba Dão.",
+        "descLong": "Inaugurada en 2017, la Via Verde do Dão es una de las vías verdes más completas del país. Atraviesa valles vinícolas, embalses y aldeas rurales en una experiencia inmersiva en el Dão profundo.",
+        "hours": "Abierto todo el año"
+      },
+      "miradouro-sao-jeronimo": {
+        "descShort": "Punto más alto de la Serra da Estrela, con vistas de 360° sobre altiplanos glaciares, lagunas y la Cova da Beira.",
+        "safety": "La carretera puede estar cortada por nieve de noviembre a marzo. Compruebe el estado antes de salir."
+      },
+      "miradouro-portas-rodao": {
+        "descShort": "Vista privilegiada del corte geológico del río Tajo en las Portas do Ródão, hábitat del alimoche."
+      },
+      "miradouro-facho": {
+        "descShort": "Pico volcánico en el extremo este de Madeira con vistas panorámicas al océano Atlántico, Porto Santo y las Desertas."
+      },
+      "miradouro-ponta-madrugada": {
+        "descShort": "El punto más oriental de las Azores y de toda la Unión Europea, con vistas al Atlántico al amanecer."
+      },
+      "torre-paul-arzila": {
+        "descShort": "Torre de observación ornitológica en la Reserva Natural del Paul de Arzila, hábitat de garzas, patos y especies migratorias raras.",
+        "hours": "Abierto durante el día, sin restricciones"
+      },
+      "passadico-algares": {
+        "descShort": "Pasarela familiar de acceso a la playa fluvial del río Zêzere en Constância, con zonas de ocio y sombra natural."
+      }
+    }
+  },
+  "fr": {
+    "regions": {
+      "minho": "Minho",
+      "norte": "Nord",
+      "centro": "Centre",
+      "lisboa": "Lisbonne",
+      "alentejo": "Alentejo",
+      "algarve": "Algarve",
+      "acores": "Açores",
+      "madeira": "Madère"
+    },
+    "costa": {
+      "title": "Littoral",
+      "subtitle": "Minho → Algarve",
+      "north": "Nord",
+      "south": "Sud",
+      "zoneToExplore": "{{count}} zone à explorer",
+      "zonesToExplore": "{{count}} zones à explorer",
+      "profiles": {
+        "surfista": "Surfeur",
+        "familia": "Famille",
+        "fotografo": "Photographe",
+        "natureza": "Nature"
+      },
+      "emptyFilter": "Aucune zone avec un score ≥ 4 pour ce profil.",
+      "viewDetails": "Voir les détails",
+      "localLegend": "Légende locale",
+      "biodiversity": "Biodiversité",
+      "zones": {
+        "minho": {
+          "description": "Côte rocheuse et sauvage à l’extrême nord, près du Minho, avec des plages préservées et des dunes intactes. Le vert galicien se fond dans le bleu atlantique en un paysage unique.",
+          "legend": "La légende raconte que les Mouras Encantadas, jeunes Mauresques enchantées, hantent les grottes côtières du Minho et que, les nuits de pleine lune, on entend leur chant guider les pêcheurs égarés jusqu’à la côte.",
+          "species": {
+            "0": "Loutre d’Europe (Lutra lutra)",
+            "1": "Cigogne blanche (Ciconia ciconia)",
+            "2": "Héron cendré (Ardea cinerea)"
+          }
+        },
+        "viana": {
+          "description": "Entre le Lima et le Neiva, de longues plages de sable fin alternent avec des estuaires riches en oiseaux. Viana do Castelo domine le paysage avec sa basilique au sommet de la colline.",
+          "legend": "La légende de Viana raconte qu’une sirène nommée Viana tomba amoureuse d’un pêcheur du pays et, ne pouvant vivre sur terre, se changea en fleuve Lima pour l’accompagner éternellement.",
+          "species": {
+            "0": "Maigre (Argyrosomus regius)",
+            "1": "Courlis cendré (Numenius arquata)",
+            "2": "Sole commune (Solea solea)"
+          }
+        },
+        "esposende": {
+          "description": "Le parc naturel du Litoral Norte protège des dunes et des lagunes côtières uniques. Plages désertes et estuaire du Cávado offrent des habitats d’exception aux oiseaux migrateurs.",
+          "legend": "Les pêcheurs d’Esposende perpétuent le souvenir de l’Homme du Brouillard, un esprit qui surgit les matins de brume pour guider les bateaux à travers les passes traîtresses du Cávado.",
+          "species": {
+            "0": "Échasse blanche (Himantopus himantopus)",
+            "1": "Bécassine des marais (Gallinago gallinago)",
+            "2": "Monarque (Danaus plexippus)"
+          }
+        },
+        "porto": {
+          "description": "Des plages urbaines de Matosinhos aux vagues mythiques de Matosinhos et de Foz do Douro, c’est la côte la plus dynamique du nord. Culture, gastronomie et surf en parfaite symbiose.",
+          "legend": "La Coca de Matosinhos est un dragon marin de la mythologie locale qui, selon la tradition, surgit des mers déchaînées de l’hiver et ne se laisse dompter que par l’intercession de saint Matthieu, patron des pêcheurs.",
+          "species": {
+            "0": "Goéland argenté (Larus argentatus)",
+            "1": "Grand cormoran (Phalacrocorax carbo)",
+            "2": "Bar commun (Dicentrarchus labrax)"
+          }
+        },
+        "aveiro": {
+          "description": "La Ria de Aveiro façonne un paysage unique de lagunes, de marais salants et de canaux. Juste derrière, la côte atlantique exposée cache des plages totalement sauvages, accessibles uniquement à pied.",
+          "legend": "On raconte que la Ria de Aveiro est née des larmes de l’infante sainte Jeanne, contemplant du haut de son monastère l’incommensurable beauté du coucher de soleil sur les lagunes et les salines dorées.",
+          "species": {
+            "0": "Flamant rose (Phoenicopterus roseus)",
+            "1": "Loutre d’Europe (Lutra lutra)",
+            "2": "Anguille européenne (Anguilla anguilla)"
+          }
+        },
+        "coimbra": {
+          "description": "Figueira da Foz marque l’embouchure du Mondego, sur un littoral de plages immenses aux vagues régulières. De belles vagues pour les surfeurs et de vastes étendues pour les familles par temps calme.",
+          "legend": "La légende du Poisson-Roi de Figueira raconte qu’un poisson géant et lumineux vit dans les profondeurs de la passe du Mondego et que, lorsqu’on l’aperçoit, c’est le signe d’une tempête imminente.",
+          "species": {
+            "0": "Putois d’Europe (Mustela putorius)",
+            "1": "Tourterelle turque (Streptopelia decaocto)",
+            "2": "Bar commun (Dicentrarchus labrax)"
+          }
+        },
+        "peniche": {
+          "description": "Peniche est la capitale du surf portugais. Supertubos est l’une des vagues les plus parfaites au monde. La Berlenga, île classée réserve naturelle, émerge de l’océan comme un monde à part.",
+          "legend": "L’île de Berlenga abrite le légendaire château des Chevaliers de Malte, où les Templiers auraient caché un trésor inestimable dans des grottes sous-marines accessibles seulement lors des équinoxes.",
+          "species": {
+            "0": "Guillemot de Troïl (Uria aalge)",
+            "1": "Fou de Bassan (Morus bassanus)",
+            "2": "Homard européen (Homarus gammarus)"
+          }
+        },
+        "sintra": {
+          "description": "Le cap da Roca marque le point le plus occidental de l’Europe continentale. Des plages spectaculaires entre falaises de granit et végétation de brume créent une atmosphère vraiment magique.",
+          "legend": "Au cap da Roca, Camões écrivit « Ici... où la terre s’achève et où la mer commence. » La légende locale veut que, les nuits sans lune, les esprits des navigateurs disparus se réunissent à l’extrême pointe du rocher pour contempler l’éternité de l’Atlantique.",
+          "species": {
+            "0": "Faucon pèlerin (Falco peregrinus)",
+            "1": "Dauphin commun (Delphinus delphis)",
+            "2": "Narcisse de Sintra (Narcissus calcicola)"
+          }
+        },
+        "setubal": {
+          "description": "L’Arrábida cache des plages aux eaux turquoise et au calcaire blanc qui semblent appartenir à la Méditerranée. Le parc naturel protège l’un des derniers écosystèmes marins vierges du Portugal.",
+          "legend": "Les moines franciscains qui fondèrent le couvent de l’Arrábida au XVIe siècle croyaient que le lieu était habité par des esprits de la forêt protégeant les plongeurs des tempêtes et de la noyade.",
+          "species": {
+            "0": "Grand dauphin (Tursiops truncatus)",
+            "1": "Caméléon commun (Chamaeleo chamaeleon)",
+            "2": "Lynx pardelle (Lynx pardinus)"
+          }
+        },
+        "algarve": {
+          "description": "Falaises dorées de calcaire et de grès, eau cristalline et grottes naturelles font de l’Algarve l’un des littoraux les plus photogéniques au monde. Des plages pour tous, du surf aux loisirs en famille.",
+          "legend": "La grotte de Benagil, avec son oculus naturel ouvert sur le ciel, est appelée « l’Œil de Dieu » par les pêcheurs locaux. La légende dit qu’en été, à midi, la lumière qui entre par l’ouverture illumine un bref instant le visage de ceux qui le méritent.",
+          "species": {
+            "0": "Tortue caouanne (Caretta caretta)",
+            "1": "Thon rouge (Thunnus thynnus)",
+            "2": "Poulpe commun (Octopus vulgaris)"
+          }
+        }
+      }
+    },
+    "coastalData": {
+      "tides": "Marées",
+      "tideRising": "Montante",
+      "tideFalling": "Descendante",
+      "waves": "Vagues",
+      "wind": "Vent",
+      "safety": "Sécurité",
+      "safetyLevels": {
+        "veryHigh": "Sûre",
+        "high": "Bonne",
+        "medium": "Prudence",
+        "low": "Dangereuse",
+        "unknown": "Inconnue"
+      },
+      "bestSeason": "Meilleure période :",
+      "seasons": {
+        "summer": "Été",
+        "springAutumn": "Printemps / Automne",
+        "autumnWinter": "Automne / Hiver",
+        "springSummer": "Printemps / Été"
+      },
+      "windDirections": {
+        "n": "N",
+        "no": "NO",
+        "nw": "NO",
+        "w": "O"
+      }
+    },
+    "culturaMaritima": {
+      "title": "Culture maritime",
+      "subtitle": "Rituels · Fêtes · Processions en mer",
+      "tabs": {
+        "todos": "Tous",
+        "procissao_maritima": "Processions",
+        "bencao_barcos": "Bénédictions",
+        "festa_mar": "Fêtes",
+        "ritual_religioso": "Rituels",
+        "tradicao_piscatoria": "Traditions"
+      },
+      "allRegions": "Toutes",
+      "upcomingOne": "{{count}} événement dans les 30 prochains jours",
+      "upcomingMany": "{{count}} événements dans les 30 prochains jours",
+      "foundOne": "{{count}} événement trouvé",
+      "foundMany": "{{count}} événements trouvés",
+      "emptyTitle": "Aucun événement dans cette catégorie",
+      "emptyText": "Essayez un autre type ou une autre région pour découvrir la culture maritime portugaise.",
+      "sources": "Données : DGPC · Municipalités · Associations de pêcheurs"
+    },
+    "maritimeCard": {
+      "types": {
+        "procissao_maritima": "Procession",
+        "bencao_barcos": "Bénédiction",
+        "festa_mar": "Fête de la mer",
+        "ritual_religioso": "Rituel",
+        "tradicao_piscatoria": "Tradition",
+        "banho_santo": "Bain saint"
+      },
+      "frequency": {
+        "anual": "Annuel",
+        "sazonal": "Saisonnier",
+        "irregular": "Irrégulier"
+      },
+      "upcoming": "À venir",
+      "boats": "{{count}} bateaux",
+      "moreActivities": "+{{count}} de plus"
+    },
+    "infraestrutura": {
+      "title": "Infrastructures naturelles",
+      "subtitle": "Passerelles · Ponts · Véloroutes · Belvédères",
+      "tabs": {
+        "todos": "Tous",
+        "passadico": "Passerelles",
+        "ponte_suspensa": "Ponts suspendus",
+        "ecovia": "Véloroutes",
+        "miradouro": "Belvédères",
+        "torre_observacao": "Tours"
+      },
+      "access": {
+        "todos": "Tous",
+        "acessivel": "Accessible",
+        "familia": "Famille",
+        "cao": "Chiens"
+      },
+      "filterByAccessibility": "Filtrer par accessibilité",
+      "foundOne": "{{count}} infrastructure trouvée",
+      "foundMany": "{{count}} infrastructures trouvées",
+      "emptyTitle": "Aucun résultat",
+      "emptyText": "Essayez de changer de type ou de retirer les filtres d’accessibilité.",
+      "sources": "Données : ICNF · Municipalités · Turismo de Portugal"
+    },
+    "infraCard": {
+      "types": {
+        "passadico": "Passerelle",
+        "ponte_suspensa": "Pont suspendu",
+        "ecovia": "Véloroute",
+        "miradouro": "Belvédère",
+        "torre_observacao": "Tour d’observation",
+        "via_verde": "Voie verte"
+      },
+      "access": {
+        "livre": "Libre",
+        "condicionado": "Réglementé",
+        "pago": "Payant"
+      },
+      "difficulty": {
+        "facil": "Facile",
+        "media": "Moyenne",
+        "dificil": "Difficile"
+      },
+      "accessible": "Accessible",
+      "family": "Famille",
+      "dog": "Chiens",
+      "seasons": {
+        "spring": "Printemps",
+        "summer": "Été",
+        "autumn": "Automne",
+        "winter": "Hiver"
+      }
+    },
+    "maritimeEvents": {
+      "agonia-viana": {
+        "dateStart": "Août (3e semaine)",
+        "dateEnd": "3 jours",
+        "descShort": "Le plus grand pèlerinage du nord du Portugal, avec une procession fluviale illuminée et des bateaux pavoisés sur le Lima.",
+        "descLong": "Célébrée depuis le XVIIIe siècle, la Festa da Agonia réunit des centaines de milliers de pèlerins. Le point d’orgue est la procession fluviale nocturne, avec ses barges décorées et ses feux d’artifice sur le Lima. Le costume traditionnel de Viana et les groupes folkloriques colorent le cortège terrestre.",
+        "activities": {
+          "0": "Procession fluviale",
+          "1": "Groupes folkloriques",
+          "2": "Costume de Viana"
+        }
+      },
+      "banho-santo-bartolomeu": {
+        "dateStart": "24 août",
+        "descShort": "Rituel ancestral préchrétien d’immersion dans la mer à l’aube, sous la protection de saint Barthélemy.",
+        "descLong": "L’une des plus anciennes traditions du littoral du Minho, le Bain saint mêle foi chrétienne et magie populaire préromaine. À l’aube du 24 août, les fidèles entrent dans l’Atlantique pour se purifier. On dit que ce jour-là la mer guérit les maladies de peau et éloigne le mauvais œil.",
+        "activities": {
+          "0": "Immersion rituelle à l’aube",
+          "1": "Messe sur la plage",
+          "2": "Pénitence"
+        },
+        "dishes": {
+          "0": "Ragoût de poisson",
+          "1": "Pain de maïs"
+        }
+      },
+      "bencao-bacalhoeiros-ilhavo": {
+        "dateStart": "Juin",
+        "descShort": "Cérémonie de bénédiction des morutiers avant leur départ pour les mers du Nord.",
+        "descLong": "Pendant des siècles, Ílhavo fut le cœur de la flotte morutière portugaise. La bénédiction des navires avant leur départ pour Terre-Neuve et le Groenland est un rituel émouvant, avec messe, bénédiction de l’évêque et adieux des familles sur le quai.",
+        "activities": {
+          "0": "Bénédiction épiscopale",
+          "1": "Messe des pêcheurs",
+          "2": "Cortège des drapeaux"
+        },
+        "dishes": {
+          "1": "Ragoût de morue"
+        }
+      },
+      "bencao-boa-viagem-matosinhos": {
+        "dateStart": "Juin (dernière semaine)",
+        "descShort": "Impressionnante procession maritime avec plus de 100 bateaux décorés au large de Matosinhos.",
+        "descLong": "L’une des plus grandes processions maritimes du Portugal : la statue de Notre-Dame du Bon Voyage est portée sur une barge richement décorée, escortée par des centaines de bateaux de pêche, de voiliers et de bateaux de plaisance. À terre, la procession parcourt la ville avec fanfares et groupes folkloriques.",
+        "activities": {
+          "0": "Procession maritime",
+          "1": "Cortège terrestre",
+          "2": "Feu d’artifice"
+        },
+        "dishes": {
+          "0": "Sardines grillées"
+        }
+      },
+      "festa-mar-matosinhos": {
+        "dateStart": "Juin",
+        "descShort": "Festival gastronomique et culturel qui célèbre la mer, la pêche et les sardines grillées dans une ambiance de fête populaire.",
+        "descLong": "La Festa do Mar est la grande fête populaire de Matosinhos, avec musique live, bals, cuisine de la mer et animations culturelles. Les sardines grillées à la braise en sont l’emblème, accompagnées de vinho verde et de pain de maïs.",
+        "activities": {
+          "0": "Sardines à la braise",
+          "1": "Musique live",
+          "2": "Fête populaire"
+        },
+        "dishes": {
+          "0": "Sardines grillées",
+          "1": "Crevettes cuites",
+          "2": "Poulpe grillé"
+        }
+      },
+      "procissao-pescadores-nazare": {
+        "dateStart": "Septembre (8 sept. — N.-D. de Nazaré)",
+        "descShort": "Procession solennelle en l’honneur de Notre-Dame de Nazaré, patronne des pêcheurs, en costume traditionnel rayé.",
+        "descLong": "La procession fait partie des fêtes en l’honneur de Notre-Dame de Nazaré, patronne des pêcheurs. Les femmes portent les sept jupons rayés du costume traditionnel de Nazaré. Les pêcheurs portent la statue de la Vierge sur un brancard orné de filets et d’ancres.",
+        "activities": {
+          "0": "Procession avec brancard",
+          "1": "Costume traditionnel",
+          "2": "Messe en plein air"
+        },
+        "dishes": {
+          "0": "Ragoût de poisson de Nazaré",
+          "2": "Pouces-pieds"
+        }
+      },
+      "nossa-senhora-assuncao-povoa": {
+        "dateStart": "15 août",
+        "descShort": "La grande fête de la ville, avec fête populaire, procession vers la mer et le traditionnel brûlage de bateaux votifs.",
+        "activities": {
+          "0": "Procession vers la mer",
+          "1": "Brûlage de bateaux",
+          "2": "Fête populaire"
+        },
+        "dishes": {
+          "0": "Soupe de poisson",
+          "1": "Riz aux couteaux"
+        }
+      },
+      "senhor-navegantes-aveiro": {
+        "dateStart": "Août",
+        "descShort": "Pèlerinage fluvial sur la Ria de Aveiro avec des moliceiros décorés et une procession sur la lagune.",
+        "descLong": "Le pèlerinage parcourt la Ria de Aveiro à bord de moliceiros richement ornés de fleurs et de papier crépon. La statue du Seigneur des Navigateurs voyage dans le bateau de tête, escortée par des dizaines d’embarcations traditionnelles.",
+        "activities": {
+          "0": "Procession fluviale",
+          "1": "Moliceiros décorés",
+          "2": "Bénédiction des bateaux"
+        },
+        "dishes": {
+          "1": "Ragoût d’anguilles",
+          "2": "Salicorne"
+        }
+      },
+      "santo-cristo-milagres-acores": {
+        "dateStart": "Mai (5e dimanche après Pâques)",
+        "descShort": "La plus grande manifestation religieuse des Açores, avec une procession solennelle et des pétales de fleurs dans les rues de Ponta Delgada.",
+        "descLong": "Les fêtes du Senhor Santo Cristo dos Milagres sont le plus grand événement religieux des Açores et de la diaspora açorienne. La procession parcourt des rues couvertes de pétales de fleurs et d’hortensias, la statue du Christ portée par des confréries en habit de cérémonie. Des pèlerins du monde entier y participent.",
+        "activities": {
+          "0": "Procession solennelle",
+          "1": "Tapis de fleurs",
+          "2": "Messe pontificale"
+        },
+        "dishes": {
+          "1": "Bouillon de navets"
+        }
+      },
+      "arte-xavega-nazare": {
+        "dateStart": "Été (juin – septembre)",
+        "descShort": "Pêche artisanale millénaire avec des filets halés depuis la plage par des bœufs ou des tracteurs, l’une des dernières traditions vivantes du littoral.",
+        "descLong": "L’arte xávega est une technique de pêche à la senne de plage, attestée au Portugal depuis le XVe siècle. À Nazaré, les pêcheurs jettent leurs filets en mer depuis des bateaux à proue haute puis les halent jusqu’à la plage. Autrefois tirés par des attelages de bœufs, aujourd’hui par des tracteurs, ils suivent toujours la technique d’origine.",
+        "activities": {
+          "0": "Halage des filets",
+          "1": "Criée aux poissons",
+          "2": "Démonstrations publiques"
+        },
+        "dishes": {
+          "0": "Poisson frais à la criée",
+          "1": "Petites sardines frites",
+          "2": "Ragoût de poisson"
+        }
+      },
+      "procissao-fluvial-douro": {
+        "dateStart": "Juin (fêtes de la Saint-Jean)",
+        "descShort": "Procession fluviale sur le Douro pendant les fêtes de la Saint-Jean de Porto, avec des bateaux rabelos illuminés.",
+        "descLong": "Dans le cadre des fêtes de la Saint-Jean, une procession fluviale parcourt le Douro avec des bateaux rabelos décorés et illuminés. Le pont D. Luís sert de toile de fond au feu d’artifice qui clôt la célébration.",
+        "activities": {
+          "0": "Bateaux rabelos illuminés",
+          "1": "Feux du Douro",
+          "2": "Musique populaire"
+        },
+        "dishes": {
+          "0": "Tripes à la mode de Porto",
+          "2": "Vin de Porto"
+        }
+      },
+      "festas-mar-sesimbra": {
+        "dateStart": "Août",
+        "descShort": "Festival d’été à Sesimbra avec cuisine de la mer, musique et procession en mer sur l’Atlantique.",
+        "activities": {
+          "0": "Procession vers la mer",
+          "1": "Fête populaire",
+          "2": "Concerts"
+        },
+        "dishes": {
+          "0": "Seiche frite",
+          "1": "Sole grillée"
+        }
+      },
+      "bencao-frota-olhao": {
+        "dateStart": "Octobre",
+        "descShort": "Cérémonie de bénédiction des bateaux de pêche d’Olhão avant la saison d’automne-hiver.",
+        "activities": {
+          "0": "Bénédiction épiscopale",
+          "1": "Défilé de bateaux",
+          "2": "Messe des pêcheurs"
+        },
+        "dishes": {
+          "0": "Cataplana de fruits de mer",
+          "1": "Thon grillé"
+        }
+      },
+      "sao-pedro-peniche": {
+        "dateStart": "29 juin",
+        "descShort": "Fête du saint patron des pêcheurs à Peniche, avec messe, procession jusqu’au quai et fête populaire en ville.",
+        "descLong": "La Saint-Pierre est fêtée sur toute la côte portugaise, mais à Peniche elle prend un relief particulier, vu l’importance historique de la pêche. La procession part de l’église São Pedro et descend jusqu’au quai où attendent les bateaux pavoisés. Suit une fête populaire avec sardinade et musique pimba.",
+        "activities": {
+          "0": "Procession jusqu’au quai",
+          "1": "Bénédiction des bateaux",
+          "2": "Sardinade populaire"
+        },
+        "dishes": {
+          "0": "Sardines grillées",
+          "1": "Pouces-pieds de Peniche",
+          "2": "Ragoût de langouste"
+        }
+      }
+    },
+    "infraItems": {
+      "passadicos-paiva": {
+        "descShort": "L’un des sentiers sur passerelles les plus emblématiques d’Europe, avec 8,7 km le long du Paiva entre rochers et cascades.",
+        "descLong": "Classés parmi les meilleurs sentiers du monde, les Passadiços do Paiva traversent le géoparc d’Arouca le long du Paiva. Le parcours offre des vues saisissantes sur les gorges et la riche biodiversité de la région.",
+        "hours": "Ouvert tous les jours de 8 h à 19 h (haute saison)"
+      },
+      "passadico-sete-lagoas": {
+        "descShort": "Parcours de 2,1 km le long des lacs glaciaires du parc national de Peneda-Gerês, avec une flore endémique et des paysages intacts."
+      },
+      "passadico-carreco": {
+        "descShort": "Passerelle côtière de 1,2 km au-dessus de l’Atlantique, avec vue sur la côte verte du Minho et accès à des plages isolées."
+      },
+      "ponte-516-arouca": {
+        "descShort": "Le plus long pont suspendu piéton du monde : 516 m de long et 175 m de haut au-dessus du Paiva.",
+        "descLong": "Inauguré en 2021, le Ponte 516 Arouca détient le record du monde du plus long pont suspendu piéton. La traversée offre des vues vertigineuses sur le canyon du Paiva et les paysages granitiques de la Serra da Freita.",
+        "safety": "Interdit aux enfants de moins de 1 m. Déconseillé aux personnes sujettes au vertige.",
+        "hours": "Mar-Dim 9 h-18 h (fermeture de la billetterie à 17 h)"
+      },
+      "ponte-rio-paiva": {
+        "descShort": "Pont suspendu de 252 m au-dessus du Paiva, point de départ et d’arrivée des Passadiços do Paiva."
+      },
+      "ecovia-tamega": {
+        "descShort": "Ancienne voie ferrée du Tâmega reconvertie en un parcours de 35 km pour cyclistes et piétons le long de la rivière.",
+        "descLong": "Elle suit l’ancienne ligne du Tâmega, fermée en 2009, à travers viaducs, tunnels et villages historiques entre Amarante et Chaves."
+      },
+      "ecovia-litoral-norte": {
+        "descShort": "Itinéraire côtier de 22 km entre plages, dunes et estuaires de la côte verte du Haut-Minho."
+      },
+      "via-verde-dao": {
+        "descShort": "Ancienne ligne du Dão reconvertie en 48 km de voie verte pour le vélo et la randonnée entre Viseu et Santa Comba Dão.",
+        "descLong": "Inaugurée en 2017, la Via Verde do Dão est l’une des voies vertes les plus complètes du pays. Elle traverse vallées viticoles, lacs de barrage et villages ruraux pour une immersion au cœur du Dão.",
+        "hours": "Ouvert toute l’année"
+      },
+      "miradouro-sao-jeronimo": {
+        "descShort": "Point culminant de la Serra da Estrela, avec une vue à 360° sur les plateaux glaciaires, les lacs et la Cova da Beira.",
+        "safety": "La route peut être fermée par la neige de novembre à mars. Vérifiez les conditions avant de partir."
+      },
+      "miradouro-portas-rodao": {
+        "descShort": "Vue imprenable sur la gorge du Tage aux Portas do Ródão, habitat du vautour percnoptère."
+      },
+      "miradouro-facho": {
+        "descShort": "Pic volcanique à l’extrémité est de Madère, avec une vue panoramique sur l’océan Atlantique, Porto Santo et les îles Desertas."
+      },
+      "miradouro-ponta-madrugada": {
+        "descShort": "Le point le plus oriental des Açores et de toute l’Union européenne, avec vue sur l’Atlantique au lever du soleil."
+      },
+      "torre-paul-arzila": {
+        "descShort": "Tour d’observation ornithologique dans la réserve naturelle du Paul de Arzila, habitat de hérons, de canards et d’espèces migratrices rares.",
+        "hours": "Ouvert en journée, sans restriction"
+      },
+      "passadico-algares": {
+        "descShort": "Passerelle familiale menant à la plage fluviale du Zêzere à Constância, avec espaces de loisirs et ombre naturelle."
+      }
+    }
+  }
 }

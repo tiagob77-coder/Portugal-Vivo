@@ -9,6 +9,7 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useQuery } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
 import InfrastructureCard, { Infrastructure } from '../../src/components/InfrastructureCard';
 import { getModuleTheme, withOpacity } from '../../src/theme/colors';
 import { API_BASE } from '../../src/config/api';
@@ -286,29 +287,30 @@ type AccessFilter = 'todos' | 'acessivel' | 'familia' | 'cao';
 
 interface TypeTab {
   key: InfraType;
-  label: string;
+  labelKey: string;
   icon: React.ComponentProps<typeof MaterialIcons>['name'];
 }
 
 const TYPE_TABS: TypeTab[] = [
-  { key: 'todos',           label: 'Todos',           icon: 'grid-view' },
-  { key: 'passadico',       label: 'Passadiços',      icon: 'directions-walk' },
-  { key: 'ponte_suspensa',  label: 'Pontes Suspensas', icon: 'link' },
-  { key: 'ecovia',          label: 'Ecovias',          icon: 'nature' },
-  { key: 'miradouro',       label: 'Miradouros',       icon: 'landscape' },
-  { key: 'torre_observacao', label: 'Torres',          icon: 'cell-tower' },
+  { key: 'todos',           labelKey: 'modulesCoast.infraestrutura.tabs.todos',            icon: 'grid-view' },
+  { key: 'passadico',       labelKey: 'modulesCoast.infraestrutura.tabs.passadico',        icon: 'directions-walk' },
+  { key: 'ponte_suspensa',  labelKey: 'modulesCoast.infraestrutura.tabs.ponte_suspensa',   icon: 'link' },
+  { key: 'ecovia',          labelKey: 'modulesCoast.infraestrutura.tabs.ecovia',           icon: 'nature' },
+  { key: 'miradouro',       labelKey: 'modulesCoast.infraestrutura.tabs.miradouro',        icon: 'landscape' },
+  { key: 'torre_observacao', labelKey: 'modulesCoast.infraestrutura.tabs.torre_observacao', icon: 'cell-tower' },
 ];
 
-const ACCESS_FILTERS: { key: AccessFilter; label: string }[] = [
-  { key: 'todos',    label: 'Todos' },
-  { key: 'acessivel', label: 'Acessível' },
-  { key: 'familia',  label: 'Família' },
-  { key: 'cao',      label: 'Cão' },
+const ACCESS_FILTERS: { key: AccessFilter; labelKey: string }[] = [
+  { key: 'todos',    labelKey: 'modulesCoast.infraestrutura.access.todos' },
+  { key: 'acessivel', labelKey: 'modulesCoast.infraestrutura.access.acessivel' },
+  { key: 'familia',  labelKey: 'modulesCoast.infraestrutura.access.familia' },
+  { key: 'cao',      labelKey: 'modulesCoast.infraestrutura.access.cao' },
 ];
 
 // ─── Main Screen ──────────────────────────────────────────────────────────────
 
 export default function InfraestruturaScreen() {
+  const { t } = useTranslation();
   const router = useRouter();
   const insets = useSafeAreaInsets();
 
@@ -357,9 +359,9 @@ export default function InfraestruturaScreen() {
             <MaterialIcons name="arrow-back" size={22} color={C.accent} />
           </TouchableOpacity>
           <View style={styles.headerContent}>
-            <Text style={styles.headerTitle}>Infraestrutura Natural</Text>
+            <Text style={styles.headerTitle}>{t('modulesCoast.infraestrutura.title')}</Text>
             <Text style={styles.headerSubtitle}>
-              Passadiços · Pontes · Ecovias · Miradouros
+              {t('modulesCoast.infraestrutura.subtitle')}
             </Text>
           </View>
           <View style={styles.headerIcon}>
@@ -391,7 +393,7 @@ export default function InfraestruturaScreen() {
                   color={isActive ? '#FFFFFF' : C.textMed}
                 />
                 <Text style={[styles.tabChipLabel, isActive && styles.tabChipLabelActive]}>
-                  {tab.label}
+                  {t(tab.labelKey)}
                 </Text>
               </TouchableOpacity>
             );
@@ -402,7 +404,7 @@ export default function InfraestruturaScreen() {
         <View style={styles.filterSection}>
           <View style={styles.filterLabelRow}>
             <MaterialIcons name="filter-list" size={13} color={C.textLight} />
-            <Text style={styles.filterLabelText}>Filtrar por acessibilidade</Text>
+            <Text style={styles.filterLabelText}>{t('modulesCoast.infraestrutura.filterByAccessibility')}</Text>
           </View>
           <ScrollView
             horizontal
@@ -418,7 +420,7 @@ export default function InfraestruturaScreen() {
                   onPress={() => setAccessFilter(f.key)}
                 >
                   <Text style={[styles.filterChipText, isActive && styles.filterChipTextActive]}>
-                    {f.label}
+                    {t(f.labelKey)}
                   </Text>
                 </TouchableOpacity>
               );
@@ -430,7 +432,9 @@ export default function InfraestruturaScreen() {
         <View style={styles.summaryRow}>
           <View style={[styles.summaryDot, { backgroundColor: C.accent }]} />
           <Text style={styles.summaryText}>
-            {count} {count === 1 ? 'infraestrutura encontrada' : 'infraestruturas encontradas'}
+            {count === 1
+              ? t('modulesCoast.infraestrutura.foundOne', { count })
+              : t('modulesCoast.infraestrutura.foundMany', { count })}
           </Text>
         </View>
 
@@ -449,9 +453,9 @@ export default function InfraestruturaScreen() {
           {filtered.length === 0 && (
             <View style={styles.emptyState}>
               <MaterialIcons name="terrain" size={40} color={C.accentDim} />
-              <Text style={styles.emptyStateTitle}>Sem resultados</Text>
+              <Text style={styles.emptyStateTitle}>{t('modulesCoast.infraestrutura.emptyTitle')}</Text>
               <Text style={styles.emptyStateText}>
-                Tente alterar o tipo ou remover os filtros de acessibilidade.
+                {t('modulesCoast.infraestrutura.emptyText')}
               </Text>
             </View>
           )}
@@ -461,7 +465,7 @@ export default function InfraestruturaScreen() {
         <View style={styles.infoFooter}>
           <MaterialIcons name="info-outline" size={14} color={C.accentDim} />
           <Text style={styles.infoFooterText}>
-            Dados: ICNF · Municípios · Turismo de Portugal
+            {t('modulesCoast.infraestrutura.sources')}
           </Text>
         </View>
 

@@ -4,6 +4,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import { useTheme } from '../context/ThemeContext';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -43,20 +44,32 @@ type MaterialIconName = React.ComponentProps<typeof MaterialIcons>['name'];
 
 const TYPE_CONFIG: Record<
   MaritimeEvent['type'],
-  { color: string; bg: string; label: string; icon: MaterialIconName }
+  { color: string; bg: string; labelKey: string; icon: MaterialIconName }
 > = {
-  procissao_maritima:   { color: '#1D4ED8', bg: '#1D4ED820', label: 'Procissão',  icon: 'directions-boat' },
-  bencao_barcos:        { color: '#0369A1', bg: '#0369A120', label: 'Bênção',     icon: 'anchor' },
-  festa_mar:            { color: '#B45309', bg: '#B4530920', label: 'Festa do Mar', icon: 'celebration' },
-  ritual_religioso:     { color: '#7C3AED', bg: '#7C3AED20', label: 'Ritual',     icon: 'church' },
-  tradicao_piscatoria:  { color: '#0F766E', bg: '#0F766E20', label: 'Tradição',   icon: 'set-meal' },
-  banho_santo:          { color: '#0891B2', bg: '#0891B220', label: 'Banho Santo', icon: 'pool' },
+  procissao_maritima:   { color: '#1D4ED8', bg: '#1D4ED820', labelKey: 'modulesCoast.maritimeCard.types.procissao_maritima',  icon: 'directions-boat' },
+  bencao_barcos:        { color: '#0369A1', bg: '#0369A120', labelKey: 'modulesCoast.maritimeCard.types.bencao_barcos',       icon: 'anchor' },
+  festa_mar:            { color: '#B45309', bg: '#B4530920', labelKey: 'modulesCoast.maritimeCard.types.festa_mar',           icon: 'celebration' },
+  ritual_religioso:     { color: '#7C3AED', bg: '#7C3AED20', labelKey: 'modulesCoast.maritimeCard.types.ritual_religioso',    icon: 'church' },
+  tradicao_piscatoria:  { color: '#0F766E', bg: '#0F766E20', labelKey: 'modulesCoast.maritimeCard.types.tradicao_piscatoria', icon: 'set-meal' },
+  banho_santo:          { color: '#0891B2', bg: '#0891B220', labelKey: 'modulesCoast.maritimeCard.types.banho_santo',         icon: 'pool' },
 };
 
-const FREQ_LABEL: Record<string, string> = {
-  anual:     'Anual',
-  sazonal:   'Sazonal',
-  irregular: 'Irregular',
+const FREQ_LABEL_KEYS: Record<string, string> = {
+  anual:     'modulesCoast.maritimeCard.frequency.anual',
+  sazonal:   'modulesCoast.maritimeCard.frequency.sazonal',
+  irregular: 'modulesCoast.maritimeCard.frequency.irregular',
+};
+
+// Display keys for region values (the values stay in Portuguese).
+const REGION_KEYS: Record<string, string> = {
+  'Minho': 'minho',
+  'Norte': 'norte',
+  'Centro': 'centro',
+  'Lisboa': 'lisboa',
+  'Alentejo': 'alentejo',
+  'Algarve': 'algarve',
+  'Açores': 'acores',
+  'Madeira': 'madeira',
 };
 
 // ─── Component ────────────────────────────────────────────────────────────────
@@ -66,8 +79,13 @@ function MaritimeCultureCard({
   expanded = false,
   onPress,
 }: MaritimeCultureCardProps) {
+  const { t } = useTranslation();
   const { colors } = useTheme();
   const cfg = TYPE_CONFIG[event.type];
+  // Curated (fallback) events have their editorial text translated by id;
+  // anything else (e.g. backend rows) falls back to the original text.
+  const contentKey = `modulesCoast.maritimeEvents.${event.id}`;
+  const regionKey = REGION_KEYS[event.region];
   const visibleActivities = event.activities?.slice(0, 3) ?? [];
   const extraActivities = (event.activities?.length ?? 0) - visibleActivities.length;
 
@@ -87,11 +105,11 @@ function MaritimeCultureCard({
           <Text style={[styles.eventName, { color: colors.textPrimary }]} numberOfLines={2}>{event.name}</Text>
           <View style={styles.badgeRow}>
             <View style={[styles.typeBadge, { backgroundColor: cfg.bg }]}>
-              <Text style={[styles.typeBadgeText, { color: cfg.color }]}>{cfg.label}</Text>
+              <Text style={[styles.typeBadgeText, { color: cfg.color }]}>{t(cfg.labelKey)}</Text>
             </View>
             {event.is_upcoming && (
               <View style={styles.upcomingBadge}>
-                <Text style={styles.upcomingBadgeText}>Próximo</Text>
+                <Text style={styles.upcomingBadgeText}>{t('modulesCoast.maritimeCard.upcoming')}</Text>
               </View>
             )}
           </View>
@@ -108,12 +126,12 @@ function MaritimeCultureCard({
       <View style={styles.row}>
         <MaterialIcons name="calendar-today" size={13} color={colors.textMuted} />
         <Text style={[styles.rowText, { color: colors.textSecondary }]}>
-          {event.date_start}
-          {event.date_end ? ` – ${event.date_end}` : ''}
+          {t(`${contentKey}.dateStart`, { defaultValue: event.date_start })}
+          {event.date_end ? ` – ${t(`${contentKey}.dateEnd`, { defaultValue: event.date_end })}` : ''}
         </Text>
         {event.frequency && (
           <View style={styles.freqBadge}>
-            <Text style={styles.freqText}>{FREQ_LABEL[event.frequency]}</Text>
+            <Text style={styles.freqText}>{t(FREQ_LABEL_KEYS[event.frequency])}</Text>
           </View>
         )}
       </View>
@@ -121,7 +139,7 @@ function MaritimeCultureCard({
       {/* ── Location Row ────────────────────────────────────────────────── */}
       <View style={styles.row}>
         <MaterialIcons name="place" size={13} color={colors.textMuted} />
-        <Text style={[styles.rowText, { color: colors.textSecondary }]}>{event.municipality}, {event.region}</Text>
+        <Text style={[styles.rowText, { color: colors.textSecondary }]}>{event.municipality}, {regionKey ? t(`modulesCoast.regions.${regionKey}`) : event.region}</Text>
         {event.distance_km !== undefined && (
           <View style={styles.distBadge}>
             <Text style={styles.distText}>{event.distance_km.toFixed(1)} km</Text>
@@ -141,24 +159,28 @@ function MaritimeCultureCard({
       {event.boats_involved !== undefined && (
         <View style={styles.row}>
           <MaterialIcons name="directions-boat" size={13} color={colors.textMuted} />
-          <Text style={[styles.rowText, { color: colors.textSecondary }]}>{event.boats_involved} barcos</Text>
+          <Text style={[styles.rowText, { color: colors.textSecondary }]}>{t('modulesCoast.maritimeCard.boats', { count: event.boats_involved })}</Text>
         </View>
       )}
 
       {/* ── Description short ───────────────────────────────────────────── */}
-      <Text style={[styles.descShort, { color: colors.textSecondary }]}>{event.description_short}</Text>
+      <Text style={[styles.descShort, { color: colors.textSecondary }]}>
+        {t(`${contentKey}.descShort`, { defaultValue: event.description_short })}
+      </Text>
 
       {/* ── Activities Chips ────────────────────────────────────────────── */}
       {visibleActivities.length > 0 && (
         <View style={styles.chipsRow}>
-          {visibleActivities.map((act) => (
+          {visibleActivities.map((act, i) => (
             <View key={act} style={[styles.chip, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-              <Text style={styles.chipText}>{act}</Text>
+              <Text style={styles.chipText}>{t(`${contentKey}.activities.${i}`, { defaultValue: act })}</Text>
             </View>
           ))}
           {extraActivities > 0 && (
             <View style={[styles.chip, styles.chipExtra]}>
-              <Text style={[styles.chipText, styles.chipExtraText]}>+{extraActivities} mais</Text>
+              <Text style={[styles.chipText, styles.chipExtraText]}>
+                {t('modulesCoast.maritimeCard.moreActivities', { count: extraActivities })}
+              </Text>
             </View>
           )}
         </View>
@@ -169,9 +191,9 @@ function MaritimeCultureCard({
         <View style={styles.gastronomyRow}>
           <MaterialIcons name="restaurant" size={13} color="#B45309" />
           <View style={styles.chipsRowInline}>
-            {event.gastronomy_links.map((dish) => (
+            {event.gastronomy_links.map((dish, i) => (
               <View key={dish} style={styles.gastroChip}>
-                <Text style={styles.gastroChipText}>{dish}</Text>
+                <Text style={styles.gastroChipText}>{t(`${contentKey}.dishes.${i}`, { defaultValue: dish })}</Text>
               </View>
             ))}
           </View>
@@ -180,7 +202,9 @@ function MaritimeCultureCard({
 
       {/* ── Expanded: long description ──────────────────────────────────── */}
       {expanded && event.description_long && (
-        <Text style={[styles.descLong, { color: colors.textPrimary, borderTopColor: colors.border }]}>{event.description_long}</Text>
+        <Text style={[styles.descLong, { color: colors.textPrimary, borderTopColor: colors.border }]}>
+          {t(`${contentKey}.descLong`, { defaultValue: event.description_long })}
+        </Text>
       )}
     </TouchableOpacity>
   );

@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import { useTheme } from '../context/ThemeContext';
 import { palette } from '../theme';
 import { borderRadius, spacing } from '../theme/spacing';
@@ -17,7 +18,7 @@ interface CoastalDataCardProps {
   compact?: boolean;
 }
 
-function getSimulatedTideHeight(): { height: number; phase: string } {
+function getSimulatedTideHeight(): { height: number; phase: 'rising' | 'falling' } {
   const now = new Date();
   const hour = now.getHours() + now.getMinutes() / 60;
   // Simulate tidal cycle: ~12.4h period, amplitude ~1.5m, base 1.5m
@@ -25,7 +26,7 @@ function getSimulatedTideHeight(): { height: number; phase: string } {
   const height = 1.5 + 1.5 * Math.sin(radians);
   // Determine phase from derivative
   const derivative = Math.cos(radians);
-  const phase = derivative > 0 ? 'Enchente' : 'Vazante';
+  const phase = derivative > 0 ? 'rising' : 'falling';
   return { height: Math.round(height * 10) / 10, phase };
 }
 
@@ -42,27 +43,46 @@ function getSimulatedWindSpeed(vento: string): number {
   return Math.max(10, Math.min(40, base + hourVariation));
 }
 
-function getSegurancaDisplay(seguranca: string): { label: string; color: string; bg: string; emoji: string } {
+function getSegurancaDisplay(seguranca: string): { labelKey: string; color: string; bg: string; emoji: string } {
   switch (seguranca) {
     case 'muito_alta':
-      return { label: 'Segura', color: palette.forest[600], bg: palette.forest[50], emoji: '🟢' };
+      return { labelKey: 'modulesCoast.coastalData.safetyLevels.veryHigh', color: palette.forest[600], bg: palette.forest[50], emoji: '🟢' };
     case 'alta':
-      return { label: 'Boa', color: palette.forest[600], bg: palette.forest[50], emoji: '🟢' };
+      return { labelKey: 'modulesCoast.coastalData.safetyLevels.high', color: palette.forest[600], bg: palette.forest[50], emoji: '🟢' };
     case 'media':
-      return { label: 'Atenção', color: palette.terracotta[600], bg: palette.terracotta[50], emoji: '🟡' };
+      return { labelKey: 'modulesCoast.coastalData.safetyLevels.medium', color: palette.terracotta[600], bg: palette.terracotta[50], emoji: '🟡' };
     case 'baixa':
-      return { label: 'Perigosa', color: '#DC2626', bg: '#FEE2E2', emoji: '🔴' };
+      return { labelKey: 'modulesCoast.coastalData.safetyLevels.low', color: '#DC2626', bg: '#FEE2E2', emoji: '🔴' };
     default:
-      return { label: 'Desconhecida', color: palette.gray[500], bg: palette.gray[100], emoji: '⚪' };
+      return { labelKey: 'modulesCoast.coastalData.safetyLevels.unknown', color: palette.gray[500], bg: palette.gray[100], emoji: '⚪' };
   }
 }
 
+// Display keys for the season / wind values of the curated zones. The data
+// values themselves stay in Portuguese; unknown values are shown as they come.
+const SEASON_KEYS: Record<string, string> = {
+  'Verão': 'summer',
+  'Primavera / Outono': 'springAutumn',
+  'Outono / Inverno': 'autumnWinter',
+  'Primavera / Verão': 'springSummer',
+};
+
+const WIND_KEYS: Record<string, string> = {
+  N: 'n',
+  NO: 'no',
+  NW: 'nw',
+  W: 'w',
+};
+
 const CoastalDataCard: React.FC<CoastalDataCardProps> = ({ zone, compact = false }) => {
+  const { t } = useTranslation();
   const { colors } = useTheme();
   const { condicoes } = zone;
   const tide = getSimulatedTideHeight();
   const windSpeed = getSimulatedWindSpeed(condicoes.vento_predominante);
   const seg = getSegurancaDisplay(condicoes.seguranca);
+  const seasonKey = SEASON_KEYS[condicoes.melhor_epoca];
+  const windKey = WIND_KEYS[condicoes.vento_predominante];
 
   return (
     <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.border }, compact && styles.cardCompact]}>
@@ -72,9 +92,9 @@ const CoastalDataCard: React.FC<CoastalDataCardProps> = ({ zone, compact = false
         <View style={[styles.cell, styles.cellBorderRight, styles.cellBorderBottom, { borderRightColor: colors.border, borderBottomColor: colors.border }]}>
           <View style={styles.cellHeader}>
             <MaterialIcons name="water" size={20} color={palette.ocean[500]} />
-            <Text style={[styles.cellLabel, { color: colors.textMuted }]}>Marés</Text>
+            <Text style={[styles.cellLabel, { color: colors.textMuted }]}>{t('modulesCoast.coastalData.tides')}</Text>
           </View>
-          <Text style={[styles.cellValue, { color: colors.textPrimary }]}>{tide.phase}</Text>
+          <Text style={[styles.cellValue, { color: colors.textPrimary }]}>{tide.phase === 'rising' ? t('modulesCoast.coastalData.tideRising') : t('modulesCoast.coastalData.tideFalling')}</Text>
           <Text style={[styles.cellSub, { color: colors.textSecondary }]}>{tide.height} m</Text>
         </View>
 
@@ -82,7 +102,7 @@ const CoastalDataCard: React.FC<CoastalDataCardProps> = ({ zone, compact = false
         <View style={[styles.cell, styles.cellBorderBottom, { borderBottomColor: colors.border }]}>
           <View style={styles.cellHeader}>
             <MaterialIcons name="waves" size={20} color={palette.ocean[500]} />
-            <Text style={[styles.cellLabel, { color: colors.textMuted }]}>Ondas</Text>
+            <Text style={[styles.cellLabel, { color: colors.textMuted }]}>{t('modulesCoast.coastalData.waves')}</Text>
           </View>
           <Text style={[styles.cellValue, { color: colors.textPrimary }]}>{condicoes.ondas_media_m} m</Text>
           <Text style={[styles.cellSub, { color: colors.textSecondary }]}>~12s · NW</Text>
@@ -92,21 +112,21 @@ const CoastalDataCard: React.FC<CoastalDataCardProps> = ({ zone, compact = false
         <View style={[styles.cell, styles.cellBorderRight, { borderRightColor: colors.border }]}>
           <View style={styles.cellHeader}>
             <MaterialIcons name="air" size={20} color={palette.ocean[500]} />
-            <Text style={[styles.cellLabel, { color: colors.textMuted }]}>Vento</Text>
+            <Text style={[styles.cellLabel, { color: colors.textMuted }]}>{t('modulesCoast.coastalData.wind')}</Text>
           </View>
           <Text style={[styles.cellValue, { color: colors.textPrimary }]}>{windSpeed} km/h</Text>
-          <Text style={[styles.cellSub, { color: colors.textSecondary }]}>{condicoes.vento_predominante}</Text>
+          <Text style={[styles.cellSub, { color: colors.textSecondary }]}>{windKey ? t(`modulesCoast.coastalData.windDirections.${windKey}`) : condicoes.vento_predominante}</Text>
         </View>
 
         {/* Segurança */}
         <View style={styles.cell}>
           <View style={styles.cellHeader}>
             <MaterialIcons name="shield" size={20} color={palette.ocean[500]} />
-            <Text style={[styles.cellLabel, { color: colors.textMuted }]}>Segurança</Text>
+            <Text style={[styles.cellLabel, { color: colors.textMuted }]}>{t('modulesCoast.coastalData.safety')}</Text>
           </View>
           <View style={[styles.segurancaBadge, { backgroundColor: seg.bg }]}>
             <Text style={[styles.segurancaText, { color: seg.color }]}>
-              {seg.emoji} {seg.label}
+              {seg.emoji} {t(seg.labelKey)}
             </Text>
           </View>
         </View>
@@ -116,9 +136,9 @@ const CoastalDataCard: React.FC<CoastalDataCardProps> = ({ zone, compact = false
       {/* Melhor época */}
       <View style={[styles.epocaRow, { borderTopColor: colors.border, backgroundColor: colors.surface }]}>
         <MaterialIcons name="wb-sunny" size={14} color={palette.terracotta[500]} />
-        <Text style={[styles.epocaLabel, { color: colors.textSecondary }]}>Melhor época:</Text>
+        <Text style={[styles.epocaLabel, { color: colors.textSecondary }]}>{t('modulesCoast.coastalData.bestSeason')}</Text>
         <View style={styles.epocaChip}>
-          <Text style={styles.epocaChipText}>{condicoes.melhor_epoca}</Text>
+          <Text style={styles.epocaChipText}>{seasonKey ? t(`modulesCoast.coastalData.seasons.${seasonKey}`) : condicoes.melhor_epoca}</Text>
         </View>
       </View>
     </View>

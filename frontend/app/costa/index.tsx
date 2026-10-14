@@ -9,6 +9,7 @@ import {
 import { MaterialIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useQuery } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
 import { API_BASE } from '../../src/config/api';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import CoastalDataCard from '../../src/components/CoastalDataCard';
@@ -248,12 +249,21 @@ const COASTAL_ZONES: CoastalZone[] = [
 
 type ProfileKey = 'surfista' | 'familia' | 'fotografo' | 'natureza';
 
-const PROFILES: { key: ProfileKey; label: string; emoji: string }[] = [
-  { key: 'surfista', label: 'Surfista', emoji: '🤙' },
-  { key: 'familia', label: 'Família', emoji: '👨‍👩‍👧' },
-  { key: 'fotografo', label: 'Fotógrafo', emoji: '📸' },
-  { key: 'natureza', label: 'Natureza', emoji: '🌿' },
+const PROFILES: { key: ProfileKey; labelKey: string; emoji: string }[] = [
+  { key: 'surfista', labelKey: 'modulesCoast.costa.profiles.surfista', emoji: '🤙' },
+  { key: 'familia', labelKey: 'modulesCoast.costa.profiles.familia', emoji: '👨‍👩‍👧' },
+  { key: 'fotografo', labelKey: 'modulesCoast.costa.profiles.fotografo', emoji: '📸' },
+  { key: 'natureza', labelKey: 'modulesCoast.costa.profiles.natureza', emoji: '🌿' },
 ];
+
+// Display keys for the region values of the zones (the values stay in
+// Portuguese — they drive the colours and the ?region= matching).
+const REGION_KEYS: Record<string, string> = {
+  'Norte': 'norte',
+  'Centro': 'centro',
+  'Lisboa': 'lisboa',
+  'Algarve': 'algarve',
+};
 
 // ─── Zone Card ────────────────────────────────────────────────────────────────
 
@@ -281,6 +291,7 @@ function ProfileDots({ score }: { score: number }) {
 }
 
 function ZoneCard({ zone, activeProfile, onPress, isExpanded }: ZoneCardProps) {
+  const { t } = useTranslation();
   const expandAnim = useRef(new Animated.Value(0)).current;
   const router = useRouter();
 
@@ -301,6 +312,9 @@ function ZoneCard({ zone, activeProfile, onPress, isExpanded }: ZoneCardProps) {
     'Algarve': '#C49A6C',
   }[zone.regiao] || C.ocean;
 
+  const regionKey = REGION_KEYS[zone.regiao];
+  const activeProfileConfig = activeProfile ? PROFILES.find((p) => p.key === activeProfile) : undefined;
+
   return (
     <View style={cardStyles.card}>
       <TouchableOpacity
@@ -316,7 +330,9 @@ function ZoneCard({ zone, activeProfile, onPress, isExpanded }: ZoneCardProps) {
           <View style={cardStyles.titleBlock}>
             <Text style={cardStyles.zoneName}>{zone.nome}</Text>
             <View style={[cardStyles.regiaoChip, { backgroundColor: regionColor + '18' }]}>
-              <Text style={[cardStyles.regiaoText, { color: regionColor }]}>{zone.regiao}</Text>
+              <Text style={[cardStyles.regiaoText, { color: regionColor }]}>
+                {regionKey ? t(`modulesCoast.regions.${regionKey}`) : zone.regiao}
+              </Text>
             </View>
           </View>
           <MaterialIcons
@@ -328,15 +344,15 @@ function ZoneCard({ zone, activeProfile, onPress, isExpanded }: ZoneCardProps) {
 
         {/* Description */}
         <Text style={cardStyles.descricao} numberOfLines={isExpanded ? undefined : 2}>
-          {zone.descricao}
+          {t(`modulesCoast.costa.zones.${zone.id}.description`, { defaultValue: zone.descricao })}
         </Text>
 
         {/* Profile score */}
         {activeProfile && (
           <View style={cardStyles.profileScoreRow}>
             <Text style={cardStyles.profileScoreLabel}>
-              {PROFILES.find((p) => p.key === activeProfile)?.emoji}{' '}
-              {PROFILES.find((p) => p.key === activeProfile)?.label}
+              {activeProfileConfig?.emoji}{' '}
+              {activeProfileConfig ? t(activeProfileConfig.labelKey) : null}
             </Text>
             <ProfileDots score={profileScore ?? 0} />
           </View>
@@ -358,7 +374,7 @@ function ZoneCard({ zone, activeProfile, onPress, isExpanded }: ZoneCardProps) {
           onPress={() => router.push(`/costa/${zone.id}`)}
           activeOpacity={0.8}
         >
-          <Text style={cardStyles.detailsBtnText}>Ver detalhes</Text>
+          <Text style={cardStyles.detailsBtnText}>{t('modulesCoast.costa.viewDetails')}</Text>
           <MaterialIcons name="arrow-forward" size={14} color={C.ocean} />
         </TouchableOpacity>
       </TouchableOpacity>
@@ -370,21 +386,25 @@ function ZoneCard({ zone, activeProfile, onPress, isExpanded }: ZoneCardProps) {
           <View style={cardStyles.lendaBlock}>
             <View style={cardStyles.lendaHeader}>
               <MaterialIcons name="auto-stories" size={16} color={C.sand} />
-              <Text style={cardStyles.lendaTitle}>Lenda Local</Text>
+              <Text style={cardStyles.lendaTitle}>{t('modulesCoast.costa.localLegend')}</Text>
             </View>
-            <Text style={cardStyles.lendaText}>{zone.lenda}</Text>
+            <Text style={cardStyles.lendaText}>
+              {t(`modulesCoast.costa.zones.${zone.id}.legend`, { defaultValue: zone.lenda })}
+            </Text>
           </View>
 
           {/* Biodiversidade */}
           <View style={cardStyles.bioBlock}>
             <View style={cardStyles.bioHeader}>
               <MaterialIcons name="eco" size={16} color={C.safe} />
-              <Text style={cardStyles.bioTitle}>Biodiversidade</Text>
+              <Text style={cardStyles.bioTitle}>{t('modulesCoast.costa.biodiversity')}</Text>
             </View>
-            {zone.biodiversidade.map((especie) => (
+            {zone.biodiversidade.map((especie, i) => (
               <View key={especie} style={cardStyles.bioItem}>
                 <View style={cardStyles.bioDot} />
-                <Text style={cardStyles.bioText}>{especie}</Text>
+                <Text style={cardStyles.bioText}>
+                  {t(`modulesCoast.costa.zones.${zone.id}.species.${i}`, { defaultValue: especie })}
+                </Text>
               </View>
             ))}
           </View>
@@ -400,6 +420,7 @@ function ZoneCard({ zone, activeProfile, onPress, isExpanded }: ZoneCardProps) {
 // ─── Main Screen ──────────────────────────────────────────────────────────────
 
 export default function CostaScreen() {
+  const { t } = useTranslation();
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { regionId, clear } = useRegionParam();
@@ -454,8 +475,8 @@ export default function CostaScreen() {
             <MaterialIcons name="arrow-back" size={22} color={C.ocean} />
           </TouchableOpacity>
           <View style={styles.headerContent}>
-            <Text style={styles.headerTitle}>Linha de Costa</Text>
-            <Text style={styles.headerSubtitle}>Minho → Algarve</Text>
+            <Text style={styles.headerTitle}>{t('modulesCoast.costa.title')}</Text>
+            <Text style={styles.headerSubtitle}>{t('modulesCoast.costa.subtitle')}</Text>
           </View>
           <View style={styles.waveIcon}>
             <MaterialIcons name="waves" size={20} color={C.ocean} />
@@ -467,8 +488,8 @@ export default function CostaScreen() {
         {/* Progress Bar — north to south scroll indicator */}
         <View style={styles.progressSection}>
           <View style={styles.progressLabelRow}>
-            <Text style={styles.progressLabel}>Norte</Text>
-            <Text style={styles.progressLabel}>Sul</Text>
+            <Text style={styles.progressLabel}>{t('modulesCoast.costa.north')}</Text>
+            <Text style={styles.progressLabel}>{t('modulesCoast.costa.south')}</Text>
           </View>
           <View style={styles.progressTrack}>
             {allZones.map((zone, idx) => {
@@ -493,7 +514,9 @@ export default function CostaScreen() {
             <View style={styles.progressLine} />
           </View>
           <Text style={styles.progressHint}>
-            {filteredZones.length} zona{filteredZones.length !== 1 ? 's' : ''} a explorar
+            {filteredZones.length === 1
+              ? t('modulesCoast.costa.zoneToExplore', { count: filteredZones.length })
+              : t('modulesCoast.costa.zonesToExplore', { count: filteredZones.length })}
           </Text>
         </View>
 
@@ -522,7 +545,7 @@ export default function CostaScreen() {
                     isActive && styles.profileChipLabelActive,
                   ]}
                 >
-                  {profile.label}
+                  {t(profile.labelKey)}
                 </Text>
               </TouchableOpacity>
             );
@@ -533,7 +556,7 @@ export default function CostaScreen() {
           <View style={styles.emptyFilter}>
             <MaterialIcons name="search-off" size={32} color={C.textLight} />
             <Text style={styles.emptyFilterText}>
-              Nenhuma zona com pontuação ≥ 4 para este perfil.
+              {t('modulesCoast.costa.emptyFilter')}
             </Text>
           </View>
         )}

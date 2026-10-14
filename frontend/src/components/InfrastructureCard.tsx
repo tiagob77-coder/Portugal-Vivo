@@ -5,6 +5,7 @@ import { palette } from '../theme/colors';
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import { useTheme } from '../context/ThemeContext';
 import OptimizedImage from './OptimizedImage';
 
@@ -49,29 +50,38 @@ type MaterialIconName = React.ComponentProps<typeof MaterialIcons>['name'];
 interface TypeConfig {
   color: string;
   bg: string;
-  label: string;
+  labelKey: string;
   icon: MaterialIconName;
 }
 
 const TYPE_CONFIG: Record<Infrastructure['type'], TypeConfig> = {
-  passadico:        { color: '#0369A1', bg: '#E0F2FE', label: 'Passadiço',       icon: 'directions-walk' },
-  ponte_suspensa:   { color: '#7C3AED', bg: '#EDE9FE', label: 'Ponte Suspensa',  icon: 'link' },
-  ecovia:           { color: '#16A34A', bg: '#DCFCE7', label: 'Ecovia',           icon: 'nature' },
-  miradouro:        { color: '#D97706', bg: '#FEF3C7', label: 'Miradouro',        icon: 'landscape' },
-  torre_observacao: { color: '#0F766E', bg: '#CCFBF1', label: 'Torre Observação', icon: 'cell-tower' },
-  via_verde:        { color: '#059669', bg: '#D1FAE5', label: 'Via Verde',        icon: 'directions-bike' },
+  passadico:        { color: '#0369A1', bg: '#E0F2FE', labelKey: 'modulesCoast.infraCard.types.passadico',        icon: 'directions-walk' },
+  ponte_suspensa:   { color: '#7C3AED', bg: '#EDE9FE', labelKey: 'modulesCoast.infraCard.types.ponte_suspensa',   icon: 'link' },
+  ecovia:           { color: '#16A34A', bg: '#DCFCE7', labelKey: 'modulesCoast.infraCard.types.ecovia',           icon: 'nature' },
+  miradouro:        { color: '#D97706', bg: '#FEF3C7', labelKey: 'modulesCoast.infraCard.types.miradouro',        icon: 'landscape' },
+  torre_observacao: { color: '#0F766E', bg: '#CCFBF1', labelKey: 'modulesCoast.infraCard.types.torre_observacao', icon: 'cell-tower' },
+  via_verde:        { color: '#059669', bg: '#D1FAE5', labelKey: 'modulesCoast.infraCard.types.via_verde',        icon: 'directions-bike' },
 };
 
 const ACCESS_CONFIG = {
-  livre:        { label: 'Livre',        color: '#16A34A', bg: '#DCFCE7' },
-  condicionado: { label: 'Condicionado', color: '#D97706', bg: '#FEF3C7' },
-  pago:         { label: 'Pago',         color: '#DC2626', bg: '#FEE2E2' },
+  livre:        { labelKey: 'modulesCoast.infraCard.access.livre',        color: '#16A34A', bg: '#DCFCE7' },
+  condicionado: { labelKey: 'modulesCoast.infraCard.access.condicionado', color: '#D97706', bg: '#FEF3C7' },
+  pago:         { labelKey: 'modulesCoast.infraCard.access.pago',         color: '#DC2626', bg: '#FEE2E2' },
 };
 
 const DIFFICULTY_CONFIG = {
-  facil:  { label: 'Fácil',   color: '#16A34A' },
-  media:  { label: 'Média',   color: '#D97706' },
-  dificil: { label: 'Difícil', color: '#DC2626' },
+  facil:  { labelKey: 'modulesCoast.infraCard.difficulty.facil',   color: '#16A34A' },
+  media:  { labelKey: 'modulesCoast.infraCard.difficulty.media',   color: '#D97706' },
+  dificil: { labelKey: 'modulesCoast.infraCard.difficulty.dificil', color: '#DC2626' },
+};
+
+// Display keys for the season values (the values stay in Portuguese; unknown
+// values are shown as they come).
+const SEASON_KEYS: Record<string, string> = {
+  'Primavera': 'spring',
+  'Verão': 'summer',
+  'Outono': 'autumn',
+  'Inverno': 'winter',
 };
 
 const C = {
@@ -98,7 +108,11 @@ function InfrastructureCard({
   expanded = false,
   onPress,
 }: InfrastructureCardProps) {
+  const { t } = useTranslation();
   const { colors } = useTheme();
+  // Curated (fallback) items have their editorial text translated by id;
+  // anything else (e.g. backend rows) falls back to the original text.
+  const contentKey = `modulesCoast.infraItems.${item.id}`;
   const typeConf   = TYPE_CONFIG[item.type];
   const accessConf = ACCESS_CONFIG[item.access_type];
 
@@ -144,7 +158,7 @@ function InfrastructureCard({
               )}
               <View style={[styles.typeBadge, { backgroundColor: typeConf.bg }]}>
                 <Text style={[styles.typeBadgeText, { color: typeConf.color }]}>
-                  {typeConf.label}
+                  {t(typeConf.labelKey)}
                 </Text>
               </View>
             </View>
@@ -168,14 +182,14 @@ function InfrastructureCard({
               <View style={styles.metaItem}>
                 <MaterialIcons name="terrain" size={13} color={DIFFICULTY_CONFIG[item.difficulty].color} />
                 <Text style={[styles.metaText, { color: DIFFICULTY_CONFIG[item.difficulty].color }]}>
-                  {DIFFICULTY_CONFIG[item.difficulty].label}
+                  {t(DIFFICULTY_CONFIG[item.difficulty].labelKey)}
                 </Text>
               </View>
             )}
             {/* Access badge */}
             <View style={[styles.accessBadge, { backgroundColor: accessConf.bg }]}>
               <Text style={[styles.accessBadgeText, { color: accessConf.color }]}>
-                {accessConf.label}
+                {t(accessConf.labelKey)}
               </Text>
             </View>
             {/* Distance badge */}
@@ -193,19 +207,19 @@ function InfrastructureCard({
               {item.is_accessible && (
                 <View style={styles.accessibilityChip}>
                   <MaterialIcons name="accessible" size={14} color="#0369A1" />
-                  <Text style={[styles.accessibilityText, { color: '#0369A1' }]}>Acessível</Text>
+                  <Text style={[styles.accessibilityText, { color: '#0369A1' }]}>{t('modulesCoast.infraCard.accessible')}</Text>
                 </View>
               )}
               {item.is_family_friendly && (
                 <View style={styles.accessibilityChip}>
                   <MaterialIcons name="family-restroom" size={14} color="#7C3AED" />
-                  <Text style={[styles.accessibilityText, { color: '#7C3AED' }]}>Família</Text>
+                  <Text style={[styles.accessibilityText, { color: '#7C3AED' }]}>{t('modulesCoast.infraCard.family')}</Text>
                 </View>
               )}
               {item.is_dog_friendly && (
                 <View style={styles.accessibilityChip}>
                   <MaterialIcons name="pets" size={14} color="#059669" />
-                  <Text style={[styles.accessibilityText, { color: '#059669' }]}>Cão</Text>
+                  <Text style={[styles.accessibilityText, { color: '#059669' }]}>{t('modulesCoast.infraCard.dog')}</Text>
                 </View>
               )}
             </View>
@@ -213,7 +227,7 @@ function InfrastructureCard({
 
           {/* ── Description short ────────────────────────────────────── */}
           <Text style={[styles.descShort, { color: colors.textSecondary }]} numberOfLines={expanded ? undefined : 2}>
-            {item.description_short}
+            {t(`${contentKey}.descShort`, { defaultValue: item.description_short })}
           </Text>
 
           {/* ── Season chips ─────────────────────────────────────────── */}
@@ -222,7 +236,9 @@ function InfrastructureCard({
               <MaterialIcons name="wb-sunny" size={12} color={C.textLight} />
               {item.best_season!.map((s) => (
                 <View key={s} style={styles.seasonChip}>
-                  <Text style={styles.seasonChipText}>{s}</Text>
+                  <Text style={styles.seasonChipText}>
+                    {SEASON_KEYS[s] ? t(`modulesCoast.infraCard.seasons.${SEASON_KEYS[s]}`) : s}
+                  </Text>
                 </View>
               ))}
             </View>
@@ -232,18 +248,24 @@ function InfrastructureCard({
           {item.safety_restrictions && (
             <View style={styles.warningBox}>
               <MaterialIcons name="warning" size={14} color="#D97706" />
-              <Text style={styles.warningText}>{item.safety_restrictions}</Text>
+              <Text style={styles.warningText}>
+                {t(`${contentKey}.safety`, { defaultValue: item.safety_restrictions })}
+              </Text>
             </View>
           )}
 
           {/* ── Expanded: description_long + opening_hours ───────────── */}
           {expanded && item.description_long && (
-            <Text style={[styles.descLong, { color: colors.textSecondary }]}>{item.description_long}</Text>
+            <Text style={[styles.descLong, { color: colors.textSecondary }]}>
+              {t(`${contentKey}.descLong`, { defaultValue: item.description_long })}
+            </Text>
           )}
           {expanded && item.opening_hours && (
             <View style={styles.hoursRow}>
               <MaterialIcons name="schedule" size={13} color={typeConf.color} />
-              <Text style={styles.hoursText}>{item.opening_hours}</Text>
+              <Text style={styles.hoursText}>
+                {t(`${contentKey}.hours`, { defaultValue: item.opening_hours })}
+              </Text>
             </View>
           )}
 
