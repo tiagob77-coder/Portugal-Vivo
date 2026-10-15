@@ -5,6 +5,7 @@
  * Uses the same axios mock pattern as api.test.ts.
  */
 import axios from 'axios';
+import i18n from 'i18next';
 import {
   generateNarrative,
   addFavorite,
@@ -82,6 +83,24 @@ describe('generateNarrative', () => {
       style: 'brief',
       language: 'pt',
     });
+  });
+
+  it('asks for the narrative in the UI language by default', async () => {
+    mockAxios.post.mockResolvedValueOnce({
+      data: { narrative: 'Two thousand years ago...', item_name: 'POI', generated_at: '', language: 'en' },
+    });
+    await i18n.changeLanguage('en'); // eslint-disable-line import/no-named-as-default-member
+    try {
+      const result = await generateNarrative('poi-005', 'brief');
+      expect(mockAxios.post).toHaveBeenCalledWith('/narrative', {
+        item_id: 'poi-005',
+        style: 'brief',
+        language: 'en',
+      });
+      expect(result.language).toBe('en');
+    } finally {
+      await i18n.changeLanguage('pt'); // eslint-disable-line import/no-named-as-default-member
+    }
   });
 
   it('defaults to storytelling style when no style provided', async () => {

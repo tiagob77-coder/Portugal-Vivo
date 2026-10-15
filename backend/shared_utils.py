@@ -8,6 +8,34 @@ from typing import Any, Dict, Optional
 from fastapi import HTTPException, Request
 
 
+# Languages the POI content is served in; Portuguese is the source language.
+CONTENT_LANGUAGES = ("pt", "en", "es", "fr")
+
+
+def normalize_language(language: Optional[str]) -> str:
+    """'en-GB' → 'en'; empty or unsupported → 'pt' (the source language)."""
+    code = (language or "pt").strip().lower().replace("_", "-").split("-")[0]
+    return code if code in CONTENT_LANGUAGES else "pt"
+
+
+def language_from_header(accept_language: str) -> Optional[str]:
+    """First supported language in an Accept-Language header (e.g. "en-GB,en;q=0.9")."""
+    for part in (accept_language or "").split(","):
+        code = part.strip().split(";")[0].strip().split("-")[0].lower()
+        if code in CONTENT_LANGUAGES:
+            return code
+    return None
+
+
+async def find_translation(db, item_id: Optional[str], language: str) -> Optional[Dict[str, Any]]:
+    """Stored translation of a POI sheet (poi_translations), or None for Portuguese."""
+    if not item_id or normalize_language(language) == "pt":
+        return None
+    return await db.poi_translations.find_one(
+        {"item_id": item_id, "language": normalize_language(language)}, {"_id": 0},
+    )
+
+
 class DatabaseHolder:
     """Reusable database reference holder to eliminate boilerplate across API modules."""
 

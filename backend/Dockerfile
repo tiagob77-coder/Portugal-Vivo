@@ -28,8 +28,10 @@ FROM deps AS production
 # Copy application code
 COPY . .
 
-# Create non-root user
+# Create non-root user. The audio guide cache dir exists in the image so a
+# named volume mounted there (docker-compose) inherits appuser's ownership.
 RUN adduser --disabled-password --gecos "" appuser && \
+    mkdir -p /app/data/audio_guides && \
     chown -R appuser:appuser /app
 USER appuser
 

@@ -1,15 +1,18 @@
+import i18n from 'i18next';
 import api from './client';
 import type { Stats } from '../../types';
 
-// AI Narrative
+// AI Narrative — written in the UI language. `language` in the answer is the
+// one actually used (Portuguese when the sheet has no translation yet).
 export const generateNarrative = async (
   itemId: string,
-  style: 'storytelling' | 'educational' | 'brief' = 'storytelling'
-): Promise<{ narrative: string; item_name: string; generated_at: string }> => {
+  style: 'storytelling' | 'educational' | 'brief' = 'storytelling',
+  language: string = i18n.language || 'pt',
+): Promise<{ narrative: string; item_name: string; generated_at: string; language?: string }> => {
   const response = await api.post('/narrative', {
     item_id: itemId,
     style,
-    language: 'pt',
+    language,
   });
   return response.data;
 };
@@ -22,16 +25,18 @@ export const getDepthContent = async (
   poiId: string,
   depth: ContentDepth = 'snackable',
   cognitiveProfile?: CognitiveProfile,
+  language: string = i18n.language || 'pt',
 ): Promise<{
   poi_id: string; depth: string; cognitive_profile: string | null;
   content: string; generated_at: string; source: string;
   credibility: { source_type: string; confidence_level: number };
+  language?: string;
 }> => {
   const response = await api.post('/content/depth', {
     poi_id: poiId,
     depth,
     cognitive_profile: cognitiveProfile || null,
-    language: 'pt',
+    language,
   });
   return response.data;
 };

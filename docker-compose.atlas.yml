@@ -38,6 +38,10 @@ services:
     environment:
       - REDIS_URL=redis://redis:6379
       - ENVIRONMENT=production
+      # MP3s do guia áudio sobrevivem a reinícios e deploys
+      - AUDIO_CACHE_DIR=/app/data/audio_guides
+    volumes:
+      - audio_cache:/app/data/audio_guides
     depends_on:
       redis:
         condition: service_healthy
@@ -90,6 +94,8 @@ services:
     entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew --webroot -w /var/www/certbot; sleep 12h & wait $${!}; done;'"
 
 volumes:
+  audio_cache:
+    driver: local
   redis_data:
     driver: local
   certbot_data:

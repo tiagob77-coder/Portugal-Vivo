@@ -25,6 +25,9 @@ POIS = [
     {"id": "poi-3", "name": "Aldeia do Piódão", "description": "Aldeia de xisto.",
      "tags": ["xisto"], "category": "aldeias"},
 ]
+NARRATED = {"id": "poi-4", "name": "Sé de Évora", "description": "Catedral gótica.", "tags": [],
+            "address": "Largo do Marquês de Marialva",
+            "ai_narrative": "Há oito séculos que a Sé vigia a cidade do alto da colina."}
 
 
 class FakeLLM:
@@ -33,6 +36,7 @@ class FakeLLM:
     def __init__(self):
         self.calls = []
         self.drop_tag_for = set()  # languages answered with a wrong tag count
+        self.drop_narrative_for = set()  # languages answered without the AI narrative
         self.blank_address_for = set()  # languages answered without the address
         self.fail = False
 
@@ -57,6 +61,8 @@ class FakeLLM:
                 }
                 if lang in self.blank_address_for:
                     out[lang]["address"] = ""
+                if "ai_narrative" in source and lang not in self.drop_narrative_for:
+                    out[lang]["ai_narrative"] = f"[{lang}] {source['ai_narrative']}"
             return json.dumps(out, ensure_ascii=False)
         lang = re.search(r"to ([a-z]{2})\.", user).group(1)
         return f"[{lang}] " + user.split("\n\n", 1)[1]
@@ -120,6 +126,36 @@ async def test_a_dropped_address_falls_back_instead_of_being_cached(db, llm):
 
     assert llm.calls == ["batch"] + ["field"] * 5
     assert (await _translation(db, "poi-1", "fr"))["address"] == "[fr] Largo Infante Dom Henrique"
+
+
+async def test_the_ai_narrative_is_translated_with_the_sheet(db, llm):
+    await db.heritage_items.insert_one(dict(NARRATED))
+    llm.drop_narrative_for = {"fr"}
+    result = await ts.TranslationService(db).translate_poi("poi-4", ["en", "fr"])
+
+    assert {r["status"] for r in result["results"].values()} == {"translated"}
+    en = await _translation(db, "poi-4", "en")
+    assert en["ai_narrative"] == "[en] " + NARRATED["ai_narrative"]
+    # French came back without the narrative: name, description, address and narrative one by one.
+    assert llm.calls == ["batch"] + ["field"] * 4
+    assert (await _translation(db, "poi-4", "fr"))["ai_narrative"] == "[fr] " + NARRATED["ai_narrative"]
+
+    # A POI without a narrative is sent without the key and keeps an empty one.
+    llm.calls.clear()
+    await ts.TranslationService(db).translate_poi("poi-2", ["en"])
+    assert (await _translation(db, "poi-2", "en"))["ai_narrative"] == ""
+
+
+def test_hash_of_pois_without_narrative_is_unchanged():
+    import hashlib
+    item = POIS[0]
+    before = hashlib.md5(json.dumps({
+        "name": item["name"], "description": item["description"],
+        "tags": item["tags"], "address": item["address"],
+    }, sort_keys=True, ensure_ascii=False).encode()).hexdigest()
+    assert ts.TranslationService._content_hash(item) == before
+    assert ts.TranslationService._content_hash(NARRATED) != ts.TranslationService._content_hash(
+        {**NARRATED, "ai_narrative": "Outra narrativa."})
 
 
 async def test_an_unavailable_llm_is_retried_then_reported_without_storing(db, llm):

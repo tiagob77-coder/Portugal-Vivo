@@ -418,19 +418,22 @@ export default function HeritageDetailScreen() {
     queryFn: getCategories,
   });
 
+  // Offline narratives are kept per language (Portuguese keeps its old keys).
+  const narrativeCacheKey = (style: string) => (i18n.language === 'pt' ? style : `${style}_${i18n.language}`);
+
   const { data: narrativeData, isLoading: narrativeLoading, refetch: refetchNarrative } = useQuery({
-    queryKey: ['narrative', id, narrativeStyle],
+    queryKey: ['narrative', id, narrativeStyle, i18n.language],
     queryFn: async () => {
       try {
-        const data = await generateNarrative(id!, narrativeStyle);
+        const data = await generateNarrative(id!, narrativeStyle, i18n.language);
         // Persist generated narrative for offline access
-        offlineCache.cacheNarrative(id!, narrativeStyle, data.narrative).catch(() => {});
+        offlineCache.cacheNarrative(id!, narrativeCacheKey(narrativeStyle), data.narrative).catch(() => {});
         return data;
       } catch (err) {
         // Offline fallback: serve from cache with a flag
-        const cached = await offlineCache.getCachedNarrative(id!, narrativeStyle);
+        const cached = await offlineCache.getCachedNarrative(id!, narrativeCacheKey(narrativeStyle));
         if (cached) {
-          return { narrative: cached, item_name: item?.name || '', generated_at: 'cached' };
+          return { narrative: cached, item_name: item?.name || '', generated_at: 'cached', language: i18n.language };
         }
         throw err;
       }
@@ -440,20 +443,20 @@ export default function HeritageDetailScreen() {
 
   // Free brief resume — available to all users via depth content API (snackable)
   const { data: freeResumeData, isLoading: freeResumeLoading } = useQuery({
-    queryKey: ['depth-content', id, 'snackable'],
+    queryKey: ['depth-content', id, 'snackable', i18n.language],
     queryFn: async () => {
       try {
-        const data = await getDepthContent(id!, 'snackable');
-        return { narrative: data.content, item_name: '', generated_at: data.generated_at };
+        const data = await getDepthContent(id!, 'snackable', undefined, i18n.language);
+        return { narrative: data.content, item_name: '', generated_at: data.generated_at, language: data.language };
       } catch {
         // Fallback to legacy narrative API
         try {
-          const data = await generateNarrative(id!, 'brief');
+          const data = await generateNarrative(id!, 'brief', i18n.language);
           return data;
         } catch (err2) {
-          const cached = await offlineCache.getCachedNarrative(id!, 'brief');
+          const cached = await offlineCache.getCachedNarrative(id!, narrativeCacheKey('brief'));
           if (cached) {
-            return { narrative: cached, item_name: item?.name || '', generated_at: 'cached' };
+            return { narrative: cached, item_name: item?.name || '', generated_at: 'cached', language: i18n.language };
           }
           throw err2;
         }
@@ -464,9 +467,9 @@ export default function HeritageDetailScreen() {
 
   // Depth content — 4 levels for premium users
   const { data: depthData, isLoading: depthLoading } = useQuery({
-    queryKey: ['depth-content', id, depthLevel, cognitiveProfile],
+    queryKey: ['depth-content', id, depthLevel, cognitiveProfile, i18n.language],
     queryFn: async () => {
-      const data = await getDepthContent(id!, depthLevel, cognitiveProfile);
+      const data = await getDepthContent(id!, depthLevel, cognitiveProfile, i18n.language);
       return data;
     },
     enabled: showNarrative && isPremium && depthLevel !== 'snackable',
@@ -617,8 +620,9 @@ export default function HeritageDetailScreen() {
     }
   };
 
-  // Device TTS for AI narrative (free, uses on-device voice)
-  const handleSpeakNarrative = async (text: string) => {
+  // Device TTS for AI narrative (free, uses on-device voice) in the language
+  // the text came back in.
+  const handleSpeakNarrative = async (text: string, language?: string) => {
     if (isSpeakingNarrative) {
       Speech.stop();
       setIsSpeakingNarrative(false);
@@ -626,7 +630,7 @@ export default function HeritageDetailScreen() {
     }
     setIsSpeakingNarrative(true);
     Speech.speak(text, {
-      language: 'pt-PT',
+      language: currentLocale(language ?? 'pt'),
       rate: 0.9,
       onDone: () => setIsSpeakingNarrative(false),
       onError: () => setIsSpeakingNarrative(false),
@@ -932,7 +936,7 @@ export default function HeritageDetailScreen() {
                     <MaterialIcons name="auto-awesome" size={12} color="#C49A6C" />
                     <Text style={styles.freeResumeFooterText}>{t('details.heritage.aiSummary')}</Text>
                     <TouchableOpacity
-                      onPress={() => handleSpeakNarrative(freeResumeData.narrative)}
+                      onPress={() => handleSpeakNarrative(freeResumeData.narrative, freeResumeData.language)}
                       style={styles.freeResumeSpeakBtn}
                       accessibilityLabel={t('details.heritage.listenSummary')}
                     >
@@ -1192,7 +1196,9 @@ export default function HeritageDetailScreen() {
                 {/* Ouvir narrativa — device TTS, free */}
                 <TouchableOpacity
                   style={[styles.narrativeSpeakButton, isSpeakingNarrative && styles.narrativeSpeakButtonActive]}
-                  onPress={() => handleSpeakNarrative(depthData?.content || narrativeData?.narrative || '')}
+                  onPress={() => depthData?.content
+                    ? handleSpeakNarrative(depthData.content, depthData.language)
+                    : handleSpeakNarrative(narrativeData?.narrative || '', narrativeData?.language)}
                   accessibilityLabel={isSpeakingNarrative ? t('details.heritage.stopReading') : t('details.heritage.listenNarrative')}
                   accessibilityRole="button"
                 >
