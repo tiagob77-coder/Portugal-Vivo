@@ -247,21 +247,26 @@ async def v1_get_narratives(
 @partner_api_v1_router.get("/audio/{poi_id}")
 async def v1_get_audio(
     poi_id: str,
+    lang: str = Query("pt", pattern="^(pt|en|es|fr)$", description="Língua da narração"),
     key: ApiKeyContext = Depends(require_api_key("audio")),
     db: AsyncIOMotorDatabase = Depends(get_db),
 ):
-    """Áudio-guia (MP3 em base64) gerado a partir da narrativa do POI."""
-    from services.audio_guide_service import audio_guide_service
+    """Áudio-guia (MP3 em base64) gerado a partir da narrativa do POI.
+
+    Noutra língua usa a ficha traduzida; sem tradução, narra em português
+    (o campo `language` da resposta diz qual foi usada).
+    """
+    from services.audio_guide_service import MIN_AUDIO_TEXT, audio_guide_service, localized_narration
 
     item = await db.heritage_items.find_one(_and({"id": poi_id}, PUBLISHED_POI_FILTER), {"_id": 0})
     if not item:
         raise HTTPException(status_code=404, detail="POI não encontrado")
-    text = item.get("ai_narrative") or item.get("description") or ""
-    if len(text) < 20:
+    narration = await localized_narration(db, item, lang)
+    if len(narration["text"]) < MIN_AUDIO_TEXT:
         raise HTTPException(status_code=404, detail="POI sem narrativa suficiente para áudio")
     result = await audio_guide_service.generate_audio_guide(
-        text=text, poi_name=item.get("name", ""), poi_id=poi_id,
-        category=item.get("category"), language="pt", use_hd=False, speed="normal",
+        text=narration["text"], poi_name=narration["name"], poi_id=poi_id,
+        category=item.get("category"), language=narration["language"], use_hd=False, speed="normal",
     )
     return _envelope(key, result)
 

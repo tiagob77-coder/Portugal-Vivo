@@ -60,13 +60,19 @@ export const generateAudioGuide = async (
   return response.data;
 };
 
+/**
+ * Audio guide for a POI. `lang` picks the narration language (pt/en/es/fr);
+ * the backend reads the translated sheet and answers in Portuguese while the
+ * sheet has no translation — `language` in the result says which one it used.
+ */
 export const getAudioGuideForItem = async (
   itemId: string,
   useHd?: boolean,
-  speed?: string
+  speed?: string,
+  lang?: string
 ): Promise<AudioGuideResult> => {
   const response = await api.get(`/audio/guide/${itemId}`, {
-    params: { use_hd: useHd, speed },
+    params: { use_hd: useHd, speed, lang },
   });
   return response.data;
 };

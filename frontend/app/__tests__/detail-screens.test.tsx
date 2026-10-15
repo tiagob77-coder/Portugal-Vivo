@@ -3,7 +3,7 @@
  * Verifies each screen renders without crashing when given a mock param.
  */
 import React from 'react';
-import { act, render } from '@testing-library/react-native';
+import { act, fireEvent, render, waitFor } from '@testing-library/react-native';
 import i18n from 'i18next';
 
 // ─── expo-router ──────────────────────────────────────────────────────────────
@@ -32,23 +32,30 @@ jest.mock('expo-router/head', () => ({
 }));
 
 // ─── React Query ──────────────────────────────────────────────────────────────
+// Set mockHeritageItem to render a loaded POI sheet; every other query stays empty.
+let mockHeritageItem: Record<string, unknown> | undefined;
 jest.mock('@tanstack/react-query', () => ({
-  useQuery: () => ({ data: undefined, isLoading: false, refetch: jest.fn() }),
+  useQuery: ({ queryKey }: { queryKey: unknown[] }) => ({
+    data: queryKey[0] === 'heritage' ? mockHeritageItem : undefined,
+    isLoading: false,
+    refetch: jest.fn(),
+  }),
   useMutation: () => ({ mutate: jest.fn(), mutateAsync: jest.fn(), isLoading: false }),
   useQueryClient: () => ({ invalidateQueries: jest.fn() }),
 }));
 
 // ─── Auth ─────────────────────────────────────────────────────────────────────
+let mockIsPremium = false;
 jest.mock('../../src/context/AuthContext', () => ({
   useAuth: () => ({
     user: null,
     isLoading: false,
-    isAuthenticated: false,
+    isAuthenticated: mockIsPremium,
     login: jest.fn(),
     logout: jest.fn(),
     sessionToken: null,
-    isPremium: false,
-    premiumTier: 'free',
+    isPremium: mockIsPremium,
+    premiumTier: mockIsPremium ? 'premium' : 'free',
   }),
 }));
 
@@ -152,7 +159,10 @@ jest.mock('../../src/config/api', () => ({ API_BASE: 'http://localhost:8000', AP
 jest.mock('../../src/services/offlineCache', () => ({
   __esModule: true,
   default: { get: jest.fn(() => null), set: jest.fn() },
-  offlineCache: { get: jest.fn(() => null), set: jest.fn() },
+  offlineCache: {
+    get: jest.fn(() => null), set: jest.fn(),
+    addFavoritePOI: jest.fn(), cacheNarrative: jest.fn(), prefetchImages: jest.fn(),
+  },
 }));
 
 // ─── Native deps ──────────────────────────────────────────────────────────────
@@ -193,6 +203,10 @@ jest.mock('expo-location', () => ({
 
 jest.mock('react-native-webview', () => ({
   WebView: 'WebView',
+}));
+
+jest.mock('../../src/services/impactTracking', () => ({
+  trackImpact: jest.fn(),
 }));
 
 jest.mock('../../src/components/ReviewsSection', () => ({
@@ -273,5 +287,39 @@ describe('Detail Screens — English UI', () => {
     const HeritageDetail = require('../heritage/[id]').default;
     const { getByText } = render(<HeritageDetail />);
     expect(getByText('Item not found')).toBeTruthy();
+  });
+});
+
+describe('heritage/[id] — audio guide in the UI language', () => {
+  afterEach(async () => {
+    mockHeritageItem = undefined;
+    mockIsPremium = false;
+    await act(() => i18n.changeLanguage('pt')); // eslint-disable-line import/no-named-as-default-member
+  });
+
+  it('asks for the English narration and reads it with an English device voice', async () => {
+    const api = require('../../src/services/api');
+    const Speech = require('expo-speech');
+    api.getAudioGuideForItem.mockResolvedValueOnce({
+      success: false, fallback: 'device', language: 'en',
+      text: 'Welcome to Roman Temple. First-century Roman temple.',
+    });
+    mockIsPremium = true;
+    mockHeritageItem = {
+      id: 'test-id', name: 'Roman Temple', category: 'arqueologia', region: 'alentejo',
+      description: 'First-century Roman temple.', language: 'en', tags: [],
+      location: { lat: 38.5725, lng: -7.9072 },
+    };
+    await act(() => i18n.changeLanguage('en')); // eslint-disable-line import/no-named-as-default-member
+
+    const HeritageDetail = require('../heritage/[id]').default;
+    const { getByTestId } = render(<HeritageDetail />);
+    fireEvent.press(getByTestId('heritage-audio-guide'));
+
+    await waitFor(() => expect(Speech.speak).toHaveBeenCalledWith(
+      'Welcome to Roman Temple. First-century Roman temple.',
+      expect.objectContaining({ language: 'en-GB' }),
+    ));
+    expect(api.getAudioGuideForItem).toHaveBeenCalledWith('test-id', undefined, undefined, 'en');
   });
 });

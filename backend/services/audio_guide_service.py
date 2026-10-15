@@ -1,6 +1,6 @@
 """
 Audio Guide Service - Text-to-Speech for Heritage Sites
-Uses OpenAI TTS via Emergent Integrations
+Uses OpenAI TTS (direct, or the legacy Emergent proxy).
 """
 import os
 import logging
@@ -31,6 +31,67 @@ SPEED_PROFILES = {
     "slow": 0.85,      # For complex historical content
     "fast": 1.15,      # For quick facts
 }
+
+AUDIO_LANGUAGES = ("pt", "en", "es", "fr")
+
+# Spoken greeting and the line that closes a narration cut at the TTS limit.
+INTROS = {
+    "pt": "Bem-vindo a {name}. ",
+    "en": "Welcome to {name}. ",
+    "es": "Bienvenido a {name}. ",
+    "fr": "Bienvenue à {name}. ",
+}
+TRUNCATION_TAILS = {
+    "pt": "... Continue a explorar para descobrir mais.",
+    "en": "... Keep exploring to discover more.",
+    "es": "... Sigue explorando para descubrir más.",
+    "fr": "... Continuez à explorer pour en découvrir davantage.",
+}
+
+# Accent guidance for gpt-4o-mini-tts. It goes in the request's
+# `instructions` field: anything put in the input text is read out loud.
+VOICE_INSTRUCTIONS = {
+    "pt": "Speak European Portuguese from Portugal with a Lisbon accent. Never use Brazilian pronunciation.",
+    "en": "Speak clear, neutral English. Pronounce Portuguese place names the Portuguese way.",
+    "es": "Speak Castilian Spanish from Spain. Pronounce Portuguese place names the Portuguese way.",
+    "fr": "Speak French from France. Pronounce Portuguese place names the Portuguese way.",
+}
+PACE_INSTRUCTIONS = {
+    "slow": " Speak at a slightly slower, unhurried pace.",
+    "fast": " Speak at a slightly brisker pace.",
+}
+
+# The only model that follows `instructions`; tts-1 / tts-1-hd ignore them.
+INSTRUCTED_TTS_MODEL = "gpt-4o-mini-tts"
+
+
+# Shorter texts make no sense as a guide; the sheet has no real content yet.
+MIN_AUDIO_TEXT = 20
+
+
+def normalize_audio_language(language: Optional[str]) -> str:
+    code = (language or "pt").strip().lower().replace("_", "-").split("-")[0]
+    return code if code in AUDIO_LANGUAGES else "pt"
+
+
+async def localized_narration(db, item: dict, language: Optional[str]) -> Dict[str, str]:
+    """Text, POI name and language to narrate ``item`` in ``language``.
+
+    Portuguese reads the AI narrative, then the description. Other languages
+    read the translated sheet (poi_translations) and fall back to Portuguese
+    while the sheet has not been translated yet, so the guide never goes silent.
+    """
+    language = normalize_audio_language(language)
+    if language != "pt":
+        translation = await db.poi_translations.find_one(
+            {"item_id": item.get("id"), "language": language},
+            {"_id": 0, "name": 1, "description": 1},
+        )
+        text = ((translation or {}).get("description") or "").strip()
+        if len(text) >= MIN_AUDIO_TEXT:
+            return {"text": text, "name": translation.get("name") or item.get("name", ""), "language": language}
+    text = item.get("ai_narrative") or item.get("description") or item.get("name") or ""
+    return {"text": text, "name": item.get("name", ""), "language": "pt"}
 
 
 class AudioGuideService:
@@ -73,40 +134,56 @@ class AudioGuideService:
             self._tts_client = OpenAITextToSpeech(api_key=self.emergent_key)
         return self._tts_client
 
-    async def _synthesize(self, text: str, model: str, voice: str, speed: float) -> bytes:
+    def _select_model(self, use_hd: bool) -> str:
+        """gpt-4o-mini-tts takes accent instructions; the Emergent proxy and HD keep tts-1."""
+        if use_hd:
+            return "tts-1-hd"
+        return INSTRUCTED_TTS_MODEL if self.provider == "openai" else "tts-1"
+
+    @staticmethod
+    def _voice_instructions(language: str, speed: str) -> str:
+        return VOICE_INSTRUCTIONS[language] + PACE_INSTRUCTIONS.get(speed, "")
+
+    async def _synthesize(self, text: str, model: str, voice: str, speed: float,
+                          instructions: Optional[str] = None) -> bytes:
         """Synthesize mp3 speech bytes using the active provider."""
         if self.provider == "openai":
-            return await self._synthesize_openai(text, model, voice, speed)
+            return await self._synthesize_openai(text, model, voice, speed, instructions)
         client = await self._get_emergent_client()
         return await client.generate_speech(
             text=text, model=model, voice=voice, speed=speed, response_format="mp3",
         )
 
-    async def _synthesize_openai(self, text: str, model: str, voice: str, speed: float) -> bytes:
+    async def _synthesize_openai(self, text: str, model: str, voice: str, speed: float,
+                                 instructions: Optional[str] = None) -> bytes:
         """Call OpenAI's /v1/audio/speech directly — no extra dependency needed."""
         import httpx
 
-        async with httpx.AsyncClient(timeout=30.0) as client:
+        payload = {
+            "model": model,
+            "voice": voice,
+            "input": text,
+            "speed": speed,
+            "response_format": "mp3",
+        }
+        if instructions and model == INSTRUCTED_TTS_MODEL:
+            payload["instructions"] = instructions
+
+        async with httpx.AsyncClient(timeout=60.0) as client:
             resp = await client.post(
                 "https://api.openai.com/v1/audio/speech",
                 headers={
                     "Authorization": f"Bearer {self.openai_key}",
                     "Content-Type": "application/json",
                 },
-                json={
-                    "model": model,
-                    "voice": voice,
-                    "input": text,
-                    "speed": speed,
-                    "response_format": "mp3",
-                },
+                json=payload,
             )
         resp.raise_for_status()
         return resp.content
 
-    def _get_cache_key(self, text: str, voice: str, speed: float) -> str:
+    def _get_cache_key(self, text: str, voice: str, speed: float, model: str, language: str) -> str:
         """Generate cache key for audio"""
-        content = f"{text}:{voice}:{speed}"
+        content = f"{model}:{language}:{text}:{voice}:{speed}"
         return hashlib.md5(content.encode()).hexdigest()
 
     def _get_cached_audio(self, cache_key: str) -> Optional[bytes]:
@@ -132,38 +209,24 @@ class AudioGuideService:
         return VOICE_PROFILES["default"]
 
     def _prepare_text_for_tts(self, text: str, poi_name: str, language: str = "pt") -> str:
-        """Prepare text for TTS with natural pauses and structure.
+        """Greeting in the narration's language, natural pauses, cut to the TTS limit.
 
-        For Portuguese (pt), prepends a pronunciation hint so the TTS engine
-        uses European Portuguese (PT-PT) accent instead of Brazilian.
+        Everything returned here is read out loud, so accent guidance goes in
+        the request's `instructions` field instead (see VOICE_INSTRUCTIONS).
         """
-        # Pronunciation hint for PT-PT — invisible to listener but guides the TTS model
-        pt_hint = ""
-        if language == "pt":
-            pt_hint = (
-                "[Lê em português europeu de Portugal, com sotaque de Lisboa. "
-                "Nunca uses pronúncia brasileira.] "
-            )
-
-        # Add introduction
-        intro = f"Bem-vindo a {poi_name}. "
-
-        # Clean up text
-        cleaned = text.strip()
-
-        # Add natural pauses (... becomes slight pause)
-        cleaned = cleaned.replace("...", ". ")
+        language = normalize_audio_language(language)
+        intro = INTROS[language].format(name=poi_name)
+        cleaned = text.strip().replace("...", ". ")
 
         # Limit to 4000 chars (API limit is 4096)
-        full = pt_hint + intro + cleaned
-        if len(full) > 4000:
-            cleaned = cleaned[:4000 - len(pt_hint) - len(intro) - 50] + "... Continue a explorar para descobrir mais."
+        if len(intro) + len(cleaned) > 4000:
+            tail = TRUNCATION_TAILS[language]
+            cleaned = cleaned[:4000 - len(intro) - len(tail)] + tail
+        return intro + cleaned
 
-        return pt_hint + intro + cleaned
-
-    def _device_text(self, text: str, poi_name: str) -> str:
+    def _device_text(self, text: str, poi_name: str, language: str = "pt") -> str:
         """Plain narration text for on-device TTS — no engine hints, trimmed."""
-        intro = f"Bem-vindo a {poi_name}. "
+        intro = INTROS[normalize_audio_language(language)].format(name=poi_name)
         cleaned = text.strip().replace("...", ". ")
         return (intro + cleaned)[:1500]
 
@@ -195,9 +258,10 @@ class AudioGuideService:
         # Voice/speed and a device-fallback payload are computed up front so we
         # can always return readable text for on-device TTS — the client never
         # shows a dead "Ouvir" button.
+        language = normalize_audio_language(language)
         voice = self._select_voice(category, None)
         speed_value = SPEED_PROFILES.get(speed, 1.0)
-        device_text = self._device_text(text, poi_name)
+        device_text = self._device_text(text, poi_name, language)
 
         def _device_fallback(reason: str) -> Dict[str, Any]:
             return {
@@ -218,9 +282,10 @@ class AudioGuideService:
 
         try:
             prepared_text = self._prepare_text_for_tts(text, poi_name, language)
+            model = self._select_model(use_hd)
 
             # Check cache
-            cache_key = self._get_cache_key(prepared_text, voice, speed_value)
+            cache_key = self._get_cache_key(prepared_text, voice, speed_value, model, language)
             cached_audio = self._get_cached_audio(cache_key)
 
             if cached_audio:
@@ -231,7 +296,7 @@ class AudioGuideService:
                     "audio_format": "mp3",
                     "voice": voice,
                     "speed": speed_value,
-                    "model": "tts-1-hd" if use_hd else "tts-1",
+                    "model": model,
                     "cached": True,
                     "tts_provider": self.provider,
                     "duration_estimate_seconds": len(prepared_text) / 15,  # Rough estimate
@@ -240,8 +305,10 @@ class AudioGuideService:
                     "language": language
                 }
 
-            model = "tts-1-hd" if use_hd else "tts-1"
-            audio_bytes = await self._synthesize(prepared_text, model, voice, speed_value)
+            audio_bytes = await self._synthesize(
+                prepared_text, model, voice, speed_value,
+                instructions=self._voice_instructions(language, speed),
+            )
 
             # Cache the audio
             self._cache_audio(cache_key, audio_bytes)
@@ -294,6 +361,7 @@ class AudioGuideService:
                 {"id": "ash", "name": "Ash", "description": "Clara e articulada", "best_for": ["educativo"]},
             ],
             "models": [
+                {"id": INSTRUCTED_TTS_MODEL, "name": "Natural", "description": "Sotaque certo em cada língua (predefinido)"},
                 {"id": "tts-1", "name": "Standard", "description": "Rápido e eficiente"},
                 {"id": "tts-1-hd", "name": "HD", "description": "Alta qualidade de áudio"}
             ],
@@ -302,7 +370,7 @@ class AudioGuideService:
                 {"id": "normal", "value": 1.0, "description": "Normal"},
                 {"id": "fast", "value": 1.15, "description": "Rápido - para factos breves"}
             ],
-            "supported_languages": ["pt", "en", "es", "fr", "de", "it"]
+            "supported_languages": list(AUDIO_LANGUAGES)
         }
 
 

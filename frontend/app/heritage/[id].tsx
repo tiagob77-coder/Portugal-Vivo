@@ -563,7 +563,7 @@ export default function HeritageDetailScreen() {
     setAudioError(null);
 
     try {
-      const audioResult = await getAudioGuideForItem(item.id);
+      const audioResult = await getAudioGuideForItem(item.id, undefined, undefined, i18n.language);
 
       if (audioResult.success && audioResult.audio_base64) {
         // Remote TTS available — play the generated mp3.
@@ -587,12 +587,12 @@ export default function HeritageDetailScreen() {
         trackPoiEvent('audio_play');
       } else if (audioResult.text) {
         // No remote provider / TTS failed — read the narration with the
-        // on-device voice so the experience still works in the pilot.
+        // on-device voice, in the language the backend narrated it in.
         audioModeRef.current = 'device';
         setIsPlayingAudio(true);
         trackPoiEvent('audio_play');
         Speech.speak(audioResult.text, {
-          language: 'pt-PT',
+          language: currentLocale(audioResult.language ?? 'pt'),
           rate: 0.9,
           onDone: () => {
             if (audioModeRef.current === 'device') trackPoiEvent('audio_complete');
@@ -1359,6 +1359,7 @@ export default function HeritageDetailScreen() {
         </TouchableOpacity>
 
         <TouchableOpacity
+          testID="heritage-audio-guide"
           style={[styles.actionButton, (isPlayingAudio || isLoadingAudio) && styles.actionButtonActive]}
           onPress={handlePlayAudio}
           disabled={isLoadingAudio}

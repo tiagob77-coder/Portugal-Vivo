@@ -19,7 +19,7 @@ Base URL: `https://api.portugalvivo.pt/api/v1` · Autenticação: cabeçalho `X-
 | `GET /v1/narratives/{poi_id}` | Narrativas publicadas do POI (texto); link de áudio nos planos Pro+ | Parceiro |
 | `GET /v1/events` | Eventos culturais e festivais (região, concelho, mês) | Parceiro |
 | `GET /v1/weather/{location}` | Previsão a 5 dias (IPMA) | Parceiro |
-| `GET /v1/audio/{poi_id}` | Áudio-guia MP3 (base64) | Pro |
+| `GET /v1/audio/{poi_id}` | Áudio-guia MP3 (base64); `?lang=` pt, en, es ou fr (usa a ficha traduzida) | Pro |
 | `GET /v1/usage` | Plano e consumo do mês da chave (não conta para a quota) | Todos |
 | `GET /v1/plans` | Catálogo de planos (público) | — |
 
