@@ -29,7 +29,7 @@ from pydantic import BaseModel, Field
 
 from auth_api import get_current_user, require_auth
 from shared_constants import sanitize_regex
-from shared_utils import DatabaseHolder
+from shared_utils import DatabaseHolder, find_translation, normalize_language
 
 logger = logging.getLogger(__name__)
 
@@ -246,9 +246,20 @@ class ProfileFeedRequest(BaseModel):
 # HELPERS
 # ──────────────────────────────────────────────────────────────────────────────
 
-def _cache_key(poi_id: str, depth: str, profile: Optional[str]) -> str:
+def _cache_key(poi_id: str, depth: str, profile: Optional[str], language: str = "pt") -> str:
     raw = f"{poi_id}|{depth}|{profile or 'generic'}"
+    if language != "pt":  # Portuguese keeps the keys of the texts already cached
+        raw += f"|{language}"
     return "content_" + hashlib.sha256(raw.encode()).hexdigest()[:16]
+
+
+# Writing rule for the depth texts in each language.
+_WRITING_RULES = {
+    "pt": "Escreve sempre em português de Portugal — culto, fluido e autêntico. ",
+    "en": "Write in English — cultured, fluent and authentic; keep Portuguese place names as they are. ",
+    "es": "Escribe en español de España — culto, fluido y auténtico; mantén los topónimos portugueses. ",
+    "fr": "Écris en français — cultivé, fluide et authentique ; garde les noms de lieux portugais. ",
+}
 
 
 def _get_seasonal_hook() -> str:
@@ -261,6 +272,7 @@ async def _generate_with_llm(
     depth: str,
     profile: Optional[str],
     context_trigger: Optional[str] = None,
+    language: str = "pt",
 ) -> Optional[str]:
     """Generate depth-adapted, profile-aware content via the central llm_client
     (OpenAI direct → Emergent → None). Returns None when no provider is
@@ -272,7 +284,7 @@ async def _generate_with_llm(
 
     system_msg = (
         "És um especialista em conteúdo cultural e turístico português. "
-        "Escreve sempre em português de Portugal — culto, fluido e autêntico. "
+        f"{_WRITING_RULES[normalize_language(language)]}"
         "Nunca uses frases genéricas como 'ponto de interesse' ou 'vale a pena visitar'. "
         f"{tone_addendum} "
         f"{depth_addendum}"
@@ -366,7 +378,8 @@ async def get_depth_content(request: ContentDepthRequest):
     if not poi:
         raise HTTPException(status_code=404, detail="POI não encontrado")
 
-    cache_key = _cache_key(request.poi_id, request.depth, request.cognitive_profile)
+    language = normalize_language(request.language)
+    cache_key = _cache_key(request.poi_id, request.depth, request.cognitive_profile, language)
 
     # ── Check dedicated narrative_cache collection (MongoDB Atlas) ────
     if not request.force_regenerate:
@@ -380,14 +393,23 @@ async def get_depth_content(request: ContentDepthRequest):
                 "generated_at": cached.get("generated_at"),
                 "source": "cache",
                 "credibility": cached.get("credibility"),
+                "language": language,
             }
 
     # ── Generate via LLM ─────────────────────────────────────────────
-    text = await _generate_with_llm(poi, request.depth, request.cognitive_profile)
+    text = await _generate_with_llm(poi, request.depth, request.cognitive_profile, language=language)
     source = "llm" if text else "template"
 
-    # Fallback template
-    if not text:
+    # Fallback template — other languages read the translated sheet (the
+    # Portuguese templates would mix languages); Portuguese keeps its templates.
+    text_language = language
+    translation = None if text else await find_translation(db, request.poi_id, language)
+    if not text and translation and translation.get("description"):
+        name, desc = translation.get("name") or poi.get("name", ""), translation["description"]
+        limit = {"snackable": 200, "criancas": 200, "historia": 600}.get(request.depth)
+        text = f"{name} — {desc[:limit]}" if limit else desc
+    elif not text:
+        text_language = "pt"
         if request.depth in ("snackable", "criancas"):
             text = _template_snackable(poi, request.cognitive_profile)
         elif request.depth == "historia":
@@ -416,13 +438,16 @@ async def get_depth_content(request: ContentDepthRequest):
         "generated_at": now_iso,
         "source": source,
         "credibility": credibility,
-        "language": request.language,
+        "language": text_language,
     }
-    await db.narrative_cache.update_one(
-        {"cache_key": cache_key},
-        {"$set": cache_doc},
-        upsert=True,
-    )
+    # A Portuguese stand-in for another language is not cached under that
+    # language, so the real text replaces it once the sheet is translated.
+    if text_language == language:
+        await db.narrative_cache.update_one(
+            {"cache_key": cache_key},
+            {"$set": cache_doc},
+            upsert=True,
+        )
 
     return {
         "poi_id": request.poi_id,
@@ -432,6 +457,7 @@ async def get_depth_content(request: ContentDepthRequest):
         "generated_at": now_iso,
         "source": source,
         "credibility": credibility,
+        "language": text_language,
     }
 
 

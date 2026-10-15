@@ -181,6 +181,7 @@ class UserContribution(BaseModel):
 class NarrativeRequest(BaseModel):
     item_id: str = Field(..., max_length=100)
     style: str = Field("storytelling", max_length=30)
+    language: str = Field("pt", max_length=10)
 
 
 class RoutePlanRequest(BaseModel):
@@ -234,6 +235,7 @@ class NarrativeResponse(BaseModel):
     narrative: str
     item_name: str
     generated_at: datetime
+    language: str = "pt"
 
 
 class EncyclopediaArticle(BaseModel):

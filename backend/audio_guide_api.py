@@ -4,10 +4,9 @@ from pydantic import BaseModel
 from typing import Optional
 
 from dependencies import get_db
-from services.audio_guide_service import (
-    AUDIO_LANGUAGES, MIN_AUDIO_TEXT, audio_guide_service, localized_narration,
-)
+from services.audio_guide_service import MIN_AUDIO_TEXT, audio_guide_service, localized_narration
 from premium_guard import require_feature
+from shared_utils import language_from_header
 
 router = APIRouter()
 
@@ -18,15 +17,6 @@ router = APIRouter()
 def set_audio_guide_db(database):
     """No-op; the module now reads the DB via Depends(get_db)."""
     _ = database
-
-
-def _language_from_header(accept_language: str) -> Optional[str]:
-    """First supported language in an Accept-Language header (e.g. "en-GB,en;q=0.9")."""
-    for part in accept_language.split(","):
-        code = part.strip().split(";")[0].strip().split("-")[0].lower()
-        if code in AUDIO_LANGUAGES:
-            return code
-    return None
 
 
 class AudioGuideRequest(BaseModel):
@@ -74,7 +64,7 @@ async def get_audio_for_item(
     if not item:
         raise HTTPException(status_code=404, detail="Item not found")
 
-    language = lang or _language_from_header(request.headers.get("accept-language", ""))
+    language = lang or language_from_header(request.headers.get("accept-language", ""))
     narration = await localized_narration(db, item, language)
     if len(narration["text"]) < MIN_AUDIO_TEXT:
         return {

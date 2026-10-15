@@ -40,7 +40,7 @@ async def _check_rate_limit():
         _rate_limit_calls.append(time.time())
 
 
-TRANSLATABLE_FIELDS = ("name", "description", "tags", "address")
+TRANSLATABLE_FIELDS = ("name", "description", "tags", "address", "ai_narrative")
 
 # One call translates a POI into every missing language; it gets a few tries
 # before the POI is reported as failed (429s and timeouts are usually brief).
@@ -58,6 +58,7 @@ def _source_fields(item: dict) -> Dict[str, Any]:
         "description": item.get("description") or "",
         "tags": [t for t in (item.get("tags") or []) if isinstance(t, str) and t.strip()],
         "address": item.get("address") or "",
+        "ai_narrative": item.get("ai_narrative") if isinstance(item.get("ai_narrative"), str) else "",
     }
 
 
@@ -82,20 +83,23 @@ def _parse_batch(raw: str, source: Dict[str, Any], languages: List[str]) -> Dict
             continue
         name, description = t.get("name"), t.get("description")
         address, tags = t.get("address", ""), t.get("tags", [])
-        if not all(isinstance(v, str) for v in (name, description, address)):
+        narrative = t.get("ai_narrative", "")
+        if not all(isinstance(v, str) for v in (name, description, address, narrative)):
             continue
         if not isinstance(tags, list) or not all(isinstance(v, str) for v in tags):
             continue
         if len(tags) != len(source["tags"]):
             continue
         if any(source[field] and not value.strip()
-               for field, value in (("name", name), ("description", description), ("address", address))):
+               for field, value in (("name", name), ("description", description),
+                                    ("address", address), ("ai_narrative", narrative))):
             continue
         parsed[lang] = {
             "name": name.strip(),
             "description": description.strip(),
             "tags": [v.strip() for v in tags],
             "address": address.strip() if source["address"] else "",
+            "ai_narrative": narrative.strip() if source["ai_narrative"] else "",
         }
     return parsed
 
@@ -132,22 +136,26 @@ class TranslationService:
         return translated.strip()
 
     async def translate_fields(self, item: dict, languages: List[str]) -> Dict[str, Dict[str, Any]]:
-        """Translate name, description, tags and address into several languages in one call.
+        """Translate a POI's sheet (name, description, tags, address and AI
+        narrative) into several languages in one call.
 
-        Returns ``{lang: {name, description, tags, address}}`` for the
+        Returns ``{lang: {name, description, tags, address, ai_narrative}}`` for the
         languages the model got right; see ``_parse_batch`` for what is left
         out. Raises ``TranslationUnavailable`` when every attempt fails.
         """
         from llm_client import call_chat_completion
 
         source = _source_fields(item)
+        # Most POIs have no AI narrative: leave the key out instead of sending it empty.
+        payload = {k: v for k, v in source.items() if k != "ai_narrative" or v}
         prompt = (
             "Translate the values of this JSON object from European Portuguese into these "
             f"languages: {', '.join(languages)}.\n"
             "Return a JSON object keyed by language code. Each value has the same keys as the "
-            "source: name, description and address (strings) and tags (a list with one "
-            "translation per source tag, in the same order). Keep empty strings empty.\n\n"
-            + json.dumps(source, ensure_ascii=False)
+            "source: name, description, address and ai_narrative when present (strings) and tags "
+            "(a list with one translation per source tag, in the same order). "
+            "Keep empty strings empty.\n\n"
+            + json.dumps(payload, ensure_ascii=False)
         )
         messages = [
             {"role": "system", "content": SYSTEM_PROMPT},
@@ -177,6 +185,8 @@ class TranslationService:
             "description": await self.translate_text(source["description"], "pt", lang),
             "tags": [await self.translate_text(tag, "pt", lang) for tag in source["tags"]],
             "address": await self.translate_text(source["address"], "pt", lang) if source["address"] else "",
+            "ai_narrative": (await self.translate_text(source["ai_narrative"], "pt", lang)
+                             if source["ai_narrative"] else ""),
         }
 
     async def _estimate_tokens(self, text: str) -> int:
@@ -222,7 +232,8 @@ class TranslationService:
             return {"item_id": item_id, "results": results, "total_tokens_estimated": 0}
 
         source = _source_fields(item)
-        all_source_text = " ".join([source["name"], source["description"], " ".join(source["tags"]), source["address"]])
+        all_source_text = " ".join([source["name"], source["description"], " ".join(source["tags"]),
+                                    source["address"], source["ai_narrative"]])
         source_tokens = await self._estimate_tokens(all_source_text)
         # The source is sent once for every language: split the input, count the output per language.
         tokens_per_language = source_tokens + max(1, source_tokens // len(languages))
@@ -351,10 +362,15 @@ class TranslationService:
     def _content_hash(item: dict) -> str:
         """Create a simple hash of translatable content to detect changes."""
         import hashlib
-        content = json.dumps({
+        fields = {
             "name": item.get("name", ""),
             "description": item.get("description", ""),
             "tags": item.get("tags", []),
             "address": item.get("address", ""),
-        }, sort_keys=True, ensure_ascii=False)
+        }
+        # Only POIs with an AI narrative hash it, so the others keep the hash
+        # (and the cached translation) they had before narratives were translated.
+        if item.get("ai_narrative"):
+            fields["ai_narrative"] = item["ai_narrative"]
+        content = json.dumps(fields, sort_keys=True, ensure_ascii=False)
         return hashlib.md5(content.encode()).hexdigest()

@@ -55,6 +55,7 @@ class ManualTranslationUpdate(BaseModel):
     description: Optional[str] = None
     tags: Optional[List[str]] = None
     address: Optional[str] = None
+    ai_narrative: Optional[str] = None
     quality_score: Optional[float] = Field(None, ge=0, le=1)
 
 
@@ -294,6 +295,8 @@ async def get_localized_heritage(item_id: str, request: Request, lang: Optional[
                 result["tags"] = translation["tags"]
             if translation.get("address"):
                 result["address"] = translation["address"]
+            if translation.get("ai_narrative"):
+                result["ai_narrative"] = translation["ai_narrative"]
             result["language"] = target_lang
             result["translation_source"] = translation.get("translation_source", "ai")
             result["quality_score"] = translation.get("quality_score")
@@ -332,6 +335,8 @@ async def update_translation(
         update_fields["tags"] = body.tags
     if body.address is not None:
         update_fields["address"] = body.address
+    if body.ai_narrative is not None:
+        update_fields["ai_narrative"] = body.ai_narrative
     if body.quality_score is not None:
         update_fields["quality_score"] = body.quality_score
 

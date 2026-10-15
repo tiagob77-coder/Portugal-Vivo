@@ -5,7 +5,7 @@ Extracted from server.py.
 from fastapi import APIRouter, HTTPException, Depends
 from datetime import datetime, timezone
 
-from shared_utils import DatabaseHolder
+from shared_utils import DatabaseHolder, find_translation, normalize_language
 from models.api_models import NarrativeRequest, NarrativeResponse
 from premium_guard import require_feature
 from llm_client import call_chat_completion
@@ -34,9 +34,48 @@ _STYLE_PROMPTS = {
 }
 
 
-def _static_narrative(item: dict, style: str) -> str:
+# Language the narrative is written in, appended to the system prompt.
+_LANGUAGE_RULES = {
+    "pt": "Responde sempre em português de Portugal.",
+    "en": "Write the whole narrative in English. Keep Portuguese place names as they are.",
+    "es": "Escribe toda la narrativa en español de España. Mantén los topónimos portugueses.",
+    "fr": "Écris tout le récit en français. Garde les noms de lieux portugais tels quels.",
+}
+
+# Static fallback in the other languages (Portuguese keeps its own wording below).
+_STATIC_TEXT = {
+    "en": {"lead": "{name}, in {region}, is part of Portugal's heritage.",
+           "story": "Some stories time has kept safe in {name}, in the heart of {region}.",
+           "closing": "A place worth discovering slowly, letting the landscape and the memory of "
+                      "{region} tell their own story."},
+    "es": {"lead": "{name}, en {region}, forma parte del patrimonio portugués.",
+           "story": "Hay historias que el tiempo guardó en {name}, en el corazón de {region}.",
+           "closing": "Un lugar que merece descubrirse con calma, dejando que el paisaje y la memoria "
+                      "de {region} cuenten su propia historia."},
+    "fr": {"lead": "{name}, en {region}, fait partie du patrimoine portugais.",
+           "story": "Il y a des histoires que le temps a gardées à {name}, au cœur de {region}.",
+           "closing": "Un lieu à découvrir sans hâte, en laissant le paysage et la mémoire de "
+                      "{region} raconter leur propre histoire."},
+}
+
+
+def _static_narrative(item: dict, style: str, language: str = "pt",
+                      translation: dict | None = None) -> str:
     """Deterministic fallback used when no LLM provider is configured or the
-    call fails — keeps the endpoint useful instead of returning a 500."""
+    call fails — keeps the endpoint useful instead of returning a 500.
+
+    Other languages are written from the translated sheet's name and description."""
+    if language != "pt":
+        translation = translation or {}
+        name = translation.get("name") or item.get("name") or ""
+        region = item.get("region") or "Portugal"
+        description = (translation.get("description") or "").strip()
+        text = _STATIC_TEXT[language]
+        if style == "brief":
+            return f"{name} ({region}). {description}".strip()
+        lead = (text["story"] if style == "storytelling" else text["lead"]).format(name=name, region=region)
+        return f"{lead} {description or text['closing'].format(region=region)}"
+
     name = item.get("name", "Este local")
     region = item.get("region") or "Portugal"
     category = item.get("category") or "património"
@@ -72,11 +111,12 @@ async def generate_narrative(request: NarrativeRequest):
         raise HTTPException(status_code=404, detail="Item not found")
 
     style = request.style if request.style in _STYLE_PROMPTS else "storytelling"
+    language = normalize_language(request.language)
     system_message = (
         "És um especialista em património cultural português. A tua tarefa é "
         "criar narrativas sobre o património de Portugal.\n"
         f"{_STYLE_PROMPTS[style]}\n"
-        "Responde sempre em português de Portugal."
+        f"{_LANGUAGE_RULES[language]}"
     )
     user_message = (
         f"Cria uma narrativa sobre: {item.get('name', '')}\n\n"
@@ -101,10 +141,14 @@ async def generate_narrative(request: NarrativeRequest):
         narrative = None
 
     if not narrative:
-        narrative = _static_narrative(item, style)
+        translation = await find_translation(_db_holder.db, request.item_id, language)
+        if language != "pt" and not (translation or {}).get("description"):
+            language = "pt"  # untranslated sheet: a Portuguese text beats a mixed one
+        narrative = _static_narrative(item, style, language, translation)
 
     return NarrativeResponse(
         narrative=narrative,
         item_name=item.get("name", ""),
         generated_at=datetime.now(timezone.utc),
+        language=language,
     )

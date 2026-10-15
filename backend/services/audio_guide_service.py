@@ -11,6 +11,8 @@ from typing import Optional, Dict, Any
 from pathlib import Path
 from dotenv import load_dotenv
 
+from shared_utils import CONTENT_LANGUAGES, find_translation, normalize_language
+
 load_dotenv()
 
 logger = logging.getLogger(__name__)
@@ -31,8 +33,6 @@ SPEED_PROFILES = {
     "slow": 0.85,      # For complex historical content
     "fast": 1.15,      # For quick facts
 }
-
-AUDIO_LANGUAGES = ("pt", "en", "es", "fr")
 
 # Spoken greeting and the line that closes a narration cut at the TTS limit.
 INTROS = {
@@ -69,27 +69,19 @@ INSTRUCTED_TTS_MODEL = "gpt-4o-mini-tts"
 MIN_AUDIO_TEXT = 20
 
 
-def normalize_audio_language(language: Optional[str]) -> str:
-    code = (language or "pt").strip().lower().replace("_", "-").split("-")[0]
-    return code if code in AUDIO_LANGUAGES else "pt"
-
-
 async def localized_narration(db, item: dict, language: Optional[str]) -> Dict[str, str]:
     """Text, POI name and language to narrate ``item`` in ``language``.
 
     Portuguese reads the AI narrative, then the description. Other languages
-    read the translated sheet (poi_translations) and fall back to Portuguese
-    while the sheet has not been translated yet, so the guide never goes silent.
+    read the translated sheet (poi_translations) the same way and fall back to
+    Portuguese while the sheet has not been translated yet, so the guide never
+    goes silent.
     """
-    language = normalize_audio_language(language)
-    if language != "pt":
-        translation = await db.poi_translations.find_one(
-            {"item_id": item.get("id"), "language": language},
-            {"_id": 0, "name": 1, "description": 1},
-        )
-        text = ((translation or {}).get("description") or "").strip()
-        if len(text) >= MIN_AUDIO_TEXT:
-            return {"text": text, "name": translation.get("name") or item.get("name", ""), "language": language}
+    language = normalize_language(language)
+    translation = await find_translation(db, item.get("id"), language) or {}
+    text = (translation.get("ai_narrative") or translation.get("description") or "").strip()
+    if len(text) >= MIN_AUDIO_TEXT:
+        return {"text": text, "name": translation.get("name") or item.get("name", ""), "language": language}
     text = item.get("ai_narrative") or item.get("description") or item.get("name") or ""
     return {"text": text, "name": item.get("name", ""), "language": "pt"}
 
@@ -116,9 +108,15 @@ class AudioGuideService:
         else:
             self.provider = None
 
-        # Persist the cache outside /tmp when AUDIO_CACHE_DIR points at a volume.
+        # Persist the cache outside /tmp when AUDIO_CACHE_DIR points at a volume
+        # (docker-compose mounts one); an unusable dir must not stop the app.
         self._cache_dir = Path(os.getenv("AUDIO_CACHE_DIR", "/tmp/audio_guides"))
-        self._cache_dir.mkdir(parents=True, exist_ok=True)
+        try:
+            self._cache_dir.mkdir(parents=True, exist_ok=True)
+        except OSError as exc:
+            logger.warning("Audio cache dir %s unusable (%s); using /tmp/audio_guides", self._cache_dir, exc)
+            self._cache_dir = Path("/tmp/audio_guides")
+            self._cache_dir.mkdir(parents=True, exist_ok=True)
         self._tts_client = None
 
         if not self.provider:
@@ -195,9 +193,13 @@ class AudioGuideService:
         return None
 
     def _cache_audio(self, cache_key: str, audio_bytes: bytes) -> None:
-        """Save audio to cache"""
+        """Save audio to cache; a full or read-only disk only costs the cache."""
         cache_path = self._cache_dir / f"{cache_key}.mp3"
-        cache_path.write_bytes(audio_bytes)
+        try:
+            cache_path.write_bytes(audio_bytes)
+        except OSError as exc:
+            logger.warning("Could not cache audio %s: %s", cache_key, exc)
+            return
         logger.info(f"Audio cached: {cache_key}")
 
     def _select_voice(self, category: Optional[str], content_type: Optional[str]) -> str:
@@ -214,7 +216,7 @@ class AudioGuideService:
         Everything returned here is read out loud, so accent guidance goes in
         the request's `instructions` field instead (see VOICE_INSTRUCTIONS).
         """
-        language = normalize_audio_language(language)
+        language = normalize_language(language)
         intro = INTROS[language].format(name=poi_name)
         cleaned = text.strip().replace("...", ". ")
 
@@ -226,7 +228,7 @@ class AudioGuideService:
 
     def _device_text(self, text: str, poi_name: str, language: str = "pt") -> str:
         """Plain narration text for on-device TTS — no engine hints, trimmed."""
-        intro = INTROS[normalize_audio_language(language)].format(name=poi_name)
+        intro = INTROS[normalize_language(language)].format(name=poi_name)
         cleaned = text.strip().replace("...", ". ")
         return (intro + cleaned)[:1500]
 
@@ -258,7 +260,7 @@ class AudioGuideService:
         # Voice/speed and a device-fallback payload are computed up front so we
         # can always return readable text for on-device TTS — the client never
         # shows a dead "Ouvir" button.
-        language = normalize_audio_language(language)
+        language = normalize_language(language)
         voice = self._select_voice(category, None)
         speed_value = SPEED_PROFILES.get(speed, 1.0)
         device_text = self._device_text(text, poi_name, language)
@@ -370,7 +372,7 @@ class AudioGuideService:
                 {"id": "normal", "value": 1.0, "description": "Normal"},
                 {"id": "fast", "value": 1.15, "description": "Rápido - para factos breves"}
             ],
-            "supported_languages": list(AUDIO_LANGUAGES)
+            "supported_languages": list(CONTENT_LANGUAGES)
         }
 
 

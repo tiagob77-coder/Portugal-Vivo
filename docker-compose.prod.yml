@@ -69,6 +69,10 @@ services:
       - MONGO_URL=mongodb://pv_app:${MONGO_APP_PASSWORD}@mongodb:27017/portugal_vivo?authSource=portugal_vivo
       - REDIS_URL=redis://redis:6379
       - ENVIRONMENT=production
+      # MP3s do guia áudio sobrevivem a reinícios e deploys
+      - AUDIO_CACHE_DIR=/app/data/audio_guides
+    volumes:
+      - audio_cache:/app/data/audio_guides
     depends_on:
       mongodb:
         condition: service_healthy
@@ -173,6 +177,8 @@ services:
         max-file: "3"
 
 volumes:
+  audio_cache:
+    driver: local
   mongo_data:
     driver: local
   redis_data:

@@ -39,6 +39,9 @@ TRANSLATIONS = [
     {"item_id": "poi-1", "language": "fr", "name": "Temple romain",
      "description": "Temple romain du Ier siècle, l'un des mieux conservés de la péninsule Ibérique."},
     {"item_id": "poi-1", "language": "es", "name": "Templo romano", "description": "Corto."},
+    {"item_id": "poi-narrated", "language": "en", "name": "Évora Cathedral",
+     "description": "Gothic cathedral on the hilltop.",
+     "ai_narrative": "For eight centuries the Cathedral has watched over the city from its hill."},
 ]
 
 
@@ -150,6 +153,18 @@ async def test_narration_uses_the_translated_sheet_and_falls_back_to_portuguese(
     assert spanish == {"text": TEMPLE["ai_narrative"], "name": "Templo Romano", "language": "pt"}
 
     assert (await ags.localized_narration(db, item, None))["language"] == "pt"
+
+    narrated = {"id": "poi-narrated", "name": "Sé de Évora", "ai_narrative": "Há oito séculos..."}
+    english = await ags.localized_narration(db, narrated, "en")
+    assert english["text"].startswith("For eight centuries")  # translated narrative before description
+
+
+def test_an_unusable_cache_dir_falls_back_to_tmp(monkeypatch, tmp_path):
+    blocker = tmp_path / "file"
+    blocker.write_text("not a directory")
+    monkeypatch.setenv("AUDIO_CACHE_DIR", str(blocker / "audio"))
+    service = ags.AudioGuideService()
+    assert str(service._cache_dir) == "/tmp/audio_guides"
 
 
 # ── Endpoints ─────────────────────────────────────────────────────────────────
