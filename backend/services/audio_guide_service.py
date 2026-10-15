@@ -11,6 +11,7 @@ from typing import Optional, Dict, Any
 from pathlib import Path
 from dotenv import load_dotenv
 
+from curated_content import curated_field
 from shared_utils import CONTENT_LANGUAGES, find_translation, normalize_language
 
 load_dotenv()
@@ -72,17 +73,19 @@ MIN_AUDIO_TEXT = 20
 async def localized_narration(db, item: dict, language: Optional[str]) -> Dict[str, str]:
     """Text, POI name and language to narrate ``item`` in ``language``.
 
-    Portuguese reads the AI narrative, then the description. Other languages
-    read the translated sheet (poi_translations) the same way and fall back to
-    Portuguese while the sheet has not been translated yet, so the guide never
-    goes silent.
+    Reads, in order: the curated História written from official sources, the AI
+    narrative, the description. Other languages read the translated sheet
+    (poi_translations) the same way and fall back to Portuguese while the sheet
+    has not been translated yet, so the guide never goes silent.
     """
     language = normalize_language(language)
     translation = await find_translation(db, item.get("id"), language) or {}
-    text = (translation.get("ai_narrative") or translation.get("description") or "").strip()
+    text = (translation.get("historia") or translation.get("ai_narrative")
+            or translation.get("description") or "").strip()
     if len(text) >= MIN_AUDIO_TEXT:
         return {"text": text, "name": translation.get("name") or item.get("name", ""), "language": language}
-    text = item.get("ai_narrative") or item.get("description") or item.get("name") or ""
+    text = (curated_field(item, "historia") or item.get("ai_narrative")
+            or item.get("description") or item.get("name") or "")
     return {"text": text, "name": item.get("name", ""), "language": "pt"}
 
 

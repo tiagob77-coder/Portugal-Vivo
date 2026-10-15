@@ -77,7 +77,10 @@
       "checkingIn": "A registar...",
       "checkin": "Check-in",
       "copied": "Copiado!",
-      "share": "Partilhar"
+      "share": "Partilhar",
+      "verifiedText": "Texto verificado nas fontes oficiais",
+      "sources": "Fontes",
+      "verifiedOn": "Verificado em {{date}}"
     },
     "route": {
       "notFound": "Rota não encontrada",
@@ -223,7 +226,10 @@
       "checkingIn": "Checking in...",
       "checkin": "Check-in",
       "copied": "Copied!",
-      "share": "Share"
+      "share": "Share",
+      "verifiedText": "Text checked against official sources",
+      "sources": "Sources",
+      "verifiedOn": "Checked on {{date}}"
     },
     "route": {
       "notFound": "Route not found",
@@ -369,7 +375,10 @@
       "checkingIn": "Registrando...",
       "checkin": "Check-in",
       "copied": "¡Copiado!",
-      "share": "Compartir"
+      "share": "Compartir",
+      "verifiedText": "Texto verificado en fuentes oficiales",
+      "sources": "Fuentes",
+      "verifiedOn": "Verificado el {{date}}"
     },
     "route": {
       "notFound": "Ruta no encontrada",
@@ -515,7 +524,10 @@
       "checkingIn": "Enregistrement...",
       "checkin": "Check-in",
       "copied": "Copié !",
-      "share": "Partager"
+      "share": "Partager",
+      "verifiedText": "Texte vérifié auprès des sources officielles",
+      "sources": "Sources",
+      "verifiedOn": "Vérifié le {{date}}"
     },
     "route": {
       "notFound": "Itinéraire introuvable",
