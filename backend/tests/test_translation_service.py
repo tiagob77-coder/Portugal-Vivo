@@ -38,6 +38,7 @@ class FakeLLM:
         self.drop_tag_for = set()  # languages answered with a wrong tag count
         self.drop_narrative_for = set()  # languages answered without the AI narrative
         self.blank_address_for = set()  # languages answered without the address
+        self.batch_languages = []  # languages asked for in each batch call
         self.fail = False
 
     async def __call__(self, prompt=None, *, messages=None, response_format=None, **kwargs):
@@ -48,6 +49,7 @@ class FakeLLM:
         if response_format:
             langs = re.search(r"languages: ([a-z, ]+)\.", user).group(1).split(", ")
             source = json.loads(user.split("\n\n", 1)[1])
+            self.batch_languages.append(langs)
             out = {}
             for lang in langs:
                 tags = [f"[{lang}] {t}" for t in source["tags"]]
@@ -61,8 +63,9 @@ class FakeLLM:
                 }
                 if lang in self.blank_address_for:
                     out[lang]["address"] = ""
-                if "ai_narrative" in source and lang not in self.drop_narrative_for:
-                    out[lang]["ai_narrative"] = f"[{lang}] {source['ai_narrative']}"
+                for key in ("ai_narrative", "resumo", "historia", "criancas", "enciclopedia"):
+                    if key in source and not (key == "ai_narrative" and lang in self.drop_narrative_for):
+                        out[lang][key] = f"[{lang}] {source[key]}"
             return json.dumps(out, ensure_ascii=False)
         lang = re.search(r"to ([a-z]{2})\.", user).group(1)
         return f"[{lang}] " + user.split("\n\n", 1)[1]
@@ -156,6 +159,44 @@ def test_hash_of_pois_without_narrative_is_unchanged():
     assert ts.TranslationService._content_hash(item) == before
     assert ts.TranslationService._content_hash(NARRATED) != ts.TranslationService._content_hash(
         {**NARRATED, "ai_narrative": "Outra narrativa."})
+
+
+CURATED = {"id": "poi-5", "name": "Citânia de Briteiros", "description": "Povoado da Idade do Ferro.",
+           "tags": [], "address": "",
+           "conteudo": {"resumo": "Povoado fortificado da Idade do Ferro.",
+                        "historia": "A citânia foi escavada a partir de 1875 por Francisco Martins Sarmento.",
+                        "enciclopedia": {"Origem": "Ocupação desde a Idade do Ferro.",
+                                         "Escavações": "Iniciadas em 1875."},
+                        "fontes": [{"titulo": "Património Cultural", "url": "https://example.pt/briteiros"}]}}
+
+
+async def test_curated_texts_are_translated_with_the_sheet(db, llm):
+    await db.heritage_items.insert_one(dict(CURATED))
+    result = await ts.TranslationService(db).translate_poi("poi-5", ["en", "fr"])
+
+    assert {r["status"] for r in result["results"].values()} == {"translated"}
+    assert llm.batch_languages == [["en", "fr"]]
+    en = await _translation(db, "poi-5", "en")
+    assert en["historia"] == "[en] " + CURATED["conteudo"]["historia"]
+    assert en["resumo"].startswith("[en] Povoado")
+    assert en["enciclopedia"] == "[en] Origem\nOcupação desde a Idade do Ferro.\n\nEscavações\nIniciadas em 1875."
+    assert en["criancas"] == ""  # the sheet has no Crianças text: nothing invented
+
+    # Editing a curated text makes the translation stale again.
+    service = ts.TranslationService(db)
+    item = await db.heritage_items.find_one({"id": "poi-5"}, {"_id": 0})
+    assert (await service.pending_languages([item], ["en"]))["poi-5"] == []
+    item["conteudo"]["historia"] += " Fundou o museu."
+    assert (await service.pending_languages([item], ["en"]))["poi-5"] == ["en"]
+
+
+async def test_long_curated_texts_get_one_call_per_language(db, llm, monkeypatch):
+    monkeypatch.setattr(ts, "LONG_SOURCE_CHARS", 50)
+    await db.heritage_items.insert_one(dict(CURATED))
+    result = await ts.TranslationService(db).translate_poi("poi-5", ["en", "es", "fr"])
+
+    assert llm.batch_languages == [["en"], ["es"], ["fr"]]
+    assert {r["status"] for r in result["results"].values()} == {"translated"}
 
 
 async def test_an_unavailable_llm_is_retried_then_reported_without_storing(db, llm):

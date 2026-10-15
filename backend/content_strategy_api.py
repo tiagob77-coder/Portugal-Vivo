@@ -29,6 +29,7 @@ from pydantic import BaseModel, Field
 
 from auth_api import get_current_user, require_auth
 from shared_constants import sanitize_regex
+from curated_content import DEPTH_FIELDS, curated_sources, curated_text, verified_at
 from shared_utils import DatabaseHolder, find_translation, normalize_language
 
 logger = logging.getLogger(__name__)
@@ -360,13 +361,45 @@ def _template_micro_story(poi: Dict, profile: Optional[str], trigger: Optional[s
 # ENDPOINTS
 # ──────────────────────────────────────────────────────────────────────────────
 
+async def _curated_response(db, poi: Dict[str, Any], request: "ContentDepthRequest",
+                            language: str, curated: str) -> Dict[str, Any]:
+    """The editor's verified text, in the requested language when its translation
+    exists, else in Portuguese (never regenerated: the point is that it was checked)."""
+    text, text_language = curated, "pt"
+    if language != "pt":
+        translation = await find_translation(db, request.poi_id, language) or {}
+        translated = (translation.get(DEPTH_FIELDS[request.depth]) or "").strip()
+        if translated:
+            text, text_language = translated, language
+    sources = curated_sources(poi)
+    checked = verified_at(poi)
+    return {
+        "poi_id": request.poi_id,
+        "depth": request.depth,
+        "cognitive_profile": request.cognitive_profile,
+        "content": text,
+        "generated_at": checked,
+        "source": "editorial",
+        "credibility": {
+            "source_type": "editorial",
+            "source_ref": sources or None,
+            "confidence_level": 1.0,
+            "last_verified": checked,
+            "reviewer": None,
+        },
+        "sources": sources,
+        "language": text_language,
+    }
+
+
 @content_strategy_router.post("/depth")
 async def get_depth_content(request: ContentDepthRequest):
     """
     Return depth-adapted, profile-aware content for a single POI.
 
-    Checks cache first (stored in heritage_items.content_cache).
-    Falls back to LLM → template if cache miss.
+    Curated text on the sheet (conteudo.resumo / historia / criancas /
+    enciclopedia) is served as is. Otherwise checks the narrative_cache
+    collection, then falls back to LLM → template.
 
     depth:
       snackable    — 30-60s hook text
@@ -379,6 +412,12 @@ async def get_depth_content(request: ContentDepthRequest):
         raise HTTPException(status_code=404, detail="POI não encontrado")
 
     language = normalize_language(request.language)
+
+    # ── Curated text written on the sheet from official sources: no LLM ──
+    curated = curated_text(poi, request.depth)
+    if curated:
+        return await _curated_response(db, poi, request, language, curated)
+
     cache_key = _cache_key(request.poi_id, request.depth, request.cognitive_profile, language)
 
     # ── Check dedicated narrative_cache collection (MongoDB Atlas) ────

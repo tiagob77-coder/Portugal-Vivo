@@ -10,12 +10,16 @@ import asyncio
 from datetime import datetime, timezone
 from typing import Optional, Dict, List, Any
 
+from curated_content import CURATED_FIELDS, CURATED_PROJECTION, curated_texts
+
 logger = logging.getLogger(__name__)
 
 SYSTEM_PROMPT = (
     "You are a professional translator specializing in Portuguese cultural heritage "
     "and tourism. Translate the following content accurately, preserving cultural context, "
-    "proper nouns, and local terminology. Keep place names in their original Portuguese form."
+    "proper nouns, and local terminology. Keep place names in their original Portuguese form. "
+    "The texts were verified against official sources: translate faithfully and never add, "
+    "remove or change facts, names, numbers or dates."
 )
 
 SUPPORTED_LANGUAGES = {"en", "es", "fr"}
@@ -41,6 +45,13 @@ async def _check_rate_limit():
 
 
 TRANSLATABLE_FIELDS = ("name", "description", "tags", "address", "ai_narrative")
+# Texts a POI may or may not have: sent only when present, required back when sent.
+OPTIONAL_TEXT_FIELDS = ("ai_narrative",) + CURATED_FIELDS
+# What a query must load for _source_fields and _content_hash.
+TRANSLATION_PROJECTION = {"_id": 0, "id": 1, **{field: 1 for field in TRANSLATABLE_FIELDS}, **CURATED_PROJECTION}
+# Above this many characters each language gets its own call, so one answer
+# stays well inside the model's output limit and a failure costs one language.
+LONG_SOURCE_CHARS = 6000
 
 # One call translates a POI into every missing language; it gets a few tries
 # before the POI is reported as failed (429s and timeouts are usually brief).
@@ -59,7 +70,15 @@ def _source_fields(item: dict) -> Dict[str, Any]:
         "tags": [t for t in (item.get("tags") or []) if isinstance(t, str) and t.strip()],
         "address": item.get("address") or "",
         "ai_narrative": item.get("ai_narrative") if isinstance(item.get("ai_narrative"), str) else "",
+        # Resumo, História, Crianças, Enciclopédia written by an editor from official sources.
+        **{field: "" for field in CURATED_FIELDS},
+        **curated_texts(item),
     }
+
+
+def _all_text(source: Dict[str, Any]) -> str:
+    return " ".join([source["name"], source["description"], " ".join(source["tags"]), source["address"],
+                     *(source[field] for field in OPTIONAL_TEXT_FIELDS)])
 
 
 def _parse_batch(raw: str, source: Dict[str, Any], languages: List[str]) -> Dict[str, Dict[str, Any]]:
@@ -83,23 +102,22 @@ def _parse_batch(raw: str, source: Dict[str, Any], languages: List[str]) -> Dict
             continue
         name, description = t.get("name"), t.get("description")
         address, tags = t.get("address", ""), t.get("tags", [])
-        narrative = t.get("ai_narrative", "")
-        if not all(isinstance(v, str) for v in (name, description, address, narrative)):
+        optional = {field: t.get(field, "") for field in OPTIONAL_TEXT_FIELDS}
+        if not all(isinstance(v, str) for v in (name, description, address, *optional.values())):
             continue
         if not isinstance(tags, list) or not all(isinstance(v, str) for v in tags):
             continue
         if len(tags) != len(source["tags"]):
             continue
-        if any(source[field] and not value.strip()
-               for field, value in (("name", name), ("description", description),
-                                    ("address", address), ("ai_narrative", narrative))):
+        texts = {"name": name, "description": description, "address": address, **optional}
+        if any(source[field] and not value.strip() for field, value in texts.items()):
             continue
         parsed[lang] = {
             "name": name.strip(),
             "description": description.strip(),
             "tags": [v.strip() for v in tags],
             "address": address.strip() if source["address"] else "",
-            "ai_narrative": narrative.strip() if source["ai_narrative"] else "",
+            **{field: value.strip() if source[field] else "" for field, value in optional.items()},
         }
     return parsed
 
@@ -146,15 +164,16 @@ class TranslationService:
         from llm_client import call_chat_completion
 
         source = _source_fields(item)
-        # Most POIs have no AI narrative: leave the key out instead of sending it empty.
-        payload = {k: v for k, v in source.items() if k != "ai_narrative" or v}
+        # Optional texts most POIs lack: leave the key out instead of sending it empty.
+        payload = {k: v for k, v in source.items() if k not in OPTIONAL_TEXT_FIELDS or v}
         prompt = (
             "Translate the values of this JSON object from European Portuguese into these "
             f"languages: {', '.join(languages)}.\n"
             "Return a JSON object keyed by language code. Each value has the same keys as the "
-            "source: name, description, address and ai_narrative when present (strings) and tags "
-            "(a list with one translation per source tag, in the same order). "
-            "Keep empty strings empty.\n\n"
+            "source: name, description, address and, when present, ai_narrative, resumo, "
+            "historia, criancas and enciclopedia (strings), and tags (a list with one "
+            "translation per source tag, in the same order). Keep line breaks and section "
+            "titles. Keep empty strings empty.\n\n"
             + json.dumps(payload, ensure_ascii=False)
         )
         messages = [
@@ -169,7 +188,7 @@ class TranslationService:
                 model="gpt-4o-mini",
                 temperature=0.2,
                 response_format={"type": "json_object"},
-                timeout=90.0,
+                timeout=150.0,
             )
             if raw:
                 return _parse_batch(raw, source, languages)
@@ -185,8 +204,8 @@ class TranslationService:
             "description": await self.translate_text(source["description"], "pt", lang),
             "tags": [await self.translate_text(tag, "pt", lang) for tag in source["tags"]],
             "address": await self.translate_text(source["address"], "pt", lang) if source["address"] else "",
-            "ai_narrative": (await self.translate_text(source["ai_narrative"], "pt", lang)
-                             if source["ai_narrative"] else ""),
+            **{field: (await self.translate_text(source[field], "pt", lang) if source[field] else "")
+               for field in OPTIONAL_TEXT_FIELDS},
         }
 
     async def _estimate_tokens(self, text: str) -> int:
@@ -232,25 +251,39 @@ class TranslationService:
             return {"item_id": item_id, "results": results, "total_tokens_estimated": 0}
 
         source = _source_fields(item)
-        all_source_text = " ".join([source["name"], source["description"], " ".join(source["tags"]),
-                                    source["address"], source["ai_narrative"]])
+        all_source_text = _all_text(source)
         source_tokens = await self._estimate_tokens(all_source_text)
-        # The source is sent once for every language: split the input, count the output per language.
-        tokens_per_language = source_tokens + max(1, source_tokens // len(languages))
         source_hash = self._content_hash(item)
 
-        try:
-            batch = await self.translate_fields(item, languages)
-        except TranslationUnavailable as e:
-            logger.error(f"Translation failed for {item_id}: {e}")
-            return {
-                "item_id": item_id,
-                "results": {lang: {"status": "error", "error": str(e)} for lang in languages},
-                "total_tokens_estimated": 0,
-            }
+        failed: Dict[str, str] = {}
+        if len(all_source_text) > LONG_SOURCE_CHARS:
+            # Long curated texts: one call per language (each pays its own input).
+            tokens_per_language = source_tokens * 2
+            batch: Dict[str, Dict[str, Any]] = {}
+            for lang in languages:
+                try:
+                    batch.update(await self.translate_fields(item, [lang]))
+                except TranslationUnavailable as e:
+                    logger.error(f"Translation failed for {item_id}/{lang}: {e}")
+                    failed[lang] = str(e)
+        else:
+            # The source is sent once for every language: split the input, count the output per language.
+            tokens_per_language = source_tokens + max(1, source_tokens // len(languages))
+            try:
+                batch = await self.translate_fields(item, languages)
+            except TranslationUnavailable as e:
+                logger.error(f"Translation failed for {item_id}: {e}")
+                return {
+                    "item_id": item_id,
+                    "results": {lang: {"status": "error", "error": str(e)} for lang in languages},
+                    "total_tokens_estimated": 0,
+                }
 
         total_tokens_estimated = 0
         for lang in languages:
+            if lang in failed:
+                results[lang] = {"status": "error", "error": failed[lang]}
+                continue
             try:
                 fields = batch.get(lang) or await self._translate_one_language(item, lang)
                 translation_doc = {
@@ -318,7 +351,7 @@ class TranslationService:
         if region_filter:
             query["region"] = region_filter
 
-        projection = {"_id": 0, "id": 1, **{field: 1 for field in TRANSLATABLE_FIELDS}}
+        projection = TRANSLATION_PROJECTION
         items = await self.heritage_col.find(query, projection).sort("id", 1).skip(offset).limit(limit).to_list(limit)
         pending = await self.pending_languages(items, languages)
         to_translate = [item for item in items if pending[item["id"]]]
@@ -372,5 +405,7 @@ class TranslationService:
         # (and the cached translation) they had before narratives were translated.
         if item.get("ai_narrative"):
             fields["ai_narrative"] = item["ai_narrative"]
+        # Same for the curated texts: hashed only when the sheet has them.
+        fields.update({f"curated_{field}": text for field, text in curated_texts(item).items()})
         content = json.dumps(fields, sort_keys=True, ensure_ascii=False)
         return hashlib.md5(content.encode()).hexdigest()

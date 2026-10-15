@@ -26,6 +26,12 @@ import type { ImpactEventType } from '../../src/services/impactTracking';
 import { useTranslation } from 'react-i18next';
 import { currentLocale } from '../../src/i18n/format';
 
+// Verification date of curated text ("2026-10-15") in the UI language.
+const formatVerifiedDate = (value: string): string => {
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? value : date.toLocaleDateString(currentLocale());
+};
+
 // Helper to remove markdown formatting from AI-generated text
 const cleanMarkdown = (text: string): string => {
   if (!text) return '';
@@ -447,16 +453,16 @@ export default function HeritageDetailScreen() {
     queryFn: async () => {
       try {
         const data = await getDepthContent(id!, 'snackable', undefined, i18n.language);
-        return { narrative: data.content, item_name: '', generated_at: data.generated_at, language: data.language };
+        return { narrative: data.content, item_name: '', generated_at: data.generated_at, language: data.language, source: data.source };
       } catch {
         // Fallback to legacy narrative API
         try {
           const data = await generateNarrative(id!, 'brief', i18n.language);
-          return data;
+          return { ...data, source: 'llm' };
         } catch (err2) {
           const cached = await offlineCache.getCachedNarrative(id!, narrativeCacheKey('brief'));
           if (cached) {
-            return { narrative: cached, item_name: item?.name || '', generated_at: 'cached', language: i18n.language };
+            return { narrative: cached, item_name: item?.name || '', generated_at: 'cached', language: i18n.language, source: 'cache' };
           }
           throw err2;
         }
@@ -933,8 +939,14 @@ export default function HeritageDetailScreen() {
                   <View style={styles.freeResumeDivider} />
                   <Text style={styles.freeResumeText}>{cleanMarkdown(freeResumeData.narrative)}</Text>
                   <View style={styles.freeResumeFooter}>
-                    <MaterialIcons name="auto-awesome" size={12} color="#C49A6C" />
-                    <Text style={styles.freeResumeFooterText}>{t('details.heritage.aiSummary')}</Text>
+                    <MaterialIcons
+                      name={freeResumeData.source === 'editorial' ? 'verified' : 'auto-awesome'}
+                      size={12}
+                      color={freeResumeData.source === 'editorial' ? '#22C55E' : '#C49A6C'}
+                    />
+                    <Text style={styles.freeResumeFooterText}>
+                      {freeResumeData.source === 'editorial' ? t('details.heritage.verifiedText') : t('details.heritage.aiSummary')}
+                    </Text>
                     <TouchableOpacity
                       onPress={() => handleSpeakNarrative(freeResumeData.narrative, freeResumeData.language)}
                       style={styles.freeResumeSpeakBtn}
@@ -1183,7 +1195,12 @@ export default function HeritageDetailScreen() {
                   <Text style={styles.cachedBadgeText}>{t('details.heritage.savedOffline')}</Text>
                 </View>
               )}
-              {depthData?.credibility && (
+              {depthData?.source === 'editorial' ? (
+                <View testID="verified-text-badge" style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginBottom: 8 }}>
+                  <MaterialIcons name="verified" size={12} color="#22C55E" />
+                  <Text style={{ fontSize: 11, color: '#22C55E', fontWeight: '600' }}>{t('details.heritage.verifiedText')}</Text>
+                </View>
+              ) : depthData?.credibility && (
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginBottom: 8 }}>
                   <MaterialIcons name="verified" size={12} color={depthData.credibility.confidence_level >= 0.7 ? '#22C55E' : '#F59E0B'} />
                   <Text style={{ fontSize: 10, color: '#94A3B8' }}>
@@ -1192,6 +1209,28 @@ export default function HeritageDetailScreen() {
                 </View>
               )}
               <Text style={styles.narrativeText}>{depthData?.content || narrativeData?.narrative}</Text>
+              {depthData?.source === 'editorial' && (!!depthData.sources?.length || !!depthData.credibility?.last_verified) && (
+                <View style={{ marginTop: 12, gap: 4 }}>
+                  {!!depthData.sources?.length && (
+                    <Text style={{ fontSize: 11, color: '#94A3B8', fontWeight: '600' }}>{t('details.heritage.sources')}</Text>
+                  )}
+                  {depthData.sources?.map((source, index) => (
+                    <Text
+                      key={`${source.titulo}-${index}`}
+                      style={{ fontSize: 11, color: source.url ? '#8B5CF6' : '#94A3B8' }}
+                      onPress={source.url ? () => Linking.openURL(source.url!) : undefined}
+                      accessibilityRole={source.url ? 'link' : undefined}
+                    >
+                      {'\u2022 '}{source.titulo}
+                    </Text>
+                  ))}
+                  {!!depthData.credibility?.last_verified && (
+                    <Text style={{ fontSize: 11, color: '#94A3B8' }}>
+                      {t('details.heritage.verifiedOn', { date: formatVerifiedDate(depthData.credibility.last_verified) })}
+                    </Text>
+                  )}
+                </View>
+              )}
               <View style={styles.narrativeActions}>
                 {/* Ouvir narrativa — device TTS, free */}
                 <TouchableOpacity
@@ -1211,13 +1250,15 @@ export default function HeritageDetailScreen() {
                     {isSpeakingNarrative ? t('details.heritage.stop') : t('details.heritage.listen')}
                   </Text>
                 </TouchableOpacity>
-                <TouchableOpacity
-                  style={styles.regenerateButton}
-                  onPress={() => refetchNarrative()}
-                >
-                  <MaterialIcons name="refresh" size={16} color="#8B5CF6" />
-                  <Text style={styles.regenerateButtonText}>{t('details.heritage.regenerate')}</Text>
-                </TouchableOpacity>
+                {depthData?.source !== 'editorial' && (
+                  <TouchableOpacity
+                    style={styles.regenerateButton}
+                    onPress={() => refetchNarrative()}
+                  >
+                    <MaterialIcons name="refresh" size={16} color="#8B5CF6" />
+                    <Text style={styles.regenerateButtonText}>{t('details.heritage.regenerate')}</Text>
+                  </TouchableOpacity>
+                )}
               </View>
             </View>
           ) : null}

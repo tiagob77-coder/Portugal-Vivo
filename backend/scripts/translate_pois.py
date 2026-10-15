@@ -99,7 +99,7 @@ async def run(args: argparse.Namespace) -> int:
         query["category"] = args.category
     if args.region:
         query["region"] = args.region
-    projection = {"_id": 0, "id": 1, **{field: 1 for field in ts.TRANSLATABLE_FIELDS}}
+    projection = ts.TRANSLATION_PROJECTION
 
     total = await db.heritage_items.count_documents(query)
     print(f"{total} POIs in scope · languages: {' '.join(args.languages)} · "

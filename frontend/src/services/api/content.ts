@@ -29,8 +29,10 @@ export const getDepthContent = async (
 ): Promise<{
   poi_id: string; depth: string; cognitive_profile: string | null;
   content: string; generated_at: string; source: string;
-  credibility: { source_type: string; confidence_level: number };
+  credibility: { source_type: string; confidence_level: number; last_verified?: string | null };
   language?: string;
+  // Present when `source` is 'editorial': text written on the sheet from these sources.
+  sources?: { titulo: string; url?: string }[];
 }> => {
   const response = await api.post('/content/depth', {
     poi_id: poiId,

@@ -32,11 +32,15 @@ jest.mock('expo-router/head', () => ({
 }));
 
 // ─── React Query ──────────────────────────────────────────────────────────────
-// Set mockHeritageItem to render a loaded POI sheet; every other query stays empty.
+// Set mockHeritageItem to render a loaded POI sheet and mockDepthContent for its
+// depth levels (not the free summary); every other query stays empty.
 let mockHeritageItem: Record<string, unknown> | undefined;
+let mockDepthContent: Record<string, unknown> | undefined;
 jest.mock('@tanstack/react-query', () => ({
   useQuery: ({ queryKey }: { queryKey: unknown[] }) => ({
-    data: queryKey[0] === 'heritage' ? mockHeritageItem : undefined,
+    data: queryKey[0] === 'heritage'
+      ? mockHeritageItem
+      : queryKey[0] === 'depth-content' && queryKey[2] !== 'snackable' ? mockDepthContent : undefined,
     isLoading: false,
     refetch: jest.fn(),
   }),
@@ -287,6 +291,46 @@ describe('Detail Screens — English UI', () => {
     const HeritageDetail = require('../heritage/[id]').default;
     const { getByText } = render(<HeritageDetail />);
     expect(getByText('Item not found')).toBeTruthy();
+  });
+});
+
+describe('heritage/[id] — curated sheet text', () => {
+  afterEach(() => {
+    mockHeritageItem = undefined;
+    mockDepthContent = undefined;
+    mockIsPremium = false;
+  });
+
+  it('marks the text as verified, lists its sources and hides Regenerate', () => {
+    const { Linking } = require('react-native');
+    const openURL = jest.spyOn(Linking, 'openURL').mockResolvedValue(true);
+    mockIsPremium = true;
+    mockHeritageItem = {
+      id: 'test-id', name: 'Citânia de Briteiros', category: 'arqueologia', region: 'norte',
+      description: 'Povoado da Idade do Ferro.', language: 'pt', tags: [],
+      location: { lat: 41.527, lng: -8.315 },
+    };
+    mockDepthContent = {
+      content: 'A citânia foi escavada a partir de 1875 por Francisco Martins Sarmento.',
+      source: 'editorial', language: 'pt',
+      credibility: { source_type: 'editorial', confidence_level: 1, last_verified: '2026-10-15' },
+      sources: [{ titulo: 'Património Cultural, I.P.', url: 'https://example.pt/briteiros' }, { titulo: 'Sociedade Martins Sarmento' }],
+    };
+
+    const HeritageDetail = require('../heritage/[id]').default;
+    const { getByTestId, getByText, queryByText } = render(<HeritageDetail />);
+    // The free summary is not a depth level: pick História, then open it.
+    fireEvent.press(getByText('História'));
+    fireEvent.press(getByText('Gerar Narrativa'));
+
+    expect(getByTestId('verified-text-badge')).toBeTruthy();
+    expect(getByText('Texto verificado nas fontes oficiais')).toBeTruthy();
+    expect(getByText('Fontes')).toBeTruthy();
+    fireEvent.press(getByText('\u2022 Património Cultural, I.P.'));
+    expect(openURL).toHaveBeenCalledWith('https://example.pt/briteiros');
+    expect(getByText('\u2022 Sociedade Martins Sarmento')).toBeTruthy();
+    expect(queryByText('Regenerar')).toBeNull();
+    openURL.mockRestore();
   });
 });
 
