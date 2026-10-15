@@ -83,7 +83,19 @@
       "permissionMessage": "Precisamos de acesso à galeria para carregar fotos.",
       "galleryUnavailable": "Galeria não disponível",
       "addPhoto": "Adicionar foto",
-      "hint": "JPEG, PNG ou WebP (máx. {{max}} MB)"
+      "hint": "JPEG, PNG ou WebP (máx. {{max}} MB)",
+      "cameraPermissionMessage": "Precisamos de acesso à câmara para tirar a foto.",
+      "cameraUnavailable": "Câmara não disponível",
+      "uploading": "A carregar...",
+      "takePhoto": "Tirar foto",
+      "takePhotoLabel": "Tirar foto com a câmara",
+      "fromLibrary": "Da galeria",
+      "fromLibraryLabel": "Escolher foto da galeria",
+      "addFromLibraryLabel": "Adicionar foto da galeria",
+      "change": "Trocar",
+      "changeLabel": "Trocar foto",
+      "remove": "Remover",
+      "removeLabel": "Remover foto"
     },
     "notificationSettings": {
       "heading": "Notificações",
@@ -354,7 +366,19 @@
       "permissionMessage": "We need access to your photo library to upload photos.",
       "galleryUnavailable": "Photo library unavailable",
       "addPhoto": "Add photo",
-      "hint": "JPEG, PNG or WebP (max. {{max}} MB)"
+      "hint": "JPEG, PNG or WebP (max. {{max}} MB)",
+      "cameraPermissionMessage": "We need access to your camera to take the photo.",
+      "cameraUnavailable": "Camera unavailable",
+      "uploading": "Uploading...",
+      "takePhoto": "Take photo",
+      "takePhotoLabel": "Take a photo with the camera",
+      "fromLibrary": "From library",
+      "fromLibraryLabel": "Choose a photo from your library",
+      "addFromLibraryLabel": "Add a photo from your library",
+      "change": "Change",
+      "changeLabel": "Change photo",
+      "remove": "Remove",
+      "removeLabel": "Remove photo"
     },
     "notificationSettings": {
       "heading": "Notifications",
@@ -625,7 +649,19 @@
       "permissionMessage": "Necesitamos acceso a la galería para subir fotos.",
       "galleryUnavailable": "Galería no disponible",
       "addPhoto": "Añadir foto",
-      "hint": "JPEG, PNG o WebP (máx. {{max}} MB)"
+      "hint": "JPEG, PNG o WebP (máx. {{max}} MB)",
+      "cameraPermissionMessage": "Necesitamos acceso a la cámara para hacer la foto.",
+      "cameraUnavailable": "Cámara no disponible",
+      "uploading": "Subiendo...",
+      "takePhoto": "Hacer foto",
+      "takePhotoLabel": "Hacer una foto con la cámara",
+      "fromLibrary": "De la galería",
+      "fromLibraryLabel": "Elegir una foto de la galería",
+      "addFromLibraryLabel": "Añadir una foto de la galería",
+      "change": "Cambiar",
+      "changeLabel": "Cambiar foto",
+      "remove": "Eliminar",
+      "removeLabel": "Eliminar foto"
     },
     "notificationSettings": {
       "heading": "Notificaciones",
@@ -896,7 +932,19 @@
       "permissionMessage": "Nous avons besoin d’accéder à votre galerie pour importer des photos.",
       "galleryUnavailable": "Galerie indisponible",
       "addPhoto": "Ajouter une photo",
-      "hint": "JPEG, PNG ou WebP (max. {{max}} Mo)"
+      "hint": "JPEG, PNG ou WebP (max. {{max}} Mo)",
+      "cameraPermissionMessage": "Nous avons besoin d’accéder à votre appareil photo pour prendre la photo.",
+      "cameraUnavailable": "Appareil photo indisponible",
+      "uploading": "Envoi en cours...",
+      "takePhoto": "Prendre une photo",
+      "takePhotoLabel": "Prendre une photo avec l’appareil",
+      "fromLibrary": "Depuis la galerie",
+      "fromLibraryLabel": "Choisir une photo dans la galerie",
+      "addFromLibraryLabel": "Ajouter une photo depuis la galerie",
+      "change": "Changer",
+      "changeLabel": "Changer la photo",
+      "remove": "Supprimer",
+      "removeLabel": "Supprimer la photo"
     },
     "notificationSettings": {
       "heading": "Notifications",

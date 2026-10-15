@@ -65,6 +65,57 @@ def haversine_km(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
     return R * 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
 
 
+def project_onto_segment(
+    lat: float, lng: float,
+    lat1: float, lng1: float,
+    lat2: float, lng2: float,
+) -> tuple:
+    """Project a point onto the segment [(lat1,lng1), (lat2,lng2)].
+
+    Returns (distance_km, t) where `t` in [0, 1] is how far along the segment
+    the closest point lies — 0 at the start, 1 at the end. Useful both to
+    filter a corridor and to order stops along a route.
+
+    Uses a local equirectangular projection instead of Haversine: over the tens
+    of km a corridor spans the error is well under 1%, and this runs inside a
+    loop over thousands of POIs.
+    """
+    mid_lat_rad = math.radians((lat1 + lat2) / 2)
+    kx = 111.32 * math.cos(mid_lat_rad)  # km per degree of longitude
+    ky = 110.57                          # km per degree of latitude
+
+    dx = (lng2 - lng1) * kx
+    dy = (lat2 - lat1) * ky
+    qx = (lng - lng1) * kx
+    qy = (lat - lat1) * ky
+
+    len_sq = dx * dx + dy * dy
+    if len_sq == 0:  # degenerate segment
+        return math.sqrt(qx * qx + qy * qy), 0.0
+
+    t = max(0.0, min(1.0, (qx * dx + qy * dy) / len_sq))
+    ex = qx - t * dx
+    ey = qy - t * dy
+    return math.sqrt(ex * ex + ey * ey), t
+
+
+def corridor_offset_km(
+    lat: float, lng: float,
+    origin: Dict[str, float],
+    destination: Dict[str, float],
+) -> tuple:
+    """Offset in km from the origin→destination axis, plus progress along it.
+
+    Convenience wrapper over project_onto_segment for the common
+    "trip corridor" case.
+    """
+    return project_onto_segment(
+        lat, lng,
+        origin["lat"], origin["lng"],
+        destination["lat"], destination["lng"],
+    )
+
+
 def haversine_meters(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
     """Calculate distance in meters between two coordinates."""
     return haversine_km(lat1, lon1, lat2, lon2) * 1000

@@ -20,6 +20,7 @@
       },
       "resultsOne": "{{count}} resultado para “{{query}}”",
       "resultsMany": "{{count}} resultados para “{{query}}”",
+      "showing": " · a mostrar {{count}}",
       "noResults": "Sem resultados",
       "emptySubtitle": "Tente pesquisar com outros termos ou remova os filtros de região",
       "clearFilters": "Limpar filtros",
@@ -165,7 +166,10 @@
       "liveTag": "AO VIVO",
       "openLiveA11y": "Abrir webcam ao vivo da praia {{name}}",
       "viewLiveCta": "Ver Webcam ao Vivo",
-      "loadingApa": "A carregar dados APA..."
+      "loadingApa": "A carregar dados APA...",
+      "noFeed": "Câmara sem transmissão disponível",
+      "feedUnavailable": "Câmara temporariamente indisponível",
+      "snapshotA11y": "Imagem em direto de {{name}}"
     },
     "transportes": {
       "sections": {
@@ -211,6 +215,7 @@
       },
       "resultsOne": "{{count}} result for “{{query}}”",
       "resultsMany": "{{count}} results for “{{query}}”",
+      "showing": " · showing {{count}}",
       "noResults": "No results",
       "emptySubtitle": "Try different search terms or remove the region filters",
       "clearFilters": "Clear filters",
@@ -356,7 +361,10 @@
       "liveTag": "LIVE",
       "openLiveA11y": "Open live webcam: {{name}}",
       "viewLiveCta": "Watch Live Webcam",
-      "loadingApa": "Loading APA data..."
+      "loadingApa": "Loading APA data...",
+      "noFeed": "No live feed available for this camera",
+      "feedUnavailable": "Camera temporarily unavailable",
+      "snapshotA11y": "Live image of {{name}}"
     },
     "transportes": {
       "sections": {
@@ -402,6 +410,7 @@
       },
       "resultsOne": "{{count}} resultado para «{{query}}»",
       "resultsMany": "{{count}} resultados para «{{query}}»",
+      "showing": " · mostrando {{count}}",
       "noResults": "Sin resultados",
       "emptySubtitle": "Prueba con otros términos o quita los filtros de región",
       "clearFilters": "Borrar filtros",
@@ -547,7 +556,10 @@
       "liveTag": "EN DIRECTO",
       "openLiveA11y": "Abrir webcam en directo: {{name}}",
       "viewLiveCta": "Ver webcam en directo",
-      "loadingApa": "Cargando datos de la APA..."
+      "loadingApa": "Cargando datos de la APA...",
+      "noFeed": "Cámara sin transmisión disponible",
+      "feedUnavailable": "Cámara temporalmente no disponible",
+      "snapshotA11y": "Imagen en directo de {{name}}"
     },
     "transportes": {
       "sections": {
@@ -593,6 +605,7 @@
       },
       "resultsOne": "{{count}} résultat pour « {{query}} »",
       "resultsMany": "{{count}} résultats pour « {{query}} »",
+      "showing": " · {{count}} affichés",
       "noResults": "Aucun résultat",
       "emptySubtitle": "Essayez d'autres termes ou retirez les filtres de région",
       "clearFilters": "Effacer les filtres",
@@ -738,7 +751,10 @@
       "liveTag": "EN DIRECT",
       "openLiveA11y": "Ouvrir la webcam en direct : {{name}}",
       "viewLiveCta": "Voir la webcam en direct",
-      "loadingApa": "Chargement des données APA..."
+      "loadingApa": "Chargement des données APA...",
+      "noFeed": "Aucun flux disponible pour cette caméra",
+      "feedUnavailable": "Caméra temporairement indisponible",
+      "snapshotA11y": "Image en direct de {{name}}"
     },
     "transportes": {
       "sections": {

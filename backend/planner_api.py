@@ -12,7 +12,7 @@ from datetime import datetime, timezone
 from fastapi import APIRouter, Query, HTTPException, Depends
 from typing import Optional, List
 from shared_constants import sanitize_regex, SUBCATEGORIES, SUBCATEGORY_MAP
-from shared_utils import DatabaseHolder, haversine_km
+from shared_utils import DatabaseHolder, haversine_km, corridor_offset_km
 from premium_guard import require_feature
 
 logger = logging.getLogger(__name__)
@@ -249,6 +249,111 @@ async def get_planner_regions():
 # =============================================================================
 # AI-POWERED ITINERARY GENERATION
 # =============================================================================
+
+async def _resolve_place(name: str) -> Optional[dict]:
+    """Resolve a place name to a centre point, from POIs matching it.
+
+    Averages the coordinates of up to 20 POIs whose name or address mentions
+    the place, which is enough to anchor a corridor endpoint.
+    """
+    if not name or not name.strip():
+        return None
+
+    safe = sanitize_regex(name.strip())
+    sample = await _db_holder.db.heritage_items.find(
+        {
+            "$or": [
+                {"address": {"$regex": safe, "$options": "i"}},
+                {"name": {"$regex": safe, "$options": "i"}},
+            ],
+            "location.lat": {"$exists": True, "$ne": None},
+        },
+        {"_id": 0, "location": 1, "region": 1},
+    ).limit(20).to_list(20)
+
+    coords = [
+        (p["location"]["lat"], p["location"]["lng"])
+        for p in sample
+        if p.get("location", {}).get("lat") and p.get("location", {}).get("lng")
+    ]
+    if not coords:
+        return None
+
+    return {
+        "name": name.strip(),
+        "lat": sum(c[0] for c in coords) / len(coords),
+        "lng": sum(c[1] for c in coords) / len(coords),
+        "region": sample[0].get("region", ""),
+    }
+
+
+def _select_corridor_pois(
+    pois: list,
+    origin: dict,
+    destination: dict,
+    corridor_km: float,
+) -> list:
+    """POIs within `corridor_km` of the origin→destination axis, in travel order.
+
+    Each POI gains `corridor_offset_km` (how far off the route it sits) and
+    `corridor_progress` (0 at origin, 1 at destination) so the caller can both
+    show the detour and lay the stops out along the way.
+    """
+    selected = []
+    for poi in pois:
+        loc = poi.get("location") or {}
+        lat, lng = loc.get("lat"), loc.get("lng")
+        if lat is None or lng is None:
+            continue
+        offset, progress = corridor_offset_km(lat, lng, origin, destination)
+        if offset <= corridor_km:
+            poi = dict(poi)
+            poi["corridor_offset_km"] = round(offset, 1)
+            poi["corridor_progress"] = round(progress, 4)
+            selected.append(poi)
+
+    selected.sort(key=lambda p: p["corridor_progress"])
+    return selected
+
+
+def _select_along_corridor(pois: list, total_needed: int, per_day: int) -> list:
+    """Pick `total_needed` stops spread evenly from origin to destination.
+
+    The corridor list is already ordered by progress along the route. Splitting
+    it into equal slices and taking the best-scored POI from each keeps every
+    day moving forward — picking purely by IQ would bunch the whole trip around
+    whichever stretch happens to be densest.
+
+    Within each slice, prefer a category not yet used, so the trip does not turn
+    into six castles in a row.
+    """
+    if not pois:
+        return []
+    if len(pois) <= total_needed:
+        return list(pois)
+
+    selected: list = []
+    used_categories: set = set()
+    slice_size = len(pois) / total_needed
+
+    for i in range(total_needed):
+        start = int(i * slice_size)
+        end = int((i + 1) * slice_size) or start + 1
+        window = pois[start:end] or pois[start:start + 1]
+
+        fresh = [p for p in window if p.get("category") not in used_categories]
+        pool = fresh or window
+        best = max(pool, key=lambda p: p.get("iq_score") or 0)
+
+        selected.append(best)
+        used_categories.add(best.get("category"))
+
+        # Let categories repeat once a day's worth of stops has gone by
+        if len(selected) % per_day == 0:
+            used_categories.clear()
+
+    return selected
+
 
 def _order_pois_by_proximity(pois: list) -> list:
     """Order POIs using nearest-neighbor for geographic coherence."""
@@ -557,6 +662,9 @@ async def generate_smart_itinerary(
     max_radius_km: float = Query(15, ge=1, le=100),
     budget_per_day: Optional[float] = Query(None, ge=0, description="Budget per person per day in EUR (0=free only, 50=budget, 150=mid-range, unlimited=None)"),
     wheelchair: bool = Query(False, description="Filter for wheelchair-accessible POIs when possible"),
+    origin: Optional[str] = Query(None, description="Trip start (place name). With destination, switches to corridor mode"),
+    destination: Optional[str] = Query(None, description="Trip end (place name). With origin, switches to corridor mode"),
+    corridor_km: float = Query(15, ge=5, le=60, description="How far off the origin→destination axis a POI may sit"),
 ):
     """Generate a smart itinerary with time periods, category diversity, and geographic coherence.
 
@@ -567,8 +675,10 @@ async def generate_smart_itinerary(
     - Geographic ordering (no zigzags)
     - Human-paced daily schedules
     """
-    if not locality and not region:
-        raise HTTPException(400, "Provide either locality or region")
+    # Corridor mode needs both ends; otherwise fall back to locality/region
+    corridor_mode = bool(origin and destination)
+    if not corridor_mode and not locality and not region:
+        raise HTTPException(400, "Provide either locality, region, or origin+destination")
 
     # Resolve interests to categories
     interest_list = [i.strip() for i in (interests or "").split(",") if i.strip()]
@@ -597,9 +707,23 @@ async def generate_smart_itinerary(
 
     center_lat = None
     center_lng = None
+    origin_place = None
+    destination_place = None
+
+    # Corridor mode: resolve both ends and centre the search between them
+    if corridor_mode:
+        origin_place = await _resolve_place(origin)
+        destination_place = await _resolve_place(destination)
+        if not origin_place or not destination_place:
+            unresolved = origin if not origin_place else destination
+            raise HTTPException(404, f"Could not locate '{unresolved}'")
+        center_lat = (origin_place["lat"] + destination_place["lat"]) / 2
+        center_lng = (origin_place["lng"] + destination_place["lng"]) / 2
+        # The corridor spans regions, so region must not narrow the query
+        poi_query.pop("region", None)
 
     # If locality is given, find center coordinates and search nearby
-    if locality:
+    if not corridor_mode and locality:
         safe_locality = sanitize_regex(locality)
         # Find POIs matching locality in address or name
         sample_pois = await _db_holder.db.heritage_items.find(
@@ -622,7 +746,7 @@ async def generate_smart_itinerary(
                 if not region:
                     region = sample_pois[0].get("region", "")
 
-    if not center_lat and region:
+    if not corridor_mode and not center_lat and region:
         safe_region = sanitize_regex(region)
         poi_query["region"] = {"$regex": safe_region, "$options": "i"}
         rc = REGION_CENTER.get(region, {"lat": 39.5, "lng": -8.0})
@@ -633,7 +757,9 @@ async def generate_smart_itinerary(
         center_lat, center_lng = 39.5, -8.0
 
     # Fetch more POIs than needed to allow diversity selection
-    fetch_limit = total_needed * 4
+    # A corridor spans the country, so it needs a much wider candidate pool
+    # than a radius search around a single centre.
+    fetch_limit = total_needed * 40 if corridor_mode else total_needed * 4
 
     pois_cursor = _db_holder.db.heritage_items.find(
         poi_query,
@@ -644,26 +770,38 @@ async def generate_smart_itinerary(
 
     all_pois = await pois_cursor.to_list(fetch_limit)
 
-    # Filter by radius from center
-    def within_radius(poi):
-        loc = poi.get("location", {})
-        if not loc.get("lat") or not loc.get("lng"):
-            return False
-        return haversine_km(center_lat, center_lng, loc["lat"], loc["lng"]) <= max_radius_km
+    corridor_pois: list = []
 
-    nearby_pois = [p for p in all_pois if within_radius(p)]
+    if corridor_mode:
+        # Everything within corridor_km of the origin→destination axis,
+        # already sorted from origin to destination.
+        corridor_pois = _select_corridor_pois(
+            all_pois, origin_place, destination_place, corridor_km
+        )
+        nearby_pois = corridor_pois
+    else:
+        # Filter by radius from center
+        def within_radius(poi):
+            loc = poi.get("location", {})
+            if not loc.get("lat") or not loc.get("lng"):
+                return False
+            return haversine_km(center_lat, center_lng, loc["lat"], loc["lng"]) <= max_radius_km
 
-    if not nearby_pois:
-        # Fallback: expand radius
-        nearby_pois = [p for p in all_pois if within_radius.__code__ and True][:total_needed]
+        nearby_pois = [p for p in all_pois if within_radius(p)]
+
         if not nearby_pois:
+            # Fallback: no POI within the radius, take the best available
             nearby_pois = all_pois[:total_needed]
 
-    # Ensure category diversity: pick from different categories
-    selected_pois = _select_diverse_pois(nearby_pois, total_needed, pois_per_day)
-
-    # Order by geographic proximity
-    selected_pois = _order_pois_by_proximity(selected_pois)
+    if corridor_mode:
+        # Spread the picks evenly along the route so every day advances towards
+        # the destination, instead of clustering wherever POIs are densest.
+        selected_pois = _select_along_corridor(corridor_pois, total_needed, pois_per_day)
+    else:
+        # Ensure category diversity: pick from different categories
+        selected_pois = _select_diverse_pois(nearby_pois, total_needed, pois_per_day)
+        # Order by geographic proximity
+        selected_pois = _order_pois_by_proximity(selected_pois)
 
     # Build daily itineraries
     daily_plans = []
@@ -720,6 +858,20 @@ async def generate_smart_itinerary(
         "wheelchair": wheelchair,
         "budget_per_day": budget_per_day,
         "center": {"lat": center_lat, "lng": center_lng},
+        "corridor": {
+            "active": corridor_mode,
+            "origin": origin_place,
+            "destination": destination_place,
+            "corridor_km": corridor_km,
+            # Everything the corridor offers, not just what fitted the days
+            "available_pois": len(corridor_pois),
+            "route_km": round(
+                haversine_km(
+                    origin_place["lat"], origin_place["lng"],
+                    destination_place["lat"], destination_place["lng"],
+                ), 1,
+            ) if corridor_mode else None,
+        } if corridor_mode else None,
         "itinerary": daily_plans,
         "summary": {
             "total_pois": total_pois,

@@ -5,11 +5,12 @@
 import React, { useEffect, useState } from 'react';
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity,
-  Linking, RefreshControl, Modal, Platform,
+  Linking, RefreshControl, Modal,
 } from 'react-native';
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { MaterialIcons } from '@expo/vector-icons';
+import BeachcamFeed from '../../src/components/BeachcamFeed';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useQuery } from '@tanstack/react-query';
@@ -49,12 +50,6 @@ const QUALITY_COLORS: Record<string, string> = {
   'Proibida': '#DC2626',
 };
 
-// WebView só existe em builds nativos
-let _WebView: any = null;
-if (Platform.OS !== 'web') {
-  _WebView = require('react-native-webview').WebView; // eslint-disable-line @typescript-eslint/no-require-imports
-}
-
 /** Overlay imersivo de webcam ao vivo (stream in-app + stats da praia). */
 function WebcamLiveOverlay({ cam, onClose }: { cam: any; onClose: () => void }) {
   const { t } = useTranslation();
@@ -79,27 +74,13 @@ function WebcamLiveOverlay({ cam, onClose }: { cam: any; onClose: () => void }) 
     <Modal visible transparent={false} animationType="fade" onRequestClose={onClose}>
       <View style={styles.liveContainer}>
         <View style={styles.liveStage}>
-          {Platform.OS === 'web' ? (
-            <iframe
-              src={cam.embed_url}
-              style={{ width: '100%', height: '100%', border: 'none' } as any}
-              title={t('exploreScreens.beachcams.iframeTitle', { name: cam.name })}
-              allow="autoplay; fullscreen"
-              loading="lazy"
-            />
-          ) : _WebView ? (
-            <_WebView
-              style={{ flex: 1, backgroundColor: '#0B1E2D' }}
-              source={{ uri: cam.embed_url }}
-              javaScriptEnabled
-              domStorageEnabled
-              allowsFullscreenVideo
-              mediaPlaybackRequiresUserAction={false}
-              originWhitelist={['*']}
-            />
-          ) : (
-            <Image source={{ uri: cam.image_url }} style={{ flex: 1 }} contentFit="cover" />
-          )}
+          <BeachcamFeed
+            provider={cam.provider}
+            feedUrl={cam.feed_url}
+            refreshSeconds={cam.refresh_seconds}
+            fallbackImage={cam.image_url}
+            name={cam.name}
+          />
           <View style={styles.liveRecBadge} pointerEvents="none">
             <View style={styles.liveRecDot} />
             <Text style={styles.liveRecText}>{t('exploreScreens.beachcams.recLive')}</Text>
@@ -129,7 +110,7 @@ function WebcamLiveOverlay({ cam, onClose }: { cam: any; onClose: () => void }) 
           <TouchableOpacity
             style={styles.liveStat}
             onPress={() => {
-              Linking.openURL(cam.embed_url).catch(() => {});
+              Linking.openURL(cam.embed_url || cam.feed_url).catch(() => {});
             }}
             accessibilityRole="button"
             accessibilityLabel={t('exploreScreens.beachcams.openInBrowserA11y')}

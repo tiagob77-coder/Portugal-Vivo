@@ -23,6 +23,8 @@ from planner_api import (
     _get_visit_minutes,
     _is_gastro_category,
     _order_pois_by_proximity,
+    _select_along_corridor,
+    _select_corridor_pois,
 )
 
 
@@ -301,3 +303,91 @@ def test_period_categories_lunch_bucket_all_gastro_compatible():
         # mercados_feiras is in both almoco and manha — it qualifies as
         # gastro for the sequence guard.
         assert _is_gastro_category(cat), f"{cat} in almoco but not gastro"
+
+
+class TestCorridorSelection:
+    """_select_corridor_pois / _select_along_corridor — corridor trip planning."""
+
+    ORIGIN = {"lat": 41.0, "lng": -8.0}
+    DESTINATION = {"lat": 38.0, "lng": -8.0}
+
+    @staticmethod
+    def _poi(name, lat, lng, category="museus", iq=50):
+        return {
+            "id": name,
+            "name": name,
+            "category": category,
+            "iq_score": iq,
+            "location": {"lat": lat, "lng": lng},
+        }
+
+    def test_keeps_only_pois_inside_the_corridor(self):
+        pois = [
+            self._poi("dentro", 40.0, -8.05),   # ~4 km off axis
+            self._poi("fora", 40.0, -6.50),     # ~127 km off axis
+        ]
+        result = _select_corridor_pois(pois, self.ORIGIN, self.DESTINATION, 15)
+        assert [p["name"] for p in result] == ["dentro"]
+
+    def test_orders_from_origin_to_destination(self):
+        pois = [
+            self._poi("sul", 38.5, -8.0),
+            self._poi("norte", 40.5, -8.0),
+            self._poi("meio", 39.5, -8.0),
+        ]
+        result = _select_corridor_pois(pois, self.ORIGIN, self.DESTINATION, 15)
+        assert [p["name"] for p in result] == ["norte", "meio", "sul"]
+
+    def test_annotates_offset_and_progress(self):
+        result = _select_corridor_pois(
+            [self._poi("x", 39.5, -8.05)], self.ORIGIN, self.DESTINATION, 15
+        )
+        poi = result[0]
+        assert 0 < poi["corridor_offset_km"] < 15
+        assert 0 < poi["corridor_progress"] < 1
+
+    def test_skips_pois_without_coordinates(self):
+        pois = [{"id": "sem-gps", "name": "sem-gps", "category": "museus", "location": {}}]
+        assert _select_corridor_pois(pois, self.ORIGIN, self.DESTINATION, 15) == []
+
+    def test_widening_the_corridor_admits_more(self):
+        pois = [self._poi("desvio", 40.0, -8.3)]  # ~25 km off axis
+        assert _select_corridor_pois(pois, self.ORIGIN, self.DESTINATION, 15) == []
+        assert len(_select_corridor_pois(pois, self.ORIGIN, self.DESTINATION, 30)) == 1
+
+    def test_selection_spreads_along_the_route(self):
+        # 30 POIs evenly spaced; asking for 6 should not bunch them together
+        pois = _select_corridor_pois(
+            [self._poi(f"p{i}", 41.0 - i * 0.1, -8.0, iq=i) for i in range(30)],
+            self.ORIGIN, self.DESTINATION, 15,
+        )
+        chosen = _select_along_corridor(pois, total_needed=6, per_day=3)
+        assert len(chosen) == 6
+        progresses = [p["corridor_progress"] for p in chosen]
+        # Monotonic, and actually reaching towards the destination
+        assert progresses == sorted(progresses)
+        assert progresses[-1] - progresses[0] > 0.5
+
+    def test_selection_prefers_unused_categories_within_a_day(self):
+        pois = _select_corridor_pois(
+            [
+                self._poi("a", 40.8, -8.0, category="castelos", iq=90),
+                self._poi("b", 40.6, -8.0, category="castelos", iq=95),
+                self._poi("c", 40.5, -8.0, category="museus", iq=10),
+                self._poi("d", 40.2, -8.0, category="miradouros", iq=80),
+            ],
+            self.ORIGIN, self.DESTINATION, 15,
+        )
+        chosen = _select_along_corridor(pois, total_needed=3, per_day=3)
+        # Despite its low score, the museum wins its slice for being a fresh category
+        assert len({p["category"] for p in chosen}) > 1
+
+    def test_returns_everything_when_fewer_than_needed(self):
+        pois = _select_corridor_pois(
+            [self._poi("a", 40.5, -8.0), self._poi("b", 39.5, -8.0)],
+            self.ORIGIN, self.DESTINATION, 15,
+        )
+        assert len(_select_along_corridor(pois, total_needed=10, per_day=3)) == 2
+
+    def test_empty_corridor_yields_no_selection(self):
+        assert _select_along_corridor([], total_needed=6, per_day=3) == []
