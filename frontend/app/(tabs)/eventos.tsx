@@ -199,12 +199,14 @@ export default function EventosTab() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { colors: tc } = useTheme();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [selectedRegion, setSelectedRegion] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
   const [viewMode, setViewMode] = useState<'calendar' | 'list'>('calendar');
+  // Dia do mês escolhido no calendário; null = mês inteiro
+  const [selectedDay, setSelectedDay] = useState<number | null>(null);
 
   const currentMonth = selectedDate.getMonth() + 1;
 
@@ -284,7 +286,27 @@ export default function EventosTab() {
       newDate.setMonth(newDate.getMonth() + 1);
     }
     setSelectedDate(newDate);
+    setSelectedDay(null);
   };
+
+  /** Eventos do dia escolhido, já com os filtros de categoria/região aplicados. */
+  const selectedDayEvents = useMemo(() => {
+    if (selectedDay === null) return [];
+    const cell = calendarDays.find(d => d.date?.getDate() === selectedDay);
+    return cell?.events ?? [];
+  }, [selectedDay, calendarDays]);
+
+  /**
+   * Nome do mês para usar a meio de uma frase. Em inglês os meses levam
+   * maiúscula ("Events on September 17"); em PT/ES/FR não ("Eventos a 17 de
+   * setembro"). As chaves partilham os mesmos placeholders em todas as línguas,
+   * por isso a capitalização decide-se aqui.
+   */
+  const selectedMonthNames = useMemo(() => {
+    const name = t(`plannerEvents.events.months.${MONTH_KEYS[selectedDate.getMonth()]}`);
+    const month = i18n.language.startsWith('en') ? name : name.toLocaleLowerCase(i18n.language);
+    return { month, monthShort: month.slice(0, 3) };
+  }, [t, i18n.language, selectedDate]);
 
   const isToday = (date: Date | null) => {
     if (!date) return false;
@@ -310,6 +332,7 @@ export default function EventosTab() {
         { backgroundColor: tc.surfaceAlt },
         isToday(day.date) && [styles.calendarDayToday, { backgroundColor: tc.accent }],
         day.events.length > 0 && styles.calendarDayWithEvent,
+        day.date?.getDate() === selectedDay && [styles.calendarDaySelected, { borderColor: tc.accent }],
       ]}
       disabled={!day.date || day.events.length === 0}
       accessibilityLabel={
@@ -322,11 +345,12 @@ export default function EventosTab() {
           : undefined
       }
       accessibilityRole="button"
+      accessibilityState={{ selected: day.date?.getDate() === selectedDay }}
       onPress={() => {
-        if (day.date && day.events.length > 0) {
-          // If single event, go directly to detail; otherwise show first event
-          openEventDetail(day.events[0]);
-        }
+        if (!day.date || day.events.length === 0) return;
+        const dayNumber = day.date.getDate();
+        // Segundo toque no mesmo dia volta ao mês inteiro
+        setSelectedDay(current => (current === dayNumber ? null : dayNumber));
       }}
     >
       {day.date && (
@@ -655,6 +679,29 @@ export default function EventosTab() {
             <View style={styles.calendarGrid}>
               {calendarDays.map((day, index) => renderCalendarDay(day, index))}
             </View>
+
+            {/* Eventos do dia escolhido */}
+            {selectedDay !== null && (
+              <View style={styles.dayEvents}>
+                <View style={styles.dayEventsHeader}>
+                  <Text style={[styles.dayEventsTitle, { color: tc.textPrimary }]}>
+                    {t('plannerEvents.events.dayEventsTitle', { day: selectedDay, ...selectedMonthNames })}
+                  </Text>
+                  <TouchableOpacity
+                    style={[styles.dayChip, { backgroundColor: tc.accent }]}
+                    onPress={() => setSelectedDay(null)}
+                    accessibilityRole="button"
+                    accessibilityLabel={t('plannerEvents.events.clearDayA11y')}
+                  >
+                    <Text style={styles.dayChipText}>
+                      {t('plannerEvents.events.dayChip', { day: selectedDay, ...selectedMonthNames })}
+                    </Text>
+                    <MaterialIcons name="close" size={14} color="#FFF" />
+                  </TouchableOpacity>
+                </View>
+                {selectedDayEvents.map(renderEventCard)}
+              </View>
+            )}
           </View>
         ) : (
           /* List View */
@@ -932,6 +979,38 @@ const styles = StyleSheet.create({
   },
   calendarDayToday: {
     backgroundColor: colors.terracotta[500],
+  },
+  calendarDaySelected: {
+    borderWidth: 2,
+  },
+  dayEvents: {
+    marginTop: 14,
+    paddingTop: 12,
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(0,0,0,0.06)',
+  },
+  dayEventsHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 10,
+  },
+  dayEventsTitle: {
+    fontSize: 15,
+    fontWeight: '700',
+  },
+  dayChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 14,
+  },
+  dayChipText: {
+    color: '#FFF',
+    fontSize: 12,
+    fontWeight: '700',
   },
   calendarDayWithEvent: {
     backgroundColor: colors.terracotta[100],

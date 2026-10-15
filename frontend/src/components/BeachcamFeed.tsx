@@ -19,6 +19,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { View, Text, StyleSheet, Platform } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
+import { useTranslation } from 'react-i18next';
 import logger from '../utils/logger';
 import { palette, withOpacity } from '../theme/colors';
 
@@ -121,6 +122,7 @@ export function BeachcamFeed({
   fallbackImage,
   name,
 }: BeachcamFeedProps) {
+  const { t } = useTranslation();
   const [failed, setFailed] = useState(false);
   const [tick, setTick] = useState(() => Date.now());
 
@@ -143,7 +145,7 @@ export function BeachcamFeed({
         {fallbackImage && (
           <Image source={{ uri: fallbackImage }} style={s.fill} contentFit="cover" />
         )}
-        <Unavailable message="Câmara sem transmissão disponível" />
+        <Unavailable message={t('exploreScreens.beachcams.noFeed')} />
       </View>
     );
   }
@@ -157,7 +159,7 @@ export function BeachcamFeed({
           contentFit="cover"
           transition={200}
           onError={() => setFailed(true)}
-          accessibilityLabel={`Imagem em direto de ${name}`}
+          accessibilityLabel={t('exploreScreens.beachcams.snapshotA11y', { name })}
         />
       )}
 
@@ -174,7 +176,7 @@ export function BeachcamFeed({
           React.createElement('iframe', {
             src: feedUrl,
             style: { width: '100%', height: '100%', border: 'none' },
-            title: `Webcam ao vivo — ${name}`,
+            title: t('exploreScreens.beachcams.iframeTitle', { name }),
             allow: 'autoplay; fullscreen',
             loading: 'lazy',
           })
@@ -198,7 +200,7 @@ export function BeachcamFeed({
           {fallbackImage && (
             <Image source={{ uri: fallbackImage }} style={s.fill} contentFit="cover" />
           )}
-          <Unavailable message="Câmara temporariamente indisponível" />
+          <Unavailable message={t('exploreScreens.beachcams.feedUnavailable')} />
         </>
       )}
     </View>

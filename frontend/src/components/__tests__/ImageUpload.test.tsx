@@ -76,3 +76,46 @@ describe('ImageUpload', () => {
     ).not.toThrow();
   });
 });
+
+describe('ImageUpload — origem da foto', () => {
+  it('oferece câmara e galeria no estado vazio', () => {
+    render(<ImageUpload {...defaultProps} />);
+    expect(screen.getByText('Tirar foto')).toBeTruthy();
+    expect(screen.getByText('Da galeria')).toBeTruthy();
+  });
+
+  it('não mostra "Remover" sem foto escolhida', () => {
+    render(<ImageUpload {...defaultProps} />);
+    expect(screen.queryByText('Remover')).toBeNull();
+  });
+
+  it('os botões de origem são acessíveis por rótulo', () => {
+    render(<ImageUpload {...defaultProps} />);
+    expect(screen.getByLabelText('Tirar foto com a câmara')).toBeTruthy();
+    expect(screen.getByLabelText('Escolher foto da galeria')).toBeTruthy();
+  });
+
+  it('em nativo, tocar em "Tirar foto" pede permissão de câmara, não de galeria', async () => {
+    const requestCamera = jest.fn(() => Promise.resolve({ status: 'denied' }));
+    const requestLibrary = jest.fn(() => Promise.resolve({ status: 'denied' }));
+    jest.doMock('expo-image-picker', () => ({
+      requestCameraPermissionsAsync: requestCamera,
+      requestMediaLibraryPermissionsAsync: requestLibrary,
+      launchCameraAsync: jest.fn(),
+      launchImageLibraryAsync: jest.fn(),
+      CameraType: { back: 'back' },
+    }), { virtual: true });
+    const { fireEvent } = require('@testing-library/react-native'); // eslint-disable-line @typescript-eslint/no-require-imports
+    const { Alert } = require('react-native'); // eslint-disable-line @typescript-eslint/no-require-imports
+    const alertSpy = jest.spyOn(Alert, 'alert').mockImplementation(() => {});
+
+    render(<ImageUpload {...defaultProps} />);
+    fireEvent.press(screen.getByLabelText('Tirar foto com a câmara'));
+    await Promise.resolve();
+
+    expect(requestCamera).toHaveBeenCalledTimes(1);
+    expect(requestLibrary).not.toHaveBeenCalled();
+    alertSpy.mockRestore();
+    jest.dontMock('expo-image-picker');
+  });
+});
