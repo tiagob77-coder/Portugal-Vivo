@@ -1,10 +1,12 @@
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter, HTTPException, Depends, Query, Request
 from motor.motor_asyncio import AsyncIOMotorDatabase
 from pydantic import BaseModel
 from typing import Optional
 
 from dependencies import get_db
-from services.audio_guide_service import audio_guide_service
+from services.audio_guide_service import (
+    AUDIO_LANGUAGES, MIN_AUDIO_TEXT, audio_guide_service, localized_narration,
+)
 from premium_guard import require_feature
 
 router = APIRouter()
@@ -16,6 +18,15 @@ router = APIRouter()
 def set_audio_guide_db(database):
     """No-op; the module now reads the DB via Depends(get_db)."""
     _ = database
+
+
+def _language_from_header(accept_language: str) -> Optional[str]:
+    """First supported language in an Accept-Language header (e.g. "en-GB,en;q=0.9")."""
+    for part in accept_language.split(","):
+        code = part.strip().split(";")[0].strip().split("-")[0].lower()
+        if code in AUDIO_LANGUAGES:
+            return code
+    return None
 
 
 class AudioGuideRequest(BaseModel):
@@ -52,19 +63,20 @@ async def get_available_voices():
 @router.get("/audio/guide/{item_id}", dependencies=[Depends(require_feature("audio_guides"))])
 async def get_audio_for_item(
     item_id: str,
+    request: Request,
+    lang: Optional[str] = Query(None, description="pt, en, es or fr; defaults to Accept-Language"),
     use_hd: bool = False,
     speed: str = "normal",
     db: AsyncIOMotorDatabase = Depends(get_db),
 ):
-    """Generate audio guide for a specific heritage item (Premium)"""
-    # Get item details
+    """Generate audio guide for a specific heritage item in the user's language (Premium)"""
     item = await db.heritage_items.find_one({"id": item_id}, {"_id": 0})
     if not item:
         raise HTTPException(status_code=404, detail="Item not found")
 
-    # Check if item has narrative/description
-    text = item.get("ai_narrative") or item.get("description") or item.get("name")
-    if not text or len(text) < 20:
+    language = lang or _language_from_header(request.headers.get("accept-language", ""))
+    narration = await localized_narration(db, item, language)
+    if len(narration["text"]) < MIN_AUDIO_TEXT:
         return {
             "success": False,
             "error": "Item does not have enough content for audio guide",
@@ -72,11 +84,11 @@ async def get_audio_for_item(
         }
 
     return await audio_guide_service.generate_audio_guide(
-        text=text,
-        poi_name=item.get("name", ""),
+        text=narration["text"],
+        poi_name=narration["name"],
         poi_id=item_id,
         category=item.get("category"),
-        language="pt",
+        language=narration["language"],
         use_hd=use_hd,
         speed=speed
     )

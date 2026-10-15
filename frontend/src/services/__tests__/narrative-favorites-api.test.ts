@@ -229,6 +229,17 @@ describe('getAudioGuideForItem', () => {
     });
   });
 
+  it('asks for the narration in the given language', async () => {
+    mockAxios.get.mockResolvedValueOnce({ data: { success: true, language: 'fr' } });
+
+    const result = await getAudioGuideForItem('poi-001', undefined, undefined, 'fr');
+
+    expect(mockAxios.get).toHaveBeenCalledWith('/audio/guide/poi-001', {
+      params: { use_hd: undefined, speed: undefined, lang: 'fr' },
+    });
+    expect(result.language).toBe('fr');
+  });
+
   it('returns error response when TTS service is unavailable', async () => {
     const mockFail = { success: false, error: 'TTS service unavailable' };
     mockAxios.get.mockResolvedValueOnce({ data: mockFail });
