@@ -175,7 +175,10 @@ jobs:
   deploy:
     name: Deploy ${{ github.event.inputs.environment || 'production' }}
     runs-on: ubuntu-latest
-    needs: [approval-gate, build-frontend]
+    # build-and-push tem de estar listado aqui: o GitHub só expõe
+    # `needs.<job>.outputs` de jobs em `needs` direto — a dependência
+    # transitiva via approval-gate não chega, e sem isto a tag vinha vazia.
+    needs: [build-and-push, approval-gate, build-frontend]
 
     steps:
       - name: Checkout
@@ -208,7 +211,12 @@ jobs:
           script: |
             set -e
             DEPLOY_PATH="${{ secrets.DEPLOY_PATH || '/opt/portugal-vivo' }}"
-            IMAGE_TAG="${{ needs.build-and-push.outputs.image-tag || 'latest' }}"
+            IMAGE_TAG="${{ needs.build-and-push.outputs.image-tag }}"
+            # Nunca cair para :latest em silêncio — o rollback depende da tag exata
+            if [ -z "$IMAGE_TAG" ]; then
+              echo "❌ Tag da imagem vazia (output de build-and-push em falta) — deploy abortado"
+              exit 1
+            fi
 
             echo "=== Deploy iniciado: $(date) ==="
             echo "Commit: ${{ github.sha }}"
