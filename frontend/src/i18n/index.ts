@@ -61,6 +61,30 @@ export const initI18n = async () => {
   return i18n;
 };
 
+/**
+ * Inicialização síncrona, para a versão web.
+ *
+ * A exportação estática (expo-router, output "static") renderiza cada página
+ * no servidor, onde os efeitos não correm — se a raiz esperar pelo initI18n()
+ * assíncrono, todas as páginas saem só com o ecrã de arranque, sem título nem
+ * conteúdo. Com os recursos já no bundle, o i18next consegue arrancar de forma
+ * síncrona; fixa-se 'pt' para o HTML do servidor e o primeiro render no
+ * browser serem iguais (sem erro de hidratação). O initI18n() que corre a
+ * seguir muda para a língua guardada ou do dispositivo.
+ */
+export const initI18nSync = (language: string = 'pt') => {
+  if (i18n.isInitialized) return i18n;
+  i18n.use(initReactI18next).init({ // eslint-disable-line import/no-named-as-default-member
+    resources,
+    lng: language,
+    fallbackLng: 'pt',
+    initAsync: false,
+    interpolation: { escapeValue: false },
+    react: { useSuspense: false },
+  });
+  return i18n;
+};
+
 export const changeLanguage = async (languageCode: string) => {
   try {
     await AsyncStorage.setItem(LANGUAGE_KEY, languageCode);

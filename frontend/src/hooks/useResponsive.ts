@@ -10,7 +10,8 @@
  *   const { width, isPhone, isTablet, columns, contentMaxWidth } = useResponsive();
  *   const cols = columns(160, spacing.md);   // nº de colunas que cabem
  */
-import { useWindowDimensions } from 'react-native';
+import { useEffect, useState } from 'react';
+import { Platform, useWindowDimensions } from 'react-native';
 import {
   BREAKPOINTS,
   CONTENT_MAX_WIDTH,
@@ -51,8 +52,40 @@ export interface ResponsiveInfo {
   select: <T>(values: { phone: T; tablet?: T; desktop?: T }) => T;
 }
 
+/**
+ * Dimensões com que a exportação estática renderiza: no servidor não há janela
+ * e o react-native-web devolve 0×0 (layout de telemóvel).
+ */
+const SERVER_WINDOW = { width: 0, height: 0 };
+
+/** Passa a true depois da primeira montagem no browser (fim da hidratação). */
+let hydrationDone = false;
+
+/** @internal Só para testes: volta ao estado de antes da hidratação. */
+export const resetHydrationStateForTests = () => {
+  hydrationDone = false;
+};
+
+/**
+ * Na web, o primeiro render no browser hidrata o HTML gerado no servidor e
+ * tem de produzir exatamente o mesmo — senão o React acusa erro de hidratação
+ * (#418) e volta a desenhar tudo no cliente. Por isso esse render usa as
+ * dimensões do servidor e só depois da montagem passa às reais. Componentes
+ * montados mais tarde (navegação no cliente) já não hidratam e usam logo as
+ * dimensões reais, sem salto de layout. No nativo não há hidratação.
+ */
+function useHydratedWindow() {
+  const real = useWindowDimensions();
+  const [hydrated, setHydrated] = useState(Platform.OS !== 'web' || hydrationDone);
+  useEffect(() => {
+    hydrationDone = true;
+    setHydrated(true);
+  }, []);
+  return hydrated ? real : SERVER_WINDOW;
+}
+
 export function useResponsive(): ResponsiveInfo {
-  const { width, height } = useWindowDimensions();
+  const { width, height } = useHydratedWindow();
 
   const isDesktop = width >= BREAKPOINTS.desktop;
   const isTablet = width >= BREAKPOINTS.tablet && width < BREAKPOINTS.desktop;

@@ -9,7 +9,9 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { I18nextProvider, useTranslation } from 'react-i18next';
 import { View, ActivityIndicator, Platform } from 'react-native';
-import i18n, { initI18n } from '../src/i18n';
+import { useFonts } from 'expo-font';
+import { MaterialIcons } from '@expo/vector-icons';
+import i18n, { initI18n, initI18nSync } from '../src/i18n';
 import { currentLocale } from '../src/i18n/format';
 import OfflineBanner from '../src/components/OfflineBanner';
 import InstallPrompt from '../src/components/InstallPrompt';
@@ -296,8 +298,24 @@ function AppHead() {
   );
 }
 
+/**
+ * Na web não há ecrã de arranque à espera das traduções: o i18n arranca já,
+ * em PT, para que a exportação estática traga o conteúdo e o <head> de cada
+ * página (sem isto, o HTML gerado era só o logótipo e o indicador de
+ * carregamento). No nativo mantém-se o ecrã de arranque até a língua guardada
+ * ser lida, para não se ver um instante em português.
+ */
+const RENDER_BEFORE_I18N_LOAD = Platform.OS === 'web';
+if (RENDER_BEFORE_I18N_LOAD) initI18nSync('pt');
+
 export default function RootLayout() {
-  const [isI18nReady, setIsI18nReady] = useState(false);
+  // Fonte dos ícones registada antes de qualquer ícone renderizar. Na
+  // exportação estática isto põe o @font-face no HTML e faz os ícones saírem
+  // já com o glifo; sem isto o servidor gerava <Text> vazios e o browser, que
+  // entretanto já tinha a fonte, gerava o glifo — erro de hidratação nos
+  // ecrãs das tabs. Não bloqueia o render (o resultado é ignorado).
+  useFonts(MaterialIcons.font);
+  const [isI18nReady, setIsI18nReady] = useState(RENDER_BEFORE_I18N_LOAD);
 
   useEffect(() => {
     initMonitoring();
