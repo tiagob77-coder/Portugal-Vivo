@@ -1,11 +1,14 @@
 import { renderHook } from '@testing-library/react-native';
 import { useWindowDimensions } from 'react-native';
-import { useResponsive } from '../useResponsive';
+import { useResponsive, resetHydrationStateForTests } from '../useResponsive';
 import { CONTENT_MAX_WIDTH } from '../../theme/breakpoints';
 
 jest.mock('react-native', () => ({
   useWindowDimensions: jest.fn(),
+  Platform: { OS: 'ios' },
 }));
+// O mesmo objeto que o hook lê — os casos web mudam-lhe o OS.
+const mockPlatform = (jest.requireMock('react-native') as { Platform: { OS: string } }).Platform;
 
 const mockDims = (width: number, height: number) => {
   (useWindowDimensions as jest.Mock).mockReturnValue({ width, height, scale: 2, fontScale: 1 });
@@ -65,5 +68,56 @@ describe('useResponsive', () => {
     mockDims(1440, 900);
     const { result } = renderHook(() => useResponsive());
     expect(result.current.select({ phone: 'a', tablet: 'b', desktop: 'c' })).toBe('c');
+  });
+});
+
+describe('useResponsive — hidratação na web', () => {
+  // O módulo guarda se a hidratação já aconteceu: cada caso começa do zero.
+  const loadWebHook = () => {
+    mockPlatform.OS = 'web';
+    resetHydrationStateForTests();
+    return useResponsive;
+  };
+
+  afterEach(() => { mockPlatform.OS = 'ios'; });
+
+  it('o render de hidratação usa as dimensões do servidor (0×0) e depois as reais', () => {
+    mockDims(1440, 900);
+    const useWebResponsive = loadWebHook();
+    const widths: number[] = [];
+    const { result } = renderHook(() => {
+      const r = useWebResponsive();
+      widths.push(r.width);
+      return r;
+    });
+
+    expect(widths[0]).toBe(0); // igual ao HTML exportado → sem erro de hidratação
+    expect(result.current.width).toBe(1440);
+    expect(result.current.isDesktop).toBe(true);
+  });
+
+  it('depois da hidratação, um ecrã novo monta já com as dimensões reais', () => {
+    mockDims(1440, 900);
+    const useWebResponsive = loadWebHook();
+    renderHook(() => useWebResponsive()); // hidratação da página inicial
+
+    const widths: number[] = [];
+    renderHook(() => {
+      const r = useWebResponsive();
+      widths.push(r.width);
+      return r;
+    });
+    expect(widths[0]).toBe(1440); // navegação no cliente: sem salto de layout
+  });
+
+  it('no nativo não há hidratação: usa logo as dimensões reais', () => {
+    mockDims(800, 1100);
+    const widths: number[] = [];
+    renderHook(() => {
+      const r = useResponsive();
+      widths.push(r.width);
+      return r;
+    });
+    expect(widths[0]).toBe(800);
   });
 });
