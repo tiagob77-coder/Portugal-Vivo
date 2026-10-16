@@ -8,6 +8,7 @@
  */
 import axios from 'axios';
 import offlineCache from '../offlineCache';
+import offlineStorage, { type OfflineRegionPackage } from '../offlineStorage';
 import { API_BASE } from '../../config/api';
 import { secureStorage } from '../../utils/secureStorage';
 import logger from '../../utils/logger';
@@ -76,18 +77,53 @@ if (__DEV__) {
   );
 }
 
-// Cache-first fallback: try API, if fails try local cache
 const CACHE_TTL = 24 * 60 * 60 * 1000; // 24h
-export async function cachedGet<T>(cacheKey: string, fetcher: () => Promise<T>, ttl = CACHE_TTL): Promise<T> {
+
+/**
+ * Resposta construída a partir dos pacotes de região descarregados.
+ * Devolve `null` quando os pacotes não têm a resposta (ex.: POI de outra região).
+ */
+export type OfflinePackFallback<T> = (packages: OfflineRegionPackage[]) => T | null;
+
+export interface CachedGetOptions<T> {
+  ttl?: number;
+  offline?: OfflinePackFallback<T>;
+}
+
+/**
+ * Network-first, com dois recursos quando a rede falha:
+ *   1. a cache recente desta mesma chamada (offlineCache, TTL);
+ *   2. os pacotes de região descarregados em Definições → Offline, se o
+ *      chamador disser como responder a partir deles (`offline`).
+ * Sem nenhum dos dois, o erro original sobe.
+ *
+ * O terceiro argumento aceita o TTL (forma antiga) ou as opções.
+ */
+export async function cachedGet<T>(
+  cacheKey: string,
+  fetcher: () => Promise<T>,
+  ttlOrOptions: number | CachedGetOptions<T> = CACHE_TTL,
+): Promise<T> {
+  const { ttl = CACHE_TTL, offline } =
+    typeof ttlOrOptions === 'number' ? { ttl: ttlOrOptions } : ttlOrOptions;
   try {
     const data = await fetcher();
     // Save to cache on success
     offlineCache.setCache(cacheKey, data, ttl).catch(() => {});
     return data;
   } catch (err) {
-    // Try cache fallback
     const cached = await offlineCache.getCache<T>(cacheKey);
     if (cached !== null) return cached;
+
+    if (offline) {
+      try {
+        const packages = await offlineStorage.getPackages();
+        const fromPacks = packages.length ? offline(packages) : null;
+        if (fromPacks !== null) return fromPacks;
+      } catch (packErr) {
+        logger.warn('[cachedGet] Leitura dos pacotes offline falhou', packErr);
+      }
+    }
     throw err;
   }
 }

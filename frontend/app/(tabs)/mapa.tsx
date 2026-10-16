@@ -24,7 +24,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { LinearGradient } from 'expo-linear-gradient';
-import api from '../../src/services/api';
+import api, { getMapItems as fetchMapItems } from '../../src/services/api';
+import type { HeritageItem, Location as LatLngLocation } from '../../src/types';
 import * as DocumentPicker from 'expo-document-picker';
 import * as Location from 'expo-location';
 import { colors, typography, spacing, borders, shadows, scrimPine } from '../../src/theme';
@@ -189,13 +190,14 @@ interface MapItem {
   iq_score?: number;
 }
 
+const hasLocation = (item: HeritageItem): item is HeritageItem & { location: LatLngLocation } =>
+  !!item.location;
+
+// Via serviço (não api.get direto) para herdar a cache e os pacotes de região
+// quando não há rede.
 const getMapItems = async (categories?: string[], region?: string | null): Promise<MapItem[]> => {
-  const searchParams = new URLSearchParams();
-  if (categories?.length) searchParams.set('categories', categories.join(','));
-  if (region) searchParams.set('region', region);
-  const qs = searchParams.toString();
-  const response = await api.get(`/map/items${qs ? '?' + qs : ''}`);
-  return response.data;
+  const items = await fetchMapItems(categories, region ?? undefined);
+  return items.filter(hasLocation);
 };
 
 // Portugal initial region
