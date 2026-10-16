@@ -162,7 +162,7 @@ async def _get_region_stats(db, region: str) -> dict:
     """Get counts and last_updated for a region."""
     region_filter = {"region": {"$regex": f"^{region}$", "$options": "i"}}
 
-    poi_count = await db.heritage.count_documents(region_filter)
+    poi_count = await db.heritage_items.count_documents(region_filter)
     routes_count = await db.routes.count_documents(region_filter)
 
     now = datetime.now(timezone.utc)
@@ -176,7 +176,7 @@ async def _get_region_stats(db, region: str) -> dict:
 
     # Find the most recently updated item
     last_updated = None
-    latest_poi = await db.heritage.find_one(
+    latest_poi = await db.heritage_items.find_one(
         region_filter,
         sort=[("updated_at", -1)],
         projection={"updated_at": 1},
@@ -239,7 +239,7 @@ async def download_region_package(region: str):
     projection = {"_id": 0, **{k: v for k, v in HEAVY_FIELDS.items()}}
 
     # Fetch heritage items (POIs)
-    heritage_cursor = db.heritage.find(region_filter, projection)
+    heritage_cursor = db.heritage_items.find(region_filter, projection)
     heritage_items = []
     async for doc in heritage_cursor:
         if "id" not in doc and "_id" in doc:

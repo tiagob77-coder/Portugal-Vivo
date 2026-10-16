@@ -17,6 +17,10 @@ jest.mock('@react-native-async-storage/async-storage', () => ({
   }),
 }));
 
+// Estes casos descrevem o armazenamento em AsyncStorage, que é o do web. No
+// nativo os pacotes vão para ficheiros — ver offlineRegionPacks.test.ts.
+jest.mock('react-native', () => ({ Platform: { OS: 'web' } }));
+
 jest.mock('@react-native-community/netinfo', () => ({
   fetch: jest.fn(),
 }));

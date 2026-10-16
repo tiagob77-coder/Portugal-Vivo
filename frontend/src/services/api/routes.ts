@@ -1,5 +1,6 @@
 import api, { cachedGet } from './client';
 import type { HeritageItem, Route, ApiParams } from '../../types';
+import { findRoute, nearbyPois, queryRoutes, routeItems } from '../offlinePackQueries';
 
 // Routes
 export const getRoutes = async (params?: {
@@ -10,17 +11,21 @@ export const getRoutes = async (params?: {
   return cachedGet(key, async () => {
     const response = await api.get('/routes', { params });
     return response.data || [];
-  });
+  }, { offline: (packs) => queryRoutes(packs, params) });
 };
 
 export const getRoute = async (id: string): Promise<Route> => {
-  const response = await api.get(`/routes/${id}`);
-  return response.data;
+  return cachedGet(`cache_route_${id}`, async () => {
+    const response = await api.get(`/routes/${id}`);
+    return response.data;
+  }, { offline: (packs) => findRoute(packs, id) });
 };
 
 export const getRouteItems = async (id: string): Promise<HeritageItem[]> => {
-  const response = await api.get(`/routes/${id}/items`);
-  return response.data;
+  return cachedGet(`cache_route_items_${id}`, async () => {
+    const response = await api.get(`/routes/${id}/items`);
+    return response.data;
+  }, { offline: (packs) => routeItems(packs, id) });
 };
 
 // ─── Trails ───────────────────────────────────────────────────────────────────
@@ -174,21 +179,28 @@ export interface NearbyPOIResponse {
 }
 
 export const getNearbyPOIs = async (request: NearbyPOIRequest): Promise<NearbyPOIResponse> => {
-  const response = await api.get('/proximity/nearby', {
-    params: {
-      lat: request.latitude,
-      lng: request.longitude,
-      radius_km: request.radius_km ?? 5,
-      category: request.categories?.[0],
-      limit: request.limit ?? 20,
+  const origin = { lat: request.latitude, lng: request.longitude };
+  const radiusKm = request.radius_km ?? 5;
+  const category = request.categories?.[0];
+  const limit = request.limit ?? 20;
+  // ~1 km de granularidade: pequenas variações de GPS reaproveitam a cache
+  const key = `cache_nearby_${origin.lat.toFixed(2)}_${origin.lng.toFixed(2)}_${radiusKm}_${category ?? 'all'}_${limit}`;
+  return cachedGet(key, async () => {
+    const response = await api.get('/proximity/nearby', {
+      params: { lat: origin.lat, lng: origin.lng, radius_km: radiusKm, category, limit },
+    });
+    const data = response.data;
+    return {
+      user_location: data.center || origin,
+      pois: data.pois || [],
+      total_found: data.total || 0,
+    };
+  }, {
+    offline: (packs) => {
+      const pois = nearbyPois(packs, origin, radiusKm, { category, limit });
+      return { user_location: origin, pois, total_found: pois.length };
     },
   });
-  const data = response.data;
-  return {
-    user_location: data.center || { lat: request.latitude, lng: request.longitude },
-    pois: data.pois || [],
-    total_found: data.total || 0,
-  };
 };
 
 export const getNearbyCategoryCounts = async (

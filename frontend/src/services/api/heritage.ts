@@ -1,5 +1,6 @@
 import api, { cachedGet } from './client';
 import type { HeritageItem, Category, MainCategory, Subcategory, Region, ApiParams } from '../../types';
+import { findPoi, packageCategories, queryPois } from '../offlinePackQueries';
 
 // Heritage Items
 export const getHeritageItems = async (params?: {
@@ -13,14 +14,14 @@ export const getHeritageItems = async (params?: {
   return cachedGet(key, async () => {
     const response = await api.get('/heritage', { params });
     return response.data;
-  });
+  }, { offline: (packs) => queryPois(packs, params) });
 };
 
 export const getHeritageItem = async (id: string): Promise<HeritageItem> => {
   return cachedGet(`cache_heritage_item_${id}`, async () => {
     const response = await api.get(`/heritage/${id}`);
     return response.data;
-  });
+  }, { offline: (packs) => findPoi(packs, id) });
 };
 
 /**
@@ -36,6 +37,12 @@ export const getLocalizedHeritageItem = async (
   return cachedGet(`cache_heritage_item_${id}_${lang}`, async () => {
     const response = await api.get(`/heritage/${id}/localized`, { params: { lang } });
     return response.data;
+  }, {
+    // Os pacotes trazem o conteúdo original (PT): melhor que nada sem rede
+    offline: (packs) => {
+      const poi = findPoi(packs, id);
+      return poi ? { ...poi, language: 'pt' } : null;
+    },
   });
 };
 
@@ -43,14 +50,14 @@ export const getHeritageByCategory = async (category: string): Promise<HeritageI
   return cachedGet(`cache_heritage_cat_${category}`, async () => {
     const response = await api.get(`/heritage/category/${category}`);
     return response.data;
-  });
+  }, { offline: (packs) => queryPois(packs, { category }) });
 };
 
 export const getHeritageByRegion = async (region: string): Promise<HeritageItem[]> => {
   return cachedGet(`cache_heritage_reg_${region}`, async () => {
     const response = await api.get(`/heritage/region/${region}`);
     return response.data;
-  });
+  }, { offline: (packs) => queryPois(packs, { region }) });
 };
 
 export const getMapItems = async (
@@ -68,8 +75,14 @@ export const getMapItems = async (
   if (limit) {
     params.limit = limit;
   }
-  const response = await api.get('/map/items', { params });
-  return response.data;
+  const key = `cache_map_items_${JSON.stringify(params)}`;
+  return cachedGet(key, async () => {
+    const response = await api.get('/map/items', { params });
+    return response.data;
+  }, {
+    offline: (packs) =>
+      queryPois(packs, { categories, region, limit }).filter((poi) => poi.location),
+  });
 };
 
 // Categories and Regions
@@ -77,7 +90,7 @@ export const getCategories = async (): Promise<Category[]> => {
   return cachedGet('cache_categories', async () => {
     const response = await api.get('/categories');
     return response.data;
-  }, 7 * 24 * 60 * 60 * 1000); // 7 days
+  }, { ttl: 7 * 24 * 60 * 60 * 1000, offline: packageCategories }); // 7 days
 };
 
 export const getMainCategories = async (): Promise<MainCategory[]> => {
