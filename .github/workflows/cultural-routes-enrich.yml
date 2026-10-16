@@ -49,7 +49,12 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install 'motor>=3.3' 'pymongo[srv]>=4.6' dnspython
+          # fastapi/pydantic/httpx: cultural_routes_hub importa shared_utils
+          # (que usa fastapi.HTTPException) e, sem rotas na BD, cai para
+          # cultural_routes_api.SEED_ROUTES (fastapi + pydantic + httpx).
+          # Versões iguais às de backend/requirements.txt.
+          pip install 'motor>=3.3' 'pymongo[srv]>=4.6' dnspython \
+            'fastapi==0.135.1' 'pydantic==2.12.5' 'httpx==0.28.1'
 
       - name: Enrich cultural routes
         run: python scripts/enrich_cultural_routes.py
