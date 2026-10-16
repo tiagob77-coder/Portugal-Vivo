@@ -25,6 +25,20 @@ export const getDeviceLanguage = () => {
   return 'en';
 };
 
+/** Etiqueta BCP 47 a declarar no <html> para cada língua da app. */
+const HTML_LANG: Record<string, string> = { pt: 'pt-PT', en: 'en', es: 'es', fr: 'fr' };
+
+/**
+ * Web: mantém `<html lang>` igual à língua da interface, para os leitores de
+ * ecrã usarem a pronúncia certa (WCAG 2.1, 3.1.1). Sem efeito no nativo.
+ */
+export const syncDocumentLanguage = (language: string) => {
+  if (typeof document === 'undefined' || !document.documentElement) return;
+  document.documentElement.lang = HTML_LANG[language] ?? language;
+};
+
+let documentLanguageListener = false;
+
 export const initI18n = async () => {
   let savedLanguage: string | null = null;
   
@@ -39,8 +53,14 @@ export const initI18n = async () => {
 
   const language = savedLanguage || getDeviceLanguage();
 
+  if (!documentLanguageListener) {
+    i18n.on('languageChanged', syncDocumentLanguage); // eslint-disable-line import/no-named-as-default-member
+    documentLanguageListener = true;
+  }
+
   if (i18n.isInitialized) {
     await i18n.changeLanguage(language); // eslint-disable-line import/no-named-as-default-member
+    syncDocumentLanguage(language);
     return i18n;
   }
 
@@ -58,6 +78,7 @@ export const initI18n = async () => {
       },
     });
 
+  syncDocumentLanguage(language);
   return i18n;
 };
 

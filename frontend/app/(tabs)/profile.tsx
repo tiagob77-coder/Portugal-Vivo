@@ -270,6 +270,10 @@ function ProfileScreen() {
               <Text style={[styles.legalLink, { color: colors.textMuted }]} onPress={() => router.push('/terms')}>
                 {t('account.profile.terms')}
               </Text>
+              <Text style={[styles.legalLinkSep, { color: colors.textMuted }]}>·</Text>
+              <Text style={[styles.legalLink, { color: colors.textMuted }]} onPress={() => router.push('/acessibilidade')}>
+                {t('account.profile.accessibility')}
+              </Text>
             </View>
           </View>
 
@@ -483,6 +487,18 @@ function ProfileScreen() {
                 <MaterialIcons name="description" size={24} color={colors.info} />
               </View>
               <Text style={[styles.actionText, { color: colors.textPrimary }]}>{t('account.profile.termsOfUse')}</Text>
+              <MaterialIcons name="chevron-right" size={20} color={colors.textMuted} />
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.actionButton, { borderBottomColor: colors.borderLight, borderBottomWidth: 1 }]}
+              onPress={() => router.push('/acessibilidade')}
+              accessibilityLabel={t('account.profile.accessibilityStatement')}
+              accessibilityRole="button"
+            >
+              <View style={[styles.actionIcon, { backgroundColor: colors.info + '15' }]}>
+                <MaterialIcons name="accessibility-new" size={24} color={colors.info} />
+              </View>
+              <Text style={[styles.actionText, { color: colors.textPrimary }]}>{t('account.profile.accessibilityStatement')}</Text>
               <MaterialIcons name="chevron-right" size={20} color={colors.textMuted} />
             </TouchableOpacity>
             <TouchableOpacity
